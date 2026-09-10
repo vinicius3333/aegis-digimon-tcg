@@ -8,9 +8,17 @@ import { compiled } from "./BT14-037.js";
 describe("BT14-037", () => {
   it("preserves MagnaAngemon's catalog identity and exact IR", () => {
     expect(getCardDefinition("BT14-037")).toMatchObject({
-      nameEn: "MagnaAngemon", colors: ["Yellow"], level: 5, playCost: 4, dp: 8000,
+      nameEn: "MagnaAngemon",
+      colors: ["Yellow"],
+      level: 5,
+      playCost: 4,
+      dp: 8000,
       evoCosts: [{ color: "Yellow", level: 4, memoryCost: 3 }],
-      forms: ["Ultimate"], attributes: ["Vaccine"], types: ["Archangel"], isAce: true, overflowMemory: 3,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Archangel"],
+      isAce: true,
+      overflowMemory: 3,
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords).toContainEqual({
@@ -25,8 +33,10 @@ describe("BT14-037", () => {
       });
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[1]).toMatchObject({
-        kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        amount: -1000, scaling: { unit: "security", per: 1 },
+        kind: "ModifyDP",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        amount: -1000,
+        scaling: { unit: "security", per: 1 },
       });
   });
 
@@ -57,8 +67,17 @@ describe("BT14-037", () => {
   it("Q2411 skips recovery above five but still applies the full security scaling to one target", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT14-037", as: "magna" }], security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"], deck: ["BT1-007"] },
-        1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }, { card: "BT14-029", as: "control", dp: 8000 }] },
+        0: {
+          hand: [{ card: "BT14-037", as: "magna" }],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-007"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-026", as: "target", dp: 8000 },
+            { card: "BT14-029", as: "control", dp: 8000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -74,13 +93,24 @@ describe("BT14-037", () => {
   it("legally evolves for cost 3 and applies the post-recovery security count", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-035", as: "base" }], hand: [{ card: "BT14-037", as: "magna" }], security: ["BT1-001"], deck: ["BT1-002", "BT1-003"] },
+        0: {
+          battleArea: [{ card: "BT14-035", as: "base" }],
+          hand: [{ card: "BT14-037", as: "magna" }],
+          security: ["BT1-001"],
+          deck: ["BT1-002", "BT1-003"],
+        },
         1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magna").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 6000);
     expect(s.perm("base").topCard.cardId).toBe("BT14-037");
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT14-035");
@@ -90,19 +120,39 @@ describe("BT14-037", () => {
   });
 
   it("Blast Digivolves for free and pays Overflow 3 when the ACE leaves", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-035", as: "base" }], hand: [{ card: "BT14-037", as: "magna" }], security: ["BT1-001"], deck: ["BT1-002"] },
-      1: { battleArea: [{ card: "BT14-020", as: "attacker" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-035", as: "base" }],
+          hand: [{ card: "BT14-037", as: "magna" }],
+          security: ["BT1-001"],
+          deck: ["BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT14-020", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 0;
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
     const opened = s.events.find((event) => event.kind === "counterWindowOpened");
     if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
     const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("magna").instanceId);
     expect(eligible).toBeDefined();
-    expect(s.engine.applyIntent(0, { type: "respondCounter", sourceInstanceId: eligible!.instanceId, effectKey: eligible!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT14-037");
     expect(s.state.memory).toBe(0);
     s.state.turnSeat = 0;

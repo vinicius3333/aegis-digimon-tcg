@@ -72,12 +72,7 @@ describe("BT15-017", () => {
         0: { battleArea: [{ card: "BT15-017", as: "phoenixmon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
-          security: [
-            { card: "BT1-001", as: "top" },
-            "BT1-001",
-            "BT1-001",
-            { card: "BT1-001", as: "bottom" },
-          ],
+          security: [{ card: "BT1-001", as: "top" }, "BT1-001", "BT1-001", { card: "BT1-001", as: "bottom" }],
         },
       },
       { autoSelectCards: true },

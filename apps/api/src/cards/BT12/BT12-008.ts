@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", kind: ["Tamer"] },
           optional: true,
+          position: "bottom",
         },
       ],
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],

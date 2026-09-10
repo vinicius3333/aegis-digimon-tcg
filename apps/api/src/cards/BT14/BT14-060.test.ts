@@ -17,13 +17,15 @@ describe("BT14-060", () => {
   it("inherits once-per-turn leave-play prevention by deleting another D-Brigade Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        mode: "prevent",
-        leaveCause: "otherThanYourEffect",
-        cost: { kind: "deleteOwn" },
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          leaveCause: "otherThanYourEffect",
+          cost: { kind: "deleteOwn" },
+        },
+      ],
     }));
 
   it("naturally reveals and plays a traited Tamer at the printed play-cost boundary while attacking", async () => {
@@ -73,9 +75,10 @@ describe("BT14-060", () => {
         target: { kind: "permanent", permanentId: hostId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
-      !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId),
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId)).toBe(false);

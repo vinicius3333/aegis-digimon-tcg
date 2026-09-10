@@ -28,7 +28,9 @@ describe("BT16-047", () => {
         },
       ],
     });
-    expect(digivolutionRequirementsFor("BT16-047")).toEqual([{ level: 5, texts: ["Pulsemon"], cost: 3, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("BT16-047")).toEqual([
+      { level: 5, texts: ["Pulsemon"], cost: 3, isAlternate: true },
+    ]);
   });
 
   it("activates both security branches at exactly three security cards", async () => {

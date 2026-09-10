@@ -25,13 +25,19 @@ describe("BT15-062", () => {
   });
 
   it("deletes the paid Digimon and plays the Dark Masters into an empty breeding area", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT15-055", as: "victim" }, { card: "BT15-062", as: "gigadramon" }],
-        hand: [{ card: "BT15-066", as: "machinedramon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-055", as: "victim" },
+            { card: "BT15-062", as: "gigadramon" },
+          ],
+          hand: [{ card: "BT15-066", as: "machinedramon" }],
+        },
+        1: { deck: ["BT15-055"] },
       },
-      1: { deck: ["BT15-055"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     const turn = s.engine.runOneTurn();

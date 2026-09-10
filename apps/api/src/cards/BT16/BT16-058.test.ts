@@ -70,11 +70,13 @@ describe("BT16-058", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
     await settle(() =>
-      engine.continuous.listCustomEffectGrants().some(
-        (grant) =>
-          grant.instanceId === s.inst("recipient").instanceId &&
-          grant.token === "[Start of Your Main Phase] This Digimon attacks.",
-      ),
+      engine.continuous
+        .listCustomEffectGrants()
+        .some(
+          (grant) =>
+            grant.instanceId === s.inst("recipient").instanceId &&
+            grant.token === "[Start of Your Main Phase] This Digimon attacks.",
+        ),
     );
   });
 });

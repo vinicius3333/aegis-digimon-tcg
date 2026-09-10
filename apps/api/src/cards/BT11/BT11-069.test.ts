@@ -98,4 +98,27 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("does not trash security when its controller's Digimon unsuspends", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-069", as: "host", under: ["BT11-069"] },
+          { card: "BT1-010", as: "ownDigimon" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "opponent" }],
+        security: ["BT1-009", "BT1-011"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenUnsuspended", {
+      unsuspendedPermanentId: s.perm("ownDigimon").permanentId,
+    });
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
 });

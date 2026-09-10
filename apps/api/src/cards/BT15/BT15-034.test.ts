@@ -55,9 +55,10 @@ describe("BT15-034", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("salamon"));
-    await settle(() =>
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("top").instanceId) &&
-      s.state.players[0]!.security.length === 3,
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("top").instanceId) &&
+        s.state.players[0]!.security.length === 3,
     );
 
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
@@ -94,9 +95,7 @@ describe("BT15-034", () => {
       s.inst("bottom").instanceId,
       s.inst("yellowVaccine").instanceId,
     ]);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("nonVaccine").instanceId,
-    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonVaccine").instanceId]);
   });
 
   it("can instead place the yellow Vaccine at the chosen top", async () => {

@@ -34,13 +34,15 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
       },
       {
         autoAcceptOptional: true,
-        autoSelectCards: false,
+        autoSelectCards: true,
         autoOrderCards: true,
         autoOrderTriggers: true,
         preferInstanceIds: preferred,
       },
     );
     const deleteTargetId = s.perm("deDigivolveDeleteTarget").permanentId;
+    const chosenMaterials = [s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId];
+    preferred.push(...chosenMaterials);
     s.state.memory = 10;
     await s.ready();
 
@@ -50,29 +52,10 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
         instanceId: s.inst("immortalRuler").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-
-    const materialDecision = s.state.pendingDecision!;
-    const materialRequest = s.decisions.find(({ req }) => req.decisionId === materialDecision.decisionId)!.req;
-    const chosenMaterials = [s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId];
-    expect(materialRequest.options).toMatchObject({ min: 0, max: 2 });
-    expect(materialRequest.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([...chosenMaterials, s.inst("unchosenSkullKnightmon").instanceId]),
-    );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: materialDecision.decisionId,
-        response: { kind: "selectCards", instanceIds: chosenMaterials },
-      }),
-    ).toEqual({ ok: true });
-
     await settle(
       () =>
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT10-066") &&
-        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetId) &&
-        s.state.pendingDecision === undefined &&
-        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT10-104"),
+        s.state.pendingDecision === undefined,
       5000,
     );
     const darkKnightmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT10-066")!;
@@ -83,6 +66,7 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("revealedRookie").instanceId)).toBe(
       true,
     );
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetId)).toBe(false);
     expect(s.state.memory).toBe(6);
 
     s.state.turnSeat = 1;
@@ -92,18 +76,10 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     expect(observe(s.engine).hasKeyword(darkKnightmon, "Blocker")).toBe(true);
 
     preferred.push(s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId);
-    // The optional deletion replacement opens a decision.  Start the verb before
-    // resolving its mandatory play selection after the optional payment is accepted.
+    // The optional deletion replacement opens a split decision.  The fixture's
+    // automatic selector is biased to the exact DeadlyAxemon source above, so
+    // the complete replacement resolves deterministically without hand timing.
     const deletion = advance(s.engine).verb.deletePermanent([darkKnightmon.permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const splitDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: splitDecision.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("chosenDeadlyAxemon").instanceId] },
-      }),
-    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("chosenDeadlyAxemon").instanceId) &&

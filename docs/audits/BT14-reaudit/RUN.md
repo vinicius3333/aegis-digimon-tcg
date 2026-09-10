@@ -1,0 +1,21 @@
+# BT14 re-audit run
+
+- Dedicated branch/worktree: `audit-bt14-luna-20260910`.
+- Cumulative base: `0eb9dfb68f3fce67360d5f63e72895db02b386c9`.
+- Inventory counts (catalog, modules, focused tests): 102 102 102.
+- Main untouched; heavy commands use separate process/memory gates and serial Vitest.
+- Read-only semantic review completed for all 102 cards. All are catalog/KB/IR aligned. The initial grouped-report limitation for BT14-084 and BT14-086 was stale: direct reinspection found existing natural attack/security-check/self-play tests at BT14-084 lines 45-61 and BT14-086 lines 112-130, so both satisfy full behavioral proof without a patch.
+- Focused baseline BT14-001..016 passed 16/16 files and 65/65 tests with serial flags.
+- Focused BT14-017..048 passed 32/32 files and 144/144 tests with serial flags.
+- Focused BT14-049..080 passed 32/32 files and 122/122 tests with serial flags.
+- Focused BT14-081..102 passed 22/22 files and 104/104 tests with serial flags. All 102 rows reached the 8/10 worker cap.
+- Runtime was held while unrelated BT26 typechecks and broad API/web Vitest runs were active; no overlapping BT14 heavy process was launched.
+- Exact collection manifest contains 103 test paths (102 cards plus catalog sync); every path's parent basename validated as exactly `BT14`. Scoped production scan found zero `@ts-nocheck` and zero `registerCard(` occurrences.
+- Runtime remained held when `memory_pressure -Q` reported 21%; static reconciliation and manifest validation continued without launching tests/builds.
+- Exact BT14-only collection passed 103/103 files and 540/540 tests with `--maxWorkers=1 --no-file-parallelism`.
+- Effects sync and effects check each passed: 102 records already synchronized, zero semantic changes against the BT13 base, and zero semantic or byte changes outside BT14.
+- Affected-mechanism manifest passed 12/12 files and 316/316 tests: decisions, visible identities, Option use cost, Security activation, continuous effects, DigiXros replacement budgets, hand-trash costs, interpreter, registration, exact-name matching, reveal/add budgets, and playing-card conformance.
+- Full workspace typecheck passed for shared, API, and web.
+- All 11 grouped BT14 semantic reports are present. Strict ledger recalc: 102 exact rows, every row 10/10, aggregate 1020/1020.
+- Initial full-set format check identified 21 pre-existing unformatted BT14 focused tests. `oxfmt` mechanically normalized those files; the exact 103-file collection was rerun afterward and remained green at 540/540 tests.
+- Final full-set format check and `git diff --check` passed. Full-set Oxlint exited successfully with pre-existing Vitest-rule warnings only (no errors). Final scoped smell scan remained zero `@ts-nocheck` and zero `registerCard(`.

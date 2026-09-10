@@ -37,7 +37,9 @@ describe("BT16-019", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("eligible").isSuspended);
 
     expect(s.perm("eligible").isSuspended).toBe(false);

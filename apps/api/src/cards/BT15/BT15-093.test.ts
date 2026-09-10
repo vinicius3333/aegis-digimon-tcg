@@ -22,7 +22,10 @@ describe("BT15-093", () => {
         0: {
           battleArea: [{ card: "BT15-033", as: "source" }],
           hand: [{ card: "BT15-093", as: "option" }],
-          security: [{ card: "BT15-034", as: "top" }, { card: "BT15-037", as: "bottom" }],
+          security: [
+            { card: "BT15-034", as: "top" },
+            { card: "BT15-037", as: "bottom" },
+          ],
         },
         1: { battleArea: [{ card: "BT15-052", as: "target", dp: 15000 }] },
       },
@@ -30,7 +33,9 @@ describe("BT15-093", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 3000);
 
     expect(s.perm("target").currentDP).toBe(3000);

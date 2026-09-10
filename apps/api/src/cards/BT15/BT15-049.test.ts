@@ -46,14 +46,17 @@ describe("BT15-049", () => {
   });
 
   it("Blast Digivolves from hand at Counter Timing without paying memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
-      1: {
-        battleArea: [{ card: "BT15-048", as: "base" }],
-        hand: [{ card: "BT15-049", as: "megakabuterimon" }],
-        security: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT15-048", as: "base" }],
+          hand: [{ card: "BT15-049", as: "megakabuterimon" }],
+          security: ["BT1-001"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 0;
     s.state.memory = 0;
 
@@ -67,9 +70,7 @@ describe("BT15-049", () => {
     await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
     const opened = s.events.find((event) => event.kind === "counterWindowOpened");
     if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
-    const eligible = opened.eligibleCounters.find(
-      (entry) => entry.instanceId === s.inst("megakabuterimon").instanceId,
-    );
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("megakabuterimon").instanceId);
     expect(eligible).toBeDefined();
 
     expect(
@@ -86,12 +87,15 @@ describe("BT15-049", () => {
   });
 
   it("digivolves legally from a green level-4 Digimon and applies the When Digivolving boost", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT15-048", as: "base" }],
-        hand: [{ card: "BT15-049", as: "megakabuterimon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-048", as: "base" }],
+          hand: [{ card: "BT15-049", as: "megakabuterimon" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
 
     expect(

@@ -39,7 +39,10 @@ describe("BT14-085", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-085", as: "mimi" }, { card: "BT14-044", as: "payment" }],
+          battleArea: [
+            { card: "BT14-085", as: "mimi" },
+            { card: "BT14-044", as: "payment" },
+          ],
           hand: [{ card: "BT14-043", as: "koDokugumon" }],
         },
         1: { battleArea: [{ card: "BT14-069", as: "target" }] },
@@ -49,7 +52,9 @@ describe("BT14-085", () => {
     preferred.push(s.perm("payment").permanentId);
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koDokugumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koDokugumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("mimi").isSuspended && s.perm("target").isSuspended);
     expect(s.perm("mimi").isSuspended).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
@@ -58,7 +63,10 @@ describe("BT14-085", () => {
 
   it("plays itself from security through a natural security check", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-071", as: "attacker" }] }, 1: { security: [{ card: "BT14-085", as: "securityMimi" }] } },
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-085", as: "securityMimi" }] },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(

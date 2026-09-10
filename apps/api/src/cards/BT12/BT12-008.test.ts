@@ -41,14 +41,21 @@ describe("BT12-008 Shoutmon", () => {
   it("may Save itself under one of its Tamers after deletion", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT12-008", as: "shoutmon" }, { card: "BT12-089", as: "tamer" }] },
+        0: {
+          battleArea: [
+            { card: "BT12-008", as: "shoutmon" },
+            { card: "BT12-089", as: "tamer" },
+          ],
+        },
         1: { hand: [{ card: "ST7-06", as: "removal" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tamer").stack.some(({ cardId }) => cardId === "BT12-008"));
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toContain("BT12-008");
   });
@@ -56,16 +63,45 @@ describe("BT12-008 Shoutmon", () => {
   it("can decline Save and leave itself in trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT12-008", as: "shoutmon" }, { card: "BT12-089", as: "tamer" }] },
+        0: {
+          battleArea: [
+            { card: "BT12-008", as: "shoutmon" },
+            { card: "BT12-089", as: "tamer" },
+          ],
+        },
         1: { hand: [{ card: "ST7-06", as: "removal" }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT12-008"));
     expect(s.perm("tamer").stack).toHaveLength(0);
+  });
+
+  it("places Save at the bottom of an existing Tamer stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-008", as: "shoutmon" },
+            { card: "BT12-089", as: "tamer", under: ["BT1-009"] },
+          ],
+        },
+        1: { hand: [{ card: "ST7-06", as: "removal" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").stack.some(({ cardId }) => cardId === "BT12-008"));
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT12-008", "BT1-009"]);
   });
 
   it("deletes only an eligible 4000 DP Digimon through a public attack", async () => {
@@ -106,7 +142,12 @@ describe("BT12-008 Shoutmon", () => {
     const once = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-008"] }] },
-        1: { battleArea: [{ card: "BT12-021", dp: 4000 }, { card: "BT12-021", dp: 4000 }] },
+        1: {
+          battleArea: [
+            { card: "BT12-021", dp: 4000 },
+            { card: "BT12-021", dp: 4000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

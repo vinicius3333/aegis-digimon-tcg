@@ -4219,6 +4219,9 @@ export class GameEngine {
           enteredByEffect: ownerSeat,
           ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
           ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
+          ...(opts?.digiXrosMaterialCount !== undefined
+            ? { digiXrosMaterialCount: opts.digiXrosMaterialCount }
+            : {}),
           ...(opts?.playedByEffectSourceCardId !== undefined
             ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
             : {}),

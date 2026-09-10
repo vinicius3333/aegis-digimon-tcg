@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-086.js";
 
 describe("BT13-086 BT13-086", () => {
@@ -12,7 +13,7 @@ describe("BT13-086 BT13-086", () => {
       actions: [
         {
           kind: "Replacement",
-          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: XT"] }] },
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Replacement",
@@ -106,5 +107,33 @@ describe("BT13-086 BT13-086", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("xt").permanentId]);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080")).toBe(true);
+  });
+
+  it("reduces the 9-cost play by 6 after deleting an own level-4 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-086", as: "xt" }],
+          battleArea: [{ card: "BT13-083", as: "level4" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xt").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("level4").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("level4").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-086")).toBe(true);
+  });
+
+  it("keeps its permanent no-digivolution restriction active", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-086", as: "xt" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).isRestricted(s.perm("xt"), "digivolve")).toBe(true);
   });
 });

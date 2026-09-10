@@ -18,7 +18,9 @@ it("uses inherited Blocker in a natural attack block", async () => {
   await s.ready();
   const attackerId = s.perm("attacker").permanentId;
   const hostId = s.perm("host").permanentId;
-  expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+  expect(
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
   await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
   expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({ ok: true });
   await settle(() => s.events.some((event) => event.kind === "blocked"));
