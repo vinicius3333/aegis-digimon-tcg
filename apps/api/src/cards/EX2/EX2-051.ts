@@ -1,8 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -28,7 +27,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother D-Reaper"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

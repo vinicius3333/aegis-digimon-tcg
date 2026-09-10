@@ -5,8 +5,16 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { compiled } from "./EX2-007.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT6/BT6-095.js";
+import "../BT7/BT7-067.js";
+import "../BT7/BT7-107.js";
+import "../BT8/BT8-018.js";
 import "../ST9/ST9-10.js";
 import "../BT8/BT8-071.js";
+
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const inertSecurity = ["BT1-009", "BT1-013"];
 
 // EX2-007 (Mother D-Reaper) — KB-grounded behavior tests.
 //
@@ -121,6 +129,180 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("can be attacked while unsuspended and deleted in battle (Q3278/Q3279/Q3285)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-018", as: "attacker", dp: 20000 }], deck: inertDeck, security: inertSecurity },
+      1: { battleArea: [{ card: "EX2-007", as: "mother" }], deck: inertDeck, security: inertSecurity },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.perm("mother").isSuspended).toBe(false);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("attacker"))).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("mother").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("owner deletion routes Mother face-down to the bottom of the Digi-Egg deck (Q3280/Q3281)", async () => {
+    const preferred: string[] = [];
+    let motherId: string | undefined;
+    const movementEvents: Array<{ from: string; to: string }> = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-007", as: "mother" },
+            { card: "BT7-067", as: "purpleSource" },
+          ],
+          hand: [{ card: "BT7-107", as: "option" }],
+          deck: inertDeck,
+          eggDeck: [{ card: "BT1-001", as: "egg" }],
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      {
+        autoSelectCards: false,
+        autoOrderTriggers: true,
+        preferInstanceIds: preferred,
+        onEvent(event) {
+          if (event.kind !== "cardsMoved" || motherId === undefined || !event.instanceIds.includes(motherId)) return;
+          movementEvents.push({ from: event.from, to: event.to });
+        },
+      },
+    );
+    preferred.push(s.perm("mother").permanentId);
+    motherId = s.inst("mother").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetDecision = s.state.pendingDecision;
+    expect(targetDecision?.kind).toBe("chooseTargets");
+    const targetPayload = JSON.parse(targetDecision!.payloadJson) as { candidateInstanceIds?: string[] };
+    expect(targetPayload.candidateInstanceIds).toContain(s.perm("mother").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("mother").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === motherId) &&
+        movementEvents.length > 0,
+    );
+    const locations = {
+      hand: s.state.players[0]!.hand.some((card) => card.instanceId === motherId),
+      deck: s.state.players[0]!.deck.some((card) => card.instanceId === motherId),
+      eggDeck: s.state.players[0]!.eggDeck.some((card) => card.instanceId === motherId),
+      trash: s.state.players[0]!.trash.some((card) => card.instanceId === motherId),
+    };
+    expect(movementEvents.at(-1)).toEqual({ from: "battleArea", to: "eggDeck" });
+    expect(locations).toEqual({ hand: false, deck: false, eggDeck: true, trash: false });
+    expect(locations.eggDeck).toBe(true);
+    expect(s.state.players[0]!.eggDeck.find((card) => card.instanceId === motherId)?.faceUp).toBe(false);
+  });
+
+  it("may decline the first D-Reaper reduction and use it for the second play (Q3282)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: ["EX2-046"] }],
+          hand: [
+            { card: "EX2-047", as: "firstDReaper" },
+            { card: "EX2-047", as: "secondDReaper" },
+          ],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoOrderCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDReaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstReduction = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstReduction.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("firstDReaper").instanceId,
+        ),
+    );
+    expect(s.state.memory).toBe(3);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDReaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const secondReduction = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondReduction.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("secondDReaper").instanceId,
+        ),
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not let an opponent-wide deletion cancel other targets through Mother immunity (Q3285/Q3286)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "BT6-095", as: "option" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: {
+          battleArea: [
+            { card: "EX2-007", as: "mother", dp: 15000 },
+            { card: "BT1-009", as: "otherTarget", dp: 15000 },
+          ],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("mother").instanceId);
+    expect(s.perm("mother").currentDP).toBe(15000);
   });
 
   it("is not affected by an opponent's On Play effect", async () => {

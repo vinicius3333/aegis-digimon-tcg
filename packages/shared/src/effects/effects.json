@@ -152970,6 +152970,12 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "restriction": "attack",
             "duration": "permanent"
+          },
+          {
+            "kind": "GrantImmunity",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "immuneFrom": "opponentEffects",
+            "duration": "permanent"
           }
         ]
       },
@@ -152979,7 +152985,10 @@
           {
             "kind": "PlaceUnder",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "nameExact" }]
+              },
               "count": 1,
               "from": ["hand"]
             },
@@ -152988,14 +152997,14 @@
               "filter": {
                 "controllerDefault": "mine",
                 "excludeSelf": true,
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "raw": "you don't have another [Mother D-Reaper] in play"
             },
             "destination": {
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -153010,22 +153019,22 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "controllerDefault": "mine" },
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["D-Reaper"], "match": "trait" }]
+            },
             "actions": [
               {
                 "kind": "Replacement",
                 "event": "wouldBePlayed",
                 "mode": "reduceCost",
                 "amount": 1,
-                "raw": "reduce its play cost by 1",
+                "raw": "reduce its play cost by 1 for each of this Digimon's digivolution cards",
                 "optional": true
               }
             ],
-            "scaling": {
-              "per": 1,
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
-              "unit": "digivolutionCards"
-            }
+            "scaling": { "per": 1, "unit": "digivolutionCards" }
           }
         ],
         "frequency": "OncePerTurn"
@@ -153228,7 +153237,7 @@
   "EX2-012": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "Rule",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -153262,7 +153271,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Guilmon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Guilmon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -153272,7 +153281,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Takato Matsuki"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Takato Matsuki"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -153396,13 +153408,13 @@
             "op": "addTop",
             "controller": "mine",
             "source": "deck",
+            "amount": 1,
+            "maxSecurity": 5,
             "scaling": {
               "per": 1,
-              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"] },
-              "unit": "cards"
-            },
-            "amount": 1,
-            "maxSecurity": 5
+              "unit": "cards",
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "none" }
+            }
           }
         ]
       }
@@ -153566,7 +153578,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "zone": "security", "topCard": true }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "by trashing the top card of your security stack"
             },
             "optional": true
@@ -153867,7 +153879,7 @@
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "controllerDefault": "opponent" }, "count": "all", "sameTarget": true },
+            "target": { "filter": { "boundRef": "suspendedByMegaGargomon" }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
           }
@@ -154513,7 +154525,7 @@
             "raw": "When one of your Digimon digivolves, you may suspend this Digimon",
             "actions": [
               { "kind": "GainMemory", "amount": 1 },
-              { "kind": "Draw", "amount": 1 },
+              { "kind": "Draw", "controller": "mine", "amount": 1 },
               {
                 "kind": "ModifyDP",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
@@ -154720,7 +154732,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "raw": "you have a [Mother D-Reaper] in play"
             }
@@ -154751,7 +154763,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "raw": "you have a [Mother D-Reaper] in play"
             },
@@ -154819,7 +154831,7 @@
               "kind": "youHave",
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }],
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }],
                 "digivolutionCardsAtLeast": 5
               },
               "raw": "one of your [Mother D-Reaper]s has 5 or more digivolution cards"
@@ -154852,7 +154864,7 @@
               "kind": "youHave",
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }],
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }],
                 "digivolutionCardsAtLeast": 5
               },
               "raw": "one of your [Mother D-Reaper]s has 5 or more digivolution cards"
@@ -155165,7 +155177,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Leomon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Leomon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -155328,16 +155340,16 @@
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Gargomon", "Rapidmon"], "match": "name" }]
             },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "optional": true,
             "actions": [
               {
                 "kind": "Suspend",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "optional": true
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
               }
             ]
           }

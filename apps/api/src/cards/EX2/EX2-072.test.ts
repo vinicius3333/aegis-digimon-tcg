@@ -1,28 +1,115 @@
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX2-072.js";
+import "./EX2-014.js";
 import "./EX2-019.js";
 import "./EX2-021.js";
+import "./EX2-046.js";
+import "./EX2-060.js";
 import "./EX2-072.js";
 
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const inertSecurity = ["BT1-009", "BT1-013"];
+
 describe("EX2-072 Blue Card", () => {
+  it("matches the catalog, Q3362-Q3365, and typed compiled IR", () => {
+    expect(getCardDefinition("EX2-072")).toMatchObject({
+      cardId: "EX2-072",
+      nameEn: "Blue Card",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      rarity: "R",
+      maxCountInDeck: 4,
+      effectText:
+        "While you have a Tamer in play, you may use this card without meeting its color requirements.[Main] Reveal the top 5 cards of your deck. You may digivolve 1 of your Digimon into 1 non-white Digimon card among them without paying its memory cost. If you don't, add 1 Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
+      securityEffectText: "[Security] You may play 1 Tamer card from your hand without paying its memory cost.",
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Static",
+          actions: [
+            {
+              kind: "WaiveColorRequirement",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              condition: {
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"] },
+                raw: "you have a Tamer in play",
+              },
+            },
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Main",
+          actions: [
+            expect.objectContaining({
+              kind: "RevealAdd",
+              revealCount: 5,
+              digivolveOption: {
+                into: { controllerDefault: "mine", kind: ["Digimon"], excludeColors: ["White"] },
+                payCost: false,
+                optional: true,
+              },
+              add: [
+                {
+                  filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                  count: 1,
+                  to: "hand",
+                  ifDigivolveDeclined: true,
+                },
+              ],
+              rest: "deckBottomAnyOrder",
+            }),
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1 },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        }),
+      ]),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("reveals five and adds a Digimon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: ["EX2-060", "EX2-046"],
           hand: [{ card: "EX2-072", as: "option" }],
-          deck: [{ card: "EX2-019", as: "digimon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: [{ card: "EX2-019", as: "digimon" }, ...inertDeck],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId));
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId),
+    );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId)).toBe(true);
   });
 
@@ -42,9 +129,11 @@ describe("EX2-072 Blue Card", () => {
             "EX2-067",
             "EX2-068",
             "EX2-069",
-            { card: "BT1-001", as: "bonusDraw" },
+            { card: "BT1-009", as: "bonusDraw" },
           ],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       {
         autoAcceptOptional: true,
@@ -55,6 +144,7 @@ describe("EX2-072 Blue Card", () => {
     );
     s.state.memory = 10;
     const memoryBefore = s.state.memory;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -89,12 +179,24 @@ describe("EX2-072 Blue Card", () => {
   });
 
   it("waives the white color requirement with a Tamer even when no white card is in play", async () => {
-    const s = setupEngine({ 0: { battleArea: ["EX2-014", "EX2-060"], hand: [{ card: "EX2-072", as: "option" }] } });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["EX2-014", "EX2-060"],
+          hand: [{ card: "EX2-072", as: "option" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision === undefined);
   });
 
   it("may decline the compatible digivolution and then adds a revealed Digimon to hand", async () => {
@@ -104,7 +206,9 @@ describe("EX2-072 Blue Card", () => {
           battleArea: ["EX2-019", "EX2-060"],
           hand: [{ card: "EX2-072", as: "option" }],
           deck: [{ card: "EX2-021", as: "revealedDigimon" }, "EX2-014", "EX2-015", "EX2-031", "EX2-032"],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoOrderCards: true, autoOrderTriggers: true },
     );
@@ -142,19 +246,59 @@ describe("EX2-072 Blue Card", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX2-014", "EX2-015", "EX2-031", "EX2-032"]);
   });
 
-  it("plays a Tamer from hand without cost when activated from security", async () => {
+  it("reveals all available cards when the deck has fewer than five (Q3365)", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX2-072", as: "securityOption", faceUp: true }],
+          battleArea: ["EX2-060"],
+          hand: [{ card: "EX2-072", as: "option" }],
+          deck: [{ card: "BT1-009", as: "revealed" }, "BT1-013", "BT1-009"],
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("revealed").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("revealed").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("plays a Tamer from hand without cost when revealed from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", as: "attacker" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: {
           hand: [{ card: "EX2-060", as: "tamer" }],
+          deck: inertDeck,
+          security: [{ card: "EX2-072", as: "securityOption" }, ...inertSecurity],
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await s.ready();
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
     ).toBe(true);
   });
 });

@@ -1,8 +1,76 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX2-048.js";
 import "./EX2-048.js";
+import "./EX2-007.js";
+import "./EX2-046.js";
+
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
 
 describe("EX2-048 ADR-04 Bubbles", () => {
+  it("matches the catalog and compiled On Play/Security placement clauses", () => {
+    expect(getCardDefinition("EX2-048")).toMatchObject({
+      cardId: "EX2-048",
+      nameEn: "ADR-04 Bubbles",
+      colors: ["White"],
+      kinds: ["Digimon"],
+      playCost: 3,
+      dp: 3000,
+      evoCosts: [],
+      forms: ["D-Reaper"],
+      types: ["Ground Combat Agent"],
+      rarity: "C",
+      maxCountInDeck: 4,
+      effectText:
+        "[Security] You may place 1 of your [ADR-02 Searcher]s from in play or from your hand under 1 of your [Mother D-Reaper]s as its bottom digivolution card.[On Play] You may place 1 of your [ADR-02 Searcher]s from in play or from your hand under 1 of your [Mother D-Reaper]s as its bottom digivolution card.",
+    });
+    expect(compiled).toMatchObject({
+      effects: [
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "PlaceUnder",
+              optional: true,
+              mixedSources: { battleAreaPermanents: true, hand: true },
+              target: {
+                count: 1,
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }] },
+              },
+              destination: {
+                count: 1,
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }] },
+              },
+            },
+          ],
+        },
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              optional: true,
+              mixedSources: { battleAreaPermanents: true, hand: true },
+              target: {
+                count: 1,
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }] },
+              },
+              destination: {
+                count: 1,
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }] },
+              },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("places an ADR-02 Searcher from hand under Mother D-Reaper on play", async () => {
     const s = setupEngine(
       {
@@ -12,7 +80,10 @@ describe("EX2-048 ADR-04 Bubbles", () => {
             { card: "EX2-048", as: "bubbles" },
             { card: "EX2-046", as: "searcher" },
           ],
+          deck: inertDeck,
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -21,6 +92,7 @@ describe("EX2-048 ADR-04 Bubbles", () => {
       ok: true,
     });
     await settle(() => s.perm("mother").stack.some((card) => card.instanceId === s.inst("searcher").instanceId));
+    expect(s.state.memory).toBe(7);
     expect(s.perm("mother").stack.some((card) => card.instanceId === s.inst("searcher").instanceId)).toBe(true);
   });
 
@@ -33,7 +105,10 @@ describe("EX2-048 ADR-04 Bubbles", () => {
             { card: "EX2-046", as: "searcher" },
           ],
           hand: [{ card: "EX2-048", as: "bubbles" }],
+          deck: inertDeck,
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -61,7 +136,10 @@ describe("EX2-048 ADR-04 Bubbles", () => {
             { card: "EX2-048", as: "bubbles" },
             { card: "EX2-046", as: "handSearcher" },
           ],
+          deck: inertDeck,
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
@@ -84,7 +162,10 @@ describe("EX2-048 ADR-04 Bubbles", () => {
             { card: "EX2-048", as: "bubbles" },
             { card: "EX2-046", as: "searcher" },
           ],
+          deck: inertDeck,
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -100,13 +181,14 @@ describe("EX2-048 ADR-04 Bubbles", () => {
   it("places an in-play ADR-02 Searcher under Mother D-Reaper from Security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
         1: {
           battleArea: [
             { card: "EX2-007", as: "mother" },
             { card: "EX2-046", as: "searcher" },
           ],
-          security: [{ card: "EX2-048", as: "securityBubbles" }],
+          deck: inertDeck,
+          security: [{ card: "EX2-048", as: "securityBubbles" }, ...inertSecurity],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

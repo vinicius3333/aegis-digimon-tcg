@@ -1,11 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [Static] cost-reduction: reduce play cost by 2, but ONLY if you have [Alice McCoy] in play.
 // The outer Replacement gates on self being played (wouldBePlayed).
 // The inner Replacement carries a youHave condition for the Alice McCoy in-play check.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
