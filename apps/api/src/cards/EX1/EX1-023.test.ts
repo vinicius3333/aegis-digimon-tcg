@@ -1,3 +1,4 @@
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -65,7 +66,7 @@ describe("EX1-023 Elecmon", () => {
         0: {
           battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }],
           hand: ["BT1-009"],
-          deck: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -73,7 +74,7 @@ describe("EX1-023 Elecmon", () => {
             { card: "ST1-12", as: "tamer" },
           ],
           hand: [{ card: "ST6-15", as: "option" }],
-          deck: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -124,8 +125,14 @@ describe("EX1-023 Elecmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 0);
+    // The deleted host returned its Digi-Egg to the Egg Deck, so the next breeding
+    // phase now has a legal hatch. Publicly skip that phase before awaiting Main.
+    await settle(() => {
+      if (s.state.phase !== Phase.Breeding) return false;
+      return s.engine.applyIntent(0, { type: "endPhase" }).ok;
+    });
     await advance(s.engine).waitForMainPhase(0);
-    await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

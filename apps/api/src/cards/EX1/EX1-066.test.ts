@@ -125,7 +125,8 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.perm("analog").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
-    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+    // The deleted stack's Digi-Egg returns face-down to the Egg Deck.
+    expect(s.state.players[0]!.eggDeck).toHaveLength(2);
   });
 
   it("does not trigger when a level-5 Digimon without sources is deleted", async () => {

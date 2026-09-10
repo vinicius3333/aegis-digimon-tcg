@@ -157,13 +157,10 @@ describe("EX1-013 Veemon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX1-019", as: "host", suspended: true, under: ["EX1-013", "BT1-032"] },
+            { card: "EX1-019", as: "host", under: ["EX1-013", "BT1-032"] },
             { card: "BT1-085", as: "tai" },
           ],
-          hand: [
-            { card: "BT1-036", as: "firstUnsuspender" },
-            { card: "BT1-036", as: "secondUnsuspender" },
-          ],
+          hand: [{ card: "BT1-036", as: "firstUnsuspender" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
@@ -181,14 +178,23 @@ describe("EX1-013 Veemon", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.filter((event) => event.kind === "securityChecked").length === 1 && s.perm("host").isSuspended,
+    );
+    const memoryBeforeFirstUnsuspend = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
         type: "playCard",
         instanceId: s.inst("firstUnsuspender").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.perm("host").isSuspended);
-    expect(
-      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-013"),
-    ).toHaveLength(1);
+    expect(s.state.memory).toBe(memoryBeforeFirstUnsuspend - 5);
 
     expect(
       s.engine.applyIntent(0, {
@@ -197,30 +203,18 @@ describe("EX1-013 Veemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    await settle(
+      () => s.events.filter((event) => event.kind === "securityChecked").length === 2 && s.perm("host").isSuspended,
+    );
+
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("secondUnsuspender").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.perm("host").isSuspended);
-    expect(
-      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-013"),
-    ).toHaveLength(2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    // Tai establishes 3 memory, then the next-turn automatic unsuspend proves
+    // EX1-013 reset and resolves for +1 before Main opens.
+    expect(s.state.memory).toBe(4);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
