@@ -22,10 +22,11 @@ describe("EX3-060 ExTyrannomon", () => {
       attributes: ["Vaccine"],
       types: ["Puppet"],
       rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "EX3-060",
     });
-    expect(getCardDefinition("EX3-060")!.effectText).toContain("＜Blocker＞");
-    expect(getCardDefinition("EX3-060")!.effectText).toContain(
-      "While this Digimon has no digivolution cards, it can't attack or block.",
+    expect(getCardDefinition("EX3-060")!.effectText).toBe(
+      "＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.) [All Turns] While this Digimon has no digivolution cards, it can't attack or block.",
     );
   });
 
@@ -97,6 +98,7 @@ describe("EX3-060 ExTyrannomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-060");
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-059"]);
     expect(observe(s.engine).hasRestriction(s.perm("base"), "attack")).toBe(false);
     expect(
       s.engine.applyIntent(0, {
@@ -130,6 +132,7 @@ describe("EX3-060 ExTyrannomon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("purpleBase").stack).toHaveLength(1);
+    expect(s.perm("purpleBase").stack.map(({ cardId }) => cardId)).toEqual(["BT10-074"]);
     expect(observe(s.engine).hasRestriction(s.perm("purpleBase"), "attack")).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("purpleBase"), "block")).toBe(false);
   });
@@ -167,7 +170,7 @@ describe("EX3-060 ExTyrannomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("official Q&A: an attack continues when its last source is removed after declaration", async () => {
+  it("continues an attack when its last source is removed after declaration", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX3-060", under: [{ card: "BT2-055", as: "puppetSource" }], as: "attacker" }] },
       1: {

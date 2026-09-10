@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,11 +8,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     Encoded in digivolutionRequirement as an exact Lopmon entry with a controllerControls
 //     gate for an exact Shu-Chong Wong Tamer. The shared override is the client/server source
 //     of truth; this local copy documents the audited module semantics.
-// (2) WhenAttacking cost: added zone:"security" + topCard:true to target filter —
+// (2) WhenAttacking cost: added zone:"security" + position:"top" to target filter —
 //     text says "trash the top card of your security stack".
 // (3) Static effect removed — it was empty and served no role; the [Main] ability
 //     is captured via digivolutionRequirement (above).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
@@ -33,7 +32,7 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "security",
-                topCard: true,
+                position: "top",
               },
               count: 1,
             },

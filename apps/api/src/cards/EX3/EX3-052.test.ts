@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-007.js";
 import "./EX3-049.js";
-import "./EX3-052.js";
+import { compiled } from "./EX3-052.js";
 import "./EX3-053.js";
 import "./EX3-065.js";
 
@@ -59,6 +59,48 @@ describe("EX3-052 Jazarichmon", () => {
       types: ["Machine Dragon"],
       rarity: "R",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "DeDigivolve",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: 1,
+              stopAtLevel: 3,
+            },
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "name" }],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } },
+              while: { kind: "selfHasOnPlayEffect" },
+            },
+          ],
+        },
+      ],
+    });
 
     for (const [baseCardId, alias] of [
       ["EX3-049", "blackBase"],
@@ -66,7 +108,7 @@ describe("EX3-052 Jazarichmon", () => {
     ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCardId, as: alias }],
+          battleArea: [{ card: baseCardId, under: ["BT1-010"], as: alias }],
           hand: [{ card: "EX3-052", as: "jazarichmon" }],
           deck: ["BT1-011"],
         },
@@ -85,7 +127,30 @@ describe("EX3-052 Jazarichmon", () => {
 
       expect(s.state.memory).toBe(0);
       expect(s.perm(alias).topCard.cardId).toBe("EX3-052");
+      expect(s.perm(alias).stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", baseCardId]);
     }
+  });
+
+  it("rejects an invalid level-3 evolution source without payment or movement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-072", as: "wrongSource" }],
+        hand: [{ card: "EX3-052", as: "jazarichmon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("jazarichmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("wrongSource").topCard.cardId).toBe("BT1-072");
+    expect(s.inst("jazarichmon").cardId).toBe("EX3-052");
   });
 
   it("On Play chooses 1 opposing stack, De-Digivolves exactly 1, then may play Hina for free", async () => {
@@ -197,7 +262,7 @@ describe("EX3-052 Jazarichmon", () => {
             { card: "EX3-065", as: "hina" },
           ],
         },
-        1: { battleArea: [{ card: "EX3-046", as: "levelThree" }] },
+        1: { battleArea: [{ card: "EX3-049", under: ["EX3-046"], as: "levelThree" }] },
       },
       { autoSelectCards: false },
     );
@@ -213,6 +278,7 @@ describe("EX3-052 Jazarichmon", () => {
       s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "EX3-052"),
     ).toHaveLength(0);
     expect(s.perm("levelThree").topCard.cardId).toBe("EX3-046");
+    expect(s.perm("levelThree").stack).toHaveLength(0);
     expect(s.decisions.at(-1)!.req).toMatchObject({
       kind: "optional",
       sourceCardId: "EX3-052",

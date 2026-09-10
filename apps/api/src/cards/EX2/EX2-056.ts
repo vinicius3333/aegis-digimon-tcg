@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   digivolving Digimon (sourceRef). The [When Digivolving] prefix on <Blitz> is the
 //   timing scope per card text; the engine represents it as the Digimon having Blitz
 //   for the turn (the keyword becomes usable in the WhenDigivolving window).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

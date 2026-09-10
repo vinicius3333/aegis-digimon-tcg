@@ -39,7 +39,12 @@ describe("EX3-053 Metallicdramon", () => {
       attributes: ["Data"],
       types: ["Sky Dragon"],
       rarity: "SR",
+      maxCountInDeck: 4,
+      imageId: "EX3-053",
     });
+    expect(getCardDefinition("EX3-053")!.effectText).toBe(
+      "[On Play] ＜De-Digivolve 1＞ all of your opponent's Digimon. Then, delete 1 of your opponent's Digimon with a play cost of 5 or less. If no Digimon is deleted by this effect, none of your opponent's unsuspended Digimon can digivolve until the end of your opponent's turn.[Opponent's Turn] While you have a Tamer in play, this Digimon gains ＜Blocker＞ and ＜Reboot＞.",
+    );
   });
 
   it("On Play De-Digivolves every opposing stack, then deletes exactly 1 resulting cost-5 Digimon", async () => {
@@ -406,6 +411,7 @@ describe("EX3-053 Metallicdramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.perm("hina").isSuspended);
 
     expect(s.perm("base").topCard.cardId).toBe("EX3-053");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-052"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("hina").isSuspended).toBe(true);
   });

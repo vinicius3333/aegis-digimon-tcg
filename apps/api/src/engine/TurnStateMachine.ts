@@ -163,7 +163,7 @@ export class TurnStateMachine {
       let firstIteration = true;
       while (!this.hooks.isGameOver()) {
         if (!firstIteration) {
-          this.passTurn();
+          await this.passTurn();
         }
         firstIteration = false;
 

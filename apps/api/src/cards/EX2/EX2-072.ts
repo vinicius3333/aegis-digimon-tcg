@@ -1,21 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override for EX2-072 (Blue Card).
-// runtime-effect fixes:
-// - [Static] WaiveColorRequirement conditional on having a Tamer in play — preserved.
-// - [Main] RevealAdd: text says "You may digivolve 1 of your Digimon into 1 non-white Digimon
-//   card among them without paying its memory cost. If you don't, add 1 Digimon card among
-//   them to your hand."
-//   Faithful encoding: RevealAdd with a digivolveOption (choose a non-white Digimon card from
-//   the revealed set and digivolve a Digimon into it for free, optional) plus a fallback add
-//   that only fires if the digivolve was declined. Remaining cards go to deck bottom in any order.
-//   (Requires new engine cap CAP-C-21: RevealAdd.digivolveOption + ifDigivolveDeclined on add.)
-//   KB Q3362 confirms digivolve is optional; Q3363 digivolve bonus draw from un-revealed deck.
-// - rest: "deckBottomAnyOrder" per KB Q3362 "return remaining cards to the bottom... in any order".
-// - [Security] PlayWithoutCost a Tamer from hand — preserved.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

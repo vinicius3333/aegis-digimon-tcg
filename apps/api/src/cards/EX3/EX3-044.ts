@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited: same as second own effect.
 // KB Q&A Q3399: 'when suspended' and 'when attacking' trigger simultaneously; turn-player's
 //   [When Attacking] resolves first, then non-turn-player's 'when suspended' effect.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       // Fires when THIS Digimon becomes suspended (not any Digimon).
@@ -57,7 +56,6 @@ const compiled: CompiledCard = {
                 match: "name",
               },
             ],
-            survivedBattle: true,
           },
           actions: [
             {
@@ -91,7 +89,6 @@ const compiled: CompiledCard = {
                 match: "name",
               },
             ],
-            survivedBattle: true,
           },
           actions: [
             {

@@ -1,11 +1,11 @@
 // Hand-authored override for EX3-006.
-// runtime-effect fix: the trait gate was a raw string. Encoded it structurally as
-// selfTopHasText against this Digimon's own traits. Per KB Q3371 [Dragonkin] is also
-// included alongside [Dragon], [saur], [Ceratopsian].
+// Hand-authored runtime fix: encode the printed trait gate structurally instead of as
+// a raw string. Per KB Q3371 [Dragonkin] is also included alongside [Dragon], [saur],
+// and [Ceratopsian].
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           controller: "mine",
           amount: 1,
           condition: {
-            kind: "selfTopHasText",
+            kind: "selfHasTrait",
             filter: {
               nameOrTrait: [
                 { tokens: ["Dragon"], match: "traitContains" },

@@ -1,4 +1,4 @@
-import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -40,16 +40,42 @@ describe("EX3-056 Guilmon", () => {
       attributes: ["Virus"],
       types: ["Reptile"],
       rarity: "C",
+      imageId: "EX3-056",
     });
     expect(definition.evoCosts).toEqual([{ color: "Purple", level: 2, memoryCost: 1 }]);
-    expect(definition.effectText).toContain("Digivolve: 0 from [Gigimon]");
-    expect(definition.effectText).toContain("[On Deletion]");
+    expect(definition.effectText).toBe(
+      "Digivolve: 0 from [Gigimon][On Deletion] Delete 1 of your opponent's Digimon with 3000 DP or less. If no Digimon is deleted by this effect, trash the top 2 cards of both players' decks.",
+    );
+    expect(getCompiledCard("EX3-056")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Gigimon"], cost: 0, isAlternate: true }],
+      effects: [
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+                count: 1,
+              },
+            },
+            {
+              kind: "ConditionalBranch",
+              condition: { kind: "ifThisEffectDidNotDelete" },
+              ifTrue: [{ kind: "TrashTopDeck", controller: "both", amount: 2 }],
+            },
+          ],
+        },
+      ],
+    });
 
     const alternate = setupEngine({
       0: {
         breeding: { card: "EX2-001", as: "gigimon" },
         hand: [{ card: "EX3-056", as: "alternateGuilmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     alternate.state.memory = 0;
@@ -69,7 +95,7 @@ describe("EX3-056 Guilmon", () => {
       0: {
         breeding: { card: "BT10-006", as: "purpleEgg" },
         hand: [{ card: "EX3-056", as: "printedGuilmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     printed.state.memory = 1;
@@ -104,13 +130,36 @@ describe("EX3-056 Guilmon", () => {
     expect(wrongName.state.memory).toBe(-1);
   });
 
+  it("rejects a non-level-2 source without moving Guilmon or spending memory", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-028", as: "invalidSource" },
+        hand: [{ card: "EX3-056", as: "guilmon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-056");
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-028");
+  });
+
   it("On Deletion exposes only 3000-DP-or-less opponents and deletes exactly the chosen Reptile", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-056", as: "guilmon" }],
         deck: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownSecond" },
+          { card: "BT1-009", as: "ownTop" },
+          { card: "BT1-010", as: "ownSecond" },
         ],
       },
       1: {
@@ -120,8 +169,8 @@ describe("EX3-056 Guilmon", () => {
           { card: "BT1-014", as: "tooLarge" },
         ],
         deck: [
-          { card: "BT1-003", as: "opponentTop" },
-          { card: "BT1-004", as: "opponentSecond" },
+          { card: "BT1-011", as: "opponentTop" },
+          { card: "BT1-012", as: "opponentSecond" },
         ],
       },
     });
@@ -174,14 +223,14 @@ describe("EX3-056 Guilmon", () => {
       0: {
         battleArea: [{ card: "EX3-056", as: "guilmon" }],
         deck: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownSecond" },
-          { card: "BT1-003", as: "ownRemaining" },
+          { card: "BT1-009", as: "ownTop" },
+          { card: "BT1-010", as: "ownSecond" },
+          { card: "BT1-011", as: "ownRemaining" },
         ],
       },
       1: {
         battleArea: [{ card: "BT1-014", as: "tooLarge" }],
-        deck: [{ card: "BT1-004", as: "onlyOpponentCard" }],
+        deck: [{ card: "BT1-012", as: "onlyOpponentCard" }],
       },
     });
     await s.ready();
@@ -210,15 +259,15 @@ describe("EX3-056 Guilmon", () => {
       0: {
         battleArea: [{ card: "EX3-056", as: "guilmon" }],
         deck: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownSecond" },
+          { card: "BT1-009", as: "ownTop" },
+          { card: "BT1-010", as: "ownSecond" },
         ],
       },
       1: {
         battleArea: [{ card: "BT14-021", as: "virusTarget" }],
         deck: [
-          { card: "BT1-003", as: "opponentTop" },
-          { card: "BT1-004", as: "opponentSecond" },
+          { card: "BT1-011", as: "opponentTop" },
+          { card: "BT1-012", as: "opponentSecond" },
         ],
       },
     });

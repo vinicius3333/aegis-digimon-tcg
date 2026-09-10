@@ -1,8 +1,8 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX3-027.js";
+import { compiled } from "./EX3-027.js";
 import "./EX3-035.js";
 import "./EX3-069.js";
 import "../index.js"; // the full catalog is registered in a real match
@@ -29,12 +29,45 @@ describe("EX3-027 Agumon", () => {
     expect(definition.inheritedEffectText).toBe(
       "[Your Turn][Once Per Turn] When you play a Digimon with [Four Great Dragons] in its traits or place [Trial of the Four Great Dragons] in your battle area, ＜Draw 1＞.",
     );
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Four Great Dragons"], match: "trait" }],
+              },
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+            {
+              kind: "SubTrigger",
+              event: "whenOptionPlayed",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Option"],
+                nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+              },
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+        },
+      ],
+    });
 
     const s = setupEngine({
       0: {
         breeding: { card: "BT1-005", as: "base" },
         hand: [{ card: "EX3-027", as: "agumon" }],
-        deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     await s.ready();
@@ -49,7 +82,29 @@ describe("EX3-027 Agumon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-027");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-005"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
+  });
+
+  it("rejects an invalid red level-3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidSource" }],
+        hand: [{ card: "EX3-027", as: "agumon" }],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-009");
+    expect(s.inst("agumon").cardId).toBe("EX3-027");
+    expect(s.state.memory).toBe(0);
   });
 
   it("draws exactly 1 from a public Four Great Dragons play and pays its printed cost", async () => {
@@ -151,7 +206,7 @@ describe("EX3-027 Agumon", () => {
         ],
         deck: ["BT1-049", "BT1-048", "BT1-047"],
       },
-      1: { deck: ["BT1-001", "BT1-002", "BT1-003"] },
+      1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
     });
     s.state.memory = 12;
     const firstTurn = s.engine.runOneTurn();

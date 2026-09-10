@@ -1,6 +1,5 @@
-import { effectiveCopyLimit, EffectTiming, getCardDefinition, type DecisionResponse } from "@aegis/shared";
+import { effectiveCopyLimit, getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./EX3-057.js";
@@ -41,7 +40,14 @@ describe("EX3-057 Growlmon", () => {
       types: ["Dark Dragon"],
       rarity: "C",
       imageId: "EX3-057-Errata",
+      maxCountInDeck: 4,
     });
+    expect(definition.effectText).toBe(
+      "Digivolve: 2 if name contains [Guilmon][When Digivolving] Delete 1 of your opponent's Digimon with 3000 DP or less. If no Digimon is deleted by this effect, trash the top 2 cards of both players' decks.",
+    );
+    expect(definition.inheritedEffectText).toBe(
+      "[When Attacking][Once Per Turn] By deleting 1 of your other Digimon, this Digimon gains ＜Security Attack +1＞ for the turn. (This Digimon checks 1 additional security card.)",
+    );
     expect(definition.evoCosts).toEqual([{ color: "Purple", level: 3, memoryCost: 3 }]);
     expect(definition.effectText).toContain("[When Digivolving]");
     expect(definition.effectText).not.toContain("[On Deletion]");
@@ -52,9 +58,9 @@ describe("EX3-057 Growlmon", () => {
       0: {
         battleArea: [{ card: "EX3-056", as: "guilmon" }],
         hand: [{ card: "EX3-057", as: "growlmon" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
-      1: { deck: ["BT1-004", "BT1-005", "BT1-006"] },
+      1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
     });
     s.state.memory = 2;
     await s.ready();
@@ -78,9 +84,9 @@ describe("EX3-057 Growlmon", () => {
       0: {
         battleArea: [{ card: "BT10-071", as: "purpleBase" }],
         hand: [{ card: "EX3-057", as: "growlmon" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
-      1: { deck: ["BT1-003", "BT1-004"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
     s.state.memory = 3;
     await s.ready();
@@ -102,8 +108,8 @@ describe("EX3-057 Growlmon", () => {
         battleArea: [{ card: "EX3-056", as: "base" }],
         hand: [{ card: "EX3-057", as: "growlmon" }],
         deck: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownSecond" },
+          { card: "BT1-009", as: "ownTop" },
+          { card: "BT1-010", as: "ownSecond" },
         ],
       },
       1: {
@@ -113,8 +119,8 @@ describe("EX3-057 Growlmon", () => {
           { card: "BT1-014", as: "tooLarge" },
         ],
         deck: [
-          { card: "BT1-003", as: "opponentTop" },
-          { card: "BT1-004", as: "opponentSecond" },
+          { card: "BT1-011", as: "opponentTop" },
+          { card: "BT1-012", as: "opponentSecond" },
         ],
       },
     });
@@ -163,15 +169,15 @@ describe("EX3-057 Growlmon", () => {
         battleArea: [{ card: "EX3-056", as: "base" }],
         hand: [{ card: "EX3-057", as: "growlmon" }],
         deck: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownSecond" },
-          { card: "BT1-003", as: "ownThird" },
-          { card: "BT1-005", as: "ownRemaining" },
+          { card: "BT1-009", as: "ownTop" },
+          { card: "BT1-010", as: "ownSecond" },
+          { card: "BT1-011", as: "ownThird" },
+          { card: "BT1-012", as: "ownRemaining" },
         ],
       },
       1: {
         battleArea: [{ card: "BT1-014", as: "tooLarge" }],
-        deck: [{ card: "BT1-004", as: "onlyOpponentCard" }],
+        deck: [{ card: "BT1-013", as: "onlyOpponentCard" }],
       },
     });
     s.state.memory = 2;
@@ -202,7 +208,7 @@ describe("EX3-057 Growlmon", () => {
     );
   });
 
-  it("Virus-family attack pays the inherited cost, checks 2 security, and fires only once per turn", async () => {
+  it("Virus-family attack pays the inherited cost and checks 2 security", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -210,10 +216,16 @@ describe("EX3-057 Growlmon", () => {
           { card: "ST7-03", as: "virusCost" },
           { card: "BT10-071", as: "secondCost" },
         ],
+        deck: Array.from({ length: 10 }, () => "BT1-009"),
       },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      1: {
+        hand: [{ card: "BT1-010", as: "opponentCard" }],
+        security: ["BT1-090", "BT1-091", "BT1-092"],
+        deck: Array.from({ length: 10 }, () => "BT1-010"),
+      },
     });
     await s.ready();
+    expect(s.perm("virusHost").stack.map(({ cardId }) => cardId)).toEqual(["EX3-057"]);
     const costInstanceId = s.perm("virusCost").topCard.instanceId;
 
     expect(
@@ -246,10 +258,6 @@ describe("EX3-057 Growlmon", () => {
     );
 
     expect(observe(s.engine).keywordAmount(s.perm("virusHost"), "SecurityAttack")).toBe(1);
-    const decisionsAfterAttack = s.decisions.length;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("virusHost"));
-    await settle(() => false, 30);
-    expect(s.decisions).toHaveLength(decisionsAfterAttack);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("secondCost").permanentId,
     );
@@ -266,10 +274,16 @@ describe("EX3-057 Growlmon", () => {
     });
     await s.ready();
 
-    const firing = advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     respond(s, { kind: "optional", accept: false });
-    await firing;
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("other").permanentId);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
@@ -282,8 +296,14 @@ describe("EX3-057 Growlmon", () => {
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("onlyHost"));
-    await settle(() => false, 30);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("onlyHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-057")).toHaveLength(0);

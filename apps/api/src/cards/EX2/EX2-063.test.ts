@@ -1,10 +1,98 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./EX2-063.js";
+import "./EX2-031.js";
 import "./EX2-063.js";
+import "./EX2-050.js";
+
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const inertSecurity = ["BT1-009", "BT1-013"];
 
 describe("EX2-063 Kazu Shioda", () => {
+  it("matches the catalog and compiled IR for all three printed clauses", () => {
+    expect(getCardDefinition("EX2-063")).toMatchObject({
+      cardId: "EX2-063",
+      nameEn: "Kazu Shioda",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      rarity: "U",
+      maxCountInDeck: 4,
+      effectText:
+        "[Start of Your Main Phase] If you have a Digimon with [Cyborg] or [Machine] in its traits in play, gain 1 memory.[All Turns] When one of your Digimon with [Cyborg] or [Machine] in its traits becomes suspended, you may suspend this Tamer to ＜Draw 1＞. (Draw 1 card from your deck.) Then, trash 1 card in your hand.",
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "StartOfYourMainPhase",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
+                },
+              },
+            },
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "AllTurns",
+          actions: [
+            expect.objectContaining({
+              kind: "SubTrigger",
+              event: "whenSuspended",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
+              },
+              actions: [
+                {
+                  kind: "Draw",
+                  controller: "mine",
+                  amount: 1,
+                  cost: {
+                    kind: "suspend",
+                    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    raw: "by suspending this Tamer",
+                  },
+                  optional: true,
+                  abortOnDecline: true,
+                },
+                { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
+              ],
+            }),
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              payCost: false,
+            },
+          ],
+        }),
+      ]),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("may suspend when a Machine becomes suspended to draw 1 then trash 1", async () => {
     const s = setupEngine(
       {
@@ -13,10 +101,11 @@ describe("EX2-063 Kazu Shioda", () => {
             { card: "EX2-031", as: "machine" },
             { card: "EX2-063", as: "kazu" },
           ],
-          hand: ["BT1-001"],
-          deck: ["BT1-002"],
+          hand: ["BT1-009"],
+          deck: inertDeck,
+          security: inertSecurity,
         },
-        1: { security: ["BT1-003"] },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -28,7 +117,9 @@ describe("EX2-063 Kazu Shioda", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("kazu").isSuspended && s.state.players[0]!.trash.length === 1);
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.perm("kazu").isSuspended && s.state.players[0]!.trash.length === 1,
+    );
     expect(s.perm("kazu").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
@@ -41,14 +132,18 @@ describe("EX2-063 Kazu Shioda", () => {
           { card: "EX2-031", as: "machine" },
           { card: "EX2-063", as: "kazu" },
         ],
-        deck: ["BT1-001"],
-        security: ["BT1-002"],
+        deck: inertDeck,
+        security: inertSecurity,
       },
+      1: { deck: inertDeck, security: inertSecurity },
     });
     matching.state.memory = 2;
     await matching.ready();
-    await advance(matching.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    const matchingTurn = matching.engine.startTurnLoop();
+    await advance(matching.engine).waitForMainPhase(0);
     expect(matching.state.memory).toBe(3);
+    expect(matching.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await matchingTurn;
 
     const nonMatching = setupEngine({
       0: {
@@ -56,28 +151,32 @@ describe("EX2-063 Kazu Shioda", () => {
           { card: "EX2-014", as: "other" },
           { card: "EX2-063", as: "kazu" },
         ],
-        deck: ["BT1-001"],
-        security: ["BT1-002"],
+        deck: inertDeck,
+        security: inertSecurity,
       },
+      1: { deck: inertDeck, security: inertSecurity },
     });
     nonMatching.state.memory = 2;
     await nonMatching.ready();
-    await advance(nonMatching.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    const nonMatchingTurn = nonMatching.engine.startTurnLoop();
+    await advance(nonMatching.engine).waitForMainPhase(0);
     expect(nonMatching.state.memory).toBe(2);
+    expect(nonMatching.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await nonMatchingTurn;
   });
 
   it("fires its All Turns draw-then-trash response during the opponent's turn", async () => {
     const s = setupEngine(
       {
-        0: { deck: ["BT1-001"], security: ["BT1-002"] },
+        0: { deck: inertDeck, security: inertSecurity },
         1: {
           battleArea: [
             { card: "EX2-063", as: "kazu" },
             { card: "EX2-031", as: "machine" },
           ],
-          deck: ["BT1-003", "BT1-004"],
-          hand: ["BT1-005"],
-          security: ["BT1-006"],
+          deck: inertDeck,
+          hand: ["BT1-009"],
+          security: inertSecurity,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -88,7 +187,14 @@ describe("EX2-063 Kazu Shioda", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    await advance(s.engine).verb.suspend([s.perm("machine").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("machine").isSuspended && s.perm("kazu").isSuspended);
     expect(s.perm("kazu").isSuspended).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(2);
     expect(s.state.players[1]!.trash).toHaveLength(1);
@@ -96,7 +202,7 @@ describe("EX2-063 Kazu Shioda", () => {
     await turn;
   });
 
-  it("does not draw or trash when the suspension response is declined", async () => {
+  it("does not draw or trash when a matching suspension response is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -104,15 +210,53 @@ describe("EX2-063 Kazu Shioda", () => {
             { card: "EX2-063", as: "kazu" },
             { card: "EX2-031", as: "machine" },
           ],
-          deck: ["BT1-001"],
-          hand: ["BT1-002"],
+          deck: inertDeck,
+          hand: ["BT1-009"],
+          security: inertSecurity,
         },
-        1: { security: ["BT1-003"] },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoDeclineOptional: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("machine").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("machine").isSuspended);
+    expect(s.perm("kazu").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("ignores a suspended Digimon without the Cyborg or Machine trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-063", as: "kazu" },
+            { card: "EX2-014", as: "other" },
+          ],
+          deck: inertDeck,
+          hand: ["BT1-009"],
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("other").isSuspended);
     expect(s.perm("kazu").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -120,8 +264,8 @@ describe("EX2-063 Kazu Shioda", () => {
 
   it("plays EX2-063 from Security without paying its cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
-      1: { security: [{ card: "EX2-063", as: "securityKazu" }] },
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
+      1: { deck: inertDeck, security: [{ card: "EX2-063", as: "securityKazu" }, ...inertSecurity] },
     });
     await s.ready();
     expect(

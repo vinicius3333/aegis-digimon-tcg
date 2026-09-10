@@ -22,12 +22,15 @@ describe("EX3-046 Commandramon", () => {
       attributes: ["Virus"],
       types: ["Cyborg", "D-Brigade"],
       rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "EX3-046",
     });
+    expect(getCardDefinition("EX3-046")!.effectText).toBe(decoyText);
     const s = setupEngine({
       0: {
         breeding: { card: "EX3-002", as: "base" },
         hand: [{ card: "EX3-046", as: "commandramon" }],
-        deck: ["BT1-002"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 1;
@@ -44,6 +47,7 @@ describe("EX3-046 Commandramon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").topCard.cardId).toBe("EX3-046");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-002"]);
   });
 
   it("exposes the printed D-Brigade Decoy keyword", async () => {

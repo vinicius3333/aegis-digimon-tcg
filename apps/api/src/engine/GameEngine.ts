@@ -1117,7 +1117,13 @@ export class GameEngine {
       dpDeleteBudget: this.dpDeleteBudget,
       win: this.win,
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
-      resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
+      resolveDeletionReactions: (trigger, candidates, transientCandidates = []) =>
+        this.resolveDeletionReactions(
+          trigger,
+          candidates,
+          (deletionTrigger) => this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+          transientCandidates,
+        ),
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
@@ -1677,6 +1683,10 @@ export class GameEngine {
    * the turn player's unsuspend phase.
    */
   private async unsuspendForActivePhase(seat: Seat): Promise<string[]> {
+    // The active-turn gate changes at passTurn(), and OpponentsTurn watchers are
+    // continuous effects derived from that gate. Rebuild immediately before the
+    // actual unsuspend operation so the transition cannot outrun watcher install.
+    await this.recomputeContinuousEffects();
     const flipped = await this.unsuspendAllForSeat(seat);
     // ＜Reboot＞: the opponent's Digimon also unsuspend (§16-11)
     const oppSeat = seat === 0 ? 1 : 0;
@@ -1687,11 +1697,13 @@ export class GameEngine {
     // ＜Reboot＞ unsuspend — both are genuine suspended -> unsuspended transitions.
     for (const permanentId of allFlipped) {
       // Both seams of "becomes unsuspended": the timing window handwritten modules listen on
-      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. The effect-driven
-      // unsuspend primitive fires the same pair, so a turn-start unsuspend must not fire fewer.
-      await this.withPendingSubTriggers(["whenUnsuspended"], { unsuspendedPermanentId: permanentId }, () =>
-        this.fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: permanentId }),
-      );
+      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. Dispatch the
+      // event bus against the watcher armed immediately before this unsuspend first; the
+      // legacy timing window performs a trailing continuous recompute and would otherwise
+      // invalidate that watcher before it could resolve.
+      const payload = { unsuspendedPermanentId: permanentId };
+      await this.fireSubTrigger("whenUnsuspended", payload);
+      await this.fireTiming(EffectTiming.OnUnTappedAnyone, payload);
     }
     return allFlipped;
   }
@@ -1847,6 +1859,20 @@ export class GameEngine {
         // The shared intrinsic projection is a fallback, not a second copy of a live IR reduction.
         const intrinsicReduction = intrinsicAlreadyApplied ? 0 : intrinsicDigivolutionCostReduction(into, target);
         return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
+      },
+      deferAffordabilityForWouldDigivolve: (_state, _seat, target, into) => {
+        for (const replacement of this.subTriggers.replacementsFor("wouldDigivolve")) {
+          if (replacement.mode !== "instead" || replacement.sourcePermanentId === undefined) continue;
+          const sourcePermanent = this.access.permanentById(replacement.sourcePermanentId);
+          if (sourcePermanent?.topCard === undefined) continue;
+          const ctx = this.buildEffectContext(this.cardSourceOf(sourcePermanent.topCard), {
+            subjectPermanentId: target.permanentId,
+            digivolvingIntoCardId: into.cardId,
+          });
+          if (replacement.appliesTo !== undefined && !replacement.appliesTo(ctx, target.permanentId)) continue;
+          return true;
+        }
+        return false;
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
       potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
@@ -4068,6 +4094,7 @@ export class GameEngine {
     timing: EffectTiming,
     sourceInstanceId: string,
     scopedTrigger: TriggerInfo = {},
+    opts: { deferWhenPlayed?: boolean } = {},
   ): Promise<void> {
     // Whatever a play-cost deletion triggered rides into this play's own window (Q5131).
     const costDeletionEffects = this.pendingPlayCostDeletionEffects.splice(0);
@@ -4090,8 +4117,11 @@ export class GameEngine {
     // snapshot. Effects gained later while [On Play] resolves remain excluded by
     // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
     await this.recomputeContinuousEffects();
+    const events = opts.deferWhenPlayed
+      ? (["onEnterFieldAnyone"] as const)
+      : (["whenPlayed", "onEnterFieldAnyone"] as const);
     await this.withPendingSubTriggers(
-      ["whenPlayed", "onEnterFieldAnyone"],
+      events,
       playedEventTrigger,
       async () => {
         // State-based rules run after the card enters and continuous effects apply, before
@@ -4158,6 +4188,7 @@ export class GameEngine {
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
       playedByDecode?: boolean;
+      deferWhenPlayed?: boolean;
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
@@ -4171,15 +4202,20 @@ export class GameEngine {
       this.tracker.register(`seat:${ownerSeat}`, "digivolvedThisTurn");
     }
     if (timing === EffectTiming.OnPlay) {
-      await this.firePlayEntryWindows(timing, instanceId, {
-        enteredByEffect: ownerSeat,
-        ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
-        ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
-        ...(opts?.playedByEffectSourceCardId !== undefined
-          ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
-          : {}),
-        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
-      });
+      await this.firePlayEntryWindows(
+        timing,
+        instanceId,
+        {
+          enteredByEffect: ownerSeat,
+          ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
+          ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
+          ...(opts?.playedByEffectSourceCardId !== undefined
+            ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
+            : {}),
+          ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+        },
+        opts,
+      );
       return;
     }
     await this.fireTimingForInstance(timing, instanceId, {
@@ -7242,7 +7278,7 @@ export class GameEngine {
 
   private handleDigivolve(seat: Seat, intent: DigivolveIntent): IntentResult {
     const deps = this.digivolveDeps();
-    const check = validateDigivolve(this.state, seat, intent, deps);
+    const check = validateDigivolve(this.state, seat, intent, deps, { deferAffordability: true });
     if (!check.ok) {
       return { ok: false, reason: mapDigivolveReason(check.reason) };
     }
@@ -7442,14 +7478,16 @@ export class GameEngine {
    */
   private handleHatchEgg(seat: Seat, intent: HatchEggIntent): IntentResult {
     void intent;
+    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
     const result = applyHatchEgg(this.state, seat, this.breedingDeps());
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    this.breeding.actionTaken(seat);
-    // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fire-and-forget
-    // from this sync intent handler, mirroring the OnMove fire in handleMoveFromBreeding.
-    void this.fireSubTrigger("whenHatch", { subjectPermanentId: result.outcome.permanentId }).catch((err) => {
+    // "[All Turns] when YOU hatch [a Digi-Egg] in the breeding area" (BT17-093). Fired from
+    // this sync intent handler without awaiting; the breeding window stays open until the
+    // fire settles (see handleMoveFromBreeding).
+    const fired = this.fireSubTrigger("whenHatch", { subjectPermanentId: result.outcome.permanentId }).catch((err) => {
       logError("[engine] hatchEgg fire failed:", err);
     });
+    this.breeding.actionTaken(seat, fired);
     return { ok: true };
   }
 
@@ -7458,24 +7496,25 @@ export class GameEngine {
    * success, closes the open breeding window (the single breeding action is spent).
    */
   private handleMoveFromBreeding(seat: Seat, intent: MoveFromBreedingIntent): IntentResult {
+    if (this.breeding.isActionSpent) return { ok: false, reason: this.breedingActionSpentReason() };
     const result = applyMoveFromBreeding(this.state, seat, intent, this.breedingDeps());
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
-    this.breeding.actionTaken(seat);
     const movedPermanentId = result.outcome.permanentId;
     // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
     // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
     // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):
     //   whenMovedFromBreeding         — "when one of YOUR Digimon moves from breeding" (BT16-082)
     //   whenOpponentMovedFromBreeding — "when your OPPONENT moves a Digimon from breeding" (BT5-044, BT11-087)
-    // Fire-and-forget from this sync intent handler, mirroring the OnDraw fire in drawCards —
-    // but unlike drawCards (which is itself awaited by its own caller), this handler must return
-    // its IntentResult synchronously, so the fires are chained into one promise: sequential
-    // internal ordering (each begins only after the previous settles) with a single .catch(logError)
-    // so a thrown error surfaces as a log instead of an unhandled rejection. Un-awaited/uncaught
-    // fires here previously risked exactly the race P-130's fix eliminated for movePermanentZone:
-    // a nested fire clobbering the then-shared engine trigger field out of order (each window
-    // now carries its own trigger payload in its environment).
-    void this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
+    // This handler must return its IntentResult synchronously, so the fires are chained into one
+    // promise: sequential internal ordering (each begins only after the previous settles) with a
+    // single .catch(logError) so a thrown error surfaces as a log instead of an unhandled rejection.
+    // Un-awaited/uncaught fires here previously risked exactly the race P-130's fix eliminated for
+    // movePermanentZone: a nested fire clobbering the then-shared engine trigger field out of order
+    // (each window now carries its own trigger payload in its environment).
+    // The chain is handed to the breeding window, which closes only once it settles: closing it
+    // synchronously let the turn machine open Main and fire [Start of Your Main Phase] while
+    // BT16-082's move watcher was still resolving.
+    const fired = this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
       .then(() =>
         this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
           subjectPermanentId: movedPermanentId,
@@ -7493,7 +7532,17 @@ export class GameEngine {
       .catch((err) => {
         logError("[engine] moveFromBreeding fire failed:", err);
       });
+    this.breeding.actionTaken(seat, fired);
     return { ok: true };
+  }
+
+  /**
+   * The turn's one breeding action is already taken and its triggers are still settling
+   * (BT16-082's reveal, BT17-093's hatch watcher). A decision those triggers opened is the
+   * more specific refusal, matching the breeding verbs' own validation order.
+   */
+  private breedingActionSpentReason(): RejectReason {
+    return this.state.pendingDecision !== undefined ? "decision-pending" : "wrong-phase";
   }
 
   /**

@@ -1,8 +1,8 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX3-004.js";
+import { compiled } from "./EX3-004.js";
 
 describe("EX3-004 Veemon", () => {
   it("matches its official identity and complete text", () => {
@@ -15,9 +15,59 @@ describe("EX3-004 Veemon", () => {
       dp: 1000,
       attributes: ["Free"],
       types: ["Mini Dragon"],
+      evoCosts: [
+        { color: "Red", level: 2, memoryCost: 0 },
+        { color: "Purple", level: 2, memoryCost: 0 },
+      ],
+      imageId: "EX3-004",
     });
     expect(getCardDefinition("EX3-004")!.effectText).toContain("Imperialdramon");
     expect(getCardDefinition("EX3-004")!.inheritedEffectText).toContain("purple Digimon");
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 2,
+              optional: true,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "hand",
+                    controller: "mine",
+                    nameOrTrait: [
+                      { tokens: ["Imperialdramon"], match: "name" },
+                      { tokens: ["Free"], match: "trait" },
+                    ],
+                  },
+                  count: 1,
+                },
+              },
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "Aura",
+              effect: { kind: "modifyDP", amount: 2000 },
+              while: {
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple"] },
+              },
+            },
+          ],
+          isInherited: true,
+        },
+      ],
+    });
   });
   it("trashes a Free card from hand to draw 2 on play", async () => {
     const s = setupEngine(
@@ -130,5 +180,107 @@ describe("EX3-004 Veemon", () => {
     expect(opponentTurn.perm("carrier").currentDP).toBe(opponentTurn.perm("carrier").baseDP + 2000);
     await advance(opponentTurn.engine).verb.deletePermanent([opponentTurn.perm("purple").permanentId], "byEffect");
     expect(opponentTurn.perm("carrier").currentDP).toBe(opponentTurn.perm("carrier").baseDP);
+  });
+
+  it("requires an own purple Digimon, not a purple Tamer, for the inherited bonus", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", under: ["EX3-004"], as: "carrier" }, "BT2-090"] },
+    });
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("carrier").currentDP).toBe(s.perm("carrier").baseDP);
+  });
+
+  it.each([
+    ["red", "BT1-001"],
+    ["purple", "BT10-006"],
+  ] as const)("digivolves from a %s level-2 source for the printed zero cost", async (_color, egg) => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: egg, as: "egg" },
+        hand: [{ card: "EX3-004", as: "veemon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("veemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "EX3-004");
+    expect(s.state.players[0]!.breeding?.stack.map(({ cardId }) => cardId)).toEqual([egg]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects an illegal yellow level-2 source and leaves the card in hand", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-005", as: "yellowEgg" },
+        hand: [{ card: "EX3-004", as: "veemon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowEgg").permanentId,
+        instanceId: s.inst("veemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-005");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("veemon").instanceId);
+  });
+
+  it("retains the inherited source through a public evolution and breeding move", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-001", as: "egg" },
+        hand: [
+          { card: "EX3-004", as: "veemon" },
+          { card: "BT1-014", as: "top" },
+        ],
+        battleArea: [{ card: "BT2-067", as: "purple" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("veemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "EX3-004");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("top").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT1-014");
+    expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["BT1-001", "EX3-004"]);
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("egg").permanentId),
+    );
+
+    s.state.phase = Phase.Main;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("egg").currentDP).toBe(s.perm("egg").baseDP + 2000);
+    expect(s.state.memory).toBe(0);
   });
 });

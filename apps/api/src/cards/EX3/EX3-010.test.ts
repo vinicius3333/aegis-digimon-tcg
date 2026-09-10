@@ -9,7 +9,7 @@ import {
   type EngineSetup,
 } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-010.js";
+import { compiled } from "./EX3-010.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
   const request = s.decisions.at(-1)!.req;
@@ -35,6 +35,59 @@ describe("EX3-010 Paildramon", () => {
     });
     expect(getCardDefinition("EX3-010")!.effectText).toContain("DNA Digivolution: 0 from red Lv.4 + purple Lv.4");
     expect(getCardDefinition("EX3-010")!.inheritedEffectText).toContain("Imperialdramon");
+  });
+  it("publishes the printed DNA, exact-name, and inherited clauses in IR", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Red", level: 4 },
+          { color: "Purple", level: 4 },
+        ],
+      },
+    ]);
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          condition: { kind: "isDnaDigivolving" },
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Dinobeemon"], match: "nameExact" }],
+            },
+          },
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }],
+            },
+          },
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [{ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } } }],
+    });
   });
   it("DNA digivolves for 0 and exposes only Dinobeemon trash candidates with friendly provenance", async () => {
     const s = setupEngine(
@@ -67,6 +120,10 @@ describe("EX3-010 Paildramon", () => {
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    const dnaPermanent = s.state.players[0]!.battleArea[0]!;
+    expect(dnaPermanent.topCard.cardId).toBe("EX3-010");
+    expect(dnaPermanent.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX3-008", "EX3-058"]));
+    expect(dnaPermanent.stack).toHaveLength(2);
     expect(s.decisions.at(-1)!.req).toMatchObject({
       kind: "optional",
       sourceCardId: "EX3-010",
@@ -115,6 +172,8 @@ describe("EX3-010 Paildramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-010");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
+    expect(s.state.memory).toBe(2);
     // A normal digivolve does not trigger EX3-010's DNA-only Dinobeemon effect.
     await drainMicrotasks();
     expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010")).toBe(false);
@@ -123,6 +182,34 @@ describe("EX3-010 Paildramon", () => {
       true,
     );
     expect(s.decisions.some(({ req }) => req.sourceCardId === "EX3-010")).toBe(false);
+  });
+
+  it("rejects a DNA evolution without both a red and purple level 4", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-008", as: "red" },
+          { card: "EX3-008", as: "otherRed" },
+        ],
+        hand: [{ card: "EX3-010", as: "paildramon" }],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("red").permanentId, s.perm("otherRed").permanentId],
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX3-008", "EX3-008"]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("paildramon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("may decline the DNA-only Dinobeemon play", async () => {

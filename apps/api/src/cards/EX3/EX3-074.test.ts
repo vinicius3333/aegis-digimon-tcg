@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,13 +22,26 @@ describe("EX3-074 Examon", () => {
       dp: 15000,
       types: ["Holy Warrior", "Royal Knight"],
       rarity: "SEC",
+      maxCountInDeck: 4,
       imageId: "EX3-074",
     });
-    expect(definition.effectText).toContain("DNA Digivolution: 0 from green Lv.6 + blue Lv.6");
-    expect(definition.effectText).toContain("as its bottom digivolution card");
-    expect(definition.effectText).toContain("When DNA digivolving");
-    expect(definition.effectText).toContain("12000 DP or less");
-    expect(definition.effectText).toContain("[All Turns][Once Per Turn]");
+    expect(definition.effectText).toBe(
+      "DNA Digivolution: 0 from green Lv.6 + blue Lv.6[When Digivolving] You may place 1 green or blue Digimon card with [Dramon] in its name from your hand under this Digimon as its bottom digivolution card. When DNA digivolving, you may play 1 green or blue Digimon card with [Dramon] in its name and 12000 DP or less from your hand without paying the cost.[All Turns][Once Per Turn] When this Digimon becomes suspended, unsuspend it, and suspend 1 of your opponent's Digimon.",
+    );
+    expect(getCompiledCard("EX3-074")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      dnaDigivolveRequirement: [
+        {
+          cost: 0,
+          materials: [
+            { color: "Green", level: 6 },
+            { color: "Blue", level: 6 },
+          ],
+        },
+      ],
+      effects: [{ trigger: "WhenDigivolving" }, { trigger: "AllTurns", frequency: "OncePerTurn" }],
+    });
   });
 
   it("Q3436: normal digivolution may place a Dramon at the bottom but cannot use the DNA-only play", async () => {
@@ -42,7 +55,7 @@ describe("EX3-074 Examon", () => {
             { card: "AD1-024", as: "bottomDramon" },
             { card: "EX3-044", as: "wouldBePlayed" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -258,7 +271,8 @@ describe("EX3-074 Examon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    const flow = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("slayerdramon"));
+    const flow = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.state.pendingDecision?.kind === "optional");
     let pending = s.state.pendingDecision!;
     expect(
@@ -306,6 +320,7 @@ describe("EX3-074 Examon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("otherAttacker").permanentId] },
       }),
     ).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(1);
     await flow;
 
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-029");

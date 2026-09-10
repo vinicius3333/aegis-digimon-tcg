@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // EX3-062 WarGrowlmon — hand-verified IR. The threshold is evaluated after both
 // players mill, so either newly enlarged trash may unlock the optional free play.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

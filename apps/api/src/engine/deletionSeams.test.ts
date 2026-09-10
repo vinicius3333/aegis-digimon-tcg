@@ -86,6 +86,45 @@ describe("deletion and rule-processing seams", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(chaosId);
   });
 
+  it("public Delete resolves the gained deletion trigger before the EX3-013 replacement (Q2212)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT12-072",
+              under: ["BT1-009", "BT1-021", "BT2-060", "EX3-013"],
+              as: "chaosX",
+            },
+          ],
+        },
+        1: {
+          battleArea: ["BT1-009"],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          security: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const chaosId = s.perm("chaosX").permanentId;
+    const securityTopId = s.state.players[1]!.security[0]!.instanceId;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(chaosId);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("ST1-16");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-021", "BT2-060"]);
+    expect(s.perm("chaosX").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-013"]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityTopId);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("withholds a third party's deletion watcher for a permanent whose leaving is prevented (Q6030)", async () => {
     const s = setupEngine(
       {

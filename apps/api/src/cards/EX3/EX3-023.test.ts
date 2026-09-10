@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -25,6 +25,72 @@ describe("EX3-023 Plesiomon", () => {
     expect(definition.effectText).toContain("[Aqua] or [Sea Animal]");
     expect(definition.inheritedEffectText).toContain("you may return");
     expect(definition.inheritedEffectText).not.toContain("you may you may");
+  });
+
+  it("publishes the errata source-play filters, bottom placement, and once-per-turn bounce", () => {
+    expect(getCompiledCard("EX3-023")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levels: [3],
+                  hostFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue"] },
+                  orFilters: [
+                    {
+                      levelComparison: { op: "lte", value: 4 },
+                      traitContains: ["Aqua", "Sea Animal"],
+                      hostFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue"] },
+                    },
+                  ],
+                },
+                count: 1,
+              },
+            },
+            {
+              kind: "PlaceUnder",
+              position: "bottom",
+              optional: true,
+              underFilter: { isSelfRef: true },
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], fromDigivolution: true },
+              actions: [
+                {
+                  kind: "Return",
+                  to: "deckBottom",
+                  optional: true,
+                  target: {
+                    filter: { controller: "opponent", kind: ["Digimon"], levelEqTriggerSource: true },
+                    count: 1,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it("Plesiosaur family: supports both errata play branches and places a chosen blue hand card at its own bottom", async () => {
@@ -140,6 +206,7 @@ describe("EX3-023 Plesiomon", () => {
     await settle(() => s.perm("plesiosaurBase").stack[0]?.instanceId === s.inst("firstBlueToPlace").instanceId);
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("plesiosaurBase").stack.map(({ cardId }) => cardId)).toContain("BT10-022");
     expect(
       s.state.players[0]!.battleArea.some(
         ({ topCard }) => topCard.instanceId === s.inst("redSeaAnimalLevel3").instanceId,
@@ -149,6 +216,27 @@ describe("EX3-023 Plesiomon", () => {
     expect(s.perm("blueSourceHost").stack.map(({ instanceId }) => instanceId)).not.toContain(
       s.inst("redSeaAnimalLevel3").instanceId,
     );
+  });
+
+  it("rejects an invalid level-5 evolution source and keeps Plesiomon in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-075", as: "wrongColor" }],
+        hand: [{ card: "EX3-023", as: "plesiomon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongColor").permanentId,
+        instanceId: s.inst("plesiomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongColor").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-023");
   });
 
   it("the two optional clauses are independent: declining the play still allows placement under Plesiomon", async () => {
@@ -408,14 +496,14 @@ describe("EX3-023 Plesiomon", () => {
               as: "sourceHost",
             },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [
             { card: "BT1-029", as: "firstTarget" },
             { card: "BT1-030", as: "secondTarget" },
           ],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },

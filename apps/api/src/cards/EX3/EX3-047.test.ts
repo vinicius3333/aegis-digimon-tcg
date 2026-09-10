@@ -27,12 +27,20 @@ describe("EX3-047 Jazamon", () => {
       attributes: ["Data"],
       types: ["Bird Dragon"],
       rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "EX3-047",
     });
+    expect(getCardDefinition("EX3-047")!.effectText).toBe(
+      "[Your Turn][Once Per Turn] When you play [Hina Kurihara], gain 1 memory.",
+    );
+    expect(getCardDefinition("EX3-047")!.inheritedEffectText).toBe(
+      "[All Turns] While this Digimon has an [On Play] effect, it gets +1000 DP.",
+    );
     const s = setupEngine({
       0: {
         breeding: { card: baseCardId, as: "base" },
         hand: [{ card: "EX3-047", as: "jazamon" }],
-        deck: ["BT1-002"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 1;
@@ -49,6 +57,7 @@ describe("EX3-047 Jazamon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").topCard.cardId).toBe("EX3-047");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
   });
 
   it("gains 1 memory when its controller plays Hina Kurihara during their turn", async () => {
@@ -103,9 +112,9 @@ describe("EX3-047 Jazamon", () => {
           { card: "EX3-065", as: "firstHina" },
           { card: "EX3-065", as: "secondHina" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
-      1: { deck: ["BT1-004", "BT1-005", "BT1-006"] },
+      1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -173,6 +182,7 @@ describe("EX3-047 Jazamon", () => {
     await s.ready();
 
     expect(s.perm("jazardmon").currentDP).toBe(5000);
+    expect(s.perm("jazardmon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-047"]);
   });
 
   it("does not grant inherited DP to a live top card without an On Play effect", async () => {
@@ -182,6 +192,7 @@ describe("EX3-047 Jazamon", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX3-047"]);
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(4000);
   });

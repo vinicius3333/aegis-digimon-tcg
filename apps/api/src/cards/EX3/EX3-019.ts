@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [Opponent's Turn] Inherited Replacement: corrected mode from "reduceCost" / amount -1 to
 //   "increaseCost" / amount 1 — the text says "increase the digivolution cost by 1".
 // - Source filter: Digimon with no digivolution cards (digivolutionCards: "none") is preserved per text.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

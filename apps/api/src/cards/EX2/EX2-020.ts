@@ -1,8 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -50,3 +49,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX2-020", compiled);
+
+export default compiled;

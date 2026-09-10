@@ -1,8 +1,7 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./EX3-059.js";
+import { compiled } from "./EX3-059.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
   expect(
@@ -33,6 +32,29 @@ describe("EX3-059 DarkTyrannomon", () => {
       inheritedEffectText: "[On Deletion] Suspend 1 of your opponent's Digimon.",
       rarity: "C",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnDeletion",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  suspended: false,
+                },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it.each([
@@ -59,22 +81,52 @@ describe("EX3-059 DarkTyrannomon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack).toHaveLength(1);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
+  });
+
+  it("rejects a wrong-color level-3 evolution source without movement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-059", as: "darkTyrannomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("darkTyrannomon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(s.inst("darkTyrannomon").cardId).toBe("EX3-059");
   });
 
   it("offers only ready opposing Digimon and suspends the explicitly selected target", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT8-016", under: ["EX3-059"], as: "host" }] },
+      0: { battleArea: [{ card: "BT8-016", under: ["EX3-059"], dp: 6000, as: "host" }] },
       1: {
         battleArea: [
           { card: "BT1-028", as: "chosen" },
           { card: "BT1-029", suspended: true, as: "alreadySuspended" },
           { card: "BT1-030", as: "otherReady" },
+          { card: "BT2-018", dp: 12000, suspended: true, as: "battleWinner" },
         ],
       },
     });
     await s.ready();
 
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(decision).toMatchObject({
@@ -91,20 +143,34 @@ describe("EX3-059 DarkTyrannomon", () => {
     expect(decision.options?.candidateInstanceIds).not.toContain(s.perm("alreadySuspended").permanentId);
 
     respond(s, { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] });
-    await deletion;
-    await settle(() => s.perm("chosen").isSuspended);
+    await settle(
+      () =>
+        s.perm("chosen").isSuspended &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("host").permanentId),
+    );
     expect(s.perm("chosen").isSuspended).toBe(true);
     expect(s.perm("otherReady").isSuspended).toBe(false);
   });
 
   it("opens no decision when every opposing Digimon is already suspended", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT8-016", under: ["EX3-059"], as: "host" }] },
-      1: { battleArea: [{ card: "BT1-028", suspended: true, as: "opponent" }] },
+      0: { battleArea: [{ card: "BT8-016", under: ["EX3-059"], dp: 6000, as: "host" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-028", suspended: true, as: "opponent" },
+          { card: "BT2-018", dp: 12000, suspended: true, as: "battleWinner" },
+        ],
+      },
     });
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-059")).toHaveLength(0);
@@ -113,12 +179,23 @@ describe("EX3-059 DarkTyrannomon", () => {
 
   it("does nothing while DarkTyrannomon is the deleted top card instead of a source", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX3-059", as: "darkTyrannomon" }] },
-      1: { battleArea: [{ card: "BT1-028", as: "opponent" }] },
+      0: { battleArea: [{ card: "EX3-059", dp: 5000, as: "darkTyrannomon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-028", as: "opponent" },
+          { card: "BT2-018", dp: 12000, suspended: true, as: "battleWinner" },
+        ],
+      },
     });
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("darkTyrannomon").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("darkTyrannomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.perm("opponent").isSuspended).toBe(false);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-059")).toHaveLength(0);
@@ -128,11 +205,12 @@ describe("EX3-059 DarkTyrannomon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-016", under: ["EX3-059", "EX3-059"], as: "host" }] },
+        0: { battleArea: [{ card: "BT8-016", under: ["EX3-059", "EX3-059"], dp: 6000, as: "host" }] },
         1: {
           battleArea: [
             { card: "BT1-028", as: "first" },
             { card: "BT1-029", as: "second" },
+            { card: "BT2-018", dp: 12000, suspended: true, as: "battleWinner" },
           ],
         },
       },
@@ -141,7 +219,13 @@ describe("EX3-059 DarkTyrannomon", () => {
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("battleWinner").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);

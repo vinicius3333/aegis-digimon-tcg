@@ -110,6 +110,28 @@ describe("board prompt scrim", () => {
     expect(scrim).toBeTruthy();
     expect(scrim?.nextElementSibling?.classList.contains("board-prompt")).toBe(true);
   });
+
+  it("tags a yes/no prompt so the phone sheet may cover the hand, and a hand selection so it must not", () => {
+    const prompt = renderIn(
+      <BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />,
+    );
+    expect(prompt.container.querySelector('.board-prompt[data-variant="prompt"]')).toBeTruthy();
+    expect(prompt.container.querySelector('.board-prompt-scrim[data-variant="prompt"]')).toBeTruthy();
+    prompt.unmount();
+    const selection = renderIn(
+      <BoardSelectionRail
+        prompt="Choose 1 card"
+        min={1}
+        max={1}
+        pickCount={0}
+        canConfirm={false}
+        onConfirm={noop}
+        onNoSelection={noop}
+      />,
+    );
+    expect(selection.container.querySelector('.board-prompt[data-variant="selection"]')).toBeTruthy();
+    expect(selection.container.querySelector('.board-prompt-scrim[data-variant="selection"]')).toBeTruthy();
+  });
 });
 
 describe("BoardOptionalPrompt", () => {

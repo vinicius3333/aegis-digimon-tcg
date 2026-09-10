@@ -1,10 +1,9 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-audited IR for EX3-027. The two event listeners share this effect's
 // [Once Per Turn] key through the interpreter's frequency binding.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

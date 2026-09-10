@@ -184,9 +184,9 @@ describe("EX4-004 Pinamon — deletion boundaries and Q3439", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["ST6-09", "ST6-08", "EX4-004"]),
-    );
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST6-09", "ST6-08"]));
+    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+    expect(s.state.players[0]!.eggDeck[0]).toMatchObject({ cardId: "EX4-004", faceUp: false });
   });
 
   it("gains memory when Retaliation deletes its host, as ruled by Q3439", async () => {
@@ -221,8 +221,8 @@ describe("EX4-004 Pinamon — deletion boundaries and Q3439", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["ST6-09", "ST6-08", "EX4-004"]),
-    );
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST6-09", "ST6-08"]));
+    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+    expect(s.state.players[0]!.eggDeck[0]).toMatchObject({ cardId: "EX4-004", faceUp: false });
   });
 });

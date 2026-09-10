@@ -50,12 +50,20 @@ describe("EX3-051 Tankdramon", () => {
       attributes: ["Virus"],
       types: ["Machine", "D-Brigade"],
       rarity: "R",
+      maxCountInDeck: 4,
+      imageId: "EX3-051",
     });
+    expect(getCardDefinition("EX3-051")!.effectText).toBe(
+      "[When Digivolving] Reveal the top 3 cards of your deck. You may play 1 Digimon card with [D-Brigade] in its traits and a play cost of 5 or less among them without paying the cost. Trash the rest.",
+    );
+    expect(getCardDefinition("EX3-051")!.inheritedEffectText).toBe(
+      "[Your Turn][Once Per Turn] When one of your Digimon with [D-Brigade] in its traits attacks, reveal the top 2 cards of your deck. You may play 1 [Commandramon] among them without paying the cost. Trash the rest.",
+    );
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-049", as: "base" }],
         hand: [{ card: "EX3-051", as: "tankdramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -72,6 +80,7 @@ describe("EX3-051 Tankdramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.cardId).toBe("EX3-051");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-049"]);
   });
 
   it("When Digivolving exposes all 3 cards, permits only a cost-5 D-Brigade, plays it free, and trashes the rest", async () => {
@@ -80,7 +89,7 @@ describe("EX3-051 Tankdramon", () => {
         battleArea: [{ card: "EX3-049", as: "base" }],
         hand: [{ card: "EX3-051", as: "tankdramon" }],
         deck: [
-          { card: "BT1-001", as: "digivolutionDraw" },
+          { card: "BT1-009", as: "digivolutionDraw" },
           { card: "EX3-049", as: "eligibleCostFive" },
           { card: "EX3-051", as: "tooExpensive" },
           { card: "EX3-065", as: "notDigimon" },
@@ -140,7 +149,7 @@ describe("EX3-051 Tankdramon", () => {
         battleArea: [{ card: "EX3-049", as: "base" }],
         hand: [{ card: "EX3-051", as: "tankdramon" }],
         deck: [
-          { card: "BT1-001", as: "digivolutionDraw" },
+          { card: "BT1-010", as: "digivolutionDraw" },
           { card: "EX3-046", as: "eligible" },
           { card: "BT1-010", as: "firstFiller" },
           { card: "BT1-011", as: "secondFiller" },
@@ -175,7 +184,7 @@ describe("EX3-051 Tankdramon", () => {
         battleArea: [{ card: "EX3-049", as: "base" }],
         hand: [{ card: "EX3-051", as: "tankdramon" }],
         deck: [
-          { card: "BT1-001", as: "digivolutionDraw" },
+          { card: "BT1-011", as: "digivolutionDraw" },
           { card: "BT1-010", as: "onlyRevealedCard" },
         ],
       },
@@ -210,10 +219,11 @@ describe("EX3-051 Tankdramon", () => {
           { card: "BT1-010", as: "filler" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-012"] },
     });
     s.state.turnCount = 1;
     await s.ready();
+    expect(s.perm("inheritedHost").stack.map(({ cardId }) => cardId)).toEqual(["EX3-051"]);
 
     expect(
       s.engine.applyIntent(0, {
@@ -257,7 +267,7 @@ describe("EX3-051 Tankdramon", () => {
           { card: "BT1-010", as: "filler" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-013"] },
     });
     s.state.turnCount = 1;
     await s.ready();
@@ -294,7 +304,7 @@ describe("EX3-051 Tankdramon", () => {
             { card: "BT1-011", as: "secondFiller" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-013", "BT1-014"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -346,7 +356,7 @@ describe("EX3-051 Tankdramon", () => {
         ],
         deck: ["EX3-046", "BT1-010"],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-014"] },
     });
     ownTurn.state.turnCount = 1;
     await ownTurn.ready();
@@ -365,7 +375,7 @@ describe("EX3-051 Tankdramon", () => {
       0: {
         battleArea: [{ card: "EX3-054", under: ["EX3-051"], as: "host" }],
         deck: ["EX3-046", "BT1-010"],
-        security: ["BT1-001"],
+        security: ["BT1-013"],
       },
       1: { battleArea: [{ card: "EX3-049", as: "opponentAttacker" }] },
     });

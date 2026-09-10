@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-018.js";
@@ -24,7 +24,107 @@ describe("EX3-011 Lavogaritamon", () => {
       types: ["Rock Dragon"],
       rarity: "R",
       imageId: "EX3-011",
+      effectText:
+        "[On Play] Delete 1 of your opponent's Digimon with 5000 DP or less. Then, you may play 1 [Hina Kurihara] from your hand without paying the cost.",
+      inheritedEffectText:
+        "[All Turns][Once Per Turn] When an opponent's Digimon is deleted, if this Digimon has an [On Play] effect, gain 1 memory.",
     });
+  });
+
+  it("publishes both printed clauses as complete compiled IR", () => {
+    expect(getCompiledCard("EX3-011")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } },
+                count: 1,
+              },
+            },
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "name" }] },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onDeletionOf",
+              sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+              actions: [
+                {
+                  kind: "GainMemory",
+                  amount: 1,
+                  condition: { kind: "selfHasOnPlayEffect" },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it.each([
+    ["red", "BT1-014"],
+    ["black", "BT10-061"],
+  ])("evolves from a %s level 4 for the printed cost", async (_color, baseCardId) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCardId, as: "base" }],
+        hand: [{ card: "EX3-011", as: "lavogaritamon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lavogaritamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-011");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("rejects a blue level 4 source and keeps the card in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-032", as: "base" }],
+        hand: [{ card: "EX3-011", as: "lavogaritamon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lavogaritamon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-011");
+    expect(s.state.memory).toBe(4);
   });
 
   it("publishes a sourced mandatory choice containing only opposing Digimon at 5000 DP or less", async () => {
@@ -44,7 +144,7 @@ describe("EX3-011 Lavogaritamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lavogaritamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() => s.state.pendingDecision !== undefined);
     const payload = JSON.parse(s.state.pendingDecision!.payloadJson) as {
       candidateInstanceIds: string[];
       visibleInstanceIds: string[];
@@ -98,6 +198,57 @@ describe("EX3-011 Lavogaritamon", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("resolves the mandatory deletion before offering the optional Hina play", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "EX3-011", as: "lavogaritamon" },
+          { card: "EX3-065", as: "hina" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-013", as: "target", dp: 5000 },
+          { card: "BT1-010", as: "otherTarget", dp: 4000 },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    const hinaId = s.inst("hina").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lavogaritamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision).toMatchObject({ kind: "chooseTargets" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [targetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(targetInstanceId);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(hinaId);
+    expect(s.state.pendingDecision).toMatchObject({ kind: "optional" });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-065")).toBe(true);
+  });
+
   it("gains memory only once when Hina reactivates its Dragon carrier's On Play deletion", async () => {
     const s = setupEngine(
       {
@@ -143,27 +294,36 @@ describe("EX3-011 Lavogaritamon", () => {
           hand: [
             { card: "EX3-011", as: "firstDeletion" },
             { card: "EX3-011", as: "secondDeletion" },
+            { card: "EX3-011", as: "thirdDeletion" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
         1: {
           battleArea: [
             { card: "BT1-010", as: "firstTarget", dp: 3000 },
             { card: "BT1-010", as: "secondTarget", dp: 3000 },
+            { card: "BT1-010", as: "thirdTarget", dp: 3000 },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8;
+    s.state.memory = 20;
     await s.ready();
+    expect(s.state.memory).toBe(20);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDeletion").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(10);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDeletion").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(2);
 
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const completeTurn = async (seat: 0 | 1): Promise<void> => {
@@ -182,7 +342,7 @@ describe("EX3-011 Lavogaritamon", () => {
     const nextControllerTurn = s.engine.runOneTurn();
     await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDeletion").instanceId })).toEqual({
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdDeletion").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);

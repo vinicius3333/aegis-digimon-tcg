@@ -1,13 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const trialFilter = {
+const trialFilter: Filter = {
   controller: "mine",
   nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -37,7 +36,6 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceInBattleAreaSelf",
           target: { filter: { ...trialFilter, zone: "hand" }, count: 1 },
-          from: ["hand"],
           condition: {
             kind: "allOf",
             conditions: [

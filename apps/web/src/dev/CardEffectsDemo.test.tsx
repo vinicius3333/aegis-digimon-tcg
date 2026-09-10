@@ -1251,7 +1251,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText(/Arrange the cards in deck order/i)).toBeTruthy();
+    expect(screen.getByText(/Arrange the cards going to the bottom of the deck/i)).toBeTruthy();
     expect(screen.getByText(/Number 1 will be nearest the top/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Confirm order" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /Move card down/ }).length).toBeGreaterThan(0);
@@ -4071,7 +4071,7 @@ describe("CardEffectsDemo", () => {
     );
 
     const dialog = screen.getByRole("dialog", { name: /Goldramon · effect/i });
-    expect(within(dialog).getByText(/Arrange the cards in deck order/i)).toBeTruthy();
+    expect(within(dialog).getByText(/Arrange the cards going to the bottom of the deck/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: /Move card down, Magnadramon, 1/i }));
     expect(within(dialog).getByRole("button", { name: /Move card up, Magnadramon, 2/i })).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm order" }));

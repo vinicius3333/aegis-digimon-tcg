@@ -2,7 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX3-050.js";
+import { compiled } from "./EX3-050.js";
 
 describe("EX3-050 Cyberdramon", () => {
   it("has the official metadata and digivolves from a black level 4 for 3", async () => {
@@ -19,11 +19,37 @@ describe("EX3-050 Cyberdramon", () => {
       types: ["Cyborg"],
       rarity: "C",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              effect: { kind: "modifyDP", amount: 2000 },
+              while: {
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  suspended: true,
+                  kind: ["Tamer"],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX3-049", as: "base" }],
+        battleArea: [{ card: "EX3-049", under: ["BT1-010"], as: "base" }],
         hand: [{ card: "EX3-050", as: "cyberdramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-011"],
       },
     });
     s.state.memory = 3;
@@ -40,6 +66,29 @@ describe("EX3-050 Cyberdramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.cardId).toBe("EX3-050");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", "EX3-049"]);
+  });
+
+  it("rejects an invalid level-3 source without payment or movement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX3-046", as: "wrongSource" }],
+        hand: [{ card: "EX3-050", as: "cyberdramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("cyberdramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("wrongSource").topCard.cardId).toBe("EX3-046");
+    expect(s.inst("cyberdramon").cardId).toBe("EX3-050");
   });
 
   it("gives its carrier +2000 DP only while an allied Tamer is suspended", async () => {

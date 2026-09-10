@@ -50,29 +50,43 @@ describe("EX3-001 Bebydomon", () => {
     });
   });
 
-  it.each(["EX3-008", "EX3-018"])("gives its qualifying %s carrier +1000 DP when it becomes active", async (card) => {
-    const s = setupEngine({ 0: { battleArea: [{ card, under: ["EX3-001"], as: "carrier", suspended: true }] } });
-    await s.engine.recomputeContinuousEffects();
-    const initial = s.perm("carrier").currentDP;
-    expect(await unsuspend(s)).toEqual([s.perm("carrier").permanentId]);
-    expect(s.perm("carrier").currentDP).toBe(initial + 1000);
-  });
+  it.each(["EX3-008", "EX3-018", "EX3-074"])(
+    "gives its qualifying %s carrier +1000 DP when it becomes active",
+    async (card) => {
+      const s = setupEngine({ 0: { battleArea: [{ card, under: ["EX3-001"], as: "carrier", suspended: true }] } });
+      await s.engine.recomputeContinuousEffects();
+      const initial = s.perm("carrier").currentDP;
+      expect(await unsuspend(s)).toEqual([s.perm("carrier").permanentId]);
+      expect(s.perm("carrier").currentDP).toBe(initial + 1000);
+    },
+  );
 
-  it("does not activate for a carrier outside the errata name gate or for an already active carrier", async () => {
+  it("does not activate for carriers outside the errata name gate", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT1-038", under: ["EX3-001"], as: "wrongName", suspended: true },
+          { card: "BT11-022", under: ["EX3-001"], as: "nearMatch", suspended: true },
           { card: "EX3-008", under: ["EX3-001"], as: "alreadyActive" },
         ],
       },
     });
     await s.engine.recomputeContinuousEffects();
     const wrongDp = s.perm("wrongName").currentDP;
+    const nearMatchDp = s.perm("nearMatch").currentDP;
     const activeDp = s.perm("alreadyActive").currentDP;
-    await unsuspend(s);
+    expect(await unsuspend(s)).toEqual([s.perm("wrongName").permanentId, s.perm("nearMatch").permanentId]);
     expect(s.perm("wrongName").currentDP).toBe(wrongDp);
+    expect(s.perm("nearMatch").currentDP).toBe(nearMatchDp);
     expect(s.perm("alreadyActive").currentDP).toBe(activeDp);
+  });
+
+  it("does not trigger when a qualifying carrier is already unsuspended", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX3-008", under: ["EX3-001"], as: "carrier" }] } });
+    await s.engine.recomputeContinuousEffects();
+    const initial = s.perm("carrier").currentDP;
+    expect(await unsuspend(s)).toEqual([]);
+    expect(s.perm("carrier").currentDP).toBe(initial);
   });
 
   it("is once per turn and lets two inherited copies trigger independently", async () => {
@@ -87,6 +101,7 @@ describe("EX3-001 Bebydomon", () => {
     expect(one.perm("carrier").currentDP).toBe(initial + 1000);
 
     await advance(one.engine).runTurn(0);
+    expect(one.perm("carrier").currentDP).toBe(initial);
     one.perm("carrier").isSuspended = true;
     await unsuspend(one);
     expect(one.perm("carrier").currentDP).toBe(initial + 1000);

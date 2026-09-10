@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -10,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   Encoded with stopAtLevel:3 per existing engine convention (see BT15-059).
 // - PlayWithoutCost for Hina Kurihara from hand is preserved.
 // - Inherited [Your Turn] SecurityAttack+1 (conditional on having OnPlay effect) is preserved.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

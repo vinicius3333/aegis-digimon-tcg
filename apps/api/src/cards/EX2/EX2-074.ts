@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 //   - First effect: Static → AllTurns SubTrigger "whenTrashedFromDeck" (mirrors EX2-044 pattern)
 //   - Added level 4 or lower filter (levelComparison lte 4) on delete target
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

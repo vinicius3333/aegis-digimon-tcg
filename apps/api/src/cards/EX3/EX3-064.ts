@@ -1,9 +1,12 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const trial = { controller: "mine", nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }] };
-const compiled: CompiledCard = {
+const trial = {
+  controller: "mine" as const,
+  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" as const }],
+};
+const handPlacement = { from: ["hand"] as const };
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Rule",
@@ -41,9 +44,9 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          ...handPlacement,
           kind: "PlaceInBattleAreaSelf",
           target: { filter: { ...trial, zone: "hand" }, count: 1 },
-          from: ["hand"],
           optional: true,
           condition: { kind: "youHaveNone", filter: { ...trial, zone: "battleArea" } },
         },

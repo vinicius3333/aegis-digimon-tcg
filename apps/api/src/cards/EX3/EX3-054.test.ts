@@ -50,14 +50,19 @@ describe("EX3-054 Darkdramon", () => {
       attributes: ["Virus"],
       types: ["Cyborg", "D-Brigade"],
       rarity: "SR",
+      maxCountInDeck: 4,
+      imageId: "EX3-054",
     });
+    expect(getCardDefinition("EX3-054")!.effectText).toBe(
+      "When you would digivolve into this card, by returning up to 5 cards with [D-Brigade] in their traits from your trash to the top of your deck, reduce the digivolution cost by 1 for each returned card.[Your Turn][Once Per Turn] When you play another Digimon with [D-Brigade] in its traits, delete 1 of your opponent's Digimon with a play cost less than or equal to the Digimon you played, and unsuspend this Digimon.",
+    );
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX3-051", as: "base" }],
           hand: [{ card: "EX3-054", as: "darkdramon" }],
           trash: [{ card: "EX3-046", as: "dBrigade" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoOrderCards: false },
@@ -81,6 +86,7 @@ describe("EX3-054 Darkdramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("dBrigade").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-051"]);
   });
 
   it("Q3423 returns and orders up to 5 D-Brigade cards, reduces by the actual count, and cannot cancel afterward", async () => {
@@ -156,7 +162,7 @@ describe("EX3-054 Darkdramon", () => {
             { card: "EX3-049", as: "two" },
             { card: "EX3-051", as: "three" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoOrderCards: false },
@@ -217,7 +223,7 @@ describe("EX3-054 Darkdramon", () => {
           { card: "EX3-054", as: "darkdramon" },
         ],
         trash: ["EX3-046", "EX3-049", "EX3-051", "EX3-046", "EX3-049"],
-        deck: ["BT1-001"],
+        deck: ["BT1-011"],
       },
     });
     s.state.memory = -8;
@@ -277,9 +283,9 @@ describe("EX3-054 Darkdramon", () => {
           { card: "EX3-046", as: "second" },
           { card: "EX3-046", as: "third" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-012", "BT1-013"],
       },
-      1: { battleArea: [{ card: "EX3-048", as: "tooExpensive" }], deck: ["BT1-003", "BT1-004"] },
+      1: { battleArea: [{ card: "EX3-048", as: "tooExpensive" }], deck: ["BT1-014", "BT1-010"] },
     });
     s.state.memory = 6;
     await s.ready();
@@ -357,13 +363,14 @@ describe("EX3-054 Darkdramon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "deleteTarget" }],
-          security: ["BT1-001"],
+          security: ["BT1-011"],
         },
       },
       { autoSelectCards: true },
     );
     s.state.turnCount = 1;
     await s.ready();
+    expect(s.perm("tankHost").stack.map(({ cardId }) => cardId)).toEqual(["EX3-051"]);
 
     expect(
       s.engine.applyIntent(0, {

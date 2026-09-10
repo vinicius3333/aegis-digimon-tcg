@@ -1,9 +1,8 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-055.js";
+import { compiled } from "./EX3-055.js";
 
 interface DecisionPayload {
   candidateInstanceIds?: string[];
@@ -55,6 +54,62 @@ describe("EX3-055 Wormmon", () => {
     expect(definition.effectText).toContain("trash 1 such card among them");
     expect(definition.inheritedEffectText).toContain("While you have a red Digimon in play");
     expect(definition.inheritedEffectText).toContain("＜Retaliation＞");
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    colors: ["Red", "Purple"],
+                    nameOrTrait: [
+                      { tokens: ["Free"], match: "trait" },
+                      { tokens: ["Imperialdramon"], match: "name" },
+                    ],
+                  },
+                  count: 1,
+                  to: "hand",
+                },
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    colors: ["Red", "Purple"],
+                    nameOrTrait: [
+                      { tokens: ["Free"], match: "trait" },
+                      { tokens: ["Imperialdramon"], match: "name" },
+                    ],
+                  },
+                  count: 1,
+                  to: "trash",
+                },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              while: {
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], colors: ["Red"] },
+              },
+              effect: { kind: "keyword", keyword: { keyword: "Retaliation" } },
+            },
+          ],
+        },
+      ],
+    });
 
     for (const [egg, alias] of [
       ["BT10-006", "purpleEgg"],
@@ -64,7 +119,7 @@ describe("EX3-055 Wormmon", () => {
         0: {
           breeding: { card: egg, as: alias },
           hand: [{ card: "EX3-055", as: "wormmon" }],
-          deck: ["BT1-002"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 0;
@@ -82,6 +137,28 @@ describe("EX3-055 Wormmon", () => {
     }
   });
 
+  it("rejects an invalid level-3 evolution source without movement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-055", as: "wormmon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("wormmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(s.inst("wormmon").cardId).toBe("EX3-055");
+  });
+
   it("reveals 3, independently chooses an eligible card for hand and trash, and exposes the full reveal", async () => {
     const s = setupEngine(
       {
@@ -91,7 +168,7 @@ describe("EX3-055 Wormmon", () => {
             { card: "EX3-061", as: "free" },
             { card: "EX3-063", as: "imperialdramon" },
             { card: "BT1-010", as: "ineligible" },
-            { card: "BT1-001", as: "unrevealed" },
+            { card: "BT1-011", as: "unrevealed" },
           ],
         },
       },
@@ -156,7 +233,7 @@ describe("EX3-055 Wormmon", () => {
             { card: "BT1-027", as: "blueFree" },
             { card: "BT3-031", as: "blueImperialdramon" },
             { card: "BT1-010", as: "redWithoutNameOrTrait" },
-            { card: "BT1-001", as: "unrevealed" },
+            { card: "BT1-012", as: "unrevealed" },
           ],
         },
       },
@@ -257,27 +334,36 @@ describe("EX3-055 Wormmon", () => {
   });
 
   it("the inherited effect follows the live red-Digimon condition and is not granted by a red card outside play", async () => {
-    const s = setupEngine({
+    const noRed = setupEngine({
       0: {
         battleArea: [{ card: "BT1-028", under: ["EX3-055"], as: "host" }],
         hand: [{ card: "BT1-009", as: "redInHand" }],
       },
     });
-    await s.ready();
-    await s.engine.recomputeContinuousEffects();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(false);
+    await noRed.ready();
+    await noRed.engine.recomputeContinuousEffects();
+    expect(observe(noRed.engine).hasKeyword(noRed.perm("host"), "Retaliation")).toBe(false);
 
-    s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("redInHand").instanceId })).toEqual({
-      ok: true,
+    const opponentRed = setupEngine({
+      0: { battleArea: [{ card: "BT1-028", under: ["EX3-055"], as: "host" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponentRed" }] },
     });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Retaliation"));
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    await opponentRed.ready();
+    await opponentRed.engine.recomputeContinuousEffects();
+    expect(observe(opponentRed.engine).hasKeyword(opponentRed.perm("host"), "Retaliation")).toBe(false);
 
-    const red = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT1-009")!;
-    await advance(s.engine).verb.deletePermanent([red.permanentId]);
-    await s.engine.recomputeContinuousEffects();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(false);
+    const withRed = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-028", under: ["EX3-055"], as: "host" },
+          { card: "BT1-009", as: "redInPlay" },
+        ],
+      },
+    });
+    await withRed.ready();
+    withRed.state.turnSeat = 1;
+    await withRed.engine.recomputeContinuousEffects();
+    expect(observe(withRed.engine).hasKeyword(withRed.perm("host"), "Retaliation")).toBe(true);
   });
 
   it("Free-family battle: a red Dinobeemon carrying Wormmon gains Retaliation and deletes the winner", async () => {

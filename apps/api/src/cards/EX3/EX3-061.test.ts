@@ -1,4 +1,4 @@
-import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -37,21 +37,106 @@ describe("EX3-061 Dinobeemon", () => {
       cardId: "EX3-061",
       nameEn: "Dinobeemon",
       colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
       level: 5,
       playCost: 8,
       dp: 8000,
+      forms: ["Ultimate"],
       attributes: ["Free"],
       types: ["Mutant"],
       rarity: "U",
+      imageId: "EX3-061",
     });
     expect(definition.evoCosts).toEqual([
       { color: "Purple", level: 4, memoryCost: 4 },
       { color: "Red", level: 4, memoryCost: 4 },
     ]);
-    expect(definition.effectText).toContain("DNA Digivolution: 0 from purple Lv.4 + red Lv.4");
-    expect(definition.effectText).toContain("When DNA digivolving, you may play 1 [Paildramon]");
-    expect(definition.effectText).toContain("[On Deletion] You may play 1 [Wormmon]");
-    expect(definition.inheritedEffectText).toContain("attack your opponent's unsuspended Digimon");
+    expect(definition.effectText).toBe(
+      "DNA Digivolution: 0 from purple Lv.4 + red Lv.4[When Digivolving] When DNA digivolving, you may play 1 [Paildramon] from your trash without paying the cost.[On Deletion] You may play 1 [Wormmon] from your trash without paying the cost.",
+    );
+    expect(definition.inheritedEffectText).toBe(
+      "[Your Turn] While this Digimon has [Imperialdramon] in its name, it can also attack your opponent's unsuspended Digimon.",
+    );
+    expect(getCompiledCard("EX3-061")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      dnaDigivolveRequirement: [
+        {
+          cost: 0,
+          materials: [
+            { color: "Purple", level: 4 },
+            { color: "Red", level: 4 },
+          ],
+        },
+      ],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              optional: true,
+              condition: { kind: "isDnaDigivolving" },
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon"], match: "name" }] },
+                count: 1,
+              },
+            },
+          ],
+        },
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              optional: true,
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "name" }] },
+                count: 1,
+              },
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "GrantCanAttackUnsuspended",
+              condition: { kind: "selfHasNameContaining", names: ["Imperialdramon"] },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("rejects DNA evolution without purple and red level-4 materials", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-058", as: "purpleLevel4" },
+          { card: "EX3-055", as: "invalidRedMaterial" },
+        ],
+        hand: [{ card: "EX3-061", as: "dinobeemon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("purpleLevel4").permanentId, s.perm("invalidRedMaterial").permanentId],
+        instanceId: s.inst("dinobeemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-061");
+    expect(s.perm("purpleLevel4").topCard.cardId).toBe("EX3-058");
+    expect(s.perm("invalidRedMaterial").topCard.cardId).toBe("EX3-055");
   });
 
   it("DNA digivolves for 0 and offers exactly the Paildramon cards in trash", async () => {

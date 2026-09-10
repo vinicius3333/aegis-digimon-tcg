@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // to level 6, you may delete 1 of your Digimon to reduce the digivolution cost by 3.
 // KB Q3349: does NOT activate for Digimon in the breeding area.
 // KB Q3350: if you delete the level-5 Digimon itself, digivolution is cancelled.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

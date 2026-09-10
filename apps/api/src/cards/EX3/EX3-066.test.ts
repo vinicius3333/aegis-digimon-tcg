@@ -1,8 +1,7 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
-import "./EX3-066.js";
+import { compiled } from "./EX3-066.js";
 
 describe("EX3-066 Hyper Infinity Cannon", () => {
   it("matches the official two-color Option identity and complete text", () => {
@@ -20,6 +19,60 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
     expect(definition.effectText).toContain("＜De-Digivolve 3＞");
     expect(definition.effectText).toContain("from your hand or trash");
     expect(definition.securityEffectText).toBe("[Security] Activate this card's [Main] effect.");
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "WaiveColorRequirement",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              condition: {
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  levels: [6],
+                  nameOrTrait: [{ tokens: ["Machine"], match: "trait" }],
+                },
+              },
+            },
+          ],
+        },
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeDigivolve",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: 3,
+            },
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } },
+                count: 1,
+              },
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "place",
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [6],
+                  nameOrTrait: [{ tokens: ["Machine"], match: "trait" }],
+                },
+              },
+            },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
   });
 
   it("Q3432 waives both color requirements with an own battle-area level 6 Machine", async () => {
@@ -75,7 +128,7 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-025", under: ["BT1-001", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" },
+            { card: "BT1-025", under: ["BT1-011", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" },
             { card: "BT1-028", dp: 3000, as: "weak" },
           ],
         },
@@ -118,7 +171,7 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
       },
       1: {
         battleArea: [
-          { card: "BT1-025", under: ["BT1-001", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" },
+          { card: "BT1-025", under: ["BT1-011", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" },
           { card: "BT1-028", dp: 3000, as: "weak" },
           { card: "BT1-030", dp: 6000, as: "boundary" },
           { card: "BT1-029", dp: 7000, as: "large" },
@@ -269,21 +322,69 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-073", as: "machine" }],
-          security: [{ card: "EX3-066", faceUp: true, as: "securityCannon" }],
+          battleArea: [
+            { card: "BT1-028", dp: 3000, as: "attacker" },
+            { card: "BT1-025", under: ["BT1-011", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" },
+            { card: "BT1-028", dp: 3000, as: "weak" },
+          ],
         },
         1: {
-          battleArea: [{ card: "BT1-025", under: ["BT1-001", "BT1-009", "BT1-015", "BT1-020"], as: "stacked" }],
+          battleArea: [{ card: "EX1-073", as: "machine" }],
+          trash: [{ card: "BT1-021", as: "trashCyborg" }],
+          security: [{ card: "EX3-066", as: "securityCannon" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     await s.ready();
     const stackedId = s.perm("stacked").permanentId;
+    const weakId = s.perm("weak").permanentId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityCannon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deDigivolve = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deDigivolve.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [stackedId] },
+      }),
+    ).toEqual({ ok: true });
 
-    expect(s.state.players[1]!.battleArea.find(({ permanentId }) => permanentId === stackedId)?.stack).toHaveLength(1);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const optional = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deletion = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletion.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [weakId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === weakId) &&
+        s.perm("machine").stack.some(({ instanceId }) => instanceId === s.inst("trashCyborg").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === stackedId)?.stack).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "EX1-073")?.stack).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });

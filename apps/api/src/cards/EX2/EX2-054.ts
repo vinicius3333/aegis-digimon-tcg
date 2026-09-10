@@ -1,11 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Security]: card is played from security (not hand) — remove erroneous from:["hand"].
-// [Opponent's Turn] Aura while-condition: Mother D-Reaper must have 6+ digivolution cards.
-// KB Q3345-Q3346: Security effect plays as a normal Digimon once it comes into play.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",

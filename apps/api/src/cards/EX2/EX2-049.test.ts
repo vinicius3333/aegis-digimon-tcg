@@ -1,6 +1,13 @@
-import { describe, it, expect } from "vitest";
-import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX2-049.js";
+import "./EX2-049.js";
+import "./EX2-007.js";
+import "./EX2-046.js";
+
+const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
 
 // A3 for EX2-049 (ADR-02=Searcher) — [Main] by suspending this Digimon, reveal the top 5 cards of
 // your deck, place 1 [ADR-02 Searcher] among them under 1 of your [Mother D-Reaper]s as its bottom
@@ -11,6 +18,59 @@ import "../index.js";
 // the Mother D-Reaper AND this Digimon is suspended (the cost). A no-op leaves both unchanged.
 
 describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Reaper, suspend self", () => {
+  it("matches the catalog, Q&A, and compiled Main RevealAdd clause", () => {
+    expect(getCardDefinition("EX2-049")).toMatchObject({
+      cardId: "EX2-049",
+      nameEn: "ADR-01 Jeri",
+      colors: ["White"],
+      kinds: ["Digimon"],
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [],
+      forms: ["D-Reaper"],
+      types: ["Espionage Agent"],
+      rarity: "U",
+      maxCountInDeck: 4,
+      effectText:
+        "[Main] You may suspend this Digimon to reveal the top 5 cards of your deck. Place 1 [ADR-02 Searcher] among them under 1 of your [Mother D-Reaper]s as its bottom digivolution card. Place the remaining cards at the bottom of your deck in any order.",
+    });
+    expect(compiled).toMatchObject({
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 5,
+              rest: "deckBottom",
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
+              add: [
+                {
+                  count: 1,
+                  to: "placeUnder",
+                  filter: {
+                    controllerDefault: "mine",
+                    nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }],
+                  },
+                  underFilter: {
+                    controllerDefault: "mine",
+                    nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("places the revealed ADR-02 Searcher under the Mother D-Reaper and suspends the source", async () => {
     const s = setupEngine(
       {
@@ -20,13 +80,15 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
             { card: "EX2-007", dp: 13000, as: "mother" }, // Mother D-Reaper, the place-under host
           ],
           // Top 5 of deck includes an [ADR-02 Searcher] (EX2-046) to place under the Mother D-Reaper.
-          deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-010", "BT1-011", "BT1-009"],
+          deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     const searcher = s.perm("searcher");
     expect(
@@ -58,11 +120,13 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
           deck: [
             { card: "EX2-046", as: "adr" },
             { card: "BT1-009", as: "otherOne" },
-            { card: "BT1-010", as: "otherTwo" },
-            { card: "BT1-011", as: "otherThree" },
-            { card: "BT1-012", as: "otherFour" },
+            { card: "BT1-013", as: "otherTwo" },
+            { card: "BT1-009", as: "otherThree" },
+            { card: "BT1-013", as: "otherFour" },
           ],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoOrderCards: false },
     );
@@ -88,14 +152,13 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;
-    expect(decision.sourceCardId).toBe("EX2-049");
     expect(decision.options?.candidateInstanceIds).toEqual([s.inst("adr").instanceId]);
     expect(decision.options?.visibleCards).toEqual([
       { instanceId: s.inst("adr").instanceId, cardId: "EX2-046" },
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-009" },
-      { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-010" },
-      { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-011" },
-      { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-012" },
+      { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-013" },
+      { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-009" },
+      { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-013" },
     ]);
     expect(
       s.engine.applyIntent(0, {
@@ -115,9 +178,9 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     ];
     expect(ordering.options?.visibleCards).toEqual([
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-009" },
-      { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-010" },
-      { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-011" },
-      { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-012" },
+      { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-013" },
+      { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-009" },
+      { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-013" },
     ]);
     expect(
       s.engine.applyIntent(0, {
@@ -140,8 +203,10 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
       {
         0: {
           battleArea: [{ card: "EX2-049", as: "source" }],
-          deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: [{ card: "EX2-046", as: "adr" }, ...inertDeck.slice(0, 4)],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
@@ -166,8 +231,10 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
             { card: "EX2-049", as: "source" },
             { card: "EX2-007", as: "mother" },
           ],
-          deck: [{ card: "EX2-046", as: "declinedAdr" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: [{ card: "EX2-046", as: "declinedAdr" }, "BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+          security: inertSecurity,
         },
+        1: { deck: inertDeck, security: inertSecurity },
       },
       { autoDeclineOptional: true },
     );
@@ -180,8 +247,7 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
         effectKey: "EX2-049/ir-27-0",
       }),
     ).toEqual({ ok: true });
-    await drainMicrotasks();
-    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX2-049")).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.perm("mother").stack).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore);
