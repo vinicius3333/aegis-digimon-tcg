@@ -7,21 +7,40 @@ import "./BT9-090.js";
 describe("BT9-090 Maki Himekawa", () => {
   it("matches catalog values and the reveal, cost reduction, and security IR", () => {
     expect(getCardDefinition("BT9-090")).toMatchObject({
-      colors: ["Black"], kinds: ["Tamer"], playCost: 3,
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { nameOrTrait: [{ tokens: ["Tapirmon"], match: "name" }] } }, { filter: { multicolor: true, colorCount: 2, colors: ["Black"] } }], rest: "deckBottom" }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                { filter: { nameOrTrait: [{ tokens: ["Tapirmon"], match: "name" }] } },
+                { filter: { multicolor: true, colorCount: 2, colors: ["Black"] } },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
         {
           trigger: "YourTurn",
-          actions: [{
-            kind: "Replacement",
-            event: "wouldDigivolve",
-            into: { multicolor: true, colorCount: 2, colors: ["Black"] },
-            cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-            actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
-          }],
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              into: { multicolor: true, colorCount: 2, colors: ["Black"] },
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+              actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
+            },
+          ],
         },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],

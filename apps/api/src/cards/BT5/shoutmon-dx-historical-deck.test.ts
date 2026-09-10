@@ -68,7 +68,7 @@ describe("BT5 Shoutmon DX historical deck gauntlet", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.phase).toBe(Phase.End);
-    expect(observe(s.engine).hasKeyword(s.perm("omniShoutmon"), "Blitz")).toBe(false);
+    expect(s.engine.hasAcceptedBlitzAttack(s.perm("omniShoutmon").permanentId)).toBe(false);
     assertNoLoudGap(s);
   });
 });

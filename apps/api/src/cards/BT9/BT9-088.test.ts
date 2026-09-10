@@ -8,13 +8,33 @@ import "./BT9-088.js";
 describe("BT9-088 Mimi Tachikawa & Joe Kido", () => {
   it("matches catalog values and the independent memory, battle-draw, and security IR", () => {
     expect(getCardDefinition("BT9-088")).toMatchObject({
-      colors: ["Green", "Blue"], kinds: ["Tamer"], playCost: 4,
+      colors: ["Green", "Blue"],
+      kinds: ["Tamer"],
+      playCost: 4,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", condition: { kind: "youHave", filter: { suspended: true } } }, { kind: "GainMemory", condition: { kind: "opponentHas", filter: { suspended: true } } }] },
-        { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", sourceFilter: { colors: ["Green", "Blue"] }, actions: [{ kind: "Draw", amount: 1, optional: true, cost: { kind: "suspend" } }] }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "StartOfYourTurn",
+          actions: [
+            { kind: "GainMemory", condition: { kind: "youHave", filter: { suspended: true } } },
+            { kind: "GainMemory", condition: { kind: "opponentHas", filter: { suspended: true } } },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenDeletesInBattle",
+              sourceFilter: { colors: ["Green", "Blue"] },
+              actions: [{ kind: "Draw", amount: 1, optional: true, cost: { kind: "suspend" } }],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });

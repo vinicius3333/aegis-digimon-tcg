@@ -77,7 +77,10 @@ describe("BT9-021 Jellymon", () => {
           { card: "BT9-086", as: "firstTamer" },
           { card: "BT9-086", as: "secondTamer" },
         ],
-        deck: [{ card: "BT1-001", as: "firstDraw" }, { card: "BT1-002", as: "unusedDraw" }],
+        deck: [
+          { card: "BT1-001", as: "firstDraw" },
+          { card: "BT1-002", as: "unusedDraw" },
+        ],
       },
     });
     s.state.memory = 20;
@@ -89,7 +92,9 @@ describe("BT9-021 Jellymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT9-086").length === 2);
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT9-086").length === 2,
+    );
     expect(s.state.players[0]!.deck).toHaveLength(deckAfterFirst);
   });
 
@@ -147,7 +152,9 @@ describe("BT9-021 Jellymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("drawnThenTrashed").instanceId));
+    await settle(() =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("drawnThenTrashed").instanceId),
+    );
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === targetId));
   });
 
@@ -156,11 +163,20 @@ describe("BT9-021 Jellymon", () => {
       {
         0: {
           battleArea: [{ card: "BT9-025", as: "host", under: ["BT9-021"] }],
-          hand: [{ card: "BT1-029", as: "firstGabumon" }, { card: "BT1-029", as: "secondGabumon" }],
-          deck: [{ card: "BT1-001", as: "firstDraw" }, { card: "BT1-002", as: "secondDraw" }],
+          hand: [
+            { card: "BT1-029", as: "firstGabumon" },
+            { card: "BT1-029", as: "secondGabumon" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "firstDraw" },
+            { card: "BT1-002", as: "secondDraw" },
+          ],
         },
         1: {
-          battleArea: [{ card: "BT1-028", as: "firstTarget" }, { card: "BT1-031", as: "secondTarget" }],
+          battleArea: [
+            { card: "BT1-028", as: "firstTarget" },
+            { card: "BT1-031", as: "secondTarget" },
+          ],
         },
       },
       { autoSelectCards: true },

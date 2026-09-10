@@ -8,13 +8,41 @@ import "./BT9-085.js";
 describe("BT9-085 Matt Ishida & Sora Takenouchi", () => {
   it("matches catalog values and the independent hand, unsuspend, and security IR", () => {
     expect(getCardDefinition("BT9-085")).toMatchObject({
-      colors: ["Blue", "Red"], kinds: ["Tamer"], playCost: 4,
+      colors: ["Blue", "Red"],
+      kinds: ["Tamer"],
+      playCost: 4,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", condition: { kind: "zoneCount", seat: "mine", zone: "hand", value: 8 } }, { kind: "GainMemory", condition: { kind: "zoneCount", seat: "opponent", zone: "hand", value: 8 } }] },
-        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenUnsuspended", sourceFilter: { colors: ["Red", "Blue"] }, actions: [{ kind: "Return", to: "hand", optional: true, cost: { kind: "suspend" }, target: { filter: { levels: [3] } } }] }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "StartOfYourMainPhase",
+          actions: [
+            { kind: "GainMemory", condition: { kind: "zoneCount", seat: "mine", zone: "hand", value: 8 } },
+            { kind: "GainMemory", condition: { kind: "zoneCount", seat: "opponent", zone: "hand", value: 8 } },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenUnsuspended",
+              sourceFilter: { colors: ["Red", "Blue"] },
+              actions: [
+                {
+                  kind: "Return",
+                  to: "hand",
+                  optional: true,
+                  cost: { kind: "suspend" },
+                  target: { filter: { levels: [3] } },
+                },
+              ],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });

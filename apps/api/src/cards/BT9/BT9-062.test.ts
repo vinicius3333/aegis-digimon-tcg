@@ -7,12 +7,34 @@ import { compiled } from "./BT9-062.js";
 describe("BT9-062 Raptordramon", () => {
   it("matches catalog and Alphamon-name, play-cost-5 inherited deletion IR", () => {
     expect(getCardDefinition("BT9-062")).toMatchObject({
-      cardId: "BT9-062", nameEn: "Raptordramon", colors: ["Black"], kinds: ["Digimon"], level: 4,
-      playCost: 5, dp: 6000, evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }], forms: ["Champion"],
-      attributes: ["Vaccine"], types: ["Cyborg", "X Antibody"],
+      cardId: "BT9-062",
+      nameEn: "Raptordramon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 6000,
+      evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [{ trigger: "EndOfAttack", isInherited: true, actions: [{ kind: "Delete", target: { filter: { playCostLte: 5 } }, condition: { kind: "selfHasNameContaining", names: ["Alphamon"] } }] }],
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "EndOfAttack",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { playCostLte: 5 } },
+              condition: { kind: "selfHasNameContaining", names: ["Alphamon"] },
+            },
+          ],
+        },
+      ],
     });
   });
 

@@ -1,8 +1,36 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-084.js";
 
 describe("BT1-084 Omnimon", () => {
+  it("matches the catalog contract", () => {
+    expect(getCardDefinition("BT1-084")).toMatchObject({
+      cardId: "BT1-084",
+      set: "BT1",
+      nameEn: "Omnimon",
+      colors: ["White"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Red", level: 6, memoryCost: 6 },
+        { color: "Blue", level: 6, memoryCost: 6 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Warrior", "Royal Knight"],
+      rarity: "SR",
+      maxCountInDeck: 4,
+      imageId: "BT1-084",
+      nameJp: "オメガモン",
+    });
+    expect(getCardDefinition("BT1-084")?.effectText).toContain("share a name");
+    expect(getCardDefinition("BT1-084")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-084")?.securityEffectText).toBeUndefined();
+  });
+
   it("digivolves from red or blue level 6 Digimon for 6 memory, but not green (Q939)", async () => {
     for (const baseCard of ["BT1-025", "BT1-043"]) {
       const s = setupEngine({
@@ -23,6 +51,8 @@ describe("BT1-084 Omnimon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.instanceId === s.inst("omnimon").instanceId);
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCard]);
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
     }
 
     const green = setupEngine({
@@ -82,6 +112,41 @@ describe("BT1-084 Omnimon", () => {
         !s.perm("attacker").isSuspended,
     );
     expect(s.perm("attacker").stack).toHaveLength(0);
+  });
+
+  it("returns only level 6 and retains a non-level-6 digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-084",
+              as: "attacker",
+              under: [
+                { card: "BT1-025", as: "level6" },
+                { card: "BT1-010", as: "level3" },
+              ],
+            },
+          ],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.perm("attacker").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-025")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(false);
   });
 
   it("uses exact name matching and does not delete names that merely contain the chosen name (Q941)", async () => {

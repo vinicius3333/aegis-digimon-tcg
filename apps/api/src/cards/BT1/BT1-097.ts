@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] },
-    { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 2 }] },
+    { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 2 }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],

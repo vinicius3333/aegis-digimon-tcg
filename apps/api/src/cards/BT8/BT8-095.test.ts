@@ -20,13 +20,32 @@ describe("BT8-095 Fire Rocket", () => {
               target: { isSelf: true },
               condition: {
                 kind: "youHave",
-                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
+                },
               },
             },
           ],
         },
-        { trigger: "Main", actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true } } }] },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], keywords: ["Blocker"] } } }] },
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true } } },
+          ],
+        },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], keywords: ["Blocker"] } },
+            },
+          ],
+        },
       ],
     });
   });

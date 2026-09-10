@@ -1,9 +1,39 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT1-052.js";
+import { compiled } from "./BT1-052.js";
 
 describe("BT1-052 Seasarmon", () => {
+  it("matches the catalog and exact Jamming IR contract", () => {
+    expect(getCardDefinition("BT1-052")).toMatchObject({
+      cardId: "BT1-052",
+      set: "BT1",
+      nameEn: "Seasarmon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast"],
+      effectText: "＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)",
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-052",
+      nameJp: "シーサモン",
+    });
+    expect(getCardDefinition("BT1-052")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-052")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [{ trigger: "Static", actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] }],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("has Jamming", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-052", as: "digimon" }] } });
     await s.engine.recomputeContinuousEffects();
@@ -69,5 +99,20 @@ describe("BT1-052 Seasarmon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-050");
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Jamming")).toBe(true);
+  });
+
+  it("rejects evolution from a red level 3 despite matching the level", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT1-052", as: "seasarmon" }] },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("seasarmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

@@ -6,6 +6,27 @@ import "../BT1/BT1-048.js";
 import "./BT2-039.js";
 
 describe("BT2-039 Magnadramon", () => {
+  it("digivolves legally from a yellow level 5", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-038", as: "base" }],
+        hand: [{ card: "BT2-039", as: "magnadramon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magnadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("magnadramon").instanceId);
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT2-038")).toBe(true);
+  });
+
   it("recovers two cards when its owner has three or fewer security cards", async () => {
     const s = setupEngine({
       0: {

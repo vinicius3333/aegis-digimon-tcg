@@ -2,16 +2,24 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-102.js";
+import { compiled } from "./BT1-102.js";
 
 describe("BT1-102 Blade of the True", () => {
+  it("encodes Security as activation of the printed Main effect", () => {
+    expect(compiled.effects[1]).toEqual({
+      trigger: "Security",
+      actions: [{ kind: "ActivateMain" }],
+      isSecurity: true,
+    });
+  });
+
   it("draws 1 for every 2 security cards", async () => {
     const s = setupEngine({
       0: {
         battleArea: ["BT1-047"],
         hand: [{ card: "BT1-102", as: "option" }],
-        security: 4,
-        deck: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        deck: ["BT1-013", "BT1-014"],
       },
     });
     s.state.memory = 2;
@@ -26,7 +34,7 @@ describe("BT1-102 Blade of the True", () => {
     const s = setupEngine({
       0: {
         security: [{ card: "BT1-102", as: "securityOption", faceUp: true }, "BT1-090", "BT1-091", "BT1-092"],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-013", "BT1-014"],
       },
     });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
@@ -34,13 +42,16 @@ describe("BT1-102 Blade of the True", () => {
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 
-  it.each([0, 1])("is still used with %i security cards even though it draws nothing (Q966)", async (security) => {
+  it.each([
+    { count: 0, security: [] },
+    { count: 1, security: ["BT1-009"] },
+  ])("is still used with $count security cards even though it draws nothing (Q966)", async ({ security }) => {
     const s = setupEngine({
       0: {
         battleArea: ["BT1-047"],
         hand: [{ card: "BT1-102", as: "option" }],
         security,
-        deck: [{ card: "BT1-001", as: "top" }],
+        deck: [{ card: "BT1-013", as: "top" }],
       },
     });
     s.state.memory = 2;

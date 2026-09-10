@@ -1,10 +1,56 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import petermon from "./BT1-056.js";
 
 describe("BT1-056 Petermon", () => {
+  it("matches the catalog and exact optional hand-or-trash IR contract", () => {
+    expect(getCardDefinition("BT1-056")).toMatchObject({
+      cardId: "BT1-056",
+      set: "BT1",
+      nameEn: "Petermon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Fairy"],
+      effectText: "[On Play] You may play 1 [Tinkermon] from your hand or recycle bin without paying its memory cost.",
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-056",
+      nameJp: "ピーターモン",
+    });
+    expect(getCardDefinition("BT1-056")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-056")?.securityEffectText).toBeUndefined();
+    expect(petermon).toEqual({
+      effects: [
+        {
+          trigger: "OnPlay",
+          optional: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Tinkermon"], match: "nameExact" }] },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("keeps the bracketed Tinkermon reference exact", () => {
     expect(petermon.effects[0]).toMatchObject({
       actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Tinkermon"], match: "nameExact" }] } } }],
@@ -47,7 +93,7 @@ describe("BT1-056 Petermon", () => {
             { card: "BT1-047", as: "tinkermon" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -163,5 +209,38 @@ describe("BT1-056 Petermon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tinkermon").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("reaches Petermon through the legal yellow level-3 evolution route and keeps Tinkermon in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-050", as: "base" }],
+        hand: [
+          { card: "BT1-056", as: "petermon" },
+          { card: "BT1-047", as: "tinkermon" },
+        ],
+        deck: [
+          { card: "BT1-010", as: "evolutionDraw" },
+          { card: "BT1-011", as: "mustStayInDeck" },
+        ],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("petermon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("petermon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("tinkermon").instanceId, s.inst("evolutionDraw").instanceId]),
+    );
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

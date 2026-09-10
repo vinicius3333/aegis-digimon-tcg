@@ -7,15 +7,40 @@ import "./BT9-096.js";
 describe("BT9-096 Startling Thunder", () => {
   it("matches catalog values and the Jellymon-gated return and security IR", () => {
     expect(getCardDefinition("BT9-096")).toMatchObject({
-      colors: ["Blue"], kinds: ["Option"], playCost: 4,
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 4,
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [
-          { kind: "Return", to: "hand", target: { filter: { kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } } } },
-          { kind: "Return", to: "hand", target: { filter: { kind: ["Tamer"] } }, condition: { kind: "anyOf", conditions: [{ kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "name" }] } }, { kind: "youHave", filter: { digivolutionStackNameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }] } }] } },
-        ] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Return",
+              to: "hand",
+              target: { filter: { kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } } },
+            },
+            {
+              kind: "Return",
+              to: "hand",
+              target: { filter: { kind: ["Tamer"] } },
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "name" }] } },
+                  {
+                    kind: "youHave",
+                    filter: { digivolutionStackNameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }] },
+                  },
+                ],
+              },
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
     });

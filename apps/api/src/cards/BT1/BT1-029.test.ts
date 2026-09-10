@@ -1,9 +1,33 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-029.js";
+import { compiled } from "./BT1-029.js";
 
 describe("BT1-029 Gabumon", () => {
+  it("matches the catalog and exact On Play Draw IR", () => {
+    expect(getCardDefinition("BT1-029")).toMatchObject({
+      cardId: "BT1-029",
+      nameEn: "Gabumon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Reptile"],
+      effectText: "[On Play] Trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
+    });
+    expect(getCardDefinition("BT1-029")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-029")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [{ trigger: "OnPlay", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("draws one card on play", async () => {
     const s = setupEngine({
       0: {
@@ -30,9 +54,12 @@ describe("BT1-029 Gabumon", () => {
   it("does not activate its On Play effect when digivolving", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-003", as: "base" }],
+        breeding: { card: "BT1-003", as: "base" },
         hand: [{ card: "BT1-029", as: "gabumon" }],
-        deck: [{ card: "BT1-030", as: "drawn" }, { card: "BT1-031", as: "remaining" }],
+        deck: [
+          { card: "BT1-030", as: "drawn" },
+          { card: "BT1-031", as: "remaining" },
+        ],
       },
     });
     s.state.memory = 0;
@@ -48,5 +75,20 @@ describe("BT1-029 Gabumon", () => {
 
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("remaining").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-003"]);
+  });
+
+  it("rejects evolution from a red level 2", () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: "BT1-029", as: "gabumon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gabumon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

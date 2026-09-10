@@ -13,7 +13,11 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }] },
+    {
+      trigger: "Security",
+      actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],

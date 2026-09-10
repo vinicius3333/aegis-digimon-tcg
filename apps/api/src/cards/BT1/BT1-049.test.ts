@@ -1,10 +1,59 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-049.js";
+import { compiled } from "./BT1-049.js";
 import "./BT1-054.js";
+import "./BT1-052.js";
 
 describe("BT1-049 Labramon", () => {
+  it("matches the catalog and exact inherited deletion watcher IR contract", () => {
+    expect(getCardDefinition("BT1-049")).toMatchObject({
+      cardId: "BT1-049",
+      set: "BT1",
+      nameEn: "Labramon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beast"],
+      inheritedEffectText:
+        "[Your Turn] When an opponent's Digimon is deleted by dropping to 0 DP， trigger ＜Draw 1＞ (Draw 1 card from your deck).",
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-049",
+      nameJp: "ラブラモン",
+    });
+    expect(getCardDefinition("BT1-049")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-049")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onDeletionOf",
+              sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+              fireCondition: {
+                kind: "allOf",
+                conditions: [{ kind: "triggerDeletedByDpZero" }, { kind: "triggerIsFirstDeletedPermanent" }],
+              },
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("draws 1 when an opposing Digimon is deleted by having its DP reduced to 0", async () => {
     const s = setupEngine(
       {
@@ -29,6 +78,88 @@ describe("BT1-049 Labramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
+  it("carries the inherited watcher through a legal yellow level-2 evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-006", as: "base" },
+          { card: "BT1-054", as: "reducer" },
+        ],
+        hand: [
+          { card: "BT1-049", as: "labramon" },
+          { card: "BT1-052", as: "seasarmon" },
+        ],
+        deck: [
+          { card: "BT1-010", as: "evolutionDrawOne" },
+          { card: "BT1-011", as: "evolutionDrawTwo" },
+          { card: "BT1-012", as: "triggerDraw" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-016", as: "target", dp: 2000 }], security: ["BT1-012"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("labramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("labramon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("evolutionDrawOne").instanceId, s.inst("seasarmon").instanceId]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-006"]);
+
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("seasarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("seasarmon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("evolutionDrawOne").instanceId, s.inst("evolutionDrawTwo").instanceId]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-006", "BT1-049"]);
+
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reducer").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("evolutionDrawOne").instanceId,
+        s.inst("evolutionDrawTwo").instanceId,
+        s.inst("triggerDraw").instanceId,
+      ]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+  });
+
+  it("rejects evolution from a red level 2 despite matching the level", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "redBase" }], hand: [{ card: "BT1-049", as: "labramon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("labramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("does not draw when an opposing Digimon is deleted by an effect", async () => {

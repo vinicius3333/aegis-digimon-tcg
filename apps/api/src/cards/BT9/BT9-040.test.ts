@@ -6,16 +6,35 @@ import { compiled } from "./BT9-040.js";
 describe("BT9-040 Angewomon (X Antibody)", () => {
   it("matches catalog and Q1834 exact-name, security-bound recovery IR", () => {
     expect(getCardDefinition("BT9-040")).toMatchObject({
-      cardId: "BT9-040", nameEn: "Angewomon (X Antibody)", colors: ["Yellow"], kinds: ["Digimon"], level: 5,
-      playCost: 8, dp: 8000, evoCosts: [{ color: "Yellow", level: 4, memoryCost: 3 }], forms: ["Ultimate"],
-      attributes: ["Vaccine"], types: ["Archangel", "X Antibody"],
+      cardId: "BT9-040",
+      nameEn: "Angewomon (X Antibody)",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [{ color: "Yellow", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Archangel", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Angewomon"], cost: 0, isAlternate: true }],
-      effects: [{ trigger: "WhenDigivolving", actions: [
-        { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" },
-        { kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 }, condition: { kind: "allOf" } },
-      ] }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Angewomon"], cost: 0, isAlternate: true }],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "GainKeyword",
+              keyword: { keyword: "SecurityAttack", amount: -1 },
+              duration: "untilOpponentTurnEnd",
+            },
+            { kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 }, condition: { kind: "allOf" } },
+          ],
+        },
+      ],
     });
   });
 

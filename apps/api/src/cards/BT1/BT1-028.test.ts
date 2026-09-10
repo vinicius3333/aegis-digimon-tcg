@@ -1,8 +1,29 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-028.js";
+import { compiled } from "./BT1-028.js";
 
 describe("BT1-028 Elecmon", () => {
+  it("matches the catalog and has complete empty IR", () => {
+    expect(getCardDefinition("BT1-028")).toMatchObject({
+      cardId: "BT1-028",
+      nameEn: "Elecmon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 2,
+      dp: 3000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Mammal"],
+    });
+    expect(getCardDefinition("BT1-028")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-028")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-028")?.securityEffectText).toBeUndefined();
+    expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
+  });
+
   it("plays for 2 memory as a 3000 DP Digimon", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT1-028", as: "elecmon" }] } });
     s.state.memory = 2;
@@ -19,7 +40,7 @@ describe("BT1-028 Elecmon", () => {
   it("digivolves from a blue level 2 for 0 memory", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-003", as: "base" }],
+        breeding: { card: "BT1-003", as: "base" },
         hand: [{ card: "BT1-028", as: "elecmon" }],
         deck: [{ card: "BT1-027", as: "drawn" }],
       },
@@ -36,6 +57,7 @@ describe("BT1-028 Elecmon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-003"]);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
 
@@ -50,7 +72,7 @@ describe("BT1-028 Elecmon", () => {
 
   it("rejects evolution from a red level 2", () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "BT1-028", as: "elecmon" }] },
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: "BT1-028", as: "elecmon" }] },
     });
     expect(
       s.engine.applyIntent(0, {

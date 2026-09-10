@@ -7,13 +7,36 @@ import "./BT9-100.js";
 describe("BT9-100 Grandis Scissor", () => {
   it("matches catalog values and the bound Insectoid attack and security IR", () => {
     expect(getCardDefinition("BT9-100")).toMatchObject({
-      colors: ["Green"], kinds: ["Option"], playCost: 4,
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 4,
       securityEffectText: "[Security] Suspend 1 of your opponent's Digimon or Tamers.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "Suspend", target: { filter: { kind: ["Digimon"] } } }, { kind: "Unsuspend", optional: true, abortOnDecline: true, target: { bindAs: "unsuspendedInsectoid", filter: { nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }] } } }, { kind: "Attack", attackPlayer: false, target: { fromSelectionRef: "unsuspendedInsectoid" } }] },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "Suspend", target: { filter: { kind: ["Digimon", "Tamer"] } } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "Suspend", target: { filter: { kind: ["Digimon"] } } },
+            {
+              kind: "Unsuspend",
+              optional: true,
+              abortOnDecline: true,
+              target: {
+                bindAs: "unsuspendedInsectoid",
+                filter: { nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }] },
+              },
+            },
+            { kind: "Attack", attackPlayer: false, target: { fromSelectionRef: "unsuspendedInsectoid" } },
+          ],
+        },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "Suspend", target: { filter: { kind: ["Digimon", "Tamer"] } } }],
+        },
       ],
     });
   });

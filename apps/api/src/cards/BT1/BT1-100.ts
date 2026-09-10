@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
       ],
+      isSecurity: true,
     },
   ],
   coverage: "full",

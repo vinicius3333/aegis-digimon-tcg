@@ -75,7 +75,10 @@ describe("BT9-023 KausGammamon", () => {
     const invalid = setupEngine({
       0: {
         breeding: { card: "BT1-001", as: "egg" },
-        hand: [{ card: "BT1-009", as: "notGammamon" }, { card: "BT9-023", as: "kaus" }],
+        hand: [
+          { card: "BT1-009", as: "notGammamon" },
+          { card: "BT9-023", as: "kaus" },
+        ],
       },
     });
     invalid.state.memory = 2;

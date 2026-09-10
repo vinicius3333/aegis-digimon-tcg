@@ -1,10 +1,54 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST2/ST2-13.js";
-import "./BT1-054.js";
+import liamon from "./BT1-054.js";
 
 describe("BT1-054 Liamon", () => {
+  it("matches the catalog and exact conditional When Attacking IR contract", () => {
+    expect(getCardDefinition("BT1-054")).toMatchObject({
+      cardId: "BT1-054",
+      set: "BT1",
+      nameEn: "Liamon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 3 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Holy Beast"],
+      effectText:
+        "[When Attacking] If you have 3 or more memory， 1 of your opponent's Digimon gets -2000 DP for the turn.",
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-054",
+      nameJp: "ライアモン",
+    });
+    expect(getCardDefinition("BT1-054")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-054")?.securityEffectText).toBeUndefined();
+    expect(liamon).toEqual({
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -2000,
+              duration: "forTheTurn",
+              condition: { kind: "memoryAtLeast", value: 3, controller: "mine" },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("gives an opposing Digimon -2000 DP when attacking with at least 3 memory", async () => {
     const s = setupEngine(
       {
@@ -23,6 +67,34 @@ describe("BT1-054 Liamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 3000);
     expect(s.perm("target").currentDP).toBe(3000);
+  });
+
+  it("reduces exactly one opposing Digimon when several are eligible", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-054", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-016", as: "first", dp: 5000 },
+            { card: "BT1-016", as: "second", dp: 5000 },
+          ],
+          security: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("first").currentDP === 3000 || s.perm("second").currentDP === 3000);
+
+    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort()).toEqual([3000, 5000]);
   });
 
   it("keeps the activated DP reduction after security lowers memory below 3", async () => {

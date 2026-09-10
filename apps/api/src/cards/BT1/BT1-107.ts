@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -14,3 +14,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT1-107", compiled);
+export default compiled;

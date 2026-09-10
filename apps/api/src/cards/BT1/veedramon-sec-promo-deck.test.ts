@@ -15,7 +15,7 @@ describe("V-Tamer/Veedramon SEC and promo deck", () => {
             { card: "BT2-086", as: "rina" },
             { card: "BT1-115", as: "veedramon", dp: 10_000, under: ["P-011"] },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-013"],
           trash: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: { security: ["BT1-010", "BT1-011"] },
@@ -59,7 +59,7 @@ describe("V-Tamer/Veedramon SEC and promo deck", () => {
       {
         0: {
           battleArea: [{ card: "P-012" }, { card: "P-011", as: "zero", dp: 5000 }],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-013", "BT1-012", "BT1-014"],
         },
         1: { security: ["BT1-010"] },
       },

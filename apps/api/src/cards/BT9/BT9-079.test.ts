@@ -7,14 +7,44 @@ import "./BT9-079.js";
 describe("BT9-079 GranDracmon", () => {
   it("matches the catalog and the free-play and rules-constrained evolution IR", () => {
     expect(getCardDefinition("BT9-079")).toMatchObject({
-      colors: ["Purple"], level: 6, playCost: 12, dp: 12000,
-      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }], types: ["Dark Animal"],
+      colors: ["Purple"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }],
+      types: ["Dark Animal"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [],
+      coverage: "full",
+      residual: [],
       effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { controller: "mine", colors: ["Purple"], levels: [3] } } }] },
-        { trigger: "EndOfAttack", frequency: "OncePerTurn", actions: [{ kind: "Digivolve", from: ["trash"], payCost: false, ignoreReqs: false, optional: true, target: { filter: { controller: "mine", excludeSelf: true } }, into: { nameOrTrait: [{ tokens: ["Undead", "Dark Animal"], match: "trait" }] } }] },
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              target: { filter: { controller: "mine", colors: ["Purple"], levels: [3] } },
+            },
+          ],
+        },
+        {
+          trigger: "EndOfAttack",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["trash"],
+              payCost: false,
+              ignoreReqs: false,
+              optional: true,
+              target: { filter: { controller: "mine", excludeSelf: true } },
+              into: { nameOrTrait: [{ tokens: ["Undead", "Dark Animal"], match: "trait" }] },
+            },
+          ],
+        },
       ],
     });
   });

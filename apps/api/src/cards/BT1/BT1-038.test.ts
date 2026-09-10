@@ -8,6 +8,7 @@ describe("BT1-038 Monzaemon", () => {
   it("matches the vanilla catalog contract and registers residual-free IR", () => {
     expect(getCardDefinition("BT1-038")).toMatchObject({
       cardId: "BT1-038",
+      set: "BT1",
       nameEn: "Monzaemon",
       colors: ["Blue"],
       kinds: ["Digimon"],
@@ -18,7 +19,14 @@ describe("BT1-038 Monzaemon", () => {
       forms: ["Ultimate"],
       attributes: ["Vaccine"],
       types: ["Puppet"],
+      rarity: "C",
+      maxCountInDeck: 4,
+      imageId: "BT1-038",
+      nameJp: "もんざえモン",
     });
+    expect(getCardDefinition("BT1-038")?.effectText).toBeUndefined();
+    expect(getCardDefinition("BT1-038")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-038")?.securityEffectText).toBeUndefined();
     expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
     expect(getEffectModule("BT1-038")?.cardId).toBe("BT1-038");
   });
@@ -57,6 +65,21 @@ describe("BT1-038 Monzaemon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base")).toMatchObject({ baseDP: 6000, currentDP: 6000 });
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-037"]);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+  });
+
+  it("rejects evolution from a red level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: "BT1-038", as: "monzaemon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("monzaemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

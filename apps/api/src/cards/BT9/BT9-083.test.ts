@@ -7,19 +7,39 @@ import "./BT9-083.js";
 describe("BT9-083 Omnimon: Merciful Mode", () => {
   it("matches catalog values, alternate evolution, and sequential effect IR", () => {
     expect(getCardDefinition("BT9-083")).toMatchObject({
-      colors: ["White"], level: 7, playCost: 15, dp: 15000,
-      evoCosts: [{ color: "Red", level: 6, memoryCost: 6 }, { color: "Blue", level: 6, memoryCost: 6 }, { color: "Yellow", level: 6, memoryCost: 6 }, { color: "Green", level: 6, memoryCost: 6 }],
+      colors: ["White"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Red", level: 6, memoryCost: 6 },
+        { color: "Blue", level: 6, memoryCost: 6 },
+        { color: "Yellow", level: 6, memoryCost: 6 },
+        { color: "Green", level: 6, memoryCost: 6 },
+      ],
       types: ["Holy Warrior"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Omnimon"], cost: 3, isAlternate: true }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["Omnimon"], cost: 3, isAlternate: true }],
       effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "Delete", scaling: { unit: "digivolutionCards", filter: { forms: ["Mega"] } } }, { kind: "Return", to: "deckBottom", order: "any", target: { count: 10, upTo: true } }] },
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            { kind: "Delete", scaling: { unit: "digivolutionCards", filter: { forms: ["Mega"] } } },
+            { kind: "Return", to: "deckBottom", order: "any", target: { count: 10, upTo: true } },
+          ],
+        },
         {
           trigger: "StartOfYourTurn",
           actions: [
             { kind: "Trash", target: { filter: { zone: "digivolutionCards", position: "top" } } },
-            { kind: "Trash", condition: { kind: "ifThisEffectActed" }, target: { filter: { zone: "security", controller: "opponent", position: "top" } } },
+            {
+              kind: "Trash",
+              condition: { kind: "ifThisEffectActed" },
+              target: { filter: { zone: "security", controller: "opponent", position: "top" } },
+            },
           ],
         },
       ],

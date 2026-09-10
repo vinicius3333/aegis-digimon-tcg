@@ -1,10 +1,46 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-012.js";
+import { compiled } from "./BT1-012.js";
 import "./BT1-072.js";
 
 describe("BT1-012 Biyomon", () => {
+  it("matches the catalog and exports its inherited blocked boost", () => {
+    expect(getCardDefinition("BT1-012")).toMatchObject({
+      cardId: "BT1-012",
+      nameEn: "Biyomon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Red", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Bird"],
+      inheritedEffectText: "[Your Turn] When this Digimon is blocked， it gets +2000 DP.",
+    });
+    expect(getCardDefinition("BT1-012")?.effectText).toBeUndefined();
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "WhenBlocked",
+        isInherited: true,
+        condition: { kind: "isYourTurn" },
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: 2000,
+            duration: "forTheTurn",
+            effectSourceBound: true,
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          },
+        ],
+      },
+    ]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("does not grant +2000 DP before an attack is actually blocked", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 5000, under: ["BT1-012"] }] },
@@ -95,6 +131,7 @@ describe("BT1-012 Biyomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("biyomon").instanceId);
+    expect(s.state.memory).toBe(3);
 
     expect(
       s.engine.applyIntent(0, {
@@ -104,6 +141,7 @@ describe("BT1-012 Biyomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+    expect(s.state.memory).toBe(1);
 
     expect(
       s.engine.applyIntent(0, {

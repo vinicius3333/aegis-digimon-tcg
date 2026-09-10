@@ -5,7 +5,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT4/BT4-101.js";
 import "./BT1-054.js";
+import "./BT1-068.js";
 import "./BT1-072.js";
+import "./BT1-080.js";
+import "./BT1-075.js";
 import { compiled } from "./BT1-112.js";
 
 // A3 for BT1-112 (Dimension Scissor, Green Option).
@@ -85,7 +88,7 @@ describe("BT1-112 Dimension Scissor", () => {
         },
         1: {
           // Player 1 has a weaker Digimon, suspended (required to be a legal attack target).
-          battleArea: [{ card: "BT1-003", dp: 1000, suspended: true, as: "defender" }],
+          battleArea: [{ card: "BT1-009", dp: 1000, suspended: true, as: "defender" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -133,6 +136,139 @@ describe("BT1-112 Dimension Scissor", () => {
     expect(attacker.isSuspended).toBe(false);
   });
 
+  it("keeps the granted watcher through hatch, legal breeding evolutions, and movement to battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT1-007", as: "egg" }],
+          hand: [
+            { card: "BT1-112", as: "option" },
+            { card: "BT1-068", as: "level3" },
+            { card: "BT1-072", as: "level4" },
+            { card: "BT1-075", as: "level5" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 1000, suspended: true, as: "defender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.phase = Phase.Breeding;
+
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT1-007");
+    const carrier = s.perm("egg");
+    s.state.phase = Phase.Main;
+    for (const alias of ["level3", "level4", "level5"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: carrier.permanentId,
+          instanceId: s.inst(alias).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => carrier.topCard.cardId === s.inst(alias).cardId);
+    }
+    expect(carrier.stack.map((card) => card.cardId)).toEqual(["BT1-007", "BT1-068", "BT1-072"]);
+    expect(carrier.topCard.cardId).toBe("BT1-075");
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: carrier.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === carrier.permanentId));
+
+    // A Digimon moved from breeding cannot attack during that same turn (§16-1). Advance
+    // one real turn before playing the Option so the public attack below is legal while the
+    // watcher still resolves entirely within the turn in which BT1-112 is played.
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    // Open the next turn's authoritative Main controller rather than changing only the
+    // visible phase field; attack/play intents must be accepted by the production controller.
+    s.state.memory = 10;
+    const actionTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.turnSeat = 0;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+
+    const defender = s.perm("defender");
+    expect(carrier.isSuspended).toBe(false);
+    expect(defender.isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: carrier.permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId } satisfies AttackTarget,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === defender.permanentId) && !carrier.isSuspended,
+      600,
+    );
+    expect(carrier.isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await actionTurn;
+  });
+
+  it("keeps the granted watcher on the same Digimon through a legal level-5-to-6 evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-075", dp: 5000, as: "attacker" }, "BT1-064"],
+          hand: [
+            { card: "BT1-112", as: "option" },
+            { card: "BT1-080", as: "evolution" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 1000, suspended: true, as: "defender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+    expect(s.state.memory).toBe(2);
+
+    const attacker = s.perm("attacker");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: attacker.permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => attacker.topCard.cardId === "BT1-080");
+    expect(s.state.memory).toBe(0);
+    expect(attacker.stack.map((card) => card.cardId)).toContain("BT1-075");
+
+    const defender = s.perm("defender");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId } satisfies AttackTarget,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === defender.permanentId) && !attacker.isSuspended,
+      600,
+    );
+
+    expect(attacker.isSuspended).toBe(false);
+  });
+
   it("Q984 can unsuspend repeatedly after deleting multiple opposing Digimon in separate battles", async () => {
     const s = setupEngine(
       {
@@ -142,7 +278,7 @@ describe("BT1-112 Dimension Scissor", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-003", as: "first", dp: 1000, suspended: true },
+            { card: "BT1-009", as: "first", dp: 1000, suspended: true },
             { card: "BT1-009", as: "second", dp: 2000, suspended: true },
           ],
         },
@@ -216,7 +352,7 @@ describe("BT1-112 Dimension Scissor", () => {
         },
         1: {
           battleArea: [{ card: "BT1-072", as: "blocker", dp: 6000 }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true },

@@ -1,0 +1,26 @@
+# BT3 re-audit run
+
+## 2026-09-10 initialization
+
+- Dedicated branch/worktree: `audit-bt3-luna-20260910` at `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt3-luna-20260910`.
+- Cumulative base: pushed BT2 completion `483169d6e778ac4eae0bb7bb779095db29e90200`.
+- Inventory: 112 production modules, 112 focused tests, zero `@ts-nocheck`, zero `registerCard(`.
+- Main worktree remains out of scope and untouched.
+- Heavy commands require a standalone process poll followed by standalone `memory_pressure -Q` at 50% or higher; Vitest uses `--maxWorkers=1 --no-file-parallelism`.
+- Baseline exact BT3-001..BT3-016 focused run passed 16/16 files and 38/38 tests with required single-worker flags after a clear process poll and 64% memory-free gate. Existing green tests are not acceptance credit until lifecycle/peer evidence is complete.
+- Coordinator individual acceptance from the baseline plus static catalog/IR review credited BT3-009..011 and BT3-013..016 at the worker cap. BT3-001 and BT3-012 remain queued for strengthened public lifecycle tests; no batch-wide credit was inferred.
+- Read-only Luna static reviews for BT3-017..032 were reconciled against the already-green exact focused baseline. Coordinator accepted each row individually at 8/10; concrete lifecycle hardening opportunities remain review notes rather than batch blockers.
+- BT3-001 lifecycle correction: the first run expected a decision for a single legal target and was red because the engine resolved that mandatory singleton automatically. Diagnostic state proved the evolved stack retained BT3-001 and deleted only the natural 1000-DP opponent. The corrected observable assertion passed 3/3 focused tests after the required two-call gate; no production change was needed.
+- Coordinator reconciled read-only static findings for BT3-033..080 against focused behavioral evidence and accepted every fidelity-clean card individually. Generic absence of a full end-to-end lifecycle was not treated as a defect where the implemented mechanism and its material boundaries were already reproducibly exercised.
+- Coordinator reconciled BT3-081..096 individually from catalog/IR review and existing focused behavioral proof; all sixteen were fidelity-clean at the worker cap.
+- Coordinator reconciled BT3-097..112 individually from catalog/IR review and focused behavioral proof. BT3-002..005, 007, and 008 were also accepted after exact re-review; generic lifecycle hardening was not treated as a fidelity defect. BT3-006 and BT3-012 remain the only concrete evidence gaps.
+- BT3-006 gained a top-card negative proving its inherited effect does not activate outside a source stack. BT3-012 replaced a numeric DP override with natural cards and gained a legal BT3-001 → BT3-009 → BT3-012 → BT3-015 public lifecycle; its exact 2000-DP target is deleted while the natural 3000-DP peer survives. Combined focused run passed 2/2 files and 4/4 tests.
+- Exact BT3-only collection manifest contained 123 test files, with every parent basename verified as exactly `BT3`; the run passed 123/123 files and 371/371 tests with one worker and file parallelism disabled.
+- First effects-sync attempt is discarded as gate evidence because the isolated worktree lacked `packages/shared/node_modules`; the internal shared build failed module resolution before synchronization. An attributable worktree-only dependency symlink was restored and must be unlinked before delivery.
+- Effects sync and check then each passed for 112 BT3 records with zero semantic changes against cumulative BT2 base and zero semantic/byte changes outside BT3.
+- A deliberately broad `vitest run src/engine` diagnostic is discarded as mechanism-gate evidence: 267/269 files and 7436/7438 tests passed, while two unrelated cumulative deck-catalog tests failed because the externally advanced catalog contains BT26 and one BT26 BeelStarmon interaction is currently red. No BT3 test failed.
+- Canonical bounded mechanism manifest: `effects/nameExactMatch.test.ts`, `cards/securityActivateCluster.test.ts`, `effects/subtriggers.test.ts`, `revealAddCostBudget.test.ts`, `effects/continuous.test.ts`, `attackTriggerOrdering.test.ts`, `cards/ex7HandAddWatcher.test.ts`, `effects/interpreter/registration/module.test.ts`, and `effects/endOfAttackScope.test.ts`. All paths were validated before execution; the evolved current suite passed 9/9 files and 101/101 tests with one worker and file parallelism disabled.
+- Full `pnpm typecheck` passed the shared build/typecheck plus web and API after restoring only the attributable worktree dependency links. The links remain scheduled for removal before commit.
+- Static delivery gates passed: Oxlint and Oxfmt checked all three changed TypeScript tests, `git diff --check` passed, and BT3 contains zero `@ts-nocheck` and zero `registerCard(` occurrences. All executable modules remain exclusively compiled-IR registrations.
+- Final ledger recalculation awarded delivery gates only after the collection, mechanism, typecheck, formatting, lint, snapshot, and diff gates were green: 1120/1120, all 112 cards at 10/10.
+- Removed only the four attributable dependency symlinks (`node_modules`, API, shared, and web) before staging. Build artifacts remain ignored and are not delivery content.

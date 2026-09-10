@@ -7,16 +7,42 @@ import { compiled } from "./BT9-056.js";
 describe("BT9-056 Dinotigermon", () => {
   it("matches catalog and Q1852 exact-X, Leomon-name, opponent-suspend IR", () => {
     expect(getCardDefinition("BT9-056")).toMatchObject({
-      cardId: "BT9-056", nameEn: "Dinotigermon", colors: ["Green"], kinds: ["Digimon"], level: 6,
-      playCost: 12, dp: 12000,
-      evoCosts: [{ color: "Green", level: 5, memoryCost: 4 }, { color: "Blue", level: 5, memoryCost: 4 }],
-      forms: ["Mega"], attributes: ["Data"], types: ["Ancient Animal", "X Antibody"],
+      cardId: "BT9-056",
+      nameEn: "Dinotigermon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 4 },
+        { color: "Blue", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Ancient Animal", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["SaberLeomon"], cost: 1, isAlternate: false }],
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ names: ["SaberLeomon"], cost: 1, isAlternate: false }],
       effects: [
-        { trigger: "WhenAttacking", actions: [{ kind: "Suspend", condition: { kind: "selfDigivolutionStackHasTrait" } }] },
-        { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, actions: [{ kind: "Unsuspend", optional: true }] }] },
+        {
+          trigger: "WhenAttacking",
+          actions: [{ kind: "Suspend", condition: { kind: "selfDigivolutionStackHasTrait" } }],
+        },
+        {
+          trigger: "YourTurn",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenSuspended",
+              sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+              actions: [{ kind: "Unsuspend", optional: true }],
+            },
+          ],
+        },
       ],
     });
   });

@@ -1,10 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-053.js";
+import darcmon from "./BT1-053.js";
 import "./BT1-056.js";
 
 describe("BT1-053 Darcmon", () => {
+  it("matches the catalog and exact Your Turn watcher IR contract", () => {
+    expect(getCardDefinition("BT1-053")).toMatchObject({
+      cardId: "BT1-053",
+      set: "BT1",
+      nameEn: "Darcmon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Angel"],
+      effectText:
+        "[Your Turn] When you play a level 3 yellow Digimon， if this Digimon is suspended， trigger ＜Draw 1＞ (Draw 1 card from your deck).",
+      rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "BT1-053",
+      nameJp: "ダルクモン",
+    });
+    expect(getCardDefinition("BT1-053")?.inheritedEffectText).toBeUndefined();
+    expect(getCardDefinition("BT1-053")?.securityEffectText).toBeUndefined();
+    expect(darcmon).toEqual({
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controller: "mine", kind: ["Digimon"], levels: [3], colors: ["Yellow"] },
+              actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: { kind: "selfIsSuspended" } }],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+  });
+
   it("draws 1 when its suspended copy sees a level 3 yellow Digimon played", async () => {
     const s = setupEngine({
       0: {
@@ -164,5 +206,41 @@ describe("BT1-053 Darcmon", () => {
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("mustStayInDeck").instanceId);
+  });
+
+  it("reaches Darcmon through the legal yellow level-3 evolution route and draws for the later play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-050", as: "base", suspended: true }],
+        hand: [
+          { card: "BT1-053", as: "darcmon" },
+          { card: "BT1-045", as: "played" },
+        ],
+        deck: [
+          { card: "BT1-010", as: "evolutionDraw" },
+          { card: "BT1-011", as: "triggerDraw" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("darcmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("darcmon").instanceId);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("triggerDraw").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("triggerDraw").instanceId);
   });
 });

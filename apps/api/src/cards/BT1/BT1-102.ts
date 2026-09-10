@@ -9,7 +9,7 @@ const drawPerSecurity: Action = {
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: [drawPerSecurity] },
-    { trigger: "Security", actions: [drawPerSecurity] },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],
