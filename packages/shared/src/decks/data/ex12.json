@@ -415,13 +415,14 @@
     },
     {
       "id": "ex12-dgo-2026-07-26-1-toho-braves",
-      "revision": 1,
+      "revision": 2,
       "name": "EX12 Toho Braves",
       "archetype": "Toho Braves",
       "collection": "EX12",
       "formatBlock": "EX12",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Susanoomon EX12-076 to 4.",
       "tournament": {
         "name": "Regionals — CCG Eventos",
         "date": "2026-07-26",
@@ -509,13 +510,13 @@
         {
           "cardId": "EX12-076",
           "name": "Susanoomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {

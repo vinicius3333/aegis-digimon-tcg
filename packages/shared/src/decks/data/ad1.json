@@ -1032,13 +1032,14 @@
     },
     {
       "id": "ad1-dgo-2026-04-18-1-omnimon-alter-s",
-      "revision": 1,
+      "revision": 2,
       "name": "AD1 Omnimon Alter S",
       "archetype": "Omnimon Alter S",
       "collection": "AD1",
       "formatBlock": "AD1",
       "colors": ["Red", "Blue", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Nokia Shiramine BT22-084 to 3, Omnimon Alter-S EX9-021 to 4, Omnimon Alter-S EX4-060 to 2.",
       "tournament": {
         "name": "Regionals — Carta Magica",
         "date": "2026-04-18",
@@ -1119,25 +1120,25 @@
         {
           "cardId": "EX9-021",
           "name": "Omnimon Alter-S",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX4-060",
           "name": "Omnimon Alter-S",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
           "cardId": "BT22-084",
           "name": "Nokia Shiramine",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1164,13 +1165,14 @@
     },
     {
       "id": "omnimon-alter-s-na-2026-04-18-1",
-      "revision": 1,
+      "revision": 2,
       "name": "AD1 Omnimon Alter S",
       "archetype": "Omnimon Alter S",
       "collection": "AD1",
       "formatBlock": "AD1",
       "colors": ["Black", "Blue", "Red", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Nokia Shiramine BT22-084 to 3, Omnimon Alter-S EX9-021 to 4, Omnimon Alter-S EX4-060 to 2.",
       "tournament": {
         "name": "Regionals North America",
         "date": "2026-04-18",
@@ -1250,25 +1252,25 @@
         {
           "cardId": "EX4-060",
           "name": "Omnimon Alter-S",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
           "cardId": "EX9-021",
           "name": "Omnimon Alter-S",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT22-084",
           "name": "Nokia Shiramine",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1723,13 +1725,14 @@
     },
     {
       "id": "ad1-dgo-2026-05-09-1-millenniummon",
-      "revision": 1,
+      "revision": 2,
       "name": "AD1 Millenniummon",
       "archetype": "Millenniummon",
       "collection": "AD1",
       "formatBlock": "AD1",
       "colors": ["Red", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Ukkomon BT16-082 to 3, Kimeramon BT19-070 to 4, Kimeramon BT18-015 to 4.",
       "tournament": {
         "name": "Regionals — Carta Magica",
         "date": "2026-05-09",
@@ -1763,7 +1766,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1781,13 +1784,13 @@
         {
           "cardId": "BT19-070",
           "name": "Kimeramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT18-015",
           "name": "Kimeramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1835,7 +1838,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1862,13 +1865,14 @@
     },
     {
       "id": "jesmon-latam-2026-05-16-2",
-      "revision": 1,
+      "revision": 2,
       "name": "AD1 Jesmon",
       "archetype": "Jesmon",
       "collection": "AD1",
       "formatBlock": "AD1",
       "colors": ["Red", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Ukkomon BT16-082 to 4, Sistermon Blanc BT23-076 to 4.",
       "tournament": {
         "name": "Regionals Latin America",
         "date": "2026-05-16",
@@ -1895,13 +1899,13 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT23-076",
           "name": "Sistermon Blanc",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1979,7 +1983,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 3,
+          "qty": 1,
           "type": "Tamer"
         }
       ],
@@ -1994,13 +1998,14 @@
     },
     {
       "id": "millenniummon-latam-2026-05-16-5",
-      "revision": 1,
+      "revision": 2,
       "name": "AD1 Millenniummon",
       "archetype": "Millenniummon",
       "collection": "AD1",
       "formatBlock": "AD1",
       "colors": ["Purple", "Red", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Ukkomon BT16-082 to 4, Insane Synthetic Monster P-205 to 4.",
       "tournament": {
         "name": "Regionals Latin America",
         "date": "2026-05-16",
@@ -2033,7 +2038,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2105,7 +2110,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 3,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -2129,7 +2134,7 @@
         {
           "cardId": "P-205",
           "name": "Insane Synthetic Monster",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],

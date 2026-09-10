@@ -480,14 +480,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-22-2-fenriloogamon-takemikazuchi",
-      "revision": 2,
+      "revision": 3,
       "name": "BT20 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["Red", "Yellow", "Green", "White", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Helloogarmon BT14-078 to 4, Tyrannomon BT15-011 to 4, Loogarmon BT15-075 to 4.",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Helloogarmon BT14-078 to 4, Tyrannomon BT15-011 to 4, Loogarmon BT15-075 to 4. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Eiji Nagasumi BT14-087 to 3, Cracker Fang BT17-091 to 2, Ukkomon BT16-082 to 4.",
       "tournament": {
         "name": "Campus — Organized Play Events",
         "date": "2025-03-22",
@@ -515,7 +515,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -569,13 +569,13 @@
         {
           "cardId": "BT14-087",
           "name": "Eiji Nagasumi",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "BT17-091",
           "name": "Cracker Fang",
-          "qty": 1,
+          "qty": 2,
           "type": "Tamer"
         },
         {
@@ -587,7 +587,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1244,13 +1244,14 @@
     },
     {
       "id": "bt20-dgo-2025-04-12-2-imperialdramon-virus",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Imperialdramon Virus",
       "archetype": "Imperialdramon Virus",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["Green", "Purple", "Red", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Paildramon EX3-010 to 4, Flamedramon EX3-008 to 3, Salamon BT16-030 to 2.",
       "tournament": {
         "name": "PPG Ultimate Cup Pod 1",
         "date": "2025-04-12",
@@ -1282,7 +1283,7 @@
         {
           "cardId": "BT16-030",
           "name": "Salamon",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
@@ -1306,7 +1307,7 @@
         {
           "cardId": "EX3-008",
           "name": "Flamedramon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1336,7 +1337,7 @@
         {
           "cardId": "EX3-010",
           "name": "Paildramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1360,7 +1361,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {

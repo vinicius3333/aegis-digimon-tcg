@@ -4,14 +4,14 @@
   "decks": [
     {
       "id": "ex9-dgo-2025-07-12-1-gallantmon",
-      "revision": 2,
+      "revision": 3,
       "name": "EX9 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce Demonic Disaster BT5-106 to 4, Gallantmon BT13-111 to 4, Arresterdramon: Superior Mode BT21-072 to 4, WarGrowlmon EX3-062 to 4, MedievalGallantmon EX8-074 to 3.",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce Demonic Disaster BT5-106 to 4, Gallantmon BT13-111 to 4, Arresterdramon: Superior Mode BT21-072 to 4, WarGrowlmon EX3-062 to 4, MedievalGallantmon EX8-074 to 3. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce MedievalGallantmon EX8-074 to 4, Gallantmon P-186 to 4.",
       "tournament": {
         "name": "Regionals — Top Cut Events",
         "date": "2025-07-12",
@@ -57,7 +57,7 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -75,7 +75,7 @@
         {
           "cardId": "EX8-074",
           "name": "MedievalGallantmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -87,7 +87,7 @@
         {
           "cardId": "P-186",
           "name": "Gallantmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -562,13 +562,14 @@
     },
     {
       "id": "ex9-dgo-2025-07-12-3-ancientgarurumon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX9 AncientGarurumon",
       "archetype": "AncientGarurumon",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Blue", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Koji Minamoto BT7-087 to 4.",
       "tournament": {
         "name": "Regionals — PEC Occitania",
         "date": "2025-07-12",
@@ -680,7 +681,7 @@
         {
           "cardId": "BT7-087",
           "name": "Koji Minamoto",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -692,7 +693,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -743,14 +744,14 @@
     },
     {
       "id": "ex9-dgo-2025-07-19-1-growlmon",
-      "revision": 2,
+      "revision": 3,
       "name": "EX9 Growlmon",
       "archetype": "Growlmon",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce The Digimon I Designed BT21-100 to 4, MedievalGallantmon EX8-074 to 4, Grape Memory Boost! LM-038 to 4, Wisdom Training P-108 to 4, Gallantmon P-186 to 4, X Antibody Proto Form EX5-070 to 4, WarGrowlmon (X Antibody) EX8-015 to 3.",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce The Digimon I Designed BT21-100 to 4, MedievalGallantmon EX8-074 to 4, Grape Memory Boost! LM-038 to 4, Wisdom Training P-108 to 4, Gallantmon P-186 to 4, X Antibody Proto Form EX5-070 to 4, WarGrowlmon (X Antibody) EX8-015 to 3. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce WarGrowlmon (X Antibody) EX8-015 to 4, Gallantmon (X Antibody) EX8-073 to 3, Red Scramble LM-027 to 2.",
       "tournament": {
         "name": "Regionals — Victory Road",
         "date": "2025-07-19",
@@ -790,7 +791,7 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -802,7 +803,7 @@
         {
           "cardId": "EX8-015",
           "name": "WarGrowlmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -814,7 +815,7 @@
         {
           "cardId": "EX8-073",
           "name": "Gallantmon (X Antibody)",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -856,7 +857,7 @@
         {
           "cardId": "LM-027",
           "name": "Red Scramble",
-          "qty": 1,
+          "qty": 2,
           "type": "Option"
         },
         {

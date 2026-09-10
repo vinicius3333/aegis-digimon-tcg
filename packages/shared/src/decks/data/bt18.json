@@ -427,14 +427,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-16-1-fenriloogamon-takemikazuchi",
-      "revision": 2,
+      "revision": 3,
       "name": "BT18 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Loogamon BT15-071 to 4, DexDorugamon BT17-065 to 4.",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Loogamon BT15-071 to 4, DexDorugamon BT17-065 to 4. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Cracker Fang BT17-091 to 4, Eiji Nagasumi BT14-087 to 3, Fenriloogamon: Takemikazuchi BT17-101 to 4.",
       "tournament": {
         "name": "Ultimate Cup — TAK Games",
         "date": "2024-11-16",
@@ -516,25 +516,25 @@
         {
           "cardId": "BT17-101",
           "name": "Fenriloogamon: Takemikazuchi",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-087",
           "name": "Eiji Nagasumi",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "BT17-091",
           "name": "Cracker Fang",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -555,13 +555,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-16-4-ancientgreymon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 AncientGreymon",
       "archetype": "AncientGreymon",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "White", "Purple", "Yellow", "Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Takuya Kanbara BT17-079 to 4, Takuya Kanbara & Koji Minamoto BT18-088 to 4, Takuya Kanbara BT12-088 to 2.",
       "tournament": {
         "name": "TAK Games Ultimate Cup",
         "date": "2024-11-16",
@@ -653,13 +654,13 @@
         {
           "cardId": "BT12-088",
           "name": "Takuya Kanbara",
-          "qty": 1,
+          "qty": 2,
           "type": "Tamer"
         },
         {
           "cardId": "BT17-079",
           "name": "Takuya Kanbara",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -671,13 +672,13 @@
         {
           "cardId": "BT18-088",
           "name": "Takuya Kanbara & Koji Minamoto",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {

@@ -623,13 +623,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-12-2-ancientgarurumon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 AncientGarurumon",
       "archetype": "AncientGarurumon",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Blue", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Bokomon BT7-081 to 2.",
       "tournament": {
         "name": "Regionals — Organized Play Events",
         "date": "2024-10-12",
@@ -663,7 +664,7 @@
         {
           "cardId": "BT7-081",
           "name": "Bokomon",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
@@ -711,7 +712,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -768,14 +769,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-19-1-fenriloogamon-takemikazuchi",
-      "revision": 2,
+      "revision": 3,
       "name": "EX7 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4, DexDorugamon BT17-065 to 4.",
+      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4, DexDorugamon BT17-065 to 4. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Cracker Fang BT17-091 to 4, Eiji Nagasumi BT14-087 to 3, Fenriloogamon: Takemikazuchi BT17-101 to 4.",
       "tournament": {
         "name": "Regionals — The Booster Box",
         "date": "2024-10-19",
@@ -857,25 +858,25 @@
         {
           "cardId": "BT17-101",
           "name": "Fenriloogamon: Takemikazuchi",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-087",
           "name": "Eiji Nagasumi",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "BT17-091",
           "name": "Cracker Fang",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1059,13 +1060,14 @@
     },
     {
       "id": "ex7-dgo-2024-11-09-1-three-great-angels",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 Three Great Angels",
       "archetype": "Three Great Angels",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Blue", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Patamon BT14-033 to 1; the freed copies reinforce Pillomon BT9-033 to 4, Luxmon EX6-017 to 4, Angewomon BT15-038 to 4.",
       "tournament": {
         "name": "Regionals — NoHEROES TCG",
         "date": "2024-11-09",
@@ -1081,19 +1083,19 @@
         {
           "cardId": "BT14-033",
           "name": "Patamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT9-033",
           "name": "Pillomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX6-017",
           "name": "Luxmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1129,7 +1131,7 @@
         {
           "cardId": "BT15-038",
           "name": "Angewomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {

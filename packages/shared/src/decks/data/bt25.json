@@ -822,13 +822,14 @@
     },
     {
       "id": "bt25-dgo-2026-06-06-7-millenniummon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT25 Millenniummon",
       "archetype": "Millenniummon",
       "collection": "BT25",
       "formatBlock": "BT25",
       "colors": ["Red", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Chitose Horaiji EX11-055 to 4, Gazimon BT3-077 to 4, MoonMillenniummon BT19-075 to 4.",
       "tournament": {
         "name": "Regionals — Versus Games",
         "date": "2026-06-06",
@@ -844,7 +845,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -910,7 +911,7 @@
         {
           "cardId": "BT19-075",
           "name": "MoonMillenniummon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -934,13 +935,13 @@
         {
           "cardId": "EX11-055",
           "name": "Chitose Horaiji",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {

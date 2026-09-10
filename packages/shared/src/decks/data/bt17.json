@@ -599,14 +599,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-25-1-three-great-angels",
-      "revision": 2,
+      "revision": 3,
       "name": "BT17 Three Great Angels",
       "archetype": "Three Great Angels",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Yellow"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce Kudamon BT13-034 to 4, Revelation of Light BT15-092 to 4, Dominimon EX6-030 to 4.",
+      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce Kudamon BT13-034 to 4, Revelation of Light BT15-092 to 4, Dominimon EX6-030 to 4. Adapted to the current banlist (2026-09-01): Patamon BT14-033 to 1; the freed copies reinforce Salamon BT15-034 to 3, Pillomon BT9-033 to 3, MagnaAngemon BT16-024 to 3.",
       "tournament": {
         "name": "Regionals — Gametrade Distribuzione",
         "date": "2024-08-25",
@@ -627,19 +627,19 @@
         {
           "cardId": "BT14-033",
           "name": "Patamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-034",
           "name": "Salamon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT9-033",
           "name": "Pillomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -663,7 +663,7 @@
         {
           "cardId": "BT16-024",
           "name": "MagnaAngemon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1378,14 +1378,14 @@
     },
     {
       "id": "bt17-dgo-2024-10-05-2-fenriloogamon-takemikazuchi",
-      "revision": 2,
+      "revision": 3,
       "name": "BT17 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Purple", "Red", "White", "Black", "Yellow", "Green"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Loogamon BT15-071 to 4, Ukkomon BT16-082 to 4, The Demon Wolf of the Castle of Nine Wolves BT16-099 to 4, Kazuchimon BT17-040 to 4.",
+      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Loogamon BT15-071 to 4, Ukkomon BT16-082 to 4, The Demon Wolf of the Castle of Nine Wolves BT16-099 to 4, Kazuchimon BT17-040 to 4. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Eiji Nagasumi BT14-087 to 3, DexDorugamon BT17-065 to 4, Fenriloogamon: Takemikazuchi BT17-101 to 4.",
       "tournament": {
         "name": "Play!TCG Regionals",
         "date": "2024-10-05",
@@ -1423,7 +1423,7 @@
         {
           "cardId": "BT17-065",
           "name": "DexDorugamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1465,13 +1465,13 @@
         {
           "cardId": "BT17-101",
           "name": "Fenriloogamon: Takemikazuchi",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-087",
           "name": "Eiji Nagasumi",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
@@ -1483,7 +1483,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {

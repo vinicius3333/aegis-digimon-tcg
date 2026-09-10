@@ -2252,14 +2252,14 @@
     },
     {
       "id": "ex6-dgo-2024-08-10-1-three-great-angels",
-      "revision": 2,
+      "revision": 3,
       "name": "EX6 Three Great Angels",
       "archetype": "Three Great Angels",
       "collection": "EX6",
       "formatBlock": "EX6",
       "colors": ["Blue", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce Kudamon BT13-034 to 4, Kari Kamiya BT4-097 to 4, Cherubimon EX6-035 to 4.",
+      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce Kudamon BT13-034 to 4, Kari Kamiya BT4-097 to 4, Cherubimon EX6-035 to 4. Adapted to the current banlist (2026-09-01): Patamon BT14-033 to 1; the freed copies reinforce Salamon BT15-034 to 3, Pillomon BT9-033 to 3, Seraphimon BT14-041 to 3.",
       "tournament": {
         "name": "Ultimate Cup — Raid'n'Trade",
         "date": "2024-08-10",
@@ -2281,19 +2281,19 @@
         {
           "cardId": "BT14-033",
           "name": "Patamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-034",
           "name": "Salamon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT9-033",
           "name": "Pillomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -2329,7 +2329,7 @@
         {
           "cardId": "BT14-041",
           "name": "Seraphimon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {

@@ -113,13 +113,14 @@
     },
     {
       "id": "ex10-dgo-2025-09-27-1-gallantmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX10 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX10",
       "formatBlock": "EX10",
       "colors": ["Red", "Blue", "Yellow", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Growlmon ST7-05 to 4, Growlmon BT17-010 to 2, WarGrowlmon (X Antibody) EX8-015 to 4.",
       "tournament": {
         "name": "Regionals — PPG",
         "date": "2025-09-27",
@@ -159,19 +160,19 @@
         {
           "cardId": "BT17-010",
           "name": "Growlmon",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
           "cardId": "ST7-05",
           "name": "Growlmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -183,7 +184,7 @@
         {
           "cardId": "EX8-015",
           "name": "WarGrowlmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -566,13 +567,14 @@
     },
     {
       "id": "ex10-dgo-2025-10-04-2-imperialdramon-virus",
-      "revision": 1,
+      "revision": 2,
       "name": "EX10 Imperialdramon Virus",
       "archetype": "Imperialdramon Virus",
       "collection": "EX10",
       "formatBlock": "EX10",
       "colors": ["Red", "Green", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Gennai's House ST21-15 to 2, Shadramon EX3-058 to 4, Imperialdramon: Fighter Mode BT20-020 to 4.",
       "tournament": {
         "name": "Regionals — CoreTCG",
         "date": "2025-10-04",
@@ -612,7 +614,7 @@
         {
           "cardId": "EX3-058",
           "name": "Shadramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -672,13 +674,13 @@
         {
           "cardId": "BT20-020",
           "name": "Imperialdramon: Fighter Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -702,7 +704,7 @@
         {
           "cardId": "ST21-15",
           "name": "Gennai's House",
-          "qty": 1,
+          "qty": 2,
           "type": "Option"
         }
       ],
@@ -717,13 +719,14 @@
     },
     {
       "id": "ex10-dgo-2025-10-18-1-phoenixmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX10 Phoenixmon",
       "archetype": "Phoenixmon",
       "collection": "EX10",
       "formatBlock": "EX10",
       "colors": ["Red", "Yellow", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce WarGrowlmon BT21-076 to 4, WarGrowlmon (X Antibody) EX8-015 to 4, Phoenixmon (X Antibody) BT16-015 to 4.",
       "tournament": {
         "name": "Regionals — Carta Magica",
         "date": "2025-10-18",
@@ -769,13 +772,13 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT21-076",
           "name": "WarGrowlmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -787,13 +790,13 @@
         {
           "cardId": "EX8-015",
           "name": "WarGrowlmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-015",
           "name": "Phoenixmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -874,14 +877,14 @@
     },
     {
       "id": "ex10-dgo-2025-10-25-1-growlmon",
-      "revision": 2,
+      "revision": 3,
       "name": "EX10 Growlmon",
       "archetype": "Growlmon",
       "collection": "EX10",
       "formatBlock": "EX10",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3.",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Arresterdramon: Superior Mode BT21-072 to 4, Guilmon BT5-071 to 3, Nidhoggmon BT7-077 to 3.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2025-10-25",
@@ -897,7 +900,7 @@
         {
           "cardId": "BT5-071",
           "name": "Guilmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -933,7 +936,7 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -951,13 +954,13 @@
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {

@@ -131,13 +131,14 @@
     },
     {
       "id": "ex11-dgo-2026-02-15-1-millenniummon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX11 Millenniummon",
       "archetype": "Millenniummon",
       "collection": "EX11",
       "formatBlock": "EX11",
       "colors": ["Red", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Ukkomon BT16-082 to 3, Gazimon BT3-077 to 3.",
       "tournament": {
         "name": "Store Tournament — TCG Mansion",
         "date": "2026-02-15",
@@ -153,7 +154,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -165,7 +166,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -237,7 +238,7 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 3,
+          "qty": 1,
           "type": "Tamer"
         },
         {

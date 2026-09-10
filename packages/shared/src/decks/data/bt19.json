@@ -154,13 +154,14 @@
     },
     {
       "id": "bt19-dgo-2024-11-16-4-ancientgreymon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 AncientGreymon",
       "archetype": "AncientGreymon",
       "collection": "BT19",
       "formatBlock": "BT18-19",
       "colors": ["Red", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Takuya Kanbara BT17-079 to 4, Takuya Kanbara & Koji Minamoto BT18-088 to 4, Takuya Kanbara BT12-088 to 2.",
       "tournament": {
         "name": "Ultimate Cup — TAK Games",
         "date": "2024-11-16",
@@ -254,13 +255,13 @@
         {
           "cardId": "BT12-088",
           "name": "Takuya Kanbara",
-          "qty": 1,
+          "qty": 2,
           "type": "Tamer"
         },
         {
           "cardId": "BT17-079",
           "name": "Takuya Kanbara",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -272,13 +273,13 @@
         {
           "cardId": "BT18-088",
           "name": "Takuya Kanbara & Koji Minamoto",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -323,13 +324,14 @@
     },
     {
       "id": "bt19-dgo-2024-11-30-3-three-great-angels",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 Three Great Angels",
       "archetype": "Three Great Angels",
       "collection": "BT19",
       "formatBlock": "BT18-19",
       "colors": ["Blue", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Patamon BT14-033 to 1; the freed copies reinforce Salamon BT15-034 to 3, Pillomon BT9-033 to 3, Lucemon BT18-034 to 2.",
       "tournament": {
         "name": "Ultimate Cup — Organized Play Events",
         "date": "2024-11-30",
@@ -345,25 +347,25 @@
         {
           "cardId": "BT14-033",
           "name": "Patamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-034",
           "name": "Salamon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT18-034",
           "name": "Lucemon",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
           "cardId": "BT9-033",
           "name": "Pillomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {

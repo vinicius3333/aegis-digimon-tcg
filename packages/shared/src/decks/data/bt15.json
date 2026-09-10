@@ -868,13 +868,14 @@
     },
     {
       "id": "bt15-dgo-2024-03-24-1-four-sovereigns",
-      "revision": 1,
+      "revision": 2,
       "name": "BT15 Four Sovereigns",
       "archetype": "Four Sovereigns",
       "collection": "BT15",
       "formatBlock": "BT15",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Gennai BT14-088 to 3.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2024-03-24",
@@ -992,13 +993,13 @@
         {
           "cardId": "BT14-088",
           "name": "Gennai",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1025,14 +1026,14 @@
     },
     {
       "id": "bt15-dgo-2024-04-13-1-yellow-vaccine",
-      "revision": 2,
+      "revision": 3,
       "name": "BT15 Yellow Vaccine",
       "archetype": "Yellow Vaccine",
       "collection": "BT15",
       "formatBlock": "BT15",
       "colors": ["Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce BushiAgumon BT4-038 to 4, Kari Kamiya BT4-097 to 4, Mitamamon EX5-033 to 4.",
+      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce BushiAgumon BT4-038 to 4, Kari Kamiya BT4-097 to 4, Mitamamon EX5-033 to 4. Adapted to the current banlist (2026-09-01): Patamon BT14-033 to 1; the freed copies reinforce Rapidmon ST17-06 to 3, Seraphimon BT14-041 to 3, ShineGreymon: Ruin Mode EX4-074 to 2.",
       "tournament": {
         "name": "Ultimate Cup — Play!TCG",
         "date": "2024-04-13",
@@ -1048,7 +1049,7 @@
         {
           "cardId": "BT14-033",
           "name": "Patamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1066,7 +1067,7 @@
         {
           "cardId": "ST17-06",
           "name": "Rapidmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1096,7 +1097,7 @@
         {
           "cardId": "BT14-041",
           "name": "Seraphimon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1114,7 +1115,7 @@
         {
           "cardId": "EX4-074",
           "name": "ShineGreymon: Ruin Mode",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
@@ -1888,13 +1889,14 @@
     },
     {
       "id": "bt15-wrekitrex-2024-05-12",
-      "revision": 1,
+      "revision": 2,
       "name": "BT15 Deva",
       "archetype": "Deva",
       "collection": "BT15",
       "formatBlock": "BT15",
       "colors": ["Black", "Yellow", "Green", "Red", "Blue", "Purple", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Hiro Amanokawa BT8-086 to 2.",
       "tournament": {
         "name": "OPE Salford Regionals",
         "date": "2024-05-12",
@@ -2011,13 +2013,13 @@
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
           "cardId": "BT8-086",
           "name": "Hiro Amanokawa",
-          "qty": 1,
+          "qty": 2,
           "type": "Tamer"
         },
         {

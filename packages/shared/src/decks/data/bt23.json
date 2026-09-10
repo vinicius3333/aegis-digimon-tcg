@@ -322,14 +322,14 @@
     },
     {
       "id": "bt23-dgo-2025-11-08-2-growlmon",
-      "revision": 2,
+      "revision": 3,
       "name": "BT23 Growlmon",
       "archetype": "Growlmon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Purple", "Red", "Yellow"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3.",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Arresterdramon: Superior Mode BT21-072 to 4, Guilmon BT5-071 to 3, Nidhoggmon BT7-077 to 3.",
       "tournament": {
         "name": "CS-International GmbH Regionals",
         "date": "2025-11-08",
@@ -343,7 +343,7 @@
         {
           "cardId": "BT5-071",
           "name": "Guilmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -379,7 +379,7 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -397,13 +397,13 @@
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -478,13 +478,14 @@
     },
     {
       "id": "bt23-dgo-2025-11-29-1-gallantmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Red", "Blue", "Yellow", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Growlmon BT17-010 to 3, Growlmon ST7-05 to 3, WarGrowlmon (X Antibody) EX8-015 to 4.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2025-11-29",
@@ -523,19 +524,19 @@
         {
           "cardId": "BT17-010",
           "name": "Growlmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "ST7-05",
           "name": "Growlmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -553,7 +554,7 @@
         {
           "cardId": "EX8-015",
           "name": "WarGrowlmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1243,14 +1244,14 @@
     },
     {
       "id": "bt23-dgo-2026-01-24-1-growlmon",
-      "revision": 2,
+      "revision": 3,
       "name": "BT23 Growlmon",
       "archetype": "Growlmon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Purple Scramble LM-032 to 4, Cerberusmon BT16-075 to 3.",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Purple Scramble LM-032 to 4, Cerberusmon BT16-075 to 3. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Guilmon BT5-071 to 3, Nidhoggmon BT7-077 to 3.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2026-01-24",
@@ -1265,7 +1266,7 @@
         {
           "cardId": "BT5-071",
           "name": "Guilmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1301,13 +1302,13 @@
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1325,7 +1326,7 @@
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {

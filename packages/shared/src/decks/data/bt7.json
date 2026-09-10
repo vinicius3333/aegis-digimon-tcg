@@ -282,14 +282,14 @@
     },
     {
       "id": "bt7-dgo-2022-04-23-5-lilithmon",
-      "revision": 2,
+      "revision": 3,
       "name": "BT7 Lilithmon",
       "archetype": "Lilithmon",
       "collection": "BT7",
       "formatBlock": "BT7",
       "colors": ["Purple", "White"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: BT2-069, BT7-069, BT7-072, BT4-111 and BT7-107 were reduced to 1; the freed slots reinforce existing purple Digimon lines.",
+      "approximation": "Adapted to the current banlist: BT2-069, BT7-069, BT7-072, BT4-111 and BT7-107 were reduced to 1; the freed slots reinforce existing purple Digimon lines. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Omnimon Zwart BT5-087 to 3, Win Rate: 60%! EX1-071 to 3, Lilithmon BT3-091 to 4.",
       "tournament": {
         "name": "Ultimate Cup",
         "date": "2022-04-23",
@@ -361,7 +361,7 @@
         {
           "cardId": "BT3-091",
           "name": "Lilithmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -379,13 +379,13 @@
         {
           "cardId": "BT5-087",
           "name": "Omnimon Zwart",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -409,7 +409,7 @@
         {
           "cardId": "EX1-071",
           "name": "Win Rate: 60%!",
-          "qty": 2,
+          "qty": 3,
           "type": "Option"
         }
       ],

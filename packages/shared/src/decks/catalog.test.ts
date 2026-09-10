@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { effectiveCopyLimit } from "../banlist.js";
 import { getCardDefinition } from "../cards/registry.js";
 import { CardColor } from "../schema/enums.js";
 import {
@@ -13,8 +14,11 @@ import {
   type FamousDeck,
 } from "./index.js";
 
-/** Every catalog deck: the whole catalog is legal under the current banlist. */
-const CATALOG_AVAILABLE_DECKS = 348;
+/**
+ * Every catalog deck except the nine built around Nyaromon (BT15-003), banned outright on
+ * 2026-09-01: a recipe with a banned card cannot be adapted by trimming copies, so it is withheld.
+ */
+const CATALOG_AVAILABLE_DECKS = 339;
 
 const futureDeck: FamousDeck = {
   deckId: "future-ex12-example",
@@ -216,22 +220,34 @@ describe("famous deck catalog", () => {
   });
 
   it("versions and discloses tournament recipes adapted to the current banlist", () => {
-    const adaptedIds = [
-      "bt10-dgo-2022-11-19-4-metalgarurumon",
-      "bt9-dgo-2022-10-01-3-metalgarurumon",
-      "bt8-dgo-2022-06-11-1-yellow-hybrid",
-      "bt8-dgo-2022-06-11-4-imperialdramon",
-      "bt7-dgo-2022-04-23-1-blue-hybrid",
-      "bt7-dgo-2022-04-23-4-green-hybrid",
-      "bt7-dgo-2022-04-23-5-lilithmon",
-      "bt4-dgo-2021-06-26-2-wargreymon",
-      "bt4-dgo-2021-06-26-3-imperialdramon",
-    ];
+    const adaptedIds = new Map([
+      ["bt10-dgo-2022-11-19-4-metalgarurumon", 2],
+      ["bt9-dgo-2022-10-01-3-metalgarurumon", 2],
+      ["bt8-dgo-2022-06-11-1-yellow-hybrid", 2],
+      ["bt8-dgo-2022-06-11-4-imperialdramon", 2],
+      ["bt7-dgo-2022-04-23-1-blue-hybrid", 2],
+      ["bt7-dgo-2022-04-23-4-green-hybrid", 2],
+      // Adapted twice: Jack Raid in 2025, then Analog Youth on 2026-09-01.
+      ["bt7-dgo-2022-04-23-5-lilithmon", 3],
+      ["bt4-dgo-2021-06-26-2-wargreymon", 2],
+      ["bt4-dgo-2021-06-26-3-imperialdramon", 2],
+    ]);
 
-    for (const deckId of adaptedIds) {
+    for (const [deckId, revision] of adaptedIds) {
       const deck = famousDeckById(deckId);
-      expect(deck?.deckVersion).toBe(`${deckId}@2`);
+      expect(deck?.deckVersion).toBe(`${deckId}@${revision}`);
       expect(deck?.approximation).toContain("Adapted to the current banlist");
+    }
+  });
+
+  it("trims every stored recipe to the current copy caps", () => {
+    for (const deck of CATALOG_DECKS.filter(isFamousDeckAvailable)) {
+      const counts = new Map<string, number>();
+      for (const cardId of [...deck.decklist.mainDeck, ...deck.decklist.eggDeck]) {
+        counts.set(cardId, (counts.get(cardId) ?? 0) + 1);
+      }
+      const overCap = [...counts].filter(([cardId, count]) => count > effectiveCopyLimit(cardId));
+      expect({ deckId: deck.deckId, overCap }).toEqual({ deckId: deck.deckId, overCap: [] });
     }
   });
 });

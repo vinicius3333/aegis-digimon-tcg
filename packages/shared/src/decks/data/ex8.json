@@ -331,14 +331,14 @@
     },
     {
       "id": "ex8-dgo-2025-01-25-1-gallantmon",
-      "revision": 2,
+      "revision": 3,
       "name": "EX8 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["Red", "Blue", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1; the freed copies reinforce Growlmon BT12-010 to 4.",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1; the freed copies reinforce Growlmon BT12-010 to 4. Adapted to the current banlist (2026-09-01): Growlmon (X Antibody) EX8-012 to 1; the freed copies reinforce Growlmon BT17-010 to 4, Growlmon ST7-05 to 2.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2025-01-25",
@@ -384,19 +384,19 @@
         {
           "cardId": "BT17-010",
           "name": "Growlmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "ST7-05",
           "name": "Growlmon",
-          "qty": 1,
+          "qty": 2,
           "type": "Digimon"
         },
         {
           "cardId": "EX8-012",
           "name": "Growlmon (X Antibody)",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -483,14 +483,14 @@
     },
     {
       "id": "ex8-dgo-2025-01-25-2-fenriloogamon-takemikazuchi",
-      "revision": 2,
+      "revision": 3,
       "name": "EX8 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["Red", "Yellow", "White", "Purple"],
       "sourceType": "community_tournament_deck",
-      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Eiji Nagasumi BT14-087 to 4, Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4.",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Eiji Nagasumi BT14-087 to 4, Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4. Adapted to the current banlist (2026-09-01): Analog Youth EX1-066 to 1; the freed copies reinforce Cracker Fang BT17-091 to 3, Kazuchimon BT17-040 to 4, Fenriloogamon: Takemikazuchi BT17-101 to 4.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2025-01-25",
@@ -566,13 +566,13 @@
         {
           "cardId": "BT17-040",
           "name": "Kazuchimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT17-101",
           "name": "Fenriloogamon: Takemikazuchi",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -584,13 +584,13 @@
         {
           "cardId": "BT17-091",
           "name": "Cracker Fang",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "EX1-066",
           "name": "Analog Youth",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
