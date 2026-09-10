@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,23 +7,44 @@ import "./index.js";
 import { compiled } from "./EX8-017.js";
 
 describe("EX8-017", () => {
-  it("gives one of your Digimon Blocker until the end of the opponent's turn on play", () =>
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-017")).toMatchObject({
+      cardId: "EX8-017",
+      nameEn: "Crabmon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Data"],
+      types: ["Crustacean", "DS"],
+      effectText: expect.stringContaining(
+        "[On Play] 1 of your Digimon gains ＜Blocker＞until the end of your opponent's turn.",
+      ),
+      inheritedEffectText: "＜Jamming＞.",
+    });
+  });
+  it("traces the On Play Blocker grant, duration, scope, and inherited Jamming", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "GainKeyword",
-      keyword: { keyword: "Blocker" },
+      target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
       duration: "untilOpponentTurnEnd",
-      target: { count: 1 },
-    }));
-  it("inherits Jamming", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
-      keyword: "Jamming",
-      raw: "＜Jamming＞",
-    }));
+    });
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toEqual([
+      {
+        keyword: "Jamming",
+        raw: "＜Jamming＞",
+      },
+    ]);
+  });
   it("gives a live friendly Digimon Blocker on play", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX8-017", as: "crabmon" }], battleArea: [{ card: "AD1-001", as: "target" }] },
-        1: { deck: ["BT1-045"] },
+        1: { deck: ["BT1-045"], battleArea: [{ card: "AD1-001", as: "opponent" }] },
       },
       { autoSelectCards: true },
     );
@@ -33,6 +54,7 @@ describe("EX8-017", () => {
     });
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Blocker"));
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
     s.state.memory = 0;
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
@@ -126,6 +148,21 @@ describe("EX8-017", () => {
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("bukamon").topCard.instanceId === eligible.inst("crabmon").instanceId);
     expect(eligible.state.memory).toBe(0);
+
+    const standard = setupEngine({
+      0: { breeding: { card: "BT2-002", as: "blueEgg" }, hand: [{ card: "EX8-017", as: "crabmon" }] },
+    });
+    standard.state.memory = 0;
+    await standard.ready();
+    expect(
+      standard.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: standard.perm("blueEgg").permanentId,
+        instanceId: standard.inst("crabmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => standard.perm("blueEgg").topCard.instanceId === standard.inst("crabmon").instanceId);
+    expect(standard.state.memory).toBe(0);
 
     const ineligible = setupEngine({
       0: { breeding: { card: "BT2-005", as: "kapurimon" }, hand: [{ card: "EX8-017", as: "crabmon" }] },
