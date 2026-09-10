@@ -8,7 +8,8 @@
 
 ## Engine seam queue
 
-- None at initialization.
+- Closed — `inherited-security-watch-next-own-turn-reregistration`: no engine defect. The fixture exhausted its two-card deck before EX1-031 Recovery, so no security card/event existed. Four inert deck cards make the public sequence green; mechanism documented in `INHERITED-SECURITY-WATCH-MECHANISM.md`.
+- Closed — `newly-evolved-inherited-watcher-registration`: no engine defect. The retained red evolved EX1-039 onto a level 4, leaving its inherited effect on the top card and correctly inactive. Evolving EX1-039 into EX1-042 places it below the top and the same-turn watcher works; documented in `NEWLY-EVOLVED-WATCHER-MECHANISM.md`.
 
 ## Fixture traps
 

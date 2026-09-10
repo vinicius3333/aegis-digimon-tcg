@@ -2,7 +2,7 @@
 
 Rubric columns are scored 0–2. Workers award at most 8/10; delivery gates are awarded only after full closeout, atomic commits, and push.
 
-Current aggregate: 224/730; 0/73 cards at 10/10.
+Current aggregate: 336/730; 0/73 cards at 10/10.
 
 | Card    | Status  | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report                           |
 | ------- | ------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | -------------------------------- |
@@ -34,20 +34,20 @@ Current aggregate: 224/730; 0/73 cards at 10/10.
 | EX1-026 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-026.md) |
 | EX1-027 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-027.md) |
 | EX1-028 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-028.md) |
-| EX1-029 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-029.md) |
-| EX1-030 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-030.md) |
-| EX1-031 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-031.md) |
-| EX1-032 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-032.md) |
-| EX1-033 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-033.md) |
-| EX1-034 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-034.md) |
-| EX1-035 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-035.md) |
-| EX1-036 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-036.md) |
-| EX1-037 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-037.md) |
-| EX1-038 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-038.md) |
-| EX1-039 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-039.md) |
-| EX1-040 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-040.md) |
-| EX1-041 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-041.md) |
-| EX1-042 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-042.md) |
+| EX1-029 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-029.md) |
+| EX1-030 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-030.md) |
+| EX1-031 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-031.md) |
+| EX1-032 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-032.md) |
+| EX1-033 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-033.md) |
+| EX1-034 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-034.md) |
+| EX1-035 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-035.md) |
+| EX1-036 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-036.md) |
+| EX1-037 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-037.md) |
+| EX1-038 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-038.md) |
+| EX1-039 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-039.md) |
+| EX1-040 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-040.md) |
+| EX1-041 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-041.md) |
+| EX1-042 | Audited |             2 |        2 |                2 |                2 |              0 |  8/10 | [report](EX1-reaudit/EX1-042.md) |
 | EX1-043 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-043.md) |
 | EX1-044 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-044.md) |
 | EX1-045 | Queued  |             0 |        0 |                0 |                0 |              0 |  0/10 | [report](EX1-reaudit/EX1-045.md) |
