@@ -20,8 +20,19 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
   it("registers full residual-free IR with the suspend-paid zone expansion", () => {
     expect(runtimeCompiledCard("EX4-062")).toMatchObject({ coverage: "full", residual: [] });
     expect(runtimeCompiledCard("EX4-062")?.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldBePlayed",
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        hasDigiXrosRequirement: true,
+      },
+    });
+    const replacement = runtimeCompiledCard("EX4-062")?.effects?.[2]?.actions?.[0] as { actions?: unknown[] };
+    expect(replacement.actions?.[0]).toMatchObject({
       kind: "DigiXrosMaterialZoneExpansion",
       zones: ["underTamers", "trash"],
+      duration: "forTheTurn",
       cost: { kind: "suspend" },
     });
   });
@@ -78,9 +89,9 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
           { card: EX4_062, as: "tamer" },
           { card: "BT10-024", as: "ally" },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
-      1: { battleArea: [{ card: "BT11-030", as: "opponent" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT11-030", as: "opponent" }], security: ["BT1-009"] },
     });
     s.state.turnSeat = 0;
     await s.ready();

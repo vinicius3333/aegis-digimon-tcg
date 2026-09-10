@@ -159688,6 +159688,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenEffectSuspends",
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ],
@@ -160379,6 +160380,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 2,
             "fromTop": false,
+            "upTo": true,
             "condition": { "kind": "digiXrosCount", "minimum": 1, "raw": "DigiXrosing" }
           }
         ]
@@ -160405,7 +160407,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["Greymon"], "colors": ["Blue"] }, { "names": ["MailBirdramon"] }], "count": 2 }
+    ]
   },
   "EX4-021": {
     "effects": [
@@ -160478,7 +160483,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["MetalGreymon"], "colors": ["Blue"] }, { "names": ["DarkKnightmon"] }], "count": 2 }
+    ]
   },
   "EX4-022": {
     "effects": [
@@ -160570,9 +160578,7 @@
                     "from": ["hand"]
                   },
                   "raw": "by revealing 1 card of the same level in your hand"
-                },
-                "optional": true,
-                "abortOnDecline": true
+                }
               }
             ]
           }
@@ -160850,10 +160856,11 @@
             "amount": 1,
             "toTop": true,
             "condition": {
-              "kind": "youHave",
-              "filter": { "zone": "security", "controllerDefault": "mine" },
-              "count": 3,
-              "comparison": "lte",
+              "kind": "zoneCount",
+              "seat": "mine",
+              "zone": "security",
+              "op": "lte",
+              "value": 3,
               "raw": "you have 3 or fewer security cards"
             }
           }
@@ -161156,8 +161163,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenEffectSuspends",
-            "bySourceKeyword": "Alliance",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "bySourceController": "mine",
             "actions": [
               {
                 "kind": "Digivolve",
@@ -161236,7 +161243,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenEffectSuspends",
-            "sourceFilter": { "controller": "opponent", "kind": ["Digimon"], "excludeSelf": true },
+            "sourceFilter": { "kind": ["Digimon"], "excludeSelf": true },
             "actions": [
               {
                 "kind": "GainKeyword",
@@ -161473,7 +161480,11 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": true },
+      { "level": 3, "colors": ["Blue"], "cost": 3, "isAlternate": true }
+    ]
   },
   "EX4-041": {
     "effects": [
@@ -161535,7 +161546,11 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": true },
+      { "level": 3, "colors": ["Blue"], "cost": 3, "isAlternate": true }
+    ]
   },
   "EX4-042": {
     "effects": [
@@ -161581,6 +161596,7 @@
               "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
             },
             "from": ["hand"],
+            "payCost": true,
             "costDelta": -2,
             "optional": true
           }
@@ -161650,6 +161666,7 @@
               "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "name" }]
             },
             "from": ["hand"],
+            "payCost": true,
             "costDelta": -2,
             "optional": true
           }
@@ -161701,7 +161718,7 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "reduceCost": 2,
+            "costDelta": -2,
             "optional": true
           }
         ]
@@ -161958,6 +161975,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
+            "fireCondition": { "kind": "triggerRemovedSecuritySeat", "seat": "mine" },
             "actions": [
               {
                 "kind": "DeDigivolve",
@@ -162235,6 +162254,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
             "from": ["hand"],
+            "payCost": true,
             "optional": true,
             "condition": {
               "kind": "youHave",
@@ -162679,13 +162699,25 @@
       },
       {
         "trigger": "AllTurns",
-        "optional": true,
         "actions": [
           {
-            "kind": "DigiXrosMaterialZoneExpansion",
-            "zones": ["underTamers", "trash"],
-            "duration": "permanent",
-            "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
+            "kind": "Replacement",
+            "event": "wouldBePlayed",
+            "mode": "instead",
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Blue Flare", "Twilight"], "match": "trait" }],
+              "hasDigiXrosRequirement": true
+            },
+            "actions": [
+              {
+                "kind": "DigiXrosMaterialZoneExpansion",
+                "zones": ["underTamers", "trash"],
+                "duration": "forTheTurn",
+                "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+              }
+            ],
             "raw": "by suspending this Tamer, 1 card under your Tamers and 1 card in your trash can also be placed for DigiXros"
           }
         ]
@@ -168803,7 +168835,8 @@
                 "into": { "nameOrTrait": [{ "tokens": ["Lucemon: Chaos Mode"], "match": "nameExact" }] },
                 "payCost": false,
                 "from": ["trash"],
-                "optional": true
+                "optional": true,
+                "allowNoTarget": true
               }
             ]
           }
@@ -171763,7 +171796,7 @@
             "stopAtLevel": 3,
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine" },
+              "filter": { "controller": "mine", "zone": "trash" },
               "count": 10,
               "raw": "you have 10 or more cards in your trash"
             }
@@ -171781,7 +171814,7 @@
             "stopAtLevel": 3,
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine" },
+              "filter": { "controller": "mine", "zone": "trash" },
               "count": 10,
               "raw": "you have 10 or more cards in your trash"
             }
@@ -171831,7 +171864,7 @@
           {
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "endOfTurn",
+            "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
               { "kind": "Delete", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
@@ -171845,7 +171878,7 @@
           {
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "endOfTurn",
+            "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
               { "kind": "Delete", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ],
@@ -172294,7 +172327,37 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      }
+    ]
   },
   "EX6-063": {
     "effects": [
@@ -172425,6 +172488,7 @@
                   "nameOrTrait": [{ "tokens": ["Beastkin", "Holy Beast", "Cherub"], "match": "trait" }]
                 },
                 "from": ["hand"],
+                "payCost": true,
                 "reduceCost": 2,
                 "optional": true,
                 "cost": {

@@ -57,4 +57,50 @@ describe("EX6-051 NeoDevimon", () => {
     expect(s.state.players[1]!.hand).toHaveLength(6);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("legally evolves from a purple level 4, pays 3 memory, and preserves the source stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-049", as: "base" }], hand: [{ card: "EX6-051", as: "neo" }] },
+        1: {
+          hand: Array.from({ length: 5 }, () => "BT1-010"),
+          battleArea: [{ card: "BT1-053", as: "victim" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("neo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("base").topCard.cardId).toBe("EX6-051");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-049"]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("rejects a non-purple level 4 as an illegal evolution source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: "EX6-051", as: "neo" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("neo").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").topCard.cardId).toBe("BT1-014");
+    expect(s.perm("base").stack).toHaveLength(0);
+  });
 });

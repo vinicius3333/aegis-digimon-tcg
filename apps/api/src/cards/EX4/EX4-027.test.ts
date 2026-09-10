@@ -4,6 +4,14 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-027.js";
 import "../BT8/BT8-038.js";
+import "../BT15/BT15-049.js";
+
+async function passTurn(s: ReturnType<typeof setupEngine>, seat: 0 | 1): Promise<void> {
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(seat);
+  advance(s.engine).endMainPhaseIfOpen(seat);
+  await turn;
+}
 
 describe("EX4-027 GoldVeedramon", () => {
   it("has Armor Purge", () => {
@@ -47,7 +55,7 @@ describe("EX4-027 GoldVeedramon", () => {
             { card: "ST21-12", as: "blueTamer" },
           ],
           hand: [{ card: "EX4-027", as: "goldVeedramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-019"],
         },
         1: { battleArea: [{ card: "BT1-019", as: "boundary", dp: 6000 }] },
       },
@@ -63,6 +71,9 @@ describe("EX4-027 GoldVeedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("boundary").currentDP === 4000);
 
+    expect(s.perm("veemon").topCard.cardId).toBe("EX4-027");
+    expect(s.perm("veemon").stack.map((card) => card.cardId)).toEqual(["ST8-04"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-019");
     expect(s.perm("boundary").currentDP).toBe(4000);
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).isRestricted(s.perm("boundary"), "attack")).toBe(true);
@@ -79,9 +90,9 @@ describe("EX4-027 GoldVeedramon", () => {
             { card: "ST21-12", as: "blueTamer" },
           ],
           hand: [{ card: "EX4-027", as: "goldVeedramon" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-019", "BT1-019"],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "q3470", dp: 8000 }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-019", as: "q3470", dp: 8000 }], security: ["BT1-019", "BT1-019"] },
       },
       { autoSelectCards: true },
     );
@@ -97,6 +108,86 @@ describe("EX4-027 GoldVeedramon", () => {
     expect(s.perm("q3470").currentDP).toBe(6000);
     expect(observe(s.engine).isRestricted(s.perm("q3470"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("q3470"), "block")).toBe(true);
+  });
+
+  it("keeps Q3469's restriction after the target reaches 7000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST8-04", as: "veemon" },
+            { card: "ST21-12", as: "blueTamer" },
+          ],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+          deck: ["BT1-019"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }],
+          hand: [{ card: "BT15-049", as: "boost" }],
+          deck: ["BT1-019"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("boost").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 7000);
+
+    expect(s.perm("target").currentDP).toBe(7000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+  });
+
+  it("expires the attack and block restriction at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST8-04", as: "veemon" },
+            { card: "ST21-12", as: "blueTamer" },
+          ],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+          deck: ["BT1-019"],
+          security: ["BT1-019"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }],
+          deck: ["BT1-019"],
+          security: ["BT1-019"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await passTurn(s, 1);
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);
   });
 
   it("does not grant the attack restriction without either qualifying gate", async () => {

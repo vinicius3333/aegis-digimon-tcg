@@ -414,6 +414,18 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
       } as Action,
     ],
   },
+  // EX6-070's compiler token represents the quoted ability granted to the
+  // opponent's chosen Digimon. The source is rebound to the recipient, so
+  // "Your Turn" and "this Digimon" use that Digimon's controller and identity.
+  GRANTEFFECT51TOKEN: {
+    trigger: "EndOfYourTurn",
+    actions: [
+      {
+        kind: "Delete",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      } as Action,
+    ],
+  },
   "[Start of Your Main Phase] Attack with this Digimon.": {
     trigger: "StartOfYourMainPhase",
     actions: [

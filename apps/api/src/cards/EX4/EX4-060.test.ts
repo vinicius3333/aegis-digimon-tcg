@@ -9,6 +9,7 @@ import {
   type GameState,
   type Permanent,
   type Seat,
+  getCardDefinition,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -33,6 +34,31 @@ const def = (id: string, level: number): CardDefinition => ({
 });
 
 describe("EX4-060 Omnimon Alter-S", () => {
+  it("matches the catalog identity and exact printed boundaries", () => {
+    expect(getCardDefinition("EX4-060")).toMatchObject({
+      cardId: "EX4-060",
+      nameEn: "Omnimon Alter-S",
+      level: 7,
+      dp: 15000,
+      playCost: 15,
+      colors: ["White"],
+    });
+    expect(runtimeCompiledCard("EX4-060")?.effects?.[0]?.actions).toEqual([
+      {
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+      },
+      {
+        kind: "Return",
+        target: {
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
+          count: 1,
+        },
+        to: "deckBottom",
+      },
+    ]);
+  });
+
   it("registers full residual-free IR with the non-owner-effect leave gate", () => {
     expect(runtimeCompiledCard("EX4-060")).toMatchObject({ coverage: "full", residual: [] });
     expect(runtimeCompiledCard("EX4-060")?.dnaDigivolveRequirement).toEqual([
@@ -135,6 +161,86 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(returned).toEqual([[[high.topCard!.instanceId], { toTop: false }]]);
   });
 
+  it("keeps an 8001-DP and level-5 opponent outside the when-digivolving targets", async () => {
+    const self = {
+      permanentId: "self",
+      controllerSeat: 0,
+      topCard: card("EX4-060", 0),
+      stack: [],
+      linked: [],
+      isSuspended: false,
+      inBreeding: false,
+      currentDP: 15000,
+    } as unknown as Permanent;
+    const above = {
+      permanentId: "above",
+      controllerSeat: 1,
+      topCard: card("ABOVE", 1),
+      stack: [],
+      linked: [],
+      isSuspended: false,
+      inBreeding: false,
+      currentDP: 8001,
+    } as unknown as Permanent;
+    const lowLevel = {
+      permanentId: "low-level",
+      controllerSeat: 1,
+      topCard: card("LOW-LEVEL", 1),
+      stack: [],
+      linked: [],
+      isSuspended: false,
+      inBreeding: false,
+      currentDP: 5000,
+    } as unknown as Permanent;
+    const players = [
+      { battleArea: [self], security: [], hand: [], deck: [], trash: [] },
+      { battleArea: [above, lowLevel], security: [], hand: [], deck: [], trash: [] },
+    ];
+    const defs = new Map([
+      ["EX4-060", def("EX4-060", 7)],
+      ["ABOVE", def("ABOVE", 6)],
+      ["LOW-LEVEL", def("LOW-LEVEL", 5)],
+    ]);
+    const deleted: string[][] = [];
+    const returned: unknown[][] = [];
+    const game: GameAccess = {
+      state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: (id: string) => [self, above, lowLevel].find((p) => p.permanentId === id),
+      definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
+    } as unknown as GameAccess;
+    const source: CardSource = {
+      instanceId: self.topCard!.instanceId,
+      cardId: "EX4-060",
+      ownerSeat: 0 as Seat,
+      definition: defs.get("EX4-060")!,
+      permanent: () => self,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    };
+    const effect = getEffectModule("EX4-060")!.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
+    await effect.resolve({
+      source,
+      trigger: {},
+      game,
+      fx: {
+        deletePermanent: async (ids: string[]) => deleted.push(ids),
+        returnToDeck: async (ids: string[], options: unknown) => returned.push([ids, options]),
+      } as unknown as Primitives,
+      ask: {
+        optional: async () => true,
+        chooseOption: async () => 0,
+        chooseTargets: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
+        selectCards: async () => [],
+        selectPermanents: async () => [],
+      },
+    } as unknown as EffectContext);
+    expect(deleted).toEqual([[lowLevel.permanentId]]);
+    expect(returned).toEqual([[[above.topCard!.instanceId], { toTop: false }]]);
+  });
+
   it("plays both named evolution cards when possible and places itself face-down in security", async () => {
     const self = {
       permanentId: "self",
@@ -222,14 +328,35 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("rejects a DNA pair that does not contain blue and red level-six Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-044", as: "blue" },
+          { card: "BT1-044", as: "alsoBlue" },
+        ],
+        hand: [{ card: "EX4-060", as: "alterS" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blue").permanentId, s.perm("alsoBlue").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual(["EX4-060"]);
+  });
+
   it("uses the public opponent attack path to replace leaving play with Blitz, Cres, and face-down security", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-060", as: "subject", dp: 7000, suspended: true, under: ["EX4-051", "EX4-049"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-013"],
         },
-        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 12000 }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 12000 }], security: ["BT1-009", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );

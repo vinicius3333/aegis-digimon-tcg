@@ -31,7 +31,7 @@ describe("EX6-027 Ophanimon", () => {
   it("publicly pays with security and gives an opposing Digimon -8000 DP", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX6-027", as: "oph" }], security: ["BT1-001"] },
+        0: { hand: [{ card: "EX6-027", as: "oph" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },

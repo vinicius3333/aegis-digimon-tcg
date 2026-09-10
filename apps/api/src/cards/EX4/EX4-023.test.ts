@@ -6,6 +6,13 @@ import { compiled } from "./EX4-023.js";
 import "../BT9/BT9-103.js";
 import "../index.js";
 
+async function passTurn(s: ReturnType<typeof setupEngine>, seat: 0 | 1): Promise<void> {
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(seat);
+  advance(s.engine).endMainPhaseIfOpen(seat);
+  await turn;
+}
+
 describe("EX4-023 Agumon Expert", () => {
   it("registers its official identity and same-level security effect", () => {
     expect(getCardDefinition("EX4-023")).toMatchObject({
@@ -37,6 +44,8 @@ describe("EX4-023 Agumon Expert", () => {
         },
       ],
     });
+    expect(JSON.stringify(compiled.effects?.[0]?.actions?.[0])).not.toContain('"optional":true');
+    expect(compiled.residual).toEqual([]);
   });
 
   it("digivolves from a yellow level-2 Digi-Egg for 0", async () => {
@@ -62,15 +71,36 @@ describe("EX4-023 Agumon Expert", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-006"]);
   });
 
+  it("rejects digivolution from a non-yellow level-2 base", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "wrongBase" }],
+        hand: [{ card: "EX4-023", as: "expert" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongBase").permanentId,
+        instanceId: s.inst("expert").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("wrongBase").topCard.cardId).toBe("BT1-001");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("places the revealed same-level hand card on top of security when an opponent Digimon is played", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
           hand: [{ card: "BT1-009", as: "revealed" }],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
-        1: { hand: [{ card: "BT1-010", as: "played" }], security: ["BT1-001"] },
+        1: { hand: [{ card: "BT1-010", as: "played" }], security: ["BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -84,6 +114,7 @@ describe("EX4-023 Agumon Expert", () => {
 
     expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("revealed").instanceId);
+    expect(s.state.players[0]!.security[0]!.faceUp).not.toBe(true);
   });
 
   it("places the exact card selected by the reveal cost when another same-level card is in hand", async () => {
@@ -96,9 +127,9 @@ describe("EX4-023 Agumon Expert", () => {
             { card: "BT1-009", as: "revealed" },
             { card: "BT1-010", as: "otherSameLevel" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
-        1: { hand: [{ card: "BT1-011", as: "played" }], security: ["BT1-001"] },
+        1: { hand: [{ card: "BT1-011", as: "played" }], security: ["BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
@@ -121,7 +152,7 @@ describe("EX4-023 Agumon Expert", () => {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
           hand: [{ card: "EX4-016", as: "wrongLevel" }],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
         1: { hand: [{ card: "BT1-010", as: "played" }] },
       },
@@ -137,20 +168,20 @@ describe("EX4-023 Agumon Expert", () => {
     await settle();
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-016"]);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
   });
 
-  it("allows the player to decline the optional reveal", async () => {
+  it("requires the same-level reveal cost when the opponent plays a Digimon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
           hand: [{ card: "BT1-009", as: "sameLevel" }],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
         1: { hand: [{ card: "BT1-010", as: "played" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
@@ -161,33 +192,40 @@ describe("EX4-023 Agumon Expert", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-012"]);
   });
 
   it("activates only once per opponent turn", async () => {
+    const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
+          deck: Array.from({ length: 10 }, () => "BT1-012"),
           hand: [
             { card: "BT1-009", as: "firstReveal" },
             { card: "BT1-010", as: "secondReveal" },
+            { card: "BT1-011", as: "thirdReveal" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
         1: {
+          deck: Array.from({ length: 10 }, () => "BT1-013"),
           hand: [
             { card: "BT1-010", as: "firstPlay" },
             { card: "BT1-011", as: "secondPlay" },
+            { card: "BT1-009", as: "thirdPlay" },
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
+    preferredInstanceIds.push(s.inst("firstReveal").instanceId, s.inst("thirdReveal").instanceId);
     s.state.turnSeat = 1;
     s.state.memory = 10;
-    await s.ready();
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
       ok: true,
@@ -199,7 +237,25 @@ describe("EX4-023 Agumon Expert", () => {
     await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+
+    // A real owner turn resets the once-per-turn watcher before the next opponent turn.
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await passTurn(s, 0);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("thirdPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("thirdReveal").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("does not activate during its owner's turn", async () => {
@@ -207,7 +263,7 @@ describe("EX4-023 Agumon Expert", () => {
       0: {
         battleArea: [{ card: "EX4-023", as: "expert" }],
         hand: [{ card: "BT1-009", as: "sameLevel" }],
-        security: ["BT1-001"],
+        security: ["BT1-012"],
       },
       1: { hand: [{ card: "BT1-010", as: "opponentPlay" }] },
     });
@@ -217,7 +273,7 @@ describe("EX4-023 Agumon Expert", () => {
     await advance(s.engine).verb.playInstances([s.inst("opponentPlay").instanceId]);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
   });
 
   it("Q3465 does not treat two level-less Calumon cards as having the same level", async () => {
@@ -226,7 +282,7 @@ describe("EX4-023 Agumon Expert", () => {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
           hand: [{ card: "EX2-045", as: "ownCalumon" }],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
         1: { hand: [{ card: "EX2-045", as: "opponentCalumon" }] },
       },
@@ -242,7 +298,7 @@ describe("EX4-023 Agumon Expert", () => {
     await settle();
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX2-045"]);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
   });
 
   it("Q3464 trashes the revealed card when Kongou prevents adding it to security", async () => {
@@ -251,7 +307,7 @@ describe("EX4-023 Agumon Expert", () => {
         0: {
           battleArea: [{ card: "EX4-023", as: "expert" }],
           hand: [{ card: "BT1-009", as: "revealed" }],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
         },
         1: {
           battleArea: ["BT9-029"],
@@ -276,7 +332,7 @@ describe("EX4-023 Agumon Expert", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revealed").instanceId));
 
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });

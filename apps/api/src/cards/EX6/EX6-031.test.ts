@@ -42,7 +42,7 @@ describe("EX6-031 Shakamon", () => {
 
   it("publicly inverts each own negative Security Attack value during your turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-031", as: "shaka" }] }, 1: { security: ["BT1-001", "BT1-002"] } },
+      { 0: { battleArea: [{ card: "EX6-031", as: "shaka" }] }, 1: { security: ["BT1-009", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -72,18 +72,34 @@ describe("EX6-031 Shakamon", () => {
     );
   });
 
-  it("does not replay stack materials for a return destination outside hand or deck", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
-    });
+  it("publicly plays exact named cards from its stack after returning to deck", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("wouldBeReturned", {
-      subjectPermanentId: s.perm("shaka").permanentId,
-      returnDestination: "trash",
-    });
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.perm("shaka").topCard?.cardId).toBe("EX6-031");
-    expect(s.perm("shaka").stack.map((card) => card.cardId)).toEqual(["EX6-025", "EX6-023"]);
+    await advance(s.engine).verb.returnToDeck([s.perm("shaka").topCard!.instanceId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX6-025", "EX6-023"]),
+    );
+  });
+
+  it("publicly plays exact named cards from its stack after returning to hand", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.returnToHand([s.perm("shaka").topCard!.instanceId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX6-025", "EX6-023"]),
+    );
   });
 
   it.each(["EX6-025", "EX6-023", "EX6-024", "EX6-026"])(
@@ -124,7 +140,7 @@ describe("EX6-031 Shakamon", () => {
             { card: "EX6-031", as: "shaka" },
             { card: "BT1-114", as: "attacker" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -149,7 +165,7 @@ describe("EX6-031 Shakamon", () => {
             { card: "EX6-031", as: "shaka" },
             { card: "EX6-031", as: "negative" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },

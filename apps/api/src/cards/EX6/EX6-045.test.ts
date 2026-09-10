@@ -39,7 +39,7 @@ describe("EX6-045 Tsukaimon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001"],
+          security: ["BT1-009"],
           battleArea: [
             { card: "BT1-009", as: "host", under: ["EX6-045"] },
             { card: "BT1-010", as: "cost" },

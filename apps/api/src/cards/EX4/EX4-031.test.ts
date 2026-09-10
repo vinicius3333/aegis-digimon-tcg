@@ -33,7 +33,12 @@ describe("EX4-031 Cherubimon", () => {
             { card: "BT1-010", as: "second", suspended: true },
           ],
         },
-        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "target", dp: 10_000 },
+            { card: "BT1-021", as: "other", dp: 10_000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -42,6 +47,21 @@ describe("EX4-031 Cherubimon", () => {
     await settle(() => s.perm("target").currentDP !== 10_000);
 
     expect(s.perm("target").currentDP).toBe(4_000);
+    expect(s.perm("other").currentDP).toBe(10_000);
+  });
+
+  it("uses the exact zero-suspended boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-031", as: "cherubimon" }] },
+        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
+
+    expect(s.perm("target").currentDP).toBe(10_000);
   });
 
   it("applies the same scaled DP reduction in the real attack window", async () => {
@@ -85,5 +105,27 @@ describe("EX4-031 Cherubimon", () => {
     await settle(() => s.perm("antylamon").topCard.cardId === "EX4-031");
     expect(s.perm("antylamon").topCard.cardId).toBe("EX4-031");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects the alternate route when the level-5 two-color source has no green", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT16-018", as: "invalidSource" }],
+        hand: [{ card: "EX4-031", as: "cherubimon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT16-018");
   });
 });

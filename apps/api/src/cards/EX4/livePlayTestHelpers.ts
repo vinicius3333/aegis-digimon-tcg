@@ -29,7 +29,7 @@ function defaultSetup(
     0: {
       battleArea: [board(cardId), { card: "BT1-064", as: "ally", dp: 3000 }],
       deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
-      security: ["BT1-001", "BT1-002", "BT1-003"],
+      security: ["BT1-009", "BT1-013", "BT1-012"],
       ...own,
     },
     1: {
@@ -260,7 +260,7 @@ export function ex4CardBehaviorTests(cardId: string): void {
         expect(s.state.players[1]!.deck.some((c) => c.instanceId === victim.instanceId)).toBe(true);
         return;
       case "EX4-050":
-        s = setupEngine(defaultSetup(cardId, { security: ["BT1-001", "BT1-002"], deck: ["BT1-010"] }), commonOptions);
+        s = setupEngine(defaultSetup(cardId, { security: ["BT1-009", "BT1-013"], deck: ["BT1-010"] }), commonOptions);
         await s.ready();
         await fire(s, EffectTiming.OnDestroyedAnyone);
         expect(s.state.players[0]!.security).toHaveLength(3);
@@ -322,8 +322,8 @@ export function ex4CardBehaviorTests(cardId: string): void {
         s = setupEngine(
           defaultSetup(
             cardId,
-            { security: ["BT1-001", "BT1-002"] },
-            { hand: Array(7).fill("BT1-001"), security: ["BT1-001", "BT1-002", "BT1-003"] },
+            { security: ["BT1-009", "BT1-013"] },
+            { hand: Array(7).fill("BT1-009"), security: ["BT1-009", "BT1-013", "BT1-012"] },
           ),
           commonOptions,
         );
@@ -397,7 +397,7 @@ export function ex4CardBehaviorTests(cardId: string): void {
                 { card: "AD1-025", as: "high", dp: 15000 },
                 { card: "BT1-009", as: "low", dp: 3000 },
               ],
-              security: ["BT1-001"],
+              security: ["BT1-009"],
             },
           ),
           commonOptions,
@@ -703,8 +703,8 @@ export function ex4CardBehaviorTests(cardId: string): void {
         s = setupEngine(
           defaultSetup(
             cardId,
-            { battleArea: [{ card: "BT1-010", as: "host", dp: 12000, under: [cardId] }], security: ["BT1-001"] },
-            { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }], security: ["BT1-001"] },
+            { battleArea: [{ card: "BT1-010", as: "host", dp: 12000, under: [cardId] }], security: ["BT1-009"] },
+            { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }], security: ["BT1-009"] },
           ),
           commonOptions,
         );
@@ -777,8 +777,8 @@ export function ex4CardBehaviorTests(cardId: string): void {
         s = setupEngine(
           defaultSetup(
             cardId,
-            { battleArea: [{ card: cardId, as: "host" }], security: ["BT1-001", "BT1-002"] },
-            { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-010"] }], security: ["BT1-001", "BT1-002"] },
+            { battleArea: [{ card: cardId, as: "host" }], security: ["BT1-009", "BT1-013"] },
+            { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-010"] }], security: ["BT1-009", "BT1-013"] },
           ),
           commonOptions,
         );
@@ -794,10 +794,10 @@ export function ex4CardBehaviorTests(cardId: string): void {
             cardId,
             {
               battleArea: [{ card: "EX4-060", as: "host", under: [cardId] }],
-              security: ["BT1-001", "BT1-002", "BT1-003"],
+              security: ["BT1-009", "BT1-013", "BT1-012"],
             },
             {
-              security: ["BT1-001", "BT1-002", "BT1-003"],
+              security: ["BT1-009", "BT1-013", "BT1-012"],
             },
           ),
           commonOptions,
@@ -909,7 +909,7 @@ export function ex4CardBehaviorTests(cardId: string): void {
                 { card: "AD1-025", as: "high", dp: 15000 },
                 { card: "BT1-009", as: "low", dp: 3000 },
               ],
-              security: ["BT1-001", "BT1-002"],
+              security: ["BT1-009", "BT1-013"],
             },
           ),
           commonOptions,
@@ -1038,7 +1038,7 @@ export function ex4CardBehaviorTests(cardId: string): void {
             cardId,
             {
               battleArea: [{ card: cardId, as: "host", under: ["EX4-060", "BT1-084", "AD1-025"] }],
-              security: ["BT1-001", "BT1-002", "BT1-003"],
+              security: ["BT1-009", "BT1-013", "BT1-012"],
             },
             {
               battleArea: [
@@ -1046,7 +1046,7 @@ export function ex4CardBehaviorTests(cardId: string): void {
                 { card: "BT1-013", as: "high", dp: 7000 },
                 { card: "BT1-064", as: "third", dp: 4000 },
               ],
-              security: ["BT1-001", "BT1-002", "BT1-003"],
+              security: ["BT1-009", "BT1-013", "BT1-012"],
             },
           ),
           commonOptions,

@@ -87,12 +87,18 @@ describe("EX4 two-color evolution seams", () => {
     expect(definitionMatches(filter, greenBlackRed)).toBe(false);
   });
 
-  it("preserves Alliance attribution on the three inherited watchers", () => {
-    for (const card of [ex4032, ex4033, ex4034]) {
+  it("preserves Alliance attribution on the two inherited Alliance-only watchers", () => {
+    for (const card of [ex4032, ex4033]) {
       const allianceWatcher = (card.effects ?? [])
         .flatMap((effect) => effect.actions ?? [])
         .find((action) => (action as { bySourceKeyword?: string }).bySourceKeyword === "Alliance");
       expect(allianceWatcher).toMatchObject({ event: "whenEffectSuspends", bySourceKeyword: "Alliance" });
     }
+
+    const anyOwnEffectWatcher = (ex4034.effects ?? [])
+      .flatMap((effect) => effect.actions ?? [])
+      .find((action) => (action as { event?: string }).event === "whenEffectSuspends");
+    expect(anyOwnEffectWatcher).toMatchObject({ event: "whenEffectSuspends", bySourceController: "mine" });
+    expect(anyOwnEffectWatcher).not.toHaveProperty("bySourceKeyword");
   });
 });

@@ -33,7 +33,7 @@ describe("EX6-021 ArkhaiAngemon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-021", as: "arkhai" }],
-          security: [{ card: "BT1-001", as: "paid" }],
+          security: [{ card: "BT1-009", as: "paid" }],
           hand: [{ card: "EX6-019", as: "angel" }],
         },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },

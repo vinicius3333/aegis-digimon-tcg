@@ -74,6 +74,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 3, colors: ["Black"], cost: 3, isAlternate: true },
+    { level: 3, colors: ["Blue"], cost: 3, isAlternate: true },
+  ],
 };
 
 registerIrCard("EX4-040", compiled);

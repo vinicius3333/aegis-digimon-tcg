@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-034.js";
 import "../BT17/BT17-049.js";
 import "../BT23/BT23-041.js";
+import "../BT19/BT19-046.js";
 
 describe("EX4-034 Lopmon", () => {
   it("reveals four and adds a green two-color card plus Shu-Chong Wong", () => {
@@ -24,7 +26,8 @@ describe("EX4-034 Lopmon", () => {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
-          bySourceKeyword: "Alliance",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          bySourceController: "mine",
           actions: [{ kind: "Digivolve", costDelta: -2, from: ["hand"], optional: true }],
         },
       ],
@@ -72,7 +75,7 @@ describe("EX4-034 Lopmon", () => {
           ],
           hand: [{ card: "BT17-049", as: "evolution" }],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -92,5 +95,27 @@ describe("EX4-034 Lopmon", () => {
     });
     await settle(() => s.perm("host").topCard?.cardId === "BT17-049", 5000);
     expect(s.perm("host").topCard?.cardId).toBe("BT17-049");
+  });
+
+  it("does not respond to an opponent effect suspending your Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", under: ["EX4-034"] }],
+          hand: [{ card: "BT17-049", as: "evolution" }],
+        },
+        1: { hand: [{ card: "BT19-046", as: "suspender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.perm("host").topCard?.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
   });
 });

@@ -59,6 +59,58 @@ describe("EX4-070 Tarnished Hero", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("deletes exactly level 3, leaves other levels, and pays its 3 memory cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-064", as: "green" }], hand: [{ card: "EX4-070", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3" },
+            { card: "AD1-001", as: "level4" },
+            { card: "AD1-025", as: "level7" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(["AD1-001", "AD1-025"]);
+  });
+
+  it("waives the purple color requirement only while a green Digimon or Tamer is in play", async () => {
+    const allowed = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-064", as: "green" }], hand: [{ card: "EX4-070", as: "option" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    allowed.state.memory = 10;
+    await allowed.ready();
+    expect(allowed.engine.applyIntent(0, { type: "playCard", instanceId: allowed.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+
+    const denied = setupEngine(
+      { 0: { hand: [{ card: "EX4-070", as: "option" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    denied.state.memory = 10;
+    await denied.ready();
+    expect(
+      denied.engine.applyIntent(0, { type: "playCard", instanceId: denied.inst("option").instanceId }),
+    ).toMatchObject({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(denied.state.players[0]!.hand.some((card) => card.instanceId === denied.inst("option").instanceId)).toBe(
+      true,
+    );
+  });
+
   it("trashes an opponent Option through Delay without granting memory", async () => {
     const s = setupEngine(
       {
@@ -93,6 +145,40 @@ describe("EX4-070 Tarnished Hero", () => {
       true,
     );
     expect(s.state.memory).toBe(2);
+  });
+
+  it("lets the opponent decline trashing an Option, then grants its controller 2 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "green" }],
+          hand: [{ card: "EX4-070", as: "option" }],
+        },
+        1: { battleArea: [{ card: "AD1-025", as: "onlyTarget" }], hand: [{ card: "BT1-093", as: "opponentOption" }] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+
+    const optionPermanent = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionId)!;
+    optionPermanent.enterFieldTurnCount = s.state.turnCount - 1;
+    s.state.memory = 2;
+    await s.engine.recomputeContinuousEffects();
+    const delay = observe(s.engine).activatableEffects(optionPermanent) as Array<{ effectKey: string }>;
+    expect(delay).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: delay[0]!.effectKey }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 4);
+
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentOption").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(4);
   });
 
   ex4CardBehaviorTests("EX4-070");

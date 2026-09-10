@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,6 +8,22 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-041.js";
 
 describe("EX4-041 DeadlyAxemon", () => {
+  it("matches the catalog and carries both printed alternate evolution routes", () => {
+    expect(getCardDefinition("EX4-041")).toMatchObject({
+      cardId: "EX4-041",
+      nameEn: "DeadlyAxemon",
+      colors: ["Black"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Blue", level: 3, memoryCost: 3 },
+      ],
+      types: ["Dark Animal", "Twilight"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual(digivolutionRequirementsFor("EX4-041"));
+  });
   it("draws two by optionally trashing a Blue Flare or Twilight card", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
       kind: "Draw",
@@ -71,6 +87,25 @@ describe("EX4-041 DeadlyAxemon", () => {
     await settle();
     expect(declined.state.players[0]!.deck).toHaveLength(deckBefore);
     expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(declined.inst("cost").instanceId);
+
+    const unavailable = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-041", as: "subject" }],
+          hand: [{ card: "BT1-012", as: "wrongCost" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await unavailable.ready();
+    const unavailableDeckBefore = unavailable.state.players[0]!.deck.length;
+    await advance(unavailable.engine).fire(EffectTiming.OnPlay, unavailable.perm("subject"));
+    await settle();
+    expect(unavailable.state.players[0]!.deck).toHaveLength(unavailableDeckBefore);
+    expect(unavailable.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      unavailable.inst("wrongCost").instanceId,
+    );
   });
 
   it("adds a matching deletion reveal and trashes a non-matching card", async () => {
@@ -101,6 +136,53 @@ describe("EX4-041 DeadlyAxemon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(false);
     expect(s.perm("host").currentDP).toBe(3000);
+  });
+
+  it.each([
+    ["black", "EX4-038"],
+    ["blue", "EX4-014"],
+  ])("digivolves legally from a %s level-3 Digimon for 3 memory", async (_route, baseCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "EX4-041", as: "evolution" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX4-041");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCard]);
+  });
+
+  it("rejects the alternate route from a level-3 Digimon with neither printed color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-003", as: "base" }],
+        hand: [{ card: "EX4-041", as: "evolution" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard?.cardId).toBe("BT1-003");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
   });
   ex4CardBehaviorTests("EX4-041");
 });

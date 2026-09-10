@@ -56,11 +56,6 @@ describe("EX6-040 TiaLudomon", () => {
     });
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("added").instanceId]);
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("host").permanentId,
-      addedDigivolutionCardInstanceIds: [s.inst("added").instanceId],
-      byEffectSeat: 0,
-    });
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(false);

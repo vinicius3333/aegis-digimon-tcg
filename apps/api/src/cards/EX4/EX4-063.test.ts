@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
@@ -48,6 +49,78 @@ describe("EX4-063 Henry Wong & Shu-Chong Wong", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("subject"));
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longTerriermonName").instanceId);
+  });
+
+  it("plays an eligible Terriermon, restricts that permanent, and deletes it at the next opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-063", as: "subject" }],
+          hand: [{ card: "ST17-02", as: "terrier" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("subject"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "ST17-02"));
+
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "ST17-02")!;
+    expect(observe(s.engine).isRestricted(played, "digivolve")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("terrier").instanceId);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === played.permanentId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === played.permanentId)).toBe(false);
+  });
+
+  it("does not play from hand when the one-Digimon gate is exceeded", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-063", as: "subject" },
+            { card: "BT1-010", as: "existing" },
+            { card: "BT1-010", as: "existing2" },
+          ],
+          hand: [{ card: "ST17-02", as: "terrier" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("subject"));
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("terrier").instanceId);
+  });
+
+  it("reduces a legal evolution with Terriermon in sources and suspends this Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-063", as: "subject" },
+            { card: "BT1-064", as: "carrier", under: ["ST17-02"] },
+          ],
+          hand: [{ card: "BT17-046", as: "gargomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("carrier").permanentId,
+        instanceId: s.inst("gargomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("carrier").topCard?.cardId === "BT17-046");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("subject").isSuspended).toBe(true);
   });
   ex4CardBehaviorTests("EX4-063");
 });

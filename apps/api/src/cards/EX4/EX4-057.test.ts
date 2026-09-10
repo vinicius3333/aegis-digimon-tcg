@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
@@ -66,7 +66,7 @@ describe("EX4-057 Antylamon", () => {
             { card: "BT1-021", as: "target", dp: 12000, suspended: true },
             { card: "ST18-07", as: "blocker", dp: 7000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -107,11 +107,18 @@ describe("EX4-057 Antylamon", () => {
           ],
           trash: [{ card: "BT1-064", as: "playedGreen" }],
         },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-064"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-064")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("playedGreen").instanceId)).toBe(false);
@@ -125,19 +132,46 @@ describe("EX4-057 Antylamon", () => {
             { card: "BT1-025", as: "attacker", under: ["EX4-057"] },
             { card: "BT1-010", as: "suspended", suspended: true },
           ],
-          trash: [{ card: "BT1-064", as: "returnedGreen" }],
+          trash: [
+            { card: "BT1-064", as: "returnedGreen" },
+            { card: "BT1-064", as: "returnedGreen2" },
+          ],
         },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedGreen").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedGreen").instanceId)).toBe(true);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.phase = Phase.Main;
+    s.state.memory = 3;
+    await s.ready();
+    s.perm("attacker").isSuspended = false;
+    expect(s.perm("attacker").isSuspended).toBe(false);
     expect(
-      s.state.players[0]!.hand.filter((card) => card.instanceId === s.inst("returnedGreen").instanceId),
-    ).toHaveLength(1);
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedGreen2").instanceId),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedGreen2").instanceId)).toBe(true);
   });
 
   it("does not play the optional green level-three when declined", async () => {
@@ -151,8 +185,14 @@ describe("EX4-057 Antylamon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
-    await settle(() => false, 60);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-064")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenTrash").instanceId)).toBe(true);
   });

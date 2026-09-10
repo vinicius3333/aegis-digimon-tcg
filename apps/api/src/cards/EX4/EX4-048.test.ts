@@ -1,13 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-048.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 describe("EX4-048 Gaiomon", () => {
+  it("matches the catalog and is registered as complete compiled IR", () => {
+    expect(getCardDefinition("EX4-048")).toMatchObject({
+      cardId: "EX4-048",
+      nameEn: "Gaiomon",
+      colors: ["Black", "Red"],
+      level: 6,
+      playCost: 12,
+      evoCosts: [
+        { color: "Black", level: 5, memoryCost: 4 },
+        { color: "Red", level: 5, memoryCost: 4 },
+      ],
+    });
+    expect(runtimeCompiledCard("EX4-048")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("is also treated as Greymon and deletes an opposing Digimon costing at least thirteen", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0]).toMatchObject({
       kind: "GrantStatic",
@@ -63,7 +79,7 @@ describe("EX4-048 Gaiomon", () => {
   it("trashes the opponent's top security card when no opposing Digimon costs thirteen", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-021", as: "base" }], hand: [{ card: "EX4-048", as: "gaiomon" }] },
-      1: { battleArea: [{ card: "BT1-020", as: "low" }], security: ["BT1-001", "BT1-002"] },
+      1: { battleArea: [{ card: "BT1-020", as: "low" }], security: ["BT1-009", "BT1-013"] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -76,7 +92,51 @@ describe("EX4-048 Gaiomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+  });
+
+  it("does not delete a cost-twelve Digimon, but deletes exactly cost thirteen", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-021", as: "base" }], hand: [{ card: "EX4-048", as: "gaiomon" }] },
+      1: {
+        battleArea: [
+          { card: "AD1-004", as: "twelve" },
+          { card: "BT1-083", as: "thirteen" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaiomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-083"));
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.cardId)).toContain("AD1-004");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("AD1-004");
+  });
+
+  it("does not alternate-digivolve into a non-Gaiomon even when its play cost is high", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-048", as: "source" },
+            { card: "BT1-089", as: "tamer" },
+          ],
+          hand: [{ card: "AD1-025", as: "wrongName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("source"));
+    await settle();
+    expect(s.perm("source").topCard?.cardId).toBe("EX4-048");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("AD1-025");
   });
 
   it("free-digivolves a high-cost Gaiomon-name card at end of turn only with a Tamer", async () => {

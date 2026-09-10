@@ -29,7 +29,7 @@ describe("EX6-020 Gatomon", () => {
       {
         0: {
           hand: [{ card: "EX6-020", as: "gato" }],
-          deck: ["EX6-019", "EX6-074", "BT1-001"],
+          deck: ["EX6-019", "EX6-074", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -54,7 +54,7 @@ describe("EX6-020 Gatomon", () => {
 
   it("publicly resolves the same Angel and exact Mirei buckets when digivolving", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-020", as: "gato" }], deck: ["EX6-019", "EX6-074", "BT1-001"] } },
+      { 0: { battleArea: [{ card: "EX6-020", as: "gato" }], deck: ["EX6-019", "EX6-074", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -69,7 +69,7 @@ describe("EX6-020 Gatomon", () => {
         0: {
           battleArea: [{ card: "EX6-045", as: "base" }],
           hand: [{ card: "EX6-020", as: "gato" }],
-          deck: ["EX6-019", "EX6-074", "BT1-001"],
+          deck: ["EX6-019", "EX6-074", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },

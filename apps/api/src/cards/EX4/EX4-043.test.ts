@@ -11,6 +11,7 @@ describe("EX4-043 Garurumon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
+      payCost: true,
       costDelta: -2,
       optional: true,
       target: { filter: { controller: "mine", excludeSelf: true } },
@@ -69,6 +70,67 @@ describe("EX4-043 Garurumon", () => {
     expect(negative.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       negative.inst("wrongName").instanceId,
     );
+  });
+
+  it("accepts a Greymon-named level 6 at the boundary and rejects a level 7", async () => {
+    const boundary = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "source" },
+            { card: "BT1-021", as: "other" },
+          ],
+          hand: [{ card: "BT1-025", as: "levelSixGreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    boundary.state.memory = 10;
+    await boundary.ready();
+    await advance(boundary.engine).fire(EffectTiming.WhenDigivolving, boundary.perm("source"));
+    await settle(() => boundary.perm("other").topCard?.cardId === "BT1-025");
+    expect(boundary.perm("other").topCard?.cardId).toBe("BT1-025");
+    expect(boundary.state.memory).toBe(9);
+
+    const tooHigh = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "source" },
+            { card: "BT1-021", as: "other" },
+          ],
+          hand: [{ card: "BT13-020", as: "levelSevenGreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await tooHigh.ready();
+    await advance(tooHigh.engine).fire(EffectTiming.WhenDigivolving, tooHigh.perm("source"));
+    await settle();
+    expect(tooHigh.perm("other").topCard?.cardId).toBe("BT1-021");
+    expect(tooHigh.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      tooHigh.inst("levelSevenGreymon").instanceId,
+    );
+  });
+
+  it("allows declining the may effect without changing the board or hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "source" },
+            { card: "BT1-010", as: "other" },
+          ],
+          hand: [{ card: "BT1-015", as: "greymon" }],
+        },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    expect(s.perm("other").topCard?.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("greymon").instanceId);
   });
 
   it("executes inherited Reboot during the opponent's unsuspend phase", async () => {

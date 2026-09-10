@@ -144,5 +144,18 @@ describe("EX4-059 Cherubimon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("level6Ally").permanentId], "byEffect");
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-083")).toBe(true);
   });
+
+  it("allows declining the optional replay and leaves the deleted Digimon in trash", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX4-059", as: "cherubimon" }] } },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
+
+    await advance(s.engine).verb.deletePermanent([s.perm("cherubimon").permanentId], "byEffect");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX4-059")).toBe(true);
+  });
   ex4CardBehaviorTests("EX4-059");
 });

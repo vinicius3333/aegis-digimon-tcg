@@ -27,13 +27,11 @@ export const compiled: CompiledCard = {
           amount: 1,
           toTop: true,
           condition: {
-            kind: "youHave",
-            filter: {
-              zone: "security",
-              controllerDefault: "mine",
-            },
-            count: 3,
-            comparison: "lte",
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
             raw: "you have 3 or fewer security cards",
           },
         },

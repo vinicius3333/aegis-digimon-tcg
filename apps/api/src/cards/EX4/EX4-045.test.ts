@@ -11,6 +11,7 @@ describe("EX4-045 MetalGreymon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
+      payCost: true,
       optional: true,
       target: { filter: { controller: "mine", excludeSelf: true } },
       into: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ match: "name", tokens: ["Garurumon"] }] },
@@ -86,7 +87,7 @@ describe("EX4-045 MetalGreymon", () => {
   it("redirects an opponent attack to the inherited host after suspending it", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-045"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-045"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -111,10 +112,55 @@ describe("EX4-045 MetalGreymon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
   });
 
+  it("accepts the level-6 Garurumon boundary and pays its printed cost minus two", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-045", as: "source" },
+            { card: "BT1-040", as: "other" },
+          ],
+          hand: [{ card: "BT1-044", as: "levelSixGarurumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("other").topCard?.cardId === "BT1-044");
+
+    expect(s.perm("other").topCard?.cardId).toBe("BT1-044");
+    expect(s.state.memory).toBe(9); // BT1-044 costs 3; this effect reduces it to 1.
+  });
+
+  it("allows declining the optional digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-045", as: "source" },
+            { card: "BT1-031", as: "other" },
+          ],
+          hand: [{ card: "BT1-036", as: "garurumon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+
+    expect(s.perm("other").topCard?.cardId).toBe("BT1-031");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("garurumon").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("leaves an opponent attack aimed at the player when the optional redirect is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-045"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-010", as: "host", dp: 10000, under: ["EX4-045"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },

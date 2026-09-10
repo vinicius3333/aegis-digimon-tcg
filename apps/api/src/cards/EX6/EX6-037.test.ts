@@ -35,7 +35,7 @@ describe("EX6-037 Spadamon", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "host" }],
           hand: [{ card: "EX6-037", as: "spada" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -64,7 +64,7 @@ describe("EX6-037 Spadamon", () => {
             { card: "EX6-037", as: "spada" },
             { card: "EX6-007", as: "cost" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
