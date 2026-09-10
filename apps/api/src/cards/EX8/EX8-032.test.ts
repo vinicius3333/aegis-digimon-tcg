@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -6,6 +7,23 @@ import "./index.js";
 import { compiled } from "./EX8-032.js";
 
 describe("EX8-032", () => {
+  it("matches the complete printed catalog identity and inherited text", () => {
+    expect(getCardDefinition("EX8-032")).toMatchObject({
+      cardId: "EX8-032",
+      nameEn: "Apemon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 3,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "NSo"],
+      inheritedEffectText: "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+    });
+    expect(getCardDefinition("EX8-032")?.effectText).toBe("[Digivolve]Lv.3 w/[NSo]\u00a0trait: Cost 2");
+  });
   it("uses the off-color NSo level-3 route for two and rejects a non-NSo base", async () => {
     const s = setupEngine({
       0: {
@@ -55,7 +73,7 @@ describe("EX8-032", () => {
           kind: "ModifyDP",
           amount: -2000,
           duration: "forTheTurn",
-          target: { count: 1, filter: { controller: "opponent" } },
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
         },
       ],
     }));
