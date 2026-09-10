@@ -1,4 +1,3 @@
-// @ts-nocheck
 // EX8-068 Deep Savers — hand-fixed IR.
 // [Security] [All Turns] restriction corrected to beDeletedInBattle; Aura covers all DS Digimon.
 // [Main] takes bottom security card (toTop:false), places this face-up at bottom.
