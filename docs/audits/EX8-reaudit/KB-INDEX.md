@@ -51,3 +51,7 @@ Workers must run `node tools/kb/query.mjs card <ID>` and record all returned Q&A
 | EX8-045 | Q3931; Q3932; Q6043 | [EX8-045 report](EX8-045.md) |
 | EX8-046 | None returned | [EX8-046 report](EX8-046.md) |
 | EX8-047 | None returned | [EX8-047 report](EX8-047.md) |
+| EX8-048 | None returned | [EX8-048 report](EX8-048.md) |
+| EX8-049 | None returned | [EX8-049 report](EX8-049.md) |
+| EX8-050 | None returned | [EX8-050 report](EX8-050.md) |
+| EX8-051 | None returned | [EX8-051 report](EX8-051.md) |

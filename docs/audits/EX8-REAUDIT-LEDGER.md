@@ -2,7 +2,7 @@
 
 Base SHA: `2c851acd73948611728b9c7e2c3c785d98b1087a`
 
-Current aggregate: 376/740; 0/74 cards at 10/10.
+Current aggregate: 408/740; 0/74 cards at 10/10.
 
 | Card | Report | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
@@ -53,10 +53,10 @@ Current aggregate: 376/740; 0/74 cards at 10/10.
 | EX8-045 | [report](EX8-reaudit/EX8-045.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-046 | [report](EX8-reaudit/EX8-046.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-047 | [report](EX8-reaudit/EX8-047.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
-| EX8-048 | [report](EX8-reaudit/EX8-048.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-049 | [report](EX8-reaudit/EX8-049.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-050 | [report](EX8-reaudit/EX8-050.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
-| EX8-051 | [report](EX8-reaudit/EX8-051.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
+| EX8-048 | [report](EX8-reaudit/EX8-048.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-049 | [report](EX8-reaudit/EX8-049.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-050 | [report](EX8-reaudit/EX8-050.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
+| EX8-051 | [report](EX8-reaudit/EX8-051.md) | 2 | 2 | 2 | 2 | 0 | 8/10 | Worker accepted; gates pending |
 | EX8-052 | [report](EX8-reaudit/EX8-052.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX8-053 | [report](EX8-reaudit/EX8-053.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
 | EX8-054 | [report](EX8-reaudit/EX8-054.md) | 0 | 0 | 0 | 0 | 0 | 0/10 | Queued |
