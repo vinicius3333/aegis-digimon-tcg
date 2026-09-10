@@ -52,7 +52,7 @@ describe("BT18-057 KoKabuterimon", () => {
           { card: "BT18-063", as: "beetleA" },
           { card: "BT18-063", as: "beetleB" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.memory = 5;

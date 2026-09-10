@@ -13,7 +13,7 @@ describe("BT18-038 ArkhaiAngemon", () => {
             { card: "BT18-038", as: "arkhai" },
             { card: "BT1-063", as: "angel" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -48,7 +48,7 @@ describe("BT18-038 ArkhaiAngemon", () => {
 
     expect(observe(s.engine).hasEffectiveTrait(s.perm("arkhai"), "Angel")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-063")).toBe(true);
     assertNoLoudGap(s);
   });

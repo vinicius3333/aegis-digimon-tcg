@@ -54,7 +54,7 @@ describe("BT18-092 Zenith", () => {
         0: {
           battleArea: [{ card: "BT18-092", as: "zenith" }],
           hand: [{ card: "BT11-061", as: "vemmon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -63,7 +63,7 @@ describe("BT18-092 Zenith", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
     // runTurn finishes by passing priority and normalizing memory.
     expect(s.state.memory).toBe(-3);
   });
@@ -80,7 +80,7 @@ describe("BT18-092 Zenith", () => {
         },
         1: {
           battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-009"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -167,7 +167,7 @@ describe("BT18-092 Zenith", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "target", under: ["BT11-061"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

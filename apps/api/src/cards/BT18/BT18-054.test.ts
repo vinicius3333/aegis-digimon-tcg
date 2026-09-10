@@ -47,7 +47,7 @@ describe("BT18-054 AncientKazemon", () => {
         // an inherited effect before AncientKazemon's When Digivolving effect resolves.
         battleArea: [{ card: "BT1-021", as: "base" }],
         hand: [{ card: "BT18-054", as: "ancient" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: {
         battleArea: [

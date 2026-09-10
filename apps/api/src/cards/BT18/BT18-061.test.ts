@@ -130,7 +130,7 @@ describe("BT18-061 Trailmon", () => {
         0: {
           battleArea: [{ card: "BT18-061", as: "trailmon", under: ["BT18-088"] }],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

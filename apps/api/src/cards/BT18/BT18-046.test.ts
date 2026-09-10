@@ -11,6 +11,7 @@ describe("BT18-046 Waspmon", () => {
         battleArea: [
           { card: "BT1-030", as: "smaller", dp: 3000 },
           { card: "BT1-030", as: "larger", dp: 5000 },
+          { card: "BT18-044", as: "royalBase", dp: 3000 },
         ],
       },
     });
@@ -20,6 +21,7 @@ describe("BT18-046 Waspmon", () => {
     expect(observe(s.engine).hasEffectiveTrait(s.perm("waspmon"), "Insectoid")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("smaller"), "attackPlayers")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("larger"), "attackPlayers")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("royalBase"), "attackPlayers")).toBe(true);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",

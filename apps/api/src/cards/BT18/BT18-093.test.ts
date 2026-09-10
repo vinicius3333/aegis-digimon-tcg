@@ -17,7 +17,7 @@ describe("BT18-093 Violet Inboots", () => {
   });
 
   it("sets memory to 3 naturally at the start of the turn from 2 memory", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-093", as: "violet" }], deck: ["BT1-001"] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-093", as: "violet" }], deck: ["BT1-010"] } });
     s.state.memory = 2;
     await s.ready();
 
@@ -36,7 +36,7 @@ describe("BT18-093 Violet Inboots", () => {
         0: {
           battleArea: [{ card: "BT18-093", as: "violet" }],
           hand: [{ card: costCard, as }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -47,12 +47,12 @@ describe("BT18-093 Violet Inboots", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(as).instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
     expect(s.state.memory).toBe(-3);
   });
 
   it("does not set memory when the natural turn starts above 2 memory", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-093", as: "violet" }], deck: ["BT1-001"] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-093", as: "violet" }], deck: ["BT1-010"] } });
     s.state.memory = 3;
     await s.ready();
 

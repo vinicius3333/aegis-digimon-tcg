@@ -21,7 +21,7 @@ describe("BT18-008 Goblimon", () => {
         1: {
           battleArea: [
             { card: "BT1-030", dp: 2000, as: "small" },
-            { card: "BT1-030", dp: 3000, as: "large" },
+            { card: "BT1-030", dp: 2001, as: "large" },
           ],
         },
       },

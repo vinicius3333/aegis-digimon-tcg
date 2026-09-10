@@ -31,7 +31,7 @@ describe("BT18-003 Wanyamon", () => {
           ],
         },
         1: {
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           battleArea: [
             { card: "BT1-030", dp: 3000, as: "target" },
             { card: "BT1-030", dp: 3000, as: "secondTarget" },
@@ -84,5 +84,30 @@ describe("BT18-003 Wanyamon", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("target").currentDP).toBe(baseDP);
+  });
+
+  it("applies the full -2000 amount at the exact 2000-DP boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-045", as: "host", under: ["BT18-003"] },
+            { card: "BT1-087", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-030", dp: 2000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

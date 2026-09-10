@@ -127,10 +127,10 @@ describe("BT18-102 Susanoomon", () => {
             { card: "BT18-102", as: "susanoomon", under: HYBRID_STACK },
             { card: "BT1-009", as: "otherOwnStack", under: [{ card: "BT1-085", as: "otherStackTamer" }] },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
         1: {
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -158,7 +158,7 @@ describe("BT18-102 Susanoomon", () => {
         0: {
           battleArea: [{ card: "BT18-088", as: "takuyaKoji", under: [...HYBRID_STACK, ...TAMER_STACK] }],
           hand: [{ card: "BT18-102", as: "susanoomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "largeTarget", dp: 22000 }] },
       },
@@ -187,11 +187,11 @@ describe("BT18-102 Susanoomon", () => {
       {
         0: {
           battleArea: [{ card: "BT18-102", as: "susanoomon", under: [...HYBRID_STACK, ...TAMER_STACK] }],
-          security: [{ card: "BT1-001", as: "ownSecurity" }],
+          security: [{ card: "BT1-010", as: "ownSecurity" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "largeTarget", dp: 22000 }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -231,7 +231,7 @@ describe("BT18-102 Susanoomon", () => {
         1: {
           battleArea: [{ card: "BT1-025", as: "levelSixBase" }],
           hand: [{ card: "BT18-102", as: "susanoomon" }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -270,7 +270,7 @@ describe("BT18-102 Susanoomon", () => {
         1: {
           battleArea: [{ card: "BT18-088", as: "takuyaKoji", under: HYBRID_STACK }],
           hand: [{ card: "BT18-102", as: "susanoomon" }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true },

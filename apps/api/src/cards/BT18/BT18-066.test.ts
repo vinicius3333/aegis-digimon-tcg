@@ -9,13 +9,16 @@ describe("BT18-066 Sephirothmon", () => {
   it("uses its normal black level-3 evolution route for 3", async () => {
     expect(compiled.effects.slice(0, 2)).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "PlaceUnder" }, { kind: "ActivateEffect", lastPlacedOnly: true }] },
-      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "ActivateEffect", lastPlacedOnly: true }] },
+      {
+        trigger: "WhenDigivolving",
+        actions: [{ kind: "PlaceUnder" }, { kind: "ActivateEffect", lastPlacedOnly: true }],
+      },
     ]);
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT18-059", as: "base" }],
         hand: [{ card: "BT18-066", as: "sephirothmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -30,7 +33,7 @@ describe("BT18-066 Sephirothmon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT18-066");
     expect(s.state.memory).toBe(7);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT18-059");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     assertNoLoudGap(s);
   });
 

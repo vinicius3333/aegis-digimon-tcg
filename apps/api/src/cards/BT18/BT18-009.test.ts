@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT18-009.js";
 
 describe("BT18-009 Shamanmon", () => {
@@ -27,14 +28,12 @@ describe("BT18-009 Shamanmon", () => {
           battleArea: [{ card: "BT18-009", as: "shamanmon" }],
           hand: [{ card: "BT18-008", as: "goblimon" }],
         },
-        1: { battleArea: [{ card: "BT14-069", as: "target" }] },
+        1: { battleArea: [{ card: "BT14-069", dp: 2000, as: "target" }] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("goblimon").instanceId })).toEqual({
-      ok: true,
-    });
+    s.state.memory = 7;
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("target").permanentId], "byEffect")).toBe(1);
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
     expect(s.state.memory).toBe(7);
   });

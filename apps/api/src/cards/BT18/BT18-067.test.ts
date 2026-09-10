@@ -46,7 +46,7 @@ describe("BT18-067 MetalKabuterimon", () => {
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT18-067", as: "metalKabuterimon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT18-064", as: "target", under: ["BT1-009"] }] },
     });
@@ -66,7 +66,7 @@ describe("BT18-067 MetalKabuterimon", () => {
     expect(s.state.memory).toBe(8 - cost);
     expect(s.perm("base").topCard?.cardId).toBe("BT18-067");
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain(baseCard);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("target").topCard?.cardId).toBe("BT1-009");
     assertNoLoudGap(s);
   });

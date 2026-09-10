@@ -54,7 +54,7 @@ describe("BT18-015 Kimeramon", () => {
             { card: "BT1-030", as: "cost" },
           ],
           hand: [{ card: "BT18-015", as: "source" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -132,7 +132,7 @@ describe("BT18-015 Kimeramon", () => {
             { card: "BT1-030", as: "cost" },
           ],
           hand: [{ card: "BT18-015", as: "source" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-030", dp: 3000, as: "target" }] },
       },
@@ -168,7 +168,7 @@ describe("BT18-015 Kimeramon", () => {
         0: {
           battleArea: [{ card: "BT18-013", as: "deltamon" }],
           hand: [{ card: "BT18-015", as: "kimeramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: false },

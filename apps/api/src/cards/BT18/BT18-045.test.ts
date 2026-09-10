@@ -3,6 +3,23 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "./BT18-045.js";
 
 describe("BT18-045 Pomumon", () => {
+  it("does not buff while unsuspended and excludes the opponent", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-045", as: "pomumon" },
+          { card: "BT1-030", as: "ally" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("pomumon").currentDP).toBe(2000);
+    expect(s.perm("ally").currentDP).toBe(3000);
+    expect(s.perm("opponent").currentDP).toBe(3000);
+    assertNoLoudGap(s);
+  });
+
   it("gives every other own Digimon exactly 1000 DP while it is suspended", async () => {
     const suspended = setupEngine({
       0: {

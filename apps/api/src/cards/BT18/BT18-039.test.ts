@@ -10,7 +10,7 @@ describe("BT18-039 Mistymon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT18-039", as: "mistymon" }], security: ["BT1-001"] },
+        0: { hand: [{ card: "BT18-039", as: "mistymon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-030", as: "target", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },

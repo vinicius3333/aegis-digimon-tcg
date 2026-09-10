@@ -68,10 +68,10 @@ describe("BT18-056 TigerVespamon", () => {
           battleArea: [{ card: "BT18-052", as: "base" }],
           hand: [{ card: "BT18-056", as: "tiger" }],
           security: [
-            { card: "BT1-001", faceUp: true },
-            { card: "BT1-002", faceUp: false },
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: false },
           ],
-          deck: ["BT1-003"],
+          deck: ["BT1-011"],
         },
         1: {
           battleArea: [

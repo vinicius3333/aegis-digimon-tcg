@@ -24,9 +24,9 @@ describe("BT18-037 Lobomon", () => {
         0: {
           battleArea: [{ card: "BT7-087", as: "koji" }],
           hand: [{ card: "BT18-037", as: "lobomon" }],
-          security: [{ card: "BT12-009", as: "hybrid", faceUp: true }, "BT1-001"],
+          security: [{ card: "BT12-009", as: "hybrid", faceUp: true }, "BT1-009"],
           // Digivolution draws the first card; Recovery should take the next.
-          deck: ["BT1-003", "BT1-002"],
+          deck: ["BT1-011", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -51,7 +51,7 @@ describe("BT18-037 Lobomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-010")).toBe(true);
     assertNoLoudGap(s);
   });
 

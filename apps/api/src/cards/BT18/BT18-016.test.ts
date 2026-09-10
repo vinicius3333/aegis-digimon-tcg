@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-016.js";
@@ -33,7 +34,7 @@ describe("BT18-016 Volcanomon", () => {
       0: {
         battleArea: [{ card: "BT18-014", as: "gigasmon" }],
         hand: [{ card: "BT18-016", as: "volcanomon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 5;
@@ -48,5 +49,25 @@ describe("BT18-016 Volcanomon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("gigasmon").stack.at(-1)?.cardId).toBe("BT18-014");
     expect(observe(s.engine).hasKeyword(s.perm("gigasmon"), "Blitz")).toBe(true);
+  });
+
+  it("expires the attack DP bonus after the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-016", as: "volcanomon" }] },
+      1: { security: ["BT1-009"], deck: ["BT1-009"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("volcanomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("volcanomon").currentDP === s.perm("volcanomon").baseDP + 2000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("volcanomon").currentDP).toBe(s.perm("volcanomon").baseDP);
   });
 });

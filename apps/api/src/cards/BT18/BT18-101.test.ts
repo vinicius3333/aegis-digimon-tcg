@@ -59,7 +59,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
           battleArea: [{ card: "BT18-082", as: "chaosMode" }],
           hand: [{ card: "BT18-101", as: "satanMode" }],
           trash: [{ card: "BT18-086", as: "larva" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -118,7 +118,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
       {
         0: {
           battleArea: [{ card: "BT18-082", as: "chaosMode" }],
-          breeding: { card: "BT1-001", as: "occupied" },
+          breeding: { card: "BT1-009", as: "occupied" },
           hand: [{ card: "BT18-101", as: "satanMode" }],
           trash: [{ card: "BT18-086", as: "larva" }],
         },
@@ -138,7 +138,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("chaosMode").topCard?.cardId === "BT18-101");
 
-    expect(s.perm("occupied").topCard?.cardId).toBe("BT1-001");
+    expect(s.perm("occupied").topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(targetId);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT18-086")).toBe(true);
   });
@@ -166,10 +166,10 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
   it("naturally trashes the opponent's top security at the end of the turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-101", as: "satanMode" }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT18-101", as: "satanMode" }], deck: ["BT1-010"] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target" }],
-          security: [{ card: "BT1-001", as: "opponentSecurity" }],
+          security: [{ card: "BT1-010", as: "opponentSecurity" }],
         },
       },
       { autoSelectCards: true },
@@ -189,7 +189,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
   it("naturally deletes one opposing Digimon and one Tamer when the opponent has no security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-101", as: "satanMode" }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT18-101", as: "satanMode" }], deck: ["BT1-010"] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "targetDigimon" },

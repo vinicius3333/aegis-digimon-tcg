@@ -17,9 +17,9 @@ describe("BT18-052 CannonBeemon", () => {
         0: {
           hand: [{ card: "BT18-052", as: "cannon" }],
           security: [
-            { card: "BT1-001", faceUp: true },
-            { card: "BT1-002", faceUp: true },
-            { card: "BT1-003", faceUp: false },
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: true },
+            { card: "BT1-011", faceUp: false },
           ],
         },
         1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030", "BT1-009", "BT1-010"] }] },
@@ -56,6 +56,20 @@ describe("BT18-052 CannonBeemon", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not de-digivolve when its controller has no face-up security cards", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT18-052", as: "cannon" }], security: [] },
+      1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030", "BT1-009", "BT1-010"] }] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-030", "BT1-009", "BT1-010"]);
+    assertNoLoudGap(s);
+  });
+
   it("digivolves from a level-4 Royal Base for 3 and scales only from face-up security", async () => {
     const s = setupEngine(
       {
@@ -63,10 +77,10 @@ describe("BT18-052 CannonBeemon", () => {
           battleArea: [{ card: "BT18-046", as: "base" }],
           hand: [{ card: "BT18-052", as: "cannon" }],
           security: [
-            { card: "BT1-001", faceUp: true },
-            { card: "BT1-002", faceUp: false },
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: false },
           ],
-          deck: ["BT1-003"],
+          deck: ["BT1-011"],
         },
         1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030", "BT1-009", "BT1-010"] }] },
       },
@@ -100,8 +114,8 @@ describe("BT18-052 CannonBeemon", () => {
             { card: "BT1-030", as: "second", suspended: true },
           ],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
       },

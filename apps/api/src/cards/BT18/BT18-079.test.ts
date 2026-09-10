@@ -145,7 +145,7 @@ describe("BT18-079 Velgrmon", () => {
           ],
         },
         1: {
-          security: ["BT1-001"],
+          security: ["BT1-010"],
           battleArea: [
             { card: "BT1-009", as: "lowOne" },
             { card: "BT1-010", as: "lowTwo" },
