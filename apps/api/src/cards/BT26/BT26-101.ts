@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const tsCard = {
+const ts: Filter = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const tsCard: Filter = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   playCostLte: 4,
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
 };
-const _tsDigimon = { ...ts, levelLte: 99 };
-const namedTamer = {
+const _tsDigimon: Filter = { ...ts, levelLte: 99 };
+const namedTamer: Filter = {
   controller: "mine",
   kind: ["Tamer"],
   nameOrTrait: [{ tokens: ["Dan Yuki", "Kanan Yuki"], match: "name" }],

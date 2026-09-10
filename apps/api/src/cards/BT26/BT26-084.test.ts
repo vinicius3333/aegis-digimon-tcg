@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-084.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -74,7 +74,7 @@ describe("BT26-084 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-007", as: "appmon" }],
         hand: [{ card: "BT26-084", as: "copipemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     await evolution.ready();
@@ -178,18 +178,38 @@ describe("BT26-084 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102" }] }],
+          battleArea: [{ card: "BT26-084", as: "copipemon" }],
+          hand: [{ card: "BT26-019", as: "linkCard" }],
           deck: ["BT26-010", "BT26-102", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: false },
     );
 
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("copipemon").permanentId });
+    s.state.memory = 6;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("copipemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-010"));
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-010")).toBe(true);
     expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT26-102")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
   });
 
   it("uses a revealed Seven Code Option instead of trying to play it as a permanent", async () => {
@@ -197,18 +217,37 @@ describe("BT26-084 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102" }] }],
+          hand: [{ card: "BT26-019", as: "linkCard" }],
           deck: ["BT26-102", "BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: false },
     );
-    s.state.memory = 4;
+    s.state.memory = 8;
 
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("copipemon").permanentId });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("copipemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102"));
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102")).toBe(true);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
   });
 
   it("reveals three linked-trigger cards and plays a revealed Seven Code Digimon for 3 less", async () => {
@@ -216,15 +255,23 @@ describe("BT26-084 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102", as: "pad" }] }],
+          hand: [{ card: "BT26-010", as: "linkCard" }],
           deck: ["BT26-010", "BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("copipemon").permanentId,
-    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("copipemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-010"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-010")).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
@@ -235,7 +282,7 @@ describe("BT26-084 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-084", as: "copipemon" }],
-          hand: [{ card: "BT26-010", as: "linkCard" }],
+          hand: [{ card: "BT26-019", as: "linkCard" }],
           deck: [{ card: "BT26-019", as: "revealed" }, "BT1-009", "BT1-010"],
         },
       },
@@ -267,19 +314,27 @@ describe("BT26-084 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    await yourTurn.ready();
-
-    await advance(yourTurn.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: yourTurn.perm("copipemon").permanentId,
-    });
-    await advance(yourTurn.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: yourTurn.perm("copipemon").permanentId,
-    });
+    yourTurn.state.memory = 6;
+    yourTurn.give(0, Zone.Hand, { card: "BT26-019", as: "firstLink" });
+    yourTurn.give(0, Zone.Hand, { card: "BT26-019", as: "secondLink" });
+    const yourTurnLoop = yourTurn.engine.startTurnLoop();
+    await advance(yourTurn.engine).waitForMainPhase(0);
+    for (const alias of ["firstLink", "secondLink"]) {
+      expect(
+        yourTurn.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: yourTurn.inst(alias).instanceId,
+          targetPermanentId: yourTurn.perm("copipemon").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+    }
 
     expect(yourTurn.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId !== "BT26-084")).toHaveLength(
       1,
     );
     expect(yourTurn.state.players[0]!.deck).toHaveLength(2);
+    advance(yourTurn.engine).endMainPhaseIfOpen(0);
 
     const opponentsTurn = setupEngine(
       {
@@ -287,18 +342,18 @@ describe("BT26-084 compiled behavior", () => {
           battleArea: [{ card: "BT26-084", as: "copipemon" }],
           deck: ["BT26-010", "BT26-019", "BT26-028"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    opponentsTurn.state.turnSeat = 1;
-    await opponentsTurn.ready();
-
-    await advance(opponentsTurn.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: opponentsTurn.perm("copipemon").permanentId,
-    });
+    const opponentsTurnLoop = opponentsTurn.engine.startTurnLoop();
+    await advance(opponentsTurn.engine).waitForMainPhase(0);
+    advance(opponentsTurn.engine).endMainPhaseIfOpen(0);
+    await advance(opponentsTurn.engine).waitForMainPhase(1);
 
     expect(opponentsTurn.state.players[0]!.battleArea).toHaveLength(1);
     expect(opponentsTurn.state.players[0]!.deck).toHaveLength(3);
+    advance(opponentsTurn.engine).endMainPhaseIfOpen(1);
   });
 
   it("uses Detach to trash a linked Seven Code card and survive equal-DP battle deletion", async () => {
@@ -351,14 +406,14 @@ describe("BT26-084 compiled behavior", () => {
             { card: "BT26-019", as: "material5" },
             { card: "BT26-084", as: "material6" },
           ],
-          deck: ["BT26-102", "BT1-001", "BT1-002", { card: "BT1-003", as: "drawn" }],
+          deck: ["BT26-102", "BT1-009", "BT1-010", { card: "BT1-011", as: "drawn" }],
         },
         1: {
           battleArea: [
             { card: "BT1-010", as: "deleteTarget" },
             { card: "BT1-089", as: "restrictionTarget" },
           ],
-          security: ["BT1-004"],
+          security: ["BT1-012"],
         },
       },
       {
@@ -391,14 +446,14 @@ describe("BT26-084 compiled behavior", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT26-086", 2000);
     await settle(
       () =>
-        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-003") &&
+        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-011") &&
         s.state.players[1]!.security.length === 0,
       2000,
     );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("host").linked).toHaveLength(7);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-003");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-011");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-102");
   });
 
@@ -419,7 +474,7 @@ describe("BT26-084 compiled behavior", () => {
             { card: "BT26-063", as: "material4" },
             { card: "BT26-028", as: "material5" },
           ],
-          deck: ["BT26-102", "BT1-001", "BT1-002"],
+          deck: ["BT26-102", "BT1-009", "BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-089", as: "restrictionTarget" }] },
       },

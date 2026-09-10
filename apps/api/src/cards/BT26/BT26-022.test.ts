@@ -1,10 +1,18 @@
 import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-022.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 const CARD_ID = "BT26-022";
 
@@ -297,18 +305,32 @@ describe("BT26-022 Sorcermon", () => {
   });
 
   it("uses inherited Barrier to spend top security and prevent battle deletion", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-029", as: "host", suspended: true, under: [{ card: CARD_ID }] }],
-        security: [
-          { card: "BT1-009", as: "barrierCost" },
-          { card: "BT1-010", as: "remaining" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-029", as: "host", suspended: true, under: [{ card: CARD_ID }] }],
+          hand: [{ card: "BT26-035", as: "suspender" }],
+          security: [
+            { card: "BT1-009", as: "barrierCost" },
+            { card: "BT1-010", as: "remaining" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
       },
-      1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.state.memory = 10;
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
     const hostId = s.perm("host").permanentId;
     expect(
       s.engine.applyIntent(1, {
@@ -323,7 +345,7 @@ describe("BT26-022 Sorcermon", () => {
     });
     await settle(() => s.state.players[0]!.security.length === 1);
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
   });

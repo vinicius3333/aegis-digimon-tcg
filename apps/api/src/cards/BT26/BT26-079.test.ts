@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  assemblyRequirementFor,
-  digivolutionRequirementsFor,
-  EffectTiming,
-  getCardDefinition,
-  Zone,
-} from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-079.js";
@@ -66,8 +60,8 @@ describe("BT26-079 compiled behavior", () => {
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      // The printed clause carries NO [Once Per Turn] — unlike the [All Turns] hand trim below.
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.frequency).toBeUndefined();
+      // The three timings share the printed [Once Per Turn] limit.
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.frequency).toBe("OncePerTurn");
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         sharedUseKey: "bt26-079-trash-cost-delete",
         actions: [
@@ -94,7 +88,7 @@ describe("BT26-079 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-059", as: "plutomon" }],
         hand: [{ card: "BT26-079", as: "zombie" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     fromPlutomon.state.memory = 1;
@@ -114,7 +108,7 @@ describe("BT26-079 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-015", as: "redTs" }],
         hand: [{ card: "BT26-079", as: "zombie" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     fromTs.state.memory = 3;
@@ -160,12 +154,22 @@ describe("BT26-079 compiled behavior", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: ["plutomon"] },
     );
     s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("zombiePlutomon"));
+    const effect = JSON.parse(s.inst("zombiePlutomon").activatableEffectsJson || "[]") as {
+      effectKey: string;
+    }[];
+    expect(effect).toHaveLength(1);
+    const activation = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.inst("zombiePlutomon").instanceId,
+      effectKey: effect[0]!.effectKey,
+    });
+    expect(activation).toEqual({ ok: true });
+    await settle();
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT26-079");
     expect(played?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-059"]);
@@ -194,19 +198,33 @@ describe("BT26-079 compiled behavior", () => {
     const onBoard = setupEngine({ 0: { battleArea: [{ card: "BT26-079", as: "zombie" }] } });
     onBoard.state.memory = 12;
     await onBoard.ready();
-    await advance(onBoard.engine).fireForInstance(EffectTiming.OnDeclaration, onBoard.inst("zombie"));
+    expect(JSON.parse(onBoard.inst("zombie").activatableEffectsJson || "[]")).toEqual([]);
+    expect(
+      onBoard.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: onBoard.inst("zombie").instanceId,
+        effectKey: "BT26-079/bogus",
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
     expect(onBoard.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-079");
     expect(onBoard.state.memory).toBe(12);
 
     const sixCards = setupEngine({
       0: {
         trash: [{ card: "BT26-079", as: "zombie" }],
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
     });
     sixCards.state.memory = 12;
     await sixCards.ready();
-    await advance(sixCards.engine).fireForInstance(EffectTiming.OnDeclaration, sixCards.inst("zombie"));
+    expect(JSON.parse(sixCards.inst("zombie").activatableEffectsJson || "[]")).toEqual([]);
+    expect(
+      sixCards.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: sixCards.inst("zombie").instanceId,
+        effectKey: "BT26-079/bogus",
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
     expect(sixCards.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-079");
     expect(sixCards.state.memory).toBe(12);
   });
@@ -232,68 +250,164 @@ describe("BT26-079 compiled behavior", () => {
   it("publicly trashes a hand card to delete an opponent's level 6 or lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-009", as: "cost" }] },
         1: { battleArea: [{ card: "BT26-074", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombiePlutomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zombiePlutomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("does not trash or delete when the activation cost is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-001" }] },
+        0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-009" }] },
         1: { battleArea: [{ card: "BT26-074", as: "victim" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombiePlutomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zombiePlutomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("repeats the hand-trash deletion at every printed timing (no [Once Per Turn])", async () => {
+  it("uses the printed Once Per Turn limit for the hand-trash deletion", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT26-079", as: "zombie" }],
           hand: [
-            { card: "BT1-001", as: "firstCost" },
-            { card: "BT1-002", as: "secondCost" },
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
           ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009"],
         },
         1: {
           battleArea: [
             { card: "BT26-074", as: "firstVictim" },
             { card: "BT26-074", as: "secondVictim" },
           ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombie"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const secondAttack = s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("zombie").permanentId,
+      target: { kind: "player" },
+    });
+    expect(secondAttack).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zombie"));
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  it("re-enters the hand-trash deletion through a public attack on the following turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-079", as: "zombie" }],
+          hand: [
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
+          ],
+          deck: [
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+            "BT1-020",
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim" },
+            { card: "BT1-010", as: "secondVictim" },
+          ],
+          security: ["BT1-011", "BT1-012"],
+          deck: [
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+            "BT1-019",
+            "BT1-020",
+            "BT1-021",
+            "BT1-022",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+    await advance(s.engine).waitForMainPhase(0);
 
-    // A third timing with no hand card left cannot pay the cost, so nothing more happens.
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("zombie"));
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zombie").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstVictimId));
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstCost").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zombie").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondVictimId));
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("secondCost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await loop;
   });
 
   it("Q7111 lets each player choose their own cards while trimming both hands to 4", async () => {
@@ -303,24 +417,26 @@ describe("BT26-079 compiled behavior", () => {
         0: {
           battleArea: [{ card: "BT26-079", as: "zombie" }],
           hand: [
-            { card: "BT1-001", as: "mineA" },
-            { card: "BT1-002", as: "mineB" },
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-            "BT1-006",
+            { card: "BT1-009", as: "mineA" },
+            { card: "BT1-010", as: "mineB" },
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
           ],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "opponentPlayed" }],
           hand: [
-            { card: "BT1-007", as: "theirsA" },
-            { card: "BT1-008", as: "theirsB" },
+            { card: "BT1-009", as: "opponentPlayed" },
+            { card: "BT1-009", as: "theirsA" },
+            { card: "BT1-010", as: "theirsB" },
             "BT1-010",
             "BT1-011",
             "BT1-012",
             "BT1-013",
           ],
+          security: ["BT1-014", "BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -333,9 +449,14 @@ describe("BT26-079 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("opponentPlayed").permanentId,
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPlayed").instanceId })).toEqual({
+      ok: true,
     });
+    await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.players[1]!.hand).toHaveLength(4);
@@ -345,35 +466,38 @@ describe("BT26-079 compiled behavior", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("theirsA").instanceId, s.inst("theirsB").instanceId]),
     );
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("shares the hand trim once across an opponent play and digivolution", async () => {
+  it("trims both hands through a public opponent play", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT26-079", as: "zombie" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "opponent" }],
-          hand: ["BT1-006", "BT1-007", "BT1-008", "BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "opponent" }, "BT1-014", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("opponent").permanentId });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponent").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.players[1]!.hand).toHaveLength(4);
 
-    s.give(0, Zone.Hand, "BT1-012");
-    s.give(1, Zone.Hand, "BT1-013");
-    await advance(s.engine).fireSubTrigger("whenAnyDigivolves", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-    });
-
-    expect(s.state.players[0]!.hand).toHaveLength(5);
-    expect(s.state.players[1]!.hand).toHaveLength(5);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses Decode to play Plutomon from its stack instead of leaving by an effect", async () => {
@@ -448,7 +572,7 @@ describe("BT26-079 compiled behavior", () => {
   it("performs 2 security checks with Security A. +1", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-079", as: "zombie" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
 

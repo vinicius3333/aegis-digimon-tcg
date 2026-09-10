@@ -1,15 +1,14 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const ver4 = {
+const ver4: Filter = {
   controller: "mine",
   zone: "hand",
   kind: ["Digimon"],
   dp: { op: "lte", value: 6000 },
   nameOrTrait: [{ tokens: ["Ver.4"], match: "trait" }],
 };
-const trashAndPlay = {
+const trashAndPlay: Action = {
   kind: "CostGatedBlock",
   cost: { kind: "trashBottomFaceDownUnderDigimon", controller: "mine" },
   optional: true,
@@ -50,7 +49,7 @@ export const compiled: CompiledCard = {
               kind: "ModifyDP",
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               amount: -6000,
-              duration: "untilEachTurnEnd",
+              duration: "forTheTurn",
             },
           ],
         },

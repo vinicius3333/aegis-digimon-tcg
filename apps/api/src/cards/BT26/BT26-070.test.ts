@@ -89,8 +89,8 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "nightchiropmon" },
-            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", as: "a", faceUp: false }] },
-            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", as: "b", faceUp: false }] },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-009", as: "a", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-010", as: "b", faceUp: false }] },
           ],
           trash: [
             { card: "P-236", as: "glowingDawn" },
@@ -132,8 +132,8 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
         0: {
           battleArea: [
             { card: CARD_ID, as: "nightchiropmon" },
-            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", as: "a", faceUp: false }] },
-            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", as: "b", faceUp: false }] },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-009", as: "a", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-010", as: "b", faceUp: false }] },
           ],
           trash: [{ card: "P-236", as: "glowingDawn" }],
         },
@@ -201,9 +201,9 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
         0: {
           hand: [
             { card: CARD_ID, as: "nightchiropmon" },
-            { card: "BT1-002", as: "discarded" },
+            { card: "BT1-010", as: "discarded" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -216,8 +216,8 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 
   it("executes inherited Retaliation after losing a battle", async () => {
@@ -478,10 +478,10 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
           battleArea: [
             { card: CARD_ID, as: "first" },
             { card: CARD_ID, as: "second" },
-            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", faceUp: false }] },
-            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", faceUp: false }] },
-            { card: "BT25-088", as: "tamerC", under: [{ card: "BT1-003", faceUp: false }] },
-            { card: "BT25-088", as: "tamerD", under: [{ card: "BT1-004", faceUp: false }] },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-010", faceUp: false }] },
+            { card: "BT25-088", as: "tamerC", under: [{ card: "BT1-011", faceUp: false }] },
+            { card: "BT25-088", as: "tamerD", under: [{ card: "BT1-012", faceUp: false }] },
           ],
           trash: [{ card: "P-236", as: "glowingDawn" }],
           deck: ["BT25-032", "BT25-033", "BT25-034"],

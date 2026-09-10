@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
+const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 } satisfies Target;
 const altDigivolve = {
   kind: "Digivolve",
   from: ["hand"],
@@ -20,19 +19,19 @@ const altDigivolve = {
       { tokens: ["DATA SQUAD"], match: "trait" },
     ],
   },
-};
+} satisfies Action;
 const reactive = {
   kind: "SubTrigger",
   event: "whenSuspended",
   sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
   actions: [altDigivolve],
-};
+} satisfies Action;
 const tamerTrashReactive = {
   kind: "SubTrigger",
   event: "whenDigivolutionTrashed",
   sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
   actions: [altDigivolve],
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     {

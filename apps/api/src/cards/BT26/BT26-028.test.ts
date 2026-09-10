@@ -66,13 +66,13 @@ describe("BT26-028 Medicmon", () => {
                 }),
                 expect.objectContaining({
                   kind: "Restrict",
-                  target: { fromSelectionRef: "medicmonLinkedTarget" },
+                  target: { filter: {}, count: 1, fromSelectionRef: "medicmonLinkedTarget" },
                   restriction: "cannotActivateWhenDigivolving",
                   duration: "untilOpponentTurnEnd",
                 }),
                 expect.objectContaining({
                   kind: "ModifyDP",
-                  target: { fromSelectionRef: "medicmonLinkedTarget" },
+                  target: { filter: {}, count: 1, fromSelectionRef: "medicmonLinkedTarget" },
                   amount: -3000,
                   duration: "untilOpponentTurnEnd",
                 }),
@@ -271,12 +271,16 @@ describe("BT26-028 Medicmon", () => {
           hand: [{ card: "BT26-028", as: "medicmon" }],
         },
         1: {
-          battleArea: [{ card: "BT24-061", as: "tsBase" }],
           hand: [{ card: "BT26-016", as: "holy" }],
-          deck: [
-            { card: "BT1-010", as: "evolutionDraw" },
-            { card: "BT1-011", as: "recovery" },
+          battleArea: [
+            { card: "BT24-061", as: "tsBase" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-012", faceUp: false }] },
           ],
+          deck: [
+            { card: "BT1-013", as: "evolutionDraw" },
+            { card: "BT1-014", as: "recovery" },
+          ],
+          security: ["BT1-013"],
           trash: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
@@ -294,7 +298,10 @@ describe("BT26-028 Medicmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("tsBase"), "cannotActivateWhenDigivolving"));
 
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = -3;
     expect(
       s.engine.applyIntent(1, {
@@ -310,7 +317,7 @@ describe("BT26-028 Medicmon", () => {
       s.perm("victim").permanentId,
     );
     expect(s.state.players[1]!.trash).toHaveLength(3);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("tsBase"));
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
@@ -321,9 +328,9 @@ describe("BT26-028 Medicmon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("tsBase"));
     await settle(() => s.state.players[1]!.security.length === 1);
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT21-009");
-    expect(s.state.players[1]!.trash).toHaveLength(0);
-    expect(s.state.players[1]!.security[0]).toMatchObject({ cardId: "BT1-011", faceUp: false });
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT21-009");
+    expect(s.state.players[1]!.trash).toHaveLength(3);
+    expect(s.state.players[1]!.security[0]).toMatchObject({ cardId: "BT1-013", faceUp: false });
   });
 
   it("publishes Barrier and Detach while Medicmon is the top card", async () => {

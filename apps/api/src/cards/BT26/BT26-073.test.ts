@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -72,7 +72,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
       0: {
         battleArea: [{ card: "BT25-033", as: "aegiomon" }],
         hand: [{ card: "BT26-073", as: "dark" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -158,13 +158,14 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
   it("may return an exact Shaman or TS card from trash instead of deleting itself", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] },
+        0: { hand: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] },
         1: { battleArea: [{ card: "BT26-074", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -173,14 +174,15 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
   it("may decline without paying either cost or deleting the opponent's Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] },
+        0: { hand: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] },
         1: { battleArea: [{ card: "BT26-074", as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-073");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-074");
@@ -218,8 +220,10 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-073", as: "dark" }],
-          hand: [{ card: "BT26-069", as: "candidate" }],
+          hand: [
+            { card: "BT26-073", as: "dark" },
+            { card: "BT26-069", as: "candidate" },
+          ],
         },
         1: { battleArea: [{ card: "BT26-074", as: "target" }] },
       },
@@ -227,7 +231,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-069"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-069"]);
@@ -267,7 +271,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-059", as: "host", under: ["BT26-073"] }] },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -65,16 +65,16 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           hand: [{ card: "BT26-031", as: "murasamemon" }],
           security: [
-            { card: "BT1-001", as: "oldest" },
-            { card: "BT1-002", as: "remaining" },
+            { card: "BT1-009", as: "oldest" },
+            { card: "BT1-010", as: "remaining" },
           ],
-          deck: ["BT1-005", { card: "BT1-003", as: "recovery" }],
+          deck: ["BT1-013", { card: "BT1-011", as: "recovery" }],
           battleArea: [
             { card: "BT26-026", as: "base" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-004", faceUp: false }] },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-012", faceUp: false }] },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: [{ card: "BT1-010" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: [{ card: "BT1-010" }], deck: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -93,7 +93,7 @@ describe("BT26-031 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-004"]),
+      expect.arrayContaining(["BT1-009", "BT1-012"]),
     );
     expect(
       (
@@ -105,7 +105,10 @@ describe("BT26-031 compiled fidelity", () => {
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
       ).continuous.hasRestriction(s.perm("target").permanentId, "suspend"),
     ).toBe(true);
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -121,7 +124,7 @@ describe("BT26-031 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-031", as: "murasamemon" }],
-          security: [{ card: "BT1-001", as: "mine" }],
+          security: [{ card: "BT1-009", as: "mine" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "target" }],
@@ -148,12 +151,12 @@ describe("BT26-031 compiled fidelity", () => {
               card: "BT1-089",
               as: "tamer",
               under: [
-                { card: "BT1-001", as: "faceUpBottom", faceUp: true },
-                { card: "BT1-002", as: "faceDownUpper", faceUp: false },
+                { card: "BT1-009", as: "faceUpBottom", faceUp: true },
+                { card: "BT1-010", as: "faceDownUpper", faceUp: false },
               ],
             },
           ],
-          deck: [{ card: "BT1-003", as: "recovery" }],
+          deck: [{ card: "BT1-011", as: "recovery" }],
         },
         1: { security: ["BT1-009"] },
       },
@@ -186,15 +189,15 @@ describe("BT26-031 compiled fidelity", () => {
             {
               card: "BT1-089",
               as: "firstTamer",
-              under: [{ card: "BT1-001", as: "firstCost", faceUp: false }],
+              under: [{ card: "BT1-009", as: "firstCost", faceUp: false }],
             },
             {
               card: "BT1-088",
               as: "secondTamer",
-              under: [{ card: "BT1-002", as: "secondCost", faceUp: false }],
+              under: [{ card: "BT1-010", as: "secondCost", faceUp: false }],
             },
           ],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -231,7 +234,7 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-026", as: "base" }],
           hand: [{ card: "BT26-031", as: "murasamemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -258,10 +261,10 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           battleArea: [
             { card: "BT26-031", as: "murasamemon" },
-            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
           ],
-          security: ["BT1-002"],
-          deck: ["BT1-003"],
+          security: ["BT1-010"],
+          deck: ["BT1-011"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -292,7 +295,7 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-052", as: "glowingDawn" }],
           hand: [{ card: "BT26-031", as: "murasamemon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
         },
         1: {
           battleArea: [
@@ -338,7 +341,7 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-052", as: "glowingDawn" }],
           hand: [{ card: "BT26-031", as: "murasamemon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -367,7 +370,7 @@ describe("BT26-031 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-026", as: "base" }],
           hand: [{ card: "BT26-031", as: "murasamemon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },

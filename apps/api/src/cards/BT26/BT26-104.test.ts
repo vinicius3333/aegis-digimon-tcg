@@ -61,7 +61,7 @@ describe("BT26-104 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-104", as: "kunlun" }],
           hand: [{ card: "BT26-013", as: "shambalaCost" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -79,7 +79,7 @@ describe("BT26-104 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-104", as: "kunlun" }],
           hand: [{ card: "BT1-009", as: "unrelated" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -111,7 +111,7 @@ describe("BT26-104 compiled fidelity", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("kunlun"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
     expect(s.perm("kunlun").isSuspended).toBe(true);
@@ -131,7 +131,7 @@ describe("BT26-104 compiled fidelity", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("kunlun"));
 
     expect(s.perm("kunlun").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-070")).toBe(true);
@@ -152,7 +152,7 @@ describe("BT26-104 compiled fidelity", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("kunlun"));
 
     expect(s.perm("kunlun").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-070")).toBe(true);
@@ -173,7 +173,7 @@ describe("BT26-104 compiled fidelity", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("kunlun"));
 
     expect(s.perm("kunlun").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
@@ -194,7 +194,7 @@ describe("BT26-104 compiled fidelity", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("kunlun"));
 
     expect(s.perm("kunlun").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);

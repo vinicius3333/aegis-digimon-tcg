@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-081.js";
-import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -58,7 +58,7 @@ describe("BT26-081 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT24-041", as: "minervamon" }],
         hand: [{ card: "BT26-081", as: "mervamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     fromMinervamon.state.memory = 2;
@@ -78,7 +78,7 @@ describe("BT26-081 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-015", as: "redTs" }],
         hand: [{ card: "BT26-081", as: "mervamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     fromTs.state.memory = 4;
@@ -135,8 +135,8 @@ describe("BT26-081 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-081", as: "mervamon" }],
           hand: [
+            { card: "BT26-081", as: "mervamon" },
             { card: "BT24-019", as: "handKamemon" },
             { card: "BT24-020", as: "handGomamon" },
             { card: "BT1-009", as: "wrongTrait" },
@@ -149,7 +149,11 @@ describe("BT26-081 compiled behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mervamon"));
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(
       expect.arrayContaining(["BT24-019", "BT24-020"]),
@@ -164,7 +168,7 @@ describe("BT26-081 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          hand: [{ card: "BT26-081", as: "mervamon" }],
           trash: [{ card: "BT26-029", as: "trashIliad" }],
         },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
@@ -173,7 +177,11 @@ describe("BT26-081 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-029");
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(2000);
@@ -182,14 +190,18 @@ describe("BT26-081 compiled behavior", () => {
   it("Q7115 still reduces DP when no card is played", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-081", as: "mervamon" }] },
+        0: { hand: [{ card: "BT26-081", as: "mervamon" }] },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.perm("target").currentDP).toBe(6000);
   });
@@ -198,8 +210,10 @@ describe("BT26-081 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-081", as: "mervamon" }],
-          hand: [{ card: "BT24-019", as: "eligible" }],
+          hand: [
+            { card: "BT26-081", as: "mervamon" },
+            { card: "BT24-019", as: "eligible" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
       },
@@ -207,7 +221,11 @@ describe("BT26-081 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT24-019");
     expect(s.perm("target").currentDP).toBe(6000);
@@ -217,7 +235,7 @@ describe("BT26-081 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          hand: [{ card: "BT26-081", as: "mervamon" }],
           breeding: { card: "BT24-002", as: "breedingIliad" },
         },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
@@ -226,7 +244,11 @@ describe("BT26-081 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.perm("target").currentDP).toBe(6000);
   });

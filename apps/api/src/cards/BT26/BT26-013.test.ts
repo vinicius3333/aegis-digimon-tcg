@@ -1,10 +1,18 @@
-import { digivolutionRequirementsFor, EffectTiming, Phase } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-013.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-013 Musyamon", () => {
   it("compiles Blocker, both trash-to-delete triggers, and inherited DP", () => {
@@ -145,43 +153,63 @@ describe("BT26-013 Musyamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "self" }],
+          battleArea: [{ card: "BT26-013", as: "self", suspended: true }],
           hand: [{ card: "BT1-009", as: "cost" }],
         },
         1: {
-          battleArea: [
-            { card: "BT26-012", as: "target", dp: 6000 },
-            { card: "BT26-014", as: "safe", dp: 7000 },
-          ],
+          battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const selfId = s.perm("self").topCard.instanceId;
-    const safeId = s.perm("safe").topCard.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("self").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("self").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("self").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === selfId));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([selfId, s.inst("cost").instanceId]),
     );
-    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(safeId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("may pay the trash cost even when no opponent Digimon is within 6000 DP", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "self" }],
-          hand: [{ card: "BT1-009", as: "cost" }],
+          hand: [
+            { card: "BT26-013", as: "self" },
+            { card: "BT1-009", as: "cost" },
+          ],
         },
         1: { battleArea: [{ card: "BT26-014", as: "safe", dp: 7000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("cost").instanceId));
 
     // CR §15-7-5 allows an optional processing condition to be paid even when the
     // processing after it cannot do anything.
@@ -200,15 +228,19 @@ describe("BT26-013 Musyamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "self" }],
-          hand: [{ card: "BT1-009", as: "cost" }],
+          hand: [
+            { card: "BT26-013", as: "self" },
+            { card: "BT1-009", as: "cost" },
+          ],
         },
         1: { battleArea: [{ card: "BT26-012", as: "target", dp: 6000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -221,15 +253,17 @@ describe("BT26-013 Musyamon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-013", as: "source" }] }] },
     });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    await s.ready();
     expect(s.perm("host").currentDP).toBe(9000);
 
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-013" }] }] },
     });
-    opponentTurn.state.turnSeat = 1;
+    seedTurnLoop(opponentTurn);
+    opponentTurn.engine.startTurnLoop();
+    await advance(opponentTurn.engine).waitForMainPhase(0);
+    advance(opponentTurn.engine).endMainPhaseIfOpen(0);
+    await advance(opponentTurn.engine).waitForMainPhase(1);
     await opponentTurn.ready();
     expect(opponentTurn.perm("host").currentDP).toBe(7000);
   });

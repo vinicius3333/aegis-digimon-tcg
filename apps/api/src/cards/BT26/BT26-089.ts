@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const beatbreak = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const beatbreak: Pick<Filter, "nameOrTrait"> = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
 const placeHandCost = {
   kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...beatbreak }, count: 1 },
@@ -12,21 +11,21 @@ const placeHandCost = {
   destination: "digivolutionStack",
   position: "bottom",
   faceDown: true,
-};
-const placeDeckTop = {
+} satisfies Action["cost"];
+const placeDeckTop: Action = {
   kind: "PlaceUnder",
   fromDeckTop: true,
   target: { filter: {}, count: 1 },
   position: "bottom",
   faceDown: true,
 };
-const removalGate = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
-const nonEffectRemovalGate = {
+const removalGate: Condition = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
+const nonEffectRemovalGate: Condition = {
   kind: "allOf",
   conditions: [removalGate, { kind: "not", condition: { kind: "triggerSecurityRemovedByEffect" } }],
 };
-const suspendCost = { kind: "suspend", target: self };
-const gatedRemovalBody = (actions) => ({
+const suspendCost = { kind: "suspend", target: self } satisfies Action["cost"];
+const gatedRemovalBody = (actions: Action[]): Action => ({
   kind: "CostGatedBlock",
   cost: suspendCost,
   optional: true,

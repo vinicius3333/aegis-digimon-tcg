@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import type { Primitives as EnginePrimitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-002.js";
 import "../index.js";
 
 function primitives(s: ReturnType<typeof setupEngine>): EnginePrimitives {
   return (s.engine as unknown as { primitives: EnginePrimitives }).primitives;
+}
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
 }
 
 describe("BT26-002 Budmon", () => {
@@ -81,6 +90,7 @@ describe("BT26-002 Budmon", () => {
   it("reaches Budmon through its legal green level-2-to-level-3 evolution stack", async () => {
     const s = setupEngine({
       0: {
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         breeding: { card: "BT26-002", as: "budmon" },
         hand: [{ card: "BT26-034", as: "palmon" }],
       },
@@ -101,9 +111,51 @@ describe("BT26-002 Budmon", () => {
     expect(s.perm("budmon").stack.map(({ cardId }) => cardId)).toEqual(["BT26-002"]);
   });
 
+  it("draws from a public attack-target change that trashes a face-down card under a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-034", as: "budmonHost", under: [{ card: "BT26-002", as: "budmon" }] },
+            { card: "BT26-053", as: "wolvermon" },
+            { card: "BT26-011", as: "attacker" },
+            {
+              card: "BT26-090",
+              as: "tamer",
+              under: [
+                { card: "BT1-010", as: "bottom", faceUp: false },
+                { card: "BT1-011", as: "upper", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-075", as: "option" }],
+          deck: [{ card: "BT1-012", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT26-014", as: "opponentTarget", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId));
+
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("upper").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("does not draw when the Tamer-stack trash has no effect provenance", async () => {
     const s = setupEngine({
       0: {
+        security: ["BT1-012"],
         battleArea: [
           { card: "BT26-034", as: "host", under: [{ card: "BT26-002", as: "budmon" }] },
           { card: "BT26-090", as: "tamer", under: [{ card: "BT1-010", as: "under" }] },
@@ -130,8 +182,11 @@ describe("BT26-002 Budmon", () => {
           },
         ],
         deck: ["BT1-012"],
+        security: 5,
       },
       1: {
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+        security: 5,
         battleArea: [
           { card: "BT26-090", as: "opponentTamer", under: [{ card: "BT1-010", as: "oppUnder" }] },
           { card: "BT26-090", as: "borrowedTamer", under: [{ card: "BT1-011", as: "turnUnder" }] },
@@ -149,12 +204,18 @@ describe("BT26-002 Budmon", () => {
     });
     expect(s.state.players[0]!.hand).toHaveLength(0);
 
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.perm("borrowedTamer").controllerSeat = 0;
     await primitives(s).trashDigivolutionCards(s.perm("borrowedTamer").permanentId, [s.inst("turnUnder").instanceId], {
       byEffectSeat: 1,
     });
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("gives separate Budmon copies independent once-per-turn draws", async () => {

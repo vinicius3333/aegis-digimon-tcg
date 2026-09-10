@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trashChronomonOrShaman = {
@@ -15,7 +14,7 @@ const trashChronomonOrShaman = {
     },
     count: 1,
   },
-};
+} satisfies Cost;
 
 const drawTwoWithCost = {
   kind: "Draw",
@@ -24,7 +23,7 @@ const drawTwoWithCost = {
   cost: trashChronomonOrShaman,
   optional: true,
   abortOnDecline: true,
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

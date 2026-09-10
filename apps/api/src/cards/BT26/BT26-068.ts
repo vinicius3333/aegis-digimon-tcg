@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const handSmall = { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 };
-const ownHand = { controllerDefault: "mine", zone: "hand" };
-const opponentHand = { controllerDefault: "opponent", zone: "hand" };
+const handSmall = { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 } satisfies Condition;
+const ownHand = { controllerDefault: "mine", zone: "hand" } satisfies Filter;
+const opponentHand = { controllerDefault: "opponent", zone: "hand" } satisfies Filter;
 
 const drawTwoEach = {
   kind: "ConditionalBranch",
@@ -13,7 +12,7 @@ const drawTwoEach = {
     { kind: "Draw", controller: "mine", amount: 2 },
     { kind: "Draw", controller: "opponent", amount: 2 },
   ],
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

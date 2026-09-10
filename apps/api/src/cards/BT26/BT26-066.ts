@@ -1,14 +1,17 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const titan = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
+const titan = {
+  controllerDefault: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+} satisfies Filter;
 const trashTitan = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
-};
+} satisfies Filter;
 const startDigivolve = {
   kind: "Digivolve",
   target: { filter: titan, count: 1 },
@@ -19,7 +22,7 @@ const startDigivolve = {
   costDelta: -2,
   optional: true,
   condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 },
-};
+} satisfies Action;
 const inheritedDigivolve = {
   kind: "Digivolve",
   target: {
@@ -41,7 +44,7 @@ const inheritedDigivolve = {
   useAlternateCost: true,
   costDelta: -1,
   optional: true,
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

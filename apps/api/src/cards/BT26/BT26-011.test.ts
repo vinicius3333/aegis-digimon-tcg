@@ -297,7 +297,7 @@ describe("BT26-011 Buraimon", () => {
             { card: "BT1-009", as: "low", dp: 3000 },
             { card: "BT1-010", as: "high", dp: 7000 },
           ],
-          security: 1,
+          security: ["BT1-011"],
         },
       },
       { autoSelectCards: true },

@@ -1,10 +1,18 @@
 import { assemblyRequirementFor, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-017.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-017 Zanbamon", () => {
   it("compiles Blocker/Retaliation and both trigger paths", () => {
@@ -183,12 +191,16 @@ describe("BT26-017 Zanbamon", () => {
   it("uses Blocker to protect security and Retaliation to delete a battle winner", async () => {
     const blocking = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-017", as: "blocker" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT26-017", as: "blocker" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    blocking.state.turnSeat = 1;
+    seedTurnLoop(blocking);
+    blocking.engine.startTurnLoop();
+    await advance(blocking.engine).waitForMainPhase(0);
+    advance(blocking.engine).endMainPhaseIfOpen(0);
+    await advance(blocking.engine).waitForMainPhase(1);
     const attackerId = blocking.perm("attacker").permanentId;
     expect(
       blocking.engine.applyIntent(1, {

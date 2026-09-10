@@ -155,6 +155,33 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     expect(s.state.players[1]!.deck).toHaveLength(8);
   });
 
+  it("publicly plays and resolves the On Play deck return and deletion watcher", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "destroyMode" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "first", under: [{ card: "BT1-009", as: "firstSource" }] },
+            { card: "BT1-016", as: "second", under: [{ card: "BT1-010", as: "secondSource" }] },
+            { card: "BT1-017", as: "third", under: [{ card: "BT1-011", as: "thirdSource" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 16;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("destroyMode").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.deck).toHaveLength(3);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
   it("Q7080 lets the activating player order every returned card on the deck", async () => {
     const s = setupEngine(
       {

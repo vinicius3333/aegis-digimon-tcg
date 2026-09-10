@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { CardKind, EffectTiming, digivolutionRequirementsFor, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -9,6 +10,13 @@ import type { EffectContext, SubTriggerInstall } from "../../engine/effects/Effe
 import "./BT26-021.js";
 import "../index.js";
 import { compiled } from "./BT26-021.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 const CARD_ID = "BT26-021";
 const MAIN_KEY = "main-play-ts-tamer-from-trash";
@@ -119,7 +127,7 @@ describe("BT26-021 public engine behavior", () => {
             { card: "BT25-008", as: "opponentTs" },
             { card: "BT26-017", as: "blocker" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -291,7 +299,7 @@ describe("BT26-021 public engine behavior", () => {
             { card: "BT1-010", as: "firstCost" },
             { card: "BT1-011", as: "secondCost" },
           ],
-          security: ["BT1-015", "BT1-016"],
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -313,7 +321,11 @@ describe("BT26-021 public engine behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const bonusActions = [
+const bonusActions: Action[] = [
   {
     kind: "SelectBind",
     target: {
@@ -21,10 +20,15 @@ const bonusActions = [
   {
     kind: "GainKeyword",
     keyword: { keyword: "Piercing" },
-    target: { fromSelectionRef: "kotemonBonusTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "kotemonBonusTarget" },
     duration: "forTheTurn",
   },
-  { kind: "ModifyDP", amount: 3000, duration: "forTheTurn", target: { fromSelectionRef: "kotemonBonusTarget" } },
+  {
+    kind: "ModifyDP",
+    amount: 3000,
+    duration: "forTheTurn",
+    target: { filter: {}, count: 1, fromSelectionRef: "kotemonBonusTarget" },
+  },
 ];
 
 export const compiled: CompiledCard = {
@@ -34,7 +38,9 @@ export const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{ kind: "ModifyDP", amount: 2000, duration: "forTheTurn", target: { isSelf: true } }],
+      actions: [
+        { kind: "ModifyDP", amount: 2000, duration: "forTheTurn", target: { filter: {}, count: 1, isSelf: true } },
+      ],
     },
   ],
   coverage: "full",

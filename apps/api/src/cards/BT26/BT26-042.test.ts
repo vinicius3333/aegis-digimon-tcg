@@ -1,6 +1,5 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-042.js";
@@ -37,7 +36,7 @@ describe("BT26-042 Okuwamon", () => {
 
     const illegal = setupEngine({
       0: {
-        battleArea: [{ card: "AD1-001", as: "nonTsLv4" }],
+        battleArea: [{ card: "BT1-051", as: "nonTsLv4" }],
         hand: [{ card: CARD_ID, as: "okuwamon" }],
       },
     });
@@ -106,15 +105,18 @@ describe("BT26-042 Okuwamon", () => {
   it("offers the controller both simultaneous On Play triggers for ordering (Q7033)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "okuwamon" }] },
+        0: { hand: [{ card: CARD_ID, as: "okuwamon" }] },
         1: { battleArea: [{ card: "BT1-085", as: "target" }] },
       },
       { autoSelectCards: true, autoOrderTriggers: false },
     );
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("okuwamon"), {
-      subjectPermanentId: s.perm("okuwamon").permanentId,
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("okuwamon").instanceId })).toEqual({
+      ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const resolving = settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    await resolving;
     const pending = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
     const keys = request.options?.triggerKeys ?? [];
@@ -127,12 +129,12 @@ describe("BT26-042 Okuwamon", () => {
         response: { kind: "orderTriggers", order: [keys[1]!] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle();
   });
 
   it("locks a different card from the one it suspended (Q7031)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "okuwamon" }] },
+      0: { hand: [{ card: CARD_ID, as: "okuwamon" }] },
       1: {
         battleArea: [
           { card: "BT1-009", as: "suspendTarget" },
@@ -141,7 +143,11 @@ describe("BT26-042 Okuwamon", () => {
       },
     });
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("okuwamon"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("okuwamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     let pending = s.state.pendingDecision!;
     expect(
@@ -160,7 +166,7 @@ describe("BT26-042 Okuwamon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("lockOnly").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle();
 
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(s.perm("lockOnly").isSuspended).toBe(false);
@@ -189,35 +195,33 @@ describe("BT26-042 Okuwamon", () => {
     });
   });
 
-  it("shares the buff OPT between On Play and its own attack while keeping copies independent", async () => {
+  it("keeps the shared buff OPT independent between two copies", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-066", as: "target" }],
+          hand: [
             { card: CARD_ID, as: "first" },
             { card: CARD_ID, as: "second" },
-            { card: "BT1-066", as: "target" },
           ],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
+    s.state.memory = 14;
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("first"), {
-      subjectPermanentId: s.perm("first").permanentId,
-    });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 5000);
     expect(s.perm("target").currentDP).toBe(5000);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("first"), {
-      attackerPermanentId: s.perm("first").permanentId,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
     });
-    expect(s.perm("target").currentDP).toBe(5000);
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("second"), {
-      subjectPermanentId: s.perm("second").permanentId,
-    });
+    await settle(() => s.perm("target").currentDP === 8000);
     expect(s.perm("target").currentDP).toBe(8000);
   });
 
@@ -314,13 +318,21 @@ describe("BT26-042 Okuwamon", () => {
           { card: "BT1-080", as: "ally" },
         ],
       },
-      1: { security: [{ card: "BT1-009", as: "topSecurity" }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 1000 }],
+        security: [{ card: "BT1-010", as: "topSecurity" }],
+      },
     });
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("ally").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

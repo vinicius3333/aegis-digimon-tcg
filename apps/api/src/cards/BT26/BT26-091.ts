@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const dataSquad = { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const dataSquad: Pick<Filter, "nameOrTrait"> = { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] };
 const startCost = {
   kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...dataSquad }, count: 1 },
@@ -12,15 +11,15 @@ const startCost = {
   destination: "digivolutionStack",
   position: "bottom",
   faceDown: true,
-};
+} satisfies Action["cost"];
 // One filter with three trait tokens, not a filter plus `orFilters`: the engine unions the
 // PRIMARY filter with its alternatives, so an unrestricted primary would admit every Digimon
 // card in hand and make the printed trait restriction vacuous.
-const digivolveInto = {
+const digivolveInto: Filter = {
   nameOrTrait: [{ tokens: ["Vegetation", "Fairy", "DATA SQUAD"], match: "trait" }],
   kind: ["Digimon"],
 };
-const reactiveDigivolve = {
+const reactiveDigivolve: Action = {
   kind: "Digivolve",
   target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
   into: { filter: { controller: "mine", zone: "hand", ...digivolveInto }, count: 1 },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-085.js";
-import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -135,30 +135,28 @@ describe("BT26-085 compiled behavior", () => {
   });
 
   it("installs the opponent DP immunity restriction on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-085", as: "giantSlayer" }] } });
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("giantSlayer"));
+    const s = setupEngine({ 0: { hand: [{ card: "BT26-085", as: "giantSlayer" }] } });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantSlayer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-085"));
 
     expect(observe(s.engine).isRestricted(s.perm("giantSlayer"), "dpImmune")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
   });
 
   it("blocks opponent DP reduction and stack trash while allowing its controller's effects", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          {
-            card: "BT26-085",
-            as: "giantSlayer",
-            under: [
-              { card: "BT26-009", as: "opponentTarget" },
-              { card: "BT26-011", as: "ownTarget" },
-            ],
-          },
-        ],
-      },
+    const s = setupEngine({ 0: { hand: [{ card: "BT26-085", as: "giantSlayer" }] } });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantSlayer").instanceId })).toEqual({
+      ok: true,
     });
-    await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("giantSlayer"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-085"));
     const originalDp = s.perm("giantSlayer").currentDP;
 
     advance(s.engine).verb.enterEffectResolution(1);
@@ -168,16 +166,8 @@ describe("BT26-085 compiled behavior", () => {
       EffectDuration.UntilOpponentTurnEnd,
     );
     advance(s.engine).verb.leaveEffectResolution();
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("giantSlayer").permanentId,
-      [s.inst("opponentTarget").instanceId],
-      1,
-    );
 
     expect(s.perm("giantSlayer").currentDP).toBe(originalDp);
-    expect(s.perm("giantSlayer").stack.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("opponentTarget").instanceId,
-    );
 
     advance(s.engine).verb.enterEffectResolution(0);
     await advance(s.engine).verb.modifyDP(
@@ -186,14 +176,70 @@ describe("BT26-085 compiled behavior", () => {
       EffectDuration.UntilOpponentTurnEnd,
     );
     advance(s.engine).verb.leaveEffectResolution();
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("giantSlayer").permanentId,
-      [s.inst("ownTarget").instanceId],
-      0,
-    );
 
     expect(s.perm("giantSlayer").currentDP).toBe(originalDp - 3000);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("ownTarget").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+  });
+
+  it("blocks an opponent's public stack-trash effect after an Assembly play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-017", as: "attacker", under: ["BT16-016"] }],
+          security: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          hand: [{ card: "BT26-085", as: "giantSlayer" }],
+          trash: [
+            { card: "BT26-001", as: "level2" },
+            { card: "BT26-009", as: "level3" },
+            { card: "BT26-011", as: "level4" },
+            { card: "BT26-015", as: "level5" },
+            { card: "BT26-016", as: "level6" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 7;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("giantSlayer").instanceId,
+        assembly: {
+          materialInstanceIds: ["level2", "level3", "level4", "level5", "level6"].map(
+            (alias) => s.inst(alias).instanceId,
+          ),
+        },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("giantSlayer").stack.length === 5);
+    const protectedStack = s.perm("giantSlayer").stack.map(({ instanceId }) => instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("giantSlayer").stack.map(({ instanceId }) => instanceId)).toEqual(protectedStack);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toEqual(
+      expect.arrayContaining(protectedStack),
+    );
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("BT26-001");
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses Collision to force a plain opposing Digimon to block", async () => {
@@ -201,7 +247,7 @@ describe("BT26-085 compiled behavior", () => {
       0: { battleArea: [{ card: "BT26-085", as: "giantSlayer" }] },
       1: {
         battleArea: [{ card: "BT1-009", as: "plainBlocker", dp: 3000 }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     await s.ready();
@@ -229,12 +275,15 @@ describe("BT26-085 compiled behavior", () => {
     const blocking = setupEngine({
       0: {
         battleArea: [{ card: "BT26-085", as: "giantSlayer" }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
+        deck: ["BT1-011", "BT1-012"],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
     });
-    blocking.state.turnSeat = 1;
-    await blocking.ready();
+    const blockingLoop = blocking.engine.startTurnLoop();
+    await advance(blocking.engine).waitForMainPhase(0);
+    advance(blocking.engine).endMainPhaseIfOpen(0);
+    await advance(blocking.engine).waitForMainPhase(1);
     expect(observe(blocking.engine).hasKeyword(blocking.perm("giantSlayer"), "Blocker")).toBe(true);
 
     expect(
@@ -253,15 +302,22 @@ describe("BT26-085 compiled behavior", () => {
     ).toEqual({ ok: true });
     await settle(() => blocking.events.some(({ kind }) => kind === "combatResolved"));
     expect(blocking.state.players[0]!.security).toHaveLength(1);
+    expect(blocking.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await blockingLoop;
 
     const reboot = setupEngine({
-      0: { battleArea: [{ card: "BT26-085", as: "giantSlayer", suspended: true }] },
+      0: { battleArea: [{ card: "BT26-085", as: "giantSlayer", suspended: true }], deck: ["BT1-011", "BT1-012"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
-    reboot.state.turnSeat = 1;
-    await reboot.ready();
+    const rebootLoop = reboot.engine.startTurnLoop();
+    await advance(reboot.engine).waitForMainPhase(0);
+    advance(reboot.engine).endMainPhaseIfOpen(0);
+    await advance(reboot.engine).waitForMainPhase(1);
     expect(observe(reboot.engine).hasKeyword(reboot.perm("giantSlayer"), "Reboot")).toBe(true);
-    await advance(reboot.engine).runTurn(1);
+    advance(reboot.engine).endMainPhaseIfOpen(1);
     expect(reboot.perm("giantSlayer").isSuspended).toBe(false);
+    expect(reboot.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await rebootLoop;
   });
 
   it("replaces leaving with a free Destroy Mode digivolution from hand", async () => {
@@ -289,7 +345,7 @@ describe("BT26-085 compiled behavior", () => {
         0: {
           battleArea: [{ card: "BT26-085", as: "giantSlayer" }],
           trash: [{ card: "BT26-060", as: "destroyMode" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -300,7 +356,7 @@ describe("BT26-085 compiled behavior", () => {
       await advance(fromTrash.engine).verb.deletePermanent([fromTrash.perm("giantSlayer").permanentId], "byEffect"),
     ).toBe(0);
     await settle(() => fromTrash.perm("giantSlayer").topCard.cardId === "BT26-060");
-    expect(fromTrash.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(fromTrash.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-011");
 
     const declined = setupEngine(
       {

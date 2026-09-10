@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const playable = {
+const playable: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }],

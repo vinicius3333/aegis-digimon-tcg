@@ -1,15 +1,23 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const trashableHand = { controllerDefault: "mine", zone: "hand" };
+const trashableHand = { controllerDefault: "mine", zone: "hand" } satisfies Filter;
 const iliadTarget = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Digimon"],
-  colors: ["Red", "Blue"],
+  colors: ["Red"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
-};
+  orFilters: [
+    {
+      controllerDefault: "mine",
+      zone: "trash",
+      kind: ["Digimon"],
+      colors: ["Blue"],
+      nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+    },
+  ],
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   effects: [
@@ -39,7 +47,7 @@ export const compiled: CompiledCard = {
           optional: true,
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue", "Yellow"] },
+            filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Blue", "Yellow"] },
           },
           cost: { kind: "return", target: { filter: { isSelfRef: true }, count: 1 }, to: "deckBottom" },
         },

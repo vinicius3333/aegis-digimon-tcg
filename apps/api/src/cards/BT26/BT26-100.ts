@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const titan = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
-const titanCard = {
+const titan: Filter = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
+const titanCard: Filter = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
   levelComparison: { op: "lte", value: 4 },
   nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
 };
-const titanDigimon = { ...titan, levelComparison: { op: "lte", value: 4 } };
-const noFaceUpSecurity = { kind: "faceUpSecurityAtMost", controller: "mine", value: 0 };
+const titanDigimon: Filter = { ...titan, levelComparison: { op: "lte", value: 4 } };
+const noFaceUpSecurity: Condition = { kind: "faceUpSecurityAtMost", controller: "mine", value: 0 };
 
 export const compiled: CompiledCard = {
   effects: [

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Phase, digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-036.js";
@@ -124,23 +125,27 @@ describe("BT26-036 Lalamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-039", as: "host", under: [{ card: "BT26-036" }, { card: "EX4-019" }] },
+            { card: "BT11-051", as: "host", under: [{ card: "BT26-036" }, { card: "EX4-019" }] },
             { card: "BT1-009", as: "own" },
           ],
+          hand: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
           hand: Array.from({ length: 8 }, () => "BT1-004"),
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -149,7 +154,8 @@ describe("BT26-036 Lalamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("first").isSuspended && !s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    await settle();
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -157,10 +163,25 @@ describe("BT26-036 Lalamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     expect(s.perm("own").isSuspended).toBe(false);
   });
 
@@ -168,7 +189,7 @@ describe("BT26-036 Lalamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-039", as: "host", under: [{ card: "BT26-036" }] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

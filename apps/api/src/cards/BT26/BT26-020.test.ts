@@ -1,10 +1,18 @@
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-020.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 describe("BT26-020 ShellNumemon", () => {
   it("compiles draw and same-target attack/block restriction plus inherited Evade", () => {
     expect(compiled.coverage).toBe("full");
@@ -26,8 +34,8 @@ describe("BT26-020 ShellNumemon", () => {
       {
         0: {
           hand: [{ card: "BT26-020", as: "shell" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
-          security: ["BT1-002"],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -51,7 +59,11 @@ describe("BT26-020 ShellNumemon", () => {
     expect(locked).toHaveLength(1);
     expect(observe(s.engine).isRestricted(locked[0]!, "block")).toBe(true);
 
-    s.state.turnSeat = 1;
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",

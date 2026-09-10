@@ -1,7 +1,6 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const clause = [
+const clause: Action[] = [
   { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
   {
     kind: "ModifyDP",
@@ -20,7 +19,7 @@ const clause = [
     duration: "untilOpponentTurnEnd",
   },
 ];
-const inheritedDigivolve = {
+const inheritedDigivolve: Action = {
   kind: "SubTrigger",
   event: "whenBattleWon",
   sourceFilter: { isSelfRef: true },

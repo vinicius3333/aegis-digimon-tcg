@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const linkedSource = {
+const linkedSource: Filter = {
   controllerDefault: "mine",
   zone: "digivolutionCards",
   hostFilter: { isSelfRef: true },
@@ -15,8 +14,8 @@ const linkedSource = {
     { tokens: ["Seven Code"], match: "trait" },
   ],
 };
-const opponentDigimon = { controllerDefault: "opponent", kind: ["Digimon"] };
-const linkAction = {
+const opponentDigimon: Filter = { controllerDefault: "opponent", kind: ["Digimon"] };
+const linkAction: Action = {
   kind: "Link",
   target: { filter: linkedSource, count: 1 },
   recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -24,7 +23,7 @@ const linkAction = {
   payCost: false,
   optional: true,
 };
-const linkingEffect = [
+const linkingEffect: Action[] = [
   {
     kind: "SubTrigger",
     event: "whenLinked",
@@ -36,13 +35,13 @@ const linkingEffect = [
       },
       {
         kind: "Restrict",
-        target: { fromSelectionRef: "medicmonLinkedTarget" },
+        target: { filter: {}, count: 1, fromSelectionRef: "medicmonLinkedTarget" },
         restriction: "cannotActivateWhenDigivolving",
         duration: "untilOpponentTurnEnd",
       },
       {
         kind: "ModifyDP",
-        target: { fromSelectionRef: "medicmonLinkedTarget" },
+        target: { filter: {}, count: 1, fromSelectionRef: "medicmonLinkedTarget" },
         amount: -3000,
         duration: "untilOpponentTurnEnd",
       },

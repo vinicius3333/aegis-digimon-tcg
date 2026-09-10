@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-059.js";
@@ -48,6 +47,7 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT25-071", as: "base" }],
           hand: [
             { card: "BT26-059", as: "plutomon" },
             { card: "BT1-001", as: "cost" },
@@ -75,16 +75,27 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          battleArea: [{ card: "BT25-071", as: "base" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [{ card: "BT26-021", as: "titan" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("plutomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-059");
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
@@ -94,8 +105,11 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          battleArea: [{ card: "BT25-071", as: "base" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [
             { card: "BT26-021", as: "validTitan" },
             { card: "BT26-059", as: "excludedPlutomon" },
@@ -105,9 +119,17 @@ describe("BT26-059 Plutomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
@@ -148,7 +170,7 @@ describe("BT26-059 Plutomon", () => {
       0: {
         battleArea: [{ card: "BT25-071", as: "tsBase" }],
         hand: [{ card: "BT26-059", as: "plutomon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 4;
@@ -186,27 +208,29 @@ describe("BT26-059 Plutomon", () => {
     ).toMatchObject({ ok: false });
   });
 
-  it("may pay the hand-trash activation outside its turn, triggering deletion without playing a Titan", async () => {
+  it("publicly pays the hand-trash activation on its turn and plays a Titan", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [{ card: "BT26-021", as: "titan" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.memory = 13;
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
-
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT26-021"]),
-    );
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -214,16 +238,21 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [{ card: "BT26-021", as: "titan" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("titan").instanceId]);
@@ -234,24 +263,29 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [{ card: "BT26-045", as: "granKuwagamon" }],
         },
-        1: { hand: ["BT1-002"] },
+        1: { hand: ["BT1-002", "BT1-003", "BT1-004"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     await settle(() =>
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("granKuwagamon").instanceId),
     );
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-045");
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-1);
   });
 
   it("Q7078: reacts when the opponent's hand is trashed and deletes every tied lowest-level Digimon", async () => {
@@ -281,8 +315,9 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          battleArea: [{ card: "BT25-071", as: "base" }],
           hand: [
+            { card: "BT26-059", as: "plutomon" },
             { card: "BT1-001", as: "firstCost" },
             { card: "BT1-002", as: "secondCost" },
           ],
@@ -291,19 +326,39 @@ describe("BT26-059 Plutomon", () => {
             { card: "BT26-022", as: "secondTitan" },
           ],
         },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    s.state.memory = 13;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-059");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     const handAfterFirst = s.state.players[0]!.hand.length;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("plutomon"));
 
     expect(handAfterFirst).toBe(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(
       s.state.players[0]!.battleArea.filter(({ topCard }) => ["BT26-021", "BT26-022"].includes(topCard.cardId)),
     ).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

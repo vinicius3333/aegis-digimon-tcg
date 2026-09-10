@@ -1,8 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, EffectDurationRef, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const iliad = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
+const iliad = {
+  controllerDefault: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+} satisfies Filter;
 const eligibleSecurityCard = {
   controllerDefault: "mine",
   kind: ["Digimon", "Tamer"],
@@ -11,8 +14,8 @@ const eligibleSecurityCard = {
     { tokens: ["Angel"], match: "trait" },
     { tokens: ["TS"], match: "trait" },
   ],
-};
-const handTrash = { controller: "mine", zone: "hand" };
+} satisfies Filter;
+const handTrash = { controller: "mine", zone: "hand" } satisfies Filter;
 const grantKeywords = {
   kind: "CostGatedBlock",
   cost: { kind: "trash", target: { filter: handTrash, count: 1 } },
@@ -22,25 +25,25 @@ const grantKeywords = {
     { kind: "SelectBind", target: { filter: iliad, count: 1, bindAs: "pumpkinmonIliad" } },
     {
       kind: "GainKeyword",
-      target: { fromSelectionRef: "pumpkinmonIliad" },
+      target: { filter: {}, count: 1, fromSelectionRef: "pumpkinmonIliad" },
       keyword: { keyword: "Execute" },
-      duration: "untilEachTurnEnd",
+      duration: "untilEachTurnEnd" as EffectDurationRef,
     },
     {
       kind: "GrantStatic",
-      target: { fromSelectionRef: "pumpkinmonIliad" },
+      target: { filter: {}, count: 1, fromSelectionRef: "pumpkinmonIliad" },
       grant: "effects",
       tokens: ["Execute"],
-      duration: "untilEachTurnEnd",
+      duration: "untilEachTurnEnd" as EffectDurationRef,
     },
     {
       kind: "GainKeyword",
-      target: { fromSelectionRef: "pumpkinmonIliad" },
+      target: { filter: {}, count: 1, fromSelectionRef: "pumpkinmonIliad" },
       keyword: { keyword: "Ascension" },
-      duration: "untilEachTurnEnd",
+      duration: "untilEachTurnEnd" as EffectDurationRef,
     },
-  ],
-};
+  ] satisfies Action[],
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

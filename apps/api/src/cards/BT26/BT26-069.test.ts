@@ -85,7 +85,7 @@ describe("BT26-069 Dobermon", () => {
       0: {
         battleArea: [{ card: "BT26-008", as: "redTsBase" }],
         hand: [{ card: "BT26-069", as: "dobermon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -111,7 +111,7 @@ describe("BT26-069 Dobermon", () => {
         0: {
           hand: [
             { card: "BT26-069", as: "dobermon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
@@ -138,9 +138,9 @@ describe("BT26-069 Dobermon", () => {
           battleArea: [{ card: "BT26-008", as: "base" }],
           hand: [
             { card: "BT26-069", as: "dobermon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
-          deck: ["BT1-002"],
+          deck: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -168,23 +168,23 @@ describe("BT26-069 Dobermon", () => {
   it("draws when this card is trashed from hand and five cards remain, but not when six remain", async () => {
     const qualifying = setupEngine({
       0: {
-        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
-        deck: [{ card: "BT1-006", as: "drawn" }],
+        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        deck: [{ card: "BT1-014", as: "drawn" }],
       },
     });
     await qualifying.ready();
     await advance(qualifying.engine).verb.trash([qualifying.inst("dobermon").instanceId], 0);
-    expect(qualifying.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-006");
+    expect(qualifying.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-014");
 
     const tooMany = setupEngine({
       0: {
-        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
-        deck: [{ card: "BT1-007", as: "top" }],
+        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        deck: [{ card: "BT1-009", as: "top" }],
       },
     });
     await tooMany.ready();
     await advance(tooMany.engine).verb.trash([tooMany.inst("dobermon").instanceId], 0);
-    expect(tooMany.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
+    expect(tooMany.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
   });
 
   it("Q7091 draws only once when two copies are trashed together and leave five cards", async () => {
@@ -193,13 +193,13 @@ describe("BT26-069 Dobermon", () => {
         hand: [
           { card: "BT26-069", as: "first" },
           { card: "BT26-069", as: "second" },
-          "BT1-001",
-          "BT1-002",
-          "BT1-003",
-          "BT1-004",
-          "BT1-005",
+          "BT1-009",
+          "BT1-010",
+          "BT1-011",
+          "BT1-012",
+          "BT1-013",
         ],
-        deck: ["BT1-006", "BT1-007"],
+        deck: ["BT1-014", "BT1-009"],
       },
     });
     await s.ready();
@@ -219,7 +219,7 @@ describe("BT26-069 Dobermon", () => {
             { card: "BT26-069", as: "dobermon" },
             { card: "BT1-014", as: "ownTarget" },
           ],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT26-060", as: "opponentHigh" }] },
       },
@@ -238,7 +238,7 @@ describe("BT26-069 Dobermon", () => {
   it("may decline without trashing its hand or deleting a Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-069", as: "dobermon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: { battleArea: [{ card: "BT26-069", as: "dobermon" }], hand: [{ card: "BT1-009", as: "cost" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -247,47 +247,88 @@ describe("BT26-069 Dobermon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dobermon"));
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("digivolves its Titan host when an opponent's effect trashes its controller's hand", async () => {
+  it("public opponent-effect hand-trash dispatches the inherited hand-trash watcher", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-069"] }],
+          hand: [
+            { card: "BT26-083", as: "source" },
+            { card: "BT1-013", as: "ownHand" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
           trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-082", as: "opponentEffect" }],
+          hand: [{ card: "BT1-012", as: "opponentHand" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 16;
     await s.ready();
+    expect(
+      (
+        s.engine as unknown as { subTriggers: { subscriptionsFor(event: string): unknown[] } }
+      ).subTriggers.subscriptionsFor("whenHandTrashed"),
+    ).not.toHaveLength(0);
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 1 });
-    await settle(() => s.perm("host").topCard.cardId === "P-209");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not trigger its inherited evolution when the opponent's hand is trashed", async () => {
+  it("public opponent-hand trash from inherited BT26-072 does not activate Dobermon", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-069"] }],
+          battleArea: [
+            { card: "BT26-074", as: "host", under: ["BT26-069"] },
+            { card: "BT1-014", as: "source", under: ["BT26-072"] },
+          ],
           trash: [{ card: "P-209", as: "titamon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "cost" }],
+          hand: [
+            { card: "BT26-071", as: "source" },
+            { card: "BT1-012", as: "opponentHand" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("opponentHand").instanceId),
+    );
 
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("opponentHand").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q7090 does not retroactively trigger Alliance after evolving during an attack", async () => {
@@ -303,9 +344,9 @@ describe("BT26-069 Dobermon", () => {
             { card: "BT1-009", as: "alliancePartner" },
           ],
           trash: [{ card: "P-209", as: "titamon" }],
-          deck: [{ card: "BT1-010", as: "drawnAndTrashed" }],
+          deck: [{ card: "BT1-011", as: "drawnAndTrashed" }],
         },
-        1: { security: 3 },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

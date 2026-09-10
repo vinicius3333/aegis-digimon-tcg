@@ -1,11 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const csTarget = {
   filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
   count: 1,
-};
+} satisfies Target;
 const protect = {
   kind: "Restrict",
   target: csTarget,
@@ -13,7 +12,7 @@ const protect = {
   duration: "untilOpponentTurnEnd",
   fromSourceKind: ["Digimon"],
   byOpponentEffectsOnly: true,
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     {

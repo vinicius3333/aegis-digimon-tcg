@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -143,12 +143,18 @@ describe("BT26-083 compiled fidelity", () => {
 
   it("recovers three even when it has no security to trash (Q7124)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
+      0: { hand: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
     });
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 14;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
   });
 
   it("Decode may play a level 6 Junomon even though only the Iliad branch has a level-5 ceiling", async () => {
@@ -168,7 +174,7 @@ describe("BT26-083 compiled fidelity", () => {
       {
         0: {
           hand: [{ card: "BT26-083", as: "junomon" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
           deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
@@ -201,7 +207,7 @@ describe("BT26-083 compiled fidelity", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],
-          security: ["BT1-004", "BT1-005"],
+          security: ["BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true },
@@ -247,7 +253,7 @@ describe("BT26-083 compiled fidelity", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "executeTarget", dp: 10000 }],
-          security: ["BT1-001"],
+          security: ["BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -256,13 +262,16 @@ describe("BT26-083 compiled fidelity", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("hysteric"), "Execute")).toBe(true);
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-015"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-013");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-015"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
   });
 
   it("does not Decode an Iliad Digimon above level 5 unless its name contains Junomon", async () => {

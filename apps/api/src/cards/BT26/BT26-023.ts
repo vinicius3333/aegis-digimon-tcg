@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const handCardCost = {
@@ -9,7 +8,7 @@ const handCardCost = {
   position: "bottom",
   host: "self",
   faceDown: true,
-};
+} satisfies Cost;
 
 const returnLevelFour = {
   kind: "Return",
@@ -20,7 +19,7 @@ const returnLevelFour = {
   to: "deckBottom",
   cost: handCardCost,
   optional: true,
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }],

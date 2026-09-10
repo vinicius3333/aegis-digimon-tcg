@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -232,22 +232,37 @@ describe("BT26-049 Rosemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-049", as: "rosemon" }] },
+        0: {
+          battleArea: [{ card: "BT26-044", as: "base" }],
+          hand: [{ card: "BT26-049", as: "rosemon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
         1: {
           battleArea: [
             { card: "BT1-085", as: "first" },
             { card: "BT1-086", as: "second" },
             { card: "BT1-087", as: "third" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
-    await s.ready();
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rosemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rosemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-049");
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);
     expect(s.perm("third").isSuspended).toBe(false);
@@ -255,12 +270,28 @@ describe("BT26-049 Rosemon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("rosemon").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle();
 
     expect(s.perm("third").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

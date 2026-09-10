@@ -36,7 +36,7 @@ describe("BT26-071 Flarerizamon", () => {
       0: {
         battleArea: [{ card: "EX8-030", as: "yellowNsoBase" }],
         hand: [{ card: "BT26-071", as: "flarerizamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -132,7 +132,7 @@ describe("BT26-071 Flarerizamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-073", as: "host", under: ["BT26-071"] }] },
-        1: { battleArea: [{ card: "BT26-060", as: "raidTarget" }], security: 1 },
+        1: { battleArea: [{ card: "BT26-060", as: "raidTarget" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

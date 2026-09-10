@@ -1,9 +1,17 @@
 import { assemblyRequirementFor, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-014.js";
 import "../index.js";
+
+function seedTurnLoop(s: ReturnType<typeof setupEngine>) {
+  for (const seat of [0, 1] as const) {
+    for (let i = 0; i < 6; i += 1) s.give(seat, Zone.Deck, "BT1-009");
+    if (s.state.players[seat]!.security.length === 0) s.give(seat, Zone.Security, "BT1-010");
+  }
+}
 
 describe("BT26-014 Darumamon", () => {
   it("compiles delete triggers and both On Deletion branches", () => {
@@ -131,15 +139,37 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-014", as: "self" }],
+          battleArea: [{ card: "BT26-014", as: "self", suspended: true }],
           hand: [{ card: "BT26-012", as: "played" }],
         },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 8000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const selfId = s.perm("self").topCard.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("self").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("self").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("self").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
     );
@@ -152,16 +182,40 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-016", as: "host", under: [{ card: "BT26-014", as: "source" }] }],
+          battleArea: [
+            { card: "BT11-016", as: "host", dp: 5000, suspended: true, under: [{ card: "BT26-014", as: "source" }] },
+          ],
           hand: [{ card: "BT26-013", as: "played" }],
         },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 8000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const hostId = s.perm("host").topCard.instanceId;
     const sourceId = s.perm("host").stack.find((card) => card.cardId === "BT26-014")!.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
     );
@@ -175,18 +229,40 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-014", as: "self" }],
+          battleArea: [{ card: "BT26-014", as: "self", suspended: true }],
           hand: [
             { card: "BT26-014", as: "highTb" },
             { card: "BT1-009", as: "lowNonTb" },
           ],
         },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 8000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.pendingDecision === undefined);
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("self").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("self").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("self").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("self").instanceId));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
@@ -198,15 +274,37 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-014", as: "self" }],
+          battleArea: [{ card: "BT26-014", as: "self", suspended: true }],
           hand: [{ card: "BT26-012", as: "playCandidate" }],
         },
+        1: { battleArea: [{ card: "BT26-014", as: "attacker", dp: 8000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     const selfId = s.inst("self").instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    seedTurnLoop(s);
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("self").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("self").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main" && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("self").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === selfId));
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(selfId);

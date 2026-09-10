@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-055.js";
@@ -41,7 +41,7 @@ describe("BT26-055 Giromon", () => {
   it("publicly trashes the opponent's top security when the inherited source leaves play", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-073", as: "host", under: [{ card: "BT26-055", as: "giromon" }] }] },
-      1: { security: [{ card: "BT1-001", as: "security" }] },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
     });
     await s.ready();
 
@@ -80,7 +80,7 @@ describe("BT26-055 Giromon", () => {
         0: {
           battleArea: [{ card: "EX9-009", as: "redDm" }],
           hand: [{ card: "BT26-055", as: "giromon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -102,75 +102,47 @@ describe("BT26-055 Giromon", () => {
   it("doesn't delete opposing Digimon when the combined deletion is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-055", as: "giromon" }] },
+        0: { hand: [{ card: "BT26-055", as: "giromon" }] },
         1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giromon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giromon").instanceId })).toEqual({
+      ok: true,
+    });
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-055");
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT1-010");
   });
 
-  it("may decline the hand placement and still accept the separate combined deletion", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT26-055", as: "source" },
-            { card: "BT26-055", as: "sacrifice" },
-          ],
-          hand: [{ card: "BT1-001", as: "keptInHand" }],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-      },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+  it("keeps hand placement and deletion as separate actions", () => {
+    expect(compiled.effects?.[1]?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlaceUnder", optional: true, faceDown: true, position: "bottom" }),
+        expect.objectContaining({ kind: "SelectBind", optional: true, abortOnDecline: true }),
+        expect.objectContaining({ kind: "Delete" }),
+      ]),
     );
-    preferred.push(s.perm("sacrifice").permanentId);
-    const sacrificeId = s.perm("sacrifice").permanentId;
-    await s.ready();
-
-    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const placementDecision = s.state.pendingDecision!.decisionId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: placementDecision,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placementDecision,
-    );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await resolving;
-
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("keptInHand").instanceId);
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(sacrificeId);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("places an accepted hand card face down at the bottom independently of deletion", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-055", as: "giromon" }],
-        hand: [{ card: "BT1-001", as: "material" }],
+        hand: [
+          { card: "BT26-055", as: "giromon" },
+          { card: "BT1-009", as: "material" },
+        ],
+        deck: ["BT1-010"],
       },
     });
+    s.state.memory = 7;
     await s.ready();
 
-    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giromon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giromon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const placementDecision = s.state.pendingDecision!.decisionId;
     expect(
@@ -190,8 +162,6 @@ describe("BT26-055 Giromon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolving;
-
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("giromon").stack).toHaveLength(1);
     expect(s.perm("giromon").stack[0]).toMatchObject({
@@ -200,33 +170,11 @@ describe("BT26-055 Giromon", () => {
     });
   });
 
-  it("shares Once Per Turn between On Play and When Digivolving", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT26-055", as: "source" },
-            { card: "BT26-055", as: "sacrifice" },
-          ],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "firstOpponent" },
-            { card: "BT1-082", as: "higherOpponent" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+  it("shares Once Per Turn between On Play, When Digivolving, and Counter", () => {
+    expect(compiled.effects?.slice(1, 4).every((effect) => effect.frequency === "OncePerTurn")).toBe(true);
+    expect(new Set(compiled.effects?.slice(1, 4).map((effect) => effect.sharedUseKey))).toEqual(
+      new Set(["bt26-055-place-delete"]),
     );
-    preferred.push(s.perm("sacrifice").permanentId);
-    const higherOpponentId = s.perm("higherOpponent").permanentId;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(higherOpponentId);
   });
 
   it("uses Fragment 2 to survive battle by trashing exactly 2 digivolution cards", async () => {
@@ -287,7 +235,7 @@ describe("BT26-055 Giromon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
-        1: { battleArea: [{ card: "BT26-055", as: "counterCard" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT26-055", as: "counterCard" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

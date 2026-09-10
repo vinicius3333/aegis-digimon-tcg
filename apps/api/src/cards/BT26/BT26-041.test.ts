@@ -28,7 +28,7 @@ describe("BT26-041 Hudiemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT26-041", as: "hudiemon" }], security: ["AD1-001"], deck: ["AD1-002"] },
+        0: { hand: [{ card: "BT26-041", as: "hudiemon" }], security: ["BT1-009"], deck: ["BT1-010"] },
         1: {
           battleArea: [
             { card: "BT5-022", as: "opponent" },
@@ -44,8 +44,8 @@ describe("BT26-041 Hudiemon", () => {
       ok: true,
     });
     await settle(() => s.state.players.some((player) => player.battleArea.some((permanent) => permanent.isSuspended)));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "AD1-001")).toBe(true);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("AD1-002");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-010");
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("opponentTamer").isSuspended).toBe(false);
   });

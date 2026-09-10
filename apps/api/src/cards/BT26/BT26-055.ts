@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const place = {
@@ -9,7 +8,7 @@ const place = {
   position: "bottom",
   faceDown: true,
   optional: true,
-};
+} satisfies Action;
 const deleteBody = [
   {
     kind: "SelectBind",
@@ -26,7 +25,7 @@ const deleteBody = [
     kind: "Delete",
     target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: "all" },
   },
-];
+] satisfies Action[];
 const body = [place, ...deleteBody];
 export const compiled: CompiledCard = {
   effects: [

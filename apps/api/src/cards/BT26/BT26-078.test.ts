@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -81,20 +81,20 @@ describe("BT26-078 compiled behavior", () => {
         kind: "GainKeyword",
         target: expect.objectContaining({ sourceRef: "triggerSubject" }),
         keyword: { keyword: "Rush" },
-        duration: "untilEachTurnEnd",
+        duration: "forTheTurn",
       }),
       expect.objectContaining({
         kind: "GainKeyword",
         target: expect.objectContaining({ sourceRef: "triggerSubject" }),
         keyword: { keyword: "Execute" },
-        duration: "untilEachTurnEnd",
+        duration: "forTheTurn",
       }),
       expect.objectContaining({
         kind: "GrantStatic",
         target: expect.objectContaining({ sourceRef: "triggerSubject" }),
         grant: "effects",
         tokens: ["Execute"],
-        duration: "untilEachTurnEnd",
+        duration: "forTheTurn",
       }),
     ]);
   });
@@ -104,7 +104,7 @@ describe("BT26-078 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-015", as: "redTsBase" }],
         hand: [{ card: "BT26-078", as: "cherubimon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 5;
@@ -147,14 +147,17 @@ describe("BT26-078 compiled behavior", () => {
   it("can play a DUAL Digimon/Option through its Digimon type, without admitting pure Options", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-056", as: "dual" }] },
+        0: { hand: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-056", as: "dual" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 30;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
-
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherubimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
     expect({
       battleArea: s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId),
       trash: s.state.players[0]!.trash.map(({ cardId }) => cardId),
@@ -165,15 +168,19 @@ describe("BT26-078 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-078", as: "cherubimon" }],
+          hand: [{ card: "BT26-078", as: "cherubimon" }],
           trash: [{ card: "BT26-096", as: "chronomonTextTamer" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 30;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherubimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-096"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
@@ -183,7 +190,7 @@ describe("BT26-078 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-078", as: "cherubimon" }],
+          hand: [{ card: "BT26-078", as: "cherubimon" }],
           trash: [
             { card: "BT24-098", as: "pureTitanOption" },
             { card: "BT25-019", as: "cost13TitanDigimon" },
@@ -192,9 +199,13 @@ describe("BT26-078 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 30;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherubimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-078"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
@@ -209,9 +220,13 @@ describe("BT26-078 compiled behavior", () => {
         0: {
           trash: [{ card: "BT26-078", as: "cherubimon" }],
           hand: [{ card: "BT24-010", as: "playedTitan" }],
-          deck: [{ card: "BT1-001", as: "deckTop" }],
+          deck: [{ card: "BT1-009", as: "deckTop" }, "BT1-010", "BT1-011", "BT1-012"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "executeTarget" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "executeTarget" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -235,11 +250,15 @@ describe("BT26-078 compiled behavior", () => {
       expect.arrayContaining([expect.objectContaining({ token: "Execute" })]),
     );
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const loop = s.engine.startTurnLoop();
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-010"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT24-010");
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q7106 respects the optional return condition and grants nothing when declined", async () => {
@@ -247,15 +266,18 @@ describe("BT26-078 compiled behavior", () => {
       {
         0: {
           trash: [{ card: "BT26-078", as: "cherubimon" }],
-          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+          hand: [{ card: "BT24-010", as: "playedTitan" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -5;
+    s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
     expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush")).toBe(false);
@@ -263,21 +285,26 @@ describe("BT26-078 compiled behavior", () => {
   });
 
   it("lets the newly played Digimon attack through the granted Rush", async () => {
+    // Public play flow: the threshold-crossing play grants Rush, and the same-turn Rush attack
+    // remains available before the crossed-memory turn closes.
     const s = setupEngine(
       {
         0: {
           trash: [{ card: "BT26-078", as: "cherubimon" }],
-          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+          hand: [{ card: "BT24-010", as: "playedTitan" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -5;
-    await s.ready();
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
     s.state.memory = 0;
-    s.state.phase = Phase.Main;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush")).toBe(true);
+    expect(s.state.turnSeat).toBe(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -295,32 +322,32 @@ describe("BT26-078 compiled behavior", () => {
     const onBoard = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-078", as: "cherubimon" },
-            { card: "BT26-021", as: "titan" },
-          ],
+          battleArea: [{ card: "BT26-078", as: "cherubimon" }],
+          hand: [{ card: "BT26-021", as: "titan" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    onBoard.state.memory = -5;
+    onBoard.state.memory = 0;
     await onBoard.ready();
-    await advance(onBoard.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: onBoard.perm("titan").permanentId,
+    expect(onBoard.engine.applyIntent(0, { type: "playCard", instanceId: onBoard.inst("titan").instanceId })).toEqual({
+      ok: true,
     });
+    await settle();
     expect(observe(onBoard.engine).hasKeyword(onBoard.perm("titan"), "Rush")).toBe(false);
 
     const belowFive = setupEngine(
       {
-        0: { trash: [{ card: "BT26-078", as: "cherubimon" }], battleArea: [{ card: "BT26-021", as: "titan" }] },
+        0: { trash: [{ card: "BT26-078", as: "cherubimon" }], hand: [{ card: "BT26-021", as: "titan" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    belowFive.state.memory = -4;
+    belowFive.state.memory = 20;
     await belowFive.ready();
-    await advance(belowFive.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: belowFive.perm("titan").permanentId,
-    });
+    expect(
+      belowFive.engine.applyIntent(0, { type: "playCard", instanceId: belowFive.inst("titan").instanceId }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(belowFive.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
     expect(observe(belowFive.engine).hasKeyword(belowFive.perm("titan"), "Rush")).toBe(false);
   });
@@ -330,17 +357,18 @@ describe("BT26-078 compiled behavior", () => {
       {
         0: {
           trash: [{ card: "BT26-078", as: "cherubimon" }],
-          battleArea: [{ card: "BT26-096", as: "chronomonTextTamer" }],
+          hand: [{ card: "BT26-096", as: "chronomonTextTamer" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -5;
+    s.state.memory = 20;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("chronomonTextTamer").permanentId,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chronomonTextTamer").instanceId })).toEqual({
+      ok: true,
     });
+    await settle();
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
     expect(observe(s.engine).hasKeyword(s.perm("chronomonTextTamer"), "Rush")).toBe(false);

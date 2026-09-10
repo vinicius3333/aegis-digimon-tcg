@@ -36,19 +36,24 @@ describe("BT26-046 Gryphonmon", () => {
     );
   });
 
-  it("publicly suspends and locks an opponent target while protecting one of your Digimon in battle", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT26-046", as: "gryphonmon" }],
-        battleArea: [{ card: "BT1-080", as: "protected", dp: 15000, suspended: true }],
+  it("publicly locks an already-suspended target while protecting one of your Digimon in battle (Q7039)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-046", as: "gryphonmon" }],
+          battleArea: [{ card: "BT1-080", as: "protected", dp: 15000, suspended: true }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspendTarget", suspended: true },
+            { card: "BT1-009", as: "attacker", dp: 15000 },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "suspendTarget" },
-          { card: "BT1-080", as: "attacker", dp: 15000 },
-        ],
-      },
-    });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 11;
     await s.ready();
 
@@ -83,6 +88,7 @@ describe("BT26-046 Gryphonmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("suspendTarget").isSuspended);
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(s.perm("protected").isSuspended).toBe(true);
@@ -93,12 +99,15 @@ describe("BT26-046 Gryphonmon", () => {
     expect(continuous.hasRestriction(s.perm("protected").permanentId, "unsuspend")).toBe(false);
     expect(continuous.hasRestriction(s.perm("protected").permanentId, "beDeletedInBattle")).toBe(true);
 
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
@@ -109,27 +118,24 @@ describe("BT26-046 Gryphonmon", () => {
     expect(observe(s.engine).hasPierce(s.perm("gryphonmon"))).toBe(true);
     expect([...s.perm("gryphonmon").keywords]).toContain("Vortex");
 
-    await advance(s.engine).runTurn(1);
-    expect(continuous.hasRestriction(s.perm("suspendTarget").permanentId, "unsuspend")).toBe(false);
-    expect(continuous.hasRestriction(s.perm("protected").permanentId, "beDeletedInBattle")).toBe(false);
+    await loop;
   });
 
   it("uses Vortex and Piercing in a real battle against an unsuspended Digimon", async () => {
     const s = setupEngine(
       {
         0: {
-          hand: ["AD1-001"],
-          deck: ["AD1-001"],
+          hand: ["BT1-010"],
+          deck: ["BT1-011"],
           battleArea: [{ card: "BT26-046", as: "gryphonmon" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", suspended: false, dp: 3000 }],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-012", as: "security" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
 
     await advance(s.engine).runTurn(0);

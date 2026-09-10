@@ -98,8 +98,8 @@ describe("BT26-098 compiled fidelity", () => {
               card: "BT26-089",
               as: "tamer",
               under: [
-                { card: "BT1-001", as: "bottom", faceUp: false },
-                { card: "BT1-002", as: "higher", faceUp: false },
+                { card: "BT1-009", as: "bottom", faceUp: false },
+                { card: "BT1-010", as: "higher", faceUp: false },
               ],
             },
           ],
@@ -132,7 +132,7 @@ describe("BT26-098 compiled fidelity", () => {
             {
               card: "BT26-089",
               as: "tamer",
-              under: [{ card: "BT1-001", as: "bottom", faceUp: false }],
+              under: [{ card: "BT1-009", as: "bottom", faceUp: false }],
             },
           ],
           hand: [{ card: "BT26-098", as: "option" }],

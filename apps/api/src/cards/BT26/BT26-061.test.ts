@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-061.js";
@@ -148,10 +148,10 @@ describe("BT26-061 Chiropmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-061"] }],
-          deck: [{ card: "AD1-001", as: "drawn" }],
+          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-061"], dp: 20000 }],
+          deck: [{ card: "BT1-012", as: "drawn" }],
         },
-        1: { security: ["AD1-002"] },
+        1: { security: ["BT1-013"], deck: ["BT1-014"] },
       },
       { autoSelectCards: true },
     );
@@ -172,21 +172,45 @@ describe("BT26-061 Chiropmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-061"] }],
+          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-061"], dp: 20000 }],
           deck: [
-            { card: "AD1-001", as: "firstDraw" },
-            { card: "AD1-002", as: "secondDraw" },
+            { card: "BT1-012", as: "firstDraw" },
+            { card: "BT1-013", as: "secondDraw" },
           ],
         },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondDraw").instanceId]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondDraw").instanceId));
+
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstDraw").instanceId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

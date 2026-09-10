@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CardEffect, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const ver3 = {
+const _self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const ver3: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
   playCostLte: 6,
   nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }],
 };
-const playVer3 = {
+const playVer3: Action = {
   kind: "PlayWithoutCost",
   target: { filter: ver3, count: 1 },
   from: ["trash"],
@@ -18,7 +17,10 @@ const playVer3 = {
   optional: true,
   playCostCeiling: { base: 6, raise: 1, per: 1, filter: {}, unit: "selfFaceDownDigivolutionCards" },
 };
-const shared = { frequency: "OncePerTurn", sharedUseKey: "bt26-077-play-ver3", actions: [playVer3] };
+const shared = { frequency: "OncePerTurn", sharedUseKey: "bt26-077-play-ver3", actions: [playVer3] } satisfies Pick<
+  CardEffect,
+  "frequency" | "sharedUseKey" | "actions"
+>;
 
 export const compiled: CompiledCard = {
   keywords: [

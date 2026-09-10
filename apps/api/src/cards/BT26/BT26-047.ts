@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
-const anyDigimon = { filter: { controller: "any", kind: ["Digimon"] }, count: 1 };
-const suspendedTraits = {
+const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const anyDigimon: Target = { filter: { controller: "any", kind: ["Digimon"] }, count: 1 };
+const suspendedTraits: Target = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
@@ -16,7 +15,7 @@ const suspendedTraits = {
   },
   count: "all",
 };
-const suspendBuff = {
+const suspendBuff: Action = {
   kind: "CostGatedBlock",
   cost: { kind: "suspend", target: anyDigimon },
   optional: true,
@@ -33,7 +32,7 @@ const suspendBuff = {
     { kind: "ModifyDP", target: suspendedTraits, amount: 3000, duration: "untilOpponentTurnEnd" },
   ],
 };
-const battle = {
+const battle: Action = {
   kind: "Battle",
   attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true },
   defender: opponentDigimon,

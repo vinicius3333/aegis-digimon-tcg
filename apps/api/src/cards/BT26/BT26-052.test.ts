@@ -108,7 +108,7 @@ describe("BT26-052 Pristimon", () => {
       0: {
         battleArea: [{ card: "BT25-003", as: "base" }],
         hand: [{ card: "BT26-052", as: "pristimon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 0;
@@ -141,15 +141,19 @@ describe("BT26-052 Pristimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-053", as: "host", under: ["BT26-052"], suspended: true }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
-      1: { deck: ["BT1-002", "BT1-003"] },
+      1: { deck: ["BT1-009", "BT1-010"] },
     });
-    s.state.turnSeat = 1;
-    const turn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await turn;
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

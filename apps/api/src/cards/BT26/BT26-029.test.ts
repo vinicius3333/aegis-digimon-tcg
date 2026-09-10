@@ -77,7 +77,8 @@ describe("BT26-029 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-029", as: "holy", under: ["BT24-034"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -95,7 +96,7 @@ describe("BT26-029 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-029", as: "holy" }],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -125,10 +126,12 @@ describe("BT26-029 compiled fidelity", () => {
               ],
             },
           ],
-          security: ["BT1-002"],
+          security: ["BT1-010"],
         },
         1: {
-          battleArea: [{ card: "BT21-009", as: "linkHost", dp: 10000, linked: ["BT26-051"] }],
+          battleArea: [{ card: "BT21-009", as: "linkHost", dp: 10000 }],
+          hand: [{ card: "BT26-051", as: "gomimonLink" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -142,9 +145,19 @@ describe("BT26-029 compiled fidelity", () => {
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("protected").currentDP).toBe(9000);
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("linkHost").permanentId,
-    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("gomimonLink").instanceId,
+        targetPermanentId: s.perm("linkHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("linkHost").linked.length === 1);
     expect(s.perm("protected").topCard.cardId).toBe("BT1-010");
     expect(s.perm("protected").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("bottom").instanceId,
@@ -179,9 +192,10 @@ describe("BT26-029 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-029", as: "holy" }],
           security: [
-            { card: "BT1-001", as: "firstSecurity" },
-            { card: "BT1-002", as: "secondSecurity" },
+            { card: "BT1-009", as: "firstSecurity" },
+            { card: "BT1-010", as: "secondSecurity" },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
         },
         1: {
           battleArea: [
@@ -216,20 +230,25 @@ describe("BT26-029 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-029", as: "holy" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "attacker", dp: 6000 },
+            { card: "BT1-009", as: "attacker", dp: 20_000 },
             { card: "BT1-010", as: "second", dp: 6000 },
             { card: "BT1-011", as: "third", dp: 6000 },
             { card: "BT1-012", as: "fourth", dp: 6000 },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
         },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -241,16 +260,16 @@ describe("BT26-029 compiled fidelity", () => {
     await settle(
       () =>
         s.state.players[0]!.security.length === 0 &&
-        [s.perm("attacker"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
-          (permanent) => permanent.currentDP === 1000,
-        ).length === 3,
+        s.perm("attacker").currentDP === 15_000 &&
+        s.perm("second").currentDP === 1000 &&
+        s.perm("third").currentDP === 1000 &&
+        s.perm("fourth").currentDP === 6000,
     );
 
-    expect(
-      [s.perm("attacker"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
-        (permanent) => permanent.currentDP === 1000,
-      ),
-    ).toHaveLength(3);
+    expect(s.perm("attacker").currentDP).toBe(15_000);
+    expect(s.perm("second").currentDP).toBe(1000);
+    expect(s.perm("third").currentDP).toBe(1000);
+    expect(s.perm("fourth").currentDP).toBe(6000);
   });
 
   it("inherits a once-per-turn De-Digivolve when its controller's security is removed", async () => {
@@ -258,7 +277,7 @@ describe("BT26-029 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT1-010", as: "host", under: ["BT26-029"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -284,7 +303,7 @@ describe("BT26-029 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT24-034", as: "aegiomon" }],
           hand: [{ card: "BT26-029", as: "holy" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
           deck: ["BT1-009"],
         },
       },

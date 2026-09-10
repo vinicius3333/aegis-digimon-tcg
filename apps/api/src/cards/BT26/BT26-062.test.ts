@@ -58,11 +58,10 @@ describe("BT26-062 Ghostmon", () => {
           hand: [{ card: costCard, as: "cost" }],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
+        1: { deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
-
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ghostmon"));
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
@@ -81,6 +80,7 @@ describe("BT26-062 Ghostmon", () => {
           ],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
+        1: { deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -104,10 +104,10 @@ describe("BT26-062 Ghostmon", () => {
           hand: [{ card: "BT26-062", as: "cost" }],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
+        1: { deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ghostmon"));
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("drawn").instanceId));
     expect(s.state.memory).toBe(1);
@@ -123,6 +123,7 @@ describe("BT26-062 Ghostmon", () => {
           hand: [{ card: "BT26-062", as: "cost" }],
           deck: [{ card: "BT1-009", as: "top" }],
         },
+        1: { deck: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -142,6 +143,7 @@ describe("BT26-062 Ghostmon", () => {
           hand: [{ card: "BT1-009", as: "ineligible" }],
           deck: [{ card: "BT1-010", as: "top" }],
         },
+        1: { deck: ["BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -162,7 +164,6 @@ describe("BT26-062 Ghostmon", () => {
         deck: ["BT1-009"],
       },
     });
-    s.state.memory = 0;
     await s.ready();
 
     expect(
@@ -179,11 +180,10 @@ describe("BT26-062 Ghostmon", () => {
 
     const invalid = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "nonNsoBase" }],
+        battleArea: [{ card: "BT1-009", as: "nonNsoBase" }],
         hand: [{ card: "BT26-062", as: "ghostmon" }],
       },
     });
-    invalid.state.memory = 1;
     await invalid.ready();
 
     expect(
@@ -197,19 +197,34 @@ describe("BT26-062 Ghostmon", () => {
   });
   it("gives its evolution host the inherited 2000 DP during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }] },
+      0: {
+        battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }],
+        deck: Array.from({ length: 10 }, () => "BT1-010"),
+      },
+      1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
     });
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(6000);
   });
-  it("does not grant the inherited DP during the opponent's turn", async () => {
+
+  it("expires the inherited DP grant during the opponent's real turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }] },
+      0: {
+        battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { hand: [{ card: "BT1-011", as: "passCard" }], deck: ["BT1-012", "BT1-013"] },
     });
-    s.state.turnSeat = 1;
     await s.ready();
 
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(6000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

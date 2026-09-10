@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-077.js";
@@ -58,7 +58,7 @@ describe("BT26-077 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-043", as: "greenDmBase" }],
         hand: [{ card: "BT26-077", as: "reapermon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -82,7 +82,7 @@ describe("BT26-077 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-074", as: "nonDmBase" }],
         hand: [{ card: "BT26-077", as: "reapermon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -102,7 +102,7 @@ describe("BT26-077 compiled behavior", () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT26-077", as: "reapermon" }] },
     });
-    s.state.memory = 12;
+    s.state.memory = 30;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reapermon").instanceId })).toEqual({
@@ -111,7 +111,7 @@ describe("BT26-077 compiled behavior", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-077"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-077");
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(10);
   });
 
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
@@ -128,15 +128,19 @@ describe("BT26-077 compiled behavior", () => {
   it("publicly plays an eligible Ver.3 Digimon from trash on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-077", as: "reapermon" }], trash: [{ card: "BT26-040", as: "ver3" }] },
+        0: { hand: [{ card: "BT26-077", as: "reapermon" }], trash: [{ card: "EX9-034", as: "ver3" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 30;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reapermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-040");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("EX9-034");
   });
 
   it("raises the ceiling only for this Digimon's face-down digivolution cards", async () => {
@@ -149,16 +153,16 @@ describe("BT26-077 compiled behavior", () => {
               card: "BT26-077",
               as: "reapermon",
               under: [
-                { card: "BT1-001", as: "ownFaceDown", faceUp: false },
-                { card: "BT1-002", as: "ownFaceUp", faceUp: true },
+                { card: "BT1-009", as: "ownFaceDown", faceUp: false },
+                { card: "BT1-010", as: "ownFaceUp", faceUp: true },
               ],
             },
             {
               card: "BT1-009",
               as: "otherStack",
-              under: [{ card: "BT1-003", as: "otherFaceDown", faceUp: false }],
+              under: [{ card: "BT1-011", as: "otherFaceDown", faceUp: false }],
             },
-            { card: "BT26-040", as: "otherVer3" },
+            { card: "EX9-034", as: "otherVer3" },
           ],
           trash: [
             { card: "BT26-055", as: "cost7Ver3" },
@@ -166,6 +170,7 @@ describe("BT26-077 compiled behavior", () => {
             { card: "BT26-074", as: "cost7NonVer3" },
           ],
         },
+        1: { security: ["BT1-012", "BT1-013"], deck: ["BT1-014", "BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -173,12 +178,23 @@ describe("BT26-077 compiled behavior", () => {
     preferred.push(s.perm("otherVer3").permanentId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reapermon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-055");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["EX9-031", "BT26-074"]),
     );
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("shares one use across On Play, When Digivolving, and When Attacking", async () => {
@@ -186,24 +202,66 @@ describe("BT26-077 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-077", as: "reapermon" }],
-          trash: [
-            { card: "BT26-040", as: "firstVer3" },
-            { card: "BT26-040", as: "secondVer3" },
+          battleArea: [{ card: "BT26-043", as: "base" }],
+          hand: [
+            { card: "BT26-077", as: "reapermon" },
+            { card: "BT1-009", as: "spare" },
           ],
+          trash: [
+            { card: "EX9-034", as: "firstVer3" },
+            { card: "EX9-034", as: "secondVer3" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+        1: {
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("firstVer3").instanceId);
+    s.state.memory = 50;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("reapermon"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("reapermon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const baseId = s.perm("base").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("reapermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-077");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: baseId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
-    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT26-040")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX9-034")).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("secondVer3").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: baseId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX9-034")).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses Execute to attack an unsuspended Digimon and Fragment 2 to survive its self-deletion", async () => {
@@ -216,20 +274,26 @@ describe("BT26-077 compiled behavior", () => {
               card: "BT26-077",
               as: "reapermon",
               under: [
-                { card: "BT1-001", as: "fragmentOne" },
-                { card: "BT1-002", as: "fragmentTwo" },
+                { card: "BT1-009", as: "fragmentOne" },
+                { card: "BT1-010", as: "fragmentTwo" },
               ],
             },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "executeTarget" }] },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "executeTarget" }],
+          security: ["BT1-012", "BT1-013"],
+          deck: ["BT1-014", "BT1-009", "BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("executeTarget").permanentId);
     await s.ready();
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.perm("reapermon").stack.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -239,12 +303,15 @@ describe("BT26-077 compiled behavior", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("fragmentOne").instanceId, s.inst("fragmentTwo").instanceId]),
     );
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("performs 2 security checks with its intrinsic Security A. +1", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-077", as: "reapermon" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
 
@@ -259,7 +326,7 @@ describe("BT26-077 compiled behavior", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-002"]),
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
     );
   });
 

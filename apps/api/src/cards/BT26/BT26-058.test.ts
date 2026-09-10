@@ -60,6 +60,7 @@ describe("BT26-058 HiAndromon", () => {
             { card: "BT26-054", as: "other" },
             { card: "BT1-009", as: "nonCs" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -195,7 +196,7 @@ describe("BT26-058 HiAndromon", () => {
       0: {
         battleArea: [{ card: "BT26-054", as: "base" }],
         hand: [{ card: "BT26-058", as: "hiAndromon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;
@@ -215,5 +216,61 @@ describe("BT26-058 HiAndromon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("uses the public When Attacking window and resets its shared protection next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-058", as: "hiAndromon" },
+            { card: "BT26-054", as: "chosen" },
+            { card: "BT1-009", as: "nonCs" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim", suspended: true, dp: 1000 },
+            { card: "BT1-009", as: "secondVictim", suspended: true, dp: 1000 },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").permanentId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = async (victim: "firstVictim" | "secondVictim") => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("hiAndromon").permanentId,
+          target: { kind: "permanent", permanentId: s.perm(victim).permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+    };
+
+    await attack("firstVictim");
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chosen"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("nonCs"), "beAffected", "Digimon")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chosen"), "beAffected", "Digimon")).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("hiAndromon").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("secondVictim").permanentId]);
+    await attack("secondVictim");
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chosen"), "beAffected", "Digimon")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

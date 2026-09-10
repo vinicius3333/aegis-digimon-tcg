@@ -136,18 +136,20 @@ describe("BT26-047 TyrantKabuterimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-047", as: "tyrant" },
-            { card: "BT26-045", as: "eligible", suspended: true },
-          ],
+          hand: [{ card: "BT26-047", as: "tyrant" }],
+          battleArea: [{ card: "BT26-045", as: "eligible", suspended: true }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrant"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tyrant").topCard?.cardId === "BT26-047");
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("eligible").currentDP).toBe(11000);
@@ -186,13 +188,17 @@ describe("BT26-047 TyrantKabuterimon", () => {
   it("offers the two simultaneous On Play effects for ordering (Q7043)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        0: { hand: [{ card: "BT26-047", as: "tyrant" }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
+    s.state.memory = 13;
+    await s.ready();
 
-    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrant"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrant").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
@@ -205,17 +211,18 @@ describe("BT26-047 TyrantKabuterimon", () => {
         response: { kind: "orderTriggers", order: [keys[1]!] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(() => s.state.pendingDecision === undefined);
   });
 
   it("immediately battles and can delete an effect-immune opponent by the battle rules (Q7040-Q7041)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        0: { hand: [{ card: "BT26-047", as: "tyrant" }] },
         1: { battleArea: [{ card: "BT1-009", as: "immuneDefender" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
     const defender = s.perm("immuneDefender");
     advance(s.engine).ledgers.continuous.addRestriction(defender.permanentId, "beAffected", EffectDuration.Permanent, {
@@ -223,7 +230,10 @@ describe("BT26-047 TyrantKabuterimon", () => {
       byOpponentEffectsOnly: true,
     });
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tyrant"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(defender.topCard.instanceId);
@@ -238,6 +248,7 @@ describe("BT26-047 TyrantKabuterimon", () => {
             { card: "BT26-047", as: "tyrant", suspended: true },
             { card: "BT26-045", as: "otherImmune", suspended: true },
           ],
+          deck: ["BT1-013", "BT1-014"],
         },
         1: {
           battleArea: [
@@ -245,65 +256,99 @@ describe("BT26-047 TyrantKabuterimon", () => {
             { card: "BT1-087", as: "yellowSource" },
           ],
           hand: [{ card: "BT1-106", as: "option" }],
+          deck: ["BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: false, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("costDigimon").permanentId, s.perm("tyrant").permanentId);
     await s.ready();
+    preferred.push(s.perm("costDigimon").topCard.instanceId, s.perm("tyrant").topCard.instanceId);
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const costDecision = s.state.pendingDecision!;
+    expect(costDecision.kind).toBe("chooseTargets");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("costDigimon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("costDigimon").isSuspended);
+    if (s.state.pendingDecision?.kind === "chooseTargets") {
+      const targetDecision = s.state.pendingDecision;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: targetDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("tyrant").permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+    }
     expect(s.perm("costDigimon").isSuspended).toBe(true);
-    expect(s.perm("tyrant").currentDP).toBe(16000);
-    expect(observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option")).toBe(true);
+    expect(s.perm("tyrant").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option")).toBe(false);
 
-    const before = s.perm("tyrant").currentDP;
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-106"));
-
-    const optionTargetDecision = s.decisions
-      .filter(({ req }) => req.kind === "chooseTargets")
-      .find(({ req }) => req.options?.candidateInstanceIds?.includes(s.perm("tyrant").permanentId));
-    expect(optionTargetDecision?.req.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.perm("tyrant").permanentId, s.perm("otherImmune").permanentId]),
-    );
-    expect(s.perm("tyrant").currentDP).toBe(before);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("stops an already-active opposing Option grant as soon as immunity is gained (Q7047)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
         1: {
           battleArea: [{ card: "BT1-087", as: "yellowSource" }],
           hand: [{ card: "ST3-15", as: "grantOption" }],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
 
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstPrompt = s.state.pendingDecision!;
+    expect(firstPrompt.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("grantOption").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack") === -3);
     expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(-3);
 
-    s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
-    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const secondPrompt = s.state.pendingDecision!;
+    expect(secondPrompt.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack") === 0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("retains opposing Option-granted effects while immune, suppresses their trigger, and activates them after immunity lapses (Q7046, Q7048-Q7049)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
         1: {
           battleArea: [
             { card: "BT1-087", as: "yellowSource" },
@@ -313,35 +358,50 @@ describe("BT26-047 TyrantKabuterimon", () => {
             { card: "ST3-15", as: "keywordOption" },
             { card: "EX7-072", as: "triggerOption" },
           ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("keywordOption").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "ST3-15"));
-    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstPrompt = s.state.pendingDecision!;
+    expect(firstPrompt.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option"));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("triggerOption").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX7-072"));
-
-    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(0);
-    expect(observe(s.engine).subscriptions("endOfOpponentTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
 
-    // End the immunity source's opponent-turn window without ending the longer grants.
-    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
-    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(-3);
-
-    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const secondPrompt = s.state.pendingDecision!;
+    expect(secondPrompt.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option"));
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

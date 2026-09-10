@@ -1,9 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const evil = { nameOrTrait: [{ tokens: ["Fallen Angel", "Undead", "Wizard", "Demon Lord"], match: "trait" }] };
-const ts = { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const evil = {
+  nameOrTrait: [{ tokens: ["Fallen Angel", "Undead", "Wizard", "Demon Lord"], match: "trait" }],
+} satisfies Filter;
+const ts = { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } satisfies Filter;
 export const compiled: CompiledCard = {
   effects: [
     {

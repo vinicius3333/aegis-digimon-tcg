@@ -69,23 +69,27 @@ describe("BT26-037 Weatherdramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-037", as: "weatherdramon", under: ["BT21-047"] },
-            { card: "BT26-084", as: "recipient", linked: [{ card: "BT26-037" }] },
-          ],
+          battleArea: [{ card: "BT26-084", as: "recipient" }],
+          hand: [{ card: "BT26-037", as: "weatherdramon" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weatherdramon"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("weatherdramon").instanceId,
+        targetPermanentId: s.perm("recipient").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]!.linked.length === 1);
 
-    expect(s.perm("weatherdramon").linked.map((card) => card.cardId)).toEqual(["BT21-047"]);
-
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("recipient").permanentId,
-    });
+    expect(s.perm("recipient").linked.map((card) => card.cardId)).toEqual(["BT26-037"]);
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 

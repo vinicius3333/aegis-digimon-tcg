@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const opponentLowDp = { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } };
-const ownDigimon = { controller: "mine", kind: ["Digimon"] };
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
+const opponentLowDp = { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } } satisfies Filter;
+const ownDigimon = { controller: "mine", kind: ["Digimon"] } satisfies Filter;
 
 const onPlayBody = [
   { kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -4000, duration: "untilOpponentTurnEnd" },
@@ -17,7 +16,7 @@ const onPlayBody = [
     trackCount: "returnedTrash",
   },
   { kind: "Delete", target: { filter: opponentLowDp, count: 1 }, condition: { kind: "ifThisEffectActed" } },
-];
+] satisfies Action[];
 
 const reactiveBuff = [
   {
@@ -33,7 +32,7 @@ const reactiveBuff = [
     duration: "untilOpponentTurnEnd",
   },
   { kind: "Attack", target: { filter: { boundRef: "buffTarget" }, count: 1 }, mandatory: true },
-];
+] satisfies Action[];
 
 export const compiled: CompiledCard = {
   effects: [

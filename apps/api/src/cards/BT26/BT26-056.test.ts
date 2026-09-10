@@ -101,7 +101,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
       0: {
         battleArea: [{ card: "BT1-039", as: "cerberusmon" }],
         hand: [{ card: "BT26-056", as: "werewolf" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     named.state.memory = 1;
@@ -121,7 +121,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
       0: {
         battleArea: [{ card: "BT26-021", as: "tsBase" }],
         hand: [{ card: "BT26-056", as: "werewolf" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     trait.state.memory = 3;
@@ -164,7 +164,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
           battleArea: [{ card: "BT25-071", as: "ts" }],
           hand: [
             { card: "BT26-056", as: "infernoDivide" },
-            { card: "BT1-001", as: "handTrash" },
+            { card: "BT1-010", as: "handTrash" },
           ],
         },
         1: {
@@ -191,7 +191,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 1);
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.perm("target").stack).toHaveLength(1);
   });
 

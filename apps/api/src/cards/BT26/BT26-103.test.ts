@@ -23,7 +23,7 @@ describe("BT26-103 compiled fidelity", () => {
       expect.objectContaining({ keyword: "Piercing" }),
       expect.objectContaining({ keyword: "Reboot" }),
       expect.objectContaining({ keyword: "Blocker" }),
-      expect.objectContaining({ keyword: "Succession" }),
+      expect.objectContaining({ keyword: "UseReq" }),
     ]);
     expect(card?.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
@@ -58,7 +58,7 @@ describe("BT26-103 compiled fidelity", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-103", as: "wrathMode" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
         deck: ["BT1-010", "BT1-011"],
       },
     });
@@ -66,7 +66,7 @@ describe("BT26-103 compiled fidelity", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("Q7188: recovers two even with no security card to trash", async () => {
@@ -88,7 +88,7 @@ describe("BT26-103 compiled fidelity", () => {
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }] },
       1: {
         battleArea: [{ card: "BT26-103", as: "wrathMode" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
         deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
@@ -116,7 +116,7 @@ describe("BT26-103 compiled fidelity", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.deck.length === 2);
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
 
     const securityAfterCounter = s.state.players[1]!.security.length;
@@ -130,8 +130,8 @@ describe("BT26-103 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-103", as: "wrathMode", under: [{ card: "BT24-101", as: "jupitermon" }] }],
-          security: ["BT1-001"],
-          deck: ["BT1-002", "BT1-003"],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 14000 }] },
       },
@@ -139,9 +139,9 @@ describe("BT26-103 compiled fidelity", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wrathMode"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("wrathMode"));
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("target").currentDP).toBe(0);
   });
 
@@ -158,14 +158,14 @@ describe("BT26-103 compiled fidelity", () => {
             ],
           },
         ],
-        security: ["BT1-001"],
-        deck: ["BT1-002", "BT1-003"],
+        security: ["BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 14000 }] },
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wrathMode"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("wrathMode"));
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -178,7 +178,7 @@ describe("BT26-103 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-103", as: "wrathMode" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -210,7 +210,7 @@ describe("BT26-103 compiled fidelity", () => {
           ],
         },
         1: {
-          security: ["BT1-001"],
+          security: ["BT1-009"],
           battleArea: [{ card: "BT1-009", as: "opponent", dp: 16000 }],
         },
       },

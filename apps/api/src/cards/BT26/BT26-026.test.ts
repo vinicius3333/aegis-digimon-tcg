@@ -62,9 +62,9 @@ describe("BT26-026 Cougarmon", () => {
             { card: "P-236", as: "option" },
             { card: "BT1-090", as: "nonGlowingOption" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { security: ["BT1-002", "BT1-003"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
@@ -168,7 +168,7 @@ describe("BT26-026 Cougarmon", () => {
         0: {
           battleArea: [{ card: "BT26-026", as: "cougarmon" }],
           hand: [{ card: "P-236", as: "option" }],
-          security: [{ card: "BT1-001", as: "securityCost" }],
+          security: [{ card: "BT1-009", as: "securityCost" }],
         },
       },
       { autoChooseOption: true },
@@ -222,7 +222,7 @@ describe("BT26-026 Cougarmon", () => {
         battleArea: [{ card: "BT26-026", as: "cougarmon" }],
         security: [
           { card: "BT1-009", as: "barrierCost" },
-          { card: "BT1-010", as: "remaining" },
+          { card: "BT1-009", as: "remaining" },
         ],
       },
     });
@@ -261,7 +261,7 @@ describe("BT26-026 Cougarmon", () => {
         0: {
           battleArea: [{ card: "BT26-026", as: "cougarmon" }],
           hand: [{ card: "BT1-090", as: "nonGlowingOption" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trashThenDelete = {
@@ -9,7 +8,7 @@ const trashThenDelete = {
   allowCostWithoutTarget: true,
   target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } } },
   cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

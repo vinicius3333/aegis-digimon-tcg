@@ -1,12 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const highestDp = { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" }, count: 1 };
-const deleteOwn = { kind: "deleteOwn", target: self };
-const trashTwoTamerBottoms = { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 };
-const altCostDelete = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const highestDp: Target = { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" }, count: 1 };
+const deleteOwn = { kind: "deleteOwn", target: self } satisfies Action["cost"];
+const trashTwoTamerBottoms = {
+  kind: "trashBottomFaceDownUnderTamer",
+  controller: "mine",
+  count: 2,
+} satisfies Action["cost"];
+const altCostDelete: Action = {
   kind: "Modal",
   choose: 1,
   optional: true,
@@ -16,7 +19,7 @@ const altCostDelete = {
     [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms }],
   ],
 };
-const playFromSecurity = { kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false };
+const playFromSecurity: Action = { kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false };
 
 export const compiled: CompiledCard = {
   effects: [

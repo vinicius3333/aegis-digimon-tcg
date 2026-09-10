@@ -73,7 +73,7 @@ describe("BT26-023 Mojyamon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-023", as: "mojyamon" }],
-          hand: [{ card: "BT1-001", as: "material" }],
+          hand: [{ card: "BT1-009", as: "material" }],
         },
         1: {
           battleArea: [{ card: "BT26-039", as: "target" }],
@@ -98,7 +98,7 @@ describe("BT26-023 Mojyamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-023", as: "mojyamon" }],
-        hand: [{ card: "BT1-001", as: "material" }],
+        hand: [{ card: "BT1-009", as: "material" }],
       },
       1: {
         battleArea: [
@@ -121,7 +121,7 @@ describe("BT26-023 Mojyamon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-023", as: "mojyamon" }],
-          hand: [{ card: "BT1-001", as: "material" }],
+          hand: [{ card: "BT1-009", as: "material" }],
         },
         1: { battleArea: [{ card: "BT26-039", as: "target" }] },
       },
@@ -145,7 +145,7 @@ describe("BT26-023 Mojyamon", () => {
             { card: "BT26-023", as: "mojyamon" },
             { card: "BT26-035", as: "ally" },
           ],
-          hand: [{ card: "BT1-001", as: "material" }],
+          hand: [{ card: "BT1-009", as: "material" }],
         },
         1: { battleArea: [{ card: "BT26-039", as: "target" }] },
       },
@@ -176,7 +176,7 @@ describe("BT26-023 Mojyamon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-023", as: "mojyamon" }],
-          deck: [{ card: "BT1-001", as: "trainingCard" }],
+          deck: [{ card: "BT1-009", as: "trainingCard" }],
         },
       },
       { autoAcceptOptional: true },
@@ -193,7 +193,7 @@ describe("BT26-023 Mojyamon", () => {
 
   it("Training cannot activate while suspended or with an empty deck", async () => {
     const suspended = setupEngine({
-      0: { battleArea: [{ card: "BT26-023", as: "mojyamon", suspended: true }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT26-023", as: "mojyamon", suspended: true }], deck: ["BT1-009"] },
     });
     await advance(suspended.engine).fire(EffectTiming.OnDeclaration, suspended.perm("mojyamon"));
     expect(suspended.state.players[0]!.deck).toHaveLength(1);
@@ -212,7 +212,7 @@ describe("BT26-023 Mojyamon", () => {
   it("uses top-card Jamming to survive a losing security battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-023", as: "mojyamon" }] },
-      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+      1: { security: [{ card: "BT1-009", as: "securityDigimon" }] },
     });
     expect(
       s.engine.applyIntent(0, {
@@ -233,8 +233,8 @@ describe("BT26-023 Mojyamon", () => {
     const eligible = setupEngine({
       0: {
         battleArea: [{ card: "BT1-038", as: "host", under: ["BT26-023"] }],
-        hand: Array.from({ length: 7 }, () => "BT1-001"),
-        deck: ["BT1-002"],
+        hand: Array.from({ length: 7 }, () => "BT1-009"),
+        deck: ["BT1-010"],
       },
     });
     await advance(eligible.engine).fireForPermanent(EffectTiming.OnUseAttack, eligible.perm("host"), {
@@ -245,8 +245,8 @@ describe("BT26-023 Mojyamon", () => {
     const ineligible = setupEngine({
       0: {
         battleArea: [{ card: "BT1-038", as: "host", under: ["BT26-023"] }],
-        hand: Array.from({ length: 8 }, () => "BT1-001"),
-        deck: ["BT1-002"],
+        hand: Array.from({ length: 8 }, () => "BT1-009"),
+        deck: ["BT1-010"],
       },
     });
     await advance(ineligible.engine).fireForPermanent(EffectTiming.OnUseAttack, ineligible.perm("host"), {

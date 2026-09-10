@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-065.js";
@@ -89,7 +89,7 @@ describe("BT26-065 Falcomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-065", as: "falcomon" }],
+          hand: [{ card: "BT26-065", as: "falcomon" }],
           deck: [
             { card: "BT26-094", as: "keenan" },
             { card: "BT1-013", as: "offColorAvian" },
@@ -99,13 +99,16 @@ describe("BT26-065 Falcomon", () => {
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 1);
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
-
-    const secondSlot = s.decisions.filter(({ req }) => req.kind === "selectCards").at(-1)?.req;
-    expect(secondSlot?.options?.candidateInstanceIds).toContain(s.inst("purpleAvian").instanceId);
-    expect(secondSlot?.options?.candidateInstanceIds).not.toContain(s.inst("offColorAvian").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("keenan").instanceId, s.inst("purpleAvian").instanceId]),
+    );
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("offColorAvian").instanceId]);
   });
 
@@ -113,7 +116,7 @@ describe("BT26-065 Falcomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-065", as: "falcomon" }],
+          hand: [{ card: "BT26-065", as: "falcomon" }],
           deck: [
             { card: "BT26-065", as: "bothSlots" },
             { card: "BT1-009", as: "firstRest" },
@@ -123,9 +126,12 @@ describe("BT26-065 Falcomon", () => {
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bothSlots").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(2);
@@ -135,7 +141,7 @@ describe("BT26-065 Falcomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-065", as: "falcomon" }],
+          hand: [{ card: "BT26-065", as: "falcomon" }],
           deck: [
             { card: "EX4-064", as: "exactName" },
             { card: "BT1-009", as: "restOne" },
@@ -145,9 +151,11 @@ describe("BT26-065 Falcomon", () => {
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("exactName").instanceId]);

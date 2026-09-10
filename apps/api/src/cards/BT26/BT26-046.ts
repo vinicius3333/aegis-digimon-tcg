@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
-const ownDigimon = { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 };
-const body = [
+const opponentTarget: Target = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
+const ownDigimon: Target = { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 };
+const body: Action[] = [
   { kind: "Suspend", target: opponentTarget },
   { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
   { kind: "Restrict", target: ownDigimon, restriction: "beDeletedInBattle", duration: "untilOpponentTurnEnd" },

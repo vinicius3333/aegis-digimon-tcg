@@ -1,26 +1,28 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const anyDigimonTamer = { filter: { controller: "any", kind: ["Digimon", "Tamer"] }, count: 2 };
-const opponentDigimonTamer = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 };
+const anyDigimonTamer = { filter: { controller: "any", kind: ["Digimon", "Tamer"] }, count: 2 } satisfies Target;
+const opponentDigimonTamer = {
+  filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+  count: 2,
+} satisfies Target;
 const suspendLock = [
   { kind: "Suspend", target: anyDigimonTamer, optional: true },
   { kind: "Restrict", target: opponentDigimonTamer, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
-];
+] satisfies Action[];
 const securityCost = {
   kind: "Return",
   target: { filter: { controller: "any", kind: ["Digimon"], suspended: true, excludeSelf: true }, count: 1 },
   to: "deckBottom",
   optional: true,
-};
+} satisfies Action;
 const trashSecurity = {
   kind: "SecurityManipulation",
   op: "trashTop",
   controller: "opponent",
   amount: 1,
   condition: { kind: "ifThisEffectActed" },
-};
+} satisfies Action;
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", actions: suspendLock },

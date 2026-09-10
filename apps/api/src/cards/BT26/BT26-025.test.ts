@@ -38,9 +38,9 @@ describe("BT26-025 Liollmon", () => {
           hand: [{ card: "BT26-025", as: "liollmon" }],
           security: [
             { card: "BT1-009", as: "topSecurity" },
-            { card: "BT1-011", as: "bottomSecurity" },
+            { card: "BT1-009", as: "bottomSecurity" },
           ],
-          deck: [{ card: "BT1-010", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -65,7 +65,7 @@ describe("BT26-025 Liollmon", () => {
           battleArea: [{ card: "ST23-14", as: "tamer", under: [{ card: "BT1-010", as: "existing" }] }],
           hand: [{ card: "BT26-025", as: "liollmon" }],
           security: [{ card: "BT1-009", as: "topSecurity" }],
-          deck: [{ card: "BT1-011", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -88,7 +88,7 @@ describe("BT26-025 Liollmon", () => {
       0: {
         hand: [{ card: "BT26-025", as: "liollmon" }],
         security: [{ card: "BT1-009", as: "security" }],
-        deck: [{ card: "BT1-010", as: "notRecovered" }],
+        deck: [{ card: "BT1-009", as: "notRecovered" }],
       },
     });
     s.state.memory = 3;
@@ -109,7 +109,7 @@ describe("BT26-025 Liollmon", () => {
           breeding: { card: "BT26-025", as: "mover" },
           battleArea: [{ card: "ST23-14", as: "tamer" }],
           security: [{ card: "BT1-009", as: "security" }],
-          deck: [{ card: "BT1-010", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -128,9 +128,9 @@ describe("BT26-025 Liollmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
-        deck: [{ card: "BT1-010", as: "recovery" }],
+        deck: [{ card: "BT1-009", as: "recovery" }],
       },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
 
     expect(
@@ -154,7 +154,7 @@ describe("BT26-025 Liollmon", () => {
             { card: "ST23-14", as: "tamer" },
           ],
           security: [{ card: "BT1-009", as: "security" }],
-          deck: [{ card: "BT1-010", as: "notRecovered" }],
+          deck: [{ card: "BT1-009", as: "notRecovered" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -173,7 +173,7 @@ describe("BT26-025 Liollmon", () => {
         0: {
           battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
           security: [{ card: "BT1-009", as: "security" }],
-          deck: [{ card: "BT1-010", as: "notRecovered" }],
+          deck: [{ card: "BT1-009", as: "notRecovered" }],
         },
       },
       { autoDeclineOptional: true },
@@ -194,8 +194,8 @@ describe("BT26-025 Liollmon", () => {
           battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
           security: [{ card: "BT1-009", as: "taken" }],
           deck: [
-            { card: "BT1-010", as: "recovery" },
-            { card: "BT1-011", as: "notRecovered" },
+            { card: "BT1-009", as: "recovery" },
+            { card: "BT1-009", as: "notRecovered" },
           ],
         },
       },

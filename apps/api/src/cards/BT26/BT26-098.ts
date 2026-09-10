@@ -1,32 +1,31 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const lalamon = {
+const lalamon: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Lalamon"], match: "nameExact" }],
 };
-const sunflowmon = {
+const sunflowmon: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Sunflowmon"], match: "nameExact" }],
 };
-const lilamon = {
+const lilamon: Filter = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Lilamon"], match: "nameExact" }],
 };
-const rosemon = {
+const rosemon: Filter = {
   controller: "mine",
   zone: "hand",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Rosemon"], match: "nameExact" }],
 };
-const securityPlayable = {
+const securityPlayable: Filter = {
   controller: "mine",
   zone: ["hand", "trash"],
   kind: ["Digimon", "Tamer"],

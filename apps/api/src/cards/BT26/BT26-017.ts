@@ -1,27 +1,26 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const shambalaTarget = {
+const shambalaTarget: Target = {
   count: 1,
   filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] },
 };
-const grantActions = [
+const grantActions: Action[] = [
   { kind: "SelectBind", target: { ...shambalaTarget, bindAs: "zanbamonGrantTarget" } },
   {
     kind: "GainKeyword",
-    target: { fromSelectionRef: "zanbamonGrantTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "zanbamonGrantTarget" },
     keyword: { keyword: "SecurityAttack", amount: 1 },
     duration: "forTheTurn",
   },
   {
     kind: "GainKeyword",
-    target: { fromSelectionRef: "zanbamonGrantTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "zanbamonGrantTarget" },
     keyword: { keyword: "Progress" },
     duration: "forTheTurn",
   },
 ];
-const playTrash = {
+const playTrash: Action = {
   kind: "PlayWithoutCost",
   from: ["trash"],
   payCost: false,

@@ -1,27 +1,30 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const aegiomon = {
+const aegiomon: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
 };
-const yukiTamer = {
+const yukiTamer: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Tamer"],
   nameOrTrait: [{ tokens: ["Dan Yuki"], match: "name" }],
 };
-const jupitermon = {
+const jupitermon: Filter = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }],
 };
-const aegiocHusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
-const tsSecurity = {
+const aegiocHusmon: Filter = {
+  controller: "mine",
+  zone: "trash",
+  nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }],
+};
+const tsSecurity: Filter = {
   controller: "mine",
   zone: "hand",
   kind: ["Digimon", "Tamer"],

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT26-080.js";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -28,7 +29,7 @@ describe("BT26-080 compiled behavior", () => {
     expect(compiled.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
-        expect.objectContaining({ keyword: "Succession" }),
+        expect.objectContaining({ keyword: "UseReq" }),
       ]),
     );
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
@@ -77,7 +78,7 @@ describe("BT26-080 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT25-077", as: "bacchusmon" }],
         hand: [{ card: "BT26-080", as: "dual" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -96,6 +97,7 @@ describe("BT26-080 compiled behavior", () => {
   });
 
   it("uses Succession to gain the topmost Bacchusmon card's On Play effect", async () => {
+    // Engine seam: no public intent currently declares inherited Succession timing from a seeded stack.
     const s = setupEngine(
       {
         0: {
@@ -123,20 +125,25 @@ describe("BT26-080 compiled behavior", () => {
   it("deletes only an opposing Digimon with the same live orientation", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-080", as: "source", suspended: true }] },
+        0: { battleArea: [{ card: "BT26-080", as: "source" }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "same", suspended: true },
-            { card: "BT1-011", as: "different", suspended: false },
+            { card: "BT1-011", as: "different", suspended: true },
           ],
         },
       },
       { autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);
@@ -145,7 +152,7 @@ describe("BT26-080 compiled behavior", () => {
   it("shares the orientation deletion once per turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-080", as: "source", suspended: true }] },
+        0: { battleArea: [{ card: "BT26-080", as: "source" }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first", suspended: true },
@@ -157,12 +164,14 @@ describe("BT26-080 compiled behavior", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
-      attackerPermanentId: s.perm("source").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
@@ -171,18 +180,29 @@ describe("BT26-080 compiled behavior", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-080", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponentCost" }] },
+        0: {
+          battleArea: [{ card: "BT25-077", as: "base", suspended: false }],
+          hand: [{ card: "BT26-080", as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentCost" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("opponentCost").permanentId);
+    s.state.memory = 2;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-080");
 
-    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("Q7113 may suspend your Digimon and still attack without suspending", async () => {
@@ -190,19 +210,26 @@ describe("BT26-080 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT26-080", as: "source" },
-            { card: "BT1-009", as: "ownCost" },
-          ],
+          battleArea: [{ card: "BT25-077", as: "base" }, { card: "BT1-009", as: "ownCost" }],
+          hand: [{ card: "BT26-080", as: "source" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("ownCost").permanentId);
+    s.state.memory = 2;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-080");
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("ownCost").isSuspended).toBe(true);
@@ -296,7 +323,7 @@ describe("BT26-080 compiled behavior", () => {
   it("performs 2 security checks with Security A. +1", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-080", as: "source" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
 

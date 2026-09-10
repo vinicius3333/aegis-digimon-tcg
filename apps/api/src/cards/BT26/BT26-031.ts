@@ -1,18 +1,20 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
+const glowingDawn = {
+  controller: "mine",
+  nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+} satisfies Filter;
 const recovery = [
   {
     kind: "CostGatedBlock",
     cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
     optional: true,
     abortOnDecline: true,
-    actions: [{ kind: "Recover", controller: "mine", amount: 1 }],
+    actions: [{ kind: "Recover", amount: 1 }],
   },
-];
+] satisfies Action[];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -65,7 +67,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
-          target: { fromSelectionRef: "murashigureTarget" },
+          target: { filter: {}, count: 1, fromSelectionRef: "murashigureTarget" },
           amount: -8000,
           duration: "untilOpponentTurnEnd",
         },
@@ -77,7 +79,7 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "ModifyDP",
-              target: { fromSelectionRef: "murashigureTarget" },
+              target: { filter: {}, count: 1, fromSelectionRef: "murashigureTarget" },
               amount: -5000,
               duration: "untilOpponentTurnEnd",
             },

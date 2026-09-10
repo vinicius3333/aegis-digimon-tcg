@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -63,9 +62,10 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-050", as: "burstMode" },
+            { card: "BT26-049", as: "base" },
             { card: "BT26-036", as: "returned", suspended: true },
           ],
+          hand: [{ card: "BT26-050", as: "burstMode" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }],
@@ -74,9 +74,17 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("burstMode"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("burstMode").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-050");
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toContain("BT26-036");
@@ -87,7 +95,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       {
         0: { battleArea: [{ card: "BT26-050", as: "attacker" }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "returned", suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "returned", suspended: true, dp: 20000 }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
@@ -95,7 +103,14 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("returned").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -107,15 +122,30 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       {
         0: { battleArea: [{ card: "BT26-050", as: "attacker" }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "returned", suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "returned", suspended: true, dp: 20000 }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("returned").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -127,10 +157,11 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-050", as: "burstMode" },
+            { card: "BT26-049", as: "base" },
             { card: "BT1-082", as: "ownSuspendTargetOne" },
             { card: "BT1-083", as: "ownSuspendTargetTwo" },
           ],
+          hand: [{ card: "BT26-050", as: "burstMode" }],
         },
         1: {
           battleArea: [
@@ -149,7 +180,15 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     await s.ready();
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("burstMode"));
+    s.state.memory = 5;
+    const resolving = Promise.resolve(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("burstMode").instanceId,
+        useAlternateCost: true,
+      }),
+    );
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const suspendDecisionId = s.state.pendingDecision!.decisionId;
     expect(
@@ -182,16 +221,25 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-050", as: "burstMode" },
+            { card: "BT26-049", as: "base" },
             { card: "BT1-082", as: "returnCost", suspended: true },
           ],
+          hand: [{ card: "BT26-050", as: "burstMode" }],
         },
         1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("burstMode"));
+    s.state.memory = 5;
+    const resolving = Promise.resolve(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("burstMode").instanceId,
+        useAlternateCost: true,
+      }),
+    );
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const pending = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
@@ -253,8 +301,9 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
             { card: "BT26-091", as: "yoshino" },
           ],
           hand: [{ card: "BT26-050", as: "burst" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"], hand: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -274,8 +323,13 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(yoshino);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(priorTop);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("requires the exact [Rosemon] base for Burst Digivolve", async () => {

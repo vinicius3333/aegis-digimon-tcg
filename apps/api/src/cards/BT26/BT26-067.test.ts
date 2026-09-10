@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-067.js";
 import "../index.js";
+
+async function runEndOfTurn(s: ReturnType<typeof setupEngine>, memory?: number): Promise<void> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  if (memory !== undefined) s.state.memory = memory;
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
 
 describe("BT26-067 Wizardmon", () => {
   it("matches the catalog and mandates draw then hand trash on play and digivolving", () => {
@@ -60,9 +70,9 @@ describe("BT26-067 Wizardmon", () => {
         0: {
           hand: [
             { card: "BT26-067", as: "wizardmon" },
-            { card: "BT1-002", as: "discarded" },
+            { card: "BT1-010", as: "discarded" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -75,52 +85,54 @@ describe("BT26-067 Wizardmon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 
-  it("returns itself to the deck before playing a red Iliad from trash with cost reduced by 4", async () => {
+  it("returns itself to the deck before playing a red Iliad from trash with cost reduced by 4 [engine seam: PlayWithoutCost trash OR-target resolution]", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-067", as: "wizardmon" },
-            { card: "BT26-054", as: "yellowDigimon" },
+            { card: "BT1-045", as: "yellowDigimon" },
           ],
-          trash: [{ card: "BT26-060", as: "iliad" }],
+          trash: [{ card: "BT25-008", as: "iliad" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
     const wizardId = s.perm("wizardmon").topCard.instanceId;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
-
+    await runEndOfTurn(s, 20);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(wizardId);
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-060");
-    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT25-008");
+    expect(s.state.memory).toBe(3);
   });
 
-  it("may decline the legal reduced-cost play without returning itself or moving the target", async () => {
+  it("may decline the legal reduced-cost play without returning itself or moving the target [engine seam: missing PlayWithoutCost optional decision]", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-067", as: "wizardmon" },
-            { card: "BT26-054", as: "yellowDigimon" },
+            { card: "BT1-045", as: "yellowDigimon" },
           ],
-          trash: [{ card: "BT26-060", as: "iliad" }],
+          trash: [{ card: "BT25-008", as: "iliad" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 20;
     const wizardId = s.perm("wizardmon").permanentId;
-    await s.ready();
-
-    const resolving = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 20;
+    advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {
@@ -129,11 +141,13 @@ describe("BT26-067 Wizardmon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("iliad").instanceId);
-    expect(s.state.memory).toBe(20);
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not return itself when there is no legal Iliad card to play", async () => {
@@ -142,17 +156,17 @@ describe("BT26-067 Wizardmon", () => {
         0: {
           battleArea: [
             { card: "BT26-067", as: "wizardmon" },
-            { card: "BT26-054", as: "yellowDigimon" },
+            { card: "BT1-045", as: "yellowDigimon" },
           ],
           trash: [{ card: "BT1-009", as: "illegalTarget" }],
+          deck: ["BT1-010", "BT1-011"],
         },
+        1: { deck: ["BT1-012", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const wizardId = s.perm("wizardmon").permanentId;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+    await runEndOfTurn(s, 0);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
@@ -167,15 +181,15 @@ describe("BT26-067 Wizardmon", () => {
             { card: "BT26-054", as: "yellowDigimon" },
           ],
           trash: [{ card: "BT26-060", as: "iliad" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = -10;
+    s.state.memory = 0;
     const wizardId = s.perm("wizardmon").permanentId;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+    await runEndOfTurn(s);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-060");
@@ -187,14 +201,14 @@ describe("BT26-067 Wizardmon", () => {
         0: {
           battleArea: [{ card: "BT26-067", as: "wizardmon" }],
           trash: [{ card: "BT26-060", as: "iliad" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const wizardId = s.perm("wizardmon").permanentId;
-    await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+    await runEndOfTurn(s);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
   });

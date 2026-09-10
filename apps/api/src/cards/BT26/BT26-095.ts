@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const beatbreak = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const beatbreak: Pick<Filter, "nameOrTrait"> = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
 const startCost = {
   kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...beatbreak }, count: 1 },
@@ -12,8 +11,8 @@ const startCost = {
   destination: "digivolutionStack",
   position: "bottom",
   faceDown: true,
-};
-const deletionBody = [
+} satisfies Action["cost"];
+const deletionBody: Action[] = [
   {
     kind: "CostGatedBlock",
     cost: { kind: "suspend", target: self },

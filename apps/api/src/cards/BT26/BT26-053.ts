@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const option = {
@@ -9,7 +8,7 @@ const option = {
     kind: ["Option"],
     playCostLte: 4,
     nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
-  },
+  } satisfies Filter,
   count: 1,
 };
 export const compiled: CompiledCard = {

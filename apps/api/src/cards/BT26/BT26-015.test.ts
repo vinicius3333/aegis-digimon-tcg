@@ -1,6 +1,5 @@
-import { EffectTiming, Phase } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-015.js";
 import "./BT26-015.js";
@@ -107,9 +106,9 @@ describe("BT26-015 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-015", as: "butenmon" }],
+          hand: [{ card: "BT26-015", as: "butenmon" }],
           trash: [{ card: "BT1-011", as: "returned" }],
-          deck: [{ card: "BT1-002", as: "deckCard" }],
+          deck: [{ card: "BT1-009", as: "deckCard" }],
         },
         1: {
           battleArea: [
@@ -120,9 +119,11 @@ describe("BT26-015 compiled fidelity", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("butenmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.length === 0);
 
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-011");
@@ -134,7 +135,7 @@ describe("BT26-015 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-015", as: "butenmon" }],
+          hand: [{ card: "BT26-015", as: "butenmon" }],
           trash: [{ card: "BT1-011", as: "notReturned" }],
         },
         1: { battleArea: [{ card: "BT26-014", as: "target", dp: 9000 }] },
@@ -142,7 +143,12 @@ describe("BT26-015 compiled fidelity", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("butenmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 5000);
 
     expect(s.perm("target").currentDP).toBe(5000);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("notReturned").instanceId]);
@@ -153,7 +159,7 @@ describe("BT26-015 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-015", as: "butenmon" }],
+          hand: [{ card: "BT26-015", as: "butenmon" }],
           trash: [{ card: "BT1-011", as: "returned" }],
         },
         1: {
@@ -168,7 +174,11 @@ describe("BT26-015 compiled fidelity", () => {
     const zeroDpTargetId = s.perm("zeroDpTarget").permanentId;
     const deleteBoundaryId = s.perm("deleteBoundary").permanentId;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("butenmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     const targetDecisions = s.decisions.filter(({ req }) => req.kind === "chooseTargets");
@@ -190,12 +200,12 @@ describe("BT26-015 compiled fidelity", () => {
           ],
           hand: [
             { card: "BT26-023", as: "mojyamon" },
-            { card: "BT1-001", as: "material" },
+            { card: "BT1-009", as: "material" },
           ],
         },
         1: {
           battleArea: [{ card: "BT26-039", as: "returnedOpponent" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -231,7 +241,7 @@ describe("BT26-015 compiled fidelity", () => {
           hand: [{ card: "BT1-009", as: "bottom" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           deck: [{ card: "BT1-014", as: "drawn" }],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -267,9 +277,9 @@ describe("BT26-015 compiled fidelity", () => {
           { card: "BT26-015", as: "butenmon" },
           { card: "BT26-014", as: "candidate" },
         ],
-        deck: [{ card: "BT1-001", as: "revealed" }],
+        deck: [{ card: "BT1-009", as: "revealed" }],
       },
-      1: { security: ["BT1-002"] },
+      1: { security: ["BT1-010"] },
     });
     await s.ready();
 
@@ -289,18 +299,40 @@ describe("BT26-015 compiled fidelity", () => {
             { card: "BT26-015", as: "butenmon" },
             { card: "BT26-014", as: "candidate" },
           ],
+          hand: [
+            { card: "BT26-023", as: "mojyamon" },
+            { card: "BT1-009", as: "material" },
+          ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT26-039", as: "target" }], security: ["BT1-009", "BT1-010"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
-      effectAddedToDeckSeat: 0,
-      effectAddedToDeckBySeat: 0,
-      byEffectCardId: "BT26-015",
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mojyamon").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const secondDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("candidate").currentDP).toBe(7000);
     expect(s.perm("candidate").isSuspended).toBe(false);
@@ -320,29 +352,26 @@ describe("BT26-015 compiled fidelity", () => {
             { card: "BT1-012", as: "second" },
           ],
           deck: [
-            { card: "BT1-003", as: "firstDeck" },
-            { card: "BT1-004", as: "secondDeck" },
+            { card: "BT1-009", as: "firstDeck" },
+            { card: "BT1-010", as: "secondDeck" },
+          ],
+          hand: [
+            { card: "BT26-023", as: "mojyamon" },
+            { card: "BT1-009", as: "material" },
           ],
         },
+        1: { battleArea: [{ card: "BT26-039", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
-      effectAddedToDeckSeat: 0,
-      effectAddedToDeckBySeat: 0,
-      byEffectCardId: "BT26-015",
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mojyamon").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("target").instanceId));
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("plainHost").isSuspended).toBe(true);
-
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
-      effectAddedToDeckSeat: 0,
-      effectAddedToDeckBySeat: 0,
-      byEffectCardId: "BT26-015",
-    });
-    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

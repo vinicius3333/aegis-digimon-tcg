@@ -1,17 +1,17 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const titanOption = {
+const titanOption: Filter = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Option"],
   nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
 };
-const ownHand = { controllerDefault: "mine", zone: "hand" };
-const currentTurn = { kind: "isYourTurn", raw: "if it is your turn" };
-const useTitanOption = {
+const ownHand: Filter = { controllerDefault: "mine", zone: "hand" };
+const currentTurn: Condition = { kind: "isYourTurn", raw: "if it is your turn" };
+const useTitanOption: Action = {
   kind: "UseOptionWithoutCost",
+  filter: titanOption,
   target: { filter: titanOption, count: 1 },
   from: ["trash"],
   payCost: true,

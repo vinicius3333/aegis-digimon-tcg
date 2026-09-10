@@ -21,7 +21,7 @@ describe("BT26-040 Drimogemon", () => {
       0: {
         battleArea: [{ card: "EX9-014", as: "blueDm" }],
         hand: [{ card: CARD_ID, as: "drimogemon" }],
-        deck: ["BT5-022"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -162,7 +162,7 @@ describe("BT26-040 Drimogemon", () => {
 
   it("activates Training by suspending and placing the deck top face down underneath", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: CARD_ID, as: "trainer" }], deck: [{ card: "BT1-001", as: "trainingCard" }] } },
+      { 0: { battleArea: [{ card: CARD_ID, as: "trainer" }], deck: [{ card: "BT1-009", as: "trainingCard" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("trainer"));
