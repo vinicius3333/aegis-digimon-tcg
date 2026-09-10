@@ -38,7 +38,9 @@ describe("BT14-100", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
@@ -65,7 +67,9 @@ describe("BT14-100", () => {
     const levelFourId = s.perm("levelFour").permanentId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourId)).toBe(false);

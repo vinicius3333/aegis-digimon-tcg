@@ -14,12 +14,14 @@ describe("BT14-053", () => {
   it("once per turn may unsuspend itself when your effect suspends something", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenEffectSuspends",
-        sourceFilter: { kind: ["Digimon", "Tamer"] },
-        actions: [{ kind: "Unsuspend" }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          sourceFilter: { kind: ["Digimon", "Tamer"] },
+          actions: [{ kind: "Unsuspend" }],
+        },
+      ],
     }));
 
   it("naturally suspends an opposing Tamer and unsuspends itself when that effect resolves", async () => {
