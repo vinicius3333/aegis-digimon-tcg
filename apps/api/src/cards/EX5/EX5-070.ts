@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getCompiledCard } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -61,6 +60,7 @@ if (replacement?.kind === "Replacement") {
           // [X Antibody] is a named card reference here, not the broad [X Antibody] trait.
           nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
         },
+        count: 1,
       },
       amount: 1,
       faceDown: true,

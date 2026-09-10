@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -33,7 +32,7 @@ export const compiled: CompiledCard = {
           ],
           condition: {
             kind: "totalDigimonCount",
-            op: ">=",
+            op: "gte",
             value: 4,
           },
         },
@@ -65,7 +64,7 @@ export const compiled: CompiledCard = {
           ],
           condition: {
             kind: "totalDigimonCount",
-            op: ">=",
+            op: "gte",
             value: 4,
           },
         },

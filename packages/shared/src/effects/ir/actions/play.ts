@@ -25,6 +25,8 @@ export interface PlayWithoutCostAction extends ActionBase {
    * standalone CostModifier, and floored at 0. Ignored for a free play.
    */
   reduceCostBy?: number;
+  /** Additional fixed reduction when a runtime condition holds. */
+  reduceCostByIf?: { amount: number; condition: import("../predicates/conditions.js").Condition };
   /**
    * Offer the played Digimon's normal DigiXros declaration during this effect-driven paid play.
    * Default materials come from hand/battle area; applicable unsuspended expander Tamers may also

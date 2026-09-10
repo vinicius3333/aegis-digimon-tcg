@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getCompiledCard } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -20,9 +19,12 @@ if (staticEffect !== undefined && waiver !== undefined && staticEffect.actions.l
 const reduction = compiled.effects
   .flatMap((effect) => effect.actions)
   .find((action) => action.kind === "ReducePlayCost");
-if (reduction?.kind === "ReducePlayCost") {
-  reduction.scaling.filter.distinctNames = true;
-  reduction.scaling.filter.excludeSelf = true;
+if (reduction?.kind === "ReducePlayCost" && reduction.scaling !== undefined && reduction.amount.kind === "fixed") {
+  reduction.scaling.filter = {
+    ...(reduction.scaling.filter ?? {}),
+    distinctNames: true,
+    excludeSelf: true,
+  };
   const reductionEffect = compiled.effects.find((effect) => effect.actions.includes(reduction));
   if (reductionEffect !== undefined) {
     reductionEffect.actions.splice(reductionEffect.actions.indexOf(reduction), 1);

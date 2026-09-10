@@ -1,11 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-068.js";
 import "../index.js";
 
 describe("EX5-068 Flashy Boss Punch", () => {
+  it("matches the catalog contract", () => {
+    expect(getCardDefinition("EX5-068")).toMatchObject({
+      cardId: "EX5-068",
+      nameEn: "Flashy Boss Punch",
+      colors: ["Yellow", "Green"],
+      kinds: ["Option"],
+      playCost: 8,
+      types: ["Boss"],
+      effectText:
+        "While you have a Digimon with [Leomon]/[Bancho]\u00a0in its name, you may ignore this card's color requirements.[Main] Suspend 1 of your opponent's Digimon, and 1 of your opponent's Digimon gets -12000 DP for the turn. Then, 1 of your Digimon with [Leomon]/[Bancho]\u00a0in its name may attack.",
+      securityEffectText:
+        "[Security] Suspend 1 of your opponent's Digimon, and give 1 of your opponent's Digimon -12000 DP for the turn.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
   it("waives color requirements with Leomon/Bancho present and suspends then weakens an opposing Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
@@ -107,15 +121,33 @@ describe("EX5-068 Flashy Boss Punch", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX5-068")).toBe(true);
   });
 
-  it("applies the suspend and DP reduction from the Security timing", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX5-047", as: "leomon" }], security: [{ card: "EX5-068", as: "option" }] },
-      1: { battleArea: [{ card: "BT1-020", dp: 15000, as: "victim" }] },
-    });
+  it("applies the suspend and DP reduction from a public security check", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX5-068", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 1000 },
+            { card: "BT1-020", as: "victim", dp: 15000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").permanentId);
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("victim").isSuspended);
     expect(s.perm("victim").isSuspended).toBe(true);
     expect(s.perm("victim").currentDP).toBe(3000);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
   });
 });

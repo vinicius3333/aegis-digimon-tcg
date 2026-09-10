@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -39,22 +38,24 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
-            count: "scaling",
-            upTo: true,
-          },
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Deva", "Four Sovereigns"],
-                  match: "trait",
+            count: 1,
+            countModifier: {
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  excludeSelf: true,
+                  nameOrTrait: [
+                    { tokens: ["Deva"], match: "trait" },
+                    { tokens: ["Four Sovereigns"], match: "trait" },
+                  ],
                 },
-              ],
+                unit: "cards",
+              },
             },
-            unit: "cards",
+            upTo: true,
           },
         },
         {
@@ -81,22 +82,24 @@ export const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
-            count: "scaling",
-            upTo: true,
-          },
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Deva", "Four Sovereigns"],
-                  match: "trait",
+            count: 1,
+            countModifier: {
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  excludeSelf: true,
+                  nameOrTrait: [
+                    { tokens: ["Deva"], match: "trait" },
+                    { tokens: ["Four Sovereigns"], match: "trait" },
+                  ],
                 },
-              ],
+                unit: "cards",
+              },
             },
-            unit: "cards",
+            upTo: true,
           },
         },
         {

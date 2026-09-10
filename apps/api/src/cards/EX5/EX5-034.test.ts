@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,7 +6,25 @@ import { compiled } from "./EX5-034.js";
 import "../index.js";
 
 describe("EX5-034 BanchoLeomon", () => {
-  it("reduces play cost by five when combined security is six or fewer", () => {
+  it("matches the catalog and reduces play cost by five at six combined security", () => {
+    expect(getCardDefinition("EX5-034")).toMatchObject({
+      cardId: "EX5-034",
+      nameEn: "BanchoLeomon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [
+        { color: "Yellow", level: 5, memoryCost: 4 },
+        { color: "Green", level: 5, memoryCost: 4 },
+      ],
+      types: ["Beastkin", "Boss"],
+      effectText: expect.stringContaining("reduce the play cost by 5"),
+    });
+    expect(getCardDefinition("EX5-034")?.effectText).toContain("Suspend 1 of your opponent's Digimon");
+    expect(getCardDefinition("EX5-034")?.effectText).toContain("get -4000 DP and gain");
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")?.actions?.[0]).toMatchObject({
       kind: "ReducePlayCost",
       payment: {
@@ -80,6 +99,34 @@ describe("EX5-034 BanchoLeomon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX5-034"));
     expect(s.state.memory).toBe(-5);
+  });
+
+  it("publicly declines the optional package without changing the target", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX5-034", as: "bancho" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 9000 }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("target").currentDP).toBe(9000);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
 
   it("suspends an opponent and applies the same package on public digivolution", async () => {

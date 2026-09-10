@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,6 +11,9 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Unsuspend",
+          // Q3595: the mandatory security cost is paid even when the
+          // Digimon is already active; the Unsuspend itself can be a no-op.
+          allowCostWithoutTarget: true,
           target: {
             filter: {
               isSelfRef: true,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -48,15 +47,16 @@ export const compiled: CompiledCard = {
                 controller: "mine",
               },
               count: 1,
-              bindAs: "trashedCard",
             },
+            bindResultAs: "trashedCard",
             raw: "By trashing 1 card in your hand",
           },
         },
         {
           kind: "PlaceInBattleAreaSelf",
           condition: {
-            kind: "lastTrashedMatchesFilter",
+            kind: "bindingContains",
+            ref: "trashedCard",
             filter: {
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],

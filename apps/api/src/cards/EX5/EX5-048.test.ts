@@ -1,33 +1,50 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-048.js";
+import "../index.js";
 
 describe("EX5-048 Etemon", () => {
-  it("reduces one opposing Digimon by 3000 and grants that same Digimon a start-of-main-phase attack effect", () => {
-    const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions;
-    expect(actions?.[0]).toMatchObject({
-      kind: "ModifyDP",
-      amount: -3000,
-      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "dpTarget" },
+  it("matches the catalog and preserves every printed clause in IR", () => {
+    expect(getCardDefinition("EX5-048")).toMatchObject({
+      cardId: "EX5-048",
+      nameEn: "Etemon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Puppet"],
+      effectText: expect.stringContaining("Until the end of your opponent's turn"),
+      inheritedEffectText: expect.stringContaining("reveal the top 3 cards of your deck"),
     });
-    expect(actions?.[1]).toMatchObject({
-      kind: "GainEffect",
-      target: { fromSelectionRef: "dpTarget" },
-      grant: {
-        trigger: "StartOfYourMainPhase",
-        actions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, isSelf: true } }],
-      },
-      duration: "untilOpponentTurnEnd",
-    });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
-      { kind: "ModifyDP", target: { bindAs: "dpTarget" } },
-      { kind: "GainEffect", target: { fromSelectionRef: "dpTarget" } },
-    ]);
-  });
-  it("inherits a once-per-turn reveal-three play of a black or yellow low-cost Digimon when an opponent attacks", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }]);
+
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: -3000,
+            duration: "untilOpponentTurnEnd",
+            target: { bindAs: "dpTarget", count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+          },
+          {
+            kind: "GainEffect",
+            duration: "untilOpponentTurnEnd",
+            target: { fromSelectionRef: "dpTarget", count: 1 },
+            grant: { trigger: "StartOfYourMainPhase", actions: [{ kind: "Attack" }] },
+          },
+        ],
+      });
+    }
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
@@ -38,15 +55,21 @@ describe("EX5-048 Etemon", () => {
             {
               kind: "RevealAdd",
               revealCount: 3,
-              rest: "trash",
+              optional: true,
               add: [
                 {
                   count: 1,
                   to: "play",
                   optional: true,
-                  filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Black", "Yellow"], playCostLte: 3 },
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    colors: ["Black", "Yellow"],
+                    playCostLte: 3,
+                  },
                 },
               ],
+              rest: "trash",
             },
           ],
         },
@@ -54,38 +77,61 @@ describe("EX5-048 Etemon", () => {
     });
   });
 
-  it("reduces an opposing Digimon and makes that same Digimon attack at its owner's main phase", async () => {
+  it("publicly applies the play effect and expires the forced attack at opponent-turn end", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX5-048", as: "etemon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 7000 }], security: ["BT1-009"] },
+        0: {
+          hand: [{ card: "EX5-048", as: "etemon" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "target", dp: 10_000 }],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("etemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("victim").currentDP === 4000);
-    expect(s.perm("victim").currentDP).toBe(4000);
-
-    s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
-    await settle(() =>
+    await settle(() => s.perm("target").currentDP === 7000);
+    expect(s.perm("target").currentDP).toBe(7000);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+    expect(
       s.events.some(
-        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("victim").permanentId,
+        (event) =>
+          event.kind === "attackDeclared" &&
+          "attackerPermanentId" in event &&
+          event.attackerPermanentId === s.perm("target").permanentId,
       ),
-    );
-    expect(s.events).toContainEqual(
-      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: s.perm("victim").permanentId }),
-    );
+    ).toBe(true);
+    drive.endMainPhaseIfOpen(1);
+    await drive.waitForMainPhase(0);
+    expect(s.perm("target").currentDP).toBe(10_000);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("uses the Sukamon alternate evolution route for exactly 3 memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-040", as: "base" }], hand: [{ card: "EX5-048", as: "etemon" }] },
-    });
+  it("publicly applies the same -3000 and forced attack effect on the alternate evolution route", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-040", as: "base" }], hand: [{ card: "EX5-048", as: "etemon" }] },
+        1: { battleArea: [{ card: "BT1-014", as: "target", dp: 10_000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
     s.state.memory = 3;
     await s.ready();
     expect(
@@ -97,74 +143,195 @@ describe("EX5-048 Etemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX5-048");
-    expect(s.perm("base").topCard.cardId).toBe("EX5-048");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT11-040"]);
     expect(s.state.memory).toBe(0);
+    expect(s.perm("target").currentDP).toBe(7000);
   });
 
-  it("rejects the Sukamon alternate evolution route from a non-Sukamon base", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "EX5-048", as: "etemon" }] },
-    });
-    s.state.memory = 3;
+  it("resolves Q3625 through the real turn loop: simultaneous forced attacks yield only one attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-040", as: "base" }],
+          hand: [
+            { card: "EX5-048", as: "first" },
+            { card: "EX5-048", as: "second" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "targetA", dp: 10_000 },
+            { card: "BT1-014", as: "targetB", dp: 10_000 },
+          ],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("targetA").permanentId, s.perm("targetB").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("targetA").currentDP === 7000);
+    s.state.memory = 10;
+    preferred.splice(0, preferred.length, s.perm("targetB").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("second").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("targetB").currentDP === 7000);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT11-040"]);
+
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking());
+    const forced = s.events.filter(
+      (event) =>
+        event.kind === "attackDeclared" &&
+        "attackerPermanentId" in event &&
+        [s.perm("targetA").permanentId, s.perm("targetB").permanentId].includes(event.attackerPermanentId),
+    );
+    expect(forced).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    drive.endMainPhaseIfOpen(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("plays exactly one eligible black/yellow card and trashes the other revealed cards from an inherited attack trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-049", as: "host", under: ["EX5-048"] }],
+          deck: [
+            { card: "BT1-045", as: "eligible" },
+            { card: "BT1-015", as: "firstTrash" },
+            { card: "EX5-047", as: "secondTrash" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "attacker" }],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 0);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstTrash").instanceId, s.inst("secondTrash").instanceId]),
+    );
+    drive.endMainPhaseIfOpen(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("allows the inherited reveal to be declined publicly, leaving the deck and board unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-049", as: "host", under: ["EX5-048"] }],
+          deck: [{ card: "BT1-045", as: "eligible" }, "BT1-015", "EX5-047"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "attacker" }],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-015", "EX5-047"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    drive.endMainPhaseIfOpen(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it.each([
+    { label: "Sukamon alternate", base: "BT11-040", alternate: true, legal: true, cost: 3 },
+    { label: "black/yellow normal", base: "BT11-040", alternate: false, legal: true, cost: 4 },
+    { label: "non-Sukamon alternate", base: "BT1-014", alternate: true, legal: false, cost: 3 },
+  ])("checks the public $label evolution route", async ({ base, alternate, legal, cost }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: "EX5-048", as: "etemon" }],
+          deck: [{ card: "BT1-009", as: "bonus" }],
+        },
+      },
+      { autoChooseOption: true },
+    );
+    s.state.memory = 10;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("etemon").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
-  });
-
-  it("optionally reveals and plays only an eligible card, trashing the other revealed cards", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX5-049", as: "host", under: ["EX5-048"] }],
-          deck: ["BT1-045", "BT1-015", "EX5-047"],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT1-045"));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT1-045")).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-015", "EX5-047"]);
-  });
-
-  it("can decline the inherited reveal without moving cards from the deck", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX5-049", as: "host", under: ["EX5-048"] }],
-          deck: ["BT1-045", "BT1-015", "EX5-047"],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"] },
-      },
-      { autoAcceptOptional: false, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
+        useAlternateCost: alternate,
+      }).ok,
+    ).toBe(legal);
     await settle();
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-015", "EX5-047"]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("base").topCard.cardId).toBe(legal ? "EX5-048" : base);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.memory).toBe(legal ? 10 - cost : 10);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      legal ? [s.inst("bonus").instanceId] : [s.inst("etemon").instanceId],
+    );
   });
 });

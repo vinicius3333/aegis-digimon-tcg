@@ -1,10 +1,28 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-056.js";
+import "../index.js";
 
 describe("EX5-056 Syakomon", () => {
   it("draws based on opposing Digimon and trashes one card from hand on play", () => {
+    expect(getCardDefinition("EX5-056")).toMatchObject({
+      cardId: "EX5-056",
+      nameEn: "Syakomon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Crustacean"],
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+      effectText:
+        "[On Play] For each of your opponent's Digimon, ＜Draw 1＞ (Draw 1 card from your deck). Then, trash 1 card in your hand.",
+      inheritedEffectText: "[All Turns] [Once Per Turn] When an effect plays an opponent's Digimon, gain 1 memory.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       {
         kind: "Draw",
@@ -36,7 +54,7 @@ describe("EX5-056 Syakomon", () => {
         0: {
           hand: [
             { card: "EX5-056", as: "source" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -60,26 +78,83 @@ describe("EX5-056 Syakomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
-  it("gains memory once when an effect plays an opponent's Digimon, but not for a manual play", async () => {
-    const effectPlay = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX5-056"] }] },
-      1: {
-        hand: [
-          { card: "BT1-009", as: "effectPlayed" },
-          { card: "BT1-010", as: "second" },
-        ],
+  it("gains memory once across repeated public effect-plays of opponent Digimon (Q3649)", async () => {
+    const dragomon = getCardDefinition("EX5-060");
+    expect(dragomon?.playCost).toBe(7);
+    const effectPlay = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-080", as: "host", under: ["EX5-056"] }],
+          hand: [
+            { card: "EX5-060", as: "firstEffect" },
+            { card: "EX5-060", as: "secondEffect" },
+          ],
+        },
+        1: {
+          trash: [
+            { card: "BT1-009", as: "firstOpponent" },
+            { card: "BT1-010", as: "secondOpponent" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await effectPlay.ready();
-    effectPlay.state.memory = 0;
-    await advance(effectPlay.engine).verb.playInstances([effectPlay.inst("effectPlayed").instanceId], "EX5-056");
-    await advance(effectPlay.engine).verb.playInstances([effectPlay.inst("second").instanceId], "EX5-056");
-    await settle();
-    expect(effectPlay.state.memory).toBe(1);
+    effectPlay.state.memory = 10;
+    expect(
+      effectPlay.engine.applyIntent(0, { type: "playCard", instanceId: effectPlay.inst("firstEffect").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => effectPlay.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-009"));
+    // The real memory ceiling is 10. The seven-cost play therefore leaves 3,
+    // and Syakomon's inherited watcher adds exactly one memory.
+    expect(effectPlay.state.memory).toBe(4);
+    expect(
+      effectPlay.engine.applyIntent(0, { type: "playCard", instanceId: effectPlay.inst("secondEffect").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => effectPlay.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-010"));
+    // The second EX5-060 still costs 7, but the inherited Once Per Turn use is spent.
+    expect(effectPlay.state.memory).toBe(-3);
+    expect(effectPlay.state.players[1]!.trash).toHaveLength(0);
+    expect(effectPlay.state.pendingDecision).toBeUndefined();
+  });
 
+  it("proves the inherited +1 memory against an identical no-watcher control", async () => {
+    const withWatcher = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-080", under: ["EX5-056"] }], hand: [{ card: "EX5-060", as: "source" }] },
+        1: { trash: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const control = setupEngine(
+      {
+        0: { hand: [{ card: "EX5-060", as: "source" }] },
+        1: { trash: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await withWatcher.ready();
+    await control.ready();
+    withWatcher.state.memory = 10;
+    control.state.memory = 10;
+    expect(
+      withWatcher.engine.applyIntent(0, { type: "playCard", instanceId: withWatcher.inst("source").instanceId }),
+    ).toEqual({ ok: true });
+    expect(control.engine.applyIntent(0, { type: "playCard", instanceId: control.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => withWatcher.state.players[1]!.battleArea.length > 0);
+    await settle(() => control.state.players[1]!.battleArea.length > 0);
+    expect(withWatcher.state.memory).toBe(control.state.memory + 1);
+    expect(control.state.memory).toBe(3);
+  });
+
+  it("does not gain memory when the opponent manually plays a Digimon", async () => {
     const manualPlay = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX5-056"] }] },
-      1: { hand: [{ card: "BT1-009", as: "manual" }] },
+      0: { battleArea: [{ card: "BT4-080", as: "host", under: ["EX5-056"] }] },
+      1: {
+        hand: [{ card: "BT1-009", as: "manual" }],
+      },
     });
     manualPlay.state.turnSeat = 1;
     manualPlay.state.memory = 10;

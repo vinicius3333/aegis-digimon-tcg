@@ -1,13 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { dnaDigivolutionRequirementsFor, requireCardDefinition } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, getCardDefinition, requireCardDefinition } from "@aegis/shared";
 import { canPayCost } from "../../engine/effects/interpreter/costs.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
 import "../index.js";
 
 describe("EX5-073 GraceNovamon", () => {
+  it("matches the catalog contract", () => {
+    expect(getCardDefinition("EX5-073")).toMatchObject({
+      cardId: "EX5-073",
+      nameEn: "GraceNovamon",
+      colors: ["Red", "Blue"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Galaxy"],
+      effectText: expect.stringContaining("DNA Digivolution: 0 from [Apollomon] + [Dianamon]"),
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
   it("has its printed Security Attack plus one and Blocker keywords", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
       { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
@@ -31,7 +46,7 @@ describe("EX5-073 GraceNovamon", () => {
         amount: 8,
         scope: "acrossDigimon",
         condition: { kind: "isDnaDigivolving" },
-        target: { count: "any", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" } },
+        target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" } },
       },
       {
         kind: "Delete",
@@ -171,19 +186,49 @@ describe("EX5-073 GraceNovamon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(9); // 8 trashed sources plus the deleted Digimon.
   });
 
+  it("trashes as many as possible when fewer than eight opponent sources exist", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-014", as: "apollo" },
+            { card: "EX5-025", as: "diana" },
+          ],
+          hand: [{ card: "EX5-073", as: "grace" }],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "target", under: ["BT1-010", "BT1-011"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("apollo").permanentId, s.perm("diana").permanentId],
+        instanceId: s.inst("grace").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011", "BT1-024"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("prevents an opponent-effect deletion by trashing two same-level cards from its own stack", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX5-073", as: "grace", under: ["BT1-010", "BT1-011"] }] } },
+      {
+        0: { battleArea: [{ card: "EX5-073", as: "grace", dp: 4000, under: ["BT1-010", "BT1-011"] }] },
+        1: { hand: [{ card: "EX5-012", as: "deleter" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const graceId = s.perm("grace").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
     await s.ready();
-
-    const driver = advance(s.engine);
-    driver.verb.enterEffectResolution(1, ["Digimon"]);
-    const removed = await driver.verb.deletePermanent([graceId], "byEffect");
-    driver.verb.leaveEffectResolution();
-    expect(removed).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deleter").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.length >= 2);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === graceId)).toBe(true);
