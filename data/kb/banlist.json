@@ -2,6 +2,38 @@
   "source": "https://world.digimoncard.com/rule/restriction_card/",
   "events": [
     {
+      "cardId": "BT15-003",
+      "name": "Nyaromon",
+      "status": "banned",
+      "count": 0,
+      "effectiveDate": "2026-09-01",
+      "action": "restrict"
+    },
+    {
+      "cardId": "EX1-066",
+      "name": "Analog Youth",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01",
+      "action": "restrict"
+    },
+    {
+      "cardId": "EX8-012",
+      "name": "Growlmon (X Antibody)",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01",
+      "action": "restrict"
+    },
+    {
+      "cardId": "BT14-033",
+      "name": "Patamon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01",
+      "action": "restrict"
+    },
+    {
       "cardId": "BT23-032",
       "name": "Shakkoumon",
       "status": "restricted",
@@ -892,6 +924,34 @@
       "status": "restricted",
       "count": 1,
       "effectiveDate": "2026-04-04"
+    },
+    "BT15-003": {
+      "cardId": "BT15-003",
+      "name": "Nyaromon",
+      "status": "banned",
+      "count": 0,
+      "effectiveDate": "2026-09-01"
+    },
+    "EX1-066": {
+      "cardId": "EX1-066",
+      "name": "Analog Youth",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01"
+    },
+    "EX8-012": {
+      "cardId": "EX8-012",
+      "name": "Growlmon (X Antibody)",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01"
+    },
+    "BT14-033": {
+      "cardId": "BT14-033",
+      "name": "Patamon",
+      "status": "restricted",
+      "count": 1,
+      "effectiveDate": "2026-09-01"
     }
   }
 }
