@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }],
+            nameOrTrait: [{ tokens: ["Jellymon"], match: "name" }],
           },
           position: "bottom",
           bindHostAs: "thetismonJellymonHost",

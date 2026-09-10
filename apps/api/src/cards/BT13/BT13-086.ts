@@ -10,8 +10,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: {
-            controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Gizmon: XT"], match: "nameExact" }],
+            isSelfRef: true,
           },
           actions: [
             {

@@ -27,7 +27,7 @@ describe("BT13-028 Thetismon", () => {
         {
           kind: "PlaceUnder",
           target: { filter: { zone: "hand", nameOrTrait: [{ tokens: ["TeslaJellymon"], match: "nameExact" }] } },
-          underFilter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }] },
+          underFilter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "name" }] },
           position: "bottom",
           bindHostAs: "thetismonJellymonHost",
           abortOnDecline: true,
@@ -141,22 +141,37 @@ describe("BT13-028 Thetismon", () => {
     expect(s.inst("thetismon").activatableEffectsJson).toBe("");
   });
 
-  it("requires exact Jellymon and does not treat TeslaJellymon as the destination host", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-026", as: "tesla-host" },
-          { card: "BT9-086", as: "kiyoshiro" },
-        ],
-        hand: [
-          { card: "BT13-028", as: "thetismon" },
-          { card: "BT13-026", as: "tesla-cost" },
-        ],
+  it("accepts a TeslaJellymon name-family host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-026", as: "tesla-host" },
+            { card: "BT9-086", as: "kiyoshiro" },
+          ],
+          hand: [
+            { card: "BT13-028", as: "thetismon" },
+            { card: "BT13-026", as: "tesla-cost" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
     await s.ready();
-    expect(s.inst("thetismon").activatableEffectsJson).toBe("");
-    expect(s.perm("tesla-host").stack).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("thetismon").instanceId,
+        effectKey: handMainEffectKey(s, s.inst("thetismon")),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tesla-host").topCard.cardId === "BT13-028");
+
+    expect(s.perm("tesla-host").stack.map(({ cardId }) => cardId)).toEqual(["BT13-026", "BT13-026"]);
+    expect(s.perm("tesla-host").topCard.cardId).toBe("BT13-028");
+    expect(s.state.memory).toBe(2);
   });
 
   it("returns three heterogeneous Jellymon-text cards in the chosen order to unsuspend after attacking", async () => {

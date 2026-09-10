@@ -21708,7 +21708,7 @@
             "underFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Jellymon"], "match": "nameExact" }]
+              "nameOrTrait": [{ "tokens": ["Jellymon"], "match": "name" }]
             },
             "position": "bottom",
             "bindHostAs": "thetismonJellymonHost",
@@ -24536,10 +24536,7 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Gizmon: XT"], "match": "nameExact" }]
-            },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Replacement",
