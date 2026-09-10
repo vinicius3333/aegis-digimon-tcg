@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — suspending an already suspended Digimon is not a state transition, so it is not
 // a legal target for this mandatory effect. Keep the structured `suspended: false` filter when
 // regenerating the compiled IR.

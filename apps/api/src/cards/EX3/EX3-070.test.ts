@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-070.js";
@@ -17,12 +16,58 @@ describe("EX3-070 Avalon's Gate", () => {
       rarity: "R",
       imageId: "EX3-070",
     });
-    expect(definition.effectText).toContain("Activate 1 of the effects below");
-    expect(definition.effectText).toContain("[Examon] in its name");
-    expect(definition.effectText).toContain("gains ＜Piercing＞ for the turn");
+    expect(definition.effectText).toBe(
+      "[Main] Activate 1 of the effects below. If you have a Digimon with [Examon] in its name in play, activate all of the effects below instead.・Suspend 1 of your opponent's Digimon, and 1 of your Digimon gains ＜Piercing＞ for the turn.・Unsuspend 1 of your Digimon.",
+    );
     expect(definition.securityEffectText).toBe(
       "[Security] Suspend 1 of your opponent's Digimon, and unsuspend 1 of your Digimon.",
     );
+    expect(getCompiledCard("EX3-070")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Modal",
+              choose: 1,
+              chooseAll: {
+                condition: {
+                  kind: "youHave",
+                  filter: {
+                    zone: "battleArea",
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Examon"], match: "name" }],
+                  },
+                },
+              },
+              options: [
+                [
+                  { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+                  {
+                    kind: "GainKeyword",
+                    target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+                    keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+                    duration: "forTheTurn",
+                  },
+                ],
+                [{ kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
+              ],
+            },
+          ],
+        },
+        {
+          trigger: "Security",
+          actions: [
+            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+            { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
+          ],
+          isSecurity: true,
+        },
+      ],
+    });
   });
 
   it("without Examon, can choose the suspend and Piercing bullet only", async () => {
@@ -113,6 +158,36 @@ describe("EX3-070 Avalon's Gate", () => {
     assertNoLoudGap(s);
   });
 
+  it("Q3435 composition: bullet 1 skips its unavailable Suspend target and still grants Piercing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-037", as: "piercingTarget" }],
+          hand: [{ card: "EX3-070", as: "gate" }],
+        },
+        1: {},
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gate").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasPierce(s.perm("piercingTarget")));
+
+    expect(observe(s.engine).hasPierce(s.perm("piercingTarget"))).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-070" && req.kind === "chooseOption")).toHaveLength(
+      1,
+    );
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === "EX3-070" && req.kind === "chooseTargets"),
+    ).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("without Examon, can choose the unsuspend bullet only", async () => {
     const s = setupEngine(
       {
@@ -166,59 +241,73 @@ describe("EX3-070 Avalon's Gate", () => {
     assertNoLoudGap(s);
   });
 
-  it("Security suspends an opposing Digimon and unsuspends one of yours", async () => {
+  it("Security suspends an opposing Digimon and unsuspends one of yours through a public attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX3-070", faceUp: true, as: "gate" }],
+          security: [{ card: "EX3-070", as: "gate" }],
           battleArea: [{ card: "EX3-038", suspended: true, as: "mine" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker" },
+            { card: "BT1-011", as: "opponent" },
+          ],
+        },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("opponent").permanentId, s.perm("mine").permanentId);
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("gate"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").isSuspended && !s.perm("mine").isSuspended);
 
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("mine").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("gate").instanceId);
     assertNoLoudGap(s);
   });
 
   it("Q3435: Security still suspends when you have no Digimon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { security: [{ card: "EX3-070", faceUp: true, as: "gate" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("gate"));
-
-    expect(s.perm("opponent").isSuspended).toBe(true);
-    assertNoLoudGap(s);
-  });
-
-  it("Q3435: Security still unsuspends when the opponent has no Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          security: [{ card: "EX3-070", faceUp: true, as: "gate" }],
-          battleArea: [{ card: "EX3-038", suspended: true, as: "mine" }],
+        0: { security: [{ card: "EX3-070", as: "gate" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker" },
+            { card: "BT1-011", as: "opponent" },
+          ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opponent").permanentId);
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("gate"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").isSuspended);
 
-    expect(s.perm("mine").isSuspended).toBe(false);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });

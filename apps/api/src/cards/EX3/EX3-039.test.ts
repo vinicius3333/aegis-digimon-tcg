@@ -26,6 +26,8 @@ describe("EX3-039 Coredramon", () => {
       maxCountInDeck: 4,
       imageId: "EX3-039",
     });
+    expect(getCardDefinition("EX3-039")!.effectText).toContain("＜Blocker＞");
+    expect(getCardDefinition("EX3-039")!.inheritedEffectText).toContain("[Dramon] or [Examon]");
   });
 
   it("digivolves from Dracomon for the alternate cost 2", async () => {
@@ -51,6 +53,27 @@ describe("EX3-039 Coredramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("dracomon").stack.map(({ cardId }) => cardId)).toContain("EX3-037");
+  });
+
+  it("rejects a non-green or blue level 3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-039", as: "coredramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("coredramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-039");
   });
 
   it("uses the printed cost 3 from a blue level 3 that isn't Dracomon", async () => {

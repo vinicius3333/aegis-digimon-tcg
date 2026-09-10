@@ -23,6 +23,29 @@ describe("EX3-043 Entmon", () => {
       rarity: "R",
       imageId: "EX3-043",
     });
+    expect(getCardDefinition("EX3-043")!.effectText).toContain("＜Digisorption -3＞");
+    expect(getCardDefinition("EX3-043")!.effectText).toContain("2 or more suspended Digimon");
+  });
+
+  it("rejects a non-green level 4 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-043", as: "entmon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("entmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-043");
   });
 
   it("Vegetation family: pays Digisorption with the only legal ally, reduces cost by 3, then unsuspends at 2", async () => {
@@ -36,7 +59,7 @@ describe("EX3-043 Entmon", () => {
             { card: "BT1-065", suspended: true, as: "ineligibleMushroomon" },
           ],
           hand: [{ card: "EX3-043", as: "entmon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-028", as: "opposingDigimon" }] },
       },
@@ -56,6 +79,7 @@ describe("EX3-043 Entmon", () => {
     await settle(() => s.perm("woodmonBase").topCard.cardId === "EX3-043" && !s.perm("woodmonBase").isSuspended);
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("woodmonBase").stack.map(({ cardId }) => cardId)).toEqual(["BT1-072"]);
     expect(s.perm("pomumonCost").isSuspended).toBe(true);
     expect(s.perm("woodmonBase").isSuspended).toBe(false);
     // Pomumon's own registered watcher sees the Digisorption suspension and suspends the opponent.
@@ -92,7 +116,7 @@ describe("EX3-043 Entmon", () => {
             { card: "EX3-038", as: "cost" },
           ],
           hand: [{ card: "EX3-043", as: "entmon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -124,7 +148,7 @@ describe("EX3-043 Entmon", () => {
             { card: "EX3-038", suspended: true, as: "ally" },
           ],
           hand: [{ card: "EX3-043", as: "entmon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -160,7 +184,7 @@ describe("EX3-043 Entmon", () => {
           { card: "EX3-038", as: "cost" },
         ],
         hand: [{ card: "EX3-043", as: "entmon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 1;
@@ -198,7 +222,7 @@ describe("EX3-043 Entmon", () => {
           { card: "EX3-038", suspended: true, as: "ally" },
         ],
         hand: [{ card: "EX3-043", as: "entmon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 4;
@@ -227,7 +251,7 @@ describe("EX3-043 Entmon", () => {
             { card: "EX3-038", as: "readyAlly" },
           ],
           hand: [{ card: "EX3-043", as: "entmon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -257,7 +281,7 @@ describe("EX3-043 Entmon", () => {
             { card: "EX3-038", as: "readyAlly" },
           ],
           hand: [{ card: "EX3-043", as: "entmon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-028", suspended: true, as: "opponent" }] },
       },
@@ -287,7 +311,7 @@ describe("EX3-043 Entmon", () => {
           { card: "EX3-038", suspended: true, as: "ally" },
         ],
         hand: [{ card: "EX3-043", as: "entmon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 4;

@@ -2,7 +2,7 @@ import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./EX3-034.js";
+import { compiled } from "./EX3-034.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
   const decision = s.state.pendingDecision!;
@@ -31,6 +31,115 @@ describe("EX3-034 Angewomon", () => {
       rarity: "U",
       imageId: "EX3-034-Errata",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "PlaceInBattleAreaSelf",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+                count: 1,
+                zone: "hand",
+                from: ["hand"],
+              },
+              optional: true,
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  controller: "mine",
+                  zone: "battleArea",
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+              },
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Four Great Dragons"], match: "trait" }],
+              },
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+                  amount: -3000,
+                  duration: "forTheTurn",
+                },
+              ],
+            },
+            {
+              kind: "SubTrigger",
+              event: "whenOptionPlayed",
+              sourceFilter: {
+                controller: "mine",
+                nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+              },
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          frequency: "OncePerTurn",
+        },
+      ],
+    });
+  });
+
+  it("pays the yellow level-4 evolution cost, preserves the stack, and rejects an invalid source", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "EX3-031", under: ["BT1-009"], as: "base" }],
+        hand: [{ card: "EX3-034", as: "angewomon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("angewomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "EX3-034");
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-031"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-034", as: "angewomon" }],
+      },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongSource").permanentId,
+        instanceId: invalid.inst("angewomon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(3);
+    expect(invalid.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(invalid.inst("angewomon").cardId).toBe("EX3-034");
   });
 
   it("publishes the complete hand while enabling only Trial, with exact provenance", async () => {
@@ -43,7 +152,7 @@ describe("EX3-034 Angewomon", () => {
           { card: "EX3-069", as: "secondTrial" },
           { card: "BT1-010", as: "filler" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;
@@ -109,8 +218,8 @@ describe("EX3-034 Angewomon", () => {
             { card: "EX3-069", as: "trial" },
           ],
           deck: [
-            { card: "BT1-001", as: "digivolutionDraw" },
-            { card: "BT1-002", as: "wouldBeMainDraw" },
+            { card: "BT1-012", as: "digivolutionDraw" },
+            { card: "BT1-013", as: "wouldBeMainDraw" },
           ],
         },
         1: { battleArea: [{ card: "BT1-010", dp: 7000, as: "target" }] },
@@ -149,7 +258,7 @@ describe("EX3-034 Angewomon", () => {
             { card: "EX3-034", as: "angewomon" },
             { card: "EX3-069", as: "trial" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoDeclineOptional: true },
@@ -164,7 +273,7 @@ describe("EX3-034 Angewomon", () => {
         instanceId: s.inst("angewomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-010"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("trial").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("EX3-069");
@@ -179,7 +288,7 @@ describe("EX3-034 Angewomon", () => {
           { card: "EX3-069", as: "existingTrial" },
           { card: "EX3-069", as: "secondTrial" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;
@@ -193,7 +302,7 @@ describe("EX3-034 Angewomon", () => {
         instanceId: s.inst("angewomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-010"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondTrial").instanceId);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-034")).toHaveLength(0);
@@ -207,7 +316,7 @@ describe("EX3-034 Angewomon", () => {
           { card: "EX3-034", as: "angewomon" },
           { card: "BT1-010", as: "filler" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 3;

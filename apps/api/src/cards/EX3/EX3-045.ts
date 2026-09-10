@@ -1,11 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const plantTraits = [
-  { tokens: ["Vegetation"], match: "trait" },
-  { tokens: ["Plant"], match: "trait" },
-  { tokens: ["Fairy"], match: "trait" },
+  { tokens: ["Vegetation"], match: "trait" as const },
+  { tokens: ["Plant"], match: "trait" as const },
+  { tokens: ["Fairy"], match: "trait" as const },
 ];
 
 const compiled: CompiledCard = {

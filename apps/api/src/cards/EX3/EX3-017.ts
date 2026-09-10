@@ -1,12 +1,9 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored override (runtime-effect fix). KB Q3385: "that Digimon" refers to the blue
-// Digimon chosen by the first action, NOT this card. Bind that selection and unsuspend
-// it (previously isSelfRef wrongly unsuspended this card). The entry-zone receipt gates
-// the unsuspend so an ordinary hand play grants Blocker without readying the target.
-const compiled: CompiledCard = {
+// Hand-authored runtime fix: Q3385 binds "that Digimon" to the selected blue target, with the
+// entry-zone receipt gating the source-only unsuspend.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

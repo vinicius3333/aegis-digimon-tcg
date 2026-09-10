@@ -34,7 +34,7 @@ describe("EX3-040 Parasaurmon", () => {
       0: {
         battleArea: [{ card: "BT1-064", as: "base" }],
         hand: [{ card: "EX3-040", as: "parasaurmon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -50,6 +50,28 @@ describe("EX3-040 Parasaurmon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-040");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-064"]);
+  });
+
+  it("rejects a non-green level 3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-040", as: "parasaurmon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("parasaurmon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-040");
   });
 
   it("offers its correctly attributed suspend cost and reduces a green Digimon's play cost by 1", async () => {
@@ -438,7 +460,7 @@ describe("EX3-040 Parasaurmon", () => {
             { card: "EX3-040", as: "blockedAlly" },
             { card: "EX3-040", as: "nextTurnAlly" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -446,7 +468,7 @@ describe("EX3-040 Parasaurmon", () => {
             { card: "BT1-029", as: "blockedTarget" },
             { card: "BT1-030", as: "nextTurnTarget" },
           ],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

@@ -43,7 +43,7 @@ describe("EX3-031 Veedramon", () => {
       0: {
         battleArea: [{ card: "EX3-027", as: "base" }],
         hand: [{ card: "EX3-031", as: "veedramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -59,7 +59,29 @@ describe("EX3-031 Veedramon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-031");
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-027"]);
+  });
+
+  it("rejects a non-yellow level 3 evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-031", as: "veedramon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("veedramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("wrongSource").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-031");
   });
 
   it("Dramon/Four Great Dragons family: overlapping cards fill only one mandatory search slot", async () => {
@@ -348,9 +370,9 @@ describe("EX3-031 Veedramon", () => {
           { card: "EX3-035", as: "dragon" },
           { card: "EX3-036", as: "nextTurnDragon" },
         ],
-        deck: ["BT1-003", "BT1-004"],
+        deck: ["BT1-011", "BT1-012"],
       },
-      1: { security: ["BT1-001", "BT1-002"], deck: ["BT1-005", "BT1-006"] },
+      1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-013", "BT1-014"] },
     });
     s.state.turnCount = 1;
     await s.ready();
@@ -444,6 +466,7 @@ describe("EX3-031 Veedramon", () => {
           { card: "EX3-035", as: "secondDragon" },
           { card: "BT1-053", as: "simultaneousUnrelated" },
         ],
+        deck: ["BT1-009", "BT1-012", "BT1-013", "BT1-014"],
       },
     });
     await s.ready();

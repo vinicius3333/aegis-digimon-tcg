@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-036.js";
+import { compiled } from "./EX3-036.js";
 import "./EX3-069.js";
 
 interface SelectionPayload {
@@ -46,12 +46,76 @@ describe("EX3-036 Magnadramon", () => {
       rarity: "R",
       imageId: "EX3-036-Errata",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              keyword: { keyword: "SecurityAttack", amount: -1 },
+              duration: "untilOpponentTurnEnd",
+              condition: { kind: "not", condition: { kind: "triggerPlayedByEffectSource", sourceCardId: "EX3-069" } },
+            },
+            {
+              kind: "GainKeyword",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              keyword: { keyword: "SecurityAttack", amount: -2 },
+              duration: "untilOpponentTurnEnd",
+              condition: { kind: "triggerPlayedByEffectSource", sourceCardId: "EX3-069" },
+            },
+          ],
+        },
+        {
+          trigger: "OnDeletion",
+          optional: true,
+          timingOverride: "OnDeletion",
+          actions: [
+            {
+              kind: "PlaceInBattleAreaSelf",
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "hand",
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+                count: 1,
+              },
+              condition: {
+                kind: "allOf",
+                conditions: [
+                  {
+                    kind: "youHave",
+                    filter: {
+                      controller: "mine",
+                      zone: "hand",
+                      nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                    },
+                  },
+                  {
+                    kind: "youHaveNone",
+                    filter: {
+                      controller: "mine",
+                      zone: "battleArea",
+                      nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    });
 
     const evolution = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-057", as: "base" }],
+        battleArea: [{ card: "BT1-057", under: ["BT1-009"], as: "base" }],
         hand: [{ card: "EX3-036", as: "magnadramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     evolution.state.memory = 4;
@@ -65,6 +129,26 @@ describe("EX3-036 Magnadramon", () => {
     ).toEqual({ ok: true });
     await settle(() => evolution.perm("base").topCard.cardId === "EX3-036");
     expect(evolution.state.memory).toBe(0);
+    expect(evolution.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-057"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-036", as: "magnadramon" }],
+      },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongSource").permanentId,
+        instanceId: invalid.inst("magnadramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(4);
+    expect(invalid.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(invalid.inst("magnadramon").cardId).toBe("EX3-036");
 
     const play = setupEngine({ 0: { hand: [{ card: "EX3-036", as: "magnadramon" }] } });
     play.state.memory = 12;
@@ -81,14 +165,14 @@ describe("EX3-036 Magnadramon", () => {
       0: {
         battleArea: [{ card: "BT1-053", as: "ownDigimon" }],
         hand: [{ card: "EX3-036", as: "magnadramon" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
       1: {
         battleArea: [
           { card: "BT1-010", as: "firstOpponent" },
           { card: "BT1-011", as: "secondOpponent" },
         ],
-        deck: ["BT1-003", "BT1-004"],
+        deck: ["BT1-011", "BT1-012"],
       },
     });
     await s.ready();
@@ -162,7 +246,7 @@ describe("EX3-036 Magnadramon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX3-036", as: "magnadramon" }],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-013", "BT1-014"],
       },
       1: { battleArea: [{ card: "BT1-028", dp: 10000, as: "attacker" }] },
     });
@@ -185,7 +269,7 @@ describe("EX3-036 Magnadramon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX3-036", as: "magnadramon" }],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-013", "BT1-014"],
       },
       1: { battleArea: [{ card: "BT1-028", dp: 10000, as: "attacker" }] },
     });
@@ -265,7 +349,7 @@ describe("EX3-036 Magnadramon", () => {
         0: {
           battleArea: [{ card: "EX3-036", as: "magnadramon" }],
           hand: [{ card: "EX3-069", as: "trial" }],
-          deck: [{ card: "BT1-001", as: "wouldBeMainDraw" }, "BT1-002"],
+          deck: [{ card: "BT1-013", as: "wouldBeMainDraw" }, "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

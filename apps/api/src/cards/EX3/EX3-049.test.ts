@@ -20,12 +20,20 @@ describe("EX3-049 Sealsdramon", () => {
       attributes: ["Virus"],
       types: ["Cyborg", "D-Brigade"],
       rarity: "U",
+      maxCountInDeck: 4,
+      imageId: "EX3-049",
     });
+    expect(getCardDefinition("EX3-049")!.effectText).toBe(
+      "＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon.)",
+    );
+    expect(getCardDefinition("EX3-049")!.inheritedEffectText).toBe(
+      "[Your Turn][Once Per Turn] When you play another Digimon with [D-Brigade] in its traits, it gains ＜Rush＞ for the turn. (This Digimon may attack the turn it was played.)",
+    );
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-046", as: "base" }],
         hand: [{ card: "EX3-049", as: "sealsdramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;
@@ -42,6 +50,7 @@ describe("EX3-049 Sealsdramon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.cardId).toBe("EX3-049");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-046"]);
   });
 
   it("has Jamming and survives losing a Security Digimon battle", async () => {
@@ -66,18 +75,40 @@ describe("EX3-049 Sealsdramon", () => {
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-049")).toBe(false);
   });
 
+  it("does not protect itself in a battle against an opposing non-Security Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX3-049", suspended: true, as: "sealsdramon" }] },
+      1: { battleArea: [{ card: "EX3-050", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("sealsdramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-049"));
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX3-049");
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-050")).toBe(true);
+  });
+
   it("D-Brigade family: grants Rush to the newly played Commandramon and permits its immediate attack", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-050", under: ["EX3-049"], as: "inheritedHost" }],
         hand: [{ card: "EX3-046", as: "commandramon" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-090"] },
     });
     s.state.turnCount = 1;
     await s.ready();
 
     await advance(s.engine).verb.playInstances([s.inst("commandramon").instanceId]);
+    expect(s.perm("inheritedHost").stack.map(({ cardId }) => cardId)).toEqual(["EX3-049"]);
     const commandramon = s.state.players[0]!.battleArea.find(
       ({ topCard }) => topCard.instanceId === s.inst("commandramon").instanceId,
     )!;
@@ -200,9 +231,9 @@ describe("EX3-049 Sealsdramon", () => {
       0: {
         battleArea: [{ card: "EX3-050", under: ["EX3-049"], as: "host" }],
         hand: [{ card: "EX3-046", as: "commandramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
-      1: { deck: ["BT1-002"] },
+      1: { deck: ["BT1-010"] },
     });
     s.state.turnCount = 1;
     await s.ready();

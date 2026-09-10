@@ -1,3 +1,4 @@
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -12,6 +13,56 @@ function opponentTurn<T extends ReturnType<typeof setupEngine>>(s: T, memory: nu
 }
 
 describe("EX3-016 SnowAgumon", () => {
+  it("matches the catalog identity and inherited clause", () => {
+    expect(getCardDefinition("EX3-016")).toMatchObject({
+      cardId: "EX3-016",
+      nameEn: "SnowAgumon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Dinosaur"],
+      inheritedEffectText:
+        "[Opponent's Turn] When an opponent's Digimon with no digivolution cards would digivolve, increase the digivolution cost by 1.",
+    });
+  });
+
+  it("publishes the opponent-turn inherited replacement as complete IR", () => {
+    expect(getCompiledCard("EX3-016")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OpponentsTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              sourceFilter: {
+                digivolutionCards: "none",
+                controller: "opponent",
+                kind: ["Digimon"],
+              },
+              actions: [
+                {
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "increaseCost",
+                  amount: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it("does not increase digivolution costs during its controller's turn", async () => {
     const s = setupEngine({
       0: {
@@ -101,7 +152,7 @@ describe("EX3-016 SnowAgumon", () => {
       setupEngine({
         0: { battleArea: [{ card: "EX3-017", under: ["EX3-016"], as: "host" }] },
         1: {
-          battleArea: [{ card: "BT1-029", under: ["BT1-003"], as: "base" }],
+          battleArea: [{ card: "BT1-029", under: ["BT1-009"], as: "base" }],
           hand: [{ card: "BT1-032", as: "evolver" }],
           deck: ["BT1-030"],
         },
@@ -119,6 +170,30 @@ describe("EX3-016 SnowAgumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-032");
     expect(s.state.memory).toBe(-4);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-029"]);
+  });
+
+  it("rejects an invalid evolution source without moving the card", async () => {
+    const s = opponentTurn(
+      setupEngine({
+        1: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [{ card: "BT1-032", as: "evolver" }],
+        },
+      }),
+      0,
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toContain("BT1-032");
   });
 
   it("Q3384 rejects an unaffordable increased cost without moving either card", async () => {
@@ -153,7 +228,7 @@ describe("EX3-016 SnowAgumon", () => {
           1: {
             battleArea: [
               { card: "BT1-037", as: "blueLevel4" },
-              { card: "BT1-071", under: secondHasSource ? ["BT1-003"] : [], as: "greenLevel4" },
+              { card: "BT1-071", under: secondHasSource ? ["BT1-009"] : [], as: "greenLevel4" },
             ],
             hand: [{ card: "BT12-028", as: "paildramon" }],
             deck: ["BT1-030"],
@@ -172,6 +247,8 @@ describe("EX3-016 SnowAgumon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-028"));
       expect(s.state.memory).toBe(-2);
+      const dna = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT12-028");
+      expect(dna?.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-037", "BT1-071"]));
     }
   });
 
@@ -181,7 +258,7 @@ describe("EX3-016 SnowAgumon", () => {
         setupEngine({
           0: { battleArea: [{ card: "EX3-017", under: ["EX3-016"], as: "host" }] },
           1: {
-            battleArea: [{ card: "BT1-085", under: tamerHasSource ? ["BT1-003"] : [], as: "tamer" }],
+            battleArea: [{ card: "BT1-085", under: tamerHasSource ? ["BT1-009"] : [], as: "tamer" }],
             hand: [{ card: "BT4-011", as: "agunimon" }],
             deck: ["BT1-030"],
           },
@@ -199,6 +276,9 @@ describe("EX3-016 SnowAgumon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("tamer").topCard.cardId === "BT4-011");
       expect(s.state.memory).toBe(tamerHasSource ? -4 : -6);
+      expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(
+        tamerHasSource ? ["BT1-009", "BT1-085"] : ["BT1-085"],
+      );
     }
   });
 });

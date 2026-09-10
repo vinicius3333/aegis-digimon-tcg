@@ -12,7 +12,14 @@ describe("EX3-007 Lavorvomon", () => {
       level: 4,
       playCost: 4,
       dp: 4000,
+      evoCosts: [
+        { color: "Red", level: 3, memoryCost: 2 },
+        { color: "Black", level: 3, memoryCost: 2 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
       types: ["Rock Dragon"],
+      imageId: "EX3-007",
       inheritedEffectText:
         "[When Attacking] If this Digimon has an [On Play] effect, delete 1 of your opponent's Digimon with 3000 DP or less.",
     });
@@ -42,18 +49,24 @@ describe("EX3-007 Lavorvomon", () => {
   });
 
   it("offers only the 3000 DP boundary with the inherited source payload", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX3-011", under: ["EX3-007"], as: "attacker" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "atBoundary", dp: 3000 },
-          { card: "BT1-009", as: "otherLegal", dp: 2000 },
-          { card: "BT1-009", as: "aboveBoundary", dp: 4000 },
-        ],
-        security: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX3-011", under: ["EX3-007"], as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "atBoundary", dp: 3000 },
+            { card: "BT1-009", as: "otherLegal", dp: 2000 },
+            { card: "BT1-009", as: "aboveBoundary", dp: 4000 },
+          ],
+          security: ["BT1-009"],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     await s.ready();
+    const atBoundaryId = s.perm("atBoundary").permanentId;
+    const otherLegalId = s.perm("otherLegal").permanentId;
+    const aboveBoundaryId = s.perm("aboveBoundary").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -62,23 +75,20 @@ describe("EX3-007 Lavorvomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() =>
+      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("atBoundary").instanceId),
+    );
 
-    const decision = s.state.pendingDecision!;
-    expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "chooseTargets", sourceCardId: "EX3-007" });
-    const payload = JSON.parse(decision.payloadJson);
+    const decision = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "EX3-007")!.req;
+    const payload = decision.options!;
     expect(payload).toMatchObject({
-      candidateInstanceIds: expect.arrayContaining([
-        s.perm("atBoundary").permanentId,
-        s.perm("otherLegal").permanentId,
-      ]),
+      candidateInstanceIds: expect.arrayContaining([atBoundaryId, otherLegalId]),
       min: 1,
       max: 1,
     });
     expect(payload.candidateInstanceIds).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
-      s.perm("aboveBoundary").permanentId,
-    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(aboveBoundaryId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not activate for a carrier without an On Play effect", async () => {
@@ -145,5 +155,101 @@ describe("EX3-007 Lavorvomon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([firstId, secondId]),
     );
+  });
+
+  it.each([
+    ["red", "BT1-009"],
+    ["black", "BT13-063"],
+  ] as const)("digivolves from a %s level-3 source for the printed cost", async (_color, baseCardId) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCardId, as: "base" }],
+        hand: [{ card: "EX3-007", as: "lavorvomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lavorvomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-007");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCardId]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects an off-color blue level-3 source and leaves the card in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "base" }],
+        hand: [{ card: "EX3-007", as: "lavorvomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lavorvomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").topCard.cardId).toBe("BT1-028");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("lavorvomon").instanceId);
+  });
+
+  it("retains the inherited source through public evolution and attack resolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [
+            { card: "EX3-007", as: "lavorvomon" },
+            { card: "EX3-011", as: "top" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], security: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lavorvomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-007");
+    expect(s.state.memory).toBe(3);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("top").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-011");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX3-007"]);
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId));
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

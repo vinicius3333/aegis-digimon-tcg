@@ -248,6 +248,7 @@ export interface PrimitivesEngine {
       playedFromZone?: import("@aegis/shared").ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
+      deferWhenPlayed?: boolean;
     },
   ) => Promise<void>;
   /**
@@ -1186,6 +1187,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
               ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+              ...(instanceIds.length > 1 ? { deferWhenPlayed: true } : {}),
             },
           );
         }

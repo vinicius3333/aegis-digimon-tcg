@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-042.js";
+import { compiled } from "./EX3-042.js";
 import "../index.js"; // the full catalog is registered in a real match
 
 const whenDigivolving = "[When Digivolving] If this Digimon is suspended, suspend 1 of your opponent's Digimon.";
@@ -26,6 +26,87 @@ describe("EX3-042 Toropiamon", () => {
       rarity: "C",
       imageId: "EX3-042",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], suspended: false },
+                count: 1,
+              },
+              condition: { kind: "selfIsSuspended" },
+            },
+          ],
+        },
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenEffectSuspends",
+              sourceFilter: { controller: "mine", kind: ["Digimon"] },
+              actions: [
+                {
+                  kind: "Suspend",
+                  target: {
+                    filter: { controller: "opponent", kind: ["Digimon"], suspended: false },
+                    count: 1,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("pays the green level-4 evolution cost, preserves the stack, and rejects an invalid source", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-072", under: ["BT1-009"], as: "base" }],
+        hand: [{ card: "EX3-042", as: "toropiamon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("toropiamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "EX3-042");
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-072"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "wrongSource" }],
+        hand: [{ card: "EX3-042", as: "toropiamon" }],
+      },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongSource").permanentId,
+        instanceId: invalid.inst("toropiamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(3);
+    expect(invalid.perm("wrongSource").topCard.cardId).toBe("BT1-009");
+    expect(invalid.inst("toropiamon").cardId).toBe("EX3-042");
   });
 
   it("keeps its base suspended while digivolving and suspends exactly 1 chosen opposing Digimon", async () => {
@@ -35,7 +116,7 @@ describe("EX3-042 Toropiamon", () => {
         0: {
           battleArea: [{ card: "BT1-072", suspended: true, as: "base" }],
           hand: [{ card: "EX3-042", as: "toropiamon" }],
-          deck: ["BT1-003"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -75,7 +156,7 @@ describe("EX3-042 Toropiamon", () => {
       0: {
         battleArea: [{ card: "BT1-072", as: "base" }],
         hand: [{ card: "EX3-042", as: "toropiamon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-028", as: "opponent" }] },
     });
@@ -101,7 +182,7 @@ describe("EX3-042 Toropiamon", () => {
       0: {
         battleArea: [{ card: "BT1-072", suspended: true, as: "base" }],
         hand: [{ card: "EX3-042", as: "toropiamon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-010"],
       },
       1: {
         battleArea: [
@@ -214,7 +295,7 @@ describe("EX3-042 Toropiamon", () => {
           { card: "BT1-028", as: "opposingSource" },
           { card: "BT1-029", as: "target" },
         ],
-        security: ["BT1-003"],
+        security: ["BT1-011"],
       },
     });
     await s.ready();
@@ -298,7 +379,7 @@ describe("EX3-042 Toropiamon", () => {
             { card: "BT5-048", as: "secondAlly" },
             { card: "BT5-048", as: "nextTurnAlly" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-012", "BT1-013"],
         },
         1: {
           battleArea: [
@@ -306,7 +387,7 @@ describe("EX3-042 Toropiamon", () => {
             { card: "BT1-029", as: "blockedTarget" },
             { card: "BT1-030", as: "nextTurnTarget" },
           ],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-014"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

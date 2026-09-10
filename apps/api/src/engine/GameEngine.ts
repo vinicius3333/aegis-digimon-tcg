@@ -4068,6 +4068,7 @@ export class GameEngine {
     timing: EffectTiming,
     sourceInstanceId: string,
     scopedTrigger: TriggerInfo = {},
+    opts: { deferWhenPlayed?: boolean } = {},
   ): Promise<void> {
     // Whatever a play-cost deletion triggered rides into this play's own window (Q5131).
     const costDeletionEffects = this.pendingPlayCostDeletionEffects.splice(0);
@@ -4090,8 +4091,11 @@ export class GameEngine {
     // snapshot. Effects gained later while [On Play] resolves remain excluded by
     // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
     await this.recomputeContinuousEffects();
+    const events = opts.deferWhenPlayed
+      ? (["onEnterFieldAnyone"] as const)
+      : (["whenPlayed", "onEnterFieldAnyone"] as const);
     await this.withPendingSubTriggers(
-      ["whenPlayed", "onEnterFieldAnyone"],
+      events,
       playedEventTrigger,
       async () => {
         // State-based rules run after the card enters and continuous effects apply, before
@@ -4158,6 +4162,7 @@ export class GameEngine {
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
       playedByDecode?: boolean;
+      deferWhenPlayed?: boolean;
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
@@ -4171,15 +4176,20 @@ export class GameEngine {
       this.tracker.register(`seat:${ownerSeat}`, "digivolvedThisTurn");
     }
     if (timing === EffectTiming.OnPlay) {
-      await this.firePlayEntryWindows(timing, instanceId, {
-        enteredByEffect: ownerSeat,
-        ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
-        ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
-        ...(opts?.playedByEffectSourceCardId !== undefined
-          ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
-          : {}),
-        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
-      });
+      await this.firePlayEntryWindows(
+        timing,
+        instanceId,
+        {
+          enteredByEffect: ownerSeat,
+          ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
+          ...(opts?.playedFromZone !== undefined ? { playedFromZone: opts.playedFromZone } : {}),
+          ...(opts?.playedByEffectSourceCardId !== undefined
+            ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
+            : {}),
+          ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+        },
+        opts,
+      );
       return;
     }
     await this.fireTimingForInstance(timing, instanceId, {

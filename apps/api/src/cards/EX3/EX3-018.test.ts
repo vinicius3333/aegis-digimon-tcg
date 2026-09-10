@@ -1,8 +1,9 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./EX3-012.js";
 import "./EX3-018.js";
 import "./EX3-021.js";
 
@@ -25,6 +26,40 @@ describe("EX3-018 Coredramon", () => {
       types: ["Dragon"],
       rarity: "U",
       imageId: "EX3-018",
+      effectText:
+        "Digivolve: 2 if name contains [Dracomon]＜Evade＞ (When this Digimon would be deleted, you may suspend it to prevent that deletion.)",
+      inheritedEffectText:
+        "[All Turns] While this Digimon has [Dramon] or [Examon] in its name, it gains ＜Evade＞. (When this Digimon would be deleted, you may suspend it to prevent that deletion.)",
+    });
+  });
+
+  it("publishes the top-card keyword, conditional inherited aura, and alternate requirement", () => {
+    expect(getCompiledCard("EX3-018")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [],
+          keywords: [{ keyword: "Evade", raw: "＜Evade＞" }],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              effect: { kind: "keyword", keyword: { keyword: "Evade", raw: "＜Evade＞" } },
+              while: {
+                kind: "selfHasNameContaining",
+                names: ["Dramon", "Examon"],
+              },
+            },
+          ],
+        },
+      ],
+      digivolutionRequirement: [{ names: ["Dracomon"], cost: 2, isAlternate: true }],
     });
   });
 
@@ -50,7 +85,7 @@ describe("EX3-018 Coredramon", () => {
     await settle(() => s.perm("dracomon").topCard.cardId === "EX3-018");
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("dracomon").stack.map(({ cardId }) => cardId)).toContain("EX3-037");
+    expect(s.perm("dracomon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-037"]);
   });
 
   it("uses the printed cost 3 from a blue level 3 whose name is not Dracomon", async () => {
@@ -73,6 +108,7 @@ describe("EX3-018 Coredramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("gabumon").topCard.cardId === "EX3-018");
     expect(s.state.memory).toBe(0);
+    expect(s.perm("gabumon").stack.map(({ cardId }) => cardId)).toEqual(["BT1-029"]);
   });
 
   it("uses the printed cost 3 from a green level 3 whose name is not Dracomon", async () => {
@@ -94,6 +130,51 @@ describe("EX3-018 Coredramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("greenLevel3").topCard.cardId === "EX3-018");
     expect(s.state.memory).toBe(0);
+    expect(s.perm("greenLevel3").stack.map(({ cardId }) => cardId)).toEqual(["BT1-067"]);
+  });
+
+  it("rejects a non-Dracomon evolution source and keeps the card in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "redLevel3" }],
+        hand: [{ card: "EX3-018", as: "coredramon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redLevel3").permanentId,
+        instanceId: s.inst("coredramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redLevel3").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-018");
+  });
+
+  it("can be played from hand and accepts Evade against a real On Play deletion", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX3-012", as: "volcanicdramon" }], deck: ["BT1-030"] },
+      1: { battleArea: [{ card: "EX3-018", as: "coredramon" }] },
+    });
+    s.state.memory = 12;
+    await s.ready();
+    const coredramonId = s.perm("coredramon").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(s.engine.applyIntent(1, { type: "respondEvade", permanentId: coredramonId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === coredramonId));
+
+    expect(s.perm("coredramon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("EX3-018");
   });
 
   it("its printed Evade can be accepted to suspend and prevent effect deletion", async () => {

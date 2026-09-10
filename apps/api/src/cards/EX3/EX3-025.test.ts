@@ -1,11 +1,8 @@
-import { EffectTiming, getCardDefinition, type CardInstance, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./EX3-025.js";
+import { compiled } from "./EX3-025.js";
 import "./EX3-069.js";
 
 interface ActivatableEntry {
@@ -63,12 +60,56 @@ describe("EX3-025 Azulongmon", () => {
     expect(definition.effectText).toContain("played by [Trial of the Four Great Dragons]'s effect");
     expect(definition.effectText).toContain("you may place 1 [Trial of the Four Great Dragons]");
     expect(definition.inheritedEffectText).toBeUndefined();
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 2 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              condition: { kind: "triggerPlayedByEffectSource", sourceCardId: "EX3-069" },
+            },
+          ],
+        },
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlaceInBattleAreaSelf",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+                count: 1,
+                zone: "hand",
+                from: "hand",
+              },
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+                },
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    });
 
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-038", as: "base" }],
+        battleArea: [{ card: "BT1-038", under: ["BT1-032"], as: "base" }],
         hand: [{ card: "EX3-025", as: "azulongmon" }],
-        deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+        deck: [{ card: "BT1-009", as: "evolutionDraw" }],
       },
     });
     s.state.memory = 4;
@@ -83,58 +124,35 @@ describe("EX3-025 Azulongmon", () => {
     await settle(() => s.perm("base").topCard.cardId === "EX3-025");
 
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032", "BT1-038"]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
   });
 
-  it("Four Great Dragons family: Trial offers the trait candidates and grants Draw 2 plus 2 memory only to Azulongmon", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [
-          { card: "EX3-069", as: "trial" },
-          { card: "EX3-025", as: "azulongmon" },
-          { card: "EX3-035", as: "goldramon" },
-          { card: "BT1-029", as: "invalid" },
-        ],
-        deck: ["BT1-030", "BT1-031", "BT1-032"],
-      },
-    });
-    s.state.memory = 0;
-    await s.ready();
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("trial").instanceId);
-    s.state.turnCount += 1;
+  it("rejects a red level 3 and a blue level 4 as evolution sources", async () => {
+    for (const [source, alias] of [
+      ["BT1-009", "redLevel3"],
+      ["BT1-032", "blueLevel4"],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: source, as: alias }],
+          hand: [{ card: "EX3-025", as: "azulongmon" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
 
-    const seam = s.engine as unknown as {
-      cardSourceOf(instance: CardInstance): CardSource;
-      buildEffectContext(source: CardSource, trigger: object): EffectContext;
-    };
-    const trialPermanent = s.state.players[0]!.battleArea.find(
-      ({ topCard }) => topCard.instanceId === s.inst("trial").instanceId,
-    )!;
-    const source = seam.cardSourceOf(trialPermanent.topCard);
-    const effect = effectsOf(EffectTiming.OnDeclaration, source)[0]!;
-    const flow = effect.resolve(seam.buildEffectContext(source, {}));
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const choice = s.state.pendingDecision!;
-    const candidates = s.decisions.at(-1)!.req.options?.candidateInstanceIds ?? [];
-    expect(candidates).toEqual(
-      expect.arrayContaining([s.inst("azulongmon").instanceId, s.inst("goldramon").instanceId]),
-    );
-    expect(candidates).not.toContain(s.inst("invalid").instanceId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: choice.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("azulongmon").instanceId] },
-      }),
-    ).toEqual({ ok: true });
-    await flow;
-
-    expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX3-035", "BT1-030", "BT1-031"]),
-    );
-    expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-025")).toBe(true);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(alias).permanentId,
+          instanceId: s.inst("azulongmon").instanceId,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.perm(alias).topCard.cardId).toBe(source);
+      expect(s.inst("azulongmon").cardId).toBe("EX3-025");
+      expect(s.state.memory).toBe(4);
+    }
   });
 
   it("uses Trial's public Delay action with exact provenance and gives Azulongmon Draw 2 plus 2 memory", async () => {

@@ -49,6 +49,9 @@ describe("EX3-037 Dracomon", () => {
       types: ["Dragon"],
       rarity: "U",
     });
+    expect(getCardDefinition("EX3-037")!.effectText).toBe(
+      "Digivolve: 0 from [Bebydomon][On Play] Reveal the top 4 cards of your deck. Add 1 green or blue card with [Dramon] in its name and 1 card with [Examon] in its name among them to your hand. Place the rest at the bottom of your deck in any order.",
+    );
 
     async function evolve({
       baseCard,
@@ -79,6 +82,7 @@ describe("EX3-037 Dracomon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "EX3-037");
       expect(s.state.memory).toBe(expectedMemory);
+      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([baseCard]);
     }
 
     await evolve({ baseCard: "BT1-007", expectedMemory: 0 });
@@ -371,7 +375,7 @@ describe("EX3-037 Dracomon", () => {
           { card: "EX3-039", as: "attacker" },
         ],
       },
-      1: { security: ["BT1-003"] },
+      1: { security: ["BT1-010"] },
     });
     await s.ready();
 
@@ -420,9 +424,9 @@ describe("EX3-037 Dracomon", () => {
           { card: "EX3-039", dp: 5000, as: "firstDramon" },
           { card: "EX3-074", dp: 15000, as: "examon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
-      1: { deck: ["BT1-003", "BT1-004"] },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
     await s.ready();
 
@@ -435,5 +439,27 @@ describe("EX3-037 Dracomon", () => {
     await advance(s.engine).verb.suspend([s.perm("examon").permanentId]);
     await settle(() => s.perm("host").currentDP === 6000);
     expect(s.perm("host").currentDP).toBe(6000);
+  });
+
+  it("rejects a non-level-2 source without changing memory or stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "invalidBase" }],
+        hand: [{ card: "EX3-037", as: "dracomon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("dracomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
   });
 });

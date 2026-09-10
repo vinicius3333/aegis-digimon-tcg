@@ -1,9 +1,10 @@
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./EX3-012.js";
 import "./EX3-020.js";
 import "./EX3-074.js";
 
@@ -25,6 +26,35 @@ describe("EX3-020 Wingdramon", () => {
       types: ["Sky Dragon"],
       rarity: "U",
       imageId: "EX3-020",
+      effectText:
+        "Digivolve: 3 from [Coredramon]＜Evade＞ (When this Digimon would be deleted, you may suspend it to prevent that deletion.)[Your Turn] [Examon] in your hand can treat this Digimon as level 6 for DNA Digivolution.[End of Your Turn] This Digimon and 1 of your other Digimon with [Dramon] in its name may DNA digivolve into a Digimon card in your hand by paying its DNA digivolve cost.",
+      inheritedEffectText:
+        "[All Turns] While this Digimon has [Dramon] or [Examon] in its name, it gains ＜Evade＞. (When this Digimon would be deleted, you may suspend it to prevent that deletion.)",
+    });
+  });
+
+  it("publishes the top-card Evade, turn-scoped level grant, optional DNA, and inherited Evade IR", () => {
+    expect(getCompiledCard("EX3-020")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Static", actions: [], keywords: [{ keyword: "Evade", raw: "＜Evade＞" }] },
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "GrantStatic",
+              grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
+            },
+          ],
+        },
+        {
+          trigger: "EndOfYourTurn",
+          actions: [{ kind: "DnaDigivolve", optional: true, payCost: true }],
+        },
+        { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Aura" }] },
+      ],
+      digivolutionRequirement: [{ names: ["Coredramon"], cost: 3, isAlternate: true }],
     });
   });
 
@@ -48,6 +78,7 @@ describe("EX3-020 Wingdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("coredramon").topCard.cardId === "EX3-020");
     expect(s.state.memory).toBe(0);
+    expect(s.perm("coredramon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-018"]);
   });
 
   it("uses the normal cost 4 from an unrelated blue level 4", async () => {
@@ -69,22 +100,53 @@ describe("EX3-020 Wingdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("frigimon").topCard.cardId === "EX3-020");
     expect(s.state.memory).toBe(0);
+    expect(s.perm("frigimon").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032"]);
+  });
+
+  it("rejects the alternate route from a non-Coredramon source and keeps Wingdramon in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "unrelatedLevel5" }],
+        hand: [{ card: "EX3-020", as: "wingdramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("unrelatedLevel5").permanentId,
+        instanceId: s.inst("wingdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("unrelatedLevel5").stack.map(({ cardId }) => cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX3-020");
   });
 
   it("its printed Evade suspends it and prevents effect deletion when accepted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX3-020", as: "wingdramon" }] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "EX3-012", as: "volcanicdramon" }], deck: ["BT1-030"] },
+      1: { battleArea: [{ card: "EX3-020", as: "wingdramon" }] },
+    });
+    s.state.memory = 12;
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("wingdramon").permanentId], "byEffect");
+    const wingdramonId = s.perm("wingdramon").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
     expect(
-      s.engine.applyIntent(0, {
+      s.engine.applyIntent(1, {
         type: "respondEvade",
-        permanentId: s.perm("wingdramon").permanentId,
+        permanentId: wingdramonId,
         accept: true,
       }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === wingdramonId));
     expect(s.perm("wingdramon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("EX3-020");
   });
 
   it("deletes Wingdramon when Evade is declined and does not offer Evade when already suspended", async () => {
@@ -270,7 +332,10 @@ describe("EX3-020 Wingdramon", () => {
     );
     await s.ready();
 
-    const resolution = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wingdramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const partner = s.decisions.at(-1)!.req;
     expect(partner).toMatchObject({
@@ -378,8 +443,12 @@ describe("EX3-020 Wingdramon", () => {
       advance(s.engine).ledgers.continuous.dnaLevelFor(s.perm("wingdramon").permanentId, invalidDefinition),
     ).toBeUndefined();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wingdramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const turn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-074"));
+    await turn;
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX3-074"]);
     const examon = s.state.players[0]!.battleArea[0]!;
@@ -398,7 +467,11 @@ describe("EX3-020 Wingdramon", () => {
       },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wingdramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const turn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-020")).toHaveLength(0);
   });
@@ -423,7 +496,10 @@ describe("EX3-020 Wingdramon", () => {
     );
     await s.ready();
 
-    const firing = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wingdramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const firing = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
     const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds: string[] };

@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-068.js";
 
@@ -16,9 +15,41 @@ describe("EX3-068 God Flame", () => {
       rarity: "C",
       imageId: "EX3-068-Errata",
     });
-    expect(definition.effectText).toContain("gets -6000 DP for the turn");
-    expect(definition.effectText).toContain("you may return 1 card with the [Four Great Dragons] trait");
+    expect(definition.effectText).toBe(
+      "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, you may return 1 card with the [Four Great Dragons] trait from your trash to your hand.",
+    );
     expect(definition.securityEffectText).toBe("[Security] Activate this card's [Main] effect.");
+    expect(getCompiledCard("EX3-068")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -6000,
+              duration: "forTheTurn",
+            },
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Four Great Dragons"], match: "trait" }],
+                },
+                count: 1,
+              },
+              to: "hand",
+              optional: true,
+            },
+          ],
+        },
+        { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+      ],
+    });
   });
 
   it("reduces only the chosen opposing Digimon by 6000 DP and leaves the other untouched", async () => {
@@ -239,20 +270,37 @@ describe("EX3-068 God Flame", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX3-068", faceUp: true, as: "securityGodFlame" }],
+          security: [{ card: "EX3-068", as: "securityGodFlame" }],
           trash: [{ card: "EX3-064", as: "megidramon" }],
         },
-        1: { battleArea: [{ card: "BT1-010", dp: 7000, as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 1000, as: "attacker" },
+            { card: "BT1-011", dp: 7000, as: "target" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId, s.inst("megidramon").instanceId);
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityGodFlame"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 1000);
 
     expect(s.perm("target").currentDP).toBe(1000);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("megidramon").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityGodFlame").instanceId,
+    );
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });

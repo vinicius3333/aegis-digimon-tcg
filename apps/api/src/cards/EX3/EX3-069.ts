@@ -1,6 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// The engine's canonical event bus includes this event, while the shared card-facing union
+// predates that addition. Keep the engine event spelling (and therefore its opponent-turn gate)
+// while making the boundary explicit and typed rather than suppressing this module's checks.
+const endOfOpponentTurn = "endOfOpponentTurn" as unknown as SubTriggerEvent;
 
 const compiled: CompiledCard = {
   effects: [
@@ -64,7 +68,7 @@ const compiled: CompiledCard = {
           // never-read `playedByThisEffect` filter that matched every Digimon on the board.
           // documented behavior (UntilOpponentTurnEndEffects + OnEndTurn, maxCount 1).
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: endOfOpponentTurn,
           once: true,
           on: {
             filter: {

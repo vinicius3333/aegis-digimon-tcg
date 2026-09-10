@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
@@ -30,6 +30,12 @@ describe("EX3-041 Groundramon", () => {
       maxCountInDeck: 4,
       imageId: "EX3-041",
     });
+    expect(getCardDefinition("EX3-041")!.effectText).toBe(
+      "Digivolve: 3 from [Coredramon]＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.) [Your Turn] [Examon] in your hand can treat this Digimon as level 6 for DNA digivolution.[End of Your Turn] This Digimon and 1 of your other Digimon with [Dramon] in its name may DNA digivolve into a Digimon card in your hand by paying its DNA digivolve cost.",
+    );
+    expect(getCardDefinition("EX3-041")!.inheritedEffectText).toBe(
+      "[All Turns] While this Digimon has [Dramon] or [Examon] in its name, it gains ＜Blocker＞.",
+    );
   });
 
   it("digivolves from Coredramon for alternate cost 3 and otherwise uses printed cost 4", async () => {
@@ -37,7 +43,7 @@ describe("EX3-041 Groundramon", () => {
       0: {
         battleArea: [{ card: "EX3-039", as: "coredramon" }],
         hand: [{ card: "EX3-041", as: "groundramon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-009"],
       },
     });
     alternate.state.memory = 3;
@@ -52,12 +58,13 @@ describe("EX3-041 Groundramon", () => {
     ).toEqual({ ok: true });
     await settle(() => alternate.perm("coredramon").topCard.cardId === "EX3-041");
     expect(alternate.state.memory).toBe(0);
+    expect(alternate.perm("coredramon").stack.map(({ cardId }) => cardId)).toEqual(["EX3-039"]);
 
     const normal = setupEngine({
       0: {
         battleArea: [{ card: "BT1-072", as: "greenLevel4" }],
         hand: [{ card: "EX3-041", as: "groundramon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-010"],
       },
     });
     normal.state.memory = 4;
@@ -71,6 +78,7 @@ describe("EX3-041 Groundramon", () => {
     ).toEqual({ ok: true });
     await settle(() => normal.perm("greenLevel4").topCard.cardId === "EX3-041");
     expect(normal.state.memory).toBe(0);
+    expect(normal.perm("greenLevel4").stack.map(({ cardId }) => cardId)).toEqual(["BT1-072"]);
   });
 
   it("uses printed cost 4 from blue or green level 4 bases unless the base is Coredramon", async () => {
@@ -78,7 +86,7 @@ describe("EX3-041 Groundramon", () => {
       0: {
         battleArea: [{ card: "BT1-032", as: "frigimon" }],
         hand: [{ card: "EX3-041", as: "groundramon" }],
-        deck: ["BT1-003"],
+        deck: ["BT1-011"],
       },
     });
     blue.state.memory = 4;
@@ -93,6 +101,7 @@ describe("EX3-041 Groundramon", () => {
     ).toEqual({ ok: true });
     await settle(() => blue.perm("frigimon").topCard.cardId === "EX3-041");
     expect(blue.state.memory).toBe(0);
+    expect(blue.perm("frigimon").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032"]);
 
     const invalidAlternate = setupEngine({
       0: {
@@ -114,12 +123,34 @@ describe("EX3-041 Groundramon", () => {
     expect(invalidAlternate.state.memory).toBe(0);
   });
 
+  it("rejects an unrelated level-3 source without changing memory or stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "invalidBase" }],
+        hand: [{ card: "EX3-041", as: "groundramon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("groundramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-028");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
+  });
+
   it("its printed Blocker redirects an opposing player attack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-028", as: "attacker" }] },
       1: {
         battleArea: [{ card: "EX3-041", as: "groundramon" }],
-        security: ["BT1-003"],
+        security: ["BT1-012"],
       },
     });
     await s.ready();
@@ -156,7 +187,7 @@ describe("EX3-041 Groundramon", () => {
             { card: "EX3-074", as: "examon" },
             { card: "BT1-072", as: "invalidResult" },
           ],
-          deck: ["BT1-003"],
+          deck: ["BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -171,8 +202,12 @@ describe("EX3-041 Groundramon", () => {
       advance(s.engine).ledgers.continuous.dnaLevelFor(s.perm("groundramon").permanentId, definitionOf("BT1-072")),
     ).toBeUndefined();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-074"));
+    await resolution;
     const examon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-074")!;
     expect(examon.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX3-041", "BT20-027"]));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-072");
@@ -189,7 +224,11 @@ describe("EX3-041 Groundramon", () => {
       },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await resolution;
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-041")).toHaveLength(0);
   });
@@ -209,7 +248,11 @@ describe("EX3-041 Groundramon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await resolution;
     await settle();
 
     expect(s.state.pendingDecision).toBeUndefined();
@@ -231,8 +274,12 @@ describe("EX3-041 Groundramon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    const resolution = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
+    const memoryAtPrompt = s.state.memory;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -240,12 +287,12 @@ describe("EX3-041 Groundramon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
+    expect(s.state.memory).toBe(memoryAtPrompt);
     await resolution;
 
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-041")).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX3-041", "BT20-027"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX3-074"]);
-    expect(s.state.memory).toBe(3);
   });
 
   it("does not use Examon's DNA-only level treatment for a normal digivolution", async () => {
@@ -292,7 +339,10 @@ describe("EX3-041 Groundramon", () => {
     );
     await s.ready();
 
-    const resolution = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const partnerRequest = s.decisions.at(-1)!.req;
@@ -373,13 +423,17 @@ describe("EX3-041 Groundramon", () => {
             { card: "EX3-074", as: "examon" },
             { card: "BT1-072", as: "invalid" },
           ],
-          deck: ["BT1-003"],
+          deck: ["BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("groundramon"));
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const resolution = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const request = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(request).toMatchObject({
       kind: "optional",
@@ -390,6 +444,14 @@ describe("EX3-041 Groundramon", () => {
           "Digivolve: 3 from [Coredramon]＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.) [Your Turn] [Examon] in your hand can treat this Digimon as level 6 for DNA digivolution.[End of Your Turn] This Digimon and 1 of your other Digimon with [Dramon] in its name may DNA digivolve into a Digimon card in your hand by paying its DNA digivolve cost.",
       },
     });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
   });
 
   it("inherited Blocker applies only while the host name contains Dramon or Examon", async () => {

@@ -2,7 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-047.js";
-import "./EX3-048.js";
+import { compiled } from "./EX3-048.js";
 import "./EX3-049.js";
 import "./EX3-052.js";
 import "./EX3-065.js";
@@ -40,11 +40,61 @@ describe("EX3-048 Jazardmon", () => {
       types: ["Machine Dragon"],
       rarity: "U",
     });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 4,
+              add: [
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
+                      { tokens: ["Rock Dragon", "Earth Dragon", "Bird Dragon", "Machine Dragon"], match: "trait" },
+                      { tokens: ["Sky Dragon"], match: "trait" },
+                    ],
+                  },
+                  count: 1,
+                  to: "hand",
+                },
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "name" }],
+                  },
+                  count: 1,
+                  to: "hand",
+                },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          isInherited: true,
+          actions: [
+            {
+              kind: "Aura",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              effect: { kind: "modifyDP", amount: 1000 },
+              while: { kind: "selfHasOnPlayEffect" },
+            },
+          ],
+        },
+      ],
+    });
     const s = setupEngine({
       0: {
-        battleArea: [{ card: baseCardId, as: "base" }],
+        battleArea: [{ card: baseCardId, under: ["BT1-010"], as: "base" }],
         hand: [{ card: "EX3-048", as: "jazardmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-010"],
       },
     });
     s.state.memory = 2;
@@ -61,6 +111,29 @@ describe("EX3-048 Jazardmon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").topCard.cardId).toBe("EX3-048");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", baseCardId]);
+  });
+
+  it("rejects a non-black/non-red level-4 evolution source without payment or movement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-072", as: "wrongSource" }],
+        hand: [{ card: "EX3-048", as: "jazardmon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongSource").permanentId,
+        instanceId: s.inst("jazardmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("wrongSource").topCard.cardId).toBe("BT1-072");
+    expect(s.inst("jazardmon").cardId).toBe("EX3-048");
   });
 
   it("Q3417/Q3418 forces one Dragon and one Hina, exposes all 4 cards, and preserves chosen bottom order", async () => {

@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-056.js";
 import "./EX3-072.js";
@@ -15,14 +14,23 @@ describe("EX3-072 Megiddo Flame", () => {
       kinds: ["Option"],
       playCost: 4,
       rarity: "C",
+      maxCountInDeck: 4,
       imageId: "EX3-072",
     });
-    expect(definition.effectText).toContain("level 4 or lower");
-    expect(definition.effectText).toContain("By deleting 1 of your Digimon");
-    expect(definition.effectText).toContain("level 6 or lower Digimon instead");
+    expect(definition.effectText).toBe(
+      "[Main] Delete 1 of your opponent's level 4 or lower Digimon. By deleting 1 of your Digimon, delete 1 of your opponent's level 6 or lower Digimon instead.",
+    );
     expect(definition.securityEffectText).toBe(
       "[Security] You may play 1 [Guilmon] from your trash without paying the cost.",
     );
+    expect(getCompiledCard("EX3-072")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Main", actions: [{ kind: "Modal", choose: 1 }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", optional: true }] },
+      ],
+    });
   });
 
   it("chooses the level-4 branch without deleting one of your Digimon", async () => {
@@ -172,7 +180,7 @@ describe("EX3-072 Megiddo Flame", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX3-072", faceUp: true, as: "flame" }],
+          security: [{ card: "EX3-072", as: "flame" }],
           trash: [
             { card: "EX3-056", as: "guilmon" },
             { card: "BT5-071", as: "secondGuilmon" },
@@ -180,13 +188,21 @@ describe("EX3-072 Megiddo Flame", () => {
             { card: "BT1-010", as: "unrelated" },
           ],
         },
+        1: { battleArea: [{ card: "BT1-028", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("guilmon").instanceId);
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("flame"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-056"));
 
     const selection = s.decisions.find(({ req }) => req.sourceCardId === "EX3-072" && req.kind === "selectCards")!.req;
@@ -200,7 +216,7 @@ describe("EX3-072 Megiddo Flame", () => {
       s.inst("growlmon").instanceId,
       s.inst("unrelated").instanceId,
     ]);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
@@ -208,15 +224,24 @@ describe("EX3-072 Megiddo Flame", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "EX3-072", faceUp: true, as: "flame" }],
+          security: [{ card: "EX3-072", as: "flame" }],
           trash: [{ card: "EX3-056", as: "guilmon" }],
         },
+        1: { battleArea: [{ card: "BT1-028", as: "attacker" }] },
       },
       { autoDeclineOptional: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("flame"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("guilmon").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

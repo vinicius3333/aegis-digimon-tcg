@@ -2,7 +2,7 @@ import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-017.js";
+import { compiled } from "./EX3-017.js";
 import "./EX3-018.js";
 import "./EX3-022.js";
 import "./EX3-023.js";
@@ -24,6 +24,88 @@ describe("EX3-017 Ebidramon", () => {
       rarity: "C",
       imageId: "EX3-017",
     });
+    expect(getCardDefinition("EX3-017")!.effectText).toContain(
+      "1 of your blue Digimon gains ＜Blocker＞ until the end of your opponent's turn",
+    );
+    expect(getCardDefinition("EX3-017")!.effectText).toContain(
+      "When played from digivolution cards, unsuspend that Digimon",
+    );
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] },
+                count: 1,
+                bindAs: "blocker",
+              },
+            },
+            {
+              kind: "GainKeyword",
+              target: { fromSelectionRef: "blocker", filter: {}, count: 1 },
+              keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "Unsuspend",
+              target: { fromSelectionRef: "blocker", filter: {}, count: 1 },
+              condition: { kind: "playedFromZone", zone: "digivolutionCards" },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("digivolves from a blue level 3 for 2 memory and rejects wrong color and level", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX3-016", as: "base" }],
+        hand: [{ card: "EX3-017", as: "ebidramon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ebidramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-017");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-016"]);
+
+    for (const [source, alias] of [
+      ["BT1-009", "wrongColor"],
+      ["EX3-018", "wrongLevel"],
+    ] as const) {
+      const invalid = setupEngine({
+        0: {
+          battleArea: [{ card: source, as: alias }],
+          hand: [{ card: "EX3-017", as: "ebidramon" }],
+        },
+      });
+      invalid.state.memory = 2;
+      await invalid.ready();
+      expect(
+        invalid.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: invalid.perm(alias).permanentId,
+          instanceId: invalid.inst("ebidramon").instanceId,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(invalid.perm(alias).topCard.cardId).toBe(source);
+      expect(invalid.inst("ebidramon").cardId).toBe("EX3-017");
+      expect(invalid.state.memory).toBe(2);
+    }
   });
 
   it("publishes one sourced choice containing only the controller's blue Digimon", async () => {
@@ -128,6 +210,44 @@ describe("EX3-017 Ebidramon", () => {
     expect(s.perm("recipient").isSuspended).toBe(false);
     expect(s.perm("aquaticHost").topCard.cardId).toBe("EX3-023");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-017")).toBe(true);
+  });
+
+  it("declining the upstream optional source play leaves Ebidramon stacked and the target unchanged", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-022", under: ["EX3-017"], as: "aquaticHost" },
+          { card: "EX3-018", as: "recipient", suspended: true },
+        ],
+        hand: [{ card: "EX3-023", as: "aegisdramon" }],
+        deck: ["BT1-030"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aquaticHost").permanentId,
+        instanceId: s.inst("aegisdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-023");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("aquaticHost").topCard.cardId === "EX3-023");
+
+    expect(s.perm("recipient").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Blocker")).toBe(false);
+    expect(s.perm("aquaticHost").stack.map(({ cardId }) => cardId)).toContain("EX3-017");
   });
 
   it("granted Blocker redirects a public attack and the selected Digimon pays suspension", async () => {
