@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "../BT1/BT1-020.js";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -8,6 +9,26 @@ import "../EX12/EX12-032.js";
 import { compiled } from "./EX8-060.js";
 
 describe("EX8-060", () => {
+  it("matches the committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-060")).toMatchObject({
+      cardId: "EX8-060",
+      nameEn: "Myotismon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead", "NSo"],
+      effectText:
+        "[Digivolve]Lv.4 w/[NSo]\u00a0trait: Cost 3 \n\n[When Attacking] You may play 1 [NSo]\u00a0trait Digimon card with a play cost of 3 or less from your trash without paying the cost.\n[Your Turn] [Once Per Turn] When your Digimon are played or digivolve, if any of them have the [NSo]\u00a0trait, 2 of your Digimon may DNA digivolve into a Digimon card with the [NSo]\u00a0trait in the hand. Then, that DNA digivolved Digimon may attack.",
+      inheritedEffectText:
+        "[When Attacking] [Once Per Turn] By deleting 1 of your other Digimon, this Digimon unsuspends.",
+    });
+    expect(getCardDefinition("EX8-060")?.securityEffectText).toBeUndefined();
+  });
   it("plays an NSo Digimon costing 3 or less from trash when attacking", () =>
     expect(
       compiled.effects?.find((entry) => entry.trigger === "WhenAttacking" && !entry.isInherited)?.actions[0],
@@ -27,6 +48,29 @@ describe("EX8-060", () => {
       actions: [{ kind: "DnaDigivolve" }, { kind: "Attack", optional: true }],
     });
     expect(actions[1]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
+    expect(actions[0]).toMatchObject({
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["NSo"], match: "trait" }],
+          },
+          condition: {
+            kind: "triggerSubjectMatchesFilter",
+            filter: { nameOrTrait: [{ tokens: ["NSo"], match: "trait" }] },
+          },
+          bindResultAs: "dnaDigivolvedByThisEffect",
+        },
+        {
+          kind: "Attack",
+          target: { filter: { boundRef: "dnaDigivolvedByThisEffect" }, count: 1 },
+          condition: { kind: "bindingExists", ref: "dnaDigivolvedByThisEffect" },
+        },
+      ],
+    });
   });
   it("inherits a once-per-turn unsuspend by deleting another Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
@@ -148,6 +192,32 @@ describe("EX8-060", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("does not DNA digivolve after a non-NSo Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-060", as: "myotismon" }],
+          hand: [
+            { card: "BT1-009", as: "nonNso" },
+            { card: "EX12-032", as: "dna" },
+          ],
+        },
+        1: { security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonNso").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-032");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-032")).toBe(false);
+  });
+
   it("may DNA digivolve but refuse the bound follow-up attack", async () => {
     const s = setupEngine(
       {
@@ -232,6 +302,74 @@ describe("EX8-060", () => {
 
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => otherIds.includes(card.instanceId))).toHaveLength(1);
+  });
+
+  it("resets the inherited unsuspend on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-020", as: "host", under: ["EX8-060"] },
+            { card: "BT1-010", as: "otherA" },
+            { card: "BT1-011", as: "otherB" },
+            { card: "BT1-012", as: "otherC" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-011", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const firstTurn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it.each([
