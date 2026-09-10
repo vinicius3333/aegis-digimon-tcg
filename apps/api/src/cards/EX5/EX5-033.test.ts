@@ -41,7 +41,7 @@ describe("EX5-033 Mitamamon", () => {
       bindResultAs: "playedByThisEffect",
       cost: {
         kind: "trash",
-        target: { filter: { controller: "mine", zone: "security" }, count: 1, position: "top" },
+        target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
         raw: "By trashing the top card of your security stack",
       },
       optional: true,

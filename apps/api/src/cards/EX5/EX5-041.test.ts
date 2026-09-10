@@ -38,15 +38,11 @@ describe("EX5-041 Ebonwumon", () => {
         actions: [
           {
             kind: "Suspend",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "scaling", upTo: true },
-            scaling: {
-              per: 1,
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ match: "trait", tokens: ["Deva", "Four Sovereigns"] }],
-              },
-              unit: "cards",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"] },
+              count: 1,
+              countModifier: { amount: 1 },
+              upTo: true,
             },
           },
           {
@@ -98,7 +94,10 @@ describe("EX5-041 Ebonwumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX5-037", as: "base" }],
+          battleArea: [
+            { card: "EX5-037", as: "base" },
+            { card: "BT10-079", as: "deva" },
+          ],
           hand: [{ card: "EX5-041", as: "source" }],
         },
         1: {

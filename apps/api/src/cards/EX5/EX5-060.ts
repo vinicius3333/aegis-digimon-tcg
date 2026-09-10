@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,7 +19,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          controller: "opponent",
           suspended: true,
           from: ["trash"],
           payCost: false,
@@ -41,7 +39,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          controller: "opponent",
           suspended: true,
           from: ["trash"],
           payCost: false,

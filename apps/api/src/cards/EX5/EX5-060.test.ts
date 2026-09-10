@@ -31,7 +31,6 @@ describe("EX5-060 Dragomon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
         kind: "PlayWithoutCost",
-        controller: "opponent",
         suspended: true,
         from: ["trash"],
         payCost: false,

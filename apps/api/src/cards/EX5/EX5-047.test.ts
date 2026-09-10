@@ -50,7 +50,7 @@ describe("EX5-047 Leomon", () => {
         0: { battleArea: [{ card: "EX5-047", as: "attacker" }], hand: [{ card: "EX5-049", as: "leomon" }] },
         1: { security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -63,7 +63,7 @@ describe("EX5-047 Leomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.cardId === "EX5-049");
     expect(s.perm("attacker").topCard.cardId).toBe("EX5-049");
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX5-049");
     expect(s.state.pendingDecision).toBeUndefined();
   });

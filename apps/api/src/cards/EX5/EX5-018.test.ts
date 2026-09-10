@@ -55,10 +55,11 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
             kind: ["Digimon"],
             nameOrTrait: [{ match: "name", tokens: ["Garurumon", "Omnimon"] }],
           },
-          outcome: "preventDeletion",
+          mode: "prevent",
           cost: {
             kind: "return",
-            target: { filter: { excludeKind: ["DigiEgg"] }, count: 2, to: "deckBottom" },
+            target: { filter: { excludeKind: ["DigiEgg"] }, count: 2 },
+            to: "deckBottom",
           },
         },
       ],

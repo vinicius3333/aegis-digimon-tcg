@@ -56,8 +56,8 @@ describe("EX5-015 Gabumon (X Antibody)", () => {
           kind: "Replacement",
           event: "wouldBeDeleted",
           leaveCause: "byBattle",
-          outcome: "preventDeletion",
-          cost: { kind: "return", target: { filter: { excludeKind: ["DigiEgg"] }, count: 2, to: "deckBottom" } },
+          mode: "prevent",
+          cost: { kind: "return", target: { filter: { excludeKind: ["DigiEgg"] }, count: 2 }, to: "deckBottom" },
         },
       ],
     });

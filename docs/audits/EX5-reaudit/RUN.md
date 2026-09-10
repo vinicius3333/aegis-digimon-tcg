@@ -81,3 +81,10 @@
 - Scoped Oxlint and Oxfmt checks pass, as does `git diff --check`.
 - Final fixture review removed illegal Digi-Egg placements and direct internal timing/verb proof; affected focused tests pass through public game flows.
 - Independent review findings were resolved before delivery; the final branch is ready for push.
+
+## 2026-09-09 strict TypeScript follow-up
+
+- Removed `// @ts-nocheck` from all 72 EX5 modules that still carried it; the set now contains zero such directives.
+- Corrected the 22 type errors exposed across 15 cards using the current IR schema rather than assertions that suppress whole-file checking.
+- The fixes also made Leomon's reduced digivolution payment explicit and corrected Ebonwumon's scaling proof to count Digimon permanents rather than cards in one evolution stack.
+- Full API typecheck passes, the complete EX5 collection remains green at 74 files and 548 tests, and all 74 effects records are synchronized with zero changes outside EX5.

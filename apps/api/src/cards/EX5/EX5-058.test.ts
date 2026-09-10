@@ -43,7 +43,7 @@ describe("EX5-058 Octomon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "ConditionalBranch",
-        condition: { kind: "totalDigimonCount", op: ">=", value: 4 },
+        condition: { kind: "totalDigimonCount", op: "gte", value: 4 },
         ifTrue: [
           {
             kind: "PlayToken",

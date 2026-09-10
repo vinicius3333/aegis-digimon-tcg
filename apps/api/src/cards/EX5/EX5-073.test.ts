@@ -46,7 +46,7 @@ describe("EX5-073 GraceNovamon", () => {
         amount: 8,
         scope: "acrossDigimon",
         condition: { kind: "isDnaDigivolving" },
-        target: { count: "any", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" } },
+        target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" } },
       },
       {
         kind: "Delete",
