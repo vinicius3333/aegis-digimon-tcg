@@ -8,7 +8,7 @@ import "./index.js";
 
 const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 const indexSource = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
-const auditLedgerSource = readFileSync(new URL("./AUDIT.md", import.meta.url), "utf8");
+const auditDocSource = readFileSync(new URL("../../../../../docs/audits/EX12.md", import.meta.url), "utf8");
 const ex12Cards = allCards()
   .filter((card) => card.set === "EX12")
   .sort((left, right) => left.cardId.localeCompare(right.cardId));
@@ -65,50 +65,16 @@ describe("EX12 collection audit proof", () => {
     }
   });
 
-  it("documents every audited card with a consistent score and an honest completion line", () => {
-    const rows = auditLedgerSource
+  it("documents every audited card in the collection audit doc", () => {
+    expect(auditDocSource, "front matter set").toContain("\nset: EX12\n");
+    expect(auditDocSource, "front matter card count").toContain(`\ncards: ${ex12Cards.length}\n`);
+    expect(auditDocSource, "front matter status").toMatch(/\nstatus: (?:verified|incomplete|blocked)\n/);
+
+    const documented = auditDocSource
       .split("\n")
-      .filter((line) => /^\| EX12-\d{3} \|/.test(line))
-      .map((line) =>
-        line
-          .split("|")
-          .slice(1, -1)
-          .map((cell) => cell.trim()),
-      );
-    const exceptionsSection = auditLedgerSource.slice(
-      auditLedgerSource.indexOf("## Exceptions"),
-      auditLedgerSource.indexOf("## Reproducible collection evidence"),
-    );
+      .map((line) => line.match(/^### (EX12-\d{3}) — /)?.[1])
+      .filter((cardId): cardId is string => cardId !== undefined);
 
-    expect(rows).toHaveLength(ex12Cards.length);
-
-    let perfectRows = 0;
-    const belowTen: string[] = [];
-    for (const [index, card] of ex12Cards.entries()) {
-      const cardId = card.cardId;
-      const [rowId, rowName, ...rest] = rows[index]!;
-      const areas = rest.slice(0, 5);
-      const [total, evidence] = rest.slice(5);
-
-      expect(rowId, `${cardId} audit ledger row`).toBe(cardId);
-      expect(rowName, `${cardId} catalog name`).toBe(card.nameEn);
-      for (const area of areas) expect(area, `${cardId} area score`).toMatch(/^[012]\/2$/);
-      const sum = areas.reduce((acc, area) => acc + Number(area.split("/")[0]), 0);
-      expect(total, `${cardId} total`).toBe(`${sum}/10`);
-      expect(evidence, `${cardId} evidence links`).toBe(
-        `[\`${cardId}.ts\`](./${cardId}.ts) · [\`${cardId}.test.ts\`](./${cardId}.test.ts)`,
-      );
-      if (sum === 10) perfectRows += 1;
-      else belowTen.push(cardId);
-    }
-
-    for (const cardId of belowTen) {
-      expect(exceptionsSection, `${cardId} listed under Exceptions`).toContain(`**${cardId} `);
-    }
-
-    const percent = ((perfectRows / ex12Cards.length) * 100).toFixed(1).replace(/\.0$/, "");
-    expect(auditLedgerSource).toContain(
-      `Overall completion: **${perfectRows}/${ex12Cards.length} cards (${percent}%) at 10/10**.`,
-    );
+    expect(documented, "one card section per catalog card, in ascending order").toEqual(ex12Ids);
   });
 });

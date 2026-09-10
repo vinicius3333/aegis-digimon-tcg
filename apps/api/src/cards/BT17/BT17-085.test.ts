@@ -229,7 +229,7 @@ describe("BT17-085 Rika Nonaka", () => {
   // `intrinsicPossible`) now preflights a CostGatedBlock's inner Digivolve against the destination
   // filter of the cost that binds its target, so the [Main] effect is refused outright instead of
   // paying the compound place cost and fizzling. Same family as the Q2803/Q2804 pay-then-may work;
-  // see docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+  // see docs/audits/BT17.md#pay-then-may-mechanism.
   it("refuses EX4-030 Kuzuhamon, which only carries [Sakuyamon] in its name (Q2868)", async () => {
     const s = setupEngine(
       {

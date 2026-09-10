@@ -415,7 +415,7 @@ describe("BT23-048 Gotsumon", () => {
   // KB Q5568: an effect that triggers at the end of the turn and this card's end-of-opponent-turn
   // deletion are simultaneous pending processing, so the TURN PLAYER chooses the processing
   // order — here seat 1, who controls EX9-033 Kaguyamon's [End of Your Turn] effect, while the
-  // deletion belongs to seat 0's Digimon. See docs/audits/BT23-reaudit/END-TURN-ORDERING-MECHANISM.md.
+  // deletion belongs to seat 0's Digimon. See docs/audits/BT23.md#end-turn-ordering.
   it("offers the turn player the order of the end-of-turn trigger and this deletion (Q5568)", async () => {
     const s = setupEngine(
       {

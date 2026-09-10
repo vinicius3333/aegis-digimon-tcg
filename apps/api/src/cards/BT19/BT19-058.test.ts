@@ -15,7 +15,7 @@ import "../index.js";
  *   3. ＜Blocker＞                       (inherited)
  *
  * KB: `node tools/kb/query.mjs card BT19-058` reports no knowledge-base entries —
- * no Q&A, errata or banlist row, matching docs/audits/BT19-reaudit/KB-INDEX.md.
+ * no Q&A, errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index.
  */
 
 const PLAIN_LV4_PEER = "BT1-014"; // Kokatorimon: Red Lv.4, 4000 DP, no effects, no keywords

@@ -13,7 +13,7 @@ import { compiled } from "./BT19-032.js";
 //   Inherited: ＜Barrier＞.
 //
 // Knowledge base: `node tools/kb/query.mjs card BT19-032` reports no Q&A entries, matching
-// docs/audits/BT19-reaudit/KB-INDEX.md (0 rulings). Nothing to cover.
+// docs/audits/BT19.md#knowledge-base-index (0 rulings). Nothing to cover.
 //
 // Fixtures (all inert main-deck Digimon, never Digi-Eggs, in deck or security):
 //   BT1-045 Tsukaimon  — inert Yellow Lv.3, the legal digivolution source.

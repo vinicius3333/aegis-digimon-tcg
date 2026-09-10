@@ -17,7 +17,7 @@ import "../index.js";
  *   3. ＜Blocker＞                                                            (inherited)
  *
  * KB: `node tools/kb/query.mjs card BT19-066` reports no knowledge-base entries — no Q&A,
- * errata or banlist row, matching docs/audits/BT19-reaudit/KB-INDEX.md (0 references).
+ * errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index (0 references).
  */
 
 const COMPOSITE_CARD = "BT6-012"; // Deltamon: Red Lv.4 [Composite], no effects

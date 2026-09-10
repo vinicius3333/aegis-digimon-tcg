@@ -323,7 +323,7 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
   // removal snapshot (`deletedPermanentSnapshots` / `deletedTopCardId`) when the live board no
   // longer holds it — the same data `subTrigger.ts` `deletionSourceFilterGate` gates on. These
   // three tests were retained reds until that fallback was added; see
-  // docs/audits/BT19-reaudit/LEAVING-DIGIMON-PLAY-MECHANISM.md.
+  // docs/audits/BT19.md#leaving-digimon-play-mechanism.
   //
   // The battle-deletion route (attack into a suspended 20000 DP wall, combat/controller.ts:1584)
   // travels the same seam and is covered by the engine regression test.

@@ -26,6 +26,7 @@
     "check:cards:style": "pnpm lint:cards && pnpm format:cards:check",
     "start": "pnpm --filter @aegis/api start",
     "clean": "pnpm -r exec rm -rf dist",
+    "audit:index": "node tools/audit-docs/build-index.mjs",
     "check:release": "node tools/check-release.mjs",
     "release:sync": "node tools/sync-release-artifacts.mjs",
     "check:commits": "node tools/check-commit-messages.mjs",

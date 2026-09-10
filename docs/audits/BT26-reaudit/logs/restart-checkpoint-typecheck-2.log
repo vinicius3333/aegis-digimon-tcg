@@ -1,4 +1,0 @@
-
-> @aegis/api@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt26-luna-20260910/apps/api
-> tsc --noEmit -p tsconfig.json
-

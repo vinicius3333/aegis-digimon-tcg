@@ -1,9 +1,0 @@
-
- RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt26-luna-20260910/apps/api
-
-
- Test Files  12 passed (12)
-      Tests  109 passed (109)
-   Start at  10:24:32
-   Duration  6.18s (transform 49%, import 37%, tests 14%)
-

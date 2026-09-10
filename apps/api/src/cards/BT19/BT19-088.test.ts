@@ -15,7 +15,7 @@ import "../index.js";
 //   [Security] Play this card without paying the cost.
 //
 // KB: `node tools/kb/query.mjs card BT19-088` reports no knowledge-base entries, and
-// docs/audits/BT19-reaudit/KB-INDEX.md lists 0 Q&A ids for this card. Every clause below is
+// docs/audits/BT19.md#knowledge-base-index lists 0 Q&A ids for this card. Every clause below is
 // therefore proved against the printed text and the comprehensive rules alone.
 
 const AI_MAKO = "BT19-088";

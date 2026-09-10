@@ -190,7 +190,7 @@ describe("BT17-059 Diaboromon", () => {
 
   // Q2813 also lets the player pay the "by placing" cost yet decline to play the Tokens. The
   // module sets `payCostBeforeOptional`, so `runActionInner` places the clock first and offers only
-  // the token play. See docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+  // the token play. See docs/audits/BT17.md#pay-then-may-mechanism.
   it("can place Doomsday Clock while declining the token play (Q2813)", async () => {
     const s = setupEngine(
       {

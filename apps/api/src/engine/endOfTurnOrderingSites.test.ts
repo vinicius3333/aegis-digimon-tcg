@@ -4,7 +4,7 @@ import { advance } from "./testkit/advance.js";
 import { setupEngine, settle, settleAcrossTimers } from "./testkit/harness.js";
 
 /**
- * KB Q5564 / Q5566 / Q5568 (docs/audits/BT23-reaudit/END-TURN-ORDERING-MECHANISM.md): end-of-turn
+ * KB Q5564 / Q5566 / Q5568 (docs/audits/BT23.md#end-turn-ordering): end-of-turn
  * PENDING PROCESSING left over from an already-resolved effect is not an activated effect, so
  * Comprehensive Rules §15-4-3-5's turn-player-then-non-turn-player split does not apply to it.
  * The TURN PLAYER orders the whole simultaneous set it lands in, whoever controls its source.

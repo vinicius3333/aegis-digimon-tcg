@@ -491,7 +491,7 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
    * The optional `PlayWithoutCost` preflight in `runAction.ts` now folds `playCostLteScaling`
    * into `playCostLte` through the same `materializePlayCostLteScaling` helper the resolver uses
    * (`actions/play.ts`), so the clause is judged at the scaled ceiling instead of the printed 0.
-   * See docs/audits/BT19-reaudit/PLAY-COST-SCALING-PREFLIGHT-MECHANISM.md.
+   * See docs/audits/BT19.md#play-cost-scaling-preflight-mechanism.
    */
   it("plays a [D-Reaper] card whose cost fits the digivolution-card count, for free", async () => {
     const s = securityCheckBoard({ underMother: SIX_UNDER });

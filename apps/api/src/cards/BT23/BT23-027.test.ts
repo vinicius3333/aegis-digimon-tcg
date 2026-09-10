@@ -415,7 +415,7 @@ describe("BT23-027 Angemon", () => {
   });
 
   // Q6250 (was the `barrier-then-source-play` seam, now fixed — see
-  // docs/audits/BT23-reaudit/BARRIER-SOURCE-PLAY-MECHANISM.md). With Angemon among
+  // docs/audits/BT23.md#barrier-source-play). With Angemon among
   // Shakkoumon's digivolution cards, the controller may activate ＜Barrier＞ to prevent the
   // battle deletion FIRST and still use Shakkoumon's [All Turns] effect to play a Digimon —
   // including that Angemon — from its digivolution cards. `consultLeavePrevention` now runs

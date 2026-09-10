@@ -15,7 +15,7 @@ import "../index.js";
  *   2. [All Turns] This Digimon gets +1000 DP.                              (inherited)
  *
  * KB: `node tools/kb/query.mjs card BT19-060` reports no knowledge-base entries —
- * no Q&A, errata or banlist row, matching docs/audits/BT19-reaudit/KB-INDEX.md.
+ * no Q&A, errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index.
  */
 
 const RYO = "BT19-086"; // Ryo Akiyama: Black Tamer — the exact [Ryo Akiyama] the clause names

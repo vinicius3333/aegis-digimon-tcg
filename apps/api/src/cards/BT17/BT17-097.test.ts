@@ -471,7 +471,7 @@ describe("BT17-097 Return to the Primogenitor", () => {
   // Q2889: ＜Partition＞ granted by a digivolution card carries its specifier on THAT card, not on
   // the top card. `partitionCandidates` now falls back to the stack when the top card prints no
   // marker, and `partitionSpecOf` reads the inherited copy of the text as well as the printed one.
-  // See docs/audits/BT17-reaudit/INHERITED-PARTITION-SPECIFIER-MECHANISM.md.
+  // See docs/audits/BT17.md#inherited-partition-specifier-mechanism.
   it("Q2889: Partition from a BT16-025 in the digivolution cards still plays its cards", async () => {
     const s = setupEngine(
       {

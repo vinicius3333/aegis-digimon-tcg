@@ -15,7 +15,7 @@ import "../index.js";
 //   [Security] Play this card without paying the cost.
 //
 // Rulings: none. `node tools/kb/query.mjs card BT19-082` reports no knowledge-base entries and
-// docs/audits/BT19-reaudit/KB-INDEX.md lists 0 Q&A for this card.
+// docs/audits/BT19.md#knowledge-base-index lists 0 Q&A for this card.
 //
 // "in one of its traits" is a SUBSTRING match. No card in the catalog carries a trait spelled
 // exactly "Aqua": the printed reference reaches [Aquatic], [Aquabeast] and [Ancient Aquabeast].

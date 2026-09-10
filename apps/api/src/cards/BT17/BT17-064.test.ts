@@ -108,7 +108,7 @@ describe("BT17-064 Pipismon", () => {
   // `trigger.defenderAtDeclaration`, the snapshot the combat controller captures at attack
   // declaration, so a same-window [When Attacking] effect that strips the defender's sources
   // (here BT16-016 [Patamon]'s inherited trash) cannot retroactively arm the delete.
-  // See docs/audits/BT17-reaudit/ATTACK-TARGET-DECLARATION-SNAPSHOT-MECHANISM.md.
+  // See docs/audits/BT17.md#attack-target-declaration-snapshot-mechanism.
   it("Q2816: an inherited mid-attack source trash does not retroactively arm the delete", async () => {
     const s = setupEngine(
       {

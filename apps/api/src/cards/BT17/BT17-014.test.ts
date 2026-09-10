@@ -124,7 +124,7 @@ describe("BT17-014", () => {
   // digivolution cards. GameEngine.runContinuousPass collects continuous effects from every stack
   // instance, so BT12-088's "[Your Turn] This Digimon gets +2000 DP" reaches the host. The earlier
   // red was a fixture defect, not an engine seam: BT12-088's module was never imported here, so
-  // the card was inert on the board. See docs/audits/BT17-reaudit/TEST-FIXTURE-CARD-REGISTRATION.md.
+  // the card was inert on the board. See docs/audits/BT17.md#test-fixture-card-registration.
   it("gains the digivolution-card Tamer's inherited effect after digivolving, per Q6563", async () => {
     const s = setupEngine(
       {

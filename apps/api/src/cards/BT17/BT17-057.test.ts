@@ -322,7 +322,7 @@ describe("BT17-057 Chaosdramon", () => {
   // Q2811. `validateDigiXros` (apps/api/src/engine/actions/digiXros.ts) now consults the per-seat
   // `expandDigiXrosZones` ledger that BT17-057's Static `digixrosFromTrash` grant populates while a
   // black Tamer is in play, with the same one-material-per-uncounted-grant quota the effect-driven
-  // play path uses. See docs/audits/BT17-reaudit/DIGIXROS-ZONE-LEDGER-MECHANISM.md.
+  // play path uses. See docs/audits/BT17.md#digixros-zone-ledger-mechanism.
   it("accepts a trash card as DigiXros material while a black Tamer is in play (Q2811)", async () => {
     const s = setupEngine(
       {

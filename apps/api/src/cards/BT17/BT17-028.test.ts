@@ -168,7 +168,7 @@ describe("BT17-028", () => {
   // whenEffectAddsToOpponentHand (above) and whenEffectAddsToHand (here). Both fire.
   // The earlier red was a fixture defect, not an engine seam: BT1-029 (the effect Draw
   // that feeds your own hand) was never imported, so its IR was unregistered and playing
-  // it drew nothing. See docs/audits/BT17-reaudit/TEST-FIXTURE-CARD-REGISTRATION.md.
+  // it drew nothing. See docs/audits/BT17.md#test-fixture-card-registration.
   it("moves the opponent's top security to hand when an effect adds to your own hand", async () => {
     const s = setupEngine(
       {

@@ -1,9 +1,0 @@
-
-> @aegis/api@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-ex4-luna-20260909/apps/api
-> tsc --noEmit -p tsconfig.json
-
-src/cards/EX4/EX4-024.test.ts(350,88): error TS2339: Property 'sourceCardId' does not exist on type 'ServerEvent'.
-  Property 'sourceCardId' does not exist on type '{ kind: "matchStarted"; firstSeat: Seat; }'.
-/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-ex4-luna-20260909/apps/api:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/api@1.1.0 typecheck: `tsc --noEmit -p tsconfig.json`
-Exit status 2

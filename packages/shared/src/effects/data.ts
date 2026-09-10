@@ -484,7 +484,7 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   // (TakaOtaku/Digimon-Card-App), which the pre-EX9 imports dropped. Each entry transcribes the
   // printed [DNA Digivolve] line; a slashed color list ("Blue/Yellow Lv.5") expands into one
   // requirement per color pair, because a material spec holds a single color.
-  // See docs/audits/DNA-DIGIVOLVE-INTO-FILTER-AUDIT.md.
+  // See docs/audits/engine/dna-digivolve-into-filter.md.
   // Paildramon — [DNA Digivolve] Blue Lv.4 + Green Lv.4
   "AD1-011": [
     {

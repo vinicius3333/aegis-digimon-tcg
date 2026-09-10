@@ -606,7 +606,7 @@ describe("BT23-037 Tentomon", () => {
   // Q5566, part 2. The delayed deletion is pending processing scheduled by seat 0's card, and
   // BanchoLeomon's [End of Your Turn] is seat 1's System-A timing effect. They are simultaneous,
   // and the TURN PLAYER (seat 1) chooses the processing order across that controller boundary.
-  // See docs/audits/BT23-reaudit/END-TURN-ORDERING-MECHANISM.md.
+  // See docs/audits/BT23.md#end-turn-ordering.
   it("offers the turn player the end-of-turn processing order", async () => {
     const board = inheritedBoard();
     const s = setupEngine(

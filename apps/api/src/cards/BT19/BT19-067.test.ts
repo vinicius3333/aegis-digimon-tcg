@@ -14,7 +14,7 @@ import "../index.js";
  *   2. ＜Retaliation＞                                                        (inherited)
  *
  * KB: `node tools/kb/query.mjs card BT19-067` reports no knowledge-base entries — no Q&A,
- * errata or banlist row, matching docs/audits/BT19-reaudit/KB-INDEX.md (0 references).
+ * errata or banlist row, matching docs/audits/BT19.md#knowledge-base-index (0 references).
  */
 
 const PURPLE_TAMER_4 = "BT18-093"; // Violet Inboots: Purple Tamer, play cost 4 — the boundary hit

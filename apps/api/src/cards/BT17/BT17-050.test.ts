@@ -139,7 +139,7 @@ describe("BT17-050 Parasitemon", () => {
     // Q2803: paying 4 cost AND placing this card under a level-5+ Digimon is a single activation
     // condition; with no such Digimon the effect cannot be activated. The module now carries both
     // halves as one compound `cost` on the modal, so `canPayCost` refuses the activation before
-    // any memory is charged. See docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+    // any memory is charged. See docs/audits/BT17.md#pay-then-may-mechanism.
     const s = setupEngine(
       {
         0: {
@@ -175,7 +175,7 @@ describe("BT17-050 Parasitemon", () => {
     // 4 cost is paid and the card is placed: (a) suspend + attack, or (b) neither. With the
     // placement moved into the modal's cost, option[1] = [] is the real "placed, nothing else"
     // branch, and `runModal` now treats an empty option list as available rather than filtering it
-    // out. See docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+    // out. See docs/audits/BT17.md#pay-then-may-mechanism.
     const s = setupEngine(
       {
         0: {

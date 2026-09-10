@@ -237,7 +237,7 @@ describe("BT17-080 Takato Matsuki", () => {
   // Q2853: the ruling lets the player PLACE this Tamer, [Growlmon] and [WarGrowlmon] and then
   // decline the "may digivolve". The module sets `payCostBeforeOptional`, so `runActionInner` pays
   // the whole placement cost first and offers only the digivolve.
-  // See docs/audits/BT17-reaudit/PAY-THEN-MAY-MECHANISM.md.
+  // See docs/audits/BT17.md#pay-then-may-mechanism.
   it("Q2853: places the cost cards even when the digivolve itself is declined", async () => {
     const s = setupEngine(
       {

@@ -9,7 +9,7 @@ import { dnaDigivolutionRequirementsFor } from "./data.js";
  * into a legal DNA result. The pre-EX9 card imports dropped the community DB's `dnaDigivolve`
  * header, so these recipes live in DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES rather than in
  * cards.json. This list is the full set as of the 2026-09-06 audit
- * (docs/audits/DNA-DIGIVOLVE-INTO-FILTER-AUDIT.md); extend it when a new DNA card is imported.
+ * (docs/audits/engine/dna-digivolve-into-filter.md); extend it when a new DNA card is imported.
  */
 const CARDS_PRINTING_A_DNA_HEADER = [
   "AD1-011", "AD1-025", "BT12-028", "BT12-055", "BT13-059", "BT16-012",

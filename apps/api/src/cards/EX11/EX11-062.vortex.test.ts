@@ -15,7 +15,7 @@ import "../index.js"; // register compiled cards so the real [Your Turn] recompu
  * [Your Turn] static installs that grant on all your Digimon while the opponent has no unsuspended
  * Digimon (Q5919: also met when the opponent has no Digimon at all).
  *
- * ＜Vortex＞ attacks are synthesized at the end of your turn (docs/audits/VORTEX-TIMING-AUDIT.md);
+ * ＜Vortex＞ attacks are synthesized at the end of your turn (docs/audits/engine/vortex-timing.md);
  * a forged Main-phase `vortex: true` intent is rejected as wrong-phase, so the legality lever is
  * observed through the real turn loop: the end-turn trigger collects its targets via the same
  * canAttackTarget seam and declares against whichever legal target the controller picks.

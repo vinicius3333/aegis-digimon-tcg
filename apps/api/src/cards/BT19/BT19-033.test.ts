@@ -14,7 +14,7 @@ import { compiled } from "./BT19-033.js";
 //   Inherited: [Your Turn] This Digimon with the [Xros Heart] trait gains ＜Piercing＞.
 //
 // Knowledge base: `node tools/kb/query.mjs card BT19-033` reports no Q&A entries, matching
-// docs/audits/BT19-reaudit/KB-INDEX.md (0 rulings). Nothing to cover.
+// docs/audits/BT19.md#knowledge-base-index (0 rulings). Nothing to cover.
 //
 // Fixtures:
 //   BT1-045 Tsukaimon (Yellow Lv.3) / BT1-064 Goblimon (Green Lv.3) — legal sources.
