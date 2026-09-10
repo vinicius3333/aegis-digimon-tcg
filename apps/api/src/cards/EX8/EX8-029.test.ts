@@ -2,10 +2,34 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import "./index.js";
 import { compiled } from "./EX8-029.js";
 
 describe("EX8-029", () => {
+  it("matches committed catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-029")).toMatchObject({
+      cardId: "EX8-029",
+      nameEn: "Aegisdramon",
+      colors: ["Blue", "Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Blue", level: 6, memoryCost: 5 },
+        { color: "Black", level: 6, memoryCost: 5 },
+        { color: "Yellow", level: 6, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "DS", "Aquatic"],
+      effectText:
+        "[When Digivolving] Return up to 14 play cost's total worth of your opponent's Digimon to the bottom of the deck. If DNA digivolving, you may play up to 12 play cost's total worth of [DS]\u00a0trait cards from this Digimon's digivolution cards without paying the costs.\n[All Turns] While you have 1 or more memory, none of your [DS]\u00a0trait Digimon are affected by your opponent's Digimon's effects. While you have 1 or less, none of your opponent's Digimon can activate [On Play] effects.\n[Rule] Trait: Has the [Aquatic] type.",
+    });
+    expect(getCardDefinition("EX8-029")?.inheritedEffectText).toBeUndefined();
+  });
+
   it("returns opposing Digimon up to total play cost 14 and plays DS cards from digivolution cards when DNA digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "Return",
