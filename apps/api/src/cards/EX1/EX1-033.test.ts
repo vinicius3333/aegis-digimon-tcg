@@ -13,8 +13,9 @@ describe("EX1-033 Tentomon", () => {
           { card: "BT1-066", as: "base" },
         ],
         hand: [{ card: "BT1-070", as: "evo" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -35,6 +36,9 @@ describe("EX1-033 Tentomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-070");
     expect(s.state.memory).toBe(4);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-066"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("consumes the reduction after the first matching digivolution", async () => {
@@ -50,7 +54,7 @@ describe("EX1-033 Tentomon", () => {
           { card: "BT1-070", as: "secondEvolution" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -98,7 +102,7 @@ describe("EX1-033 Tentomon", () => {
           { card: "BT1-070", as: "matchingEvolution" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -142,7 +146,7 @@ describe("EX1-033 Tentomon", () => {
         ],
         hand: [{ card: "BT7-054", as: "ancientEvolution" }],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.memory = 6;
     await s.ready();
@@ -165,6 +169,43 @@ describe("EX1-033 Tentomon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("rejects an illegal evolution without spending the armed reduction or changing its stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-070", as: "attacker", under: ["EX1-033"] },
+          { card: "BT1-009", as: "invalidSource" },
+        ],
+        hand: [{ card: "BT1-070", as: "evolution" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").isSuspended);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidSource").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("invalidSource").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("invalidSource").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("evolution").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
+  });
+
   it("accumulates one reduction for each public attack before matching evolution", async () => {
     const s = setupEngine(
       {
@@ -179,7 +220,7 @@ describe("EX1-033 Tentomon", () => {
             { card: "BT1-070", as: "evolution" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -217,7 +258,7 @@ describe("EX1-033 Tentomon", () => {
         breeding: { card: "BT1-066", as: "breedingBase" },
         hand: [{ card: "EX1-035", as: "breedingEvolution" }],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     await s.ready();
     expect(

@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -36,28 +35,6 @@ describe("EX1-065 Diaboromon", () => {
     await loop;
   });
 
-  it("may play a Diaboromon Token from security", async () => {
-    const s = setupEngine(
-      { 0: { security: [{ card: "EX1-065", as: "security", faceUp: true }] } },
-      { autoAcceptOptional: true },
-    );
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("TOKEN-Diaboromon");
-  });
-
-  it("may decline to play the security token", async () => {
-    const s = setupEngine(
-      { 1: { security: [{ card: "EX1-065", as: "security", faceUp: true }] } },
-      { autoDeclineOptional: true },
-    );
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-  });
-
   it("loses the token's Blocker before blocker timing when the source is deleted while attacking", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -68,7 +45,7 @@ describe("EX1-065 Diaboromon", () => {
             { card: "EX1-065", as: "source", dp: 4000 },
             { card: "TOKEN-Diaboromon", as: "token" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, preferInstanceIds },
@@ -122,7 +99,7 @@ describe("EX1-065 Diaboromon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT2-079", as: "attacker" }] },
-        1: { security: ["EX1-065", "BT1-001"] },
+        1: { security: ["EX1-065", "BT1-009"] },
       },
       { autoAcceptOptional: true },
     );

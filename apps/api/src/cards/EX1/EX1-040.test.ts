@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-040.js";
+import "./EX1-035.js";
 
 describe("EX1-040 MegaKabuterimon", () => {
   it("can digivolve into an Insectoid or Ancient Insect while attacking", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -30,7 +31,7 @@ describe("EX1-040 MegaKabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -65,7 +66,7 @@ describe("EX1-040 MegaKabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT7-054", as: "ancient" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -87,7 +88,7 @@ describe("EX1-040 MegaKabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -108,7 +109,7 @@ describe("EX1-040 MegaKabuterimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "EX1-038", as: "lowerLevel" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -123,6 +124,41 @@ describe("EX1-040 MegaKabuterimon", () => {
     await settle(() => s.perm("mega").isSuspended);
     expect(s.perm("mega").topCard.cardId).toBe("EX1-040");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lowerLevel").instanceId)).toBe(true);
+  });
+
+  it("Q3227: does not open this newly gained When Attacking effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-035", as: "kabuterimon" }],
+          hand: [
+            { card: "EX1-040", as: "mega" },
+            { card: "BT1-083", as: "followup" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kabuterimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kabuterimon").topCard.cardId === "EX1-040");
+
+    expect(s.perm("kabuterimon").stack.map(({ cardId }) => cardId)).toEqual(["EX1-035"]);
+    expect(s.perm("kabuterimon").topCard.instanceId).toBe(s.inst("mega").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("followup").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
   });
 
   it("gains 1 memory when EX1-040 wins a real battle and survives", async () => {

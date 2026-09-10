@@ -113,7 +113,7 @@ describe("EX1-050 MetalMamemon", () => {
             { card: "BT1-018", as: "costFive" },
             { card: "BT1-075", as: "costSix" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },

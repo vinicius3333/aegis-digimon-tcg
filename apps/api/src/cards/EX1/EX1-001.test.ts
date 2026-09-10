@@ -11,12 +11,12 @@ describe("EX1-001 Agumon", () => {
           battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
           deck: [
             { card: "ST1-12", as: "validTamer" },
-            { card: "BT1-009", as: "validAgumon" },
-            { card: "BT1-010", as: "invalid" },
-            { card: "BT1-011", as: "untouched" },
+            { card: "BT1-010", as: "validAgumon" },
+            { card: "BT1-009", as: "invalid" },
+            { card: "BT1-012", as: "untouched" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -32,20 +32,20 @@ describe("EX1-001 Agumon", () => {
     ).toEqual({ ok: true });
     await settle(() => p0.hand.length === 1);
 
-    expect(["ST1-12", "BT1-009"]).toContain(p0.hand[0]!.cardId);
+    expect(p0.hand[0]!.cardId).toBe("ST1-12");
     expect(p0.deck).toHaveLength(3);
-    expect(p0.deck.some((card) => card.cardId === "BT1-011")).toBe(true);
+    expect(p0.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-010", "BT1-009", "BT1-012"]));
   });
 
-  it("accepts a non-red Agumon-name card and fires only once per turn", async () => {
+  it("accepts a non-red Agumon-name card, rejects a near-match, and fires only once per turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
           hand: [{ card: "BT1-036", as: "unsuspender" }],
-          deck: ["BT11-046", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT11-046", "BT1-009", "BT1-012", "BT1-013", "BT1-014", "BT1-010"],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -61,6 +61,7 @@ describe("EX1-001 Agumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT11-046")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
 
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(
@@ -81,6 +82,36 @@ describe("EX1-001 Agumon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
+  it("does not add a card when none of the revealed cards match", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
+          deck: ["BT1-009", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    const p0 = s.state.players[0]!;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    expect(p0.hand).toHaveLength(0);
+    expect(p0.deck).toHaveLength(4);
+    expect(p0.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-012", "BT1-013", "BT1-014"]),
+    );
+  });
+
   it("works after a legal public egg-to-Agumon evolution and higher-level host", async () => {
     const s = setupEngine(
       {
@@ -95,7 +126,7 @@ describe("EX1-001 Agumon", () => {
           // before the inherited RevealAdd gets to look at the top 3.
           deck: ["BT1-013", "BT1-014", "ST1-12", "BT1-011", "BT1-012"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );

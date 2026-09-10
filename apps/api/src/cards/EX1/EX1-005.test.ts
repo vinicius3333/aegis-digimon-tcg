@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT11/BT11-043.js";
 import "./EX1-005.js";
 import "../ST4/ST4-03.js";
 
@@ -99,6 +100,32 @@ describe("EX1-005 Tyrannomon", () => {
     expect(s.perm("host").currentDP).toBe(4000);
   });
 
+  it("keeps EX1-005's gained Green color alongside a White/Sukamon/3000-DP rewrite (Q2082/Q2480)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-043", as: "kingSukamon" }],
+          trash: ["BT11-040", "BT11-040", "BT11-040"],
+        },
+        1: { battleArea: [{ card: "EX1-005", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const target = s.perm("target");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingSukamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => target.currentDP === 3000);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).effectiveNames(target)).toContain("sukamon");
+    expect(observe(s.engine).effectiveColors(target)).toEqual(expect.arrayContaining(["White", "Green"]));
+    expect(target.currentDP).toBe(3000);
+  });
+
   it("does not treat a revealed EX1-005 as Green (Q3192)", async () => {
     const s = setupEngine(
       {
@@ -170,9 +197,9 @@ describe("EX1-005 Tyrannomon", () => {
       0: {
         battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }],
         hand: ["BT1-009"],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
-      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-009"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);

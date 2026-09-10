@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-004.js";
@@ -25,6 +26,26 @@ async function evolveIntoGreymon(s: ReturnType<typeof setupEngine>): Promise<voi
 }
 
 describe("EX1-004 Greymon", () => {
+  it("requires a red level-3 Digimon as its evolution source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "blueRookie" }],
+        hand: [{ card: "EX1-004", as: "evo" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("blueRookie").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(s.perm("blueRookie").topCard.cardId).toBe("BT1-029");
+  });
+
   it("plays a Tai Kamiya costing 3 or less on attack", async () => {
     const s = setupEngine(
       {
@@ -36,7 +57,7 @@ describe("EX1-004 Greymon", () => {
             { card: "ST1-12", as: "tai" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -66,7 +87,7 @@ describe("EX1-004 Greymon", () => {
             { card: "BT1-085", as: "tai" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -93,7 +114,7 @@ describe("EX1-004 Greymon", () => {
             { card: "AD1-022", as: "combinedTai" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -120,7 +141,7 @@ describe("EX1-004 Greymon", () => {
             { card: "ST1-12", as: "tai" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -150,7 +171,7 @@ describe("EX1-004 Greymon", () => {
             { card: "BT1-036", as: "unsuspender" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -176,5 +197,61 @@ describe("EX1-004 Greymon", () => {
     await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai2").instanceId)).toBe(true);
+  });
+
+  it("resets the inherited Once Per Turn effect on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [
+            { card: "EX1-004", as: "evo" },
+            { card: "BT1-020", as: "host" },
+            { card: "ST1-12", as: "tai1" },
+            { card: "ST1-12", as: "tai2" },
+            { card: "BT1-036", as: "unsuspender" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await evolveIntoGreymon(s);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("attacker").isSuspended);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai2").instanceId)).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.turnSeat === 0 && s.state.phase === "Main");
+
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai2").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
