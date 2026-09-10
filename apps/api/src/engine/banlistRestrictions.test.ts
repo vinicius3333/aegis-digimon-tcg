@@ -40,6 +40,13 @@ describe("banlist restriction map (latest-event-wins)", () => {
     expect(effectiveCopyLimit("BT23-032")).toBe(1);
   });
 
+  it("applies the 2026-09-01 update (Nyaromon banned, three cards restricted)", () => {
+    expect(effectiveCopyLimit("BT15-003")).toBe(0);
+    expect(effectiveCopyLimit("EX1-066")).toBe(1);
+    expect(effectiveCopyLimit("EX8-012")).toBe(1);
+    expect(effectiveCopyLimit("BT14-033")).toBe(1);
+  });
+
   it("restores a card's printed limit when its lift is in force", () => {
     expect(effectiveCopyLimit("BT6-015")).toBe(4);
     expect(effectiveCopyLimit("BT7-086")).toBe(4);

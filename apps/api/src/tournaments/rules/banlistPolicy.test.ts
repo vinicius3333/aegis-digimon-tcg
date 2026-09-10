@@ -49,6 +49,14 @@ describe("resolveBanlistPolicy", () => {
     expect(early).toEqual(late);
   });
 
+  it("freezes an event created before the 2026-09-01 update without it", () => {
+    const beforeUpdate = resolveBanlistPolicy({ mode: "current" }, Date.parse("2026-08-31"));
+    const afterUpdate = resolveBanlistPolicy({ mode: "current" }, Date.parse("2026-09-01"));
+    expect(statusOf(beforeUpdate, "BT15-003")).toBeUndefined();
+    expect(statusOf(afterUpdate, "BT15-003")).toEqual({ cardId: "BT15-003", status: "banned", allowedCopies: 0 });
+    expect(statusOf(afterUpdate, "EX1-066")).toEqual({ cardId: "EX1-066", status: "restricted", allowedCopies: 1 });
+  });
+
   it("keeps a lifted restriction out of a list resolved after the lift", () => {
     const createdAt = Date.parse("2026-01-01");
     const beforeLift = resolveBanlistPolicy({ mode: "as_of_set", setId: "BT10" }, createdAt);
