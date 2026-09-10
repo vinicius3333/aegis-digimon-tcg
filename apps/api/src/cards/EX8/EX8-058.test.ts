@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +7,25 @@ import "./index.js";
 import { compiled } from "./EX8-058.js";
 
 describe("EX8-058", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-058")).toMatchObject({
+      cardId: "EX8-058",
+      nameEn: "Gesomon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Mollusk", "DS"],
+      effectText: expect.stringContaining("Gain 1 memory"),
+      inheritedEffectText: expect.stringContaining("level 3 Digimon"),
+    });
+    expect(getCardDefinition("EX8-058")?.securityEffectText).toBeUndefined();
+  });
+
   it("gains 1 memory on deletion", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "GainMemory",
@@ -14,9 +33,15 @@ describe("EX8-058", () => {
     }));
   it("inherits once-per-turn deletion of an opposing level 3 Digimon when attacking", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      isInherited: true,
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", levels: [3] } } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
+        },
+      ],
     }));
   it("exposes the level-3 DS evolution route for cost 2", () =>
     expect(digivolutionRequirementsFor("EX8-058")).toContainEqual({
@@ -136,6 +161,29 @@ describe("EX8-058", () => {
 
     expect(s.perm("lineage").stack.map((card) => card.cardId)).toEqual(["EX8-017", "EX8-058"]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["AD1-001"]);
+  });
+
+  it("evolves through the standard Purple level-3 route for 2 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-057", as: "base" }],
+        hand: [{ card: "EX8-058", as: "gesomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gesomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-058");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-057"]);
   });
 
   it("rejects the trait route from an off-color non-DS level 3", async () => {
