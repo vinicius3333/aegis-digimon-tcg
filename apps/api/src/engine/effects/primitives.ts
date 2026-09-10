@@ -159,6 +159,7 @@ export interface PrimitivesEngine {
   resolveDeletionReactions?: (
     trigger: import("./EffectContext.js").TriggerInfo,
     ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
+    transientCandidates?: readonly CardInstance[],
   ) => Promise<void>;
   /**
    * Fire the SubTrigger bus (System B) for an event, running armed watchers whose captured
@@ -3757,6 +3758,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const top = access.permanentById(permanentId)?.topCard;
       return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
     });
+    // Digi-Egg stack cards are returned face-down to eggDeck by deletion, which is not in
+    // the normal timing candidate pool. Preserve those physical instances for inherited
+    // [On Deletion] effects while retaining the normal by-effect cause (so Retaliation does
+    // not recursively chain from a permanent deleted by Retaliation).
+    const digiEggDeletionCandidates = toDelete.flatMap((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      if (permanent === undefined) return [];
+      return [
+        ...permanent.stack,
+        ...(permanent.topCard === undefined ? [] : [permanent.topCard]),
+        ...permanent.linked,
+      ].filter((card) => requireCardDefinition(card.cardId).kinds.includes(CardKind.DigiEgg));
+    });
     if (tokenDeletionIds.length > 0 && engine.fireTiming) {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
@@ -3852,6 +3866,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.resolveDeletionReactions(
           deletionTrigger,
           ascensionCandidates.filter(({ instanceId }) => allMoved.includes(instanceId)),
+          digiEggDeletionCandidates,
         );
       } else {
         await engine.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger);

@@ -1,4 +1,5 @@
 import {
+  CardKind,
   EffectTiming,
   type Permanent,
   type CardInstance,
@@ -1624,6 +1625,18 @@ export class CombatController {
       const top = this.access.permanentById(permanentId)?.topCard;
       return top !== undefined && getCardDefinition(top.cardId)?.isToken === true ? [top] : [];
     });
+    // Deletion returns Digi-Egg cards face-down to eggDeck, which is hidden from the normal
+    // timing candidate pool. Keep those physical instances transiently available so an
+    // inherited [On Deletion] effect can resolve after a battle deletion.
+    const digiEggDeletionCandidates = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const permanent = this.access.permanentById(permanentId);
+      if (permanent === undefined) return [];
+      return [
+        ...permanent.stack,
+        ...(permanent.topCard === undefined ? [] : [permanent.topCard]),
+        ...permanent.linked,
+      ].filter((card) => getCardDefinition(card.cardId)?.kinds.includes(CardKind.DigiEgg) === true);
+    });
     for (const permanentId of postCardPreventionDeletedIds) {
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const linkedIds = this.access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [];
@@ -1712,7 +1725,7 @@ export class CombatController {
           [...ascensionCandidates].flatMap(([instanceId, seat]) =>
             deletedInstanceIds.includes(instanceId) ? [{ instanceId, seat }] : [],
           ),
-          tokenDeletionCandidates,
+          [...tokenDeletionCandidates, ...digiEggDeletionCandidates],
         );
       } else {
         await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger);

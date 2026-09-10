@@ -29,10 +29,11 @@ interface OverflowMemoryPort {
  */
 type EventPort = (event: ServerEvent) => void;
 
-/** A permanent's cards on their way to trash, with the field zone they left. */
+/** A permanent's cards on their way out, with the field zone they left. */
 interface DeletionMove {
   cards: CardInstance[];
   from: Zone.BattleArea | Zone.Breeding;
+  eggDeckCards: CardInstance[];
 }
 
 /**
@@ -540,7 +541,7 @@ export class GameStateAccess {
 
   /**
    * Remove a permanent from its controller's battle area OR breeding slot and move its top
-   * card, digivolution stack, and linked cards to their owners' trash, WITHOUT processing
+   * card, digivolution stack, and linked cards to their canonical owner zones, WITHOUT processing
    * <Overflow> — the caller applies Overflow itself. Factored out of {@link deletePermanent}
    * so a caller deleting SEVERAL permanents in one simultaneous action (e.g. `primitives.ts`'s
    * `deletePermanent`) can collect every leaving card across the whole batch first and apply
@@ -549,7 +550,7 @@ export class GameStateAccess {
    * Overflow-charged) so the caller can batch them, together with the field zone they left
    * so the narration can tell a battle-area deletion from a breeding one.
    */
-  private moveDeletedPermanentCardsToTrash(permanentId: string): DeletionMove {
+  private moveDeletedPermanentCards(permanentId: string): DeletionMove {
     for (const player of this.state.players) {
       const index = player.battleArea.findIndex((p) => p.permanentId === permanentId);
       const permanent = index >= 0 ? player.battleArea[index] : undefined;
@@ -559,6 +560,7 @@ export class GameStateAccess {
         continue;
       }
       const cards: CardInstance[] = [...target.stack, ...(target.topCard ? [target.topCard] : []), ...target.linked];
+      const eggDeckCards: CardInstance[] = [];
       for (const card of cards) {
         // CR §4-20-5: a token leaving the field is removed from the game instead of trashed —
         // dropping it here (inserting into no zone) is that removal; every other leaving card
@@ -567,16 +569,24 @@ export class GameStateAccess {
         if (def !== undefined && isTokenDefinition(def)) {
           continue;
         }
-        insertCard(this.player(card.ownerSeat), Zone.Trash, card);
+        if (def?.kinds.includes(CardKind.DigiEgg) === true) {
+          // A Digi-Egg leaving the field returns face-down to the bottom of its owner's
+          // Digi-Egg deck, including when the leave is a deletion (CR §4-3-1 / §4-18).
+          card.faceUp = false;
+          insertCard(this.player(card.ownerSeat), Zone.EggDeck, card);
+          eggDeckCards.push(card);
+        } else {
+          insertCard(this.player(card.ownerSeat), Zone.Trash, card);
+        }
       }
       if (inBreeding) {
         player.breeding = undefined;
       } else {
         extractPermanentAt(player, index);
       }
-      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea };
+      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea, eggDeckCards };
     }
-    return { cards: [], from: Zone.BattleArea };
+    return { cards: [], from: Zone.BattleArea, eggDeckCards: [] };
   }
 
   /**
@@ -589,24 +599,33 @@ export class GameStateAccess {
   private narrateDeletion(moves: readonly DeletionMove[]): void {
     if (this.emit === undefined) return;
     for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
-      const instanceIds = moves
+      const trashedInstanceIds = moves
         .filter((move) => move.from === from)
-        .flatMap((move) => move.cards.map((card) => card.instanceId));
-      if (instanceIds.length > 0) this.emit({ kind: "cardsMoved", instanceIds, from, to: Zone.Trash });
+        .flatMap((move) =>
+          move.cards.filter((card) => !move.eggDeckCards.includes(card)).map((card) => card.instanceId),
+        );
+      if (trashedInstanceIds.length > 0)
+        this.emit({ kind: "cardsMoved", instanceIds: trashedInstanceIds, from, to: Zone.Trash });
+      const eggDeckInstanceIds = moves
+        .filter((move) => move.from === from)
+        .flatMap((move) => move.eggDeckCards.map((card) => card.instanceId));
+      if (eggDeckInstanceIds.length > 0)
+        this.emit({ kind: "cardsMoved", instanceIds: eggDeckInstanceIds, from, to: Zone.EggDeck });
     }
   }
 
   /**
    * Remove a permanent from its controller's battle area OR breeding slot (CR §3-4-4: the
-   * field is divided into the breeding area and the battle area), sending the top card, the
-   * whole digivolution stack, and any linked cards to their owners' trash. Mirrors the net
+   * field is divided into the breeding area and the battle area), sending ordinary cards to
+   * their owners' trash and Digi-Egg cards to the bottom of their owners' Digi-Egg decks.
+   * Mirrors the net
    * effect of rule implementation.Destroy for the core loop (deletion timing/replacement
    * effects are layered in by later subsystems).
    *
-   * Returns the instance ids that were moved to trash so callers can narrate.
+   * Returns the instance ids that left the permanent so callers can process the deletion result.
    */
   deletePermanent(permanentId: string): string[] {
-    const move = this.moveDeletedPermanentCardsToTrash(permanentId);
+    const move = this.moveDeletedPermanentCards(permanentId);
     const cards = move.cards;
     // <Overflow> (CR §4-18): every card here just left the field (topCard), or left from
     // under a card (stack/linked), for the trash — a genuine leave. This is the single
@@ -624,7 +643,7 @@ export class GameStateAccess {
   /**
    * Delete several permanents as ONE simultaneous action (CR §4-18-5: "when multiple
    * instances of <Overflow> are processed simultaneously..."). Moves every permanent's cards
-   * to trash first, then applies <Overflow> ONCE over the combined set, sorted turn-player-
+   * to their canonical zones first, then applies <Overflow> ONCE over the combined set, sorted turn-player-
    * first — as opposed to calling {@link deletePermanent} once per id, which would apply each
    * permanent's Overflow immediately in caller-supplied order and could cross the turn-player/
    * non-turn-player boundary in the wrong direction, changing the clamped result (the memory
@@ -632,7 +651,7 @@ export class GameStateAccess {
    * was not found / already off the field), in the SAME order as `permanentIds`.
    */
   deletePermanentsBatched(permanentIds: readonly string[]): string[][] {
-    const perPermanent = permanentIds.map((id) => this.moveDeletedPermanentCardsToTrash(id));
+    const perPermanent = permanentIds.map((id) => this.moveDeletedPermanentCards(id));
     const allCards = perPermanent.flatMap((move) => move.cards);
     applyOverflow(this.memory, allCards, this.state.turnSeat);
     this.narrateDeletion(perPermanent);
