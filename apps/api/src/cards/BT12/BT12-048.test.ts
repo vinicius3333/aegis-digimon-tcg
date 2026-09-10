@@ -142,4 +142,23 @@ describe("BT12-048 Dracmon", () => {
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardInstanceId));
     expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardInstanceId)).toBe(true);
   });
+
+  it("places Save at the bottom of an existing Tamer stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-048", as: "dracmon" },
+            { card: "BT12-094", as: "tamer", under: ["BT1-009"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const cardInstanceId = s.perm("dracmon").topCard.instanceId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("dracmon").permanentId]);
+    await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardInstanceId));
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT12-048", "BT1-009"]);
+  });
 });
