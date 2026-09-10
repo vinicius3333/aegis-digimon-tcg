@@ -1684,40 +1684,86 @@
   margin-bottom: -1.7rem;
 }
 
+/* Every highlighted hand card wears the same thin rim plus soft glow and differs
+   only in intensity, lift and motion. The lift rides `top` rather than a
+   transform because the fan, the draw animation and the touch layout each already
+   own one of the transform properties. */
 .game-hand-card {
   position: relative;
+  top: 0;
   border-radius: 0.7rem;
+  transition:
+    top 150ms var(--ds-ease-standard),
+    scale 150ms var(--ds-ease-standard),
+    box-shadow 150ms var(--ds-ease-standard);
 }
 
 .game-hand-card--playable {
   box-shadow:
-    0 0 0 2.5px var(--battle-cyan),
-    0 0 14px rgb(39 214 232 / 65%);
+    0 0 0 1.5px var(--ds-card-rim-ready),
+    0 0 14px var(--ds-card-glow-ready);
 }
 
 /* --- Board-mode hand selection -------------------------------------------- */
 
-/* A card that cannot be picked stays readable but visibly out of the running,
-   so the cyan glow above reads as "this one counts". */
+/* A card that cannot be picked steps back into the dark instead of fading to a
+   grey ghost: the art stays legible, it simply stops emitting. The filter sits on
+   the inner card because the fan writes its own `filter` on this wrapper inline. */
 .game-hand-card--unpickable {
-  opacity: 0.4;
-  filter: grayscale(0.85);
+  opacity: 0.85;
+  scale: 0.97;
 }
-/* An eligible card wears the accent ring on its own halo, so it reads as a choice
-   rather than as the cyan "you could play this" glow it replaces. */
+
+.game-hand-card--unpickable > * {
+  filter: brightness(0.55) saturate(0.75);
+}
+
+/* An eligible card is offered rather than announced: it keeps the cyan "you may
+   act on this" rim the board already speaks, plus a small lift and a slow
+   breathing glow that invites the tap. Only the chosen card turns gold. */
 .game-hand-card--pickable {
+  top: -4px;
   box-shadow:
-    0 0 0 3px var(--ds-accent),
-    0 0 0 6px var(--ds-accent-surface),
-    0 0 20px rgb(7 95 247 / 45%);
+    0 0 0 2px var(--ds-card-rim-ready),
+    0 0 16px var(--ds-card-glow-ready);
 }
-/* Picked is a different colour, not a brighter one: the ring goes green and the
-   card sits on a filled success halo the eye can tell apart at arm's length. */
+
+/* The breathing rides a pseudo-element: `--drawn` already owns the card's own
+   `animation`, and a card can be freshly drawn and eligible at the same time. */
+.game-hand-card--pickable::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -2px;
+  pointer-events: none;
+  border-radius: calc(0.7rem + 2px);
+  box-shadow: 0 0 18px 3px var(--ds-card-glow-ready);
+  animation: battle-card-breathe var(--t-card-breathe, 2600ms) ease-in-out infinite;
+}
+
+@keyframes battle-card-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Only the chosen card turns gold, and it is the same language turned up: a wider
+   rim, a wider glow, twice the lift and a small step towards the player. The hue
+   change is what tells "you may pick this" from "you picked this" at a glance. */
 .game-hand-card--picked {
+  /* The wrapper owns the highlight, so the card inside drops its own rim. */
+  --card-highlight-rim: transparent;
+  --card-highlight-glow: transparent;
+
+  top: -8px;
+  scale: 1.035;
   box-shadow:
-    0 0 0 3px var(--ds-success),
-    0 0 0 7px var(--ds-success-surface),
-    0 0 22px rgb(22 101 52 / 55%);
+    0 0 0 2px var(--ds-card-rim-attention),
+    0 0 26px 4px var(--ds-card-glow-attention);
 }
 .game-hand-card__pick-badge {
   position: absolute;
@@ -1729,10 +1775,11 @@
   min-width: 1.5rem;
   height: 1.5rem;
   padding: 0 0.35rem;
-  color: var(--ds-brand-on-ink);
+  /* The badge belongs to the pick, so it wears the pick's own colour. */
+  color: var(--ds-brand-ink);
   border: 2px solid var(--ds-surface);
   border-radius: 999px;
-  background: var(--battle-amber);
+  background: var(--ds-card-rim-attention);
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xs);
   font-weight: 800;
@@ -3975,7 +4022,11 @@ button.side-panel__name:focus-visible {
     --game-rail: 3.5rem;
     --game-sidebar-h: 3.25rem;
     --hand-card-width: clamp(4.75rem, 21vw, 5.75rem);
-    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-2));
+    /* The room above the cards that a picked card's lift, scale and pick badge
+       need. The strip clips its own overflow to keep the scrollbar off the board,
+       so without this reserve the chosen card was decapitated by the row's edge. */
+    --game-hand-lift: 10px;
+    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-2) + var(--game-hand-lift));
   }
   .game-layout {
     height: 100dvh !important;
@@ -4248,7 +4299,7 @@ button.side-panel__name:focus-visible {
     --game-hand-gap: 16px;
 
     height: var(--game-hand-h) !important;
-    padding: 0 var(--ds-space-2) var(--ds-space-2) !important;
+    padding: var(--game-hand-lift) var(--ds-space-2) var(--ds-space-2) !important;
     justify-content: flex-start !important;
     overflow-x: auto;
     overflow-y: hidden;
@@ -4274,22 +4325,26 @@ button.side-panel__name:focus-visible {
     top: 0.15rem;
     right: 0.15rem;
   }
-  /* Selection at arm's length: thicker rings than the pointer layout, and an
-     ineligible card steps further back so the eligible ones carry the eye. */
+  /* Selection at arm's length. The extra weight goes into lift, scale and glow
+     spread, never into a thicker ring: a thick ring is exactly what collided with
+     the neighbouring card in a scrolling strip. Lift and scale stay inside the
+     `--game-hand-lift` reserve, because the strip clips whatever leaves the row. */
   .game-hand-card--pickable {
+    top: -2px;
     box-shadow:
-      0 0 0 4px var(--ds-accent),
-      0 0 0 8px var(--ds-accent-surface),
-      0 0 24px rgb(7 95 247 / 50%);
+      0 0 0 2px var(--ds-card-rim-ready),
+      0 0 18px 3px var(--ds-card-glow-ready);
   }
   .game-hand-card--picked {
+    top: -4px;
+    scale: 1.03;
     box-shadow:
-      0 0 0 4px var(--ds-success),
-      0 0 0 9px var(--ds-success-surface),
-      0 0 26px rgb(22 101 52 / 60%);
+      0 0 0 2.5px var(--ds-card-rim-attention),
+      0 0 24px 5px var(--ds-card-glow-attention);
   }
   .game-hand-card--unpickable {
-    opacity: 0.32;
+    opacity: 0.8;
+    scale: 0.95;
   }
   /* More air while a decision is being answered, so the rings stay separate. */
   .game-player-dock [data-testid="hand"].game-hand--selecting {
@@ -7192,6 +7247,18 @@ button.side-panel__name:focus-visible {
   .game-card-dust,
   .game-card-shatter__shard {
     display: none;
+  }
+
+  /* The invitation to tap an eligible card becomes a steady glow: the cue stays,
+     the ambient drift goes. The lift and scale of a picked card are positions,
+     not motion, so they only stop being animated into. */
+  .game-hand-card--pickable::before {
+    opacity: 1;
+    animation: none;
+  }
+
+  .game-hand-card {
+    transition: none;
   }
 }
 

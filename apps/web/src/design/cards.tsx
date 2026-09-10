@@ -250,8 +250,14 @@ export function CardFull({
         width,
         height: h,
         borderRadius: 10,
-        border: `2px solid ${selected ? "var(--ds-primary)" : c.edge}`,
-        boxShadow: selected ? "0 0 0 3px var(--ds-primary-light), var(--ds-shadow-md)" : "var(--ds-shadow-sm)",
+        // The card keeps its own colour edge when selected; the state is carried by
+        // the rim and glow above it, so a selected card never gains a second border
+        // in a hue the art has to argue with. A parent that owns the highlight
+        // itself (the hand strip) blanks the rim through these custom properties.
+        border: `2px solid ${c.edge}`,
+        boxShadow: selected
+          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-card-rim-attention)), 0 0 18px var(--card-highlight-glow, var(--ds-card-glow-attention)), var(--ds-shadow-md)"
+          : "var(--ds-shadow-sm)",
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
         opacity: dim ? 0.4 : 1,
@@ -516,11 +522,14 @@ export function CardMini({
         borderRadius: 9,
         position: "relative",
         flexShrink: 0,
-        border: `1.5px solid ${selected ? "var(--ds-primary)" : attackable ? "var(--ds-warning)" : c.edge}`,
+        // Same rim-and-glow grammar as the hand: the chosen permanent takes the
+        // attention rim, a legal attack target the warmer threat rim, and neither
+        // replaces the card's own colour edge.
+        border: `1.5px solid ${c.edge}`,
         boxShadow: selected
-          ? "0 0 0 2px var(--ds-primary-light), 0 6px 14px rgba(15,23,42,0.32)"
+          ? "0 0 0 2px var(--card-highlight-rim, var(--ds-card-rim-attention)), 0 0 16px var(--card-highlight-glow, var(--ds-card-glow-attention)), 0 6px 14px rgba(15,23,42,0.32)"
           : attackable
-            ? "0 0 0 2px var(--ds-warning-light), 0 6px 14px rgba(15,23,42,0.32)"
+            ? "0 0 0 1.5px var(--ds-card-rim-threat), 0 0 12px var(--ds-card-glow-threat), 0 6px 14px rgba(15,23,42,0.32)"
             : "inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 10px rgba(15,23,42,0.26)",
         // The individual `rotate` property rather than `transform`, so a caller that already
         // owns the card's transform (the board's selection lift) cannot cancel the rotation.

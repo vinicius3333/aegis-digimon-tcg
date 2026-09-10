@@ -744,9 +744,7 @@ describe("the phone hand strip during a board-mode selection", () => {
     // scale and the pick badge need above the cards.
     expect(portraitRules).toMatch(/--game-hand-lift:\s*10px/);
     expect(portraitRules).toMatch(/--game-hand-h:[^;]*var\(--game-hand-lift\)/);
-    expect(portraitRules).toMatch(
-      /\[data-testid="hand"\] \{[^}]*padding:\s*var\(--game-hand-lift\)[^}]*!important/,
-    );
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] \{[^}]*padding:\s*var\(--game-hand-lift\)[^}]*!important/);
     // Darkened and slightly smaller rather than greyed out and faded away.
     expect(portraitRules).toMatch(/\.game-hand-card--unpickable \{\s*opacity:\s*0\.8/);
     expect(gameCss).toMatch(/\.game-hand-card--unpickable > \* \{\s*filter:\s*brightness\(0\.55\)/);
