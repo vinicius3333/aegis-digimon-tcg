@@ -1,11 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, PlayerState } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-061.js";
 
 describe("EX8-061", () => {
+  it("matches the committed catalog identity and every printed clause", () => {
+    expect(getCardDefinition("EX8-061")).toMatchObject({
+      cardId: "EX8-061",
+      nameEn: "MarineDevimon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Aquabeast", "DS"],
+      effectText: expect.stringContaining("Scapegoat"),
+      inheritedEffectText: expect.stringContaining("On Deletion"),
+    });
+    expect(getCardDefinition("EX8-061")?.securityEffectText).toBeUndefined();
+  });
+
   it("has Scapegoat and once-per-turn attacks may play a level 4 or lower DS/Mollusk/Crustacean Digimon from trash with at least 1 memory", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toContainEqual({
       keyword: "Scapegoat",
@@ -19,7 +38,16 @@ describe("EX8-061", () => {
           from: ["trash"],
           payCost: false,
           optional: true,
-          condition: { kind: "memoryAtLeast", value: 1 },
+          condition: { kind: "memoryAtLeast", value: 1, controller: "mine" },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              nameOrTrait: [{ tokens: ["DS", "Mollusk", "Crustacean"], match: "trait" }],
+            },
+            count: 1,
+          },
         },
       ],
     });
@@ -33,7 +61,15 @@ describe("EX8-061", () => {
           from: ["trash"],
           payCost: false,
           optional: true,
-          target: { filter: { levelComparison: { op: "lte", value: 4 } } },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              nameOrTrait: [{ tokens: ["DS", "Mollusk", "Crustacean"], match: "trait" }],
+            },
+            count: 1,
+          },
         },
       ],
     }));
@@ -209,5 +245,50 @@ describe("EX8-061", () => {
     await settle(() => s.perm("seadramon").topCard.cardId === "EX8-061");
     expect(s.state.memory).toBe(0);
     expect(s.perm("seadramon").stack.map((card) => card.cardId)).toEqual(["EX8-021"]);
+  });
+
+  it("digivolves for 3 through the standard Purple level-4 route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-058", as: "base" }],
+        hand: [{ card: "EX8-061", as: "marineDevimon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("marineDevimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-061");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-058"]);
+  });
+
+  it("rejects the DS alternate route from a non-DS level-4 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-016", as: "nonDs" }],
+        hand: [{ card: "EX8-061", as: "marineDevimon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonDs").permanentId,
+        instanceId: s.inst("marineDevimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("nonDs").topCard.cardId).toBe("BT1-016");
   });
 });
