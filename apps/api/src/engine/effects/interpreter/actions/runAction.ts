@@ -22,6 +22,7 @@ import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { modalHasAvailableOption } from "./modal.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
+import { allowsOptionalProcessingCostWithoutTarget } from "../processingCondition.js";
 import {
   applyDecodeHostScope,
   applyPlayDpCeilingModifier,
@@ -426,7 +427,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
-    action.allowCostWithoutTarget !== true &&
+    !allowsOptionalProcessingCostWithoutTarget(action) &&
     !dynamicallyScaledDeleteTarget &&
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&

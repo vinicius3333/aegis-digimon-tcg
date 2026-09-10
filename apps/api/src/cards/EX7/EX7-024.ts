@@ -1,7 +1,5 @@
-// @ts-nocheck
-// EX7-024 Shoemon: KB Q3845 confirms [Your Turn] does not fire from breeding area
-// (engine's staticModifier base guard already enforces battle-area-only for YourTurn).
-// The Replacement.into filter for Puppet trait is the correct gate on the digivolution target.
+// EX7-024 Shoemon: KB Q3845 confirms [Your Turn] does not fire from the breeding area.
+// The explicit source-zone gate keeps that ruling visible in the compiled replacement.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +13,7 @@ export const compiled: CompiledCard = {
           event: "wouldDigivolve",
           sourceFilter: {
             isSelfRef: true,
+            zone: ["battleArea"],
           },
           into: {
             controllerDefault: "mine",

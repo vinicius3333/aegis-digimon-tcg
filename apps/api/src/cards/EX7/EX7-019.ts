@@ -11,8 +11,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-type Effects = CompiledCard["effects"];
-
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -83,7 +81,7 @@ export const compiled: CompiledCard = {
       isInherited: true,
       frequency: "OncePerTurn",
     },
-  ] as unknown as Effects,
+  ],
   coverage: "full",
   residual: [],
 };

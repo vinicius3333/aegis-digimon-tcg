@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -57,11 +56,9 @@ export const compiled: CompiledCard = {
           payCost: false,
           condition: {
             kind: "zoneCount",
-            filter: {
-              zone: "battleArea",
-              controller: "mine",
-              kind: ["Tamer"],
-            },
+            seat: "mine",
+            zone: "battleArea",
+            filter: { kind: ["Tamer"] },
             op: "lte",
             value: 1,
             raw: "you have 1 or less Tamers",

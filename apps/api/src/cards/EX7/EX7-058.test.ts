@@ -1,124 +1,282 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-058.js";
+import "../index.js";
 
-/**
- * A3 — Q1f: EX7-058 (LadyDevimon (X Antibody)) grants one opponent Digimon
- * `[End of Attack] Delete this Digimon.` until the end of that opponent's turn.
- *
- * The focused runtime proof below exercises the canonical GrantAuraToOpponents
- * route through a real play and attack: the granted recipient is deleted at the
- * end of its attack, while an ungranted Digimon remains unaffected.
- */
+async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
+    throw new Error("failed to stop loop");
+  await loop;
+}
 
-describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon."', () => {
-  it("uses the canonical Volée & Zerdrücken token identity in both entry effects", () => {
-    const tokenEffects = compiled.effects?.filter(
-      (effect) => effect.trigger === "OnPlay" || effect.trigger === "WhenDigivolving",
-    );
-    expect(tokenEffects).toHaveLength(2);
-    expect(tokenEffects?.map((effect) => effect.actions[1])).toEqual([
-      expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
-      expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
-    ]);
+describe("EX7-058 LadyDevimon (X Antibody)", () => {
+  it("matches the catalog and fully registered IR", () => {
+    expect(getCardDefinition("EX7-058")).toMatchObject({
+      cardId: "EX7-058",
+      nameEn: "LadyDevimon (X Antibody)",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Fallen Angel", "X Antibody"],
+    });
+    for (const trigger of ["OnPlay", "WhenDigivolving"])
+      expect(compiled.effects?.find((effect) => effect.trigger === trigger)?.actions).toMatchObject([
+        {
+          kind: "GrantAuraToOpponents",
+          target: { count: 1 },
+          effectText: "[End of Attack] Delete this Digimon.",
+          duration: "untilOpponentTurnEnd",
+        },
+        { kind: "PlayToken", tokens: ["Volée & Zerdrücken"], count: 1, payCost: false, optional: true },
+      ]);
+    expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "opponent" },
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }],
+        },
+      ],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["LadyDevimon"], cost: 0, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-058")).toBe(true);
   });
 
-  it("accepts an exact LadyDevimon card for the token branch", async () => {
+  it("publicly evolves from LadyDevimon for 0 and plays the token with exact identity and stats", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-058", as: "lady", under: ["EX6-053"] }] },
+        0: {
+          battleArea: [{ card: "EX6-053", as: "base" }],
+          hand: [{ card: "EX7-058", as: "ladyX" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const sourceId = s.perm("base").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ladyX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken"),
+    );
+    const token = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken",
+    )!;
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(getCardDefinition(token.topCard.cardId)).toMatchObject({ level: 4, dp: 5000, colors: ["Purple"] });
+    expect(token.currentDP).toBe(5000);
+  });
+
+  it("the played Volée & Zerdrücken token exposes Blocker and Retaliation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-053", as: "base" }],
+          hand: [{ card: "EX7-058", as: "ladyX" }],
+          deck: ["BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lady"));
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ladyX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken"),
-    ).toBe(true);
+    );
+    const token = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken",
+    )!;
+    expect(observe(s.engine).hasKeyword(token, "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(token, "Retaliation")).toBe(true);
   });
 
-  it("POSITIVE: the granted recipient is deleted after its own attack", async () => {
+  it("public On Play grant deletes only its recipient after that opponent's attack", async () => {
     const s = setupEngine(
       {
-        0: {
-          hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: [],
-          battleArea: [{ card: "BT1-010", as: "victim", dp: 1000, suspended: true }],
+        0: { hand: [{ card: "EX7-058", as: "ladyX" }], security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "recipient" },
+            { card: "BT1-010", as: "bystander" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const attacker = s.perm("attacker");
-    const attackerInstanceId = attacker.topCard!.instanceId;
-    const ladyDevimon = s.inst("ladyDevimon");
-    const engine = s.engine as unknown as {
-      applyIntent: typeof s.engine.applyIntent;
-      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
-    };
-
-    s.state.turnSeat = 0;
-    const playRes = engine.applyIntent(0, { type: "playCard", instanceId: ladyDevimon.instanceId });
-    expect(playRes).toEqual({ ok: true });
-
-    await settle(() => engine.continuous.listCustomEffectGrants().length > 0, 3000);
-    const grants = engine.continuous.listCustomEffectGrants();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ladyX").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-058"));
+    await advance(s.engine).waitForMainPhase(1);
     expect(
-      grants.some(
-        (g) => g.instanceId === attacker.topCard!.instanceId && g.token === "[End of Attack] Delete this Digimon.",
-      ),
-    ).toBe(true);
-
-    // Hand the turn to seat 1 for its own attack: the play above spent memory, which ends
-    // seat 0's Main phase, so the phase and the gauge are re-armed here too.
-    s.state.turnSeat = 1;
-    s.state.phase = Phase.Main;
-    s.state.memory = 3;
-    // The granted EndOfAttack effect must delete the attacking recipient.
-    const attackRes = engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: attacker.permanentId,
-      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
-    });
-    expect(attackRes).toEqual({ ok: true });
-
-    await settle(() => s.state.players[1]!.battleArea.length === 0, 1000);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("recipient").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    await stopLoop(s, loop, 1);
   });
 
-  it("NEGATIVE: a Digimon that never received the grant also attacks (and suspends) without incident", async () => {
+  it("Q3864: grants the effect to an attacker that becomes immune, but it does not trigger", async () => {
     const s = setupEngine(
       {
-        0: {
-          hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: [],
-        },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "bystander" }] },
+        0: { hand: [{ card: "EX7-058", as: "ladyX" }], security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012"] },
+        1: { battleArea: [{ card: "BT15-047", as: "immune" }], deck: ["BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const bystander = s.perm("bystander");
-    const engine = s.engine as unknown as {
-      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
-    };
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ladyX").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("immune").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-047")).toBe(true);
+    await stopLoop(s, loop, 1);
+  });
 
-    expect(engine.continuous.listCustomEffectGrants().length).toBe(0);
+  it("Q3865: self-deletion from the grant does not trigger Partition", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX7-058", as: "ladyX" }], security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+        1: {
+          battleArea: [{ card: "AD1-011", as: "partition", under: ["BT12-021", "BT12-047"] }],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ladyX").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("partition").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-011"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["AD1-011", "BT12-021", "BT12-047"]),
+    );
+    await stopLoop(s, loop, 1);
+  });
 
-    s.state.turnSeat = 1;
-    const attackRes = s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: bystander.permanentId,
-      target: { kind: "player" },
-    });
-    expect(attackRes).toEqual({ ok: true });
-
-    await settle(() => bystander.isSuspended, 1000);
-    expect(bystander.isSuspended).toBe(true);
+  it("inherits one free purple level-4 play across two opponent deletions in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-020", as: "host", under: ["EX7-058"] },
+            { card: "BT10-022", as: "defender", suspended: true, dp: 9000 },
+          ],
+          trash: [
+            { card: "EX7-053", as: "firstPlay" },
+            { card: "EX7-054", as: "secondPlay" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker" },
+            { card: "BT1-010", as: "secondAttacker" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("defender").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("firstPlay").instanceId,
+      ),
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010"));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("secondPlay").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondPlay").instanceId)).toBe(true);
+    await stopLoop(s, loop, 1);
   });
 });

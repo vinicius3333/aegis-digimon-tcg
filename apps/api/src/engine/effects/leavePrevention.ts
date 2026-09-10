@@ -59,6 +59,8 @@ export async function consultLeavePrevention(
   resolvingSeat: Seat | undefined,
   opts: {
     isBounce?: boolean;
+    /** DigiXros/material declarations are player actions, not an effect owned by the player. */
+    playerAction?: boolean;
     /**
      * Run only the "instead" (side-effect) replacements and offer no prevention. Used after a
      * keyword prevention (＜Barrier＞) already stopped the leave: preventing it does not cancel
@@ -78,7 +80,8 @@ export async function consultLeavePrevention(
     ...host.subTriggers.replacementsFor("wouldLeavePlay"),
   ];
   if (replacements.length === 0) return prevented;
-  const seat = resolvingSeat ?? (cause === "byEffect" ? host.turnSeat : undefined);
+  const seat =
+    opts.playerAction === true ? undefined : (resolvingSeat ?? (cause === "byEffect" ? host.turnSeat : undefined));
   const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
   for (const leavingId of permanentIds) {
     if (prevented.has(leavingId)) continue;

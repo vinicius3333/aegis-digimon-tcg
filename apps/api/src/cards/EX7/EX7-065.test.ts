@@ -1,121 +1,224 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { effectsOf } from "../../engine/effects/collect.js";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-065.js";
+import "../index.js";
 
-function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = (s.engine as unknown as { cardSourceOf(instance: unknown): unknown }).cardSourceOf(
-    s.perm("yuuki").topCard!,
-  ) as never;
-  const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) => entry.effectKey.startsWith("EX7-065/"));
-  if (effect === undefined) throw new Error("EX7-065 did not surface its Main effect");
-  return effect.effectKey;
+async function stopLoop(s: EngineSetup, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
+    throw new Error("failed to stop turn loop");
+  await loop;
+}
+
+function mainEffect(s: EngineSetup) {
+  return observe(s.engine)
+    .activatableEffects(s.perm("yuuki"))
+    .find(({ description }) => /digivolve/i.test(description ?? ""));
 }
 
 describe("EX7-065 Yuuki", () => {
-  it("gains 1 memory when the opponent has a Digimon and can digivolve from trash by suspending itself", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({
-      kind: "GainMemory",
-      amount: 1,
-      condition: { kind: "opponentHas" },
+  it("matches the catalog and fully registered IR", () => {
+    expect(getCardDefinition("EX7-065")).toMatchObject({
+      cardId: "EX7-065",
+      nameEn: "Yuuki",
+      colors: ["Purple"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
     });
-    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
-      kind: "Digivolve",
-      from: ["trash"],
-      optional: true,
-      cost: { kind: "suspend" },
-      condition: { kind: "zoneCount", value: 4 },
-    });
+    expect(compiled.effects).toMatchObject([
+      {
+        trigger: "StartOfYourMainPhase",
+        actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas" } }],
+      },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "Digivolve",
+            from: ["trash"],
+            payCost: true,
+            optional: true,
+            abortOnDecline: true,
+            condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 },
+            cost: { kind: "suspend", target: { isSelf: true } },
+            into: {
+              nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }],
+            },
+          },
+        ],
+      },
+      {
+        trigger: "Security",
+        isSecurity: true,
+        actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+      },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(hasRegisteredCompiledCard("EX7-065")).toBe(true);
   });
-  it("plays itself from security", () =>
-    expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      payCost: false,
-    }));
 
-  it("gains memory only when the opponent has a Digimon at the start of Main", async () => {
-    const withOpponent = setupEngine({
-      0: { battleArea: [{ card: "EX7-065", as: "yuuki" }] },
-      1: { battleArea: [{ card: "BT1-009" }] },
+  it.each([
+    ["with an opposing Digimon", true, 3],
+    ["without an opposing Digimon", false, 2],
+  ])("resolves Start of Main %s", async (_label, hasOpponent, expectedMemory) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX7-065", as: "yuuki" }],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-009"],
+      },
+      1: {
+        ...(hasOpponent ? { battleArea: [{ card: "BT1-009" }] } : {}),
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010"],
+        security: ["BT1-010"],
+      },
     });
-    withOpponent.state.memory = 0;
-    await advance(withOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withOpponent.perm("yuuki"));
-    expect(withOpponent.state.memory).toBe(1);
-
-    const withoutOpponent = setupEngine({ 0: { battleArea: [{ card: "EX7-065", as: "yuuki" }] } });
-    withoutOpponent.state.memory = 0;
-    await advance(withoutOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withoutOpponent.perm("yuuki"));
-    expect(withoutOpponent.state.memory).toBe(0);
+    s.state.memory = 2;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(expectedMemory);
+    await stopLoop(s, loop, 0);
   });
 
-  it("digivolves a Digimon into a Dark Dragon from trash when the hand has four cards", async () => {
+  it("pays 3 to play from hand", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX7-065", as: "yuuki" }] } });
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuuki").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.each([
+    ["Dark Dragon", "EX7-056", "EX7-060", 3],
+    ["Evil Dragon", "EX7-053", "BT21-077", 4],
+  ])("publicly evolves into a %s from trash at the four-card boundary", async (_trait, base, into, cost) => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX7-065", as: "yuuki" },
-            { card: "BT2-075", as: "base" },
+            { card: base, as: "base" },
           ],
-          hand: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
-          trash: [{ card: "EX7-060", as: "nidhogg" }],
+          hand: ["BT1-009", "BT1-010", "BT1-014", "BT1-038"],
+          trash: [{ card: into, as: "into" }],
+          deck: [{ card: "BT1-040", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
+    const sourceId = s.perm("base").topCard.instanceId;
+    const effect = mainEffect(s);
+    expect(effect).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: s.perm("yuuki").topCard!.instanceId,
-        effectKey: mainEffectKey(s),
+        sourceInstanceId: s.perm("yuuki").topCard.instanceId,
+        effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("yuuki").isSuspended || s.perm("base").topCard?.instanceId === s.inst("nidhogg").instanceId,
-    );
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("into").instanceId);
     expect(s.perm("yuuki").isSuspended).toBe(true);
-    expect(s.perm("base").topCard?.instanceId).toBe(s.inst("nidhogg").instanceId);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("nidhogg").instanceId);
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(10 - cost);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("drawn").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("into").instanceId)).toBe(false);
   });
 
-  it("does not offer the trash digivolution when the hand exceeds four cards", async () => {
+  it("does not expose the Main effect with five cards in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-065", as: "yuuki" },
+          { card: "EX7-056", as: "base" },
+        ],
+        hand: ["BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-040"],
+        trash: [{ card: "EX7-060", as: "into" }],
+      },
+    });
+    await s.ready();
+    expect(mainEffect(s)).toBeUndefined();
+    expect(s.perm("yuuki").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX7-060")).toBe(true);
+  });
+
+  it("may decline without suspending Yuuki or evolving", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX7-065", as: "yuuki" },
-            { card: "BT2-075", as: "base" },
+            { card: "EX7-056", as: "base" },
           ],
-          hand: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
-          trash: [{ card: "EX7-060", as: "nidhogg" }],
+          hand: ["BT1-009", "BT1-010", "BT1-014", "BT1-038"],
+          trash: [{ card: "EX7-060", as: "into" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
+    const effect = mainEffect(s)!;
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: s.perm("yuuki").topCard!.instanceId,
-        effectKey: mainEffectKey(s),
+        sourceInstanceId: s.perm("yuuki").topCard.instanceId,
+        effectKey: effect.effectKey,
       }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("yuuki").isSuspended).toBe(false);
-    expect(s.perm("base").topCard?.cardId).toBe("BT2-075");
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nidhogg").instanceId);
+    expect(s.perm("base").topCard.cardId).toBe("EX7-056");
+    expect(s.state.memory).toBe(10);
   });
 
-  it("plays itself when revealed as a Security card", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX7-065", as: "yuuki" }] } }, { autoAcceptOptional: true });
+  it("does not expose the Main effect without a legal trait target", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-065", as: "yuuki" },
+          { card: "EX7-056", as: "base" },
+        ],
+        hand: ["BT1-009"],
+        trash: [{ card: "BT10-022", as: "miss" }],
+      },
+    });
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("yuuki"));
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(mainEffect(s)).toBeUndefined();
+    expect(s.perm("yuuki").isSuspended).toBe(false);
+  });
+
+  it("plays itself from Security during a real check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX7-065", as: "yuuki" }, "BT1-009"] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("yuuki").instanceId),
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("yuuki").instanceId),
     ).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
   });
 });

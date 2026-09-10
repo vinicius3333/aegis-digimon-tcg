@@ -278,6 +278,11 @@ export function advance(engine: GameEngine) {
         await internals.recomputeContinuousEffects();
         return internals.drawCards(seat, count);
       },
+      /** Draw through the effect primitive, including effect-driven hand-add watchers. */
+      async drawByEffect(seat: Seat, count: number): Promise<CardInstance[]> {
+        await internals.recomputeContinuousEffects();
+        return internals.primitives.draw(seat, count);
+      },
       async returnToDeck(instanceIds: string[], opts?: { toTop?: boolean }): Promise<void> {
         await internals.recomputeContinuousEffects();
         await internals.primitives.returnToDeck(instanceIds, opts);

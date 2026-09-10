@@ -174198,7 +174198,7 @@
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "zone": ["battleArea"] },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -175086,7 +175086,9 @@
             "payCost": false,
             "condition": {
               "kind": "zoneCount",
-              "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"] },
+              "seat": "mine",
+              "zone": "battleArea",
+              "filter": { "kind": ["Tamer"] },
               "op": "lte",
               "value": 1,
               "raw": "you have 1 or less Tamers"
@@ -175528,7 +175530,8 @@
               "count": "all"
             },
             "restriction": "digivolve",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -176232,15 +176235,15 @@
                 "payCost": false,
                 "condition": { "kind": "isYourTurn" },
                 "optional": true
+              },
+              {
+                "kind": "SecurityManipulation",
+                "op": "trashTop",
+                "controller": "opponent",
+                "amount": 1,
+                "condition": { "kind": "isOpponentsTurn" }
               }
             ]
-          },
-          {
-            "kind": "SecurityManipulation",
-            "op": "trashTop",
-            "controller": "opponent",
-            "amount": 1,
-            "condition": { "kind": "isOpponentsTurn" }
           }
         ]
       }
@@ -176250,6 +176253,9 @@
     "digivolutionRequirement": [{ "names": ["Lilithmon"], "cost": 1, "isAlternate": true }]
   },
   "EX7-062": {
+    "digivolutionRequirement": [
+      { "level": 5, "traits": ["Dark Dragon", "Evil Dragon"], "cost": 4, "isAlternate": true }
+    ],
     "effects": [
       {
         "trigger": "WhenDigivolving",
