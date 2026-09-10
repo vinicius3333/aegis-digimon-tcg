@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,13 +7,47 @@ import "./index.js";
 import { compiled } from "./EX8-014.js";
 
 describe("EX8-014", () => {
-  it("has Fortitude and may suspend a Digimon to delete an opposing Digimon with 8000 DP or less", () => {
-    expect(
-      compiled.effects?.find((entry) => !entry.isInherited && entry.trigger === "Static")?.keywords,
-    ).toContainEqual({ keyword: "Fortitude", raw: "＜Fortitude＞" });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Suspend", optional: true },
-      { kind: "Delete", condition: { kind: "selfIsSuspended" } },
+  it("matches the catalog identity and every printed text field", () => {
+    expect(getCardDefinition("EX8-014")).toMatchObject({
+      cardId: "EX8-014",
+      nameEn: "MasterTyrannomon",
+      colors: ["Red", "Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [
+        { color: "Red", level: 4, memoryCost: 4 },
+        { color: "Green", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Dinosaur", "LIBERATOR"],
+      effectText: expect.stringContaining("＜Fortitude＞"),
+      inheritedEffectText: "＜Security Attack +1＞.",
+    });
+  });
+
+  it("traces Fortitude, both trigger branches, optional any-player suspension, and inherited Security Attack +1", () => {
+    expect(compiled.effects?.find((entry) => !entry.isInherited && entry.trigger === "Static")?.keywords).toEqual([
+      { keyword: "Fortitude", raw: "＜Fortitude＞" },
+    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([
+        {
+          kind: "Suspend",
+          optional: true,
+          target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+        },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          condition: { kind: "selfIsSuspended" },
+        },
+      ]);
+    }
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toEqual([
+      { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
     ]);
   });
   it("inherits Security Attack +1", () =>
@@ -41,6 +75,24 @@ describe("EX8-014", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
+  });
+  it("does not delete when the optional suspension is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-014", as: "master" }] },
+        1: { battleArea: [{ card: "EX8-015", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("master").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.perm("master").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
   });
   it("does not delete an opposing Digimon above 8000 DP after suspending", async () => {
     const s = setupEngine(
@@ -192,6 +244,28 @@ describe("EX8-014", () => {
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("greymon").topCard.instanceId === eligible.inst("master").instanceId);
     expect(eligible.state.memory).toBe(0);
+
+    const standard = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-011", as: "standardBase" }],
+          hand: [{ card: "EX8-014", as: "master" }],
+          deck: ["BT1-045"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await standard.ready();
+    standard.state.memory = 4;
+    expect(
+      standard.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: standard.perm("standardBase").permanentId,
+        instanceId: standard.inst("master").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => standard.perm("standardBase").topCard.instanceId === standard.inst("master").instanceId);
+    expect(standard.state.memory).toBe(0);
 
     const ineligible = setupEngine({
       0: {
