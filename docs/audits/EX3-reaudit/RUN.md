@@ -1,0 +1,96 @@
+# EX3 re-audit run log
+
+- Set: `EX3`
+- Base: `d3c1b6f570d5f495438e31851f3285aa351c63d4` (`origin/main`)
+- Branch: `audit-ex3-luna-20260909`
+- Started: 2026-09-09 America/Sao_Paulo
+- Scope: 74 catalog cards (`EX3-001` through `EX3-074`)
+- Concurrency policy: coordinator plus at most three Luna card lanes; workers run only focused tests with `--maxWorkers=1 --no-file-parallelism`; collection and typecheck gates are coordinator-only and serialized.
+- Resource checkpoint: 16 GiB physical RAM, memory compression active, approximately 3.5 GiB disk free at start. Setup hooks were skipped and the pnpm store was reused to minimize disk growth.
+
+## Restart checkpoint
+
+- Fresh independent Orca worktree created from `origin/main` at the base SHA above.
+- Static inventory: 74 catalog entries, 74 direct modules, 74 colocated tests, and no `registerCard` registration in EX3.
+- Dependency bootstrap: `pnpm install --frozen-lockfile` passed with 423 cached packages and zero downloads.
+- Fresh focused collection: 75 files and 671 tests; 72 files/667 tests passed. Four pre-existing failures were reproduced: EX3-026 Q3664 timed out awaiting its activation; two EX3-030 simultaneous-play/Q3664 tests and one EX3-031 Q3664 test never reached `chooseTargets`.
+- Fresh root `pnpm typecheck`: shared and web passed; API failed only at out-of-scope `src/cards/EX4/EX4-056.test.ts:111` because target kind `"digimon"` is not assignable to `"player" | "permanent"`.
+
+## Checkpoints
+
+- Re-audit initialized; three bounded Luna lanes will start with EX3-001 through EX3-003.
+- EX3-003 accepted by the coordinator after a fresh focused rerun passed 9/9; fixture/registration sweep was clean. The report scores 8/10 pending delivery gates.
+- EX3-001 accepted after a fresh focused rerun passed 8/8; EX3-002 accepted after a fresh focused rerun passed 6/6. Both fixture/registration sweeps were clean and both reports score 8/10 pending delivery gates.
+- EX3-004 accepted after a fresh focused rerun passed 13/13; fixture/registration sweep was clean. The report scores 8/10 pending delivery gates.
+- EX3-007 accepted after a fresh focused rerun passed 10/10. Q3372/Q3373 were reconciled as incorrectly keyed EX3-048 rulings rather than EX3-007 requirements.
+- EX3-006 accepted after a fresh focused rerun passed 12/12. Its IR now uses the dedicated `selfHasTrait` condition while preserving the printed substring semantics and Q3371 Dragonkin inclusion.
+- EX3-008 accepted after a fresh focused rerun passed 12/12, including Q3374 real-turn DNA proof and Q3375 target-color independence.
+- EX3-009 accepted after a fresh focused rerun passed 13/13, including Q3376 Dragonkin behavior.
+- Resource pause: disk availability fell from 3.3 GiB after bootstrap to approximately 0.87 GiB due concurrent workspace activity. No new card lanes or broad gates will be started until safe headroom returns.
+- EX3-010 accepted after a fresh focused rerun passed 13/13, including DNA stack/cost/order, exact-name trash plays, deletion, and inherited Security Attack proof.
+- EX3-005 accepted after a fresh focused rerun passed 9/9; fixture/registration sweep was clean. The report scores 8/10 pending delivery gates.
+- EX3-011 accepted after a fresh focused rerun passed 12/12, including deletion/play ordering, refusal, evolution stacks, and inherited once-per-turn reset.
+- EX3-012 accepted after fixture correction and a fresh focused rerun passed 14/14. It adds the missing inherited marker and proves the play restriction rulings; no Digi-Egg remains in deck/security fixtures.
+- EX3-015 accepted after a fresh focused rerun passed 7/7, including Q3378 target identity and source movement.
+- EX3-013 provisionally accepted at 7/10 after 19/19 focused tests. Q2212 exposes the retained `gained-on-deletion-before-would-leave-replacement-ordering` engine seam; full credit is withheld pending a public-path regression and engine correction.
+- EX3-016 accepted after a fresh focused rerun passed 10/10, including Q3379-Q3384; Q3348 was reconciled as an EX3-019 interaction ruling.
+- EX3-017 accepted after a fresh focused rerun passed 7/7, including Q3385 target identity and duration expiry.
+- EX3-018 accepted after a fresh focused rerun passed 12/12, including Evade/on-play behavior and Dramon/Examon peer boundaries.
+- EX3-014 accepted after a fresh focused rerun passed 8/8; Q3377 and errata are proven, while Q6718/Q6719 were reconciled as related-card provenance rather than Dorbickmon-owned effects.
+- EX3-013 promoted to 8/10 after replacing the internal deletion verb with a public Gaia Force intent. Combined engine/card regression passed 24/24; the mechanism was already present and is now covered by a committed-path test.
+- EX3-020 accepted after a fresh focused rerun passed 16/16, including public Evade and end-turn DNA/optional behavior.
+- EX3-021 accepted after a fresh focused rerun passed 7/7, including Q3392/Q3393 independent target and source-selection behavior.
+- EX3-022 accepted after a fresh focused rerun passed 7/7; injected timing proof was removed and errata/OPT/reset behavior now uses public flows.
+- EX3-019 accepted after a fresh focused rerun passed 9/9, covering Q3348 and Q3386-Q3391 evolution-cost edge cases.
+- EX3-024 accepted after correction and a fresh coordinator rerun passed 15/15; Q3394-Q3401 use public flows and invalid fixtures were corrected.
+- EX3-027 accepted after a fresh focused rerun passed 12/12, including inherited trigger families, OPT sharing/reset, duplicate copies, and fixture cleanup.
+- EX3-025 accepted after its Digi-Egg deck fixture was corrected; coordinator rerun passed 13/13 and the fixture/injected-timing sweep was clean.
+- EX3-026 provisionally accepted at 7/10: 9 tests pass and its cross-card Q3664 simultaneous-play test retains the baseline 15-second timeout. The shared `simultaneous-play-event-collapse` seam also affects EX3-030/031 and is queued for one serialized engine lane.
+- EX3-023 accepted after a fresh focused rerun passed 10/10, covering errata, Q2109 timing, source eligibility, placement, and OPT/reset behavior.
+- EX3-028 accepted after a fresh focused rerun passed 11/11, covering Q3403/Q3404 mandatory partial/full adds and the errata trait exclusions.
+- Resource stop: filesystem availability fell to 251 MiB with no EX3 test process active. The Q3664 engine lane was interrupted and EX3-029/032/033 coordinator reruns were deferred to avoid ENOSPC or workspace corruption. Partial engine-lane work is unverified and must be re-read before resumption.
+- Resource recovery: merged clean worktrees and regenerable Torsh `node_modules` were removed at the user's request, restoring more than 8 GiB of filesystem headroom. EX3 work resumed with no competing Vitest/typecheck process and healthy memory pressure.
+- EX3-029 accepted after a fresh focused coordinator rerun passed 7/7, covering Q3405 private security search/reveal, conditional recovery, shuffle, evolution-stack preservation, and invalid-source rejection.
+- EX3-032 remains in correction after its first coordinator rerun passed 11/12; the new public Security Attack interaction expected an intermediate keyword amount that the engine never exposed. No credit was awarded pending corrected proof and a green rerun.
+- Final-scope addition from the user: remove every `// @ts-nocheck` directive from EX3 card modules before closeout. The initial sweep found 46 affected modules; zero matches plus API typecheck and the full EX3 collection suite are required evidence before completion.
+- Shared `simultaneous-play-event-collapse` seam accepted after an independent coordinator rerun passed 36/36 across the mechanism regression and EX3-026/030/031 focused files. EX3-026 is promoted to 8/10; EX3-030/031 remain queued until their complete card-local audits and reports finish.
+- EX3-032 accepted after correction and a fresh coordinator rerun passed 12/12. The public Security Attack interaction now imports the real peer registration and the fixture/injected-timing sweep is clean.
+- EX3-030 and EX3-031 accepted after a fresh combined coordinator rerun passed 27/27. Their Q3406-Q3409/Q3664, mandatory-category, OPT/reset, trait/name boundaries, legal stacks, and invalid-source proof are documented; both card modules now compile without `@ts-nocheck`.
+- EX3-033 and EX3-034 accepted after a fresh combined coordinator rerun passed 26/26, covering Q3410/Q3411, errata, exact IR, public Trial/evolution flows, target boundaries, OPT behavior, and stack proof. Their `@ts-nocheck` removal remains an explicit follow-up before final gates.
+- `@ts-nocheck` cleanup completed for audited modules EX3-011, 013, 015-018, and 020-029. The 16-file focused run passed 175/175; API typecheck exposed only the known out-of-scope EX4-056 test error. EX3-020 needed typed battle-area material slots with no behavior change. A fresh sweep leaves 24 directives in the not-yet-completed portion of the set.
+- EX3-035 accepted after a fresh coordinator rerun passed 12/12, including Q2613 ordering, optional refusal, exact-name attack cost, boundaries, deletion, duration, and evolution-stack proof. Its module now compiles without `@ts-nocheck`.
+- EX3-038 accepted after a fresh coordinator rerun passed 13/13, including Q3415 Evade timing, effect-suspension boundaries, target filtering, repeated activations, peer/trait negatives, and evolution proof. Its module now compiles without `@ts-nocheck`.
+- EX3-037 accepted after a fresh coordinator rerun passed 12/12, covering Q3413/Q3414, Dramon/Examon boundaries, bottom ordering, inherited DP, OPT/copy/reset, and evolution proof. EX3-039 accepted after its fresh rerun passed 11/11, covering alternate evolution, Blocker boundaries, Armor Purge recomputation, and block choices. Both modules now compile without `@ts-nocheck`.
+- EX3-036 accepted after a fresh coordinator rerun passed 14/14, covering Q3412, compiled IR, stack identity, invalid evolution, and cleaned fixtures. EX3-033/034/036 are type-clean without `@ts-nocheck`; their combined worker rerun passed 40/40 and API typecheck retained only the baseline EX4-056 test error.
+- EX3-040 accepted after a fresh coordinator rerun passed 19/19, covering replacement scope/cost/decline, controller and turn boundaries, stacking reductions, inherited suspension, OPT/reset, and evolution proof. Its module is type-clean without `@ts-nocheck`.
+- EX3-041 accepted after a fresh coordinator rerun passed 13/13. Typed DNA material slots replaced the suppression, injected end-turn calls were replaced by public turn flows, and exact text/stack/optional-cost/invalid-source behavior is proven.
+- EX3-043 accepted after a fresh coordinator rerun passed 10/10, including exact printed text, stack identity, invalid evolution, and clean public fixtures. Its module now compiles without `@ts-nocheck`.
+- EX3-042 accepted after a fresh coordinator rerun passed 12/12, covering Q3416, suspended digivolution gate, target boundaries, inherited watcher/OPT/reset, Evade, independent copies, and evolution proof. Its module is type-clean without `@ts-nocheck`.
+- EX3-046 accepted after a fresh coordinator rerun passed 7/7 with catalog/IR/Decoy and evolution evidence; its suppression and invalid deck filler were removed.
+- EX3-044 accepted after a fresh coordinator rerun passed 11/11. Q3399 now uses a real opponent-turn flow, the redundant survival annotation was removed, and alternate evolution/stack/OPT/security-trash behavior is proven without `@ts-nocheck`.
+- EX3-047 accepted after a fresh coordinator rerun passed 9/9 with exact catalog/metadata, compiled IR, clean deck fixtures, legal breeding sources, and source-stack proof. Its module is type-clean without suppression.
+- EX3-048 accepted after a fresh coordinator rerun passed 13/13, covering Q3417/Q3418 reveal/mandatory categories/all five traits, visibility/order, empty-category behavior, inherited boundary, and evolution proof. Mis-keyed Q3372/Q3373 were reconciled explicitly; the module is type-clean without suppression.
+- EX3-049 accepted after a fresh coordinator rerun passed 9/9 with exact catalog/metadata, evolution/inherited-stack identity, Security-only battle trigger and negative, clean fixtures, and no suppression.
+- EX3-050 accepted after a fresh coordinator rerun passed 9/9 with suspended-Tamer/all-turn behavior, unsuspend reset, opponent/type negatives, multiplicity, independent inherited copies, live-top boundary, and evolution proof. Its module is type-clean without suppression.
+- EX3-051 accepted after a fresh coordinator rerun passed 8/8, including Q3419 refusal/trash behavior, exact catalog/IR metadata, stack identity, and clean fixtures. Its module is type-clean without suppression.
+- EX3-045 accepted after a fresh coordinator rerun passed 12/12. Trait-filter types were corrected, injected timing became a real turn/main-phase flow, and exact metadata/evolution/invalid-source/end-turn behavior is proven without suppression.
+- EX3-052 accepted after a fresh coordinator rerun passed 8/8, covering compiled IR, black/red evolution stacks, invalid source, De-Digivolve boundary, Hina optional/free-play sequencing, and inherited Security Attack boundaries. Its module is type-clean without suppression.
+- EX3-054 accepted after a fresh coordinator rerun passed 8/8, including Q3423 ordered return/no-cancellation behavior, exact catalog/IR metadata, evolution/inherited source stack, and clean fixtures. No suppression existed.
+- EX3-053 accepted after a fresh coordinator rerun passed 11/11, including Q3420-Q3422, exact catalog metadata/text, legal stack proof, clean fixtures, and exclusive IR registration. No suppression existed and no module change was required.
+- EX3-055 accepted after a fresh coordinator rerun passed 8/8, covering official errata/Q3424, structural IR, invalid evolution, clean fixtures, and public inherited Retaliation across controller/all-turn boundaries. No suppression remains.
+- EX3-056 accepted after a fresh coordinator rerun passed 5/5 with exact metadata/effect/compiled IR, invalid evolution-source proof, and clean fixtures. The module was already type-clean without suppression.
+- EX3-058 accepted after a fresh coordinator rerun passed 9/9 with official errata, exact compiled IR, invalid evolution-source proof, and public Q3425/Q3426 coverage. The module was already type-clean without suppression.
+- EX3-057 accepted after a fresh coordinator rerun passed 7/7 with official errata/restriction evidence, public inherited attacks, exact stack proof, and clean fixtures. EX3-059 accepted after 9/9 with public battle deletion, target/live-top boundaries, and inherited-copy proof. EX3-061 accepted after 9/9 with public DNA/Paildramon/Wormmon/deletion/attack flows and invalid-material proof. None retains a suppression.
+- EX3-062 accepted after a fresh coordinator rerun passed 8/8, covering alternate-name evolution, exact stacks/name negative, both-deck mill thresholds, hand/trash play/refusal, short-deck/no-target boundaries, and clean fixtures. No suppression exists.
+- EX3-060 accepted after a fresh coordinator rerun passed 8/8 with catalog/IR/behavior/stack evidence, clean fixtures, public timing, and exclusive IR registration. The module was already type-clean without suppression.
+- EX3-063 provisionally accepted at 7/10 after 8/8 focused tests. Q2891's no-attack outcome is public, but the exact opponent-turn effect-origin DNA path remains a named harness/mechanism seam and is assigned to a serialized lane; no injected timing is accepted as evidence.
+- EX3-064 accepted after a fresh coordinator rerun passed 8/8. Typing was corrected without suppression; real Trial play/Delay and public battle deletion prove provenance ceilings, naming, errata choice/gate, Q3428, and evolution boundaries.
+- EX3-065 accepted after a fresh coordinator rerun passed 17/17. Dragon-trait filters are typed; real start-turn/security flows cover all four traits, public negatives, stacks, and Q3430/Q3431 ordering without suppression.
+- EX3-063 promoted to 8/10 after a real BT20-016 public opponent-turn deletion-replacement DNA path proved Q2891 exactly; Blitz is gained, both materials remain, and the owner's attack is rejected as `not-your-turn`. No engine change was required.
+- EX3-067 accepted after a fresh coordinator rerun passed 7/7 with exact catalog/IR, source/no-source boundaries, duration/color negatives, and real attack-driven Security activation. Invalid fixtures and direct timing injection were removed with the suppression.
+- EX3-068 accepted after a fresh coordinator rerun passed 8/8. Real opponent attacks replace injected Security timing; target/recovery/refusal/peer/color boundaries are proven without suppression. EX3-069 accepted after 10/10 with 2025 erratum, Trial Delay, trait/level limits, Q3433/Q5722 duration, and real Security flow, also without suppression.
+- EX3-070 provisionally accepted at 7/10 after 6/6 focused tests; Q3435's opponent-empty Security reveal remains a named public-flow seam assigned to a serialized mechanism lane. EX3-072 accepted after a fresh coordinator rerun passed 9/9 with modal/level/color/Guilmon/recovery boundaries and real attack-driven Security proofs.
+- EX3-074 accepted after a fresh coordinator rerun passed 8/8 with catalog/IR fidelity, Q3399/Q3401 timing, Q3436 normal-versus-DNA behavior, boundaries, and stack proof. The module was already type-clean without suppression.
+- Final card checkpoint: EX3-066 passed 7/7, EX3-071 passed 6/6, and EX3-073 passed 7/7 after adding its missing Dragon Mode alternate evolution route. EX3-070 was promoted after compositional Q3435 proof passed 7/7. All 74 ledger rows are now reproducible 8/10 before delivery gates.
+- Static pre-gate audit: 74/74 matching exclusive `registerIrCard` registrations; zero `registerCard`; zero `@ts-nocheck`; 74/74 reports; 74/74 unique KB-index entries; no prohibited Digi-Egg deck/security fixtures, numeric security, injected timing, or skipped/failing tests.
+- Pre-merge gates: EX3 effects sync/check passed for 74 records; coordinator EX3 collection passed 75/75 files and 764/764 tests; changed-file Oxlint/Oxfmt and `git diff --check` passed. Root typecheck is EX3-clean and fails only on the known EX4-056 baseline already corrected upstream on `origin/main`.
