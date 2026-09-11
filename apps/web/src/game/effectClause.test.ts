@@ -30,6 +30,15 @@ describe("effectClauseForTiming", () => {
     expect(effectClauseForTiming(text, "OnDeletion")).toBe(text);
   });
 
+  it("shows nothing rather than every unrelated clause for a timing with no printed bracket at all", () => {
+    // BT26-016 prints ＜Engage＞ inline (no bracket of its own); its synthesized end-of-turn
+    // attack must not be explained by dumping the On Play/When Digivolving/When Attacking
+    // block AND the All Turns block onto the player.
+    const text =
+      "＜Piercing＞ \n＜Engage＞ \n[On Play] [When Digivolving] [When Attacking] You may delete 1 Digimon.\n[All Turns] When this Digimon would leave the battle area, it doesn't leave.";
+    expect(effectClauseForTiming(text, "EndOfYourTurn")).toBeUndefined();
+  });
+
   it("hides the [Security] clause when an On Play prompt resolves (AD1-020)", () => {
     const text =
       "[Security] Play this card without paying the cost.\n[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid] trait cards with different colors from your hand or trash under this Tamer.";
@@ -460,5 +469,18 @@ describe("effectClauseForTiming", () => {
     expect(inherited).toContain("While this Digimon has an [On Play] effect");
     expect(inherited).toContain("Security Attack +1");
     expect(inherited).not.toContain("Aura");
+  });
+
+  it("hides Chronomon: Holy Mode's whole card block when its synthesized ＜Engage＞ attack decides", () => {
+    // BT26-016's ＜Engage＞ has no printed [End of Your Turn] bracket of its own; the engine's
+    // synthesized decision must not fall back to the entire On Play/When Digivolving/When
+    // Attacking/All Turns block just because that is the only text the card has.
+    const clause = playerFacingEffectClause({
+      cardId: "BT26-016",
+      timing: "EndOfYourTurn",
+      description: "[EndOfYourTurn] Attack",
+    });
+
+    expect(clause).toBeUndefined();
   });
 });

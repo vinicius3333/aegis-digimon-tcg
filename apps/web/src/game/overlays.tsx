@@ -986,7 +986,15 @@ export function effectClauseForTiming(effectText: string | undefined, timing: st
   }
   const groupIdx = groups.findIndex((g) => g.labels.has(label));
   const group = groups[groupIdx];
-  if (group === undefined) return effectText;
+  if (group === undefined) {
+    // A card printing exactly one clause has nothing else to offer, so showing it beats
+    // showing nothing. A card printing several unrelated clauses (BT26-016's On Play/When
+    // Digivolving/When Attacking block AND its All Turns block) has no clause for this
+    // timing at all — e.g. a synthesized ＜Engage＞/＜Vortex＞ end-of-turn attack, which is
+    // never printed as its own bracket — and the whole raw block would name every other
+    // effect on the card instead of the one actually resolving.
+    return groups.length <= 1 ? effectText : undefined;
+  }
   const end = groups[groupIdx + 1]?.start ?? effectText.length;
   return effectText.slice(group.start, end).trim();
 }
