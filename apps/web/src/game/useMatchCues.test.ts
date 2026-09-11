@@ -26,6 +26,7 @@ import {
   FIELD_CLASH_TOTAL_MS,
 } from "./timings";
 import { NARRATION_TICK_MS } from "./narration";
+import { REJECTION_LIFETIME_MS } from "./notices";
 import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 
 /**
@@ -2177,7 +2178,12 @@ describe("the narration queue", () => {
     // holds the viewer's input.
     expect(onScreen(result.current.narration)).toEqual({ "narration-opp": "BT1-009" });
 
+    // Its own clock: it started at the refusal rather than at a slot, so it is held for
+    // the refusal's longer reading time and is still up when a queued notice would be gone.
     await advance(TIMINGS.noticeLifetime);
+    expect(result.current.rejection).not.toBeNull();
+
+    await advance(REJECTION_LIFETIME_MS - TIMINGS.noticeLifetime);
     expect(result.current.rejection).toBeNull();
   });
 

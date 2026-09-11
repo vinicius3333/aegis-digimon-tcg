@@ -17,6 +17,15 @@ import { TIMINGS } from "./timings";
 /** How long a notice gets to be read. Nothing on the board shortens it any more. */
 export const NOTICE_LIFETIME_MS = TIMINGS.noticeLifetime;
 
+/**
+ * How long a refusal gets. It is the one notice that is not queued, so its clock starts at
+ * the refusal itself rather than when a slot reaches it: the player is still watching the
+ * card they tapped shake, and a refusal is a sentence to read rather than a card to
+ * recognise. It therefore takes the longer clock the opponent feed gives a line carrying
+ * text, not the queued notice's.
+ */
+export const REJECTION_LIFETIME_MS = TIMINGS.feedEffect;
+
 export type NoticeSide = "you" | "opp";
 
 export type NoticeBody =
@@ -150,7 +159,8 @@ export function rejectionNotice(reason: string, id: string, nowMs: number): Matc
 
 /** Milliseconds left on a notice's clock, never negative. */
 export function noticeRemaining(notice: MatchNotice, nowMs: number): number {
-  return Math.max(0, notice.createdAt + NOTICE_LIFETIME_MS - nowMs);
+  const lifetime = notice.body.variant === "rejection" ? REJECTION_LIFETIME_MS : NOTICE_LIFETIME_MS;
+  return Math.max(0, notice.createdAt + lifetime - nowMs);
 }
 
 /**

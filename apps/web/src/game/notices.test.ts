@@ -8,6 +8,7 @@ import {
   NOTICE_LIFETIME_MS,
   recoveryNoticeFromEvent,
   rejectionNotice,
+  REJECTION_LIFETIME_MS,
   type MatchNotice,
 } from "./notices";
 
@@ -114,6 +115,13 @@ describe("notice lifetimes", () => {
   it("gives every notice the same reading time, whatever else is on screen", () => {
     expect(noticeRemaining(notice({ createdAt: 0 }), 0)).toBe(NOTICE_LIFETIME_MS);
     expect(noticeRemaining(notice({ createdAt: 0 }), 200)).toBe(NOTICE_LIFETIME_MS - 200);
+  });
+
+  it("gives a refusal the longer clock it is read on", () => {
+    const refusal = rejectionNotice("Not enough memory.", "a", 0);
+    expect(REJECTION_LIFETIME_MS).toBeGreaterThan(NOTICE_LIFETIME_MS);
+    expect(noticeRemaining(refusal, 0)).toBe(REJECTION_LIFETIME_MS);
+    expect(noticeRemaining(refusal, NOTICE_LIFETIME_MS)).toBe(REJECTION_LIFETIME_MS - NOTICE_LIFETIME_MS);
   });
 
   it("never reports a negative remainder", () => {
