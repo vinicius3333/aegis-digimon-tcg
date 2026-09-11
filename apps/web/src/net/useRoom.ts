@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameState } from "@aegis/shared";
-import { EVENT_CHANNEL, DECISION_CHANNEL, type ServerEvent, type DecisionRequest } from "@aegis/shared";
+import {
+  EVENT_CHANNEL,
+  DECISION_CHANNEL,
+  type SequencedServerEvent,
+  type ServerEvent,
+  type DecisionRequest,
+} from "@aegis/shared";
+import { emptyBatchInbox, receiveServerEvent, type BatchInbox, type ServerBatch } from "./serverBatches";
+import { recordSnapshot, type StateSnapshot } from "./presentedState";
 import {
   joinOrCreate,
   createBot,
@@ -87,6 +95,12 @@ export interface UseRoomResult {
   status: ConnectionStatus;
   state: GameState | undefined;
   events: ServerEvent[];
+  /**
+   * The same events grouped as the server resolved them, appended when a batch closes.
+   * The presentation sequences by batch; `events` remains the flat log the HUD and the
+   * match log read.
+   */
+  batches: readonly ServerBatch[];
   decision: DecisionRequest | undefined;
   acknowledgeDecision: (decisionId: string) => void;
   error: string | undefined;
@@ -96,8 +110,17 @@ export interface UseRoomResult {
    * Monotonic counter bumped on every state patch. Because Colyseus mutates the same
    * GameState instance in place, consumers that memoize on the state reference (e.g.
    * a Pixi redraw effect) must also depend on this to react to each patch.
+   *
+   * Named for the patch it counts, not for the server's `GameState.stateVersion`: the
+   * server bumps that once per closed batch, while several patches can land inside one
+   * batch and a patch can carry no batch at all.
    */
-  stateVersion: number;
+  patchVersion: number;
+  /**
+   * The board at each recent server revision, oldest first. `GameScreen` renders from the
+   * one the presentation has reached rather than from the live state (presentedState.ts).
+   */
+  snapshots: readonly StateSnapshot[];
   /** The private room code (non-empty only for the host of a private room). */
   roomCode: string;
 }
@@ -135,8 +158,10 @@ function connectRoom(options: AegisJoinOptions, match?: MatchConfig): Promise<Ae
  */
 export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled = false): UseRoomResult {
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
-  const [stateVersion, setVersion] = useState(0);
+  const [patchVersion, setVersion] = useState(0);
+  const [snapshots, setSnapshots] = useState<readonly StateSnapshot[]>([]);
   const [events, setEvents] = useState<ServerEvent[]>([]);
+  const [inbox, setInbox] = useState<BatchInbox>(emptyBatchInbox);
   const [decision, setDecision] = useState<DecisionRequest>();
   const confirmedDecisionIdRef = useRef<string | undefined>(undefined);
   const answeredDecisionIdsRef = useRef(new Set<string>());
@@ -190,9 +215,12 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
           return reconciled.decision;
         });
         setVersion((v) => v + 1);
+        setSnapshots((previous) => recordSnapshot(previous, next));
       });
-      room.onMessage<ServerEvent>(EVENT_CHANNEL, (event) => {
-        setEvents((prev) => [...prev.slice(-99), event]);
+      room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
+        // `batchClosed` is a stream boundary and narrates nothing, so it stays out of the log.
+        if (event.kind !== "batchClosed") setEvents((prev) => [...prev.slice(-99), event]);
+        setInbox((prev) => receiveServerEvent(prev, event));
       });
       room.onMessage<DecisionRequest>(DECISION_CHANNEL, (req) => {
         if (answeredDecisionIdsRef.current.has(req.decisionId)) return;
@@ -304,11 +332,13 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     status,
     state: stateRef.current,
     events,
+    batches: inbox.batches,
     decision,
     acknowledgeDecision,
     error,
     sessionId,
-    stateVersion,
+    patchVersion,
+    snapshots,
     roomCode,
   };
 }
