@@ -917,6 +917,8 @@ Remaining gaps: none card-local. Collection gates, root typecheck, and delivery 
 
 ### EX3-016 — SnowAgumon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-016.ts) · [test](../../apps/api/src/cards/EX3/EX3-016.test.ts)
+
 #### Scope and catalog evidence
 
 - Catalog identity verified from `packages/shared/src/cards/data/cards.json`: blue level 3 Digimon, play cost 3, 2000 DP, Vaccine/Dinosaur, blue level 2 evolution for 0, with inherited text: `[Opponent's Turn] When an opponent's Digimon with no digivolution cards would digivolve, increase the digivolution cost by 1.`
@@ -1016,6 +1018,8 @@ The target-selection test explicitly rejects a red Digimon while permitting both
 Remaining gaps: none card-local. Collection gates, root typecheck, and delivery gates remain coordinator-owned.
 
 ### EX3-018 — Coredramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-018.ts) · [test](../../apps/api/src/cards/EX3/EX3-018.test.ts)
 
 #### Scope and catalog evidence
 
@@ -1120,6 +1124,8 @@ Remaining gaps: none card-local. Collection gates, root typecheck, and delivery 
 
 ### EX3-020 — Wingdramon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-020.ts) · [test](../../apps/api/src/cards/EX3/EX3-020.test.ts)
+
 #### Scope and catalog evidence
 
 - Catalog identity verified from `packages/shared/src/cards/data/cards.json`: blue level 5 Digimon, play cost 7, 7000 DP, Ultimate/Vaccine/Sky Dragon, normal evolution from blue or green level 4 for 4 memory.
@@ -1160,6 +1166,8 @@ Remaining gaps: none card-local. Collection gates, root typecheck, and delivery 
 | **Worker total** | **8/10** |
 
 ### EX3-021 — CrysPaledramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-021.ts) · [test](../../apps/api/src/cards/EX3/EX3-021.test.ts)
 
 #### Scope and catalog evidence
 
@@ -1264,6 +1272,8 @@ stack identity. The candidate fixture includes a blue level-3 Tamer to prove the
 Remaining collection, typecheck, and delivery gates are coordinator-owned.
 
 ### EX3-023 — Plesiomon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-023.ts) · [test](../../apps/api/src/cards/EX3/EX3-023.test.ts)
 
 #### Scope and catalog evidence
 
@@ -1424,6 +1434,8 @@ The legal evolution flow uses a blue level-5 BT1-038 source with BT1-032 already
 Remaining gaps: none card-local. Collection gates, root typecheck, static checks, and delivery gates remain coordinator-owned.
 
 ### EX3-026 — Aegisdramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-026.ts) · [test](../../apps/api/src/cards/EX3/EX3-026.test.ts)
 
 #### Scope and catalog/errata evidence
 
@@ -1965,6 +1977,8 @@ Remaining gaps: static checks await coordinator resource clearance; no card-loca
 
 ### EX3-034 — Angewomon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-034.ts) · [test](../../apps/api/src/cards/EX3/EX3-034.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78367-78395` identifies EX3-034 as yellow level-5 Ultimate/Vaccine/Archangel Angewomon, play cost 8, 7000 DP, with a yellow level-4 evolution route costing 3.
@@ -2101,6 +2115,8 @@ No card-local gap remains. Collection typecheck and delivery gates remain
 coordinator-owned; the typecheck reds are named above.
 
 ### EX3-036 — Magnadramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-036.ts) · [test](../../apps/api/src/cards/EX3/EX3-036.test.ts)
 
 #### Sources and printed contract
 
@@ -2527,6 +2543,8 @@ deck/security fixtures; only legal level-2 evolution sources remain in battle-ar
 
 ### EX3-042 — Toropiamon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-042.ts) · [test](../../apps/api/src/cards/EX3/EX3-042.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78587-78617` identifies EX3-042 as green level-5 Ultimate/Virus/Vegetation Toropiamon, play cost 7, 7000 DP, with a green level-4 evolution route costing 3.
@@ -2653,6 +2671,8 @@ coordinator-owned.
 
 ### EX3-044 — Breakdramon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-044.ts) · [test](../../apps/api/src/cards/EX3/EX3-044.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78638-78676` identifies EX3-044 as green level-6 Mega/Virus/Machine Dragon Breakdramon, play cost 12, 12000 DP, with normal green/blue level-5 evolution costs of 4.
@@ -2701,6 +2721,8 @@ The prior hand-audited IR was complete and exclusively registered through `regis
 Remaining gaps: static and set-level delivery gates are coordinator-owned; no card-local behavior gap is known.
 
 ### EX3-045 — Hydramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-045.ts) · [test](../../apps/api/src/cards/EX3/EX3-045.test.ts)
 
 #### Sources and printed contract
 
@@ -2910,6 +2932,8 @@ coordinator-owned.
 
 ### EX3-048 — Jazardmon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-048.ts) · [test](../../apps/api/src/cards/EX3/EX3-048.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78750-78784` identifies EX3-048 as black level-4 Champion/Data/Machine Dragon Jazardmon, play cost 4, 4000 DP, with black or red level-3 evolution costs of 2.
@@ -3040,6 +3064,8 @@ coordinator-owned.
 
 ### EX3-050 — Cyberdramon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-050.ts) · [test](../../apps/api/src/cards/EX3/EX3-050.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78807-78837` identifies EX3-050 as black level-5 Ultimate/Vaccine/Cyborg Cyberdramon, play cost 6, 7000 DP, with a black level-4 evolution route costing 3.
@@ -3164,6 +3190,8 @@ No card-local gap remains. Collection typecheck and delivery gates remain
 coordinator-owned.
 
 ### EX3-052 — Jazarichmon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-052.ts) · [test](../../apps/api/src/cards/EX3/EX3-052.test.ts)
 
 #### Sources and printed contract
 
@@ -3384,6 +3412,8 @@ coordinator-owned.
 
 ### EX3-055 — Wormmon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-055.ts) · [test](../../apps/api/src/cards/EX3/EX3-055.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:78944-78972` identifies EX3-055 as a purple level-3 Rookie/Free/Larva Wormmon, play cost 3, 1000 DP, with purple level-2 and red level-2 evolution routes costing 0.
@@ -3428,6 +3458,8 @@ The module is complete IR (`coverage: "full"`, `residual: []`) and exclusively r
 Remaining gaps are coordinator-owned delivery and set-level gates; no card-local fidelity gap is known.
 
 ### EX3-056 — Guilmon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-056.ts) · [test](../../apps/api/src/cards/EX3/EX3-056.test.ts)
 
 #### Sources and printed contract
 
@@ -3558,6 +3590,8 @@ coordinator-owned.
 
 ### EX3-058 — Shadramon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-058.ts) · [test](../../apps/api/src/cards/EX3/EX3-058.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:79026-79054` identifies EX3-058 as purple level-4 Armor Form/Free/Insectoid Shadramon, play cost 5, 5000 DP, with purple and red level-3 evolution costs of 2 and image `EX3-058-Errata`.
@@ -3603,6 +3637,8 @@ No shared engine change is required. All behavior is exercised through public di
 Remaining gap: repository delivery and collection-level gates are coordinator-owned; no card-local behavior gap is known.
 
 ### EX3-059 — DarkTyrannomon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-059.ts) · [test](../../apps/api/src/cards/EX3/EX3-059.test.ts)
 
 #### Sources and printed contract
 
@@ -3728,6 +3764,8 @@ gates remain coordinator-owned.
 
 ### EX3-061 — Dinobeemon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-061.ts) · [test](../../apps/api/src/cards/EX3/EX3-061.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:79117-79145` identifies EX3-061 as purple/red level-5 Ultimate/Free/Mutant Dinobeemon, play cost 8, 8000 DP, with DNA evolution cost 0 from purple level 4 plus red level 4 and image `EX3-061`.
@@ -3773,6 +3811,8 @@ Remaining gap: repository delivery and collection-level gates are coordinator-ow
 
 ### EX3-062 — WarGrowlmon
 
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-062.ts) · [test](../../apps/api/src/cards/EX3/EX3-062.test.ts)
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:79148-79170` identifies EX3-062 as a purple/red level-5 Ultimate/Virus/Cyborg WarGrowlmon, play cost 8, 8000 DP, with a purple level-4 evolution route costing 4.
@@ -3816,6 +3856,8 @@ The module is complete IR (`coverage: "full"`, `residual: []`) and exclusively r
 Remaining gaps are coordinator-owned delivery and set-level gates; no card-local fidelity gap is known.
 
 ### EX3-063 — Imperialdramon: Dragon Mode
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-063.ts) · [test](../../apps/api/src/cards/EX3/EX3-063.test.ts)
 
 #### Sources and printed contract
 
@@ -3862,6 +3904,8 @@ No shared engine change is required. No injected timing call remains. The Q2891 
 No card-local behavior gap remains. Delivery remains 0 because this worker does not commit, push, or update the coordinator ledger.
 
 ### EX3-064 — Megidramon
+
+Evidence: [module](../../apps/api/src/cards/EX3/EX3-064.ts) · [test](../../apps/api/src/cards/EX3/EX3-064.test.ts)
 
 #### Sources and printed contract
 
