@@ -46,6 +46,58 @@ describe("BT23-071 Dullahamon", () => {
     ).toEqual(["Piercing", "SecurityAttack", "Execute"]);
   });
 
+  it("checks 2 security cards when it attacks the player (Security Attack +1)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-071", as: "dullahamon" }] },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dullahamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // Both checked security Digimon are far below 14000 DP, so both are trashed and the
+    // attacker survives: exactly two checks, one more than the default.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT23-071"]);
+  });
+
+  it("pierces surplus DP into security after deleting the defending Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-071", as: "dullahamon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "blockerless", suspended: true }],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dullahamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("blockerless").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    // Piercing turns the won battle into a security check; Security Attack +1 makes it two.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("digivolves from Phantomon for exactly 6 while a Violet Inboots Tamer is out, drawing 1", async () => {
     const s = setupEngine(
       {
@@ -278,7 +330,10 @@ describe("BT23-071 Dullahamon", () => {
             { card: "BT23-055", as: "nonGhost" },
           ],
         },
-        1: { trash: [{ card: "BT23-064", as: "opponentGhost" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "wall", dp: 20_000, suspended: true }],
+          trash: [{ card: "BT23-064", as: "opponentGhost" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -286,15 +341,22 @@ describe("BT23-071 Dullahamon", () => {
     s.state.memory = 3;
     const ghostId = s.inst("ghost").instanceId;
 
-    // No public intent deletes an established 14000 DP Digimon on demand; the production
-    // deletion verb is the narrowest seam that opens the [On Deletion] window.
-    await advance(s.engine).verb.deletePermanent([s.perm("dullahamon").permanentId], "byEffect");
+    // Public route into the [On Deletion] window: Dullahamon attacks a bigger Digimon and
+    // loses the battle, so the deletion happens through normal combat.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dullahamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghostId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghostId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nonGhost").instanceId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentGhost").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT23-071")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
     // "without paying the cost": Necromon's play cost of 11 is never charged.
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -307,6 +369,7 @@ describe("BT23-071 Dullahamon", () => {
           battleArea: [{ card: "BT23-071", as: "dullahamon" }],
           trash: [{ card: "BT23-069", as: "ghost" }],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 20_000, suspended: true }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -314,8 +377,17 @@ describe("BT23-071 Dullahamon", () => {
     s.state.memory = 3;
     const ghostId = s.inst("ghost").instanceId;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("dullahamon").permanentId], "byEffect");
-    await settle(() => s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dullahamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT23-071") && s.state.pendingDecision === undefined,
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghostId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === ghostId)).toBe(true);

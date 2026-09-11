@@ -313,6 +313,44 @@ describe("BT23-064 Bakemon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([bakemonId]);
   });
 
+  /**
+   * CR 3-4-5-3: a card in the breeding area can't be affected by an effect that doesn't name
+   * the breeding area, so "1 of your Digimon" in the By cost is the battle area only.
+   */
+  it("never pays a Digimon in the breeding area as the By cost", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-064", as: "bakemon" }],
+          breeding: { card: "BT2-067", as: "hatched" },
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("hatched").topCard!.instanceId);
+    await s.ready();
+    s.state.memory = 5;
+    const bakemonId = s.inst("bakemon").instanceId;
+    const hatchedId = s.inst("hatched").instanceId;
+    const targetId = s.inst("target").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: bakemonId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[1]!.trash.some((card) => card.instanceId === targetId),
+    );
+
+    // The breeding Digimon was preferred but is not a candidate, so Bakemon paid itself.
+    expect(s.perm("hatched").topCard!.instanceId).toBe(hatchedId);
+    expect(s.perm("hatched").inBreeding).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([bakemonId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([targetId]);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("keeps the delete target scoped to Digimon in the battle area", () => {
     const action = actionOf("OnPlay");
     expect(action.target.filter.kind).toEqual(["Digimon"]);

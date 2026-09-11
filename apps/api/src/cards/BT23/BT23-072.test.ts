@@ -30,8 +30,8 @@ function keywordsOn(s: EngineSetup, alias: string): boolean[] {
 /** A board where seat 0 can publicly play cards through the real turn loop. */
 function playableBoard(seat0: SeatSpec, seat1: SeatSpec = {}): BoardSpec {
   return {
-    0: { deck: ["BT1-011", "BT1-012", "BT1-013"], security: 3, ...seat0 },
-    1: { deck: ["BT1-011", "BT1-012", "BT1-013"], security: 3, ...seat1 },
+    0: { deck: ["BT1-011", "BT1-012", "BT1-013"], security: ["BT1-027", "BT1-028", "BT1-045"], ...seat0 },
+    1: { deck: ["BT1-011", "BT1-012", "BT1-013"], security: ["BT1-027", "BT1-028", "BT1-045"], ...seat1 },
   };
 }
 
@@ -197,19 +197,21 @@ describe("BT23-072 King Drasil_7D6", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  it("refuses the [Main] activation on the opponent's turn", async () => {
-    const s = setupEngine(
-      {
-        0: {
+  it("refuses the [Main] activation during the opponent's main phase", async () => {
+    const { s, loop } = await openMain(
+      playableBoard(
+        {
           breeding: { card: "BT22-007", as: "mother" },
-          hand: [{ card: "BT23-072", as: "handDrasil" }],
-          deck: ["BT1-009", "BT1-010"],
+          hand: [{ card: "BT23-072", as: "handDrasil" }, "ST1-02"],
         },
-      },
+        { hand: ["ST1-02"] },
+      ),
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -5;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
+    const memoryBefore = s.state.memory;
 
     const result = s.engine.applyIntent(0, {
       type: "activateEffect",
@@ -219,8 +221,10 @@ describe("BT23-072 King Drasil_7D6", () => {
     await settle(() => false, 40);
 
     expect(result.ok).toBe(false);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-072")).toBe(true);
     expect(s.perm("mother").stack).toHaveLength(0);
+    await closeLoop(s, loop);
   });
 
   // Q5346: the "by" cost is all-or-nothing — declining pays nothing and draws nothing.
@@ -268,7 +272,6 @@ describe("BT23-072 King Drasil_7D6", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    s.perm("drasil").isSuspended = false;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
@@ -316,7 +319,6 @@ describe("BT23-072 King Drasil_7D6", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    s.perm("drasil").isSuspended = false;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
@@ -340,7 +342,6 @@ describe("BT23-072 King Drasil_7D6", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    s.perm("drasil").isSuspended = false;
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     s.state.memory = -5;
@@ -367,7 +368,6 @@ describe("BT23-072 King Drasil_7D6", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    s.perm("drasil").isSuspended = false;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
@@ -393,7 +393,6 @@ describe("BT23-072 King Drasil_7D6", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    s.perm("drasil").isSuspended = false;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,

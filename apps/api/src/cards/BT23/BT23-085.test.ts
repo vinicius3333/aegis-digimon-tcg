@@ -16,6 +16,8 @@ const CS_ONLY = "BT23-006";
 const CS_OPTION = "BT23-096";
 // BT2-103 Spiral Sword: black, single-color, play cost 1, NO [CS] trait — the eligibility negative.
 const PLAIN_OPTION = "BT2-103";
+// BT22-099 Kuremi Detective Agency: black AND yellow, [CS] trait — the single-color negative.
+const DUAL_COLOR_CS_OPTION = "BT22-099";
 // BT23-028 Coordemon: [On Play] 1 of your opponent's Digimon gets -3000 DP for the turn.
 const DP_REDUCER = "BT23-028";
 // A vanilla Lv.3 Digimon with no effects: neutral hand filler and legal security/deck bulk.
@@ -714,6 +716,55 @@ describe("BT23-085 Ryuji Mishima", () => {
     await loop;
   });
 
+  it("does not use a two-color [CS] Option: the clause says single-color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-085", as: "ryuji" },
+            { card: HUDIE, as: "hudie" },
+          ],
+          // BT22-099 Kuremi Detective Agency carries the [CS] trait but prints two colors.
+          hand: [
+            { card: DUAL_COLOR_CS_OPTION, as: "option" },
+            { card: NEUTRAL, as: "neutral" },
+          ],
+          security: SECURITY,
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "victim", under: ["BT1-009", "BT1-010"] }],
+          hand: [{ card: NEUTRAL, as: "opponentNeutral" }],
+          security: SECURITY,
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hudie").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // The card stays in hand: the two-color Option never passes the single-color gate.
+    // (The engine still offers, and here auto-accepts, the "by suspending this Tamer" cost
+    // before it knows the body will find nothing to use; see the audit report.)
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("[All Turns]: fires when the [Hudie] Digimon suspends to block on the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -770,6 +821,134 @@ describe("BT23-085 Ryuji Mishima", () => {
   });
 
   // --- Clause 4: [Security] --------------------------------------------------------------
+
+  it("finds exactly one eligible card in a four-way hand pool", async () => {
+    // Pool: single-color [CS] Option (eligible), two-color [CS] Option, single-color Option
+    // without [CS], and a [CS] card that is not an Option at all.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-085", as: "ryuji" },
+            { card: HUDIE, as: "hudie" },
+          ],
+          hand: [
+            { card: CS_OPTION, as: "eligible" },
+            { card: DUAL_COLOR_CS_OPTION, as: "twoColor" },
+            { card: PLAIN_OPTION, as: "noCsTrait" },
+            { card: CS_ONLY, as: "csButNotAnOption" },
+          ],
+          security: SECURITY,
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "victim", under: ["BT1-009", "BT1-010"] }],
+          hand: [{ card: NEUTRAL, as: "opponentNeutral" }],
+          security: SECURITY,
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const eligibleId = s.inst("eligible").instanceId;
+    const twoColorId = s.inst("twoColor").instanceId;
+    const noCsId = s.inst("noCsTrait").instanceId;
+    const notAnOptionId = s.inst("csButNotAnOption").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const memoryBefore = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hudie").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === eligibleId),
+    );
+
+    // Exactly the single-color [CS] Option left the hand; the three near-misses stayed.
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [twoColorId, noCsId, notAnOptionId].sort(),
+    );
+    expect(s.perm("ryuji").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("protects a Digimon that digivolved this turn through the public digivolve intent", async () => {
+    // The grant must follow the live permanent across a real evolution step, not a seeded one.
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: HUDIE, as: "stack" }],
+          hand: [
+            { card: "BT23-020", as: "seadramon" },
+            { card: "BT23-085", as: "ryuji" },
+            { card: NEUTRAL, as: "neutral" },
+          ],
+          security: SECURITY,
+          deck: DECK,
+        },
+        1: {
+          hand: [
+            { card: DP_REDUCER, as: "reducer" },
+            { card: NEUTRAL, as: "opponentNeutral" },
+          ],
+          security: SECURITY,
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: prefer },
+    );
+    const baseId = s.inst("stack").instanceId;
+    const seadramonId = s.inst("seadramon").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 6;
+    const permanentId = s.perm("stack").permanentId;
+
+    // BT23-048 Gotsumon carries [CS], so BT23-020's "Lv.3 w/[CS] trait: Cost 2" route applies.
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: seadramonId })).toEqual({ ok: true });
+    await settle(() => s.perm("stack").topCard?.instanceId === seadramonId && s.state.pendingDecision === undefined);
+    expect(s.perm("stack").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    const evolvedDp = s.perm("stack").currentDP;
+
+    prefer.push(seadramonId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ryuji").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("stack"), "dpImmune"));
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    prefer.length = 0;
+    prefer.push(s.perm("stack").topCard!.instanceId);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("reducer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === DP_REDUCER));
+
+    // The opponent's -3000 cannot move the DP of the Digimon that digivolved this turn.
+    expect(s.perm("stack").topCard?.instanceId).toBe(seadramonId);
+    expect(s.perm("stack").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.perm("stack").currentDP).toBe(evolvedDp);
+    expect(observe(s.engine).isRestricted(s.perm("stack"), "dpImmune")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 
   it("plays itself from security without paying its 4 cost", async () => {
     const s = setupEngine(

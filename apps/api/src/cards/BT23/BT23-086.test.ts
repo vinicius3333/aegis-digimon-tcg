@@ -259,6 +259,171 @@ describe("BT23-086 Yuugo", () => {
     assertNoLoudGap(s);
   });
 
+  it("offers only [Zaxon] Digimon from the placement pool, never a [Zaxon] Tamer or a near-miss", async () => {
+    // Mixed pool in the printed source zone (hand): two [Zaxon] Digimon, a near-miss that shares
+    // the colour AND the [Machine] trait with one of them but has no [Zaxon] trait, a Tamer that
+    // DOES have the [Zaxon] trait (the text says "Digimon card"), and one unrelated card.
+    // No trait in the catalog contains "Zaxon" as a proper substring, so BT2-066 is the closest
+    // near-miss available.
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-086", as: "yuugo" },
+            { card: "BT23-015", as: "zaxonA" },
+            { card: "BT23-060", as: "zaxonB" },
+            { card: "BT2-066", as: "nearMiss" },
+            { card: "BT23-083", as: "zaxonTamer" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          security: [
+            { card: "BT1-010", as: "securityTop" },
+            { card: "BT1-011", as: "securityKeep" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: prefer },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const zaxonAId = s.inst("zaxonA").instanceId;
+    const zaxonBId = s.inst("zaxonB").instanceId;
+    const nearMissId = s.inst("nearMiss").instanceId;
+    const zaxonTamerId = s.inst("zaxonTamer").instanceId;
+    const unrelatedId = s.inst("unrelated").instanceId;
+    const paidId = s.inst("securityTop").instanceId;
+    const keptId = s.inst("securityKeep").instanceId;
+    prefer.push(zaxonBId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuugo").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zaxonBId));
+
+    // The offered candidate set is the real endpoint: exactly the two [Zaxon] Digimon.
+    const placement = s.decisions.find(({ req }) => req.options?.candidateInstanceIds?.includes(zaxonAId));
+    expect(placement).toBeDefined();
+    expect([...placement!.req.options!.candidateInstanceIds!].sort()).toEqual([zaxonAId, zaxonBId].sort());
+    expect(placement!.req.options!.candidateInstanceIds).not.toContain(nearMissId);
+    expect(placement!.req.options!.candidateInstanceIds).not.toContain(zaxonTamerId);
+    expect(placement!.req.options!.candidateInstanceIds).not.toContain(unrelatedId);
+
+    const player = s.state.players[0]!;
+    expect(player.security.map((card) => card.instanceId)).toEqual([keptId, zaxonBId]);
+    expect(player.security[1]!.faceUp).toBe(true);
+    expect(player.hand.map((card) => card.instanceId).sort()).toEqual(
+      [zaxonAId, nearMissId, zaxonTamerId, unrelatedId, paidId].sort(),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("reads the end-of-turn attack grant from the live top card after a public digivolve", async () => {
+    // The grant is evaluated against the stack's CURRENT top card: a Lv.5 [Rock] base is no
+    // candidate, the Lv.6 [Machine] card digivolved onto it in the same turn is.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-086", as: "yuugo" },
+            { card: "BT10-064", as: "base" },
+          ],
+          hand: [
+            { card: "BT2-066", as: "machinedramon" },
+            { card: "ST1-02", as: "spare" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { security: [{ card: "BT1-010", as: "securityCard" }], deck: ["BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const baseId = s.perm("base").topCard!.instanceId;
+    const machinedramonId = s.inst("machinedramon").instanceId;
+    const securityId = s.inst("securityCard").instanceId;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: machinedramonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === machinedramonId && !s.state.pendingDecision);
+
+    // Real stack: the Lv.5 base is now a digivolution card under the Lv.6 [Machine] top card.
+    expect(s.perm("base").topCard?.cardId).toBe("BT2-066");
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.perm("yuugo").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("Q5361: shuffling the security stack turns the face-up placed card face down again", async () => {
+    // Filled in after setup: the harness reads this array at decision time.
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-086", as: "yuugo" },
+            { card: "BT23-015", as: "zaxon" },
+            { card: "BT1-087", as: "shuffler" },
+          ],
+          security: [
+            { card: "BT1-010", as: "securityTop" },
+            { card: "BT1-011", as: "securityBottom" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        // Steer BT1-087's "add 1 card from your security stack to the hand" to the OTHER
+        // security card, so the face-up placed card is still in the stack when it shuffles.
+        preferInstanceIds: prefer,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const zaxonId = s.inst("zaxon").instanceId;
+    prefer.push(s.inst("securityBottom").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuugo").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zaxonId));
+    expect(s.state.players[0]!.security.find((card) => card.instanceId === zaxonId)?.faceUp).toBe(true);
+
+    // BT1-087 T.K. Takaishi's [On Play] ends with "Then shuffle your security stack."
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shuffler").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-087") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const player = s.state.players[0]!;
+    expect(player.security.length).toBeGreaterThan(0);
+    // Q5361: after the shuffle every security card is face down, the placed one included.
+    expect(player.security.every((card) => card.faceUp !== true)).toBe(true);
+    expect(player.security.some((card) => card.instanceId === zaxonId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === s.inst("securityBottom").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("suspends Yuugo at end of turn so a level 6 Machine Digimon attacks the player", async () => {
     const s = setupEngine(
       {

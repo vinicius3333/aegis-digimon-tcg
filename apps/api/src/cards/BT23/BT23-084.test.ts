@@ -61,11 +61,9 @@ describe("BT23-084 Erika Mishima", () => {
       inheritedEffectText:
         "[Your Turn] While this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN], it gains ＜Alliance＞.",
     });
-    // Catalog discrepancy (coordinator-owned): every other Tamer keeps this clause in
-    // `securityEffectText`; BT23-084 carries it inside `effectText`. Assert over both so
-    // the test survives the catalog fix.
-    // The catalog uses a non-breaking space inside "[CS] trait, gain 1 memory"; normalize
-    // every space class before comparing.
+    // The catalog splits the printed text across `effectText` and `securityEffectText`, and
+    // uses a non-breaking space inside "[CS] trait, gain 1 memory". Join both fields and
+    // normalize every space class before comparing.
     const printed = `${definition.effectText ?? ""}\n${definition.securityEffectText ?? ""}`.replace(/\s+/g, " ");
     expect(printed).toContain("[Security] Play this card without paying the cost.");
     expect(printed).toContain("[Start of Your Main Phase] If you have a Digimon with the [CS] trait, gain 1 memory.");
@@ -343,6 +341,76 @@ describe("BT23-084 Erika Mishima", () => {
     await loop;
   });
 
+  it("is a legal public digivolution source for BT23-074 Eater Legion and stays under the new top card", async () => {
+    // BT23-074 prints "[Digivolve] [Erika Mishima]: Cost 3", so the Tamer itself is the
+    // digivolution source. Q6703/Q6708: the Tamer is not a digivolving Digimon, so only the
+    // played card's own [When Digivolving] window opens.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-084", as: "erika" }],
+          hand: [
+            { card: "BT23-074", as: "eaterLegion" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: [...NEUTRAL_DECK],
+          security: [...NEUTRAL_SECURITY],
+        },
+        1: { deck: [...NEUTRAL_DECK], security: [...NEUTRAL_SECURITY] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const erikaId = s.inst("erika").instanceId;
+    const legionId = s.inst("eaterLegion").instanceId;
+    const erikaPermanentId = s.perm("erika").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: erikaPermanentId, instanceId: legionId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.perm("erika").topCard?.instanceId === legionId && s.state.pendingDecision === undefined);
+
+    const permanent = s.state.players[0]!.battleArea.find((entry) => entry.permanentId === erikaPermanentId)!;
+    expect(permanent.topCard?.instanceId).toBe(legionId);
+    // Permanent.stack holds only the cards beneath the top card: the Tamer itself.
+    expect(permanent.stack.map((card) => card.instanceId)).toEqual([erikaId]);
+    expect(s.state.memory).toBe(3); // the printed [Erika Mishima] route costs 3
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === legionId)).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("refuses an illegal digivolution source: a non-[Erika Mishima] Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-085", as: "otherTamer" }],
+          hand: [
+            { card: "BT23-074", as: "eaterLegion" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: [...NEUTRAL_DECK],
+          security: [...NEUTRAL_SECURITY],
+        },
+        1: { deck: [...NEUTRAL_DECK], security: [...NEUTRAL_SECURITY] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const legionId = s.inst("eaterLegion").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("otherTamer").permanentId,
+        instanceId: legionId,
+      }),
+    ).not.toEqual({ ok: true });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === legionId)).toBe(true);
+    expect(s.state.memory).toBe(6);
+  });
+
   // BT23-101 Hudiemon and BT23-074 Eater Legion print ＜Alliance＞ themselves, so a positive
   // on those two proves nothing about the inherited grant. These two carriers do not.
   it.each([
@@ -392,7 +460,8 @@ describe("BT23-084 Erika Mishima", () => {
   });
 
   it("compiles the bracketed carrier names as exact-name checks and the costs as one compound payment", () => {
-    const aura = (compiled.effects.find((entry) => entry.trigger === "YourTurn") as any).actions[0];
+    type AuraShape = { kind: string; effect: unknown; while: { conditions: { names: string[] }[] } };
+    const aura = compiled.effects.find((entry) => entry.trigger === "YourTurn")!.actions[0] as unknown as AuraShape;
     expect(aura).toMatchObject({
       kind: "Aura",
       effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
@@ -400,9 +469,11 @@ describe("BT23-084 Erika Mishima", () => {
     });
     // `selfHasName` compares effective names for equality; `selfHasNameContaining` would
     // be substring matching, which the printed [Bracketed] wording does not license.
-    expect(aura.while.conditions[0].names).toEqual(["Hudiemon", "Eater Legion", "Eater EDEN"]);
+    expect(aura.while.conditions[0]?.names).toEqual(["Hudiemon", "Eater Legion", "Eater EDEN"]);
 
-    const endOfTurn = (compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn") as any).actions[0];
+    type PlayShape = { target: { filter: { levels: number[]; nameOrTrait: { tokens: string[]; match: string }[] } } };
+    const endOfTurn = compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")!
+      .actions[0] as unknown as PlayShape;
     expect(endOfTurn).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
@@ -426,7 +497,9 @@ describe("BT23-084 Erika Mishima", () => {
     expect(endOfTurn.target.filter.levels).toEqual([3]);
     expect(endOfTurn.target.filter.nameOrTrait).toEqual([{ tokens: ["CS"], match: "trait" }]);
 
-    const memory = (compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase") as any).actions[0];
+    type MemoryShape = { kind: string; amount: number; condition: { kind: string; filter: { zone: string } } };
+    const memory = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")!
+      .actions[0] as unknown as MemoryShape;
     expect(memory).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "youHave" } });
     // Zone-less `youHave` also counts the breeding area (interpreter/scaling.ts countMatching).
     expect(memory.condition.filter.zone).toBe("battleArea");

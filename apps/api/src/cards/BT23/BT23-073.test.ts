@@ -17,6 +17,23 @@ const NEUTRAL_PLAYABLE = "BT1-010"; // Agumon: keeps a turn-loop fixture from au
 
 const allTurnsReplacement = (compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).actions[0];
 
+/**
+ * Hands the turn to seat 1 through the real turn loop instead of writing `turnSeat`:
+ * seat 0 opens its own Main and ends the phase publicly.
+ */
+async function handTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<unknown> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  return { loop };
+}
+
+async function closeLoop(s: ReturnType<typeof setupEngine>, loop: Promise<unknown>): Promise<void> {
+  expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
 describe("BT23-073 Eater Bit", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition(EATER_BIT)).toMatchObject({
@@ -66,7 +83,7 @@ describe("BT23-073 Eater Bit", () => {
       targetIsPermanent: true,
       destination: "digivolutionStack",
       position: "bottom",
-      host: { filter: { zone: "breeding", nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }] } },
+      host: { filter: { zone: "breeding", nameOrTrait: [{ tokens: ["Mother Eater"], match: "nameExact" }] } },
     });
     expect((compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).frequency).toBe("OncePerTurn");
   });
@@ -121,9 +138,9 @@ describe("BT23-073 Eater Bit", () => {
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -3;
     await s.ready();
+    const { loop } = await handTurnToOpponent(s);
+    s.state.memory = -3;
     const allyId = s.perm("ally").permanentId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
@@ -136,6 +153,7 @@ describe("BT23-073 Eater Bit", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([allyId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([bitInstance]);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    await closeLoop(s, loop);
   });
 
   it("saves an ally from the CONTROLLER'S OWN delayed deletion and keeps its digivolve lock (BT23-037 Q5565 / BT23-048 Q5567)", async () => {
@@ -153,8 +171,10 @@ describe("BT23-073 Eater Bit", () => {
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
     const playedInstance = s.inst("played").instanceId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
@@ -169,12 +189,13 @@ describe("BT23-073 Eater Bit", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedInstance));
 
-    await advance(s.engine).runTurn(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedInstance)).toBe(true);
 
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
+    // The delayed deletion lands at the end of seat 1's turn.
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
 
     // Eater Bit paid with itself; the played Digimon never left the battle area.
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedInstance)).toBe(true);
@@ -192,6 +213,7 @@ describe("BT23-073 Eater Bit", () => {
     });
     expect(digivolve.ok).toBe(false);
     expect(survivor.topCard!.instanceId).toBe(playedInstance);
+    await closeLoop(s, loop);
   });
 
   it("saves an ally from a BATTLE deletion by deleting itself", async () => {
@@ -253,9 +275,9 @@ describe("BT23-073 Eater Bit", () => {
         autoSelectCards: true,
       },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -3;
     await s.ready();
+    const { loop } = await handTurnToOpponent(s);
+    s.state.memory = -3;
     const allyId = s.perm("ally").permanentId;
     const bitInstance = s.perm("bit").topCard!.instanceId;
 
@@ -271,6 +293,7 @@ describe("BT23-073 Eater Bit", () => {
     // "bottom digivolution card": index 0 is the bottom of the stack.
     expect(s.perm("mother").stack[0]!.instanceId).toBe(bitInstance);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+    await closeLoop(s, loop);
   });
 
   it("lets the ally leave when the controller declines the prevention", async () => {
@@ -287,9 +310,9 @@ describe("BT23-073 Eater Bit", () => {
       },
       { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -3;
     await s.ready();
+    const { loop } = await handTurnToOpponent(s);
+    s.state.memory = -3;
     const allyInstance = s.perm("ally").topCard!.instanceId;
     const bitId = s.perm("bit").permanentId;
 
@@ -300,6 +323,7 @@ describe("BT23-073 Eater Bit", () => {
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([bitId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([allyInstance]);
+    await closeLoop(s, loop);
   });
 
   it("does not protect a non-Eater, non-Hudie ally", async () => {
@@ -316,9 +340,9 @@ describe("BT23-073 Eater Bit", () => {
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = -3;
     await s.ready();
+    const { loop } = await handTurnToOpponent(s);
+    s.state.memory = -3;
     const plainInstance = s.perm("plain").topCard!.instanceId;
     const bitId = s.perm("bit").permanentId;
 
@@ -329,6 +353,7 @@ describe("BT23-073 Eater Bit", () => {
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([plainInstance]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([bitId]);
+    await closeLoop(s, loop);
   });
 
   it('does not protect itself (the clause reads "your OTHER Digimon")', async () => {

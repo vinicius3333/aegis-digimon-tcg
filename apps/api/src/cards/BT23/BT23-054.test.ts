@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, type Permanent } from "@aegis/shared";
+import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -18,6 +18,8 @@ const CS_LV3 = "BT22-043";
 const CS_LV3_DISCOUNTER = "BT23-037";
 /** Lv.4 Blue, name CONTAINS "Veemon" but is not [Veemon]. */
 const EXVEEMON = "BT3-025";
+/** Inert main-deck Digimon used as security: the harness fills a numeric `security` with a Digi-Egg. */
+const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 
 /** The permanent a decision candidate id names, whether it is a permanent id or a top-card id. */
 function permanentForCandidate(s: EngineSetup, id: string): Permanent | undefined {
@@ -178,7 +180,7 @@ describe("BT23-054 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-054", as: "magna" }],
+          hand: [{ card: "BT23-054", as: "magna" }],
           breeding: { card: CS_LV3, as: "hatched" },
           deck: ["BT1-009", "BT1-011"],
         },
@@ -186,8 +188,9 @@ describe("BT23-054 Magnamon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
-    await settle(() => s.state.pendingDecision === undefined);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
 
     // Magnamon is the only candidate, so the engine resolves the target without a decision;
     // the breeding [CS] Digimon is never reachable.
@@ -200,15 +203,18 @@ describe("BT23-054 Magnamon", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: "BT23-054", as: "magna" }],
+            hand: [{ card: "BT23-054", as: "magna" }],
             deck: ["BT1-009", "BT1-011"],
           },
         },
         { autoSelectCards: true },
       );
       await s.ready();
-      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
-      await settle(() => s.state.pendingDecision === undefined);
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
       const magnaPermanentId = s.perm("magna").permanentId;
       const magnaCardId = s.perm("magna").topCard!.instanceId;
       expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
@@ -225,14 +231,111 @@ describe("BT23-054 Magnamon", () => {
     }
   });
 
+  /**
+   * The public counterpart of the verb-driven proof above: the opponent really resolves
+   * ST2-16 ("[Main] Return 1 of your opponent's Digimon to its owner's hand") on their own
+   * turn, while Magnamon's protection is still armed.
+   */
+  it("survives an opponent's publicly played ST2-16 while an unprotected ally does not", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-054", as: "magna" },
+            { card: NEUTRAL, as: "spare" },
+          ],
+          deck: ["BT1-009", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: PLAIN_BLUE_LV3, as: "blueAnchor" }],
+          hand: [
+            { card: "ST2-16", as: "bounce" },
+            { card: NEUTRAL, as: "opponentSpare" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
+    const magnaCardId = s.state.players[0]!.battleArea[0]!.topCard!.instanceId;
+    const magnaPermanentId = s.state.players[0]!.battleArea[0]!.permanentId;
+    expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    preferred.push(magnaCardId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bounce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "ST2-16"), 5000);
+    await settle(() => s.state.pendingDecision === undefined, 5000);
+
+    // The protection held: Magnamon never reached its owner's hand or deck.
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === magnaPermanentId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === magnaCardId)).toBe(false);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === magnaCardId)).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("lets the same opponent effect return an unprotected own Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: NEUTRAL, as: "unprotected" }],
+          hand: [{ card: NEUTRAL, as: "spare" }],
+          deck: ["BT1-009", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: PLAIN_BLUE_LV3, as: "blueAnchor" }],
+          hand: [
+            { card: "ST2-16", as: "bounce" },
+            { card: NEUTRAL, as: "opponentSpare" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const preyCardId = s.perm("unprotected").topCard!.instanceId;
+    const preyPermanentId = s.perm("unprotected").permanentId;
+    expect(observe(s.engine).isRestricted(s.perm("unprotected"), "beReturned")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    preferred.push(preyCardId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bounce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === preyCardId), 5000);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === preyPermanentId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === preyCardId)).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("still lets the controller's own effect return the protected Digimon", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-054", as: "magna" }], deck: ["BT1-009", "BT1-011"] } },
+      { 0: { hand: [{ card: "BT23-054", as: "magna" }], deck: ["BT1-009", "BT1-011"] } },
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
-    await settle(() => s.state.pendingDecision === undefined);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
     const magnaPermanentId = s.perm("magna").permanentId;
     const magnaCardId = s.perm("magna").topCard!.instanceId;
 
@@ -248,8 +351,10 @@ describe("BT23-054 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-054", as: "magna" }],
-          hand: [{ card: NEUTRAL, as: "spare" }],
+          hand: [
+            { card: "BT23-054", as: "magna" },
+            { card: NEUTRAL, as: "spare" },
+          ],
           deck: [{ card: "BT1-009", as: "drawn" }, "BT1-011", "BT1-012"],
         },
         1: { hand: [{ card: NEUTRAL, as: "opponentSpare" }], deck: ["BT1-013", "BT1-014"] },
@@ -258,8 +363,9 @@ describe("BT23-054 Magnamon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
-    await settle(() => s.state.pendingDecision === undefined);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
     expect(observe(s.engine).isRestricted(s.perm("magna"), "beReturned")).toBe(true);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -454,11 +560,22 @@ describe("BT23-054 Magnamon", () => {
 
   it("＜Blocker＞ switches a declared player attack onto Magnamon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-054", as: "magna" }], security: 2 },
-      1: { battleArea: [{ card: "BT1-014", as: "attacker", dp: 12000 }] },
+      0: {
+        battleArea: [{ card: "BT23-054", as: "magna" }],
+        security: SECURITY,
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-014", as: "attacker", dp: 12000 }],
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
+      },
     });
     await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -475,23 +592,42 @@ describe("BT23-054 Magnamon", () => {
 
     // The attack never reached the player: no security check, and the battle happened on Magnamon.
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
-    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+
+    expect(s.engine.applyIntent(s.state.turnSeat, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("＜Armor Purge＞ spares Magnamon from a lost battle by trashing its own top card", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-054", as: "magna", suspended: true, under: [{ card: VEEMON_CS, as: "under" }] }],
+          battleArea: [{ card: "BT23-054", as: "magna", under: [{ card: VEEMON_CS, as: "under" }] }],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: [{ card: "BT1-014", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "attacker", dp: 12000 }],
+          security: SECURITY,
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
     const magnaPermanentId = s.perm("magna").permanentId;
     const underInstanceId = s.inst("under").instanceId;
+
+    // Suspend Magnamon through a real attack on seat 0's turn, then let seat 1 attack it.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: magnaPermanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("magna").isSuspended && !observe(s.engine).isAttacking(), 5000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.perm("magna").isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -508,5 +644,8 @@ describe("BT23-054 Magnamon", () => {
     expect(survivor!.topCard?.instanceId).toBe(underInstanceId);
     expect(survivor!.stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT23-054")).toBe(true);
+
+    expect(s.engine.applyIntent(s.state.turnSeat, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -55,45 +55,68 @@ describe("BT23-004 DemiMeramon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("grants both keywords to exactly the chosen friendly Ghost and keeps them through the opponent's turn", async () => {
+  it("grants both keywords to the chosen friendly Ghost when deleted on the opponent's turn and expires at that turn's end", async () => {
     const preferred: string[] = [];
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const s = setupEngine(
       {
         0: {
-          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          deck,
+          hand: [{ card: "BT1-009" }],
           battleArea: [
-            { card: "BT15-069", under: ["BT23-004"], as: "source", suspended: true },
+            { card: "BT15-069", under: ["BT23-004"], as: "source", dp: 20_000 },
             { card: "BT20-063", as: "firstGhost" },
             { card: "BT20-067", as: "chosenGhost" },
             { card: "BT1-009", as: "nonGhost" },
           ],
+          security: ["BT1-013", "BT1-027"],
         },
         1: {
-          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          deck,
+          hand: [{ card: "BT1-009" }],
+          security: ["BT1-013", "BT1-027"],
           battleArea: [
             { card: "BT4-077", as: "opponentGhost" },
-            { card: "BT1-010", as: "attacker", dp: 3000 },
+            { card: "BT1-010", as: "attacker", dp: 30_000 },
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("chosenGhost").permanentId);
 
-    s.state.turnSeat = 1;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Suspend the source through a real attack: only a suspended Digimon can be attacked back.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    // The inherited grant must start on the opponent's turn, so the source is deleted there
+    // by the opponent's own attack rather than by an injected deletion.
+    await advance(s.engine).waitForMainPhase(1);
+    const sourcePermanentId = s.perm("source").permanentId;
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+        target: { kind: "permanent", permanentId: sourcePermanentId },
       }),
     ).toEqual({ ok: true });
-    const sourcePermanentId = s.perm("source").permanentId;
     await settle(
-      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId),
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId) &&
+        !observe(s.engine).isAttacking(),
     );
 
+    expect(s.state.turnSeat).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(true);
     for (const alias of ["firstGhost", "nonGhost", "opponentGhost"] as const) {
@@ -101,20 +124,74 @@ describe("BT23-004 DemiMeramon", () => {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Retaliation"), alias).toBe(false);
     }
 
-    await advance(s.engine).runTurn(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.turnSeat).toBe(0);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("does nothing when no friendly Ghost target exists", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", under: ["BT23-004"], as: "source" }, "BT1-009"] },
-      1: { battleArea: ["BT4-077"] },
-    });
+  it("does nothing when no friendly Ghost target exists, deleted through a real battle", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+    const s = setupEngine(
+      {
+        0: {
+          deck,
+          hand: [{ card: "BT1-009" }],
+          security: ["BT1-013", "BT1-027"],
+          battleArea: [{ card: "BT15-069", under: ["BT23-004"], as: "source", dp: 20_000 }, "BT1-009"],
+        },
+        1: {
+          deck,
+          hand: [{ card: "BT1-009" }],
+          security: ["BT1-013", "BT1-027"],
+          battleArea: [
+            { card: "BT4-077", as: "opponentGhost" },
+            { card: "BT1-010", as: "attacker", dp: 30_000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
-    expect(s.decisions).toHaveLength(0);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
+    const sourcePermanentId = s.perm("source").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: sourcePermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId) &&
+        !observe(s.engine).isAttacking(),
+    );
+
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    // The opponent's own Ghost is never a legal target for "1 of YOUR Digimon".
+    expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Retaliation")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("public breeding evolution preserves source and pays 0", async () => {

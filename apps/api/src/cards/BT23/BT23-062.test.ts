@@ -31,7 +31,7 @@ describe("BT23-062 Dracmon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it("compiles the main-phase clause as a mandatory trash cost, not an optional effect", () => {
+  it("compiles the main-phase clause as a declinable trash cost that gates the memory gain", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effect).toMatchObject({
       actions: [
@@ -49,12 +49,15 @@ describe("BT23-062 Dracmon", () => {
               count: 1,
             },
           },
+          // CR 15-7-4: an optional processing condition is the player's choice, and 15-7-2
+          // blocks the payload when it is not executed.
+          optional: true,
           abortOnDecline: true,
         },
       ],
     });
     expect(effect?.isInherited).toBeUndefined();
-    expect((effect!.actions[0] as { optional?: boolean }).optional).toBeUndefined();
+    expect(effect?.frequency).toBeUndefined();
   });
 
   it("compiles the inherited clause as a once-per-turn optional trash digivolution", () => {
@@ -96,7 +99,7 @@ describe("BT23-062 Dracmon", () => {
           security: NEUTRAL_SECURITY,
         },
       },
-      { autoSelectCards: true, preferInstanceIds: [] },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
     );
     s.state.memory = 0;
     const matchingId = s.inst("matching").instanceId;
@@ -130,7 +133,7 @@ describe("BT23-062 Dracmon", () => {
         },
         1: { deck: ["BT1-013"], security: NEUTRAL_SECURITY },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     const costId = s.inst("cost").instanceId;
@@ -141,6 +144,37 @@ describe("BT23-062 Dracmon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([costId]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("keeps the hand card and gains nothing when the controller declines the trash cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-062", as: "dracmon" }],
+          hand: [{ card: "BT23-063", as: "matching" }],
+          deck: ["BT1-010", "BT1-011"],
+          security: NEUTRAL_SECURITY,
+        },
+        1: { deck: ["BT1-013"], security: NEUTRAL_SECURITY },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const matchingId = s.inst("matching").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    // CR 15-7-4 / 15-7-2: declining the "By trashing ..." condition keeps the card and
+    // blocks the memory gain.
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([matchingId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -157,7 +191,7 @@ describe("BT23-062 Dracmon", () => {
         },
         1: { deck: ["BT1-013"], security: NEUTRAL_SECURITY },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     const plainId = s.inst("plain").instanceId;
@@ -192,7 +226,7 @@ describe("BT23-062 Dracmon", () => {
           security: NEUTRAL_SECURITY,
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     const firstCostId = s.inst("firstCost").instanceId;

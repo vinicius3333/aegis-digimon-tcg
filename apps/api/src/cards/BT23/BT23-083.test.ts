@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { type BoardSpec, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-083.js";
 
@@ -36,6 +36,30 @@ function memoryOf(s: EngineSetup, seat: 0 | 1): number {
   return s.state.turnSeat === seat ? s.state.memory : -s.state.memory;
 }
 
+/** Reach seat 0's first production Main phase and report the memory the start-of-main window left. */
+async function memoryAtOwnMain(board: BoardSpec): Promise<number> {
+  const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+  const loop = s.engine.startTurnLoop();
+  // An occupied breeding area holds the Breeding phase open until the turn player closes it;
+  // an empty one auto-skips. Close it publicly so Main opens either way.
+  await settle(() => s.state.phase === "Breeding" || s.state.phase === "Main", 400);
+  const skipped = s.state.phase === "Breeding" ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
+  expect(skipped).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(0);
+  const memory = memoryOf(s, 0);
+  expect(s.state.pendingDecision).toBeUndefined();
+  expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+  return memory;
+}
+
+/** Run the real turn loop until seat 1's Main phase is open. */
+async function reachOpponentMain(s: EngineSetup): Promise<void> {
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+}
+
 describe("BT23-083 Fei", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition(FEI)).toMatchObject({
@@ -50,8 +74,8 @@ describe("BT23-083 Fei", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    const startMain = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase") as any;
-    expect(startMain.actions[0]).toMatchObject({
+    const startMain = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
+    expect(startMain?.actions[0]).toMatchObject({
       kind: "GainMemory",
       amount: 1,
       condition: {
@@ -65,7 +89,9 @@ describe("BT23-083 Fei", () => {
       },
     });
 
-    const watcher = (compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).actions[0];
+    type SubTriggerShape = { actions: { kind: string; amount?: number; condition?: unknown; optional?: boolean }[] };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns")!
+      .actions[0] as unknown as SubTriggerShape;
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenAddSecurity",
@@ -104,7 +130,94 @@ describe("BT23-083 Fei", () => {
     });
   });
 
-  it("gains 1 memory at the start of its controller's main phase with a [CS] Digimon out", async () => {
+  it("gains exactly 1 memory at the start of its controller's main phase with a [Royal Base]/[CS] Digimon out", async () => {
+    const withCs = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: FEI, as: "fei" },
+          { card: CS_DIGIMON, as: "cs" },
+        ],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+    const withoutCs = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: FEI, as: "fei" },
+          { card: PLAIN_DIGIMON, as: "plain" },
+        ],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+
+    expect(withCs).toBe(withoutCs + 1);
+  });
+
+  it("counts a [Royal Base] trait Digimon and ignores [Royal Knight] and a text-only carrier", async () => {
+    // Mixed pool. BT18-044 FunBeemon carries the [Royal Base] trait and no [CS].
+    // BT13-040 Magnamon carries [Royal Knight] — the near-miss trait.
+    // A second copy of Fei carries "Royal Base" in its EFFECT TEXT only (Q5303's "in its
+    // text" reading): that is how BT23-042 finds Fei, and it must NOT satisfy a trait gate.
+    const nearMissesOnly = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: FEI, as: "fei" },
+          { card: "BT13-040", as: "royalKnight" },
+          { card: "BT1-009", as: "plain" },
+        ],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+    const withRoyalBase = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: FEI, as: "fei" },
+          { card: "BT13-040", as: "royalKnight" },
+          { card: "BT18-044", as: "royalBase" },
+        ],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+
+    // The gate is existential, so a wrongly matching near-miss would flatten this delta.
+    expect(withRoyalBase).toBe(nearMissesOnly + 1);
+  });
+
+  it("does not count a Tamer that carries [Royal Base] only in its effect text", async () => {
+    // A second Fei is the text-only carrier and is not a Digimon either. Neither Fei's gate
+    // may fire, so the board reads exactly like an empty one.
+    const twoFei = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: FEI, as: "fei" },
+          { card: FEI, as: "secondFei" },
+        ],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+    const empty = await memoryAtOwnMain({
+      0: {
+        battleArea: [{ card: FEI, as: "fei" }],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
+
+    expect(twoFei).toBe(empty);
+  });
+
+  it("stays silent at the opponent's start of main phase", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -116,51 +229,19 @@ describe("BT23-083 Fei", () => {
       },
       1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
     });
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
+    await reachOpponentMain(s);
 
-    await advance(s.engine).waitForMainPhase(1);
-    // The opponent's main phase: Fei's trigger is "[Start of YOUR Main Phase]".
-    const opponentMainMemory = memoryOf(s, 0);
-    expect(s.perm("cs")).toBeDefined();
-    advance(s.engine).endMainPhaseIfOpen(1);
-
-    await advance(s.engine).waitForMainPhase(0);
-    // Seat 0's own main phase opened: +1 memory over what the turn change handed it.
-    expect(memoryOf(s, 0)).toBeGreaterThan(opponentMainMemory);
-    expect(memoryOf(s, 0)).toBe(4); // turn change sets 3 for the new turn player, then +1
-
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
-
-  it("gains no start-of-main memory without a [Royal Base]/[CS] Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: FEI, as: "fei" },
-          { card: PLAIN_DIGIMON, as: "plain" },
-        ],
-        hand: [FILLER],
-        deck: Array(10).fill(FILLER),
-      },
-      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
-    });
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await advance(s.engine).waitForMainPhase(0);
-
-    expect(memoryOf(s, 0)).toBe(3); // the turn-change memory only, no Fei gain
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    // Passing the turn hands seat 1 the minimum 3 memory. A gain for seat 0 would read as 2
+    // here, so the exact 3 proves "[Start of YOUR Main Phase]" stayed silent.
+    expect(memoryOf(s, 1)).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
   it("does not count a [CS] Digimon in the breeding area (CR 3-4-5-3)", async () => {
-    const s = setupEngine({
+    const breedingOnly = await memoryAtOwnMain({
       0: {
         battleArea: [{ card: FEI, as: "fei" }],
         breeding: { card: CS_DIGIMON, as: "hatched" },
@@ -169,21 +250,17 @@ describe("BT23-083 Fei", () => {
       },
       1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
     });
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    // An occupied breeding area makes the Breeding phase wait for seat 0's choice; "do
-    // nothing" is an endPhase intent.
-    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0, 200);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(0);
+    const empty = await memoryAtOwnMain({
+      0: {
+        battleArea: [{ card: FEI, as: "fei" }],
+        hand: [FILLER],
+        deck: Array(10).fill(FILLER),
+      },
+      1: { hand: [FILLER], deck: Array(10).fill(FILLER) },
+    });
 
     // Cards in the breeding area can't be referenced by an effect that does not name it.
-    expect(memoryOf(s, 0)).toBe(3);
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
+    expect(breedingOnly).toBe(empty);
   });
 
   it("suspends Fei, gains 1 memory and draws when a [Zaxon] card is placed face up in your security", async () => {
@@ -359,6 +436,7 @@ describe("BT23-083 Fei", () => {
       {
         0: {
           battleArea: [{ card: FEI, as: "fei" }],
+          hand: [FILLER],
           deck: [{ card: "BT1-011", as: "notDrawn" }, ...Array(9).fill(FILLER)],
         },
         1: {
@@ -372,11 +450,11 @@ describe("BT23-083 Fei", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 6;
     const zaxonId = s.inst("zaxon").instanceId;
     const notDrawnId = s.inst("notDrawn").instanceId;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await reachOpponentMain(s);
+    s.state.memory = 6;
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("yuugo").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.some((card) => card.instanceId === zaxonId));
@@ -386,12 +464,15 @@ describe("BT23-083 Fei", () => {
     expect(s.perm("fei").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === notDrawnId)).toBe(false);
     expect(memoryOf(s, 1)).toBe(1); // only Yuugo's own cost moved memory
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays itself for free when checked from security by an opponent's attack", async () => {
     const s = setupEngine({
       0: {
         security: [{ card: FEI, as: "fei" }],
+        hand: [FILLER],
         deck: Array(10).fill(FILLER),
       },
       1: {
@@ -400,11 +481,9 @@ describe("BT23-083 Fei", () => {
         deck: Array(10).fill(FILLER),
       },
     });
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     const feiId = s.inst("fei").instanceId;
     const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
+    await reachOpponentMain(s);
     const memoryBefore = memoryOf(s, 1);
 
     expect(

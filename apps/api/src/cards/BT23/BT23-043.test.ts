@@ -20,6 +20,51 @@ async function deleteByEffectOf(s: ReturnType<typeof setupEngine>, seat: 0 | 1, 
   }
 }
 
+/**
+ * Hand the turn to the opponent through the real turn loop instead of writing
+ * `state.turnSeat`: run seat 0's turn, end its Main, and stop inside seat 1's Main.
+ * Returns `{ loop }` — awaiting the loop promise itself would hang until the game ends.
+ */
+async function passTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  return { loop };
+}
+
+/**
+ * Suspend seat 0's `alias` the ordinary way — it attacks the opponent's security on its own
+ * turn — and then hand the turn to the opponent, who can now legally attack it.
+ * Seat 1 must hold at least one security card for that attack's check.
+ */
+async function suspendByAttackingThenPassTurn(
+  s: ReturnType<typeof setupEngine>,
+  alias: string,
+): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  expect(s.perm(alias).isSuspended).toBe(true);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.perm(alias).isSuspended).toBe(true);
+  return { loop };
+}
+
+/** End a turn loop that a test opened, so no engine work outlives the test. */
+async function endLoop(s: ReturnType<typeof setupEngine>, seat: 0 | 1, loop: Promise<void>): Promise<void> {
+  expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
 function securityFaces(s: ReturnType<typeof setupEngine>, seat: 0 | 1) {
   return s.state.players[seat]!.security.map((card) => ({ instanceId: card.instanceId, faceUp: card.faceUp }));
 }
@@ -87,13 +132,17 @@ describe("BT23-043 CannonBeemon", () => {
           { card: "BT23-041", as: "other" },
         ],
       },
-      1: { battleArea: [{ card: "BT23-045", as: "opposingRoyalBase" }] },
+      1: { battleArea: [{ card: "BT23-045", as: "opposingRoyalBase" }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
     await s.ready();
+    // On the controller's own turn the [Opponent's Turn] grant is inert.
+    expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Blocker")).toBe(false);
+
+    const { loop } = await passTurnToOpponent(s);
     expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opposingRoyalBase"), "Blocker")).toBe(false);
+    await endLoop(s, 1, loop);
   });
 
   it("grants nothing on your own turn or from a face-down security copy", async () => {
@@ -103,7 +152,6 @@ describe("BT23-043 CannonBeemon", () => {
         battleArea: [{ card: "BT23-045", as: "royalBase" }],
       },
     });
-    ownTurn.state.turnSeat = 0;
     await ownTurn.ready();
     expect(observe(ownTurn.engine).hasKeyword(ownTurn.perm("royalBase"), "Blocker")).toBe(false);
 
@@ -111,11 +159,14 @@ describe("BT23-043 CannonBeemon", () => {
       0: {
         security: [{ card: "BT23-043", as: "securityCannon", faceUp: false }],
         battleArea: [{ card: "BT23-045", as: "royalBase" }],
+        deck: ["BT1-011", "BT1-012"],
       },
+      1: { deck: ["BT1-011", "BT1-012"] },
     });
-    faceDown.state.turnSeat = 1;
     await faceDown.ready();
+    const { loop } = await passTurnToOpponent(faceDown);
     expect(observe(faceDown.engine).hasKeyword(faceDown.perm("royalBase"), "Blocker")).toBe(false);
+    await endLoop(faceDown, 1, loop);
   });
 
   it("lets the granted Royal Base Digimon actually block an opponent's attack on the player", async () => {
@@ -124,10 +175,10 @@ describe("BT23-043 CannonBeemon", () => {
         security: [{ card: "BT23-043", as: "securityCannon", faceUp: true }, "BT1-009"],
         battleArea: [{ card: "BT23-042", as: "royalBase" }],
       },
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 1000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 1000 }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
     await s.ready();
+    const { loop } = await passTurnToOpponent(s);
     expect(observe(s.engine).hasKeyword(s.perm("royalBase"), "Blocker")).toBe(true);
 
     expect(
@@ -149,6 +200,7 @@ describe("BT23-043 CannonBeemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("royalBase").permanentId)).toBe(true);
+    await endLoop(s, 1, loop);
   });
 
   it("does not let a non-Royal-Base Digimon block on the strength of this Security effect", async () => {
@@ -157,10 +209,10 @@ describe("BT23-043 CannonBeemon", () => {
         security: [{ card: "BT23-043", as: "securityCannon", faceUp: true }],
         battleArea: [{ card: "BT23-041", as: "other" }],
       },
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 1000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 1000 }], deck: ["BT1-011", "BT1-012"] },
     });
-    s.state.turnSeat = 1;
     await s.ready();
+    const { loop } = await passTurnToOpponent(s);
 
     expect(
       s.engine.applyIntent(1, {
@@ -177,6 +229,7 @@ describe("BT23-043 CannonBeemon", () => {
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("other").permanentId }).ok).toBe(
       false,
     );
+    await endLoop(s, 1, loop);
   });
 
   // ---------------------------------------------------------------------------
@@ -227,7 +280,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const before = securityFaces(s, 0);
 
@@ -253,7 +305,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
     const cannonInstanceId = s.inst("cannon").instanceId;
 
@@ -276,7 +327,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
     expect(await deleteByEffectOf(s, 1, [s.perm("cannon").permanentId])).toBe(1);
@@ -294,7 +344,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
     expect(await deleteByEffectOf(s, 1, [s.perm("cannon").permanentId])).toBe(1);
@@ -318,7 +367,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const cannonPermanentId = s.perm("cannon").permanentId;
 
@@ -424,7 +472,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const protectedId = s.perm("protected").permanentId;
 
@@ -450,7 +497,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const firstId = s.perm("firstRoyalBase").permanentId;
     const secondId = s.perm("secondRoyalBase").permanentId;
@@ -480,7 +526,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
     expect(await deleteByEffectOf(s, 1, [s.perm("outsider").permanentId])).toBe(1);
@@ -498,11 +543,141 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
 
     expect(await deleteByEffectOf(s, 0, [s.perm("opposingRoyalBase").permanentId])).toBe(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: true });
+  });
+
+  // ---------------------------------------------------------------------------
+  // The same clause through the public flow: an ordinary lost battle on the
+  // opponent's turn. BT1-024 MetalTyrannomon is an inert Lv.5 10000-DP attacker.
+  // ---------------------------------------------------------------------------
+
+  it("survives a lost battle on the opponent's turn by flipping its top face-up security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-043", as: "cannon" }],
+          security: [
+            { card: "BT1-009", as: "cover", faceUp: false },
+            { card: "BT1-010", as: "cost", faceUp: true },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "attacker" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const { loop } = await suspendByAttackingThenPassTurn(s, "cannon");
+    const cannonId = s.perm("cannon").permanentId;
+    expect(s.perm("cannon").currentDP).toBe(8000);
+    expect(s.perm("attacker").currentDP).toBe(10000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: cannonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    // The battle was lost but the replacement paid: nothing reached the trash, and only the
+    // top FACE-UP card flipped — the face-down card above it is untouched.
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === cannonId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(securityFaces(s, 0)).toEqual([
+      { instanceId: s.inst("cover").instanceId, faceUp: false },
+      { instanceId: s.inst("cost").instanceId, faceUp: false },
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    await endLoop(s, 1, loop);
+  });
+
+  it("is deleted by the lost battle when no face-up security card is left to flip", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-043", as: "cannon" }],
+          security: [
+            { card: "BT1-009", faceUp: false },
+            { card: "BT1-010", faceUp: false },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "attacker" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const { loop } = await suspendByAttackingThenPassTurn(s, "cannon");
+    const cannonId = s.perm("cannon").permanentId;
+    const cannonInstanceId = s.perm("cannon").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: cannonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(cannonInstanceId);
+    expect(securityFaces(s, 0).every((card) => card.faceUp === false)).toBe(true);
+    await endLoop(s, 1, loop);
+  });
+
+  it("saves another Royal Base Digimon from a lost battle through the inherited effect", async () => {
+    // BT1-024 is the carrier because it has no text of its own, so the only reaction on the
+    // board is the BT23-043 sitting in its digivolution cards.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-024", as: "carrier", under: ["BT23-043"] },
+            { card: "BT23-042", as: "protected" },
+          ],
+          security: [{ card: "BT1-010", as: "cost", faceUp: true }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "attacker" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const { loop } = await suspendByAttackingThenPassTurn(s, "protected");
+    const protectedId = s.perm("protected").permanentId;
+    expect(s.perm("protected").currentDP).toBe(4000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: protectedId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(securityFaces(s, 0)).toEqual([{ instanceId: s.inst("cost").instanceId, faceUp: false }]);
+    await endLoop(s, 1, loop);
   });
 
   // ---------------------------------------------------------------------------
@@ -524,7 +699,6 @@ describe("BT23-043 CannonBeemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const cannonId = s.perm("cannon").permanentId;
     const queenId = s.perm("queen").permanentId;

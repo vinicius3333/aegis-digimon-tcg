@@ -129,10 +129,15 @@ describe("BT23-026 Lopmon", () => {
     const beforeMemory = s.state.memory;
     const beforeHand = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     const beforeTrash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
-    // Mechanism seam: printed hand permission must not authorize a different loose zone.
-    await advance(s.engine).verb.digivolveFromInstance(s.perm("lopmon").permanentId, s.inst("trashCopy").instanceId, {
-      payCost: true,
-    });
+    // Printed hand permission must not authorize a different loose zone.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lopmon").permanentId,
+        instanceId: s.inst("trashCopy").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    await settle();
     expect(s.state.memory).toBe(beforeMemory);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(beforeHand);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(beforeTrash);
@@ -171,37 +176,65 @@ describe("BT23-026 Lopmon", () => {
     },
   );
 
-  it.each(["opponent turn", "breeding base", "trash source"] as const)(
-    "rejects the base grant from %s",
-    async (caseName) => {
-      const s = setupEngine({
-        0: {
-          ...(caseName === "breeding base"
-            ? { breeding: { card: "BT23-026", as: "lopmon" }, battleArea: [{ card: "BT23-082", as: "makiko" }] }
-            : {
-                battleArea: [
-                  { card: "BT23-026", as: "lopmon" },
-                  { card: "BT23-082", as: "makiko" },
-                ],
-              }),
-          ...(caseName === "trash source"
-            ? { trash: [{ card: "BT23-029", as: "antylamon" }] }
-            : { hand: [{ card: "BT23-029", as: "antylamon" }] }),
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-      });
-      await s.ready();
-      if (caseName === "opponent turn") s.state.turnSeat = 1;
-      const target = caseName === "breeding base" ? s.state.players[0]!.breeding! : s.perm("lopmon");
-      expect(
-        s.engine.applyIntent(0, {
-          type: "digivolve",
-          permanentId: target.permanentId,
-          instanceId: s.inst("antylamon").instanceId,
-        }),
-      ).toMatchObject({ ok: false });
-    },
-  );
+  it.each(["breeding base", "trash source"] as const)("rejects the base grant from %s", async (caseName) => {
+    const s = setupEngine({
+      0: {
+        ...(caseName === "breeding base"
+          ? { breeding: { card: "BT23-026", as: "lopmon" }, battleArea: [{ card: "BT23-082", as: "makiko" }] }
+          : {
+              battleArea: [
+                { card: "BT23-026", as: "lopmon" },
+                { card: "BT23-082", as: "makiko" },
+              ],
+            }),
+        ...(caseName === "trash source"
+          ? { trash: [{ card: "BT23-029", as: "antylamon" }] }
+          : { hand: [{ card: "BT23-029", as: "antylamon" }] }),
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    const target = caseName === "breeding base" ? s.state.players[0]!.breeding! : s.perm("lopmon");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: target.permanentId,
+        instanceId: s.inst("antylamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("refuses the granted path during the opponent's real turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT23-026", as: "lopmon" },
+          { card: "BT23-082", as: "makiko" },
+        ],
+        hand: [{ card: "BT23-029", as: "antylamon" }],
+        deck: Array(10).fill("BT1-009"),
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: Array(10).fill("BT1-010") },
+    });
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
+    s.state.memory = -3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lopmon").permanentId,
+        instanceId: s.inst("antylamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("lopmon").topCard.cardId).toBe("BT23-026");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("antylamon").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 
   it.each([
     ["BT7-006", true, 0, "alternate"],
@@ -375,25 +408,82 @@ describe("BT23-026 Lopmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("inherits a once-per-turn -2000 DP reaction only for another friendly suspension", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT23-029", as: "carrier", under: ["BT23-026"] },
-            { card: "BT23-017", as: "other" },
-          ],
-        },
-        1: { battleArea: [{ card: "BT23-018", as: "target" }] },
+  it("grants the path to any exactly named Antylamon print, ignoring its printed requirement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT23-026", as: "lopmon" },
+          { card: "BT23-082", as: "makiko" },
+        ],
+        hand: [
+          { card: "BT3-038", as: "otherAntylamon" },
+          { card: "BT23-007", as: "musclemon" },
+        ],
+        deck: [
+          { card: "BT1-009", as: "draw" },
+          { card: "BT1-010", as: "bottom" },
+        ],
       },
-      { autoSelectCards: true },
-    );
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    const lopmon = s.perm("lopmon");
+    // A Green Lv.5 print whose own [Digivolve] requirement a Lv.3 Lopmon cannot satisfy.
+    expect(s.inst("otherAntylamon").digivolveTargetPermanentIds).toContain(lopmon.permanentId);
+    expect(s.inst("musclemon").digivolveTargetPermanentIds ?? []).not.toContain(lopmon.permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: lopmon.permanentId,
+        instanceId: s.inst("otherAntylamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => lopmon.topCard.instanceId === s.inst("otherAntylamon").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(lopmon.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("lopmon").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("draw").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("ignores the carrier's own public suspension and reacts only to another friendly one", async () => {
+    const s = setupEngine({
+      0: {
+        // A keyword-free carrier, so only the inherited BT23-026 clause can react.
+        battleArea: [
+          { card: "BT23-018", as: "carrier", under: ["BT23-026"] },
+          { card: "BT23-018", as: "other" },
+        ],
+        deck: Array(8).fill("BT1-009"),
+      },
+      1: {
+        battleArea: [{ card: "BT23-018", as: "target" }],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+        deck: Array(8).fill("BT1-010"),
+      },
+    });
     const base = s.perm("target").currentDP;
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("carrier").permanentId });
+    // "any of your OTHER Digimon": the carrier suspending itself must not fire the reaction.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("carrier").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("carrier").isSuspended).toBe(true);
     expect(s.perm("target").currentDP).toBe(base);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("other").permanentId });
-    expect(s.perm("target").currentDP).toBe(base - 2000);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("other").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("other").isSuspended).toBe(true);
     expect(s.perm("target").currentDP).toBe(base - 2000);
   });
 

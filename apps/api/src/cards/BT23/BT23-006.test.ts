@@ -126,6 +126,39 @@ describe("BT23-006 Huckmon", () => {
     expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
   });
 
+  it("adds only the category that is present and bottoms the other two revealed cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-006", as: "huckmon" }],
+          deck: [
+            { card: "BT13-112", as: "royalKnight" },
+            { card: "BT1-009", as: "firstRest" },
+            { card: "BT1-010", as: "secondRest" },
+            { card: "BT1-011", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("huckmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("royalKnight").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("royalKnight").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealed").instanceId,
+      s.inst("firstRest").instanceId,
+      s.inst("secondRest").instanceId,
+    ]);
+  });
+
   it("digivolves for 0 from an off-color level 2 CS Digi-Egg and rejects an off-color non-CS egg", async () => {
     const eligible = setupEngine({
       0: {
@@ -274,19 +307,25 @@ describe("BT23-006 Huckmon", () => {
     await settle(() => own.state.players[0]!.battleArea.length === 2);
     expect(own.state.memory).toBe(8);
 
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const opponent = setupEngine({
-      0: { battleArea: [{ card: "BT23-008", under: ["BT23-006"], as: "host" }] },
-      1: { hand: [{ card: "BT16-082", as: "white" }] },
+      0: { battleArea: [{ card: "BT23-008", under: ["BT23-006"], as: "host" }], deck },
+      1: { hand: [{ card: "BT16-082", as: "white" }], deck },
     });
-    opponent.state.turnSeat = 1;
-    opponent.state.memory = 10;
-    await opponent.ready();
+    opponent.state.memory = 3;
+    const loop = opponent.engine.startTurnLoop();
+    await advance(opponent.engine).waitForMainPhase(0);
+    expect(opponent.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(opponent.engine).waitForMainPhase(1);
+    const before = opponent.state.memory;
     expect(opponent.engine.applyIntent(1, { type: "playCard", instanceId: opponent.inst("white").instanceId })).toEqual(
       {
         ok: true,
       },
     );
     await settle(() => opponent.state.players[1]!.battleArea.length === 1);
-    expect(opponent.state.memory).toBe(7);
+    expect(opponent.state.memory).toBe(before - 3);
+    expect(opponent.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

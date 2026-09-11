@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { type EngineSetup, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-066.js";
@@ -17,6 +18,40 @@ import { compiled } from "./BT23-066.js";
  * - BT3-089 Boltmon — Purple Lv.6 with NO printed effect and a Purple Lv.5 cost-2 evo cost:
  *   a legal, inert carrier for a Matadormon digivolution card.
  */
+
+const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
+
+/**
+ * Hand the turn to seat 1 through the real turn loop, suspending `suspendAlias` publicly by
+ * attacking with it first, so an opponent-turn battle never needs a direct `turnSeat` write or a
+ * Board Spec `suspended: true` (the Unsuspend phase of seat 0's turn would clear that).
+ * Returned inside a wrapper: awaiting a promise that resolves TO the loop promise would hang.
+ */
+async function passTurnToOpponent(s: EngineSetup, suspendAlias?: string): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  await settle(() => s.state.pendingDecision === undefined);
+  if (suspendAlias !== undefined) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(suspendAlias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm(suspendAlias).isSuspended).toBe(true);
+  }
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.state.turnSeat).toBe(1);
+  return { loop };
+}
+
+async function finishTurnLoop(s: EngineSetup, loop: Promise<void>): Promise<void> {
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
 
 describe("BT23-066 Matadormon", () => {
   it("matches every catalog field and complete compiled clause", () => {
@@ -356,21 +391,23 @@ describe("BT23-066 Matadormon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT23-066", as: "matadormon", suspended: true },
+            { card: "BT23-066", as: "matadormon" },
             { card: "BT1-009", as: "fodder" },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare0" }],
+          deck: [...FILLER_DECK],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "bruiser", dp: 9000 }],
-          deck: ["BT1-012", "BT1-013"],
+          hand: [{ card: "BT1-009", as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    accepted.state.turnSeat = 1;
-    accepted.state.memory = 5;
     await accepted.ready();
+    const { loop: acceptedLoop } = await passTurnToOpponent(accepted, "matadormon");
     expect(observe(accepted.engine).hasKeyword(accepted.perm("matadormon"), "Scapegoat")).toBe(true);
     const matadormonPermanentId = accepted.perm("matadormon").permanentId;
     const fodderPermanentId = accepted.perm("fodder").permanentId;
@@ -389,19 +426,23 @@ describe("BT23-066 Matadormon", () => {
     expect(accepted.state.players[0]!.battleArea.every((p) => p.permanentId !== fodderPermanentId)).toBe(true);
     expect(accepted.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([fodderCardId]);
     expect(accepted.state.pendingDecision).toBeUndefined();
+    await finishTurnLoop(accepted, acceptedLoop);
 
     const declined = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT23-066", as: "matadormon", suspended: true },
+            { card: "BT23-066", as: "matadormon" },
             { card: "BT1-009", as: "fodder" },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare0" }],
+          deck: [...FILLER_DECK],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "bruiser", dp: 9000 }],
-          deck: ["BT1-012", "BT1-013"],
+          hand: [{ card: "BT1-009", as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -421,9 +462,8 @@ describe("BT23-066 Matadormon", () => {
         });
       }
     };
-    declined.state.turnSeat = 1;
-    declined.state.memory = 5;
     await declined.ready();
+    const { loop: declinedLoop } = await passTurnToOpponent(declined, "matadormon");
     const declinedMatadormonCardId = declined.perm("matadormon").topCard!.instanceId;
     const declinedFodderPermanentId = declined.perm("fodder").permanentId;
 
@@ -443,6 +483,7 @@ describe("BT23-066 Matadormon", () => {
     expect(declined.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([declinedFodderPermanentId]);
     expect(declined.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([declinedMatadormonCardId]);
     expect(declined.state.pendingDecision).toBeUndefined();
+    await finishTurnLoop(declined, declinedLoop);
   });
 
   // C5 — inherited [All Turns] leave-play replacement, on a stack built by a real digivolve.

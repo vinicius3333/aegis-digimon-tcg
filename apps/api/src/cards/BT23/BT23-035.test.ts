@@ -323,25 +323,48 @@ describe("BT23-035 Dynasmon", () => {
   });
 
   it("skips Recovery while more than 3 security cards remain but still grants Security Attack +1", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT23-035", as: "dynasmon" }],
-        security: [
-          { card: "BT1-009", as: "one" },
-          { card: "BT1-010", as: "two" },
-          { card: "BT1-011", as: "three" },
-          { card: "BT1-012", as: "four" },
-          { card: "BT1-013", as: "five" },
-        ],
-        deck: [{ card: "BT1-014", as: "deckTop" }],
+    // Public flow: the opponent attacks the player, so one of this controller's security
+    // cards is checked and removed. Five cards become four, above the Recovery threshold.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-035", as: "dynasmon" }],
+          security: [
+            { card: "BT1-009", as: "one" },
+            { card: "BT1-010", as: "two" },
+            { card: "BT1-011", as: "three" },
+            { card: "BT1-012", as: "four" },
+            { card: "BT1-013", as: "five" },
+          ],
+          deck: [{ card: "BT1-014", as: "deckTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], deck: ["BT1-045", "BT1-047"] },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
-    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 4);
+    await settle();
 
     expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("two").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // Q5295: the [Once Per Turn] cap is per turn. A gain taken on the opponent's turn does
@@ -424,12 +447,15 @@ describe("BT23-035 Dynasmon", () => {
           ],
           deck: [{ card: "BT1-014", as: "deckTop" }],
         },
-        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], deck: ["BT1-045", "BT1-047", "BT1-049"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     const attackerInstanceId = s.inst("attacker").instanceId;
 
     expect(
@@ -454,17 +480,15 @@ describe("BT23-035 Dynasmon", () => {
     );
     expect(attackerTrashedIndex).toBeGreaterThanOrEqual(0);
     expect(recoveredIndex).toBeGreaterThan(attackerTrashedIndex);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // Q5296: ＜Barrier＞ trashes the controller's top security card to prevent a battle
   // deletion, including a battle against a Security Digimon. That trash removes a card from
   // the controller's own security stack, so the [All Turns] trigger fires and the extra
   // ＜Security A. +1＞ is read before the check loop decides on the next card.
-  // RETAINED RED. Suspected engine seam: `CombatController` pays ＜Barrier＞ through
-  // `access.flipTopSecurityToTrash` (apps/api/src/engine/state/access.ts:639), a bare zone
-  // move that never publishes `whenSecurityRemoved` / `whenCardTrashedFromSecurity`. Observed
-  // end state: Dynasmon survives and its own top security card is trashed, but it gains no
-  // ＜Security A. +1＞, performs no Recovery, and the check loop stops after one card.
   it("checks an extra security card after Barrier trashes its own security", async () => {
     const s = setupEngine(
       {

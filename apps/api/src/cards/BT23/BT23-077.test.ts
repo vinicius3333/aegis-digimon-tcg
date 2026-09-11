@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-077.js";
@@ -162,21 +163,27 @@ describe("BT23-077 Sistermon Ciel", () => {
       {
         0: {
           battleArea: [{ card: "BT23-077", as: "ciel" }],
+          hand: [{ card: "ST1-02", as: "neutral" }],
           security: ["BT1-012", "BT1-012"],
-          deck: ["BT1-013", "BT1-014"],
+          deck: ["BT1-013", "BT1-014", "BT1-045", "BT1-047"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "attacker" },
             { card: "BT1-015", as: "stack", under: ["ST1-02"] },
           ],
-          deck: ["BT1-012", "BT1-013"],
+          hand: [{ card: "ST1-02", as: "opponentNeutral" }],
+          deck: ["BT1-012", "BT1-013", "BT1-045", "BT1-047"],
         },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
+    // Reach the opponent's turn through the real turn loop rather than writing `turnSeat`.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
     const greymonCardId = s.perm("stack").topCard!.instanceId;
     const biyomonCardId = s.perm("stack").stack[0]!.instanceId;
     const attackerCardId = s.perm("attacker").topCard!.instanceId;
@@ -207,6 +214,9 @@ describe("BT23-077 Sistermon Ciel", () => {
     );
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("ignores another friendly Digimon suspending", async () => {
@@ -306,6 +316,49 @@ describe("BT23-077 Sistermon Ciel", () => {
     );
     expect(lower(observe(s.engine).effectiveNames(s.perm("ciel")))).not.toContain("sistermon blanc");
     expect(observe(s.engine).hasEffectiveTrait(s.perm("ciel"), "Virus")).toBe(true);
+  });
+
+  it("is selected by a peer card's public [Sistermon]-substring name reference, and a non-Sistermon is not", async () => {
+    // BT20-013 BaoHuckmon: [Main] [Once Per Turn] play 1 Digimon with [Sistermon]/[Gankoomon]
+    // in its name from hand with the play cost reduced by 2. `match: "name"` is the substring
+    // axis of CR 2-3-2-2, so it must reach "Sistermon Ciel" and stop at a plain Champion.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-013", as: "bao" }],
+          hand: [
+            { card: "BT23-077", as: "ciel" },
+            { card: "BT1-015", as: "nonMatch" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-034", as: "safe" }], deck: ["BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const cielId = s.inst("ciel").instanceId;
+    const nonMatchId = s.inst("nonMatch").instanceId;
+    const effects = observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[];
+    expect(effects).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard!.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === cielId));
+
+    // Only Ciel matched, so the engine never had to ask: it is the single candidate and the
+    // plain Champion stayed in hand.
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === cielId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nonMatchId]);
+    // Ciel's printed play cost is 4; the reduction makes it 2.
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("is seen by an opposing card's public [Virus] trait condition", async () => {

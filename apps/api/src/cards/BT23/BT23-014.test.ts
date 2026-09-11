@@ -54,89 +54,122 @@ describe("BT23-014 Gallantmon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it.each([
-    ["On Play", EffectTiming.OnPlay],
-    ["When Digivolving", EffectTiming.WhenDigivolving],
-    ["When Attacking", EffectTiming.OnUseAttack],
-  ] as const)("%s deletes at the exact scaled 12000-DP boundary", async (_label, timing) => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT23-014", as: "gallantmon" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-080", as: "target" },
-            { card: "BT1-085", as: "tamer" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-
-    const targetId = s.perm("target").permanentId;
-    const targetInstanceId = s.inst("target").instanceId;
-    await advance(s.engine).fire(timing, s.perm("gallantmon"));
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
-  });
-
-  it("resolves its On Play deletion from a public play", async () => {
+  /**
+   * Public scaled-ceiling proofs. The opponent fields one Digimon and one Tamer, so
+   * Q5229's maximum is 8000 + 2 x 2000 = 12000: a 12000-DP Digimon dies, a 13000-DP one lives.
+   */
+  it("deletes at the scaled 12000-DP ceiling from a public play", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT23-014", as: "gallantmon" }] },
-        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }] },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(
-      () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
-    );
-    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(-1);
-  });
-
-  it("resolves the When Attacking deletion through a public attack", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT23-014", as: "gallantmon" }] },
-        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }], security: 1 },
-      },
-      { autoSelectCards: true },
-    );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("gallantmon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => !s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId),
-    );
-    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
-  });
-
-  it("preserves a 13000-DP Digimon above the two-permanent scaled ceiling", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT23-014", as: "gallantmon" }] },
         1: {
           battleArea: [
-            { card: "AD1-006", as: "target" },
+            { card: "BT1-080", dp: 12000, as: "target" },
             { card: "BT1-085", as: "tamer" },
           ],
         },
       },
       { autoSelectCards: true },
     );
-
+    s.state.memory = 11;
     const targetId = s.perm("target").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gallantmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("tamer").permanentId]);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("deletes at the scaled 12000-DP ceiling from a public CS digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-023", as: "base" }],
+          hand: [{ card: "BT23-014", as: "gallantmon" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", dp: 12000, as: "target" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gallantmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("tamer").permanentId]);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("deletes at the scaled 12000-DP ceiling from a public attack but spares 13000", async () => {
+    for (const [dp, deleted] of [
+      [12000, true],
+      [13000, false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT23-014", as: "gallantmon" }] },
+          1: {
+            battleArea: [
+              { card: "BT1-080", dp, as: "target" },
+              { card: "BT1-085", as: "tamer" },
+            ],
+            security: ["BT1-010"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      const targetId = s.perm("target").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("gallantmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      if (deleted) await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+      else await settle();
+      expect(
+        s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId),
+        `dp ${dp}`,
+      ).toBe(!deleted);
+      expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(
+        deleted,
+      );
+    }
+  });
+
+  it("keeps the 8000 base ceiling when the opponent fields nothing else", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT23-014", as: "gallantmon" }] },
+        1: { battleArea: [{ card: "BT1-080", dp: 10000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+    // One opponent Digimon on the board raises the ceiling to 10000, so a 10000-DP body dies.
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
   });
 
   it("scopes the trash floodgate to the opponent's effects and includes breeding plays, per Q5226-Q5228/Q6249", async () => {
@@ -193,42 +226,10 @@ describe("BT23-014 Gallantmon", () => {
     expect(ledger.isPlayBlocked(1, getCardDefinition("BT1-009")!, "play", true, "trash")).toBe(false);
   });
 
-  it("blocks a public opponent effect from playing a Digimon from trash while allowing its hand play", async () => {
-    const s = setupEngine(
-      {
-        0: { hand: [{ card: "BT23-014", as: "gallantmon" }], deck: ["BT1-001"] },
-        1: {
-          hand: [{ card: "BT11-086", as: "mervamon" }],
-          trash: [{ card: "BT11-082", as: "trashTarget" }],
-          deck: ["BT1-001", "BT1-002"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
-
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    await s.engine.recomputeContinuousEffects();
-    const trashTargetId = s.inst("trashTarget").instanceId;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT11-086"));
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === trashTargetId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === trashTargetId)).toBe(false);
-    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT11-086")).toBe(false);
-  });
-
   it("expires the public trash-play lock at the end of the opponent's turn", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT23-014", as: "gallantmon" }], deck: ["BT1-001", "BT1-002"] },
+        0: { hand: [{ card: "BT23-014", as: "gallantmon" }], deck: ["BT1-009", "BT1-010"] },
         1: {
           hand: [
             { card: "BT11-086", as: "firstMervamon" },
@@ -238,7 +239,7 @@ describe("BT23-014 Gallantmon", () => {
             { card: "BT11-082", as: "firstTarget" },
             { card: "BT11-082", as: "secondTarget" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -287,6 +288,119 @@ describe("BT23-014 Gallantmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(secondTargetId);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("climbs a public Lv.3 -> Lv.4 -> Lv.5 [CS] stack into Gallantmon, drawing once per step", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-019", as: "veemon" },
+            { card: "BT22-022", as: "veedramon" },
+            { card: "BT22-023", as: "aero" },
+            { card: "BT23-014", as: "gallantmon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"],
+        },
+        // A single level-6 body: AeroVeedramon's mandatory "return 1 level 4 or lower" finds no
+        // target, so only Gallantmon's own deletion can change this board.
+        1: { battleArea: [{ card: "BT1-080", dp: 10000, as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.perm("veemon").topCard!.cardId).toBe("BT22-019");
+
+    const steps = [
+      { alias: "veedramon", cardId: "BT22-022", dp: 5000, stack: ["BT22-019"] },
+      { alias: "aero", cardId: "BT22-023", dp: 7000, stack: ["BT22-019", "BT22-022"] },
+      { alias: "gallantmon", cardId: "BT23-014", dp: 11000, stack: ["BT22-019", "BT22-022", "BT22-023"] },
+    ] as const;
+    for (const step of steps) {
+      s.state.memory = 8;
+      const handBefore = s.state.players[0]!.hand.length;
+      const deckBefore = s.state.players[0]!.deck.length;
+      const instanceId = s.inst(step.alias).instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("veemon").permanentId,
+          instanceId,
+          useAlternateCost: true,
+        }),
+        step.cardId,
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("veemon").topCard?.instanceId === instanceId);
+      // Source-stack identity: every earlier source stays beneath, bottom-most first.
+      expect(
+        s.perm("veemon").stack.map((card) => card.cardId),
+        step.cardId,
+      ).toEqual(step.stack);
+      expect(s.perm("veemon").topCard!.cardId).toBe(step.cardId);
+      expect(s.perm("veemon").currentDP, step.cardId).toBe(step.dp);
+      // Bonus draw: one card leaves the deck and the net hand size is unchanged
+      // (one card spent on the digivolution, one drawn).
+      expect(s.state.players[0]!.deck.length, step.cardId).toBe(deckBefore - 1);
+      expect(s.state.players[0]!.hand.length, step.cardId).toBe(handBefore);
+      if (step.alias === "gallantmon") expect(s.state.memory, step.cardId).toBe(8 - 3);
+    }
+
+    // Gallantmon's own [When Digivolving] deletion is the only thing that can clear the board:
+    // one opponent permanent raises the 8000 ceiling to exactly 10000.
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it.each([
+    { label: "exact [CS] level 5", card: "BT22-023", accepted: true },
+    { label: "level 5 whose only near-match is the [Abadin Electronics] substring", card: "BT17-036", accepted: false },
+    { label: "level 5 with an unrelated trait", card: "BT1-041", accepted: false },
+    { label: "level 4 with the [CS] trait", card: "BT22-022", accepted: false },
+    { label: "level 6 with the [CS] trait", card: "BT22-013", accepted: false },
+  ])("accepts only the $label host for the cost-3 [CS] route", async ({ card, accepted }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card, as: "base" }],
+          hand: [{ card: "BT23-014", as: "gallantmon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const gallantmonId = s.inst("gallantmon").instanceId;
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: gallantmonId,
+      useAlternateCost: true,
+    });
+    expect(result.ok, card).toBe(accepted);
+    await settle();
+    if (accepted) {
+      expect(s.perm("base").topCard!.instanceId, card).toBe(gallantmonId);
+      expect(
+        s.perm("base").stack.map((c) => c.cardId),
+        card,
+      ).toEqual([card]);
+      expect(s.state.memory, card).toBe(3);
+    } else {
+      expect(s.perm("base").topCard!.cardId, card).toBe(card);
+      expect(
+        s.state.players[0]!.hand.map(({ instanceId }) => instanceId),
+        card,
+      ).toContain(gallantmonId);
+      expect(s.state.memory, card).toBe(6);
+    }
   });
 
   it("digivolves for 3 from an off-color level-5 CS Digimon and rejects an off-color non-CS base", async () => {

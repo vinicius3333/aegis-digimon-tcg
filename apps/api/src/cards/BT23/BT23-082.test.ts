@@ -329,6 +329,52 @@ describe("BT23-082 Makiko Date", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  // The watcher lists four traits; BT23-041 covers [CS]. These inert Yellow level 4s carry one
+  // of the other listed traits and no text of their own, so they isolate the trait branch.
+  for (const [trait, evolutionCardId] of [
+    ["Holy Beast", "BT1-051"],
+    ["Beastkin", "BT3-037"],
+  ] as const) {
+    it(`fires for a digivolution into a Digimon with the [${trait}] trait`, async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT23-082", as: "makiko" },
+              { card: "BT1-047", as: "base" },
+            ],
+            hand: [
+              { card: evolutionCardId, as: "evolution" },
+              { card: "ST10-03", as: "lopmon" },
+            ],
+            deck: ["BT1-010", "BT1-011"],
+            security: NEUTRAL_SECURITY,
+          },
+          1: { deck: ["BT1-013"], security: NEUTRAL_SECURITY },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const makikoId = s.inst("makiko").instanceId;
+      const lopmonId = s.inst("lopmon").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === lopmonId));
+
+      expect(s.perm("base").topCard?.cardId).toBe(evolutionCardId);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === makikoId)).toBe(true);
+      expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === lopmonId)).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+    });
+  }
+
   it("does not fire for a digivolution into a Digimon without a listed trait", async () => {
     const s = setupEngine(
       {
@@ -373,19 +419,24 @@ describe("BT23-082 Makiko Date", () => {
       {
         0: {
           security: [{ card: "BT23-082", as: "securityMakiko" }],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "neutral" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
         1: {
           battleArea: [{ card: "BT1-024", as: "attacker" }],
-          deck: ["BT1-013", "BT1-014"],
+          hand: [{ card: "BT1-010", as: "opponentNeutral" }],
+          deck: ["BT1-013", "BT1-014", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await s.ready();
+    // Reach seat 1's turn through the real turn loop so the security check happens on the
+    // attacking player's own turn.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     const makikoId = s.inst("securityMakiko").instanceId;
 
     expect(
@@ -402,6 +453,8 @@ describe("BT23-082 Makiko Date", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("fires off BT23-026 Lopmon's Makiko-gated route into [Antylamon]", async () => {

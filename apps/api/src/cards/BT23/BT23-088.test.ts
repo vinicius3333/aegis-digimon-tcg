@@ -65,9 +65,9 @@ describe("BT23-088 K", () => {
   });
 
   it("compiles the start-main clause as an optional trash cost paying exactly 1 memory", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase") as any;
-    expect(effect.actions).toHaveLength(1);
-    expect(effect.actions[0]).toMatchObject({
+    const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
+    expect(effect?.actions).toHaveLength(1);
+    expect(effect?.actions[0]).toMatchObject({
       kind: "GainMemory",
       amount: 1,
       optional: true,
@@ -87,7 +87,7 @@ describe("BT23-088 K", () => {
   });
 
   it("compiles the end-of-turn clause as a self-delete cost funding a free level-5-or-lower trash digivolve", () => {
-    const action = (compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn") as any).actions[0];
+    const action = compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")?.actions[0];
     expect(action).toMatchObject({
       kind: "Digivolve",
       from: ["trash"],
@@ -99,10 +99,11 @@ describe("BT23-088 K", () => {
     });
     // No `ignoreReqs` flag: "without paying the cost" waives the memory, never the
     // digivolution requirement (comprehensive rules; see the negative tests below).
-    expect(action.ignoreReqs).toBeUndefined();
-    expect(action.ignoreRequirements).toBeUndefined();
-    expect(action.ignoreDigivolutionRequirements).toBeUndefined();
-    expect(action.into).toMatchObject({
+    const flags = action as unknown as Record<string, unknown>;
+    expect(flags.ignoreReqs).toBeUndefined();
+    expect(flags.ignoreRequirements).toBeUndefined();
+    expect(flags.ignoreDigivolutionRequirements).toBeUndefined();
+    expect(flags.into).toMatchObject({
       controllerDefault: "mine",
       kind: ["Digimon"],
       levelComparison: { op: "lte", value: 5 },
@@ -111,13 +112,13 @@ describe("BT23-088 K", () => {
     // "1 of your Digimon" is battle-area only (comprehensive rules 3-4-5-3): the target filter
     // carries no `zone`, and the engine's permanent targeting defaults zone-less filters to the
     // battle area. The breeding-area negative below is the behavioral proof.
-    expect(action.target.filter.zone).toBeUndefined();
+    expect((flags.target as { filter: { zone?: unknown } }).filter.zone).toBeUndefined();
   });
 
   it("compiles the security clause as a free self-play", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "Security") as any;
-    expect(effect.isSecurity).toBe(true);
-    expect(effect.actions[0]).toMatchObject({
+    const effect = compiled.effects.find((entry) => entry.trigger === "Security");
+    expect(effect?.isSecurity).toBe(true);
+    expect(effect?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       payCost: false,
       target: { count: 1, isSelf: true, filter: { isSelfRef: true } },

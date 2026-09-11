@@ -11,10 +11,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   ・Delete 1 of your opponent's Digimon with the lowest DP.
 //   [Security] Delete 1 of your opponent's Digimon with the lowest DP. Then, place this
 //   card in the battle area.
-// KB Q5364 reads "on the field" as battle area or breeding area in general, but CR 3-4-5-8
-// overrides that for a TRAIT reference: information on breeding-area cards can't be referenced
-// unless the effect names the breeding area, and its worked example is this very waiver shape.
-// So the [CS] check is scoped to the battle area.
+// KB Q5364, asked about this printed wording, answers that "on the field" means the battle
+// area OR the breeding area. CR 3-4-7-8 blocks referencing breeding-area information "except
+// for effects that explicitly specify or reference breeding areas", and that card-specific
+// ruling is exactly such a reference, so the [CS] check spans both field zones.
 // The attack-triggered ＜Delay＞ is intrinsic to that timing window: accepting it trashes
 // this option and immediately resolves the lowest-DP deletion.
 export const compiled: CompiledCard = {
@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              zone: "battleArea",
+              zone: ["battleArea", "breeding"],
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
               nameOrTrait: [

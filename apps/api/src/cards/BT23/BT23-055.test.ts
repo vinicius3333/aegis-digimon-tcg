@@ -275,21 +275,24 @@ describe("BT23-055 Cyberdramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
     const optionId = await placeNetCafe(s, "option");
     const spareOptionId = await placeNetCafe(s, "spareOption");
     const cyberId = s.perm("cyber").permanentId;
 
-    await advance(s.engine).runTurn(0);
-    s.state.turnSeat = 1;
-    s.state.memory = 5;
-    const opponentTurn = s.engine.runOneTurn();
+    // Suspend Cyberdramon with a real attack on its own turn; the opponent's Active phase
+    // unsuspends only their own board, so it is still a legal attack target on their turn.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: cyberId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("cyber").isSuspended && !observe(s.engine).isAttacking(), 5000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // The Active phase unsuspends the board, so arm the state the opponent needs to
-    // declare an attack on Cyberdramon after their Main phase is authoritatively open.
-    s.perm("cyber").isSuspended = true;
-    await s.ready();
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.perm("cyber").isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -318,8 +321,8 @@ describe("BT23-055 Cyberdramon", () => {
       true,
     );
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT23-100", "BT23-055"]);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
@@ -344,8 +347,10 @@ describe("BT23-055 Cyberdramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
     const optionId = await placeNetCafe(s, "option");
     const spareOptionId = await placeNetCafe(s, "spareOption");
     const cyberId = s.perm("cyber").permanentId;
@@ -362,13 +367,11 @@ describe("BT23-055 Cyberdramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([optionId]);
 
-    await advance(s.engine).runTurn(0);
-    s.state.turnSeat = 1;
-    s.state.memory = 5;
-    const opponentTurn = s.engine.runOneTurn();
+    // Cyberdramon suspended itself by attacking; seat 1's Active phase leaves it suspended.
+    expect(s.perm("cyber").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    s.perm("cyber").isSuspended = true;
-    await s.ready();
+    expect(s.state.turnSeat).toBe(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -384,8 +387,8 @@ describe("BT23-055 Cyberdramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cyberId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([optionId, spareOptionId]);
     expect(battleAreaCardIds(s, 0)).toEqual(["BT23-055"]);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 

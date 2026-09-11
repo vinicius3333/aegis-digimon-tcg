@@ -139,24 +139,50 @@ describe("BT23-038 FunBeemon", () => {
     expect(s.perm("royalBase").currentDP).toBe(8000);
   });
 
-  it("drops the boost as soon as the card leaves security", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT23-038", as: "securityFunBeemon", faceUp: true }],
-        battleArea: [{ card: "BT23-043", as: "royalBase" }],
+  // The aura source leaves security through the public route that really removes it: the
+  // opponent attacks the player, the security check battles this 1000-DP Digimon away, and the
+  // card lands in the trash.
+  it("drops the boost as soon as a security check moves the card to the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT23-038", as: "securityFunBeemon", faceUp: true }],
+          battleArea: [{ card: "BT23-043", as: "royalBase" }],
+          deck: Array(8).fill("BT1-011"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "attacker" }],
+          security: Array(3).fill("BT1-011"),
+          deck: Array(8).fill("BT1-012"),
+        },
       },
-    });
-    await s.ready();
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("royalBase").currentDP).toBe(9000);
 
-    // Teardown of the aura source: move the face-up security card to the trash, the zone a
-    // resolved security check would leave it in, then rebuild the continuous tier.
-    const player = s.state.players[0]!;
-    const [removed] = player.security.splice(0, 1);
-    player.trash.push(removed!);
-    await s.engine.recomputeContinuousEffects();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("royalBase").currentDP).toBe(9000);
 
+    const funBeemonId = s.inst("securityFunBeemon").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === funBeemonId));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(funBeemonId);
     expect(s.perm("royalBase").currentDP).toBe(8000);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("keeps the security boost up on both players' turns through the real turn loop", async () => {
@@ -433,10 +459,13 @@ describe("BT23-038 FunBeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === funbeemonId);
 
-    s.state.phase = Phase.Breeding;
+    // The move to the battle area goes through the production Breeding phase, not a phase write.
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId })).toEqual({ ok: true });
-    await settle(() => !s.perm("egg").inBreeding);
-    s.state.phase = Phase.Main;
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("egg").inBreeding).toBe(false);
+    s.state.memory = 5;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: waspmonId })).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard?.instanceId === waspmonId);
@@ -461,6 +490,9 @@ describe("BT23-038 FunBeemon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(
       ["BT23-042", "BT23-038", "EX11-003"].sort(),
     );
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("loses the same battle without BT23-038 in the digivolution stack", async () => {

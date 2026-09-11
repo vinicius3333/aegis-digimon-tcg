@@ -158,6 +158,84 @@ describe("BT23-034 Sakuyamon", () => {
     ).toMatchObject({ ok: false });
   });
 
+  it("spends its own shared once-per-turn use on the first timing and re-arms next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-086", as: "yuugo" },
+            { card: "BT23-023", as: "base" },
+          ],
+          hand: [
+            { card: "BT23-034", as: "sakuyamon" },
+            { card: "BT1-011", as: "ownNeutral" },
+          ],
+          security: ["BT1-009", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-045", "BT1-047"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "target" }],
+          hand: [{ card: "BT1-011", as: "opponentNeutral" }],
+          security: ["BT1-009", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-045", "BT1-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    // [When Digivolving] spends the shared use. The base was already in play, so the new
+    // Sakuyamon can attack in the same turn and reach the [When Attacking] timing.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sakuyamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(s.perm("target").currentDP).toBe(4000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+
+    // Same turn, second timing: the once-per-turn use is already spent, so no second -6000.
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await settle();
+
+    // The duration expired with the opponent's turn and the use re-armed.
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   // Q5282, Q5283, Q5286: the restriction stops the [When Digivolving] half of a shared
   // [When Digivolving] [When Attacking] [Once Per Turn] effect from activating, without
   // consuming the once-per-turn use, so the [When Attacking] half still activates.

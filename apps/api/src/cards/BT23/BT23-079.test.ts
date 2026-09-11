@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, type DecisionRequest } from "@aegis/shared";
+import { getCardDefinition, type DecisionRequest } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { irNode, type IrNode } from "../../engine/testkit/irNode.js";
@@ -126,17 +126,25 @@ describe("BT23-079 Eri Karan", () => {
 
   it("does not gain memory on the opponent's Main phase even with an opposing Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-079", as: "eri" }], deck: Array(10).fill("BT1-009") },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: Array(10).fill("BT1-010") },
+      0: { battleArea: [{ card: "BT23-079", as: "eri" }], hand: ["BT1-009"], deck: Array(10).fill("BT1-009") },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "opponent" }],
+        hand: ["BT1-010"],
+        deck: Array(10).fill("BT1-010"),
+      },
     });
-    s.state.turnSeat = 1;
+    // Reach seat 1's Main through the real turn loop; seat 0 opens first and passes.
     const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Seat 0 does gain: the opponent has a Digimon and it is Eri's controller's turn.
+    expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
     await advance(s.engine).waitForMainPhase(1);
-    const opponentMainMemory = s.state.memory;
-    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
-    );
-    expect(s.state.memory).toBe(opponentMainMemory);
+    expect(s.state.turnSeat).toBe(1);
+    // Seat 1 opens on the plain passed-turn memory: Eri's [Start of YOUR Main Phase] stayed silent.
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -198,7 +206,7 @@ describe("BT23-079 Eri Karan", () => {
   it("does not fire for the opponent's own link on the opponent's turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-079", as: "eri" }], deck: Array(10).fill("BT1-009") },
+        0: { battleArea: [{ card: "BT23-079", as: "eri" }], hand: ["BT1-009"], deck: Array(10).fill("BT1-009") },
         1: {
           battleArea: [{ card: "BT23-007", as: "opponentHost" }],
           hand: [{ card: "BT23-039", as: "opponentLink" }],
@@ -207,9 +215,12 @@ describe("BT23-079 Eri Karan", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    // Reach seat 1's Main through the real turn loop rather than writing `turnSeat`.
     const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
     s.state.memory = -5;
     const hostBefore = s.perm("opponentHost").currentDP;
 
@@ -226,22 +237,6 @@ describe("BT23-079 Eri Karan", () => {
     expect(s.perm("opponentHost").currentDP).toBe(hostBefore + 2000);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
-  });
-
-  it("ignores a link whose subject is an opponent Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT23-079", as: "eri" }] },
-        1: { battleArea: [{ card: "BT23-007", as: "opponentHost" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const before = s.perm("opponentHost").currentDP;
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("opponentHost").permanentId,
-    });
-    expect(s.perm("eri").isSuspended).toBe(false);
-    expect(s.perm("opponentHost").currentDP).toBe(before);
   });
 
   it("cannot pay the suspend cost when Eri is already suspended, so nothing happens", async () => {
@@ -399,14 +394,20 @@ describe("BT23-079 Eri Karan", () => {
     async function runSecurityCheck(securityCardId: string): Promise<{ setup: EngineSetup; revealedId: string }> {
       const s = setupEngine(
         {
-          0: { security: [{ card: securityCardId, as: "revealed" }], deck: Array(10).fill("BT1-009") },
+          0: {
+            security: [{ card: securityCardId, as: "revealed" }],
+            hand: ["BT1-009"],
+            deck: Array(10).fill("BT1-009"),
+          },
           1: { battleArea: [{ card: "BT1-009", as: "attacker" }], hand: ["BT1-009"], deck: Array(10).fill("BT1-010") },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
-      s.state.turnSeat = 1;
       const revealedId = s.inst("revealed").instanceId;
+      // Reach the attacking seat's turn through the real turn loop rather than writing `turnSeat`.
       const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
       await advance(s.engine).waitForMainPhase(1);
       expect(
         s.engine.applyIntent(1, {

@@ -85,25 +85,30 @@ describe("BT23-091 Wolkenapalm", () => {
     assertNoLoudGap(s);
   });
 
-  // KB Q5364 answers "on the field" as battle area OR breeding area in general. Comprehensive
-  // Rules §3-4-5-8 overrides that for a TRAIT reference: "Information on cards in breeding
-  // areas can't be referenced, except for effects that explicitly specify or reference
-  // breeding areas", and its worked example is exactly this waiver shape ("even if you have a
-  // Digimon with the [Armor Form] trait in the breeding area, you can't ignore the color
-  // requirements"). So a [CS] Digimon in breeding must NOT unlock the waiver.
-  it("does not waive the color requirement for a [CS] Digimon in the breeding area (CR 3-4-5-8)", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT23-091", as: "option" }], breeding: { card: CS_DIGIMON, as: "cs" } },
-    });
+  // Q5364, asked about this printed wording, answers that "on the field" is the battle area
+  // OR the breeding area. CR 3-4-7-8 bars referencing breeding-area information "except for
+  // effects that explicitly specify or reference breeding areas", and that card-specific
+  // ruling is exactly such a reference, so a [CS] Digimon in breeding does unlock the waiver.
+  it("waives the color requirement for a [CS] Digimon in the breeding area (Q5364)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT23-091", as: "option" }], breeding: { card: CS_DIGIMON, as: "cs" } },
+        1: { security: [FILLER, FILLER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 5;
+    const optionInstanceId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: false,
-      reason: "color-requirement-unmet",
-    });
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.memory).toBe(5);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    const placed = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === optionInstanceId);
+    expect(placed?.placedByEffect).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("does not waive the color requirement for an opponent's [CS] Digimon", async () => {
@@ -118,6 +123,81 @@ describe("BT23-091 Wolkenapalm", () => {
       ok: false,
       reason: "color-requirement-unmet",
     });
+  });
+
+  // A Digimon's traits are the traits of its top card. A [CS] card sitting in the
+  // digivolution cards beneath a non-[CS] top card is not a "[CS] trait Digimon", so it
+  // neither unlocks the waiver nor arms the ＜Delay＞ when that stack attacks.
+  it("reads the [CS] trait from the top card only, not from the digivolution cards beneath", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT23-091", as: "option" }],
+        battleArea: [{ card: NON_CS, as: "stack", under: [CS_DIGIMON] }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual([CS_DIGIMON]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not arm the Delay when the attacker only has [CS] cards under its top card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-091", as: "option" }, FILLER],
+          battleArea: [
+            { card: CS_DIGIMON, as: "cs" },
+            { card: NON_CS, as: "attacker", dp: 12000, under: [CS_DIGIMON] },
+          ],
+          deck: Array(10).fill(FILLER),
+        },
+        1: {
+          battleArea: [
+            { card: LOWEST, as: "lowest" },
+            { card: HIGHER, as: "survivor" },
+          ],
+          security: [FILLER, FILLER, FILLER],
+          deck: Array(10).fill(FILLER),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const optionInstanceId = s.inst("option").instanceId;
+    const survivorId = s.perm("survivor").permanentId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(delayPrompts(s)).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([survivorId]);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // ---------------------------------------------------------------------------

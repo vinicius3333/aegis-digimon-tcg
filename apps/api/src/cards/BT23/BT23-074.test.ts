@@ -78,7 +78,7 @@ describe("BT23-074 Eater Legion", () => {
           filter: {
             controllerDefault: "mine",
             zone: "breeding",
-            nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Mother Eater"], match: "nameExact" }],
           },
         },
       });
@@ -332,6 +332,161 @@ describe("BT23-074 Eater Legion", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("trashes the Erika Mishima Tamer with the stack when the Digimon leaves (KB Q6705)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [...DECK],
+          battleArea: [{ card: "BT23-084", as: "erika" }],
+          hand: [{ card: "BT23-074", as: "legion" }],
+        },
+        1: {
+          deck: [...DECK],
+          battleArea: [{ card: "BT1-009", as: "wall", dp: 20_000, suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const erikaInstance = s.perm("erika").topCard.instanceId;
+    const legionId = s.inst("legion").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("erika").permanentId,
+        instanceId: legionId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("erika").topCard.instanceId === legionId);
+    // KB Q6707: the Tamer's inherited text is live under the Digimon (Alliance is printed on
+    // Eater Legion too, so this observes the union, not the grant alone).
+    expect(observe(s.engine).hasKeyword(s.perm("erika"), "Alliance")).toBe(true);
+
+    const permanentId = s.perm("erika").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    const trashed = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(trashed).toContain(erikaInstance);
+    expect(trashed).toContain(legionId);
+  });
+
+  // KB Q6703, as ruled by the coordinator: the Tamer base is not a digivolving Digimon, so
+  // watchers that require a Digimon to digivolve must stay silent on this route, while the
+  // digivolved card's own [When Digivolving] clause still fires (proved above).
+  it('does not wake a "when one of your Digimon digivolves" watcher on the Tamer route (KB Q6703)', async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [...DECK],
+          battleArea: [
+            { card: "BT23-084", as: "erika" },
+            { card: "BT5-091", as: "takumi" },
+            { card: "BT1-012", as: "base" },
+          ],
+          hand: [
+            { card: "BT23-074", as: "legion" },
+            { card: "BT1-014", as: "champion" },
+          ],
+        },
+        1: { deck: [...DECK] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 8;
+    const handBefore = s.state.players[0]!.hand.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("erika").permanentId,
+        instanceId: s.inst("legion").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("erika").topCard.cardId === "BT23-074" && s.state.pendingDecision === undefined);
+
+    // Only the digivolution bonus draw: BT5-091's watcher never asked to suspend.
+    expect(s.perm("takumi").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore - 1 + 1);
+    expect(s.state.memory).toBe(5);
+
+    // Control: an ordinary Digimon-to-Digimon digivolution on the same board does wake it.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("champion").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-014" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("takumi").isSuspended).toBe(true);
+    // Bonus draw plus BT5-091's own draw.
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore - 2 + 3);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it('digivolves from the Tamer even while a "Digimon can\'t digivolve" effect is active (KB Q6703)', async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [...DECK],
+          breeding: { card: "BT13-007", as: "egg" },
+          battleArea: [
+            { card: "BT23-084", as: "erika" },
+            { card: "BT1-012", as: "base" },
+          ],
+          hand: [
+            { card: "BT23-074", as: "legion" },
+            { card: "BT1-014", as: "champion" },
+          ],
+        },
+        1: { deck: [...DECK] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 8;
+
+    // BT13-007's [Breeding] [Your Turn] clause locks every Digimon out of digivolving.
+    expect(observe(s.engine).isRestricted(s.perm("base"), "digivolve")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("champion").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-012");
+    expect(s.state.memory).toBe(8);
+
+    // The Tamer route is untouched by that restriction.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("erika").permanentId,
+        instanceId: s.inst("legion").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("erika").topCard.cardId === "BT23-074" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("erika").topCard.cardId).toBe("BT23-074");
+    expect(s.perm("erika").stack.map(({ cardId }) => cardId)).toEqual(["BT23-084"]);
+    expect(s.state.memory).toBe(5);
   });
 
   it("keeps ＜Alliance＞ and ＜Reboot＞ live on the field", async () => {

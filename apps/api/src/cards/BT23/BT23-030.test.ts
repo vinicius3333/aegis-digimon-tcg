@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -28,10 +28,19 @@ describe("BT23-030 Etemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     s.state.memory = 5;
     const eligibleId = s.inst("eligible").instanceId;
 
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((card) => card.topCard?.instanceId === eligibleId));
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.battleArea.some((card) => card.topCard?.instanceId === eligibleId)).toBe(true);
@@ -96,18 +105,21 @@ describe("BT23-030 Etemon", () => {
       types: ["Puppet", "CS"],
       inheritedEffectText: "＜Alliance＞",
     });
-    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static") as any;
+    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static")!;
     expect(staticEffect.keywords).toEqual([{ keyword: "Alliance", raw: "＜Alliance＞" }]);
   });
 
   it("once per turn pays 1 cost before optionally playing an eligible card", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "Main") as any;
+    const effect = compiled.effects.find((entry) => entry.trigger === "Main")!;
     expect(effect.frequency).toBe("OncePerTurn");
-    expect(effect.actions[0]).toMatchObject({
+    const block = effect.actions[0]!;
+    // CR 15-8-4-4-1 / Q5273: the "by paying" cost is NOT declinable once the [Main]
+    // activation is declared, so the block carries neither `optional` nor `abortOnDecline`.
+    expect(block).not.toHaveProperty("optional");
+    expect(block).not.toHaveProperty("abortOnDecline");
+    expect(block).toMatchObject({
       kind: "CostGatedBlock",
       cost: { kind: "payMemory", memory: 1 },
-      optional: true,
-      abortOnDecline: true,
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -132,7 +144,8 @@ describe("BT23-030 Etemon", () => {
   });
 
   it("gives the same level 3-or-higher Digimon both Reboot and Blocker", () => {
-    const actions = (compiled.effects.find((entry) => entry.trigger === "Main") as any).actions[0].actions;
+    const block = compiled.effects.find((entry) => entry.trigger === "Main")!.actions[0]!;
+    const actions = (block as { actions: unknown[] }).actions;
     expect(actions[1]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Reboot" }, target: { count: 1 } });
     expect(actions[2]).toMatchObject({
       kind: "GainKeyword",
@@ -150,48 +163,141 @@ describe("BT23-030 Etemon", () => {
     });
   });
 
-  it("may decline the play only after paying 1 and still grants both mandatory keywords, per Q5273-Q5274", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-030", as: "etemon" }], hand: [{ card: "BT23-049", as: "eligible" }] },
-    });
+  it("may decline only the play, still pays 1 and grants both mandatory keywords (Q5273/Q5274)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [{ card: "BT23-049", as: "eligible" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
     s.state.memory = 5;
-    const resolution = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 1);
-    const costPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[0]!.req;
     expect(
       s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: costPrompt.decisionId,
-        response: { kind: "optional", accept: true },
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
-    const playPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    // Exactly ONE optional prompt is offered: the printed "you may play". The memory payment
+    // is never put to the player once activation is declared.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.memory).toBe(4);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: playPrompt.decisionId,
+        decisionId: s.state.pendingDecision!.decisionId,
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
   });
 
-  it("may decline the By payment before spending memory or granting the dependent keywords", async () => {
+  it("cannot decline the By payment once activation is declared (Q5273)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-030", as: "etemon" }], hand: [{ card: "BT23-049", as: "eligible" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [{ card: "BT23-049", as: "eligible" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      // Decline every optional prompt: only the hand play may be refused, never the cost.
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     s.state.memory = 5;
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
-    expect(s.state.memory).toBe(5);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    // Q5274: the "then" tail runs because the cost was paid, even with the play declined.
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
+  });
+
+  it("is not offered when its 1 memory cost is unaffordable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [{ card: "BT23-049", as: "eligible" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    // MEMORY_MIN is -10, so this seat has zero payable cost headroom.
+    s.state.memory = -10;
+    const advertised = JSON.parse(s.perm("etemon").activatableEffectsJson ?? "[]") as Array<{ effectKey?: string }>;
+    const key = advertised.find((effect) => effect.effectKey?.startsWith("BT23-030/"))?.effectKey;
+    const result =
+      key === undefined
+        ? { ok: false }
+        : s.engine.applyIntent(0, {
+            type: "activateEffect",
+            sourceInstanceId: s.inst("etemon").instanceId,
+            effectKey: key,
+          });
+    await settle();
+    expect(result).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(-10);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(false);
+  });
+
+  it("plays only from the hand, never from the trash or deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [],
+          trash: [{ card: "BT23-049", as: "trashCopy" }],
+          deck: [
+            { card: "BT23-049", as: "deckCopy" },
+            { card: "BT1-010", as: "next" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("trashCopy").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("deckCopy").instanceId,
+      s.inst("next").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT23-030"]);
+    // The cost was still paid and the mandatory tail still landed on Etemon itself.
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
   });
 
   it("does not free-play an opponent card or a cost-4/near-trait card", async () => {

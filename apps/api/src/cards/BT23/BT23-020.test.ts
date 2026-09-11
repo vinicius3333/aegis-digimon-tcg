@@ -38,23 +38,31 @@ describe("BT23-020 Seadramon", () => {
     });
   });
 
-  it("draws once when Seadramon suspends and ignores another Digimon", async () => {
+  it("does not draw when a different Digimon suspends through a public attack", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT23-020", as: "seadramon" },
-          { card: "BT23-017", as: "other" },
+          { card: "BT1-064", as: "other", dp: 20_000 },
         ],
-        deck: ["BT1-009", "BT1-010"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
+      1: { security: ["BT1-009", "BT1-013", "BT1-027"], deck: ["BT1-014", "BT1-015", "BT1-016"] },
     });
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("other").permanentId });
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("seadramon").permanentId });
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("seadramon").permanentId });
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.perm("seadramon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("exposes Alliance on Seadramon itself but not when it is only a source", async () => {

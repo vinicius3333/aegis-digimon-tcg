@@ -2,18 +2,19 @@ import { EffectDuration, EffectTiming, Phase, getCardDefinition } from "@aegis/s
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-008.js";
 
 function mainEffectKey(s: EngineSetup): string {
-  const source = (s.engine as any).cardSourceOf(s.inst("greymon"));
+  const source = internalsOf(s.engine).cardSourceOf(s.inst("greymon"));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-008/"))!
     .effectKey;
 }
 
 function mainEffectKey018(s: EngineSetup, instance = s.inst("garurumon")): string {
-  const source = (s.engine as any).cardSourceOf(instance);
+  const source = internalsOf(s.engine).cardSourceOf(instance);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT23-018/"))!
     .effectKey;
 }
@@ -313,7 +314,7 @@ describe("BT23-008 Greymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT23-008", as: "greymon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "raidTarget" }], security: 1 },
+        1: { battleArea: [{ card: "BT1-009", as: "raidTarget" }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -333,15 +334,28 @@ describe("BT23-008 Greymon", () => {
   });
 
   it("gives the evolved host +2000 DP only during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-012", under: ["BT23-008"], as: "host" }] } });
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT23-012", under: ["BT23-008"], as: "host" }], deck },
+      1: { deck },
+    });
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
 
-    s.state.turnSeat = 0;
-    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.turnSeat).toBe(0);
     expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-012")!.dp! + 2000);
 
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
     expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-012")!.dp);
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-012")!.dp! + 2000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each(["greymon", "garurumon"] as const)(

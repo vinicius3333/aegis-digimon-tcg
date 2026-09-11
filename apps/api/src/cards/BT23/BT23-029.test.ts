@@ -17,6 +17,23 @@ async function declineAlliance(s: ReturnType<typeof setupEngine>): Promise<void>
   expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
 }
 
+/**
+ * Hand the turn to seat 1 through the production turn loop instead of writing `turnSeat`.
+ * Returns the loop promise; end it with a `surrender` intent.
+ */
+async function handTurnToOpponent(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<void> }> {
+  // Seat 0 needs at least one legal Main action, or the entry finalizer auto-passes its turn
+  // and the open-and-idle window `waitForMainPhase` looks for never appears.
+  s.state.memory = 3;
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.state.turnSeat).toBe(1);
+  // Wrapped: returning the promise itself would make `await` here wait for the whole turn loop.
+  return { loop };
+}
+
 describe("BT23-029 Antylamon", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition("BT23-029")).toMatchObject({
@@ -47,7 +64,13 @@ describe("BT23-029 Antylamon", () => {
   it("reacts when this card itself is played and restricts one opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT23-029", as: "antylamon" }], deck: Array(12).fill("BT1-010") },
+        0: {
+          hand: [
+            { card: "BT23-029", as: "antylamon" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: Array(12).fill("BT1-010"),
+        },
         1: { battleArea: [{ card: "BT1-024", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -75,10 +98,8 @@ describe("BT23-029 Antylamon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const { loop } = await handTurnToOpponent(s);
     s.state.memory = 10;
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -154,7 +175,10 @@ describe("BT23-029 Antylamon", () => {
       {
         0: {
           battleArea: [{ card: "BT23-029", as: "antylamon" }],
-          hand: [{ card: "BT23-078", as: "peer" }],
+          hand: [
+            { card: "BT23-078", as: "peer" },
+            { card: "BT1-009", as: "spare" },
+          ],
           deck: Array(12).fill("BT1-010"),
         },
         1: {
@@ -166,10 +190,8 @@ describe("BT23-029 Antylamon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const { loop } = await handTurnToOpponent(s);
     s.state.memory = 10;
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -218,25 +240,30 @@ describe("BT23-029 Antylamon", () => {
             { card: "BT23-029", as: "antylamon" },
             { card: "BT1-024", as: "target" },
           ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: Array(12).fill("BT1-010"),
         },
-        1: { hand: [{ card: "BT23-078", as: "tamer" }] },
+        1: { hand: [{ card: "BT23-078", as: "tamer" }], deck: Array(12).fill("BT1-011") },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    await s.ready();
+    const { loop } = await handTurnToOpponent(s);
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle();
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("declares Alliance", () => {
-    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static") as any;
+    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static")!;
     expect(staticEffect.keywords).toEqual([{ keyword: "Alliance", raw: "＜Alliance＞" }]);
   });
 
   it("once per turn reacts to any played Beast, Beastkin, or CS card", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
+    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns")!;
     expect(effect).toMatchObject({ frequency: "OncePerTurn" });
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -308,24 +335,31 @@ describe("BT23-029 Antylamon", () => {
   it.each(traitPool)("ignores the same %s when the opponent controls and plays it", async (_label, peer) => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-029", as: "antylamon" }] },
+        0: {
+          battleArea: [{ card: "BT23-029", as: "antylamon" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: Array(12).fill("BT1-010"),
+        },
         1: {
           battleArea: [
             { card: "BT1-024", as: "first" },
             { card: "BT1-024", as: "second" },
           ],
           hand: [{ card: peer, as: "peer" }],
+          deck: Array(12).fill("BT1-011"),
         },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
     await s.ready();
+    const { loop } = await handTurnToOpponent(s);
+    s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("peer").instanceId })).toEqual({ ok: true });
     await settle();
     expect(observe(s.engine).isRestricted(s.perm("first"), "cannotActivateWhenDigivolving")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("second"), "cannotActivateWhenDigivolving")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("ignores a played card with no Beast, Beastkin, or CS trait", async () => {
@@ -437,16 +471,22 @@ describe("BT23-029 Antylamon", () => {
     expect(s.perm("target").currentDP).toBe(1000);
 
     const s2 = setupEngine({
-      0: { battleArea: [{ card: "BT23-035", as: "carrier", under: ["BT23-029"] }], deck: Array(8).fill("BT1-010") },
+      0: {
+        battleArea: [{ card: "BT23-035", as: "carrier", under: ["BT23-029"] }],
+        hand: [{ card: "BT1-009", as: "spare" }],
+        security: ["BT1-009", "BT1-010"],
+        deck: Array(12).fill("BT1-010"),
+      },
       1: {
         battleArea: [
           { card: "BT1-035", as: "enemy" },
           { card: "BT23-041", as: "target", dp: 5000 },
         ],
-        deck: Array(8).fill("BT1-011"),
+        deck: Array(12).fill("BT1-011"),
       },
     });
-    s2.state.turnSeat = 1;
+    await s2.ready();
+    const { loop: loop2 } = await handTurnToOpponent(s2);
     expect(
       s2.engine.applyIntent(1, {
         type: "attack",
@@ -456,6 +496,8 @@ describe("BT23-029 Antylamon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s2.engine).isAttacking());
     expect(s2.perm("target").currentDP).toBe(5000);
+    expect(s2.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop2;
   });
 
   it("excludes the inherited carrier itself when it is the only suspended Digimon", async () => {
@@ -647,6 +689,55 @@ describe("BT23-029 Antylamon", () => {
     expect(restricted()).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("actually suppresses the restricted opponent's When Digivolving effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-029", as: "antylamon" },
+            { card: "BT1-024", as: "dpWitness" },
+          ],
+          hand: [
+            { card: "BT23-078", as: "tamer" },
+            { card: "BT1-010", as: "spare" },
+          ],
+          deck: Array(12).fill("BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-047", as: "base" }],
+          hand: [{ card: "BT23-028", as: "evo" }],
+          deck: Array(12).fill("BT1-012"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const witnessDp = s.perm("dpWitness").currentDP;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving"));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT23-028");
+    await settle();
+    // Coordemon's [When Digivolving] "-3000 DP" never activated (Q5266, Q5268).
+    expect(s.perm("dpWitness").currentDP).toBe(witnessDp);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-047"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 

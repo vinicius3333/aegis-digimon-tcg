@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -24,7 +24,7 @@ describe("BT23-015 Phoenixmon", () => {
         "[Digivolve] Lv.5 w/[CS]\u00a0trait: Cost 3 \n\nWhen this card would be played, if you have a Tamer with the [Zaxon]\u00a0trait, reduce the play cost by 5.\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with 9000 DP or less. Then, you may return up to 3 non-Digi-Egg cards from their trash to the bottom of the deck.\n[On Deletion] Place this card face up as the bottom security card.",
     });
 
-    const replacement = (compiled.effects.find((entry) => entry.trigger === "Static") as any).actions[0];
+    const replacement = compiled.effects.find((entry) => entry.trigger === "Static")!.actions[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
@@ -46,7 +46,7 @@ describe("BT23-015 Phoenixmon", () => {
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      const effect = compiled.effects.find((entry) => entry.trigger === trigger) as any;
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger)!;
       expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" });
       expect(effect.actions).toMatchObject([
         {
@@ -110,7 +110,7 @@ describe("BT23-015 Phoenixmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }] },
+        0: { hand: [{ card: "BT23-015", as: "phoenix" }] },
         1: {
           battleArea: [{ card: "BT23-012", as: "garudamon", dp: 9000 }],
           hand: [{ card: "BT23-011", as: "birdramon" }],
@@ -120,8 +120,11 @@ describe("BT23-015 Phoenixmon", () => {
     );
     const deletedInstanceId = s.inst("garudamon").instanceId;
     preferred.push(deletedInstanceId);
+    s.state.memory = 11;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("phoenix"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("phoenix").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === deletedInstanceId));
 
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(deletedInstanceId);
@@ -152,17 +155,35 @@ describe("BT23-015 Phoenixmon", () => {
   });
 
   it("publicly places itself face up at security bottom when deleted in battle", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT23-015", as: "phoenix", suspended: true }],
-        security: [{ card: "BT1-009", as: "existing" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-015", as: "phoenix" }],
+          security: [{ card: "BT1-009", as: "existing" }],
+          deck: ["BT1-009", "BT1-013", "BT1-027"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", dp: 15000, as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-013", "BT1-028", "BT1-045"],
+        },
       },
-      1: { battleArea: [{ card: "BT1-080", as: "attacker" }], deck: ["BT1-013"] },
-    });
-    await s.ready();
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     const phoenixId = s.inst("phoenix").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Suspend Phoenixmon the public way so seat 1 has a legal battle target next turn.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("phoenix").isSuspended && !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -174,12 +195,14 @@ describe("BT23-015 Phoenixmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: phoenixId, faceUp: true });
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("returns at most 3 non-Digi-Egg cards to deck bottom even when no deletion occurs", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }] },
+        0: { hand: [{ card: "BT23-015", as: "phoenix" }] },
         1: {
           deck: [{ card: "BT1-009", as: "deckTop" }],
           trash: [
@@ -194,8 +217,11 @@ describe("BT23-015 Phoenixmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const returned = [s.inst("digimon").instanceId, s.inst("tamer").instanceId, s.inst("option").instanceId];
+    s.state.memory = 11;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("phoenix"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("phoenix").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.deck.length === 4);
 
     expect(s.state.players[1]!.deck[0]!.instanceId).toBe(s.inst("deckTop").instanceId);
@@ -208,19 +234,22 @@ describe("BT23-015 Phoenixmon", () => {
   it("allows the optional trash return to be refused without moving cards", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-015", as: "phoenix" }] },
+        0: { hand: [{ card: "BT23-015", as: "phoenix" }] },
         1: { trash: [{ card: "BT1-009", as: "card" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 11;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("phoenix"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("phoenix").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("card").instanceId);
     expect(s.state.players[1]!.deck).toHaveLength(0);
   });
 
-  it("shares Once Per Turn across timings per Phoenixmon but tracks two sources independently", async () => {
+  it("tracks the shared Once Per Turn per source: a second Phoenixmon still deletes", async () => {
     const s = setupEngine(
       {
         0: {
@@ -228,6 +257,7 @@ describe("BT23-015 Phoenixmon", () => {
             { card: "BT23-015", as: "first" },
             { card: "BT23-015", as: "second" },
           ],
+          deck: ["BT1-009", "BT1-013"],
         },
         1: {
           battleArea: [
@@ -235,21 +265,30 @@ describe("BT23-015 Phoenixmon", () => {
             { card: "BT1-059", as: "two" },
             { card: "BT1-059", as: "three" },
           ],
+          security: ["BT1-009", "BT1-013", "BT1-027"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    const oneId = s.perm("one").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("first"));
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === oneId));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("first"));
-    await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(2);
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("second"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -361,55 +400,104 @@ describe("BT23-015 Phoenixmon", () => {
     await loop;
   });
 
-  it("places itself face up at security bottom, checks while revealed, and shuffles face down, per Q5231-Q5234", async () => {
-    const checked = setupEngine({
-      0: {
-        battleArea: [{ card: "BT23-015", as: "phoenix" }],
-        security: [{ card: "BT1-009", as: "existing" }],
-      },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
-    });
-    checked.state.turnSeat = 1;
-    const phoenixId = checked.inst("phoenix").instanceId;
-    expect(await advance(checked.engine).verb.deletePermanent([checked.perm("phoenix").permanentId], "byEffect")).toBe(
-      1,
-    );
-    await settle(() => checked.state.players[0]!.security.length === 2);
-    expect(checked.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
-      checked.inst("existing").instanceId,
-      phoenixId,
-    ]);
-    expect(checked.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: phoenixId, faceUp: true });
+  /** Drive the loop to seat 1's Main so the opponent can attack into seat 0's security. */
+  async function openOpponentMain(s: ReturnType<typeof setupEngine>) {
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    // Wrapped: returning the promise bare would make `await openOpponentMain(...)` wait on
+    // the whole turn loop.
+    return { loop };
+  }
 
-    await advance(checked.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+  it("checks a face-up security card with the card left revealed, per Q5231-Q5232", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-014", as: "bystander" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          security: [{ card: "BT23-015", as: "phoenix", faceUp: true }],
+          deck: ["BT1-009", "BT1-013", "BT1-027"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", dp: 15000, as: "attacker" }],
+          deck: ["BT1-013", "BT1-028", "BT1-045"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const phoenixId = s.inst("phoenix").instanceId;
+    const { loop } = await openOpponentMain(s);
+    // Q5231: a card placed face up stays revealed in the stack until it is checked.
+    expect(s.state.players[0]!.security.map((card) => card.faceUp)).toEqual([true]);
+
     expect(
-      checked.engine.applyIntent(1, {
+      s.engine.applyIntent(1, {
         type: "attack",
-        attackerPermanentId: checked.perm("attacker").permanentId,
+        attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => checked.state.players[0]!.security.length === 0);
-    expect(checked.state.players[0]!.trash.some((card) => card.instanceId === phoenixId)).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === phoenixId));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === phoenixId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 
-    const preferred: string[] = [];
-    const shuffled = setupEngine(
+  it("fires a [Security] effect from a face-up security card on its check, per Q5233", async () => {
+    const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-087", as: "tk" }],
+          battleArea: [{ card: "BT1-014", as: "bystander" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          security: [{ card: "P-066", as: "securityEffect", faceUp: true }],
+          deck: ["BT1-009", "BT1-013", "BT1-027"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }],
+          deck: ["BT1-013", "BT1-028", "BT1-045"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackerId = s.perm("attacker").permanentId;
+    const { loop } = await openOpponentMain(s);
+    expect(s.state.players[0]!.security.map((card) => card.faceUp)).toEqual([true]);
+
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("puts a face-up security card back face down when the stack is shuffled, per Q5234", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-087", as: "tk" }],
           security: [
             { card: "BT1-009", as: "selected" },
             { card: "BT23-015", as: "phoenix", faceUp: true },
           ],
+          deck: ["BT1-009", "BT1-013", "BT1-027"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(shuffled.inst("selected").instanceId);
-    await shuffled.ready();
-    await advance(shuffled.engine).fire(EffectTiming.OnPlay, shuffled.perm("tk"));
-    expect(shuffled.state.players[0]!.security).toHaveLength(1);
-    expect(shuffled.state.players[0]!.security[0]).toMatchObject({ cardId: "BT23-015", faceUp: false });
+    preferred.push(s.inst("selected").instanceId);
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tk").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT23-015", faceUp: false });
   });
 
   it("digivolves for 3 from an off-color level-5 CS Digimon and rejects an off-color non-CS base", async () => {

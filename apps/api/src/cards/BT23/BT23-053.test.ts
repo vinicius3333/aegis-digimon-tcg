@@ -24,7 +24,7 @@ describe("BT23-053 Strikedramon", () => {
       inheritedEffectText: "[All Turns] This Digimon gets +1000 DP.",
     });
     expect(getCardDefinition("BT23-053")?.effectText).toBe(
-      "[Digivolve] Lv.3 w/[CS]\u00a0trait: Cost 2 \n\n[Your Turn] When any of your Option cards are placed in the battle area, this Digimon may digivolve into a Digimon card with [Cyberdramon]\u00a0in its name or the [CS] in the hand with the digivolution cost reduced by 2.",
+      "[Digivolve] Lv.3 w/[CS]\u00a0trait: Cost 2 \n\n[Your Turn] When any of your Option cards are placed in the battle area, this Digimon may digivolve into a Digimon card with [Cyberdramon]\u00a0in its name or the [CS] trait in the hand with the digivolution cost reduced by 2.",
     );
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["CS"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");

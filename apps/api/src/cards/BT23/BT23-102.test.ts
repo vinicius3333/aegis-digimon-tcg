@@ -98,9 +98,12 @@ describe("BT23-102 Mastemon", () => {
           ],
           hand: [{ card: "BT23-102", as: "mastemon" }],
           deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010", "BT1-011"],
-          security: 5,
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { deck: ["BT1-009", "BT1-010", "BT1-011"], security: 5 },
+        1: {
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -137,9 +140,14 @@ describe("BT23-102 Mastemon", () => {
             battleArea: [{ card: "BT22-023", as: "base" }],
             hand: [{ card: "BT23-102", as: "mastemon" }],
             deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
-            security: 3,
+            // FIVE cards, not three: a stack that already sits at 3 could not tell "no trim"
+            // apart from "trimmed to 3".
+            security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           },
-          1: { deck: ["BT1-009", "BT1-010"], security: 3 },
+          1: {
+            deck: ["BT1-009", "BT1-010"],
+            security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          },
         },
         { autoDeclineOptional: true, autoSelectCards: true },
       );
@@ -166,9 +174,9 @@ describe("BT23-102 Mastemon", () => {
     expect(s.state.memory).toBe(2);
     // Digivolution draws 1.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
-    // One Lv.5 card in the stack is not a same-level PAIR: no trim.
-    expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.state.players[1]!.security).toHaveLength(3);
+    // One Lv.5 card in the stack is not a same-level PAIR: no trim, both stacks stay at 5.
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    expect(s.state.players[1]!.security).toHaveLength(5);
   });
 
   it("refuses every route from a Blue Lv.5 base without the [CS] trait", async () => {
@@ -264,9 +272,9 @@ describe("BT23-102 Mastemon", () => {
           { card: "BT23-102", as: "mastemon" },
           { card: "BT23-031", as: "fromHand" },
         ],
-        security: 5,
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
-      { security: 5 },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
     );
     const playedId = s.inst("fromHand").instanceId;
@@ -279,8 +287,12 @@ describe("BT23-102 Mastemon", () => {
 
   it("plays a level 5 or lower purple card from the trash for free", async () => {
     const s = dnaBoard(
-      { hand: [{ card: "BT23-102", as: "mastemon" }], trash: [{ card: "BT23-066", as: "fromTrash" }], security: 5 },
-      { security: 5 },
+      {
+        hand: [{ card: "BT23-102", as: "mastemon" }],
+        trash: [{ card: "BT23-066", as: "fromTrash" }],
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const playedId = s.inst("fromTrash").instanceId;
@@ -299,9 +311,9 @@ describe("BT23-102 Mastemon", () => {
           { card: "BT23-034", as: "tooHigh" },
           { card: "BT23-046", as: "offColor" },
         ],
-        security: 5,
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
-      { security: 5 },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const highId = s.inst("tooHigh").instanceId;
@@ -329,9 +341,9 @@ describe("BT23-102 Mastemon", () => {
           { card: "BT23-102", as: "mastemon" },
           { card: "BT23-031", as: "declined" },
         ],
-        security: 5,
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
-      { security: 5 },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     const declinedId = s.inst("declined").instanceId;
@@ -473,7 +485,7 @@ describe("BT23-102 Mastemon", () => {
           ],
           hand: ["BT1-009"],
           deck: Array(10).fill("BT1-011"),
-          security: 3,
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
@@ -587,50 +599,117 @@ describe("BT23-102 Mastemon", () => {
     expect(watcherIndex).toBeGreaterThan(securityPlayIndex);
   });
 
-  it("places the opponent's Digimon into the chosen security stack, moving the physical card out of the battle area", async () => {
+  // Q5391: either player's Digimon may be placed. Public route: seat 1 attacks the player, the
+  // security check removes a card from SEAT 0's stack, and Mastemon's watcher places seat 1's
+  // other (non-attacking) Digimon as the bottom card of seat 0's stack.
+  it("places the opponent's Digimon into the chosen security stack, moving the physical card out of the battle area (Q5391)", async () => {
     const preferredIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT23-102", as: "mastemon" }],
-          security: [{ card: "BT1-009", as: "ownTop" }],
+          // 2000-DP security bodies: the 3000-DP attacker survives, so only the placement
+          // removes a Digimon from seat 1's board.
+          security: [
+            { card: "BT1-010", as: "ownTop" },
+            { card: "BT1-012", as: "ownBottom" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array(10).fill("BT1-011"),
         },
-        1: { battleArea: [{ card: "BT23-067", as: "opponentDigimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT23-067", as: "opponentDigimon" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array(10).fill("BT1-011"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
     );
     await s.ready();
     const opponentId = s.perm("opponentDigimon").topCard!.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     preferredIds.push(s.perm("opponentDigimon").permanentId, opponentId);
 
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === opponentId));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === opponentId));
+    await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(opponentId);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    // The physical card moved out of the battle area and never passed through the trash.
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).not.toContain(opponentId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(opponentId);
 
-    // Once per turn: a second removal window offers nothing.
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
+  // Q5392: placing THIS card itself does not trigger its own <Partition>. Mastemon carries real
+  // [Angewomon] and [LadyDevimon] sources here, so a Partition replacement would be visible.
   it("can place itself in its controller's security without opening a Partition replacement (Q5392)", async () => {
+    const preferredIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-102", as: "mastemon" }], security: [{ card: "BT1-009", as: "ownTop" }] },
-        1: { deck: ["BT1-009", "BT1-010"], security: 3 },
+        0: {
+          battleArea: [{ card: "BT23-102", as: "mastemon", under: ["ST10-05", "BT23-067"] }],
+          security: [
+            { card: "BT1-010", as: "ownTop" },
+            { card: "BT1-012", as: "ownBottom" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array(10).fill("BT1-011"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: ["BT1-009"],
+          deck: Array(10).fill("BT1-011"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
     );
-    const mastemonId = s.perm("mastemon").topCard!.instanceId;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === mastemonId));
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    const mastemonId = s.perm("mastemon").topCard!.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    preferredIds.push(s.perm("mastemon").permanentId, mastemonId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === mastemonId));
+    await settle(() => s.state.pendingDecision === undefined);
+
     expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(mastemonId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(mastemonId);
+    // No <Partition> replay: neither source card is back in the battle area.
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("ST10-05");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT23-067");
+    // The digivolution cards are trashed as the Digimon leaves the battle area.
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["ST10-05", "BT23-067"]),
+    );
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // --- Keywords ----------------------------------------------------------------------
@@ -653,7 +732,11 @@ describe("BT23-102 Mastemon", () => {
           security: [{ card: "BT1-009", as: "barrierCost" }, "BT1-010"],
           deck: ["BT1-011", "BT1-012"],
         },
-        1: { battleArea: [{ card: "BT23-034", as: "attacker" }], deck: ["BT1-009"], security: 3 },
+        1: {
+          battleArea: [{ card: "BT23-034", as: "attacker" }],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoDeclineOptional: true },
     );
@@ -699,7 +782,11 @@ describe("BT23-102 Mastemon", () => {
           security: [{ card: "BT1-009", as: "kept" }, "BT1-010"],
           deck: ["BT1-011", "BT1-012"],
         },
-        1: { battleArea: [{ card: "BT23-034", as: "attacker" }], deck: ["BT1-009"], security: 3 },
+        1: {
+          battleArea: [{ card: "BT23-034", as: "attacker" }],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoDeclineOptional: true },
     );
@@ -731,18 +818,44 @@ describe("BT23-102 Mastemon", () => {
     await loop;
   });
 
-  it("uses Partition to replay exact Angewomon and LadyDevimon sources on effect deletion", async () => {
+  // <Partition ([Angewomon] & [LadyDevimon])>: when this Digimon would be deleted by an
+  // opponent's effect, it is replaced by its two named sources. Public route: seat 1 plays
+  // ST1-16 Gaia Force ("[Main] Delete 1 of your opponent's Digimon.") on its own turn.
+  it("uses Partition to replay exact Angewomon and LadyDevimon sources when an opponent Option deletes it", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-102", as: "mastemon", under: ["ST10-05", "BT23-067"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        0: {
+          battleArea: [{ card: "BT23-102", as: "mastemon", under: ["ST10-05", "BT23-067"] }],
+          deck: Array(10).fill("BT1-011"),
+        },
+        1: {
+          // A red permanent satisfies the Option's colour requirement.
+          battleArea: [{ card: "BT1-021", as: "redEnabler" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+          deck: Array(10).fill("BT1-011"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    // ＜Partition＞ never triggers on the controller's OWN effect, so the deletion must resolve
-    // as the opponent's effect: seat 1 is the resolving seat.
-    s.state.turnSeat = 1;
     await s.ready();
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("mastemon").permanentId], "byEffect")).toBe(1);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const mastemonPermanentId = s.perm("mastemon").permanentId;
+    preferInstanceIds.push(mastemonPermanentId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle(() => s.state.pendingDecision === undefined);
+
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId).sort()).toEqual(["BT23-067", "ST10-05"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT23-102");
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).not.toContain(mastemonPermanentId);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

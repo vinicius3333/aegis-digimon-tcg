@@ -78,6 +78,39 @@ describe("BT23-081 Chitose Imai", () => {
     expect(withCs).toBe(withoutCs + 1);
   });
 
+  it("reads [CS] as an exact trait: an [Abadin Electronics] near-miss grants nothing", async () => {
+    // "Abadin Electronics" contains "cs" as a substring, so a `traitContains` match would
+    // wrongly satisfy the gate. BT17-034 Bulkmon carries it and no [CS] trait.
+    const nearMissOnly = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: "BT23-081", as: "chitose" },
+          { card: "BT17-034", as: "nearMiss" },
+        ],
+        hand: [NEUTRAL_HAND],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-009", "BT1-010", "BT1-011"], security: ["BT1-009", "BT1-010"] },
+    });
+    const nearMissPlusReal = await memoryAtOwnMain({
+      0: {
+        battleArea: [
+          { card: "BT23-081", as: "chitose" },
+          { card: "BT17-034", as: "nearMiss" },
+          { card: "BT23-037", as: "cs" },
+        ],
+        hand: [NEUTRAL_HAND],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-009", "BT1-010", "BT1-011"], security: ["BT1-009", "BT1-010"] },
+    });
+
+    // Only the real [CS] carrier moves the gauge, and it moves it exactly once.
+    expect(nearMissPlusReal).toBe(nearMissOnly + 1);
+  });
+
   it("ignores a CS Digimon that is only in the breeding area", async () => {
     // Comprehensive rules 3-4-5-8: breeding-area cards are not referenced unless the
     // effect names the breeding area, so "if you have a Digimon with the [CS] trait"
@@ -347,6 +380,175 @@ describe("BT23-081 Chitose Imai", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("also fires on the opponent's turn when a Hudie blocker suspends", async () => {
+    // [All Turns]: BT23-050 Ankylomon carries printed <Blocker> and the [Hudie] trait, so
+    // blocking on the opponent's turn is a public route to "any of your [Hudie] trait
+    // Digimon suspend".
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-081", as: "chitose" },
+            { card: "BT23-050", as: "hudieBlocker" },
+          ],
+          hand: [NEUTRAL_HAND],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "opponentAttacker", dp: 20_000 }],
+          hand: [{ card: "ST1-02", as: "neutralOpponent" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("chitose").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("hudieBlocker").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isAttacking() === false);
+
+    expect(s.perm("chitose").isSuspended).toBe(true);
+    expect(s.perm("opponentAttacker").currentDP).toBe(17_000);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("offers every eligible [Hudie] Digimon from a mixed hand and plays exactly the chosen one", async () => {
+    // Mixed pool: two qualifying ([Hudie], cost 3 and cost 4), one right-trait/wrong-cost
+    // (BT23-032 Shakkoumon, cost 8), one right-cost/wrong-trait (BT1-028 Elecmon, cost 2).
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-081", as: "chitose" },
+            { card: "BT23-037", as: "hudieCheap" },
+            { card: "BT23-040", as: "hudieMid" },
+            { card: "BT23-032", as: "hudieTooExpensive" },
+            { card: "BT1-028", as: "cheapNonHudie" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: prefer },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    // Steer the selection to the SECOND qualifying card: a filter that only ever saw the
+    // first one could not honour this.
+    const midId = s.inst("hudieMid").instanceId;
+    prefer.push(midId);
+    const cheapId = s.inst("hudieCheap").instanceId;
+    const expensiveId = s.inst("hudieTooExpensive").instanceId;
+    const nonHudieId = s.inst("cheapNonHudie").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chitose").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === midId));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === midId)).toBe(true);
+    // Exactly one card was played: the other eligible copy and both near-misses stay in hand.
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [cheapId, expensiveId, nonHudieId].sort(),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("reads the current top card of a real two-step evolution stack, not its base", async () => {
+    // BT1-047 Tinkermon (no [Hudie]) digivolves into BT23-041 Kabuterimon and then into
+    // BT23-032 Shakkoumon, both [Hudie]. The watcher must fire off the live top card.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-081", as: "chitose" },
+            { card: "BT1-047", as: "base" },
+          ],
+          hand: [
+            { card: "BT23-041", as: "kabuterimon" },
+            { card: "BT23-032", as: "shakkoumon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "target", dp: 20_000 }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const baseId = s.inst("base").instanceId;
+    const kabuterimonId = s.inst("kabuterimon").instanceId;
+    const shakkoumonId = s.inst("shakkoumon").instanceId;
+    const permanentId = s.perm("base").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: kabuterimonId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard?.instanceId === kabuterimonId && s.state.pendingDecision === undefined);
+    // BT23-032 has two live routes from this stack: the printed Yellow Lv.4 cost 4 and the
+    // reduced "[Digivolve] Lv.4 w/[CS] trait: Cost 3". Kabuterimon carries [CS], so take the
+    // reduced one explicitly.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId,
+        instanceId: shakkoumonId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === shakkoumonId && s.state.pendingDecision === undefined);
+
+    // Yellow Lv.3 route (3) then the reduced [CS] route (3): 8 - 3 - 3 = 2, with both
+    // source cards under the new top card.
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId, kabuterimonId]);
+    expect(s.perm("base").topCard?.instanceId).toBe(shakkoumonId);
+    expect(s.perm("chitose").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("chitose").isSuspended === true && s.perm("target").currentDP === 17_000);
+
+    expect(s.perm("chitose").isSuspended).toBe(true);
+    expect(s.perm("target").currentDP).toBe(17_000);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("plays itself from security without paying its 4 cost", async () => {

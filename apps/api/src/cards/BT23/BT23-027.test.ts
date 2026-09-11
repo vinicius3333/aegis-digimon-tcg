@@ -1,11 +1,4 @@
-import {
-  type CardDefinition,
-  CardColor,
-  CardKind,
-  type DecisionResponse,
-  EffectTiming,
-  getCardDefinition,
-} from "@aegis/shared";
+import { type CardDefinition, CardColor, CardKind, type DecisionResponse, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -38,58 +31,34 @@ describe("BT23-027 Angemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT23-027", as: "angemon" },
-            { card: "BT23-050", as: "other", suspended: true },
-          ],
-          hand: [{ card: "BT23-032", as: "shakkoumon" }],
-          deck: [{ card: "BT1-009", as: "drawn" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const drawnId = s.inst("drawn").instanceId;
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("angemon"));
-
-    const result = s.state.players[0]!.battleArea.find((card) => card.topCard?.cardId === "BT23-032");
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
-    expect(result).toBeDefined();
-    expect(result?.isSuspended).toBe(false);
-    expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT23-027", "BT23-050"]));
-  });
-
-  it("does not DNA digivolve an Angemon played under a digivolution restriction", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-018", as: "host", under: ["BT23-017"] }],
+          battleArea: [{ card: "BT23-050", as: "other", suspended: true }],
           hand: [
             { card: "BT23-027", as: "angemon" },
             { card: "BT23-032", as: "shakkoumon" },
           ],
-          deck: ["BT1-009"],
+          deck: [{ card: "BT1-009", as: "drawn" }, { card: "BT1-010", as: "dnaDraw" }, "BT1-011"],
         },
       },
-      // Betamon's inherited attack play offers an optional prompt, a card selection AND a
-      // `chooseOption` branch. All three must be answered for Angemon to reach the field; the
-      // previous all-automation-off fixture simply hung on them and never reached its endpoint.
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await s.ready();
+    s.state.memory = 10;
+    const drawnId = s.inst("drawn").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-032"));
     await settle();
-    const angemon = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard?.instanceId === s.inst("angemon").instanceId,
-    );
-    expect(angemon).toBeDefined();
-    expect(observe(s.engine).isRestricted(angemon!, "digivolve")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shakkoumon").instanceId);
-    expect(
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard?.instanceId === s.inst("shakkoumon").instanceId,
-      ),
-    ).toBe(false);
+
+    const result = s.state.players[0]!.battleArea.find((card) => card.topCard?.cardId === "BT23-032");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
+    expect(result).toBeDefined();
+    // A DNA result always arrives unsuspended, even when a material was suspended (Q5257).
+    expect(result?.isSuspended).toBe(false);
+    expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT23-027", "BT23-050"]));
+    // Play cost 5 only: the printed DNA route into Shakkoumon costs 0.
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("publicly follows Betamon's inherited attack play and refuses DNA while restricted (Q5256)", async () => {
@@ -424,18 +393,32 @@ describe("BT23-027 Angemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-032", as: "host", under: ["BT23-027"], suspended: true }],
-          security: ["BT1-009"],
-          deck: Array(6).fill("BT1-010"),
+          battleArea: [{ card: "BT23-032", as: "host", under: ["BT23-027"] }],
+          security: [{ card: "BT1-009", as: "payment" }],
+          deck: Array(8).fill("BT1-010"),
         },
-        1: { battleArea: [{ card: "BT23-025", as: "attacker" }], deck: Array(6).fill("BT1-011") },
+        1: {
+          battleArea: [{ card: "BT23-025", as: "attacker" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: Array(8).fill("BT1-011"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const hostId = s.perm("host").permanentId;
     const sourceId = s.perm("host").stack[0]!.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Suspend the host through its own public attack, so the opponent may legally target it.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.perm("host").isSuspended).toBe(true);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -444,15 +427,16 @@ describe("BT23-027 Angemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(true);
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
       ok: true,
     });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sourceId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("declares Barrier", () => {
@@ -676,28 +660,6 @@ describe("BT23-027 Angemon", () => {
     expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Barrier")).toBe(true);
   });
 
-  it("draws but does not offer DNA digivolution on the opponent's turn", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT23-027", as: "angemon" },
-            { card: "BT23-050", as: "other" },
-          ],
-          hand: [{ card: "BT23-032", as: "shakkoumon" }],
-          deck: [{ card: "BT1-009", as: "drawn" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("angemon"));
-    await settle();
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shakkoumon").instanceId);
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
-  });
-
   it("publicly enters play on the opponent's turn, draws, and never offers the DNA option", async () => {
     // The only public way onto the board during the opponent's turn is a [Counter]:
     // ＜Blast Digivolve＞ Cherubimon over Antylamon while the opponent attacks, whose
@@ -791,19 +753,32 @@ describe("BT23-027 Angemon", () => {
         {
           0: {
             battleArea: [
-              inherited
-                ? { card: "BT23-032", as: "target", under: ["BT23-027"], suspended: true }
-                : { card: "BT23-027", as: "target", suspended: true },
+              inherited ? { card: "BT23-032", as: "target", under: ["BT23-027"] } : { card: "BT23-027", as: "target" },
             ],
             security: [{ card: "BT1-009", as: "payment" }],
             deck: Array(8).fill("BT1-010"),
           },
-          1: { battleArea: [{ card: "BT23-025", as: "attacker" }], deck: Array(8).fill("BT1-009") },
+          1: {
+            battleArea: [{ card: "BT23-025", as: "attacker" }],
+            security: ["BT1-009", "BT1-010"],
+            deck: Array(8).fill("BT1-009"),
+          },
         },
         { autoAcceptOptional: false, autoSelectCards: true },
       );
-      s.state.turnSeat = 1;
+      await s.ready();
       const targetId = s.perm("target").permanentId;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      // Public suspension: the defender attacks on its own turn before handing the turn over.
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: targetId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.state.turnSeat).toBe(1);
+      expect(s.perm("target").isSuspended).toBe(true);
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
@@ -838,6 +813,8 @@ describe("BT23-027 Angemon", () => {
       const remains = s.state.players[0]!.battleArea.some((p) => p.permanentId === targetId);
       expect(remains).toBe(accept);
       expect(s.state.players[0]!.security).toHaveLength(accept ? 0 : 1);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     }
   });
 

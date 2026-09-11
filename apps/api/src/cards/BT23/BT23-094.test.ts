@@ -50,8 +50,9 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(turn.actions[0].actions[1].target.fromSelectionRef).toBe(turn.actions[0].actions[0].target.bindAs);
   });
 
-  // Q5368: "on the field" covers the breeding area as well as the battle area.
-  it("waives the yellow color requirement from an off-color CS Digimon in breeding", async () => {
+  // Q5368, asked about this printed wording, answers that "on the field" is the battle area
+  // OR the breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
+  it("waives the yellow color requirement from an off-color CS Digimon in breeding (Q5368)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -68,6 +69,31 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
+  });
+
+  // A Digimon's traits are its top card's: a [CS] card in the digivolution cards beneath a
+  // non-[CS] top card is not a "[CS] trait Digimon".
+  it("does not waive the color requirement from a CS card under a non-CS top card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "stack", under: ["BT22-008"] }],
+          hand: [{ card: "BT23-094", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT22-008"]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.memory).toBe(5);
   });
 
   // Q5368: a Tamer in the battle area satisfies the same condition.
@@ -152,20 +178,31 @@ describe("BT23-094 Nanomachine Break", () => {
         },
         1: {
           battleArea: [{ card: "BT2-067", as: "target" }],
-          hand: [{ card: "EX6-048", as: "witchmon" }, "BT1-009", "BT1-009"],
+          hand: [
+            { card: "EX6-048", as: "witchmon" },
+            { card: "BT1-009", as: "costA" },
+            { card: "BT1-009", as: "costB" },
+          ],
+          deck: Array(10).fill("BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
     await s.ready();
+    const costAId = s.inst("costA").instanceId;
+    const costBId = s.inst("costB").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving"));
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
 
-    s.state.turnSeat = 1;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 5;
     expect(
       s.engine.applyIntent(1, {
@@ -179,9 +216,15 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(s.perm("target").topCard?.cardId).toBe("EX6-048");
     // The [When Digivolving] never activated: no hand card was trashed for its cost and the
     // caster's Digimon was granted no "[End of Attack] Delete this Digimon." aura.
-    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
+    // Both candidate cost cards are still in hand (the turn loop's draw step adds others).
+    const handIds = s.state.players[1]!.hand.map((card) => card.instanceId);
+    expect(handIds).toContain(costAId);
+    expect(handIds).toContain(costBId);
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(observe(s.engine).customEffectGrants(s.perm("csDigimon"))).toEqual([]);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // Q5370 + Q5373: an effect printed as [When Digivolving] [End of Attack] [Once Per Turn]
@@ -202,20 +245,25 @@ describe("BT23-094 Nanomachine Break", () => {
         1: {
           battleArea: [{ card: "BT1-024", as: "target" }],
           hand: [{ card: "BT21-029", as: "medusamon" }],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
+          deck: Array(10).fill("BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    s.state.memory = 5;
     await s.ready();
     preferInstanceIds.push(s.perm("prey").topCard!.instanceId);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving"));
 
-    s.state.turnSeat = 1;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 5;
     expect(
       s.engine.applyIntent(1, {
@@ -244,6 +292,9 @@ describe("BT23-094 Nanomachine Break", () => {
     // by the restriction (Q5370).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === preyId)).toBe(true);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenAttacking")).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("pays the intrinsic Delay when a CS Digimon attacks and restricts one opposing Digimon", async () => {
@@ -255,7 +306,7 @@ describe("BT23-094 Nanomachine Break", () => {
             { card: "BT23-006", as: "attacker" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: 2 },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -286,7 +337,7 @@ describe("BT23-094 Nanomachine Break", () => {
             { card: "BT23-006", as: "attacker", dp: 20_000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: 2 },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009", "BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -316,7 +367,7 @@ describe("BT23-094 Nanomachine Break", () => {
             { card: "BT1-009", as: "attacker", dp: 20_000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: 2 },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -346,7 +397,7 @@ describe("BT23-094 Nanomachine Break", () => {
             { card: "BT23-006", as: "attacker", dp: 20_000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: 2 },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -378,7 +429,11 @@ describe("BT23-094 Nanomachine Break", () => {
         },
         1: {
           battleArea: [{ card: "BT20-021", as: "jesmon" }],
-          hand: [{ card: "BT10-110", as: "seiken" }, "BT20-021"],
+          hand: [
+            { card: "BT10-110", as: "seiken" },
+            { card: "BT20-021", as: "royalKnight" },
+          ],
+          deck: Array(10).fill("BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -388,7 +443,11 @@ describe("BT23-094 Nanomachine Break", () => {
     const s = seikenMeppaFixture();
     const preyId = s.perm("csDigimon").topCard!.instanceId;
     await s.ready();
-    s.state.turnSeat = 1;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 5;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("seiken").instanceId })).toEqual({
       ok: true,
@@ -396,12 +455,19 @@ describe("BT23-094 Nanomachine Break", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === preyId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === preyId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("blocks another effect from activating the restricted Digimon's When Digivolving effect", async () => {
     const s = seikenMeppaFixture();
     const preyId = s.perm("csDigimon").topCard!.instanceId;
     await s.ready();
+    const royalKnightId = s.inst("royalKnight").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -409,7 +475,8 @@ describe("BT23-094 Nanomachine Break", () => {
     await settle(() => observe(s.engine).timingEffectDisabled(s.perm("jesmon"), "whenDigivolving"));
     expect(observe(s.engine).timingEffectDisabled(s.perm("jesmon"), "whenDigivolving")).toBe(true);
 
-    s.state.turnSeat = 1;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 5;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("seiken").instanceId })).toEqual({
       ok: true,
@@ -420,8 +487,11 @@ describe("BT23-094 Nanomachine Break", () => {
     // [Royal Knight] trait card" cost was not paid either (Q5372).
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === preyId)).toBe(false);
     expect(s.perm("csDigimon").topCard?.instanceId).toBe(preyId);
-    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT20-021"]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(royalKnightId);
     expect(s.perm("jesmon").stack).toHaveLength(0);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("restricts the attacker's board and places itself when checked from security", async () => {
@@ -430,20 +500,29 @@ describe("BT23-094 Nanomachine Break", () => {
       {
         0: {
           security: [{ card: "BT23-094", as: "option" }, "BT1-009"],
+          hand: ["BT1-010"],
+          deck: Array(10).fill("BT1-010"),
         },
         1: {
           battleArea: [
             { card: "BT1-024", as: "attacker" },
             { card: "BT1-009", as: "target" },
           ],
+          hand: ["BT1-010"],
+          deck: Array(10).fill("BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    s.state.turnSeat = 1;
     const optionId = s.inst("option").instanceId;
     await s.ready();
     preferInstanceIds.push(s.perm("target").topCard!.instanceId);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -458,6 +537,61 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenAttacking")).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  // ＜Security A. -1＞ proved through a real security check: the restricted Digimon attacks
+  // the player and checks 1 - 1 = 0 security cards, so the defender's stack is untouched.
+  it("makes the restricted Digimon check one fewer security card when it attacks", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-008", as: "csDigimon" }],
+          hand: [{ card: "BT23-094", as: "option" }, "BT1-010"],
+          security: [{ card: "BT1-009", as: "securityCard" }],
+          deck: Array(10).fill("BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 20_000 }],
+          hand: ["BT1-010"],
+          deck: Array(10).fill("BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    preferInstanceIds.push(s.perm("target").topCard!.instanceId);
+    const securityCardId = s.inst("securityCard").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && !observe(s.engine).isAttacking());
+
+    // Zero security cards checked: the single card is still face-down in security.
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityCardId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityCardId)).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("clears both restrictions once the opponent's turn ends", async () => {
@@ -467,13 +601,13 @@ describe("BT23-094 Nanomachine Break", () => {
           battleArea: [{ card: "BT22-008", as: "csDigimon" }],
           hand: [{ card: "BT23-094", as: "option" }, "BT1-009"],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "target" }],
           hand: ["BT1-009"],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoSelectCards: true },

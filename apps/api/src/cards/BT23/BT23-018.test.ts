@@ -1,6 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -302,13 +303,114 @@ describe("BT23-018 Garurumon", () => {
     expect(wrongTrait.perm("nonCS").topCard.cardId).toBe("BT1-064");
   });
 
-  it("grants inherited +2000 DP only during the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-023", as: "host", under: ["BT23-018"] }] } });
-    s.state.turnSeat = 0;
-    await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-023")!.dp);
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(getCardDefinition("BT23-023")!.dp! + 2000);
+  it("grants inherited +2000 DP only during the opponent's turn, across real turn boundaries", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-023", as: "host", under: ["BT23-018"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        deck: ["BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019", "BT1-020"],
+        security: ["BT1-009", "BT1-013", "BT1-027"],
+      },
+    });
+    const base = getCardDefinition("BT23-023")!.dp!;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(base);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("host").currentDP).toBe(base + 2000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(base);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("caps the Main effect at once per turn per source and keeps a second Garurumon's use available", async () => {
+    // The mandatory restack cost buries Garurumon under its own stack, so after one use it is no
+    // longer the top card and can never be the source again. A next-own-turn reset is therefore
+    // unobservable for this card; what is observable is the same-turn refusal and that the cap is
+    // tracked per source permanent.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-018", as: "garurumon", under: ["BT23-001", "BT23-017", "BT23-020"] },
+            { card: "BT23-018", as: "secondGarurumon", under: ["BT23-001", "BT23-017", "BT23-020"] },
+          ],
+          hand: [
+            { card: "BT1-010", as: "firstAgumon" },
+            { card: "BT1-010", as: "secondAgumon" },
+          ],
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    const garurumonId = s.inst("garurumon").instanceId;
+    const secondId = s.inst("secondGarurumon").instanceId;
+    const effectKey = mainEffectKey(s);
+    const battleAreaBefore = s.state.players[0]!.battleArea.length;
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: garurumonId, effectKey })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === battleAreaBefore + 1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstAgumon").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("garurumon").stack[0]!.instanceId).toBe(garurumonId);
+
+    // Same source, same turn: refused, and the second Agumon stays in hand.
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: garurumonId, effectKey })).toMatchObject(
+      { ok: false },
+    );
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondAgumon").instanceId);
+
+    // A different Garurumon still has its own use this turn.
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: secondId, effectKey })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondAgumon").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondAgumon").instanceId),
+    ).toBe(true);
+    expect(s.perm("secondGarurumon").stack[0]!.instanceId).toBe(secondId);
+  });
+
+  it("activates with only a Digi-Egg beneath, then loses the DP-less top card to rule checks, per Q5238", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-018", as: "garurumon", under: ["BT1-001"] }],
+          hand: [{ card: "BT1-010", as: "agumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const garurumonId = s.inst("garurumon").instanceId;
+    const eggId = s.perm("garurumon").stack[0]!.instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: garurumonId, effectKey: mainEffectKey(s) }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId),
+    );
+    // The reduced-cost play still happens (6 - 2 = 4 play cost on a cost-3 Agumon clamps to 1).
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId)).toBe(
+      true,
+    );
+    // The Digi-Egg became the top card and has no DP, so the whole permanent leaves the battle area.
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eggId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([eggId, garurumonId]),
+    );
   });
 });

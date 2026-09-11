@@ -9,6 +9,7 @@ import type {
   SubTriggerInstall,
 } from "../../engine/effects/EffectContext.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -351,6 +352,36 @@ async function answerOptionals(
 
 const SELF_DELETE_PROMPT = "by deleting this Digimon";
 
+const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
+
+/**
+ * Hand the turn to seat 1 through the real turn loop, so an opponent-turn attack never needs a
+ * direct `turnSeat` write. Returned inside a wrapper: awaiting a promise that resolves TO the
+ * loop promise would flatten onto the loop and hang the test.
+ */
+async function passTurnToOpponent(s: EngineSetup): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  await settle(() => s.state.pendingDecision === undefined);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  // Decline every optional raised while the turn changes hands. ＜Execute＞ offers an
+  // [End of Your Turn] attack that deletes this Digimon at the end of it, which would empty the
+  // board before the opponent's turn ever starts.
+  await answerOptionals(
+    s,
+    () => false,
+    () => s.state.turnSeat === 1,
+  );
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.state.turnSeat).toBe(1);
+  return { loop };
+}
+
+async function finishTurnLoop(s: EngineSetup, loop: Promise<void>): Promise<void> {
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
 describe("BT23-069 Necromon — printed clauses through public intents", () => {
   it("plays a level 5 or lower [Ghost] Digimon from the trash on play without paying its cost", async () => {
     const s = setupEngine(
@@ -474,14 +505,21 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
       {
         0: {
           battleArea: [{ card: "BT23-069", as: "necromon" }],
+          hand: [{ card: "BT1-009", as: "spare0" }],
+          deck: [...FILLER_DECK],
           security: ["BT1-009", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT23-068", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "attacker" }],
+          hand: [{ card: "BT1-009", as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
+    const { loop } = await passTurnToOpponent(s);
     const necromonPermanentId = s.perm("necromon").permanentId;
     const attackerPermanentId = s.perm("attacker").permanentId;
 
@@ -492,7 +530,11 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await answerOptionals(
+      s,
+      () => true,
+      () => s.state.players[1]!.battleArea.length === 0,
+    );
 
     // Necromon paid itself and deleted the only level 6 or lower opponent Digimon: the attacker.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
@@ -501,6 +543,7 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
+    await finishTurnLoop(s, loop);
   });
 
   it("never offers to skip the opponent deletion when an eligible target exists (Q5337)", async () => {
@@ -544,18 +587,25 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
       {
         0: {
           battleArea: [{ card: "BT23-069", as: "necromon" }],
+          hand: [{ card: "BT1-009", as: "spare0" }],
+          deck: [...FILLER_DECK],
           security: ["BT1-009", "BT1-010"],
         },
         // BT14-062: "[All Turns] This Digimon can't be deleted by your opponent's effects."
         // It is level 5, so it IS the mandatory choice, and it attacks while unaffected by my
         // effects — the attack still ends, because ending an attack changes the timing, not the
         // Digimon (Q5340).
-        1: { battleArea: [{ card: "BT14-062", as: "immuneAttacker" }] },
+        1: {
+          battleArea: [{ card: "BT14-062", as: "immuneAttacker" }],
+          hand: [{ card: "BT1-009", as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
+    const { loop } = await passTurnToOpponent(s);
     const necromonPermanentId = s.perm("necromon").permanentId;
     const attackerPermanentId = s.perm("immuneAttacker").permanentId;
 
@@ -566,7 +616,11 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await answerOptionals(
+      s,
+      () => true,
+      () => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 0,
+    );
 
     // The self-deletion cost was paid, the chosen target survived, so nothing was deleted.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === necromonPermanentId)).toBe(false);
@@ -576,6 +630,7 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+    await finishTurnLoop(s, loop);
   });
 
   it("may decline to end the attack, letting it check security instead", async () => {

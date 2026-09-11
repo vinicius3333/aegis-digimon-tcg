@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -111,7 +112,7 @@ describe("BT23-010 GeoGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT23-010", as: "geo" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: 1 },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,21 +131,27 @@ describe("BT23-010 GeoGreymon", () => {
   });
 
   it("has Blocker both as the top card and as an inherited source", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT23-010", as: "topGeo" },
           { card: "BT23-012", under: ["BT23-010"], as: "inheritedHost" },
         ],
-        security: 1,
+        security: ["BT1-013"],
+        deck,
       },
-      1: { battleArea: [{ card: "BT23-057", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT23-057", as: "attacker" }], deck },
     });
-    s.state.turnSeat = 1;
-    await s.ready();
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(observe(s.engine).hasKeyword(s.perm("topGeo"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "Blocker")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -162,5 +169,7 @@ describe("BT23-010 GeoGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

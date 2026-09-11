@@ -340,10 +340,17 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(security.actions[1].optional).toBeUndefined();
   });
 
+  // In all four security scenarios the checked card belongs to seat 1, so the attacker is the
+  // default turn player (seat 0) and no turnSeat write is needed.
   it("free-plays a level-3 [CS] Digimon from hand and places itself when the opponent checks it", async () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
+          deck: DECK,
+          security: ["BT1-010"],
+        },
+        1: {
           security: [{ card: CAFE, as: "option" }],
           hand: [
             { card: CS_DIGIMON_LV3, as: "csDigimon" },
@@ -351,37 +358,31 @@ describe("BT23-100 Hudie Net Café", () => {
           ],
           deck: DECK,
         },
-        1: {
-          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
-          deck: DECK,
-          security: ["BT1-010"],
-        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
     const optionId = s.inst("option").instanceId;
     const csDigimonId = s.inst("csDigimon").instanceId;
     const memoryBefore = s.state.memory;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    // The security card's controller is the defending seat: both cards land on seat 0's board.
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csDigimonId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("neutral").instanceId]);
+    // The security card's controller is the defending seat: both cards land on seat 1's board.
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === csDigimonId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("neutral").instanceId]);
     // "without paying the cost": the free play moves no memory beyond the attack itself.
     expect(s.state.memory).toBe(memoryBefore);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
@@ -389,71 +390,69 @@ describe("BT23-100 Hudie Net Café", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
+          deck: DECK,
+          security: ["BT1-010"],
+        },
+        1: {
           security: [{ card: CAFE, as: "option" }],
           trash: [{ card: CS_DIGIMON_LV3_ALT, as: "csInTrash" }],
           hand: [{ card: NEUTRAL, as: "neutral" }],
           deck: DECK,
         },
-        1: {
-          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
-          deck: DECK,
-          security: ["BT1-010"],
-        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
     const optionId = s.inst("option").instanceId;
     const csInTrashId = s.inst("csInTrash").instanceId;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csInTrashId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === csInTrashId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === csInTrashId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === csInTrashId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
   });
 
   it("still places itself when the controller declines the optional free play", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: CAFE, as: "option" }],
-          hand: [{ card: CS_DIGIMON_LV3, as: "csDigimon" }],
-          deck: DECK,
-        },
-        1: {
           battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
           deck: DECK,
           security: ["BT1-010"],
         },
+        1: {
+          security: [{ card: CAFE, as: "option" }],
+          hand: [{ card: CS_DIGIMON_LV3, as: "csDigimon" }],
+          deck: DECK,
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
     const optionId = s.inst("option").instanceId;
     const csDigimonId = s.inst("csDigimon").instanceId;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === csDigimonId)).toBe(false);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([csDigimonId]);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === csDigimonId)).toBe(false);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([csDigimonId]);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
   });
 
   /**
@@ -465,6 +464,11 @@ describe("BT23-100 Hudie Net Café", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
+          deck: DECK,
+          security: ["BT1-010"],
+        },
+        1: {
           security: [{ card: CAFE, as: "option" }],
           hand: [
             { card: CS_DIGIMON_LV4, as: "wrongLevel" },
@@ -472,31 +476,25 @@ describe("BT23-100 Hudie Net Café", () => {
           ],
           deck: DECK,
         },
-        1: {
-          battleArea: [{ card: PLAIN_DIGIMON_LV3, as: "attacker" }],
-          deck: DECK,
-          security: ["BT1-010"],
-        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
     const optionId = s.inst("option").instanceId;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("wrongLevel").instanceId, s.inst("wrongTrait").instanceId].sort(),
     );
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.topCard?.instanceId).toBe(optionId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(optionId);
   });
 });

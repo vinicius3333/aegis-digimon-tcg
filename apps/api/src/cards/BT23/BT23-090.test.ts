@@ -365,6 +365,74 @@ describe("BT23-090 Keisuke Amasawa", () => {
     await finish(s, loop);
   });
 
+  it("stops granting +1000 DP the moment this Tamer leaves the field", async () => {
+    // Mixed [Hudie] pool: two [Hudie] Digimon at different base DP, a non-[Hudie] control, and
+    // this Tamer itself — which carries the [Hudie] trait but is a Tamer, so "all of your [Hudie]
+    // DIGIMON" must not touch it. Seat 1 removes the Tamer on its own real turn with BT15-097
+    // Ultimate Slicer ("delete 1 of your opponent's Digimon or Tamers with the lowest play cost"):
+    // Keisuke's play cost of 4 is uniquely the lowest on seat 0's board.
+    const { s, loop } = await runSeat0Turn(
+      turnBoard(
+        {
+          battleArea: [
+            { card: "BT23-090", as: "keisuke" },
+            { card: "BT23-101", as: "hudieA" },
+            { card: "BT23-020", as: "hudieB" },
+            { card: "BT1-024", as: "control" },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+        },
+        {
+          deck: [...NEUTRAL_DECK],
+          security: [...NEUTRAL_SECURITY],
+          // A black permanent satisfies the Option's colour requirement.
+          battleArea: [{ card: "BT10-064", as: "opponentBlack" }],
+          hand: [
+            { card: "BT15-097", as: "slicer" },
+            { card: "BT10-065", as: "cyborgFodder" },
+          ],
+        },
+      ),
+      { autoDeclineOptional: true, autoSelectCards: true },
+      1,
+    );
+    const keisukeId = s.perm("keisuke").topCard!.instanceId;
+    const fodderId = s.inst("cyborgFodder").instanceId;
+
+    // Buffed while the Tamer is on the field; the Tamer itself is not a Digimon.
+    expect(s.perm("hudieA").currentDP).toBe(8000);
+    expect(s.perm("hudieB").currentDP).toBe(6000);
+    expect(s.perm("control").currentDP).toBe(10_000);
+    expect(s.perm("keisuke").currentDP).toBe(0);
+
+    await endSeat0Turn(s);
+    // Still buffed on the opponent's turn, with the Tamer still on the field.
+    expect(s.perm("hudieA").currentDP).toBe(8000);
+    expect(s.perm("hudieB").currentDP).toBe(6000);
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("slicer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === keisukeId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    // The Tamer is gone and its continuous grant went with it: both [Hudie] Digimon drop by
+    // exactly 1000 to their printed DP, and the non-[Hudie] control never moved.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === keisukeId)).toBe(true);
+    expect(s.perm("hudieA").currentDP).toBe(7000);
+    expect(s.perm("hudieB").currentDP).toBe(5000);
+    expect(s.perm("control").currentDP).toBe(10_000);
+    // The Option's own cost was paid from seat 1's hand.
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === fodderId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    await finish(s, loop);
+  });
+
   it("plays itself from the security stack without paying its cost", async () => {
     const s = setupEngine(
       {

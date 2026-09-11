@@ -146,13 +146,33 @@ describe("BT23-037 Tentomon", () => {
     },
   );
 
+  // The turn owner is moved by the production turn loop, never by writing `turnSeat`. Digivolving
+  // is legal only in the owner's Main phase, so the [Your Turn] qualifier has no public intent of
+  // its own; the reduction is therefore read on each seat's real Main phase.
   it("offers no CS reduction on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-037", as: "tentomon" }] } });
-    await s.ready();
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-037", as: "tentomon" }], deck: Array(8).fill("BT1-011") },
+        1: { security: Array(5).fill("BT1-011"), deck: Array(8).fill("BT1-012") },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("tentomon"), definitionOf("BT23-041"))).toBe(1);
-    s.state.turnSeat = 1;
-    await s.ready();
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
     expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("tentomon"), definitionOf("BT23-041"))).toBe(0);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("tentomon"), definitionOf("BT23-041"))).toBe(1);
+    assertNoLoudGap(s);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("digivolves for 0 over a level-2 CS card and rejects a level-2 non-CS card", async () => {

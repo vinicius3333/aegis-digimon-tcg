@@ -372,6 +372,7 @@ describe("BT23-025 MarineAngemon", () => {
       0: {
         security: [{ card: "BT23-025", as: "marine" }],
         battleArea: [{ card: "BT23-025", as: "untouched" }],
+        hand: [{ card: "ST1-02", as: "spareOwn" }],
         deck: Array(10).fill("BT1-009"),
       },
       1: {
@@ -379,12 +380,16 @@ describe("BT23-025 MarineAngemon", () => {
           { card: "BT1-009", as: "attacker" },
           { card: "BT23-018", as: "other" },
         ],
+        hand: [{ card: "ST1-02", as: "spareOpponent" }],
         deck: Array(10).fill("BT1-010"),
       },
     });
-    s.state.turnSeat = 1;
     const marineId = s.inst("marine").instanceId;
+    await s.ready();
+    // Reach the opponent's turn through the real turn loop, not a `turnSeat` write.
     const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     const attackerId = s.inst("attacker").instanceId;
     const otherId = s.inst("other").instanceId;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-039.js";
@@ -391,6 +392,62 @@ describe("BT23-039 Perorimon", () => {
     expect(s.perm("host").linked).toHaveLength(0);
   });
 
+  // The public Link route feeds the public App Fusion route: Perorimon is linked to a Dokamon
+  // host by the controller's own `linkCard` intent, and BT23-021 Dosukomon then consumes that
+  // exact linked card as an [App Fusion] material.
+  it("is consumed as an App Fusion material after being linked publicly", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: APPMON_AND_GAME, as: "dokamon" }],
+          hand: [
+            { card: "BT23-039", as: "perorimon" },
+            { card: "BT23-021", as: "dosukomon" },
+          ],
+          deck: [{ card: PLAIN, as: "bonusDraw" }, PLAIN, PLAIN],
+        },
+        1: { battleArea: [{ card: PLAIN, as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const dokamonId = s.inst("dokamon").instanceId;
+    const perorimonId = s.inst("perorimon").instanceId;
+    const dosukomonId = s.inst("dosukomon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: perorimonId,
+        targetPermanentId: s.perm("dokamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === perorimonId));
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("dokamon").currentDP).toBe(getCardDefinition(APPMON_AND_GAME)!.dp + 2000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("dokamon").permanentId,
+        instanceId: dosukomonId,
+        linkedInstanceId: perorimonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").topCard.instanceId === dosukomonId);
+
+    // The printed App Fusion cost is 0, so the two memory left by the link are untouched.
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("dokamon").stack.map((card) => card.instanceId)).toEqual([dokamonId, perorimonId]);
+    expect(s.perm("dokamon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-021" }),
+    );
+    assertNoLoudGap(s);
+  });
+
   it("digivolves for 0 from a hatched off-color level-2 Appmon and rejects a level-2 non-Appmon", async () => {
     const legal = setupEngine({
       0: {
@@ -399,10 +456,12 @@ describe("BT23-039 Perorimon", () => {
         deck: [{ card: PLAIN, as: "bonus" }, PLAIN],
       },
     });
-    legal.state.phase = Phase.Breeding;
+    // The egg is hatched in the production Breeding phase opened by the real turn loop.
+    const legalLoop = legal.engine.startTurnLoop();
+    await settle(() => legal.state.phase === Phase.Breeding);
     expect(legal.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => legal.state.players[0]!.breeding?.topCard?.instanceId === legal.inst("egg").instanceId);
-    legal.state.phase = Phase.Main;
+    await advance(legal.engine).waitForMainPhase(0);
     const handBefore = legal.state.players[0]!.hand.length;
 
     expect(
@@ -422,6 +481,8 @@ describe("BT23-039 Perorimon", () => {
     expect(legal.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([legal.inst("bonus").instanceId]);
     expect(legal.state.players[0]!.hand).toHaveLength(handBefore);
     assertNoLoudGap(legal);
+    expect(legal.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await legalLoop;
 
     const illegal = setupEngine({
       0: {
@@ -430,10 +491,11 @@ describe("BT23-039 Perorimon", () => {
         deck: [PLAIN],
       },
     });
-    illegal.state.phase = Phase.Breeding;
+    const illegalLoop = illegal.engine.startTurnLoop();
+    await settle(() => illegal.state.phase === Phase.Breeding);
     expect(illegal.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
     await settle(() => illegal.state.players[0]!.breeding?.topCard?.instanceId === illegal.inst("egg").instanceId);
-    illegal.state.phase = Phase.Main;
+    await advance(illegal.engine).waitForMainPhase(0);
 
     expect(
       illegal.engine.applyIntent(0, {
@@ -445,5 +507,7 @@ describe("BT23-039 Perorimon", () => {
     expect(illegal.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       illegal.inst("perorimon").instanceId,
     );
+    expect(illegal.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await illegalLoop;
   });
 });

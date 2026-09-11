@@ -247,13 +247,12 @@ describe("BT23-096 Comet Hammer", () => {
         },
         1: {
           battleArea: [{ card: "BT23-015", as: "target", under: LEVEL_FLOOR_STACK }],
-          security: 2,
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     const topId = s.perm("target").topCard!.instanceId;
     await s.ready();
     expect(
@@ -282,13 +281,12 @@ describe("BT23-096 Comet Hammer", () => {
         },
         1: {
           battleArea: [{ card: "BT23-015", as: "target", under: LEVEL_FLOOR_STACK }],
-          security: 2,
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     const ownTopId = s.perm("ownStack").topCard!.instanceId;
     await s.ready();
     expect(
@@ -315,13 +313,12 @@ describe("BT23-096 Comet Hammer", () => {
         },
         1: {
           battleArea: [{ card: "BT23-015", as: "target", under: LEVEL_FLOOR_STACK, suspended: false }],
-          security: 2,
+          security: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     const targetId = s.perm("target").topCard!.instanceId;
     await s.ready();
     expect(
