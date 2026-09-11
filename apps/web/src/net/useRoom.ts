@@ -4,7 +4,6 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
   type SequencedServerEvent,
-  type ServerEvent,
   type DecisionRequest,
 } from "@aegis/shared";
 import { emptyBatchInbox, receiveServerEvent, type BatchInbox, type ServerBatch } from "./serverBatches";
@@ -94,7 +93,11 @@ export interface UseRoomResult {
   room: AegisRoom | undefined;
   status: ConnectionStatus;
   state: GameState | undefined;
-  events: ServerEvent[];
+  /** Carries `seq`/`batch`/`stateVersion` (SequencedServerEvent) — every event over the wire
+   * does — so a consumer that needs to correlate a live-log entry with the presentation queue's
+   * progress (e.g. barrier-gating a combat prompt the same way a decision is) can read
+   * `event.stateVersion` without re-deriving it from `batches`. */
+  events: SequencedServerEvent[];
   /**
    * The same events grouped as the server resolved them, appended when a batch closes.
    * The presentation sequences by batch; `events` remains the flat log the HUD and the
@@ -160,7 +163,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [patchVersion, setVersion] = useState(0);
   const [snapshots, setSnapshots] = useState<readonly StateSnapshot[]>([]);
-  const [events, setEvents] = useState<ServerEvent[]>([]);
+  const [events, setEvents] = useState<SequencedServerEvent[]>([]);
   const [inbox, setInbox] = useState<BatchInbox>(emptyBatchInbox);
   const [decision, setDecision] = useState<DecisionRequest>();
   const confirmedDecisionIdRef = useRef<string | undefined>(undefined);

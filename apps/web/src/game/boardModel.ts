@@ -1264,15 +1264,26 @@ export function describeEvent(
   }
 }
 
+/**
+ * An event as read off the live log for combat-prompt derivation. `stateVersion` is present
+ * on every event the room actually sends (SequencedServerEvent) and absent only on hand-built
+ * test fixtures / older-server replays — callers that need it (the presentation barrier) treat
+ * a missing value the same way a missing `decision.stateVersion` is already treated: no barrier
+ * is raised, the prompt just shows immediately.
+ */
+type CombatPromptEvent = ServerEvent & { stateVersion?: number };
+
 export interface ActiveBlockWindow {
   attackerPermanentId: string;
   eligibleBlockerIds: string[];
   /** ＜Collision＞: the block is compulsory, so the window offers no way out of it. */
   mustBlock: boolean;
+  /** The room state revision `blockWindowOpened` was emitted under, for barrier-gating. */
+  stateVersion?: number;
 }
 
 /** Derive a real, still-pending block response from the synchronized event stream. */
-export function activeBlockWindow(events: readonly ServerEvent[], isViewerTurn: boolean): ActiveBlockWindow | null {
+export function activeBlockWindow(events: readonly CombatPromptEvent[], isViewerTurn: boolean): ActiveBlockWindow | null {
   if (isViewerTurn) return null;
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index]!;
@@ -1284,6 +1295,7 @@ export function activeBlockWindow(events: readonly ServerEvent[], isViewerTurn: 
         attackerPermanentId: event.attackerPermanentId,
         eligibleBlockerIds: event.eligibleBlockerIds,
         mustBlock: event.mustBlock === true,
+        stateVersion: event.stateVersion,
       };
     }
     if (
@@ -1302,11 +1314,13 @@ export function activeBlockWindow(events: readonly ServerEvent[], isViewerTurn: 
 export interface ActiveCounterWindow {
   attackerPermanentId: string;
   eligibleCounters: { instanceId: string; effectKey: string; description: string }[];
+  /** The room state revision `counterWindowOpened` was emitted under, for barrier-gating. */
+  stateVersion?: number;
 }
 
 /** Derive a real, still-pending Counter response from the synchronized event stream. */
 export function activeCounterWindow(
-  events: readonly ServerEvent[],
+  events: readonly CombatPromptEvent[],
   viewerSeat: Seat,
   isViewerTurn: boolean,
 ): ActiveCounterWindow | null {
@@ -1318,6 +1332,7 @@ export function activeCounterWindow(
       return {
         attackerPermanentId: event.attackerPermanentId,
         eligibleCounters: event.eligibleCounters,
+        stateVersion: event.stateVersion,
       };
     }
     if (
@@ -1330,6 +1345,69 @@ export function activeCounterWindow(
       event.kind === "phaseChanged"
     )
       return null;
+  }
+  return null;
+}
+
+/** Which combat-prompt window (if any) is currently open, and at what state revision. */
+export interface OpenCombatWindow {
+  /** Stable identity of the open window, e.g. `"block:<attackerPermanentId>"`. Changes only
+   * when a genuinely new prompt opens (the previous one must fully resolve first — the server
+   * never has two of these open at once), so it is safe to use as a React dependency key. */
+  key: string;
+  /** The room state revision the window's opening event was emitted under, if known. */
+  stateVersion?: number;
+}
+
+/**
+ * Whether ANY of the five combat-prompt windows (block, §11-3 Counter, Alliance, Evade,
+ * Barrier) is open for `viewerSeat`, and the state revision it opened at.
+ *
+ * This exists so the presentation barrier (docs/presentation-queue-plan.md 3.2) can hold these
+ * prompts the same way it holds a `pendingDecision` prompt: today they render straight off the
+ * live event log with no relation to the animation queue, so a queued-but-not-yet-played attack
+ * toast can be beaten to the screen by, say, the block window it itself opened. Deliberately
+ * mirrors the five `active*Window` functions' own scan-and-terminate logic rather than calling
+ * them, because it only needs the fact of an open window plus its version — not each kind's full
+ * payload (blocker list, eligible allies, ...) — so it can run before those payloads exist.
+ */
+export function openCombatWindow(
+  events: readonly CombatPromptEvent[],
+  state: GameState,
+  viewerSeat: Seat,
+): OpenCombatWindow | null {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index]!;
+    switch (event.kind) {
+      case "blockWindowOpened":
+        if (event.eligibleBlockerIds.length === 0) return null;
+        return { key: `block:${event.attackerPermanentId}`, stateVersion: event.stateVersion };
+      case "counterWindowOpened":
+        if (event.defendingSeat !== viewerSeat || event.eligibleCounters.length === 0) return null;
+        return { key: `counter:${event.attackerPermanentId}`, stateVersion: event.stateVersion };
+      case "alliancePrompt":
+        if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
+        return { key: `alliance:${event.permanentId}`, stateVersion: event.stateVersion };
+      case "evadePrompt":
+        if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
+        return { key: `evade:${event.permanentId}`, stateVersion: event.stateVersion };
+      case "barrierPrompt":
+        if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
+        return { key: `barrier:${event.permanentId}`, stateVersion: event.stateVersion };
+      case "blocked":
+      case "blockDeclined":
+      case "counterResolved":
+      case "allianceResolved":
+      case "evadeResolved":
+      case "barrierResolved":
+      case "combatResolved":
+      case "securityChecked":
+      case "gameOver":
+      case "phaseChanged":
+        return null;
+      default:
+        continue;
+    }
   }
   return null;
 }

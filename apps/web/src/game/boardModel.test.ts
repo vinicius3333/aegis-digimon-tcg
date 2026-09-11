@@ -7,6 +7,7 @@ import { translator } from "../i18n";
 import {
   activeBlockWindow,
   activeCounterWindow,
+  openCombatWindow,
   buildMatchLog,
   canMoveFromBreeding,
   canUseBreedingAction,
@@ -208,6 +209,94 @@ describe("activeCounterWindow", () => {
         ],
         1,
         false,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("openCombatWindow", () => {
+  // Minimal GameState with one permanent, controlled by seat 1, for the Alliance/Evade/Barrier
+  // cases below (those prompts are scoped by permanent controller, not by defending seat).
+  const stateWithPermanent = (permanentId: string, controllerSeat: 0 | 1) =>
+    ({
+      players: [
+        { battleArea: [] },
+        { battleArea: controllerSeat === 1 ? [{ permanentId, controllerSeat }] : [] },
+      ],
+    }) as unknown as import("@aegis/shared").GameState;
+  const noPermanentState = { players: [{ battleArea: [] }, { battleArea: [] }] } as unknown as import(
+    "@aegis/shared"
+  ).GameState;
+
+  it("returns null when nothing is open", () => {
+    expect(openCombatWindow([], noPermanentState, 1)).toBeNull();
+  });
+
+  it("carries the opening event's stateVersion for the barrier", () => {
+    const events = [
+      {
+        kind: "blockWindowOpened" as const,
+        attackerPermanentId: "attacker",
+        eligibleBlockerIds: ["blanc"],
+        stateVersion: 42,
+      },
+    ];
+    expect(openCombatWindow(events, noPermanentState, 1)).toEqual({
+      key: "block:attacker",
+      stateVersion: 42,
+    });
+  });
+
+  it("scopes the Counter window to the defending seat, like activeCounterWindow", () => {
+    const events = [
+      {
+        kind: "counterWindowOpened" as const,
+        attackerPermanentId: "attacker",
+        defendingSeat: 1 as const,
+        eligibleCounters: [{ instanceId: "ace", effectKey: "counter", description: "Blast Digivolve" }],
+        stateVersion: 7,
+      },
+    ];
+    expect(openCombatWindow(events, noPermanentState, 0)).toBeNull();
+    expect(openCombatWindow(events, noPermanentState, 1)).toEqual({ key: "counter:attacker", stateVersion: 7 });
+  });
+
+  it("scopes Alliance/Evade/Barrier prompts to the permanent's controller", () => {
+    const state = stateWithPermanent("shoutmon", 1);
+    const alliance = [{ kind: "alliancePrompt" as const, permanentId: "shoutmon", eligibleAllyIds: [], stateVersion: 3 }];
+    expect(openCombatWindow(alliance, state, 0)).toBeNull();
+    expect(openCombatWindow(alliance, state, 1)).toEqual({ key: "alliance:shoutmon", stateVersion: 3 });
+
+    const evade = [{ kind: "evadePrompt" as const, permanentId: "shoutmon", stateVersion: 4 }];
+    expect(openCombatWindow(evade, state, 1)).toEqual({ key: "evade:shoutmon", stateVersion: 4 });
+
+    const barrier = [{ kind: "barrierPrompt" as const, permanentId: "shoutmon", stateVersion: 5 }];
+    expect(openCombatWindow(barrier, state, 1)).toEqual({ key: "barrier:shoutmon", stateVersion: 5 });
+  });
+
+  it("closes on the matching resolved event, combatResolved, gameOver, and phaseChanged", () => {
+    const opened = {
+      kind: "blockWindowOpened" as const,
+      attackerPermanentId: "attacker",
+      eligibleBlockerIds: ["blanc"],
+      stateVersion: 1,
+    };
+    expect(openCombatWindow([opened, { kind: "blocked", blockerPermanentId: "blanc" }], noPermanentState, 1)).toBeNull();
+    expect(
+      openCombatWindow([opened, { kind: "blockDeclined", attackerPermanentId: "attacker" }], noPermanentState, 1),
+    ).toBeNull();
+    expect(
+      openCombatWindow(
+        [opened, { kind: "combatResolved", seat: 0, attackerPermanentId: "attacker", deletedPermanentIds: [] }],
+        noPermanentState,
+        1,
+      ),
+    ).toBeNull();
+    expect(
+      openCombatWindow(
+        [opened, { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 }],
+        noPermanentState,
+        1,
       ),
     ).toBeNull();
   });

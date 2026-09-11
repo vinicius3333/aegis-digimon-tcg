@@ -70,6 +70,7 @@ import {
   bothSeated,
   activeBlockWindow,
   activeCounterWindow,
+  openCombatWindow,
   buildInstanceIndex,
   decisionCardColors,
   differentColorsAllowCandidate,
@@ -390,6 +391,15 @@ export function GameScreen({
   const inspectorTimerRef = useRef<number | undefined>(undefined);
   /** The decision whose prompt is already on screen, so no hold can take it back off. */
   const shownDecisionIdRef = useRef<string | undefined>(undefined);
+  /** The combat-prompt window (block/counter/alliance/evade/barrier) already on screen, mirroring
+   * `shownDecisionIdRef` for the five windows that are not a `pendingDecision` (see `openWindow`
+   * below). */
+  const shownCombatWindowKeyRef = useRef<string | undefined>(undefined);
+  /** The combat-prompt window this seat already answered, so a slow round trip or a window the
+   * server closed without its own resolved event cannot leave a stale prompt clickable a second
+   * time — mirrors `shownCombatWindowKeyRef` but is cleared the moment the window is genuinely
+   * gone (whether we answered it or the server moved on), not just once we've shown it. */
+  const answeredCombatWindowKeyRef = useRef<string | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -475,6 +485,15 @@ export function GameScreen({
     );
   };
 
+  // A block/counter/alliance/evade/barrier window is a question for this seat exactly like a
+  // `pendingDecision` is, but it answers through its own intent rather than the decision
+  // channel — computed here, ahead of `cues`, purely as the barrier's input signal (the actual
+  // per-kind payloads used to render the overlays are derived again below). The two can never
+  // both be open at once (the server never opens one of these while a decision is unanswered),
+  // so folding it into the same `decisionPending`/`decisionStateVersion` inputs below is safe.
+  const openCombatWindowForBarrier = state ? openCombatWindow(events, state, viewerSeat) : null;
+  const decisionPendingForViewer = decision?.seat === viewerSeat && decision.kind !== "mulligan";
+
   // Every cue the server provokes: sounds, panels, banners, the security clash,
   // the draw flights. The hook sequences them on the animation queue; this
   // component only renders what it reports.
@@ -487,10 +506,12 @@ export function GameScreen({
     collapseNarration: collapseNotices,
     // A security check the server stopped to ask the viewer something cannot close until it
     // is answered, so the cue sequence needs to know a question is waiting.
-    decisionPending: decision?.seat === viewerSeat && decision.kind !== "mulligan",
+    decisionPending: decisionPendingForViewer || openCombatWindowForBarrier !== null,
     // The barrier catches the presentation up to the board the question was asked about
     // before the prompt opens. An older server sends no revision, and no barrier is raised.
-    decisionStateVersion: decision?.seat === viewerSeat ? decision.stateVersion : undefined,
+    decisionStateVersion: decisionPendingForViewer
+      ? decision.stateVersion
+      : (openCombatWindowForBarrier?.stateVersion ?? undefined),
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
@@ -1243,20 +1264,20 @@ export function GameScreen({
   };
 
   // ----- derived block window (event-driven; shown only to the defender) -----
-  const blockWindow = activeBlockWindow(events, isMyTurn);
+  const blockWindowRaw = activeBlockWindow(events, isMyTurn);
 
   // §11-3 Counter Timing window: shown only to the defending (non-turn) seat.
-  const counterWindow = activeCounterWindow(events, viewerSeat, isMyTurn);
+  const counterWindowRaw = activeCounterWindow(events, viewerSeat, isMyTurn);
 
   // Alliance/Evade/Barrier prompts: shown only to the seat that controls permanentId.
   // Scanning backwards from the log tail; dismissed by combatResolved or phaseChanged.
-  const allianceWindow = (() => {
+  const allianceWindowRaw = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {
       const e = events[i]!;
       if (e.kind === "alliancePrompt") {
         const perm = findPermanentInState(state, e.permanentId);
         if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId, eligibleAllyIds: e.eligibleAllyIds };
+        return { permanentId: e.permanentId, eligibleAllyIds: e.eligibleAllyIds, stateVersion: e.stateVersion };
       }
       if (
         e.kind === "allianceResolved" ||
@@ -1269,13 +1290,13 @@ export function GameScreen({
     return null;
   })();
 
-  const evadeWindow = (() => {
+  const evadeWindowRaw = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {
       const e = events[i]!;
       if (e.kind === "evadePrompt") {
         const perm = findPermanentInState(state, e.permanentId);
         if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId };
+        return { permanentId: e.permanentId, stateVersion: e.stateVersion };
       }
       if (
         e.kind === "evadeResolved" ||
@@ -1288,13 +1309,13 @@ export function GameScreen({
     return null;
   })();
 
-  const barrierWindow = (() => {
+  const barrierWindowRaw = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {
       const e = events[i]!;
       if (e.kind === "barrierPrompt") {
         const perm = findPermanentInState(state, e.permanentId);
         if (perm?.controllerSeat !== viewerSeat) return null;
-        return { permanentId: e.permanentId };
+        return { permanentId: e.permanentId, stateVersion: e.stateVersion };
       }
       if (
         e.kind === "barrierResolved" ||
@@ -1306,6 +1327,53 @@ export function GameScreen({
     }
     return null;
   })();
+
+  // The barrier holds a combat-prompt window exactly like it holds a decision prompt (see
+  // `barrierHolds` below): the presentation is caught up to the board the question was asked
+  // about before the window opens, bounded by the same budget. `openCombatWindowForBarrier` is
+  // recomputed against the same live log the five `*WindowRaw` values above used, so they always
+  // agree on whether a window is open — only whether it may be SHOWN yet can differ.
+  const combatBarrierHolds =
+    cues.decisionBarrierPending &&
+    !decisionPendingForViewer &&
+    openCombatWindowForBarrier?.key !== shownCombatWindowKeyRef.current;
+  if (openCombatWindowForBarrier !== null && !combatBarrierHolds) {
+    shownCombatWindowKeyRef.current = openCombatWindowForBarrier.key;
+  }
+  // Once this seat has answered a window (or the server has otherwise moved past it without its
+  // own resolved event — e.g. the attack ended early), keep it off screen instead of leaving a
+  // stale, still-clickable prompt up until the next `phaseChanged` (the field bug this fixes:
+  // a second answer lands after the window is already moot). Cleared the moment the raw window
+  // itself closes, so a genuinely new prompt is never suppressed by an old answer.
+  if (openCombatWindowForBarrier === null) answeredCombatWindowKeyRef.current = undefined;
+  const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === key;
+
+  const blockWindow =
+    blockWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`block:${blockWindowRaw.attackerPermanentId}`)
+      ? blockWindowRaw
+      : null;
+  const counterWindow =
+    counterWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`counter:${counterWindowRaw.attackerPermanentId}`)
+      ? counterWindowRaw
+      : null;
+  const allianceWindow =
+    allianceWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`alliance:${allianceWindowRaw.permanentId}`)
+      ? allianceWindowRaw
+      : null;
+  const evadeWindow =
+    evadeWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`evade:${evadeWindowRaw.permanentId}`)
+      ? evadeWindowRaw
+      : null;
+  const barrierWindow =
+    barrierWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`barrier:${barrierWindowRaw.permanentId}`)
+      ? barrierWindowRaw
+      : null;
+  /** Mark the currently open combat window as answered, so it cannot render (or be clicked)
+   * again until a new one opens — call from every onBlock/onDecline/onActivate/onPass/onChoose/
+   * onAccept handler below, alongside dispatching the intent. */
+  const markCombatWindowAnswered = () => {
+    if (openCombatWindowForBarrier !== null) answeredCombatWindowKeyRef.current = openCombatWindowForBarrier.key;
+  };
 
   // ----- eligibility helpers -----
   // Every "can I do this?" answer below is the server's, read off the state it already
@@ -2071,8 +2139,14 @@ export function GameScreen({
             sourceCount: findPermanentInState(state, pid)?.stack.length ?? 0,
           }))}
           mustBlock={blockWindow.mustBlock}
-          onBlock={(pid) => (room ? intents.declareBlock(room, pid) : demoConnection?.acknowledgeBlockWindow?.(pid))}
-          onDecline={() => (room ? intents.declineBlock(room) : demoConnection?.acknowledgeBlockWindow?.())}
+          onBlock={(pid) => {
+            markCombatWindowAnswered();
+            room ? intents.declareBlock(room, pid) : demoConnection?.acknowledgeBlockWindow?.(pid);
+          }}
+          onDecline={() => {
+            markCombatWindowAnswered();
+            room ? intents.declineBlock(room) : demoConnection?.acknowledgeBlockWindow?.();
+          }}
         />
       ) : null}
 
@@ -2081,8 +2155,14 @@ export function GameScreen({
           attackerCardId={permCardId(state, counterWindow.attackerPermanentId)}
           eligibleCounters={counterWindow.eligibleCounters}
           getCardId={(instanceId) => instanceCardId(state, instanceId)}
-          onActivate={(instanceId, effectKey) => room && intents.respondCounter(room, instanceId, effectKey)}
-          onPass={() => room && intents.respondCounter(room)}
+          onActivate={(instanceId, effectKey) => {
+            markCombatWindowAnswered();
+            room && intents.respondCounter(room, instanceId, effectKey);
+          }}
+          onPass={() => {
+            markCombatWindowAnswered();
+            room && intents.respondCounter(room);
+          }}
         />
       ) : null}
 
@@ -2098,8 +2178,14 @@ export function GameScreen({
               sourceCount: permanent?.stack.length ?? 0,
             };
           })}
-          onChoose={(allyPid) => room && intents.respondAlliance(room, allyPid)}
-          onPass={() => room && intents.respondAlliance(room)}
+          onChoose={(allyPid) => {
+            markCombatWindowAnswered();
+            room && intents.respondAlliance(room, allyPid);
+          }}
+          onPass={() => {
+            markCombatWindowAnswered();
+            room && intents.respondAlliance(room);
+          }}
         />
       ) : null}
 
@@ -2107,8 +2193,14 @@ export function GameScreen({
         <EvadeOverlay
           permanentId={evadeWindow.permanentId}
           getCardId={(pid) => permCardId(state, pid)}
-          onAccept={() => room && intents.respondEvade(room, evadeWindow.permanentId, true)}
-          onDecline={() => room && intents.respondEvade(room, evadeWindow.permanentId, false)}
+          onAccept={() => {
+            markCombatWindowAnswered();
+            room && intents.respondEvade(room, evadeWindow.permanentId, true);
+          }}
+          onDecline={() => {
+            markCombatWindowAnswered();
+            room && intents.respondEvade(room, evadeWindow.permanentId, false);
+          }}
         />
       ) : null}
 
@@ -2116,8 +2208,14 @@ export function GameScreen({
         <BarrierOverlay
           permanentId={barrierWindow.permanentId}
           getCardId={(pid) => permCardId(state, pid)}
-          onAccept={() => room && intents.respondBarrier(room, barrierWindow.permanentId, true)}
-          onDecline={() => room && intents.respondBarrier(room, barrierWindow.permanentId, false)}
+          onAccept={() => {
+            markCombatWindowAnswered();
+            room && intents.respondBarrier(room, barrierWindow.permanentId, true);
+          }}
+          onDecline={() => {
+            markCombatWindowAnswered();
+            room && intents.respondBarrier(room, barrierWindow.permanentId, false);
+          }}
         />
       ) : null}
 

@@ -195,6 +195,43 @@ describe("GameEngine.applyIntent — block wiring", () => {
     expect(s.state.players[1]?.trash.length).toBeGreaterThanOrEqual(1);
   });
 
+  it("rejects endPhase while a block window is open, even with no pending decision", async () => {
+    // The turn player must not be able to end the turn (voluntarily or via a stray
+    // endPhase intent) while the defending seat still owes a block response — the
+    // block window is a plain intent, not a `pendingDecision`, so `endPhase`'s
+    // decision-pending gate alone does not cover it (see IntentRouterDeps.isAttacking).
+    const s = setupEngine({
+      0: { battleArea: [{ card: DIGIMON_A, dp: 6000, as: "attacker" }] },
+      1: {
+        battleArea: [{ card: BLOCKER_CARD, dp: 2000, as: "blocker" }],
+        security: [DIGIMON_A],
+      },
+    });
+    const attacker = s.perm("attacker");
+    const blocker = s.perm("blocker");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 1000);
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.state.phase).toBe(Phase.Main);
+
+    // The window is still genuinely open: a late declareBlock still resolves the
+    // attack normally, proving nothing was silently abandoned server-side.
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => (s.state.players[1]?.battleArea.length ?? 1) === 0, 1000);
+    expect(s.state.players[1]?.battleArea).toHaveLength(0);
+  });
+
   it("still ends the turn when a combat effect throws after memory crossed", async () => {
     // The field repro (api.log 2026-08-20): an UnsupportedEffectError escaped combat
     // resolution AFTER an effect had pushed memory across. The success path's final

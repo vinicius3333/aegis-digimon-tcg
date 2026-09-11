@@ -19359,11 +19359,15 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     room: undefined,
     status: "connected",
     state: fixture.state,
-    events: !narrating
+    // Demo fixtures are plain ServerEvents (no live room stream to stamp them); synthesize the
+    // sequencing envelope so the shape matches what useRoom actually hands GameScreen. The
+    // values themselves are inert here — the demo has no batches for a stateVersion to gate.
+    events: (!narrating
       ? []
       : blockWindowAcknowledged
         ? (fixture.events ?? []).filter((event) => event.kind !== "blockWindowOpened")
-        : (fixture.events ?? []),
+        : (fixture.events ?? [])
+    ).map((event, index) => ({ ...event, seq: index + 1, batch: "demo", stateVersion: 0 })),
     decision,
     acknowledgeDecision: () => setDecision(undefined),
     acknowledgeBlockWindow: () => setBlockWindowAcknowledged(true),
