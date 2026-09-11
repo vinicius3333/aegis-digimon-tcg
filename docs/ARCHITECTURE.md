@@ -27,6 +27,11 @@ depend on either application, and the web application does not own game rules.
 5. Decisions pause effect resolution until the owning player responds.
 6. Colyseus synchronizes the resulting state and the server emits presentation
    events where appropriate.
+7. Every event carries `seq`, its `batch`, and the `stateVersion` it was emitted
+   under, and the room closes each batch with a `batchClosed` event. The server
+   never waits for the client: the client paces its own presentation from that
+   stream, drawing the board from the snapshot of the batch it has reached while
+   reading the live state for legality.
 
 The client never sends state replacements or decides whether an action is
 legal.

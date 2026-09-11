@@ -501,10 +501,30 @@ happen constantly; 2.4 s is a visible stall.
    changes are: hide the source node, show a centre-screen overlay, then reveal
    the destination node. This is much easier to build in React than
    FLIP-style zone-to-zone flight, and it is what makes the client legible.
-2. **Every wait is a real await.** the reference client's coroutines block the game loop, so the
-   animation cadence _is_ the pacing. If the web port fires animations
-   fire-and-forget, it will feel rushed even with identical durations. Drive the
-   sequence from an async queue in `GameScreen.tsx`.
+2. **Two clocks: the server resolves, the client narrates.** Every wait is a real
+   await on the animation queue, so the animation cadence _is_ the pacing. Fired
+   and forgotten, the same durations feel rushed. The rules that follow are what
+   the port settled on (docs/presentation-queue-plan.md):
+
+   - **Presented state.** The live state answers what is legal, so the player can
+     always act. The board draws from a presented snapshot instead: the board of
+     the batch the queue has reached (`apps/web/src/net/presentedState.ts`).
+   - **Moment tracks hold the board.** A step is a moment or it is decoration.
+     Moments — narration, the centre stage, the battle and its impact — hold the
+     board at their own revision, so a permanent stays on screen while the clause
+     that deleted it is read out. Decoration — flights, pulses, bursts — draws
+     over whatever board is up and never freezes it.
+   - **Two budgets, so nothing can stall.** The board catches up regardless after
+     `PRESENTED_BOARD_BUDGET_MS` (5 s). A prompt for the viewer opens after
+     `PLAY_LEAD_IN_BUDGET_MS` at the latest, whatever the queue still had to say.
+     A beat that never runs can never leave a player unable to act.
+   - **A shown prompt is never withdrawn.** Once a decision is on screen it stays
+     until it is answered. The queue waits for the prompt, never the reverse.
+   - **One moment per slot.** Notices and panels are one narration track. A
+     portrait phone presents one item in a centred slot; desktop and landscape
+     keep two corners, `narration-you` and `narration-opp`, one item each. A tap
+     advances; the desktop skip button fast-forwards.
+
 3. **Colour-keyed bursts are one component.** `Green/Red/Blue/Yellow/Purple/Black/White`
    → a single `.battle-color-burst[data-color]`, reused at: permanent enters play,
    permanent destroyed, security shattered, security card destroyed.
