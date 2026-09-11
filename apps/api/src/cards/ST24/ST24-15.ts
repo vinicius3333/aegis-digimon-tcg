@@ -21,7 +21,11 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
+              nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+            },
             raw: "you have a card w/[DATA SQUAD] trait",
           },
         },

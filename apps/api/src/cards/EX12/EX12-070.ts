@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [{ tokens: ["TB"], match: "trait" }],
             },
             raw: "you have a card w/[TB] trait",

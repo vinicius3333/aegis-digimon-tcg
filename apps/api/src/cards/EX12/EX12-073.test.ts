@@ -95,19 +95,26 @@ describe("EX12-073 Giant Meat", () => {
     });
   });
 
-  // CR 3-4-7-8: information on breeding-area cards can't be referenced unless the effect names
-  // the breeding area, and its printed example is exactly a trait-based colour waiver. The
-  // printed ＜Use Req.＞ names no breeding area, so an [ME] Digimon there does not enable it.
-  it("is not enabled by an [ME] trait Digimon in the breeding area (CR 3-4-7-8)", async () => {
-    const s = setupEngine({
-      0: { breeding: { card: "EX12-008", as: "meInBreeding" }, hand: [{ card: CARD_ID, as: "giantMeat" }] },
-    });
+  // CR 3-4-6: "the field" (what CR 16-42-3 scopes ＜Use Req.＞ to) is the battle area AND the
+  // breeding area — unlike free-text pre-keyword colour-requirement waivers (CR 3-4-7-8, e.g.
+  // EX7-074/LIBERATOR), which can't reference breeding-area info at all. So a matching-trait
+  // Digimon in the breeding area does satisfy this keyword's requirement.
+  it("is enabled by an [ME] trait Digimon in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX12-008", as: "meInBreeding" },
+          hand: [{ card: CARD_ID, as: "giantMeat" }],
+          deck: ["EX12-038", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantMeat").instanceId })).toEqual({
-      ok: false,
-      reason: "color-requirement-unmet",
+      ok: true,
     });
   });
 

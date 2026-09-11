@@ -17,7 +17,7 @@ describe("BT25-093 Ignition Flare", () => {
           kind: "WaiveColorRequirement",
           condition: {
             kind: "youHave",
-            filter: { zone: "battleArea", kind: ["Digimon", "Tamer"] },
+            filter: { zone: ["battleArea", "breeding"], kind: ["Digimon", "Tamer"] },
           },
         },
       ],
@@ -37,32 +37,48 @@ describe("BT25-093 Ignition Flare", () => {
     });
   });
 
-  it("does not treat a breeding TS Digimon or a TS Option as the field Use Req.", async () => {
-    for (const players of [
+  // CR 3-4-6: "the field" (what CR 16-42-3 scopes <Use Req.> to) is the battle area AND the
+  // breeding area, so a TS Digimon in breeding satisfies it. A TS Option placed in the battle
+  // area still doesn't (it's not a Digimon or Tamer — CR 16-42-3 names only those two kinds).
+  it("is enabled by a breeding TS Digimon but not by a TS Option in the battle area", async () => {
+    const breeding = setupEngine(
       {
         0: {
           breeding: { card: "BT25-034", as: "breedingTs" },
           hand: [{ card: CARD_ID, as: "flare" }],
         },
       },
-      {
-        0: {
-          battleArea: [{ card: "BT25-094", as: "tsOption" }],
-          hand: [{ card: CARD_ID, as: "flare" }],
-        },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    breeding.state.memory = 5;
+    await breeding.ready();
+    expect(
+      breeding.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: breeding.inst("flare").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+
+    const optionOnly = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-094", as: "tsOption" }],
+        hand: [{ card: CARD_ID, as: "flare" }],
       },
-    ]) {
-      const s = setupEngine(players);
-      s.state.memory = 5;
-      await s.ready();
-      expect(
-        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flare").instanceId, useAs: "option" } as never),
-      ).toEqual({
-        ok: false,
-        reason: "color-requirement-unmet",
-      });
-      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
-    }
+    });
+    optionOnly.state.memory = 5;
+    await optionOnly.ready();
+    expect(
+      optionOnly.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: optionOnly.inst("flare").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(optionOnly.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
   });
 
   it("cannot be used without the printed color requirement or an effective TS permanent", async () => {

@@ -96,7 +96,15 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: ts } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          // CR 16-42-3/3-4-6: <Use Req.> reaches the breeding area (unlike the leave-
+          // prevention `ts` filter above, which is a battle-area-only replacement effect) —
+          // spread separately here rather than adding `zone` to the shared `ts` const.
+          condition: { kind: "youHave", filter: { ...ts, zone: ["battleArea", "breeding"] } },
+        },
+      ],
     },
     {
       trigger: "Main",

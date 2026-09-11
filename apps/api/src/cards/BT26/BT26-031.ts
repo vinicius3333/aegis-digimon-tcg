@@ -2,8 +2,11 @@ import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
+// CR 16-42-3/3-4-6: <Use Req.> is satisfied by a matching Digimon/Tamer anywhere on "the
+// field", which includes the breeding area (unlike free-text pre-keyword waivers, CR 3-4-7-8).
 const glowingDawn = {
   controller: "mine",
+  zone: ["battleArea", "breeding"],
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 } satisfies Filter;
 const recovery = [

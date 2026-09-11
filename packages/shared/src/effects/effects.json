@@ -102580,6 +102580,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
               },
               "raw": "you have a card w/[Glowing Dawn] trait"
@@ -103683,6 +103684,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
               },
               "raw": "you have a card w/[Glowing Dawn] trait"
@@ -106178,6 +106180,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
               },
               "raw": "you have a card w/[Three Musketeers] in text"
@@ -106909,7 +106912,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
               },
@@ -107441,7 +107444,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
               },
@@ -107631,7 +107634,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
               },
@@ -107678,7 +107681,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
               }
@@ -108090,7 +108093,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
               },
@@ -147340,7 +147343,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }]
+              },
               "raw": "you have a card w/[VB] trait"
             }
           }
@@ -148700,7 +148707,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DS"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DS"], "match": "trait" }]
+              },
               "raw": "you have a card w/[DS] trait"
             }
           }
@@ -150349,7 +150360,7 @@
             "condition": {
               "kind": "youHave",
               "filter": {
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["NSp"], "match": "trait" }]
               },
@@ -152047,7 +152058,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }]
+              },
               "raw": "you have a card w/[VB] trait"
             }
           }
@@ -152134,7 +152149,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["TB"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["TB"], "match": "trait" }]
+              },
               "raw": "you have a card w/[TB] trait"
             }
           }
@@ -152214,6 +152233,7 @@
               "kind": "youHave",
               "filter": {
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["SW"], "match": "trait" }]
               },
@@ -152300,6 +152320,7 @@
               "kind": "youHave",
               "filter": {
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["ME"], "match": "trait" }]
               },
@@ -152385,6 +152406,7 @@
               "kind": "youHave",
               "filter": {
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["NSp", "DS", "NSo", "WG", "ME", "VB"], "match": "trait" }]
               },
@@ -152436,6 +152458,7 @@
               "kind": "youHave",
               "filter": {
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Shambala"], "match": "trait" }]
               },
@@ -152535,6 +152558,7 @@
               "kind": "youHave",
               "filter": {
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "nameOrTrait": [{ "tokens": ["Shambala"], "match": "trait" }]
               },
@@ -201706,6 +201730,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
               },
               "raw": "you have a card w/[DATA SQUAD] trait"
@@ -201756,6 +201781,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
               },
               "raw": "you have a card w/[Glowing Dawn] trait"
@@ -201804,7 +201830,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Maquinamon"], "match": "text" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["Maquinamon"], "match": "text" }]
+              },
               "raw": "you have a card w/[Maquinamon] in text"
             }
           }
@@ -201889,7 +201919,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
+              },
               "raw": "you have a card w/[CS] trait"
             }
           }
@@ -202325,7 +202359,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }]
+              },
               "raw": "you have a card w/[DM] trait"
             }
           }
@@ -212843,7 +212881,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["BEATBREAK"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["BEATBREAK"], "match": "trait" }]
+              },
               "raw": "you have a card w/[BEATBREAK] trait"
             }
           }
@@ -213227,7 +213269,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["BEATBREAK"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["BEATBREAK"], "match": "trait" }]
+              },
               "raw": "you have a card w/[BEATBREAK] trait"
             }
           }
@@ -213851,6 +213897,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
               },
               "raw": "you have a card w/[DATA SQUAD] trait"
@@ -214507,6 +214554,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
               },
               "raw": "you have a card w/[DATA SQUAD] trait"
@@ -217688,6 +217736,7 @@
             "source": "deck",
             "amount": 1,
             "optional": true,
+            "raw": "By returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞.",
             "cost": {
               "kind": "return",
               "target": {
@@ -217727,6 +217776,7 @@
             "source": "deck",
             "amount": 1,
             "optional": true,
+            "raw": "By returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞.",
             "cost": {
               "kind": "return",
               "target": {
@@ -217766,6 +217816,7 @@
             "source": "deck",
             "amount": 1,
             "optional": true,
+            "raw": "By returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞.",
             "cost": {
               "kind": "return",
               "target": {
@@ -219074,7 +219125,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -219221,7 +219276,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -219368,7 +219427,8 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon", "Tamer"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                "zone": ["battleArea", "breeding"]
               }
             }
           }
@@ -221025,7 +221085,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }] }
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -221507,7 +221571,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -221596,7 +221664,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -223015,7 +223087,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -223698,7 +223774,11 @@
             "kind": "WaiveColorRequirement",
             "condition": {
               "kind": "youHave",
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] }
+              "filter": {
+                "controller": "mine",
+                "zone": ["battleArea", "breeding"],
+                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+              }
             }
           }
         ]
@@ -224802,6 +224882,7 @@
             },
             "optional": true,
             "abortOnDecline": true,
+            "raw": "By trashing 1 [TS] trait card from your hand, ＜Draw 1＞ and gain 1 memory.",
             "actions": [
               { "kind": "Draw", "controller": "mine", "amount": 1 },
               { "kind": "GainMemory", "amount": 1 }
@@ -225479,7 +225560,8 @@
               "filter": {
                 "controller": "mine",
                 "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }],
-                "kind": ["Digimon", "Tamer"]
+                "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"]
               }
             }
           }
@@ -225656,7 +225738,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
               }
@@ -225794,6 +225876,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Seven Code"], "match": "trait" }]
               }
             }

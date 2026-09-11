@@ -11,7 +11,11 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
+              nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+            },
             raw: "you have a card w/[Glowing Dawn] trait",
           },
         },

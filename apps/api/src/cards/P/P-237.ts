@@ -25,7 +25,11 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
+              nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }],
+            },
             raw: "you have a card w/[Maquinamon] in text",
           },
         },

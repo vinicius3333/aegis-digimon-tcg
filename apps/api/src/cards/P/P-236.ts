@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {
                   tokens: ["Glowing Dawn"],

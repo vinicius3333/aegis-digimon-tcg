@@ -30,7 +30,7 @@ describe("EX12-052 Diarbbitmon", () => {
             condition: {
               kind: "youHave",
               filter: {
-                zone: "battleArea",
+                zone: ["battleArea", "breeding"],
                 controllerDefault: "mine",
                 nameOrTrait: [{ tokens: ["NSp"], match: "trait" }],
               },

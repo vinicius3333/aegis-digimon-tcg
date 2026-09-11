@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              zone: "battleArea",
+              zone: ["battleArea", "breeding"],
               controllerDefault: "mine",
               nameOrTrait: [{ tokens: ["NSp"], match: "trait" }],
             },

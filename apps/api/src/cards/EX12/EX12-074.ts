@@ -32,11 +32,16 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               // CR 16-42-3: ＜Use Req.＞ lets a player ignore the color requirements with the
-              // specified DIGIMON AND/OR TAMERS on the field. Without this kind gate the
-              // youHave count also accepted a matching OPTION permanent — reachable in EX12,
+              // specified DIGIMON AND/OR TAMERS on the field. CR 3-4-6 defines "the field" as
+              // BOTH the battle area and the breeding area, so — unlike free-text pre-keyword
+              // color-requirement waivers (CR 3-4-7-8, e.g. EX7-074/LIBERATOR), which can't
+              // reference breeding-area info at all — the keyworded ＜Use Req.＞ is satisfied by
+              // a matching Digimon sitting in the breeding area too. Without the kind gate below
+              // the youHave count also accepted a matching OPTION permanent — reachable in EX12,
               // where Options such as this one are PLACED IN THE BATTLE AREA and keep their
               // traits, so one resident Option wrongly satisfied the next one's Use Req.
               kind: ["Digimon", "Tamer"],
+              zone: ["battleArea", "breeding"],
               controllerDefault: "mine",
               nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }],
             },

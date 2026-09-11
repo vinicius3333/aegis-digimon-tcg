@@ -180,7 +180,10 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  it("requires a DATA SQUAD Digimon or Tamer in the battle area for Use Req.", async () => {
+  // CR 3-4-6: "the field" (what CR 16-42-3 scopes <Use Req.> to) is the battle area AND the
+  // breeding area, so a breeding DATA SQUAD Digimon satisfies it. A DATA SQUAD Option placed
+  // in the battle area still doesn't (it's not a Digimon or Tamer).
+  it("is enabled by a breeding DATA SQUAD Digimon but not by a DATA SQUAD Option in the battle area", async () => {
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -190,7 +193,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
               kind: "WaiveColorRequirement",
               condition: expect.objectContaining({
                 kind: "youHave",
-                filter: expect.objectContaining({ zone: "battleArea", kind: ["Digimon", "Tamer"] }),
+                filter: expect.objectContaining({ zone: ["battleArea", "breeding"], kind: ["Digimon", "Tamer"] }),
               }),
             }),
           ],
@@ -198,21 +201,38 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       ]),
     );
 
-    for (const board of [
-      { breeding: { card: "BT25-021", as: "breedingDataSquad" } },
-      { battleArea: [{ card: "ST24-15", as: "dataSquadOption" }] },
-    ]) {
-      const s = setupEngine({ 0: { ...board, hand: [{ card: "BT25-104", as: "option" }] } });
-      s.state.memory = 6;
-      await s.ready();
-      expect(
-        s.engine.applyIntent(0, {
-          type: "playCard",
-          instanceId: s.inst("option").instanceId,
-          useAs: "option",
-        } as never),
-      ).toEqual({ ok: false, reason: "color-requirement-unmet" });
-    }
+    const breeding = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT25-021", as: "breedingDataSquad" },
+          hand: [{ card: "BT25-104", as: "option" }],
+        },
+        1: { battleArea: [{ card: "AD1-001", dp: 10000, as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    breeding.state.memory = 6;
+    await breeding.ready();
+    expect(
+      breeding.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: breeding.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+
+    const optionOnly = setupEngine({
+      0: { battleArea: [{ card: "ST24-15", as: "dataSquadOption" }], hand: [{ card: "BT25-104", as: "option" }] },
+    });
+    optionOnly.state.memory = 6;
+    await optionOnly.ready();
+    expect(
+      optionOnly.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: optionOnly.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("activates the Option-side Main effect from When Digivolving", async () => {

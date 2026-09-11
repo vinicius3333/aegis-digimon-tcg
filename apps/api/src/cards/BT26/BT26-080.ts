@@ -3,7 +3,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const anyDigimon: Target = { filter: { kind: ["Digimon"] }, count: 1 };
-const ts: Filter = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+// CR 16-42-3/3-4-6: <Use Req.> is satisfied by a matching Digimon/Tamer anywhere on "the
+// field", which includes the breeding area (unlike free-text pre-keyword waivers, CR 3-4-7-8).
+const ts: Filter = {
+  controller: "mine",
+  zone: ["battleArea", "breeding"],
+  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+};
 const bacchusmon: Filter = {
   controller: "mine",
   kind: ["Digimon"],

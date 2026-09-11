@@ -7,7 +7,13 @@ const playable = {
   zone: "hand",
   nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }],
 } satisfies Filter;
-const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } satisfies Filter;
+// CR 16-42-3/3-4-6: <Use Req.> is satisfied by a matching Digimon/Tamer anywhere on "the
+// field", which includes the breeding area (unlike free-text pre-keyword waivers, CR 3-4-7-8).
+const ts = {
+  controller: "mine",
+  zone: ["battleArea", "breeding"],
+  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+} satisfies Filter;
 const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] } satisfies Filter;
 const ceresmon = {
   controller: "mine",
