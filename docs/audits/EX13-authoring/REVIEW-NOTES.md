@@ -93,6 +93,34 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   `UseOptionWithoutCostAction`, wire it into `totalReduction` and
   `costDelta`.
 
+- `settle(predicate)` can return mid-resolution: after it settles on a
+  count predicate (e.g. `trash.length === 1`), add a bare `await settle()`
+  before asserting a final count, or an effect that produces more than
+  expected can slip past the first settle undetected.
+- `peelStackTops` (a repeated De-Digivolve) has a `levelFloor = 3` — it
+  stops once a level-3 card is on top. "De-Digivolve 1" vs "De-Digivolve
+  2" is only behaviourally distinguishable when the promoted source card
+  is level 4+; a stack of level-3 sources makes both amounts look
+  identical.
+
+- `requiresMinRevealed` on a `RevealAdd` slot is only safe when every slot
+  shares ONE filter. `reveal.ts` counts matches of a slot's OWN filter
+  over the full revealed set — on a two-slot reveal with distinct filters
+  (e.g. one text-only slot, one name-exact slot), a `requiresMinRevealed`
+  on the name slot wrongly skips the common "one text-only + one named"
+  case the printed sentence is meant to cover. Don't copy the EX13-027/
+  BT24-066 pattern onto a two-distinct-filter reveal.
+
+- An `attack` intent's target accepts a wrong `kind` string (e.g.
+  `"digimon"`) without a typecheck error and without the intent failing —
+  it silently no-ops the attack. The correct discriminant is
+  `kind: "permanent"`. A test asserting on the *outcome* of such an attack
+  can pass for the wrong reason; double check the intent actually landed.
+- A `[When Attacking]` proof needs a security card whose own DP and
+  effects don't interfere with the assertion — a high-DP or Security-
+  effect card can delete the attacker or open an extra decision. Prefer a
+  low-DP, no-effect fixture (e.g. BT1-011) over an arbitrary one.
+
 ## Harness notes (not engine gaps, just non-obvious)
 
 - ＜Counter＞ opens **before** the block window when the host is attacked;
@@ -131,6 +159,19 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   manual §1 can be read either way. Assert only the unambiguous half of a
   decline until this is settled; don't claim it as an engine gap.
 
+- **Correction (superseding an earlier note in this file):** a `Static`
+  effect's `keywords` entry is NOT decorative. `effect.ts` (~line 620)
+  turns it into a self-targeted `GainKeyword` action that grants the
+  keyword through the continuous ledger; combat legality
+  (`hasBlocker`/`hasVortex`/`hasRush` etc. in `combat/legality.ts`) checks
+  that ledger grant FIRST and only falls back to regex-parsing
+  `effectText` (`hasPrintedKeyword`) if the ledger has nothing. Whether
+  deleting the IR entry breaks a test therefore depends on whether the
+  regex fallback happens to also parse that card's specific printed text
+  correctly — it did for one EX13 card and did not for another. Always
+  keep the `Static` keyword IR entry; do not treat it as redundant with
+  printed text, and mutation-test it per card rather than assuming the
+  prior finding generalizes.
 - `[Rule] Trait: Has [X] Type.` is already satisfied purely from printed
   text — `staticTraitsOf` (`apps/api/src/engine/cards/cardData.ts:299`)
   regex-parses it out of `effectText` directly. A `GrantStatic` IR effect
