@@ -102,6 +102,8 @@ const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
   BT25: { date: "2026-05-22", label: "BT25" },
   EX12: { date: "2026-07-03", label: "EX12" },
   BT26: { date: "2026-09-04", label: "BT26" },
+  // Announced, not yet in stores as of this table's last verification (2026-09-11).
+  EX13: { date: "2026-10-02", label: "EX13" },
 };
 
 /**
@@ -164,6 +166,9 @@ const PROMO_PRODUCTS: ReadonlyArray<Readonly<PromoProduct>> = [
   { date: "2026-02-13", cardIds: "227 228 229 230 231 232" }, // EX11 Box Topper
   { date: "2026-04-01", cardIds: "233 234 235 236 237 238" }, // Store Tournament 2026 Vol. 2
   { date: "2026-06-01", cardIds: "239 240 241 242 243 244" }, // Store Tournament 2026 Vol. 3
+  // Announced (event window 2026-10-01–12-31), not yet distributed as of this table's
+  // last verification (2026-09-11).
+  { date: "2026-10-01", cardIds: "245 246 247 248 249 250" }, // Store Tournament 2026 Vol. 4
 ];
 
 const PROMO_RELEASE_DATES: Readonly<Record<string, ReleaseDate>> = Object.freeze(
