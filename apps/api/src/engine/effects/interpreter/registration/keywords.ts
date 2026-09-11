@@ -27,6 +27,7 @@ type TamerBaseColor = NonNullable<DigivolutionRequirement["baseColors"]>[number]
 export function trainingActivatedEffect(isBreeding = false): CardEffect {
   return {
     trigger: "Main",
+    description: "＜Training＞: by suspending this Digimon during the main phase, place the top card of your deck at the bottom of this Digimon's digivolution cards.",
     ...(isBreeding ? { isBreeding: true } : {}),
     actions: [
       {
@@ -49,6 +50,7 @@ export function trainingActivatedEffect(isBreeding = false): CardEffect {
 export function engageActivatedEffect(): CardEffect {
   return {
     trigger: "EndOfYourTurn",
+    description: "＜Engage＞: at the end of this turn, this Digimon may attack.",
     actions: [
       {
         kind: "Attack",
@@ -64,6 +66,7 @@ export function vortexActivatedEffect(): CardEffect {
   return {
     trigger: "EndOfYourTurn",
     condition: { kind: "selfHasKeyword", keyword: "Vortex" },
+    description: "＜Vortex＞: at the end of this turn, this Digimon may attack.",
     actions: [
       {
         kind: "Attack",
@@ -124,6 +127,7 @@ export function declaresUnimplementedEngageKeyword(compiled: CompiledCard): bool
 export function overclockActivatedEffect(trait: string): CardEffect {
   return {
     trigger: "EndOfYourTurn",
+    description: `＜Overclock [${trait}]＞: at the end of this turn, by deleting 1 of your Tokens or other [${trait}] trait Digimon, this Digimon attacks a player without suspending.`,
     actions: [
       {
         kind: "Attack",
@@ -171,6 +175,8 @@ export function overclockActivatedEffect(trait: string): CardEffect {
 export function executeActivatedEffect(): CardEffect {
   return {
     trigger: "EndOfYourTurn",
+    description:
+      "＜Execute＞: at the end of this turn, this Digimon may attack (including an unsuspended opponent's Digimon). At the end of the attack, this Digimon is deleted.",
     actions: [
       {
         kind: "GrantCanAttackUnsuspended",
@@ -193,6 +199,7 @@ export function executeActivatedEffect(): CardEffect {
 export function executeDeleteEffect(): CardEffect {
   return {
     trigger: "EndOfAttack",
+    description: "＜Execute＞: at the end of the attack, this Digimon is deleted.",
     condition: {
       kind: "allOf",
       conditions: [{ kind: "triggerAttackBy", keyword: "Execute" }, { kind: "triggerAttackerIsSelf" }],

@@ -1024,4 +1024,42 @@ describe("§16-43 <Ascension> (comprehensive-0262)", () => {
     // EXPECTED (per §16-43-1): sitting atop security, NOT in the trash.
     expect(p0.security.some((c) => c.cardId === "BT25-034" && c.faceUp === false)).toBe(true);
   });
+
+  it("a sibling [On Deletion] effect still resolves when another Digimon deleted in the same batch ascends", async () => {
+    cite(
+      "comprehensive-0262",
+      "§16-43-1 <Ascension> only redirects the trashing of the card it's printed on; every " +
+        "other permanent simultaneously deleted keeps its own [On Deletion] reaction, since " +
+        "resolveDeletionReactions opens ONE OnDestroyedAnyone window over the whole batch.",
+    );
+
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const ascender = digimon(0, 5000, "BT25-034"); // printed <Ascension>, no own [On Deletion]
+    ascender.isSuspended = true;
+    p0.battleArea.push(ascender);
+    // Tie DP: attacker and defender both die in the SAME battle-deletion batch, so
+    // resolveDeletionReactions sees both instanceIds together — exactly the "two Digimon
+    // deleted, one has Ascension" shape from the bug report.
+    const attacker = digimon(1, 5000, "EX8-008"); // plain [On Deletion]: Gain 1 memory
+    p1.battleArea.push(attacker);
+    await s.engine.recomputeContinuousEffects();
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: ascender.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
+
+    // The ascender left the field either way (ascended to security or trashed); the
+    // sibling, untouched by Ascension, must still have its [On Deletion] Gain 1 memory
+    // resolve for the batch's OnDestroyedAnyone window.
+    expect(s.state.memory).not.toBe(0);
+  });
 });

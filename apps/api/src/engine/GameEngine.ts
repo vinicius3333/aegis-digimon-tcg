@@ -2620,30 +2620,41 @@ export class GameEngine {
       }
     };
 
-    const candidate = ascensionCandidates.find(({ instanceId }) => {
+    // Every simultaneously-deleted Ascension candidate that ALSO prints its own [On Deletion]
+    // needs its own ascend-vs-on-deletion ordering choice (§15-4-3-4/-3-5) — not just the
+    // first one found. A second such candidate in the same batch previously fell through to
+    // the plain `ascend()` loop below with no ordering choice at all, always resolving its
+    // own [On Deletion] (inside the single shared `fire`) before it could ever be asked to
+    // ascend first.
+    const selfEffectCandidates = ascensionCandidates.filter(({ instanceId }) => {
       const card = this.findLooseInstance(instanceId);
       return card !== undefined && definitionOf(card).effectText?.includes("[On Deletion]") === true;
     });
-    if (candidate === undefined) {
+    if (selfEffectCandidates.length === 0) {
       await fire(trigger);
       for (const pending of ascensionCandidates) await ascend(pending);
       return;
     }
 
-    const ascensionKey = `ascension/${candidate.instanceId}`;
-    const onDeletionKey = `on-deletion/${candidate.instanceId}`;
-    const response = await this.decisions.request({
-      seat: candidate.seat,
-      kind: "orderTriggers",
-      promptText: "Choose whether to activate ＜Ascension＞ or [On Deletion] first.",
-      options: { triggerKeys: [ascensionKey, onDeletionKey] },
-    });
-    const ascensionFirst = response.kind === "orderTriggers" && response.order[0] === ascensionKey;
-    if (ascensionFirst) await ascend(candidate);
+    const ascendBeforeFire: { instanceId: string; seat: Seat }[] = [];
+    const ascendAfterFire: { instanceId: string; seat: Seat }[] = [];
+    for (const candidate of selfEffectCandidates) {
+      const ascensionKey = `ascension/${candidate.instanceId}`;
+      const onDeletionKey = `on-deletion/${candidate.instanceId}`;
+      const response = await this.decisions.request({
+        seat: candidate.seat,
+        kind: "orderTriggers",
+        promptText: "Choose whether to activate ＜Ascension＞ or [On Deletion] first.",
+        options: { triggerKeys: [ascensionKey, onDeletionKey] },
+      });
+      const ascensionFirst = response.kind === "orderTriggers" && response.order[0] === ascensionKey;
+      (ascensionFirst ? ascendBeforeFire : ascendAfterFire).push(candidate);
+    }
+    for (const candidate of ascendBeforeFire) await ascend(candidate);
     await fire(trigger);
-    if (!ascensionFirst) await ascend(candidate);
+    for (const candidate of ascendAfterFire) await ascend(candidate);
     for (const pending of ascensionCandidates) {
-      if (pending.instanceId !== candidate.instanceId) await ascend(pending);
+      if (!selfEffectCandidates.some(({ instanceId }) => instanceId === pending.instanceId)) await ascend(pending);
     }
   }
 
