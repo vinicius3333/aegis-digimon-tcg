@@ -19,7 +19,9 @@
 
    Every panel gets the same fixed reading time, exactly as the reference client
    does: the clock a panel starts with is never shortened by anything that
-   happens afterwards, so a panel always leaves on its own schedule. */
+   happens afterwards, so a panel always leaves on its own schedule. Since the
+   presentation queue took over, that clock starts when the queue reaches the
+   panel rather than when the server named it (narration.ts). */
 
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { TranslationKey } from "../i18n";
@@ -39,9 +41,6 @@ export const SIDE_PANEL_LIFETIME_MS = TIMINGS.sidePanelLifetime;
  * for 0.3 s inside a ~0.25 s open/close pair) rounded up to a readable glance.
  */
 export const ATTACK_ANNOUNCE_MS = TIMINGS.attackAnnounce;
-
-/** Two panels fit in one column without covering the board. */
-export const MAX_VISIBLE_SIDE_PANELS = 2;
 
 /** Cards moved in quick succession belong to one panel, numbered 1..n. */
 export const SIDE_PANEL_MERGE_WINDOW_MS = TIMINGS.sidePanelMergeWindow;
@@ -252,15 +251,16 @@ function sameSlot(a: SidePanel, b: SidePanel): boolean {
 }
 
 /**
- * Add a panel to the stack. A panel of the same title and side that is still
- * fresh absorbs the new cards and keeps counting from its own badge numbers;
- * an older one is replaced outright. Each side never grows past
- * MAX_VISIBLE_SIDE_PANELS — the oldest panel on that side makes room.
+ * Add a panel to the set one batch is about to narrate. A panel of the same title
+ * and side that is still fresh absorbs the new cards and keeps counting from its own
+ * badge numbers, so cards moved by one effect stay one panel; an older one is
+ * replaced outright. Nothing is dropped for want of room: the queue presents the set
+ * one item at a time (narration.ts), so there is no column left to overflow.
  */
 export function pushSidePanel(
   panels: readonly SidePanel[],
   incoming: SidePanel,
-  mergeWindowMs = SIDE_PANEL_MERGE_WINDOW_MS,
+  mergeWindowMs: number = SIDE_PANEL_MERGE_WINDOW_MS,
 ): SidePanel[] {
   const existing = panels.find((panel) => sameSlot(panel, incoming));
   if (existing) {
@@ -274,32 +274,10 @@ export function pushSidePanel(
         : incoming;
     return panels.map((panel) => (panel === existing ? merged : panel));
   }
-  const sameSide = panels.filter((panel) => panel.side === incoming.side);
-  const dropped = sameSide.length >= MAX_VISIBLE_SIDE_PANELS ? sameSide[0] : undefined;
-  return [...panels.filter((panel) => panel !== dropped), incoming];
+  return [...panels, incoming];
 }
 
 /** Milliseconds left on a panel's own clock, never negative. */
 export function sidePanelRemaining(panel: SidePanel, nowMs: number): number {
   return Math.max(0, panel.createdAt + SIDE_PANEL_LIFETIME_MS - nowMs);
-}
-
-/** Drop panels whose reading time has elapsed. */
-export function expireSidePanels(panels: readonly SidePanel[], nowMs: number): SidePanel[] {
-  return panels.filter((panel) => sidePanelRemaining(panel, nowMs) > 0);
-}
-
-/** The soonest a panel in the stack will expire, or null when the stack is empty. */
-export function nextSidePanelExpiry(panels: readonly SidePanel[], nowMs: number): number | null {
-  if (panels.length === 0) return null;
-  return Math.min(...panels.map((panel) => sidePanelRemaining(panel, nowMs)));
-}
-
-export function dismissSidePanel(panels: readonly SidePanel[], id: string): SidePanel[] {
-  return panels.filter((panel) => panel.id !== id);
-}
-
-/** The panels belonging to one column, oldest first. */
-export function sidePanelColumn(panels: readonly SidePanel[], side: SidePanelSide): SidePanel[] {
-  return panels.filter((panel) => panel.side === side).sort((a, b) => a.createdAt - b.createdAt);
 }

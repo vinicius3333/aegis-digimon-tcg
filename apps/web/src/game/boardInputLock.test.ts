@@ -20,8 +20,14 @@ describe("board input lock", () => {
 
   it("stands for as long as the check owns the screen", () => {
     expect(gameScreenSource).toMatch(/const boardLocked = securityRevealPending && !state\.gameOver;/);
+  });
+
+  it("also stands while the opponent's moment is being narrated, so a tap advances it", () => {
+    expect(gameScreenSource).toMatch(
+      /const inputLocked = boardLocked \|\| \(cues\.narrationLock && !state\.gameOver\);/,
+    );
     // Over the field and over the dock; never over the header, the log or surrender.
-    expect(gameScreenSource.match(/\{boardLocked \? <BoardInputLock \/> : null\}/g)).toHaveLength(2);
+    expect(gameScreenSource.match(/\{inputLocked \? <BoardInputLock \/> : null\}/g)).toHaveLength(2);
   });
 
   it("refuses every action the board can send while it stands", () => {

@@ -1,20 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import {
-  dismissNotice,
   effectNoticeFromEvent,
-  expireNotices,
+  isOwnEffectNotice,
   keywordNoticeFromEvent,
-  MAX_VISIBLE_NOTICES,
-  nextNoticeExpiry,
-  noticeAnchor,
-  noticeLifetime,
   noticeRemaining,
-  noticesAt,
-  NOTICE_CROWDED_LIFETIME_MS,
   NOTICE_LIFETIME_MS,
-  occupiedAnchors,
-  pushNotice,
   recoveryNoticeFromEvent,
   rejectionNotice,
   type MatchNotice,
@@ -119,70 +110,22 @@ describe("rejectionNotice", () => {
   });
 });
 
-describe("noticeAnchor", () => {
-  it("reads the viewer's effects from the bottom left and the opponent's from the top right", () => {
-    expect(noticeAnchor(notice({ side: "you" }))).toBe("bottom-left");
-    expect(noticeAnchor(notice({ side: "opp" }))).toBe("top-right");
-  });
-
-  it("mirrors a security effect away from the panel stack", () => {
-    expect(noticeAnchor(notice({ fromSecurity: true }), "right")).toBe("middle-left");
-    expect(noticeAnchor(notice({ fromSecurity: true }), "left")).toBe("middle-right");
-  });
-});
-
 describe("notice lifetimes", () => {
-  it("disperses a crowded stack faster", () => {
-    expect(noticeLifetime(2)).toBe(NOTICE_LIFETIME_MS);
-    expect(noticeLifetime(3)).toBe(NOTICE_CROWDED_LIFETIME_MS);
+  it("gives every notice the same reading time, whatever else is on screen", () => {
+    expect(noticeRemaining(notice({ createdAt: 0 }), 0)).toBe(NOTICE_LIFETIME_MS);
+    expect(noticeRemaining(notice({ createdAt: 0 }), 200)).toBe(NOTICE_LIFETIME_MS - 200);
   });
 
-  it("shortens every notice's clock once the third one arrives", () => {
-    const pair = [notice({ id: "a" }), notice({ id: "b" })];
-    expect(noticeRemaining(pair, pair[0]!, 0)).toBe(NOTICE_LIFETIME_MS);
-    const three = [...pair, notice({ id: "c" })];
-    expect(noticeRemaining(three, three[0]!, 0)).toBe(NOTICE_CROWDED_LIFETIME_MS);
-  });
-
-  it("drops a notice once its time is spent", () => {
-    const only = [notice({ createdAt: 0 })];
-    expect(expireNotices(only, NOTICE_LIFETIME_MS - 1)).toEqual(only);
-    expect(expireNotices(only, NOTICE_LIFETIME_MS)).toEqual([]);
-  });
-
-  it("reports the soonest expiry so one step can hold for the whole stack", () => {
-    expect(nextNoticeExpiry([], 0)).toBeNull();
-    expect(nextNoticeExpiry([notice({ createdAt: 0 }), notice({ id: "b", createdAt: 100 })], 100)).toBe(
-      NOTICE_LIFETIME_MS - 100,
-    );
+  it("never reports a negative remainder", () => {
+    expect(noticeRemaining(notice({ createdAt: 0 }), NOTICE_LIFETIME_MS + 500)).toBe(0);
   });
 });
 
-describe("pushNotice", () => {
-  it("drops the oldest past the visible maximum", () => {
-    const stack = [1, 2, 3, 4].reduce<MatchNotice[]>(
-      (acc, n) => pushNotice(acc, notice({ id: `n${n}`, createdAt: n })),
-      [],
-    );
-    expect(stack).toHaveLength(MAX_VISIBLE_NOTICES);
-    expect(stack.map((n) => n.id)).toEqual(["n2", "n3", "n4"]);
-  });
-});
-
-describe("dismissNotice", () => {
-  it("removes only the named notice", () => {
-    expect(dismissNotice([notice({ id: "a" }), notice({ id: "b" })], "a").map((n) => n.id)).toEqual(["b"]);
-  });
-});
-
-describe("grouping by anchor", () => {
-  it("lists each occupied anchor once, and its notices oldest first", () => {
-    const stack = [
-      notice({ id: "mine-new", side: "you", createdAt: 5 }),
-      notice({ id: "theirs", side: "opp", createdAt: 1 }),
-      notice({ id: "mine-old", side: "you", createdAt: 2 }),
-    ];
-    expect(occupiedAnchors(stack)).toEqual(["bottom-left", "top-right"]);
-    expect(noticesAt(stack, "bottom-left").map((n) => n.id)).toEqual(["mine-old", "mine-new"]);
+describe("isOwnEffectNotice", () => {
+  it("names the viewer's own clause for one card, and nobody else's", () => {
+    expect(isOwnEffectNotice(notice({ side: "you" }), "BT1-001")).toBe(true);
+    expect(isOwnEffectNotice(notice({ side: "you" }), "BT1-002")).toBe(false);
+    expect(isOwnEffectNotice(notice({ side: "opp" }), "BT1-001")).toBe(false);
+    expect(isOwnEffectNotice(notice({ body: { variant: "recovery", amount: 1 } }), "BT1-001")).toBe(false);
   });
 });

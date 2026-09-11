@@ -1,27 +1,22 @@
-/* The framed notices of the reference client: a blue corner-bracketed panel
+/* The framed notice of the reference client: a blue corner-bracketed panel
    carrying the clause that just resolved next to the art of the card that
-   resolved it, anchored to the corner belonging to whoever caused it.
+   resolved it.
 
-   The model, the anchoring and the clocks live in ./notices; this file only
-   draws them. Every notice wears the border that erodes clockwise as its
-   reading time runs out, and a close button for a player who has read it
-   already. */
+   One notice, not a stack: the presentation queue decides which moment a slot is
+   showing (narration.ts), and this file draws it. The name is kept because the
+   frame — the eroding border, the close button, the corner brackets — is the same
+   thing it always was.
+
+   The clause is always printed, on every layout. It is the one thing on the notice
+   the player cannot get from the board itself, and the phone's single slot now
+   shows one moment at a time, so there is room for it. */
 
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { CardLink, useCardOpener } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
-import {
-  noticeRemaining,
-  noticesAt,
-  noticesCollapsed,
-  occupiedAnchors,
-  type MatchNotice,
-  type NoticeAnchor,
-  type NoticeHorizontal,
-  type NoticeKeyword,
-} from "./notices";
+import { type MatchNotice, type NoticeKeyword } from "./notices";
 
 const NOTICE_THUMB_WIDTH = 46;
 
@@ -124,139 +119,62 @@ function RejectionNoticeBody({ reason }: { reason: string }) {
   );
 }
 
-function NoticeView({
+export function NoticeStack({
   notice,
   remainingMs,
+  held = false,
   onDismiss,
 }: {
   notice: MatchNotice;
+  /** What is left of the item's reading time, which is what the border erodes over. */
   remainingMs: number;
+  /** The clock is stopped (a decision is waiting), so the eroding border pauses with it. */
+  held?: boolean;
+  /** The close button, which advances to the next moment. */
   onDismiss: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const { body } = notice;
   return (
-    <article
-      className="match-notice"
-      data-variant={body.variant}
-      data-side={notice.side}
-      data-testid="match-notice"
-      role="status"
-      aria-live="polite"
-    >
-      {/* The clock a player can see: a ring that erodes clockwise over exactly the
-          time the queue is holding this notice for. */}
-      <span className="match-notice__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
-      {body.variant === "effect" ? (
-        <EffectNoticeBody
-          cardId={body.cardId}
-          timing={body.timing}
-          description={body.description}
-          isInherited={body.isInherited}
-        />
-      ) : body.variant === "recovery" || body.variant === "securityGain" ? (
-        <SecurityGainNoticeBody
-          amount={body.amount}
-          mine={notice.side === "you"}
-          recovery={body.variant === "recovery"}
-        />
-      ) : body.variant === "keyword" ? (
-        <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
-      ) : (
-        <RejectionNoticeBody reason={body.reason} />
-      )}
-      <button
-        className="match-notice__close"
-        type="button"
-        aria-label={t("notice.dismiss")}
-        onClick={() => onDismiss(notice.id)}
+    <div className="match-notice-stack" data-held={held || undefined} data-testid="match-notice-stack">
+      <article
+        className="match-notice"
+        data-variant={body.variant}
+        data-side={notice.side}
+        data-testid="match-notice"
+        role="status"
+        aria-live="polite"
       >
-        <span aria-hidden="true">×</span>
-      </button>
-    </article>
-  );
-}
-
-/** Which of the notices a stack draws: every one, or one of the two families. */
-export type NoticeFamily = "all" | "security" | "corners";
-
-function inFamily(notice: MatchNotice, family: NoticeFamily): boolean {
-  return family === "all" || (family === "security") === notice.fromSecurity;
-}
-
-export function NoticeStack({
-  notices,
-  family = "all",
-  panelSide = "right",
-  collapse = false,
-  held = false,
-  nowMs,
-  onDismiss,
-}: {
-  /** Every notice on screen, whichever family this stack draws: the clocks are shared. */
-  notices: readonly MatchNotice[];
-  /**
-   * The security notices ride the opponent's panel column while the rest keep their
-   * corners, so the board mounts the two families in two places and each stack draws
-   * only its own. The lifetime stays that of the whole set, so a split stack erodes on
-   * the same clock the hook expires it on.
-   */
-  family?: NoticeFamily;
-  /** Which half the timed side panels occupy, so security notices can mirror away from them. */
-  panelSide?: NoticeHorizontal;
-  /**
-   * Fold every anchor into one top-center band — the phone layout, where a
-   * corner-anchored notice landed on the hand or the field being read.
-   */
-  collapse?: boolean;
-  /** The clocks are stopped (a decision is waiting), so the eroding borders pause with them. */
-  held?: boolean;
-  /** Injected so the eroding borders start at the right point after a re-render. */
-  nowMs?: number;
-  onDismiss: (id: string) => void;
-}) {
-  const shown = notices.filter((notice) => inFamily(notice, family));
-  if (shown.length === 0) return null;
-  const now = nowMs ?? Date.now();
-  if (collapse) {
-    return (
-      <div
-        className="match-notice-stack"
-        data-anchor="top-center"
-        data-held={held || undefined}
-        data-testid="match-notice-stack"
-      >
-        {noticesCollapsed(shown).map((notice) => (
-          <NoticeView
-            key={notice.id}
-            notice={notice}
-            remainingMs={noticeRemaining(notices, notice, now)}
-            onDismiss={onDismiss}
+        {/* The clock a player can see: a ring that erodes clockwise over exactly the
+            time the queue is holding this item for. */}
+        <span className="match-notice__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
+        {body.variant === "effect" ? (
+          <EffectNoticeBody
+            cardId={body.cardId}
+            timing={body.timing}
+            description={body.description}
+            isInherited={body.isInherited}
           />
-        ))}
-      </div>
-    );
-  }
-  return (
-    <>
-      {occupiedAnchors(shown, panelSide).map((anchor: NoticeAnchor) => (
-        <div
-          className="match-notice-stack"
-          data-anchor={anchor}
-          data-held={held || undefined}
-          data-testid="match-notice-stack"
-          key={anchor}
+        ) : body.variant === "recovery" || body.variant === "securityGain" ? (
+          <SecurityGainNoticeBody
+            amount={body.amount}
+            mine={notice.side === "you"}
+            recovery={body.variant === "recovery"}
+          />
+        ) : body.variant === "keyword" ? (
+          <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
+        ) : (
+          <RejectionNoticeBody reason={body.reason} />
+        )}
+        <button
+          className="match-notice__close"
+          type="button"
+          aria-label={t("notice.dismiss")}
+          onClick={() => onDismiss(notice.id)}
         >
-          {noticesAt(shown, anchor, panelSide).map((notice) => (
-            <NoticeView
-              key={notice.id}
-              notice={notice}
-              remainingMs={noticeRemaining(notices, notice, now)}
-              onDismiss={onDismiss}
-            />
-          ))}
-        </div>
-      ))}
-    </>
+          <span aria-hidden="true">×</span>
+        </button>
+      </article>
+    </div>
   );
 }

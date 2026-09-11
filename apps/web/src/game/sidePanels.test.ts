@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DECK_BOTTOM, type Seat, type ServerEvent } from "@aegis/shared";
 import {
   attackAnnouncementFromEvent,
-  dismissSidePanel,
-  expireSidePanels,
-  MAX_VISIBLE_SIDE_PANELS,
-  nextSidePanelExpiry,
   pushSidePanel,
-  sidePanelColumn,
   sidePanelFromEvent,
   sidePanelRemaining,
   SIDE_PANEL_LIFETIME_MS,
@@ -236,15 +231,13 @@ describe("pushSidePanel", () => {
     expect(pushSidePanel([mine], theirs)).toHaveLength(2);
   });
 
-  it("never stacks more than the visible maximum in one column, dropping the oldest there", () => {
+  it("keeps every panel of the batch: the queue presents them one at a time, so nothing is dropped", () => {
     const a = panel({ id: "a", titleKey: "panel.discardedCards", createdAt: 0 });
     const b = panel({ id: "b", titleKey: "panel.deletedCards", createdAt: 1 });
     const c = panel({ id: "c", titleKey: "panel.revealedCards", createdAt: 2 });
     const theirs = panel({ id: "d", side: "opp", titleKey: "panel.playedCard", createdAt: 3 });
     const result = pushSidePanel(pushSidePanel(pushSidePanel([a], b), c), theirs);
-    expect(sidePanelColumn(result, "you")).toHaveLength(MAX_VISIBLE_SIDE_PANELS);
-    expect(sidePanelColumn(result, "you").map((p) => p.id)).toEqual(["b", "c"]);
-    expect(sidePanelColumn(result, "opp").map((p) => p.id)).toEqual(["d"]);
+    expect(result.map((p) => p.id)).toEqual(["a", "b", "c", "d"]);
   });
 });
 
@@ -262,34 +255,7 @@ describe("side panel lifetimes", () => {
     expect(sidePanelRemaining(newer, 2000)).toBe(SIDE_PANEL_LIFETIME_MS);
   });
 
-  it("keeps a panel for its full reading time and drops it after", () => {
-    const only = panel({ createdAt: 0 });
-    expect(expireSidePanels([only], SIDE_PANEL_LIFETIME_MS - 1)).toEqual([only]);
-    expect(expireSidePanels([only], SIDE_PANEL_LIFETIME_MS)).toEqual([]);
-  });
-
-  it("reports the soonest expiry so one step can hold for the whole stack", () => {
-    expect(nextSidePanelExpiry([], 0)).toBeNull();
-    const older = panel({ id: "a", createdAt: 0 });
-    const newer = panel({ id: "b", side: "opp", createdAt: 400 });
-    expect(nextSidePanelExpiry([older, newer], 400)).toBe(SIDE_PANEL_LIFETIME_MS - 400);
-  });
-});
-
-describe("dismissSidePanel", () => {
-  it("removes only the named panel", () => {
-    const a = panel({ id: "a" });
-    const b = panel({ id: "b", side: "opp" });
-    expect(dismissSidePanel([a, b], "a")).toEqual([b]);
-  });
-});
-
-describe("sidePanelColumn", () => {
-  it("returns one side's panels oldest first", () => {
-    const mineOld = panel({ id: "a", side: "you", createdAt: 1 });
-    const mineNew = panel({ id: "b", side: "you", titleKey: "panel.deletedCards", createdAt: 3 });
-    const theirs = panel({ id: "c", side: "opp", createdAt: 2 });
-    expect(sidePanelColumn([mineNew, mineOld, theirs], "you").map((p) => p.id)).toEqual(["a", "b"]);
-    expect(sidePanelColumn([mineNew, mineOld, theirs], "opp").map((p) => p.id)).toEqual(["c"]);
+  it("never reports a negative remainder", () => {
+    expect(sidePanelRemaining(panel({ createdAt: 0 }), SIDE_PANEL_LIFETIME_MS + 500)).toBe(0);
   });
 });

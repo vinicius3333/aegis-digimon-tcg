@@ -126,8 +126,6 @@ export const TIMINGS = {
   turnBanner: 620,
   /** How long a framed notice stays readable on its own. */
   noticeLifetime: 4200,
-  /** A crowded notice stack disperses on this shorter clock instead. */
-  noticeCrowdedLifetime: 2400,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
   /** How long one opponent action stays up in the corner feed. */

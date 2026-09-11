@@ -23,34 +23,36 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
-import { buildInstanceIndex, eventsAfter, otherSeat } from "./boardModel";
+import { buildInstanceIndex, otherSeat } from "./boardModel";
+import { batchesAfter, type ServerBatch } from "../net/serverBatches";
 import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents";
 import {
   attackAnnouncementFromEvent,
   buildInstanceSeatIndex,
-  dismissSidePanel,
-  expireSidePanels,
-  nextSidePanelExpiry,
-  pushSidePanel,
   sidePanelFromEvent,
   type AttackAnnouncement,
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
 import {
-  dismissNotice,
-  dismissOwnEffectNotices,
   effectNoticeFromEvent,
-  expireNotices,
+  isOwnEffectNotice,
+  noticeRemaining,
   keywordNoticeFromEvent,
-  nextNoticeExpiry,
-  pushNotice,
   recoveryNoticeFromEvent,
   rejectionNotice,
   securityGainNotice,
   securityGainNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
+import {
+  buildNarrationItems,
+  narrationReadingTime,
+  narrationSlot,
+  NARRATION_TICK_MS,
+  type NarrationItem,
+  type NarrationSlot,
+} from "./narration";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
@@ -77,7 +79,14 @@ import {
   type PermanentBurst,
   type ZoneShowcase,
 } from "./showcases";
-import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
+import {
+  createAnimationQueue,
+  type AnimationQueueMode,
+  type AnimationStep,
+  type AnimationStepContext,
+} from "./animationQueue";
+import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
+import { presentationTelemetry } from "./presentationTelemetry";
 import { cutInFromEvent, type DigivolutionCutIn } from "./cutIn";
 import { areCutInsEnabled } from "../design/cutIn";
 import {
@@ -159,6 +168,28 @@ const UNSUSPEND_SWEEP_MS = TIMINGS.suspendRotate + UNSUSPEND_SWEEP_SLOTS * TIMIN
 const CENTER_STAGE_TRACK = "centerStage";
 
 /**
+ * Whether a step is a MOMENT — something the viewer is being told — rather than decoration.
+ *
+ * Only a moment holds the board back (net/presentedState.ts): while a deletion's trigger is
+ * being read out, the board still shows the permanent it is about. Decoration (a draw
+ * flight, a DP pulse, a burst) is drawn over whatever board is on screen and must never
+ * freeze it, and the security dock waits on the server rather than on a reader, so it would
+ * freeze the board for as long as the check takes.
+ */
+const BOARD_HOLDING_TRACKS: readonly string[] = [
+  CENTER_STAGE_TRACK,
+  // The battle and the blow that ends it: the board stays the board the battle was fought
+  // on until it has been fought, whatever the server has resolved since.
+  "combatImpact",
+  "combatNotices",
+];
+
+function holdsTheBoard(step: AnimationStep): boolean {
+  const track = step.track ?? "";
+  return track.startsWith("narration") || BOARD_HOLDING_TRACKS.includes(track);
+}
+
+/**
  * The open-ended wait that keeps a `[Security]` card parked in its dock until the check
  * closes. It is deliberately NOT the centre-stage track: the dock stays up across whole
  * batches, and the cues the docked card's effect provokes must be able to follow its
@@ -192,10 +223,26 @@ export interface MatchCueAnchors {
 }
 
 export interface MatchCues {
+  /** The one moment each narration slot is presenting right now. */
+  narration: ReadonlyMap<NarrationSlot, NarrationItem>;
+  /** The viewer's own refused action: immediate, and outside the queue. */
+  rejection: MatchNotice | null;
+  dismissRejection: () => void;
+  /**
+   * Moves every slot on to its next moment. Returns false when there was nothing to
+   * advance, so the board's tap can fall through to the ordinary fast-forward.
+   */
+  advanceNarration: () => boolean;
+  /**
+   * An item from the opponent's batch is on screen, so the viewer's intents wait and a
+   * tap advances the narration instead (plan §6 decision 2). Bounded by the item's own
+   * reading time, and released with it whenever the queue is cleared.
+   */
+  narrationLock: boolean;
+  /** The side panels currently on screen, oldest slot first. A read-only view of {@link narration}. */
   sidePanels: readonly SidePanel[];
-  dismissPanel: (id: string) => void;
+  /** The notices currently on screen, the refusal included. A read-only view of {@link narration}. */
   notices: readonly MatchNotice[];
-  dismissNotice: (id: string) => void;
   /**
    * Drops the viewer's own effect notice for a card whose decision dialog is now open —
    * the dialog already names the card and prints the clause the notice would repeat.
@@ -219,13 +266,25 @@ export interface MatchCues {
    */
   securityRevealPending: boolean;
   /**
-   * A play the board is still explaining — the card held centre-stage under its
-   * DigiXros call-out, then the [On Play] clause that deleted something. A prompt
-   * those beats are the answer to must not open over them, but the board itself stays
-   * live: this is a wall clock capped at {@link PLAY_LEAD_IN_BUDGET_MS}, so a beat that
-   * never runs can never leave the viewer unable to answer.
+   * The viewer's prompt is waiting for the presentation to reach the board the question
+   * was asked about. The queue is fast-forwarding through the batches in between and the
+   * prompt opens as soon as it arrives, or at the latest after
+   * {@link PLAY_LEAD_IN_BUDGET_MS} — a beat that never runs can never leave the viewer
+   * unable to answer (docs/presentation-queue-plan.md 3.2, decision barrier).
    */
-  decisionHeldForPlay: boolean;
+  decisionBarrierPending: boolean;
+  /**
+   * The server revision the queue is presenting, or undefined when it is caught up and
+   * the live state is what to show. `GameScreen` renders the snapshot at this revision
+   * (net/presentedState.ts); interactivity keeps reading the live state.
+   */
+  presentedStateVersion: number | undefined;
+  /**
+   * The queue has something on screen to fast-forward: a moment is being read out, or the
+   * board is still held at an older revision than the live state. Desktop shows its skip
+   * button while this is set; a phone taps the board instead.
+   */
+  presenting: boolean;
   /** The player whose board the unsuspend phase is currently sweeping. */
   unsuspendSweep: UnsuspendSweep | null;
   /** Bursts left where permanents were deleted, in board coordinates. */
@@ -343,15 +402,18 @@ function buildCardSiteIndex(state: GameState): {
 }
 
 export function useMatchCues({
-  events,
+  batches,
   state,
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
+  collapseNarration = false,
+  decisionStateVersion,
   anchors,
   onActionRejected,
 }: {
-  events: readonly ServerEvent[];
+  /** The closed server batches, in order. One batch is one moment of the rules. */
+  batches: readonly ServerBatch[];
   state: GameState | undefined;
   viewerSeat: Seat;
   /** The opening hand and a mulligan redeal are dealt, not drawn. */
@@ -362,19 +424,49 @@ export function useMatchCues({
    * question is what releases a presentation still holding the screen (see below).
    */
   decisionPending?: boolean;
+  /** The portrait phone folds both narration corners into one centred slot. */
+  collapseNarration?: boolean;
+  /**
+   * The revision the viewer's open decision was raised at (`DecisionRequest.stateVersion`).
+   * The barrier fast-forwards the queue up to it before the prompt is shown, so the board
+   * the viewer answers over is the board the question was asked about.
+   */
+  decisionStateVersion?: number;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
 }): MatchCues {
-  const queue = useMemo(
-    () =>
-      createAnimationQueue({
-        onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
-      }),
+  // How far the presentation has got, in server revisions. Every step is counted into the
+  // batch it was enqueued for, so the board can be rendered from the snapshot of the batch
+  // the queue is actually presenting instead of from whatever the server has since resolved.
+  const [presentedStateVersion, setPresentedStateVersion] = useState<number | undefined>(undefined);
+  const publishPresentedRef = useRef<() => void>(() => {});
+  const progress = useMemo(
+    () => createPresentationProgress(() => publishPresentedRef.current(), presentationTelemetry),
     [],
   );
+  const queue = useMemo(() => {
+    const inner = createAnimationQueue({
+      onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
+    });
+    const counted = (step: AnimationStep): AnimationStep =>
+      // A replayed or drained step presents no moment of its own: reconnect history and a
+      // screen with no animation to watch both render the live board (presentedState.ts).
+      inner.getMode() !== "live" || step.mode === "replay" || !holdsTheBoard(step) ? step : progress.track(step);
+    return {
+      ...inner,
+      enqueue(step: AnimationStep | readonly AnimationStep[]) {
+        inner.enqueue(Array.isArray(step) ? step.map(counted) : counted(step as AnimationStep));
+        // An idle queue is the proof that nothing is left to present, whatever became of
+        // the steps — a track replaced before a step ever started runs no `finally`.
+        void inner.idle().then(() => progress.settle());
+      },
+    };
+  }, [progress]);
+  // Assigned on every render so the queue's bookkeeping always reaches the current setter.
+  publishPresentedRef.current = () => setPresentedStateVersion(progress.current());
 
-  const [sidePanels, setSidePanels] = useState<readonly SidePanel[]>([]);
-  const [notices, setNotices] = useState<readonly MatchNotice[]>([]);
+  const [narration, setNarration] = useState<ReadonlyMap<NarrationSlot, NarrationItem>>(new Map());
+  const [rejection, setRejection] = useState<MatchNotice | null>(null);
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
@@ -382,15 +474,19 @@ export function useMatchCues({
   // Security cards a scene is still holding: the board has already dropped each one, and
   // the scene that shows it leaving has not reached that beat yet. Keyed by scene so a
   // cancelled scene releases exactly its own card and never a newer scene's.
+  //
+  // Phase 3 kept this hold. The presented snapshot lags by BATCH, and a check removes the
+  // card and reveals it inside one batch, so the snapshot cannot hold the figure through
+  // the reveal — only this can.
   const [heldSecurityCards, setHeldSecurityCards] = useState<ReadonlyMap<number, { seat: Seat; count: number }>>(
     new Map(),
   );
   const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
   // The check whose reveal the screen still owes the viewer, by clash key.
   const [pendingRevealKey, setPendingRevealKey] = useState<number | null>(null);
-  // When the beats explaining the play currently on screen are done, as a wall clock.
-  // Null whenever nothing is being explained.
-  const [playLeadInUntil, setPlayLeadInUntil] = useState<number | null>(null);
+  // The revision the viewer's prompt is waiting for the presentation to reach. Null
+  // whenever no prompt is waiting (docs/presentation-queue-plan.md 3.2).
+  const [decisionBarrier, setDecisionBarrier] = useState<number | null>(null);
   const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
   const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
@@ -414,9 +510,29 @@ export function useMatchCues({
   // immediately, the server echo arrives later), so repeats are suppressed.
   const cuePlayedAtRef = useRef<CueTimestamps>({});
   const cueBaselineRef = useRef(false);
-  const lastCueEventRef = useRef<ServerEvent | undefined>(undefined);
+  /** The last batch already presented, so a re-render presents nothing twice. */
+  const lastCueBatchRef = useRef<string | undefined>(undefined);
   const noticeSequenceRef = useRef(0);
   const sidePanelSequenceRef = useRef(0);
+  const narrationSequenceRef = useRef(0);
+  /**
+   * The batch most recently presented. A notice a check held back is raised by a later
+   * cue, so the item it becomes is stamped with the batch the screen has reached rather
+   * than with a boundary it has already left behind.
+   */
+  const lastBatchIdRef = useRef("");
+  /** The advance each presenting slot is waiting on, so a tap moves it on. */
+  const narrationAdvanceRef = useRef(new Map<NarrationSlot, () => void>());
+  /** Set by an explicit skip: every item still queued is collapsed rather than read. */
+  const narrationSkipRef = useRef(false);
+  // Read inside a running step, so they follow the live props rather than the ones the
+  // step was enqueued under.
+  const decisionPendingRef = useRef(decisionPending);
+  decisionPendingRef.current = decisionPending;
+  const collapseNarrationRef = useRef(collapseNarration);
+  collapseNarrationRef.current = collapseNarration;
+  /** Cards whose own decision dialog is open, so their clause is not read out twice. */
+  const suppressedOwnEffectsRef = useRef(new Set<string>());
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -577,31 +693,96 @@ export function useMatchCues({
     });
   }
 
+  /** Takes the slot off screen, but only if it is still showing this item. */
+  function clearNarrationSlot(slot: NarrationSlot, id: string) {
+    setNarration((slots) => {
+      if (slots.get(slot)?.id !== id) return slots;
+      const next = new Map(slots);
+      next.delete(slot);
+      return next;
+    });
+  }
+
   /**
-   * Hold the viewer's own prompt for `ms` while the beats that explain the play run.
+   * The item as it will be shown, or null when there is nothing left of it.
    *
-   * A wall clock rather than a queued step, and clamped: the prompt is the viewer's only
-   * way to answer, so it may wait for the explanation but must never depend on a step
-   * actually running to be released.
+   * A clause whose own decision dialog has opened since the item was queued is dropped
+   * here rather than read out beside a dialog printing the same words; the panel it
+   * travelled with, which the dialog does not repeat, stays.
    */
-  function holdForPlayLeadIn(ms: number) {
-    if (ms <= 0) return;
-    const until = Date.now() + Math.min(ms, PLAY_LEAD_IN_BUDGET_MS);
-    setPlayLeadInUntil((current) => (current !== null && current > until ? current : until));
+  function presentableNarration(item: NarrationItem): NarrationItem | null {
+    const { notice } = item;
+    const suppressed =
+      notice !== undefined && [...suppressedOwnEffectsRef.current].some((cardId) => isOwnEffectNotice(notice, cardId));
+    if (!suppressed) return { ...item, createdAt: Date.now() };
+    if (!item.panel) return null;
+    return { ...item, notice: undefined, createdAt: Date.now() };
   }
 
-  function openNotice(notice: MatchNotice) {
-    setNotices((stack) => pushNotice(expireNotices(stack, notice.createdAt), notice));
+  /**
+   * Holds an item on screen for its reading time.
+   *
+   * The wait is sliced rather than taken in one go so a tap can advance the item without
+   * waiting the rest out. A pending decision no longer stops the clock: the barrier has
+   * already fast-forwarded the queue to the board the question is about, so an item still
+   * on screen beside a prompt is one the viewer has been given time to read (Phase 3).
+   */
+  async function readNarrationItem(context: AnimationStepContext, slot: NarrationSlot, totalMs: number) {
+    // A holder rather than a plain flag: the tap that sets it runs outside this loop.
+    const tapped = { advance: false };
+    const advance = () => {
+      tapped.advance = true;
+    };
+    narrationAdvanceRef.current.set(slot, advance);
+    let remaining = totalMs;
+    try {
+      while (!tapped.advance && !context.cancelled && !narrationSkipRef.current && remaining > 0) {
+        await context.wait(NARRATION_TICK_MS);
+        remaining -= NARRATION_TICK_MS;
+      }
+    } finally {
+      if (narrationAdvanceRef.current.get(slot) === advance) narrationAdvanceRef.current.delete(slot);
+    }
   }
 
-  /** Opens side panels on the clock they are opened at, not the one the server named them on. */
-  function openPanels(panels: readonly SidePanel[]) {
-    if (panels.length === 0) return;
-    const now = Date.now();
-    const stamped = panels.map((panel) => ({ ...panel, createdAt: now }));
-    setSidePanels((stack) =>
-      stamped.reduce<readonly SidePanel[]>((next, panel) => pushSidePanel(next, panel), expireSidePanels(stack, now)),
-    );
+  /** One item, one step: it takes its slot, is held to be read, and hands the slot back. */
+  function enqueueNarrationItem(item: NarrationItem) {
+    const slot = narrationSlot(item, collapseNarrationRef.current);
+    queue.enqueue({
+      id: `narration-step-${item.id}`,
+      track: slot,
+      // It carries something to read, so `drain` keeps its time. An explicit skip
+      // collapses it through the flag instead, which is the one thing the queue's own
+      // `skip()` cannot reach for a step that is deliberately not skippable.
+      skippable: false,
+      async run(context) {
+        if (context.mode === "replay" || narrationSkipRef.current) return;
+        const shown = presentableNarration(item);
+        if (!shown) return;
+        try {
+          setNarration((slots) => new Map(slots).set(slot, shown));
+          await readNarrationItem(context, slot, narrationReadingTime(shown));
+        } finally {
+          clearNarrationSlot(slot, shown.id);
+        }
+      },
+    });
+  }
+
+  /**
+   * Queues one moment's worth of narration: the panels and the notices the same beat
+   * raised, folded into as few items as they honestly make (narration.ts).
+   */
+  function narrate(notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) {
+    if (notices.length === 0 && panels.length === 0) return;
+    const items = buildNarrationItems({
+      batchId,
+      notices,
+      panels,
+      nowMs: Date.now(),
+      nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
+    });
+    for (const item of items) enqueueNarrationItem(item);
   }
 
   /** Raises whatever a security check has still not said, on the clock it is raised at. */
@@ -620,15 +801,28 @@ export function useMatchCues({
     if (ownNotices.length === 0 && ownPanels.length === 0) return;
     heldNoticesRef.current = heldNoticesRef.current.filter((held) => !ownNotices.includes(held));
     heldPanelsRef.current = heldPanelsRef.current.filter((held) => !ownPanels.includes(held));
-    for (const notice of ownNotices) openNotice({ ...notice, createdAt: Date.now() });
-    openPanels(ownPanels);
+    narrate(ownNotices, ownPanels, lastBatchIdRef.current);
   }
 
-  useEffect(() => {
-    const previous = lastCueEventRef.current;
-    const fresh = eventsAfter(events, previous);
-    lastCueEventRef.current = events.at(-1);
-    const rejection = [...fresh].reverse().find((event) => event.kind === "actionRejected");
+  /**
+   * Present one server batch: everything the rules resolved in one entry into the engine.
+   *
+   * The batch is the unit every heuristic below reasons about — the combat lead-in, the
+   * pairing of a security reveal with its close, what a check played and what that card then
+   * did. It used to be "the events that arrived since the last render", which made the
+   * boundary the patch tick; it is now the boundary the server drew.
+   */
+  function presentBatch(
+    batchId: string,
+    stateVersion: number,
+    fresh: readonly ServerEvent[],
+    replayingHistory: boolean,
+  ) {
+    lastBatchIdRef.current = batchId;
+    // Everything enqueued from here belongs to this batch, and the board it is narrated
+    // over is the board this batch produced.
+    if (!replayingHistory) progress.present(batchId, stateVersion);
+    const refusal = [...fresh].reverse().find((event) => event.kind === "actionRejected");
     // A batch can carry a whole check (reveal then close), only its opening, or only its
     // close — a decision inside a [Security] effect is what splits the two apart. Only the
     // last of each is staged: a batch holding several checks plays the newest, which is
@@ -646,10 +840,6 @@ export function useMatchCues({
     const securityAttack = [...fresh]
       .reverse()
       .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
-    // The first pass is the baseline: a reconnect replays history, which must not
-    // replay its sounds or reopen every panel the match has ever shown.
-    const replayingHistory = !cueBaselineRef.current;
-    cueBaselineRef.current = true;
     // Replayed steps still run, so their state lands in the right place — they
     // just run with every wait collapsed, which is no animation at all.
     const enqueue = (step: AnimationStep) => queue.enqueue(replayingHistory ? { ...step, mode: "replay" } : step);
@@ -850,7 +1040,7 @@ export function useMatchCues({
             async run(context) {
               await context.wait(combatLeadInMs);
               if (context.cancelled) return;
-              for (const notice of callout) openNotice({ ...notice, createdAt: Date.now() });
+              narrate(callout, [], batchId);
             },
           });
         }
@@ -994,14 +1184,12 @@ export function useMatchCues({
           track: CENTER_STAGE_TRACK,
           skippable: false,
           run() {
-            for (const notice of heldForShowcase) openNotice({ ...notice, createdAt: Date.now() });
-            openPanels(panelsForShowcase);
+            narrate(heldForShowcase, panelsForShowcase, batchId);
           },
         });
-        // The prompt this play is about to raise waits behind the same beats and the
-        // shatter they end on, so the viewer reads what happened before being asked
-        // about it.
-        holdForPlayLeadIn(playLeadInMs > 0 ? playLeadInMs + TIMINGS.cardShatter : 0);
+        // The prompt this play is about to raise waits behind the same beats through the
+        // decision barrier, which holds it until the presentation has reached the board the
+        // question is about instead of counting a wall clock (Phase 3).
       } else if (combatLeadInMs > 0 && presenting) {
         // These read as what the battle caused, so they are raised once the blow has
         // landed. Their clock starts there too, not at the batch that carried them.
@@ -1017,13 +1205,11 @@ export function useMatchCues({
           async run(context) {
             await context.wait(combatLeadInMs);
             if (context.cancelled) return;
-            for (const notice of held) openNotice({ ...notice, createdAt: Date.now() });
-            openPanels(heldForCombat);
+            narrate(held, heldForCombat, batchId);
           },
         });
       } else {
-        openPanels(opened);
-        for (const notice of raised) openNotice(notice);
+        narrate(raised, opened, batchId);
       }
       if (announcement) {
         const shown = announcement;
@@ -1041,7 +1227,7 @@ export function useMatchCues({
         });
       }
     }
-    if (rejection?.kind === "actionRejected") onActionRejected(rejection.reason);
+    if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);
     if (securityAttack?.kind === "attackDeclared") {
       const lunge: AttackLunge = {
         permanentId: securityAttack.attackerPermanentId,
@@ -1347,8 +1533,7 @@ export function useMatchCues({
           track: CENTER_STAGE_TRACK,
           skippable: false,
           run() {
-            for (const notice of arrivalNotices) openNotice({ ...notice, createdAt: Date.now() });
-            openPanels(arrivalPanels);
+            narrate(arrivalNotices, arrivalPanels, batchId);
           },
         });
       }
@@ -1665,8 +1850,87 @@ export function useMatchCues({
         },
       });
     }
+  }
+
+  useEffect(() => {
+    // The first pass is the baseline: a reconnect replays history, which must not replay
+    // its sounds or reopen every panel the match has ever shown. Whatever is already known
+    // when the hook first runs is that history, however many batches it spans — and a first
+    // pass over nothing still spends the baseline, so a live match narrates its first batch.
+    const replayingHistory = !cueBaselineRef.current;
+    cueBaselineRef.current = true;
+    const pending = batchesAfter(batches, lastCueBatchRef.current);
+    if (pending.length === 0) return;
+    lastCueBatchRef.current = pending.at(-1)!.id;
+    // Each batch is its own moment, in order, even when several arrive in one render.
+    for (const batch of pending) presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
+    // presentBatch is rebuilt every render and reads only refs and setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  }, [batches]);
+
+  // The board catches up on its own after the budget, whatever the queue did or failed to
+  // do with the steps it is counting — the same discipline the decision barrier follows.
+  useEffect(() => {
+    if (presentedStateVersion === undefined) return;
+    const timer = setTimeout(() => {
+      presentationTelemetry.countBoardBudgetHit();
+      progress.settle();
+    }, PRESENTED_BOARD_BUDGET_MS);
+    return () => clearTimeout(timer);
+  }, [presentedStateVersion, progress]);
+
+  /**
+   * The decision barrier (docs/presentation-queue-plan.md 3.2).
+   *
+   * A question for the viewer is the end of a moment, so the presentation is caught up to
+   * the board the question was asked about before the prompt opens: the queue collapses
+   * every skippable wait and drops the items still to be read, and the prompt follows. The
+   * wait is bounded by `PLAY_LEAD_IN_BUDGET_MS` — the prompt is the viewer's only way to
+   * answer, so it can never depend on a step actually running to be shown. An opponent's
+   * decision raises no barrier: their question does not interrupt the viewer's narration.
+   */
+  useEffect(() => {
+    if (!decisionPending || decisionStateVersion === undefined) {
+      setDecisionBarrier(null);
+      return;
+    }
+    // Nothing is being presented, or what is being presented is already newer than the
+    // board the question is about: there is nothing to wait for.
+    const reached = progress.current();
+    if (reached === undefined || reached > decisionStateVersion) {
+      progress.raiseFloor(decisionStateVersion);
+      setDecisionBarrier(null);
+      return;
+    }
+    setDecisionBarrier(decisionStateVersion);
+    // The batches BEHIND the one that raised the question are collapsed: their waits go to
+    // nothing and the items still to be read are dropped (the match log keeps them). The
+    // batch that raised it is the question's own explanation — the card centre-stage, then
+    // the clause — so it keeps its beats and the prompt opens on the board they end on,
+    // and at the latest when the budget below runs out.
+    if (reached !== undefined && reached < decisionStateVersion) fastForward();
+    const timer = setTimeout(() => {
+      // The budget is spent: the board is handed over at the revision the question was
+      // asked at, whatever the queue still had to say about the batches before it.
+      presentationTelemetry.countDecisionBudgetHit();
+      progress.raiseFloor(decisionStateVersion);
+      setDecisionBarrier(null);
+    }, PLAY_LEAD_IN_BUDGET_MS);
+    return () => clearTimeout(timer);
+    // fastForward is rebuilt every render and reads only refs and the queue.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decisionPending, decisionStateVersion, progress]);
+
+  // The barrier's own release: the queue has reached the revision the question was asked
+  // at (or run dry), so the prompt may open over that board and never over an older one.
+  useEffect(() => {
+    if (decisionBarrier === null) return;
+    // Caught up: the queue has run dry, or it has moved past the board the question is
+    // about. Either way the prompt may open, and never over an older board than this.
+    if (presentedStateVersion !== undefined && presentedStateVersion <= decisionBarrier) return;
+    progress.raiseFloor(decisionBarrier);
+    setDecisionBarrier(null);
+  }, [decisionBarrier, presentedStateVersion, progress]);
 
   // A check the server has not closed yet keeps the board: its card is on stage and what it
   // did is still being read out. The server can stop in the middle of one to ask the viewer
@@ -1690,98 +1954,9 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionPending, pendingRevealKey, queue]);
 
-  // The other end of `holdForPlayLeadIn`: the clock runs out on its own, whatever the
-  // queue did or failed to do with the beats it was counting.
-  useEffect(() => {
-    if (playLeadInUntil === null) return;
-    const release = () => setPlayLeadInUntil((current) => (current === playLeadInUntil ? null : current));
-    const remaining = playLeadInUntil - Date.now();
-    if (remaining <= 0) {
-      release();
-      return;
-    }
-    const timer = setTimeout(release, remaining);
-    return () => clearTimeout(timer);
-  }, [playLeadInUntil]);
-
-  // One step for the whole column, holding for the soonest expiry. A second panel
-  // joining shortens every remaining time, so the step is simply re-enqueued with
-  // the new figure rather than each panel owning a timer.
-  // The notices and panels explain what raised a decision, so their clocks stop while
-  // the viewer's decision waits: whatever time the wait took is given back to each of
-  // them (only the part of it they were on screen for) when it is answered.
-  const holdStartRef = useRef<number | null>(null);
-  useEffect(() => {
-    const now = Date.now();
-    if (decisionPending) {
-      holdStartRef.current ??= now;
-      return;
-    }
-    const holdStart = holdStartRef.current;
-    if (holdStart === null) return;
-    holdStartRef.current = null;
-    const heldFor = (createdAt: number) => now - Math.max(holdStart, createdAt);
-    setNotices((stack) =>
-      stack.map((notice) => ({ ...notice, createdAt: notice.createdAt + heldFor(notice.createdAt) })),
-    );
-    setSidePanels((stack) =>
-      stack.map((panel) => ({ ...panel, createdAt: panel.createdAt + heldFor(panel.createdAt) })),
-    );
-  }, [decisionPending]);
-
-  useEffect(() => {
-    if (sidePanels.length === 0) return;
-    if (decisionPending) {
-      queue.enqueue({
-        id: "side-panel-expiry-held",
-        track: "infoPanelExpiry",
-        replace: true,
-        skippable: false,
-        async run() {},
-      });
-      return;
-    }
-    const remaining = nextSidePanelExpiry(sidePanels, Date.now()) ?? 0;
-    queue.enqueue({
-      id: `side-panel-expiry-${sidePanels.length}-${remaining}`,
-      track: "infoPanelExpiry",
-      replace: true,
-      skippable: false,
-      async run(context) {
-        await context.wait(remaining);
-        if (context.cancelled) return;
-        setSidePanels((panels) => expireSidePanels(panels, Date.now()));
-      },
-    });
-  }, [sidePanels, queue, decisionPending]);
-
-  // The same shape for notices: a third one arriving shortens the whole stack.
-  useEffect(() => {
-    if (notices.length === 0) return;
-    if (decisionPending) {
-      queue.enqueue({
-        id: "notice-expiry-held",
-        track: "noticeExpiry",
-        replace: true,
-        skippable: false,
-        async run() {},
-      });
-      return;
-    }
-    const remaining = nextNoticeExpiry(notices, Date.now()) ?? 0;
-    queue.enqueue({
-      id: `notice-expiry-${notices.length}-${remaining}`,
-      track: "noticeExpiry",
-      replace: true,
-      // Notices carry text, so their time survives drain mode.
-      skippable: false,
-      async run(context) {
-        await context.wait(remaining);
-        if (context.cancelled) return;
-        setNotices((stack) => expireNotices(stack, Date.now()));
-      },
-    });
-  }, [notices, queue, decisionPending]);
+  // The reading clock of a presented item is stopped and restarted inside its own step
+  // (see readNarrationItem), so nothing here re-stamps a stack or polls for an expiry:
+  // an item leaves when its step lets it go.
 
   // A DP figure that moved gets a pulse. The driver is the synchronized
   // `currentDP` itself: the engine has already applied every modifier by the time
@@ -1879,14 +2054,18 @@ export function useMatchCues({
         async run(context) {
           if (context.mode !== "live") return;
           if (frozenCardId !== undefined) {
-            setNotices((stack) =>
-              pushNotice(stack, {
-                id: `freeze-${pulse.key}`,
-                side: frozenSide,
-                fromSecurity: false,
-                body: { variant: "keyword", keyword: pulse.kind, cardId: frozenCardId },
-                createdAt: Date.now(),
-              }),
+            narrate(
+              [
+                {
+                  id: `freeze-${pulse.key}`,
+                  side: frozenSide,
+                  fromSecurity: false,
+                  body: { variant: "keyword", keyword: pulse.kind, cardId: frozenCardId },
+                  createdAt: Date.now(),
+                },
+              ],
+              [],
+              lastBatchIdRef.current,
             );
           }
           try {
@@ -1968,7 +2147,11 @@ export function useMatchCues({
       if (securityGrowthClaimedRef.current.delete(seat)) continue;
       launchSecurityGainFlight(seat);
       noticeSequenceRef.current += 1;
-      openNotice(securityGainNotice(side, amount, `notice-${noticeSequenceRef.current}`, Date.now()));
+      narrate(
+        [securityGainNotice(side, amount, `notice-${noticeSequenceRef.current}`, Date.now())],
+        [],
+        lastBatchIdRef.current,
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.securityCount, opp?.securityCount]);
@@ -2184,20 +2367,88 @@ export function useMatchCues({
     });
   }
 
+  /** The items on screen, in slot order, so the read-only views below are stable. */
+  const presented = useMemo(() => [...narration.values()], [narration]);
+
+  /**
+   * While the opponent's moment is on screen the viewer's intents wait. The hold is the
+   * item itself, so it can never outlive the queue: the step's own exit — reading time
+   * spent, tap, skip, or a cleared queue — takes the item off screen and with it the lock.
+   */
+  const narrationLock = useMemo(() => presented.some((item) => item.side === "opp"), [presented]);
+
+  const sidePanels = useMemo(() => presented.flatMap((item) => (item.panel ? [item.panel] : [])), [presented]);
+  const notices = useMemo(
+    () => [...presented.flatMap((item) => (item.notice ? [item.notice] : [])), ...(rejection ? [rejection] : [])],
+    [presented, rejection],
+  );
+
+  /**
+   * Moves every presenting slot on to its next moment. A tap on the board reaches here
+   * first: only when nothing is being narrated does it fall through to the ordinary
+   * fast-forward, so one tap never both advances a moment and collapses the queue.
+   */
+  function advanceNarration(): boolean {
+    const waiting = [...narrationAdvanceRef.current.values()];
+    if (waiting.length === 0) return false;
+    presentationTelemetry.countManualAdvance();
+    narrationAdvanceRef.current.clear();
+    for (const advance of waiting) advance();
+    return true;
+  }
+
+  /**
+   * Collapse everything still queued: skippable waits go to nothing and every item still
+   * to be read is dropped rather than narrated. The match log keeps all of them, so a
+   * player who asked to fast-forward loses nothing they cannot read back.
+   */
+  function fastForward() {
+    presentationTelemetry.countSkip();
+    narrationSkipRef.current = true;
+    narrationAdvanceRef.current.forEach((advance) => advance());
+    narrationAdvanceRef.current.clear();
+    queue.skip();
+    void queue.idle().then(() => {
+      narrationSkipRef.current = false;
+    });
+  }
+
+  // A refusal is not queued, so it owns the one timer left in the hook.
+  useEffect(() => {
+    if (!rejection) return;
+    const remaining = noticeRemaining(rejection, Date.now());
+    const timer = setTimeout(() => setRejection((current) => (current === rejection ? null : current)), remaining);
+    return () => clearTimeout(timer);
+  }, [rejection]);
+
   return {
+    narration,
+    rejection,
+    dismissRejection: () => setRejection(null),
+    advanceNarration,
+    narrationLock,
     sidePanels,
-    dismissPanel: (id: string) => setSidePanels((panels) => dismissSidePanel(panels, id)),
     notices,
-    dismissNotice: (id: string) => setNotices((stack) => dismissNotice(stack, id)),
     dismissOwnEffectNotice: (cardId: string) => {
-      heldNoticesRef.current = heldNoticesRef.current.filter(
-        (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
-      );
-      setNotices((stack) => dismissOwnEffectNotices(stack, cardId));
+      suppressedOwnEffectsRef.current.add(cardId);
+      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !isOwnEffectNotice(notice, cardId));
+      // Already on screen: the dialog is about to print the same clause, so the item
+      // either loses its notice or leaves with it.
+      setNarration((slots) => {
+        let changed = false;
+        const next = new Map(slots);
+        for (const [slot, item] of slots) {
+          if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
+          changed = true;
+          if (item.panel) next.set(slot, { ...item, notice: undefined });
+          else next.delete(slot);
+        }
+        return changed ? next : slots;
+      });
     },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;
-      openNotice(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
+      setRejection(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
     },
     attackAnnouncement,
     turnTransition,
@@ -2205,7 +2456,9 @@ export function useMatchCues({
     securityBreak,
     securityBranch,
     securityRevealPending: pendingRevealKey !== null,
-    decisionHeldForPlay: playLeadInUntil !== null,
+    decisionBarrierPending: decisionBarrier !== null,
+    presentedStateVersion,
+    presenting: narration.size > 0 || presentedStateVersion !== undefined,
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,
@@ -2226,6 +2479,6 @@ export function useMatchCues({
     drawFlights,
     drawBursts,
     playCue,
-    skipAnimations: () => queue.skip(),
+    skipAnimations: fastForward,
   };
 }

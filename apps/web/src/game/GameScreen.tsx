@@ -24,6 +24,8 @@ import {
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
 import { useRoom, type MatchMode, type UseRoomResult } from "../net/useRoom";
+import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
+import { selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { intents } from "../net/intents";
 import { joinWithBot } from "../net/client";
 import type { CSSProperties } from "react";
@@ -35,6 +37,7 @@ import { CardFull } from "../design/cards";
 import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
+import { vibrateNarrationAdvance } from "./haptics";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -129,8 +132,8 @@ import {
   type StackCard,
 } from "./overlays";
 import { PlayLogSidebar } from "./OpponentActionFeedView";
-import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
-import { NoticeStack } from "./NoticeStack";
+import { AttackAnnouncementBanner } from "./SidePanelStack";
+import { NarrationStack } from "./NarrationStack";
 import { CardOpenerProvider } from "./cardLinks";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
@@ -296,6 +299,10 @@ export function GameScreen({
     "room" | "status" | "state" | "events" | "decision" | "acknowledgeDecision" | "error" | "sessionId" | "roomCode"
   > & {
     acknowledgeBlockWindow?: (blockerPermanentId?: string) => void;
+    /** A fabricated connection has no server batches; its whole event list is one moment. */
+    batches?: readonly ServerBatch[];
+    /** No snapshots either, so the board it shows is always its live state. */
+    snapshots?: readonly StateSnapshot[];
   };
 }) {
   const { t } = useTranslation();
@@ -319,12 +326,17 @@ export function GameScreen({
     status,
     state,
     events,
+    batches,
     decision,
     acknowledgeDecision,
     error,
     sessionId,
     roomCode: hostRoomCode,
+    snapshots,
   } = demoConnection ?? liveConnection;
+  // A demo or showcase fabricates events with no batch boundary of their own, so its list
+  // is presented as the one moment it describes.
+  const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
   const viewerSeat = useMemo(() => viewerSeatOf(state, sessionId), [state, sessionId]);
 
   const vsBot = startMode === "bot";
@@ -376,6 +388,8 @@ export function GameScreen({
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
+  /** The decision whose prompt is already on screen, so no hold can take it back off. */
+  const shownDecisionIdRef = useRef<string | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -465,13 +479,18 @@ export function GameScreen({
   // the draw flights. The hook sequences them on the animation queue; this
   // component only renders what it reports.
   const cues = useMatchCues({
-    events,
+    batches: cueBatches,
     state,
     viewerSeat,
     mulliganOpen: decision?.kind === "mulligan",
+    // The portrait phone folds both narration corners into one centred slot.
+    collapseNarration: collapseNotices,
     // A security check the server stopped to ask the viewer something cannot close until it
     // is answered, so the cue sequence needs to know a question is waiting.
     decisionPending: decision?.seat === viewerSeat && decision.kind !== "mulligan",
+    // The barrier catches the presentation up to the board the question was asked about
+    // before the prompt opens. An older server sends no revision, and no barrier is raised.
+    decisionStateVersion: decision?.seat === viewerSeat ? decision.stateVersion : undefined,
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
@@ -515,7 +534,6 @@ export function GameScreen({
     securityRevealPending,
     securityHitSeat,
     heldSecurityCounts,
-    sidePanels,
     turnTransition,
     unsuspendSweep,
     zoneShowcase,
@@ -924,14 +942,46 @@ export function GameScreen({
     );
   }
 
+  /**
+   * The two boards this screen reads (docs/presentation-queue-plan.md 3.2).
+   *
+   * `state` is the live synchronized state and is the ONLY thing legality is read off:
+   * what may be played, what may be attacked, which decision is open. `shownState` is the
+   * board the presentation has reached — the snapshot at the revision of the batch the
+   * queue is narrating — and is the only thing the board, the piles, the counts and the
+   * gauge are drawn from. They are the same object whenever the queue is caught up.
+   */
+  const shownState =
+    selectPresentedState({
+      live: state,
+      snapshots: snapshots ?? [],
+      presentedStateVersion: cues.presentedStateVersion,
+    }) ?? state;
+
+  // Presentation (the seats as the board the narration has reached has them).
+  const shownYou = shownState?.players[viewerSeat] ?? you;
+  const shownOpp = shownState?.players[otherSeat(viewerSeat)] ?? opp;
   const isMyTurn = state.turnSeat === viewerSeat;
   /* A security check owns the board for as long as its scene plays. The reveal is on
      both screens at the same time, so an action sent inside that window lands on a
      board the other player is still watching resolve (docs/battle-animation-spec.md
      §4b). The lock covers the play surfaces only — the header, the play log, the
      card blow-ups and surrender all stay live, and a click still fast-forwards
-     whatever part of the scene is skippable. */
+     whatever part of the scene is skippable.
+
+     The opponent's narration locks the same way (docs/presentation-queue-plan.md §6
+     decision 2): while their moment is on screen a tap advances it instead of acting on
+     the board. The hold is the item itself, so it is bounded by the item's reading time
+     and never outlives the queue. */
   const boardLocked = securityRevealPending && !state.gameOver;
+  /* The opponent's moment takes the pointer as well (docs/presentation-queue-plan.md §6
+     decision 2): while it is on screen the viewer's tap lands on the lock, and the board's
+     capture-phase handler turns it into "advance the narration" instead of an action. Only
+     the pointer is held — the intents themselves stay open, because unlike a security
+     reveal, which is on both screens at once, this hold is about where the viewer's tap
+     goes, not about a window the other player is still watching resolve. The item's own
+     reading time bounds it, and a cleared queue releases it. */
+  const inputLocked = boardLocked || (cues.narrationLock && !state.gameOver);
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
   // The breeding step is answered on the board rather than in a dialog: the egg
   // deck hatches, the raising slot moves out and the turn control ends the step.
@@ -941,7 +991,8 @@ export function GameScreen({
   // An open decision, the end of the match, and the security check that has the board
   // locked each take the breeding actions away; nothing else does.
   const breedingActionsOpen = breedingWindow && !decision && !state.gameOver && !boardLocked;
-  const memory = displayMemory(state, viewerSeat);
+  // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
+  const memory = displayMemory(shownState, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
   const oppColor = playerColorKey(opp, youColor === "Red" ? "Blue" : "Red");
@@ -960,6 +1011,29 @@ export function GameScreen({
       projectedCost: route.projectedCost,
     })),
   }));
+  /**
+   * The hand as the screen shows it: the cards the presented board holds, each carrying the
+   * LIVE legality of that same instance. A card the narration has not reached yet is drawn
+   * but offers nothing (the live hand does not hold it, so no projection is found), and a
+   * card already gone from the live hand cannot be acted on either — every intent below
+   * resolves through `handEntries`, which is live.
+   */
+  const shownHandEntries: HandEntry[] =
+    shownYou === you
+      ? handEntries
+      : [...(shownYou.hand ?? [])].map(
+          (ci) =>
+            handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
+              instanceId: ci.instanceId,
+              cardId: ci.cardId,
+              activatableEffectsJson: "",
+              playableFromHand: false,
+              projectedPlayCost: -1,
+              digivolveTargetPermanentIds: [],
+              linkTargetPermanentIds: [],
+              appFusionRoutes: [],
+            },
+        );
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
@@ -1325,7 +1399,8 @@ export function GameScreen({
 
   // ----- drag plumbing -----
   const startHandDrag = (index: number, e: React.PointerEvent) => {
-    const entry = handEntries[index];
+    // The index is a position in the hand the viewer can see, so it is resolved there.
+    const entry = shownHandEntries[index];
     if (!entry) return;
     const deferred = e.pointerType !== "mouse";
     // Claiming the pointer up front (preventDefault + capture) kills the browser's
@@ -1688,11 +1763,14 @@ export function GameScreen({
   // centre-stage scene has shown the card. Asking it first reads as the board answering
   // for a card the viewer never saw, so the prompt waits for the reveal (spec §4b step
   // 10b). Only the presentation waits — the decision itself is untouched, and the hold
-  // is released by the scene it belongs to.
+  // is released by the scene it belongs to. The barrier is the same idea for the board:
+  // the prompt opens once the presentation has reached the revision it was raised at.
+  // A prompt already on screen is never taken away again: a hold may delay the question,
+  // but withdrawing it mid-answer would throw away what the viewer had already picked.
+  const barrierHolds = cues.decisionBarrierPending && decision?.decisionId !== shownDecisionIdRef.current;
   const viewerDecision =
-    decision && decision.seat === viewerSeat && !securityRevealPending && !cues.decisionHeldForPlay
-      ? decision
-      : undefined;
+    decision && decision.seat === viewerSeat && !securityRevealPending && !barrierHolds ? decision : undefined;
+  if (viewerDecision) shownDecisionIdRef.current = viewerDecision.decisionId;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
@@ -2362,7 +2440,7 @@ export function GameScreen({
             const ownerLabel =
               trashView === "you"
                 ? t("game.yourTrash")
-                : t("game.oppTrash", { name: opp.displayName || t("game.opponent") });
+                : t("game.oppTrash", { name: shownOpp.displayName || t("game.opponent") });
             return (
               <TrashViewerOverlay
                 title={ownerLabel}
@@ -2380,7 +2458,7 @@ export function GameScreen({
             const ownerLabel =
               securityView === "you"
                 ? t("game.yourSecurityPile")
-                : t("game.oppSecurityPile", { name: opp.displayName || t("game.opponent") });
+                : t("game.oppSecurityPile", { name: shownOpp.displayName || t("game.opponent") });
             // Only face-up security cards are public; face-down cards stay hidden
             // even from their owner (the stack cannot be looked at, per the rules).
             const faceUpCardIds = Array.from(owner.security ?? [])
@@ -2418,10 +2496,20 @@ export function GameScreen({
         <div
           className="game-board"
           ref={boardRef}
-          // Clicking through an opponent's sequence fast-forwards it, the way the
-          // reference client lets a player skip their cut-ins. Capture-phase and
-          // passive: it never swallows the click the board was going to handle.
-          onPointerDownCapture={() => cues.skipAnimations()}
+          // A tap on the board answers whatever is on screen: while a moment is being
+          // narrated it advances to the next one, and only when nothing is being
+          // narrated does it fast-forward the decorative cues, the way the reference
+          // client lets a player skip their cut-ins. Capture-phase and passive: it never
+          // swallows the click the board was going to handle.
+          onPointerDownCapture={(event) => {
+            if (cues.advanceNarration()) {
+              // Only a finger gets the buzz: a mouse cannot feel it and a stylus does not
+              // expect it.
+              if (event.pointerType === "touch") vibrateNarrationAdvance();
+              return;
+            }
+            cues.skipAnimations();
+          }}
           style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
         >
           {/* opponent identity bar */}
@@ -2437,13 +2525,13 @@ export function GameScreen({
             }}
           >
             <div className="game-opponent-identity" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Avatar name={opp.displayName || t("game.opponent")} color={oppColor} size={40} />
+              <Avatar name={shownOpp.displayName || t("game.opponent")} color={oppColor} size={40} />
               <div>
                 <div
                   className="game-name-plate"
                   style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}
                 >
-                  {opp.displayName || t("game.opponent")}
+                  {shownOpp.displayName || t("game.opponent")}
                 </div>
                 <div
                   style={{
@@ -2459,11 +2547,11 @@ export function GameScreen({
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
-                      background: opp.connected ? "var(--ds-success)" : "var(--ds-danger)",
+                      background: shownOpp.connected ? "var(--ds-success)" : "var(--ds-danger)",
                     }}
                   />
-                  {opp.connected ? t("game.connected") : t("game.disconnected")} ·{" "}
-                  {state.turnSeat === otherSeat(viewerSeat) ? t("game.theirTurn") : t("game.waiting")}
+                  {shownOpp.connected ? t("game.connected") : t("game.disconnected")} ·{" "}
+                  {shownState.turnSeat === otherSeat(viewerSeat) ? t("game.theirTurn") : t("game.waiting")}
                 </div>
               </div>
             </div>
@@ -2472,7 +2560,7 @@ export function GameScreen({
               ref={oppHandStripRef}
               style={{ display: "flex", alignItems: "center", gap: 7 }}
             >
-              {Array.from({ length: Math.min(opp.handCount, 8) }).map((_, i) => (
+              {Array.from({ length: Math.min(shownOpp.handCount, 8) }).map((_, i) => (
                 <div key={i} aria-hidden style={{ marginLeft: i ? -22 : 0 }}>
                   <div
                     style={{
@@ -2493,15 +2581,16 @@ export function GameScreen({
                   marginLeft: 8,
                 }}
               >
-                {t("game.handCount", { count: opp.handCount })}
+                {t("game.handCount", { count: shownOpp.handCount })}
               </span>
             </div>
             <div className="game-mobile-turn">
               <strong>
-                {state.turnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} · {state.turnCount}
+                {shownState.turnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} ·{" "}
+                {shownState.turnCount}
               </strong>
               <span>
-                {t(`game.phase.${state.phase}` as const)} · {memory > 0 ? "+" : ""}
+                {t(`game.phase.${shownState.phase}` as const)} · {memory > 0 ? "+" : ""}
                 {memory}
               </span>
             </div>
@@ -2551,6 +2640,21 @@ export function GameScreen({
                 >
                   <Icons.Bug size={17} />
                 </button>
+                {/* Only while there is something to skip: a button that does nothing most
+                    of the match teaches players to ignore it. The phone has no equivalent
+                    — a tap anywhere on the board already advances the narration. Space and
+                    Enter come free with the native button; the match has no global keys. */}
+                {cues.presenting ? (
+                  <button
+                    className="game-topbar-button game-topbar-button--skip"
+                    onClick={() => cues.skipAnimations()}
+                    aria-label={t("game.skipPresentation")}
+                    title={t("game.skipPresentation")}
+                    data-testid="skip-presentation"
+                  >
+                    <Icons.FastForward size={17} />
+                  </button>
+                ) : null}
                 <button
                   className="game-topbar-button game-topbar-button--danger"
                   onClick={() => room && intents.surrender(room)}
@@ -2562,46 +2666,17 @@ export function GameScreen({
             )}
           </header>
 
-          {/* A security card's notice follows the opponent's panels down their column,
-              under the cards it revealed; on the portrait phone every notice folds into
-              the one top band instead, so the column carries nothing there. */}
-          {/* A security card's notice follows the opponent's panels down their column,
-              under the cards it revealed. On the portrait phone every panel and every
-              notice folds into one top band instead — two anchored blocks there
-              landed on each other — so the column carries all of the notices. */}
+          {/* One moment at a time. The portrait phone folds both sides into a single
+              centred slot; everywhere else the viewer reads the left corner and the
+              opponent's moments arrive in the right one. */}
           {!state.gameOver ? (
-            <SidePanelStack
-              panels={sidePanels}
-              collapse={collapseNotices}
+            <NarrationStack
+              narration={cues.narration}
+              rejection={cues.rejection}
+              compact={collapseNotices}
               held={decisionHoldsNotices}
-              underSheet={collapseNotices && answerOnBoard && viewerDecision !== undefined}
-              onDismiss={cues.dismissPanel}
-              oppColumnTail={
-                collapseNotices ? (
-                  cues.notices.length ? (
-                    <NoticeStack
-                      notices={cues.notices}
-                      family="all"
-                      collapse
-                      held={decisionHoldsNotices}
-                      onDismiss={cues.dismissNotice}
-                    />
-                  ) : undefined
-                ) : cues.notices.some((notice) => notice.fromSecurity) ? (
-                  <NoticeStack notices={cues.notices} family="security" onDismiss={cues.dismissNotice} />
-                ) : undefined
-              }
-            />
-          ) : null}
-
-          {/* The landscape phone keeps its right-anchored corners, where the short
-              viewport has no top band. */}
-          {!state.gameOver && !collapseNotices ? (
-            <NoticeStack
-              notices={cues.notices}
-              family="corners"
-              held={decisionHoldsNotices}
-              onDismiss={cues.dismissNotice}
+              onAdvance={cues.advanceNarration}
+              onDismissRejection={cues.dismissRejection}
             />
           ) : null}
 
@@ -2619,7 +2694,7 @@ export function GameScreen({
                   {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
                 </span>
                 <span>
-                  {t("game.turnAndMemory", { turn: state.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
+                  {t("game.turnAndMemory", { turn: shownState.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
                 </span>
               </div>
               <ol className="game-log-ticker__lines">
@@ -2656,7 +2731,7 @@ export function GameScreen({
             {/* The play surfaces refuse pointer input while a security check owns the
                 screen. Drawn twice — once here, once over the dock — so the header,
                 the log and surrender are never covered by it. */}
-            {boardLocked ? <BoardInputLock /> : null}
+            {inputLocked ? <BoardInputLock /> : null}
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
@@ -2690,7 +2765,7 @@ export function GameScreen({
                 >
                   <Pile
                     compact={compactPiles}
-                    count={opp.deckCount}
+                    count={shownOpp.deckCount}
                     label={t("game.pile.deck")}
                     riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
                     useSelectedSleeve={false}
@@ -2699,10 +2774,10 @@ export function GameScreen({
                 <Pile
                   className={trashEffectSource(otherSeat(viewerSeat))}
                   compact={compactPiles}
-                  count={opp.trash.length}
+                  count={shownOpp.trash.length}
                   label={t("game.pile.trash")}
-                  topCardId={opp.trash[opp.trash.length - 1]?.cardId}
-                  onClick={opp.trash.length ? () => setTrashView("opp") : undefined}
+                  topCardId={shownOpp.trash[shownOpp.trash.length - 1]?.cardId}
+                  onClick={shownOpp.trash.length ? () => setTrashView("opp") : undefined}
                   useSelectedSleeve={false}
                 />
               </div>
@@ -2710,18 +2785,18 @@ export function GameScreen({
               <Pile
                 className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
-                count={shieldSecurityCount(you.securityCount, heldSecurityCounts.get(viewerSeat))}
+                count={shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))}
                 shield="you"
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
                 shardSeed={securityBreak?.key}
-                faceUp={hasFaceUpSecurity(you.security)}
+                faceUp={hasFaceUpSecurity(shownYou.security)}
                 landing={securityFlights.has(viewerSeat)}
                 label={t("game.yourSecurityPile")}
                 refEl={(el) => {
                   yourSecRef.current = el;
                 }}
-                onClick={you.securityCount ? () => setSecurityView("you") : undefined}
+                onClick={shownYou.securityCount ? () => setSecurityView("you") : undefined}
               />
             </aside>
 
@@ -2747,14 +2822,14 @@ export function GameScreen({
                   padding: "12px 18px 26px",
                 }}
               >
-                {opp.battleArea.length === 0 ? (
+                {shownOpp.battleArea.length === 0 ? (
                   <span
                     style={{ fontSize: 12, color: "var(--ds-foreground-disabled)", fontFamily: "var(--ds-font-mono)" }}
                   >
                     {t("game.noDigimon")}
                   </span>
                 ) : null}
-                {opp.battleArea.map((p, index) => {
+                {shownOpp.battleArea.map((p, index) => {
                   // A drag is always a normal declaration; only the tap path can be in ＜Vortex＞ mode.
                   const isCand =
                     attackTargetIdsOf(attackerPerm, vortexMode).includes(p.permanentId) ||
@@ -2800,7 +2875,7 @@ export function GameScreen({
                 <MemoryGauge
                   value={memory}
                   compact={compactPiles}
-                  phaseLabel={t(`game.phase.${state.phase}` as const)}
+                  phaseLabel={t(`game.phase.${shownState.phase}` as const)}
                   phaseSweeping={unsuspendSweep !== null}
                   prediction={memoryPrediction}
                 />
@@ -2832,7 +2907,7 @@ export function GameScreen({
                   boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
                 }}
               >
-                {you.battleArea.length === 0 ? (
+                {shownYou.battleArea.length === 0 ? (
                   <span
                     style={{
                       fontSize: 12,
@@ -2843,7 +2918,7 @@ export function GameScreen({
                     {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
                   </span>
                 ) : null}
-                {you.battleArea.map((p, index) => {
+                {shownYou.battleArea.map((p, index) => {
                   const isBase =
                     (handIsDigi && eligibleBase(p)) ||
                     dragBasePermanentIds.has(p.permanentId) ||
@@ -2906,28 +2981,30 @@ export function GameScreen({
                 {/* In the narrow rail the slot matches the pile width, so the card it
                   holds cannot overflow the rail and get clipped. */}
                 <BreedingSlot
-                  perm={opp.breeding}
+                  perm={shownOpp.breeding}
                   label={t("game.pile.raising")}
                   compact={compactPiles}
-                  burst={opp.breeding ? permanentBursts.get(opp.breeding.permanentId) : undefined}
+                  burst={shownOpp.breeding ? permanentBursts.get(shownOpp.breeding.permanentId) : undefined}
                   width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
                   onClick={
-                    narrowGameLayout && opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined
+                    narrowGameLayout && shownOpp.breeding
+                      ? () => showCardMenu(shownOpp.breeding!.permanentId, "opp")
+                      : undefined
                   }
                 />
                 <Pile
                   className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                   compact={compactPiles}
-                  count={shieldSecurityCount(opp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
+                  count={shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
                   shield="opp"
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
                   shardSeed={securityBreak?.key}
-                  faceUp={hasFaceUpSecurity(opp.security)}
+                  faceUp={hasFaceUpSecurity(shownOpp.security)}
                   landing={securityFlights.has(otherSeat(viewerSeat))}
                   attackLabel={
                     canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)
-                      ? t(securityAttackLabelKey(opp.securityCount))
+                      ? t(securityAttackLabelKey(shownOpp.securityCount))
                       : undefined
                   }
                   label={t("game.opponentSecurity")}
@@ -2940,7 +3017,7 @@ export function GameScreen({
                   onClick={
                     selPerm && canAttackSecurity
                       ? () => attack(selPerm, { kind: "player" }, vortexMode)
-                      : opp.securityCount
+                      : shownOpp.securityCount
                         ? () => setSecurityView("opp")
                         : undefined
                   }
@@ -2950,7 +3027,7 @@ export function GameScreen({
               <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
                 <Pile
                   compact={compactPiles}
-                  count={you.deckCount}
+                  count={shownYou.deckCount}
                   label={t("game.pile.deck")}
                   riffling={deckRiffles.has(`${viewerSeat}:deck`)}
                   refEl={(el) => {
@@ -2960,10 +3037,10 @@ export function GameScreen({
                 <Pile
                   className={trashEffectSource(viewerSeat)}
                   compact={compactPiles}
-                  count={you.trash.length}
+                  count={shownYou.trash.length}
                   label={t("game.pile.trash")}
-                  topCardId={you.trash[you.trash.length - 1]?.cardId}
-                  onClick={you.trash.length ? () => setTrashView("you") : undefined}
+                  topCardId={shownYou.trash[shownYou.trash.length - 1]?.cardId}
+                  onClick={shownYou.trash.length ? () => setTrashView("you") : undefined}
                 />
               </div>
             </aside>
@@ -2981,7 +3058,7 @@ export function GameScreen({
               alignItems: "stretch",
             }}
           >
-            {boardLocked ? <BoardInputLock /> : null}
+            {inputLocked ? <BoardInputLock /> : null}
             {/* breeding area (bottom-left) */}
             <div
               className="game-breeding-dock"
@@ -3012,25 +3089,25 @@ export function GameScreen({
                 <Pile
                   className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
                   compact={compactPiles}
-                  count={you.eggDeckCount}
+                  count={shownYou.eggDeckCount}
                   label={t("game.pile.eggs")}
                   glow={breedingActionsOpen && canHatchEgg}
                   riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
                   onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
                 />
                 <BreedingSlot
-                  perm={you.breeding}
+                  perm={shownYou.breeding}
                   label={t("game.pile.raising")}
                   compact={compactPiles}
-                  burst={you.breeding ? permanentBursts.get(you.breeding.permanentId) : undefined}
+                  burst={shownYou.breeding ? permanentBursts.get(shownYou.breeding.permanentId) : undefined}
                   // On a phone the dock is a row above the hand; a smaller slot gives
                   // its height back to the battle rows while staying a 44px+ target.
                   width={narrowGameLayout ? 46 : undefined}
                   candidate={
                     (breedingActionsOpen && canMoveOutOfBreeding) ||
-                    (!!you.breeding &&
-                      (eligibleBase(you.breeding) ||
-                        (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId))))
+                    (!!shownYou.breeding &&
+                      (eligibleBase(shownYou.breeding) ||
+                        (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(shownYou.breeding.permanentId))))
                   }
                   focused={breedingWindow}
                   drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
@@ -3038,8 +3115,8 @@ export function GameScreen({
                   // rather than the card menu — `onBreeding` still digivolves first
                   // when a hand card is selected.
                   onClick={
-                    you.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
-                      ? onYourPerm(you.breeding)
+                    shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
+                      ? onYourPerm(shownYou.breeding)
                       : onBreeding
                   }
                 />
@@ -3064,11 +3141,11 @@ export function GameScreen({
               style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}
             >
               <ActionBar
-                youName={you.displayName || joinOptions.displayName}
+                youName={shownYou.displayName || joinOptions.displayName}
                 youColor={youColor}
                 avatarId={identityAvatarId}
                 avatarUrl={identityAvatarUrl}
-                handCount={you.handCount}
+                handCount={shownYou.handCount}
                 selCardId={handPreview ? undefined : selCardId}
                 attackerCardId={attackerPerm?.topCard?.cardId}
                 attackTargets={attackTargets}
@@ -3092,7 +3169,7 @@ export function GameScreen({
               <Hand
                 cardWidth={compactPiles ? HAND_CARD_WIDTH_COMPACT : HAND_CARD_WIDTH}
                 minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
-                cards={handEntries}
+                cards={shownHandEntries}
                 selectedInstanceId={handSel ?? undefined}
                 effectSourceInstanceId={
                   handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
@@ -3108,7 +3185,7 @@ export function GameScreen({
                 }
                 startDrag={startHandDrag}
                 selectCard={(index) => {
-                  const entry = handEntries[index];
+                  const entry = shownHandEntries[index];
                   if (entry) selectHandCard(entry);
                 }}
                 draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}

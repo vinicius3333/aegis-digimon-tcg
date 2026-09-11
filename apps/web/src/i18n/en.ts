@@ -329,6 +329,7 @@ export const en = {
   "game.dragIntent.use": "USE",
   "game.dragIntent.attack": "ATTACK",
   "game.matchLog": "Match log",
+  "game.skipPresentation": "Skip animations",
   "game.noActions": "No actions yet.",
   "game.surrender": "Surrender",
   "game.stats.turns": "Turns",

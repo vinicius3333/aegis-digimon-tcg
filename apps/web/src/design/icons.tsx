@@ -240,6 +240,12 @@ const Play = (p: IconProps) => (
     <polygon points="5 3 19 12 5 21 5 3" />
   </Svg>
 );
+const FastForward = (p: IconProps) => (
+  <Svg {...p}>
+    <polygon points="13 19 22 12 13 5 13 19" />
+    <polygon points="2 19 11 12 2 5 2 19" />
+  </Svg>
+);
 const PlayCircle = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="12" cy="12" r="10" />
@@ -439,6 +445,7 @@ export const Icons = {
   Link2,
   Play,
   PlayCircle,
+  FastForward,
   Dices,
   Map: MapIcon,
   Sparkles,

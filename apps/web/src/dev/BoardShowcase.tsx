@@ -41,8 +41,8 @@ import { ZoneShowcase } from "../game/ZoneShowcase";
 import type { PermanentBurst, ZoneShowcase as ZoneShowcaseModel } from "../game/showcases";
 import { NoticeStack } from "../game/NoticeStack";
 import { SidePanelStack } from "../game/SidePanelStack";
-import type { MatchNotice } from "../game/notices";
-import type { SidePanel } from "../game/sidePanels";
+import { NOTICE_LIFETIME_MS, type MatchNotice } from "../game/notices";
+import { SIDE_PANEL_LIFETIME_MS, type SidePanel } from "../game/sidePanels";
 import { useTranslation, type TranslationKey } from "../i18n";
 import "../game/game.css";
 import "./boardShowcase.css";
@@ -340,21 +340,6 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
       }),
     ],
   },
-  {
-    label: "both columns, each border on its own clock",
-    panels: [
-      showcasePanel({ id: "crowd-1", titleKey: "panel.revealedCards", side: "opp", cardIds: [CARDS.opponentChampion] }),
-      showcasePanel({
-        id: "crowd-2",
-        titleKey: "panel.playedCard",
-        side: "opp",
-        cardIds: [CARDS.opponentUltimate],
-        age: 600,
-      }),
-      showcasePanel({ id: "crowd-3", titleKey: "panel.discardedCards", cardIds: [CARDS.rookie] }),
-      showcasePanel({ id: "crowd-4", titleKey: "panel.deletedCards", cardIds: [CARDS.champion], age: 900 }),
-    ],
-  },
 ];
 
 function showcaseNotice(id: string, body: MatchNotice["body"], overrides: Partial<MatchNotice> = {}): MatchNotice {
@@ -363,7 +348,7 @@ function showcaseNotice(id: string, body: MatchNotice["body"], overrides: Partia
 
 const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
   {
-    label: "viewer's effect (bottom-left)",
+    label: "viewer's effect",
     notices: [
       showcaseNotice("effect-you", {
         variant: "effect",
@@ -374,7 +359,7 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
     ],
   },
   {
-    label: "opponent's effect (top-left)",
+    label: "opponent's effect",
     notices: [
       showcaseNotice(
         "effect-opp",
@@ -389,7 +374,7 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
     ],
   },
   {
-    label: "security effect (mirrored to the middle)",
+    label: "security effect",
     notices: [
       showcaseNotice(
         "effect-security",
@@ -412,23 +397,6 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
     notices: [
       showcaseNotice("recovery", { variant: "recovery", amount: 2 }),
       showcaseNotice("rejection", { variant: "rejection", reason: "It is not your turn." }),
-    ],
-  },
-  {
-    label: "three stacked (disperse faster)",
-    notices: [
-      showcaseNotice("stack-1", {
-        variant: "effect",
-        cardId: CARDS.rookie,
-        timing: "OnPlay",
-        description: "Draw 1 card.",
-      }),
-      showcaseNotice("stack-2", { variant: "recovery", amount: 1 }),
-      showcaseNotice(
-        "stack-3",
-        { variant: "effect", cardId: CARDS.opponentChampion, timing: "OnDeletion", description: "Gain 1 memory." },
-        { side: "opp" },
-      ),
     ],
   },
 ];
@@ -938,12 +906,14 @@ export function BoardShowcase() {
       <Section
         id="showcase-side-panels"
         title="timed side panels"
-        note="Opponent-origin panels stack down from the top-right, the viewer's up from the bottom-right. The cyan ring around each panel erodes clockwise over the fixed reading time it opened with, which nothing else on the board shortens."
+        note="One panel at a time: the presentation queue decides which moment a slot is showing. The cyan ring erodes clockwise over the fixed reading time the panel opened with, which nothing else on the board shortens."
         stacked
       >
         {PANEL_CASES.map(({ label, panels }) => (
           <Stage key={label} label={label} height={560}>
-            <SidePanelStack panels={panels} nowMs={SHOWCASE_NOW} onDismiss={noop} />
+            {panels.map((panel) => (
+              <SidePanelStack key={panel.id} panel={panel} remainingMs={SIDE_PANEL_LIFETIME_MS} onDismiss={noop} />
+            ))}
           </Stage>
         ))}
       </Section>
@@ -951,12 +921,14 @@ export function BoardShowcase() {
       <Section
         id="showcase-notices"
         title="notice stack"
-        note="Corner-framed notices: the viewer's moments anchor bottom-left, the opponent's top-right, and anything a security card raised mirrors to the middle of the half the panels do not occupy."
+        note="Corner-framed notices, one per narration slot: the viewer's moments on the left, the opponent's on the right, and a refusal in its own slot because it answers the viewer's own tap."
         stacked
       >
         {NOTICE_CASES.map(({ label, notices }) => (
           <Stage key={label} label={label} height={460}>
-            <NoticeStack notices={notices} nowMs={SHOWCASE_NOW} onDismiss={noop} />
+            {notices.map((notice) => (
+              <NoticeStack key={notice.id} notice={notice} remainingMs={NOTICE_LIFETIME_MS} onDismiss={noop} />
+            ))}
           </Stage>
         ))}
       </Section>

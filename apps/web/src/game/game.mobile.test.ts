@@ -336,45 +336,40 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
   });
 
   it("spans the reveal panel across the screen", () => {
-    expect(portraitRules).toMatch(/\.side-panel-stack,\s*\.match-notice-stack \{[^}]*width:\s*auto/);
+    expect(portraitRules).toMatch(/\.narration-slot \{[^}]*width:\s*auto/);
   });
 });
 
 describe("floating chrome keeps clear of the hand and the memory band", () => {
-  // Both stacks span the width on a phone in portrait, so "notices left, panels
-  // right" no longer separates them: each anchors to its own screen edge and
-  // grows toward the middle, uncapped, showing its content whole.
-  it("lets the notice stack and the side panels show whole from their own edges", () => {
+  // A narration slot spans the width on a phone in portrait, so it anchors to its
+  // own screen edge and grows toward the middle, uncapped, showing its content whole.
+  it("lets a narration slot show whole from its own edge", () => {
     expect(phonePortraitRules).toBeDefined();
-    // No cap on either stack or on the notice text: every cap tried here
+    // No cap on a corner slot or on the notice text: every cap tried here
     // (7rem, then a dvh split) decapitated a notice's clause or a revealed
     // card's art while screen space sat empty next to it. Nothing may
     // reintroduce one.
-    expect(phonePortraitRules).not.toMatch(/\.match-notice-stack[^{]*\{[^}]*max-height/);
-    expect(phonePortraitRules).not.toMatch(/\.side-panel-stack \{[^}]*max-height/);
+    expect(phonePortraitRules).not.toMatch(/\.narration-slot\[data-slot="narration-[^"]+"\] \{[^}]*max-height/);
     expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*max-height/);
-    expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
-    expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
-    // The notices keep the corner they already had.
-    expect(gameCss).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(11rem/);
-    // …but not the tablet block's 9rem, which landed them on the egg deck and the
-    // raising slot. A notice takes the tap meant for either.
-    expect(phonePortraitRules).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(17rem/);
+    // The viewer's corner clears the egg deck and the raising slot, which the
+    // tablet block's 9rem sat on: a moment takes the tap meant for either.
+    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(17rem/);
+    expect(gameCss).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(11rem/);
   });
 
-  it("drops the opponent's notices and the attack call-out below the phone feed", () => {
+  it("drops the opponent's moment and the attack call-out below the phone feed", () => {
     // The feed starts at 6.75rem and is 3.25rem tall in portrait, so the base
     // 9.5rem put both of them underneath it: the player never read who attacked.
-    expect(phonePortraitRules).toMatch(/\.match-notice-stack\[data-anchor\^="top-"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    expect(phonePortraitRules).toMatch(/\.narration-slot\[data-slot="narration-opp"\] \{[^}]*top:\s*calc\(10\.5rem/);
     expect(phonePortraitRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(10\.5rem/);
   });
 
-  it("gives the phone's collapsed notice band a place of its own", () => {
-    // GameScreen folds every anchor into one top-center stack on a portrait
-    // phone; the band pins below the opponent feed and spans the width.
+  it("gives the phone's single narration band a place of its own", () => {
+    // GameScreen folds both sides into one centred slot on a portrait phone; the
+    // band pins below the opponent feed and spans the width.
     expect(gameScreenSource).toMatch(/const collapseNotices = narrowGameLayout && !landscapePhone;/);
-    expect(gameScreenSource).toMatch(/collapse=\{collapseNotices\}/);
-    expect(narrowWidthRules).toMatch(/\.match-notice-stack\[data-anchor="top-center"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    expect(gameScreenSource).toMatch(/compact=\{collapseNotices\}/);
+    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(10\.5rem/);
     // The clause is shown whole here too: no clamp may cut it on any layout.
     expect(narrowWidthRules).not.toMatch(/\.match-notice__text \{/);
     expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*line-clamp/);
@@ -394,14 +389,13 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     // The 132px hand fans ~75px taller than the compact one; at 11rem the viewer's
     // panels and notices sat on top of it on a 900px-tall laptop.
     expect(pointerWidthRules).toBeDefined();
-    expect(pointerWidthRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(13rem/);
-    expect(pointerWidthRules).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(13rem/);
+    expect(pointerWidthRules).toMatch(/\.narration-slot\[data-slot="narration-you"\] \{[^}]*bottom:\s*calc\(13rem/);
   });
 
-  it("moves the opponent's notices and the attack call-out off the landscape band", () => {
+  it("moves the opponent's moment and the attack call-out off the landscape band", () => {
     // The memory band crosses the middle of a 390px-tall screen, which is where
     // 9.5rem put both of them.
-    expect(landscapeRules).toMatch(/\.match-notice-stack\[data-anchor\^="top-"\] \{[^}]*top:\s*calc\(3\.25rem/);
+    expect(landscapeRules).toMatch(/\.narration-slot\[data-slot="narration-opp"\] \{[^}]*top:\s*calc\(3\.25rem/);
     expect(landscapeRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(3\.25rem[^}]*translate:\s*none/);
   });
 });
@@ -521,14 +515,19 @@ describe("the viewer's own moves on a phone", () => {
   });
 });
 
-describe("timed panels and notices share one band on a phone in portrait", () => {
-  it("folds the side panels into a single top column with the notices under them", () => {
+describe("one narration band on a phone in portrait", () => {
+  it("folds the viewer's and the opponent's moments into a single top slot", () => {
     expect(narrowWidthRules).toMatch(
-      /\.side-panel-stack\[data-side="all"\] \{[^}]*top:\s*calc\(10\.5rem[^}]*bottom:\s*auto[^}]*flex-direction:\s*column/,
+      /\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(10\.5rem[^}]*bottom:\s*auto/,
     );
-    expect(gameScreenSource).toMatch(/<SidePanelStack[\s\S]*?collapse=\{collapseNotices\}/);
-    // The standalone notice stack is the landscape phone's and the desktop's only.
-    expect(gameScreenSource).toMatch(/!state\.gameOver && !collapseNotices \? \([\s\S]*?<NoticeStack/);
+    // A tall moment scrolls rather than being squeezed until its cards are cut off.
+    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*overflow-y:\s*auto/);
+    expect(narrowWidthRules).not.toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*overflow:\s*hidden/);
+    expect(gameCss).toMatch(/\.side-panel \{[^}]*flex-shrink:\s*0/);
+    // One slot is a hook input, not a second layout: the queue itself puts both
+    // sides in the same slot on a phone.
+    expect(gameScreenSource).toMatch(/collapseNarration: collapseNotices/);
+    expect(gameScreenSource).toMatch(/<NarrationStack[\s\S]*?compact=\{collapseNotices\}/);
   });
 });
 
@@ -551,7 +550,7 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
       /\.board-prompt-scrim \{[^}]*inset:\s*0 0 calc\(var\(--game-hand-h\)[^}]*pointer-events:\s*none/,
     );
     expect(phonePortraitRules).toMatch(
-      /\.side-panel-stack\[data-under-sheet\] \{[^}]*max-height:\s*30dvh[^}]*overflow-y:\s*auto/,
+      /\.narration-slot\[data-slot="narration"\] \{[^}]*max-height:\s*30dvh[^}]*overflow-y:\s*auto/,
     );
     expect(gameCss).toMatch(/\[data-held\] \.match-notice__erode \{[^}]*animation-play-state:\s*paused/);
   });

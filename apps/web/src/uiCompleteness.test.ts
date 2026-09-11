@@ -82,6 +82,9 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   // Opens the centre-stage check: the shield breaks and the card is turned face up. The
   // log line belongs to `securityChecked`, which names the same card AND what it did.
   securityRevealed: "played as the shield break and the reveal; the log line is securityChecked",
+  // A stream boundary, not something that happened in the match: it tells the client which
+  // events the rules resolved together (net/serverBatches.ts) and names no game fact.
+  batchClosed: "the boundary the presentation groups by; it narrates nothing",
 };
 
 describe("server event coverage", () => {

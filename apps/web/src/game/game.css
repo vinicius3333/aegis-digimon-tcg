@@ -1164,6 +1164,13 @@
   box-shadow: 0 0 10px var(--ds-primary-light);
 }
 
+/* The skip button is only in the header while the queue has something to skip, so it
+   is tinted: a control that comes and goes has to be recognisable at a glance. */
+.game-topbar-button--skip {
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+}
+
 .game-topbar-button--danger:hover {
   color: var(--ds-danger);
   border-color: var(--ds-danger);
@@ -2863,43 +2870,67 @@
   background: var(--battle-header-grad);
 }
 
-/* --- Timed side panels ---------------------------------------------- */
+/* --- Narration slots ------------------------------------------------ */
 
-/* Two columns down the board's edges: the opponent's movements stack down the
-   left, under the opponent action feed, and the viewer's up from the bottom
-   right, so a glance at the column says whose cards moved. The opponent's column
-   is on the left because the right half of the field is where the opponent plays
-   and digivolves — a panel there covered the move it was reporting. Both sit
+/* One moment at a time, in the corner belonging to whoever caused it: the viewer
+   reads the bottom left and the opponent's moments arrive top right, clear of the
+   opponent action feed and of the half of the field the opponent plays into. The
+   portrait phone has one centred slot instead, because four corners on a 390px
+   screen put a notice on the hand, the actions or the field being read.
+
+   A slot holds the panel and the notice of the same moment, in that order, so
+   the two read top to bottom rather than one painted over the other. Slots sit
    above the board chrome but under --ds-z-dialog, so a decision overlay always
    wins. */
-.side-panel-stack {
+.narration-slot {
   position: absolute;
-  z-index: calc(var(--ds-z-dialog) - 5);
-  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  z-index: calc(var(--ds-z-dialog) - 4);
   display: flex;
   width: min(20rem, calc(100% - var(--ds-space-8)));
+  flex-direction: column;
   gap: var(--ds-space-2);
   pointer-events: none;
 }
 
-/* The left anchor is carried on the [data-side] selector so it outranks the
-   narrower blocks below, which only move the shared right edge inboard. */
-.side-panel-stack[data-side="opp"] {
-  top: calc(13.5rem + env(safe-area-inset-top, 0px));
-  right: auto;
+/* Above the hand dock, so a moment never covers the hand. */
+.narration-slot[data-slot="narration-you"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
   left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
-  flex-direction: column;
 }
 
-/* Grows upward from just above the hand dock, so a panel never covers the hand. */
-.side-panel-stack[data-side="you"] {
-  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
-  flex-direction: column-reverse;
+.narration-slot[data-slot="narration-opp"] {
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+}
+
+/* The phone's single band: under the opponent bar, spanning the width, and
+   scrollable so a tall item is never squeezed into an unreadable strip. */
+.narration-slot[data-slot="narration"] {
+  top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  width: auto;
+  max-height: calc(100dvh - 10.5rem - var(--game-hand-h) - 6rem - env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+/* --- Timed side panels ---------------------------------------------- */
+
+/* The panel's own wrapper, laid out by the slot that holds it. */
+.side-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
 }
 
 .side-panel {
   position: relative;
   overflow: hidden;
+  /* `overflow: hidden` zeroes the flex min-height, so a crowded column squeezed
+     the panel and cut its cards off. The column scrolls instead. */
+  flex-shrink: 0;
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.65rem;
   background: var(--battle-panel);
@@ -3052,48 +3083,12 @@ button.side-panel__name:focus-visible {
 
 /* --- Framed notices -------------------------------------------------- */
 
-/* Anchored to the corner belonging to whoever caused the moment: the viewer's
-   effects bottom-left, the opponent's top-right, and anything a security card
-   raised in the middle of the half the side panels do not occupy. */
+/* The notice's own wrapper, laid out by the narration slot that holds it. */
 .match-notice-stack {
-  position: absolute;
-  z-index: calc(var(--ds-z-dialog) - 4);
   display: flex;
-  width: min(19rem, calc(100% - var(--ds-space-8)));
   flex-direction: column;
   gap: var(--ds-space-2);
   pointer-events: none;
-}
-
-.match-notice-stack[data-anchor$="-left"] {
-  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
-}
-
-.match-notice-stack[data-anchor$="-right"] {
-  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
-}
-
-.match-notice-stack[data-anchor^="top-"] {
-  top: calc(9.5rem + env(safe-area-inset-top, 0px));
-}
-
-.match-notice-stack[data-anchor^="middle-"] {
-  top: 50%;
-  translate: 0 -50%;
-}
-
-.match-notice-stack[data-anchor^="bottom-"] {
-  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
-  flex-direction: column-reverse;
-}
-
-/* A security card's notices ride the opponent's panel column instead of an anchor
-   of their own: under the panel of cards it revealed, in the column's flow, so the
-   two read top to bottom rather than one painted over the other. */
-.side-panel-stack > .match-notice-stack {
-  position: static;
-  width: auto;
-  translate: none;
 }
 
 /* The reference client frames a notice with bracketed corners rather than a full
@@ -3650,22 +3645,16 @@ button.side-panel__name:focus-visible {
 }
 
 @media (width <= 780px) {
-  .side-panel-stack {
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  .narration-slot {
     width: min(14rem, calc(100% - var(--ds-space-4)));
   }
-  .side-panel-stack[data-side="opp"] {
+  .narration-slot[data-slot="narration-opp"] {
     top: calc(11.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  }
+  .narration-slot[data-slot="narration-you"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-  }
-  .side-panel-stack[data-side="you"] {
-    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
-  }
-  .match-notice-stack {
-    width: min(14rem, calc(100% - var(--ds-space-4)));
-  }
-  .match-notice-stack[data-anchor^="bottom-"] {
-    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -4126,17 +4115,11 @@ button.side-panel__name:focus-visible {
     max-height: calc(78dvh - 6rem);
   }
   /* The reveal panel is how a phone reads a flipped security card, and at 11rem
-     its heading was cut to "Cart…". It spans the screen instead. */
-  .side-panel-stack,
-  .match-notice-stack {
+     its heading was cut to "Cart…". The slots span the screen instead. */
+  .narration-slot {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: auto;
-  }
-  /* The opponent's column is left-anchored at pointer widths; here it spans like
-     the rest, so the left anchor it carries has to be spent back. */
-  .side-panel-stack[data-side="opp"] {
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
   }
   .game-field {
     width: 100%;
@@ -5065,26 +5048,18 @@ button.side-panel__name:focus-visible {
     align-content: start;
   }
 
-  /* The stacks and their text are not capped on a phone: every cap tried here
-     — 7rem, then a dvh split — ended up decapitating a notice's clause or a
-     revealed card's art while screen space sat empty next to it. The whole
-     notice and the whole card matter more than the board they briefly cover,
-     and each stack grows from its own screen edge toward the middle. */
-  .side-panel-stack[data-side="opp"] {
-    top: calc(17rem + env(safe-area-inset-top, 0px));
-  }
-  .side-panel-stack[data-side="you"] {
-    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
-  }
-  /* The same band as the viewer's panels. A notice takes its taps rather than
-     letting them through, and at the tablet block's 9rem it was sitting on the
-     egg deck and the raising slot — the two pieces the breeding step is about. */
-  .match-notice-stack[data-anchor^="bottom-"] {
+  /* A slot and its text are not capped on a phone: every cap tried here — 7rem,
+     then a dvh split — ended up decapitating a notice's clause or a revealed
+     card's art while screen space sat empty next to it. The whole notice and the
+     whole card matter more than the board they briefly cover, and each slot grows
+     from its own screen edge toward the middle. The viewer's slot clears the egg
+     deck and the raising slot, which the breeding step is about. */
+  .narration-slot[data-slot="narration-you"] {
     bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
   }
   /* Below the opponent's feed, which starts at 6.75rem and is 3.25rem tall here:
      at the base 9.5rem the feed painted over the call-out naming the attacker. */
-  .match-notice-stack[data-anchor^="top-"] {
+  .narration-slot[data-slot="narration-opp"] {
     top: calc(10.5rem + env(safe-area-inset-top, 0px));
   }
   .attack-announcement {
@@ -5166,8 +5141,8 @@ button.side-panel__name:focus-visible {
     background: rgb(4 14 31 / 42%);
     animation: aegis-fadeIn 140ms ease-out;
   }
-  /* With a decision sheet open the feed column stops short of it and scrolls. */
-  .side-panel-stack[data-under-sheet] {
+  /* With a decision sheet open the phone's slot stops short of it and scrolls. */
+  .narration-slot[data-slot="narration"] {
     max-height: 30dvh;
     overflow-y: auto;
     pointer-events: auto;
@@ -5302,32 +5277,19 @@ button.side-panel__name:focus-visible {
     flex-basis: 100%;
   }
 
-  /* The phone's single notice band: GameScreen collapses every anchor into one
-     top-center stack here, because four corners on a 390px screen meant a notice
-     could land on the hand, the actions or the field the player is reading. The
-     band sits below the opponent feed and grows downward, newest last. */
-  .match-notice-stack[data-anchor="top-center"] {
-    top: calc(10.5rem + env(safe-area-inset-top, 0px));
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-    width: auto;
-  }
-  /* The side panels share that band: their own two columns, one hanging from the
-     top and one rising from the bottom, met the notice band in the middle of the
-     screen and the three painted over each other. One column, oldest first, with
-     the notices under the panels, reads top to bottom instead. */
-  .side-panel-stack[data-side="all"] {
+  /* The phone's single narration band: one slot for both sides, because four
+     corners on a 390px screen meant a moment could land on the hand, the actions
+     or the field the player is reading. The band sits below the opponent feed,
+     spans the width, and scrolls rather than squeezing what it holds. */
+  .narration-slot[data-slot="narration"] {
     top: calc(10.5rem + env(safe-area-inset-top, 0px));
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     bottom: auto;
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-    flex-direction: column;
     width: auto;
     max-height: calc(100dvh - 10.5rem - var(--game-hand-h) - 6rem - env(safe-area-inset-top, 0px));
-    overflow: hidden;
-  }
-  .side-panel-stack[data-side="all"] > .match-notice-stack {
-    width: auto;
+    overflow-y: auto;
+    pointer-events: auto;
   }
 }
 
@@ -5640,32 +5602,21 @@ button.side-panel__name:focus-visible {
   .opponent-action-feed__trail {
     display: none;
   }
-  .side-panel-stack,
-  .match-notice-stack {
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    left: auto;
+  .narration-slot {
     width: min(22rem, 45vw);
   }
-  .side-panel-stack[data-side="opp"] {
-    top: calc(3.75rem + env(safe-area-inset-top, 0px));
-    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-  }
-  .side-panel-stack[data-side="you"] {
+  .narration-slot[data-slot="narration-you"] {
     bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-  }
-  .match-notice-stack[data-anchor$="-left"] {
     right: auto;
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
   }
-  .match-notice-stack[data-anchor^="bottom-"] {
-    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-  }
   /* The band with the memory gauge and the turn orb sits at the middle of a 390px
-     screen, which is where the default 9.5rem put the opponent's notices. They ride
-     under the header instead, in the right column the opponent's feed and panels
-     leave free. */
-  .match-notice-stack[data-anchor^="top-"] {
+     screen, which is where the default 9.5rem put the opponent's moments. They ride
+     under the header instead, in the right column the opponent's feed leaves free. */
+  .narration-slot[data-slot="narration-opp"] {
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: auto;
   }
   /* Same reason, and the attack call-out is centred, so it cannot dodge the band
      sideways: it takes the top-left corner for the length of the arc. */
@@ -5776,10 +5727,7 @@ button.side-panel__name:focus-visible {
    Last in the responsive run so it outranks the blocks above without reaching
    the narrow viewports they own. */
 @media (width >= 960px) {
-  .side-panel-stack[data-side="you"] {
-    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
-  }
-  .match-notice-stack[data-anchor^="bottom-"] {
+  .narration-slot[data-slot="narration-you"] {
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
   }
   /* A pointer screen carries a much longer board, so the beam grows a little —

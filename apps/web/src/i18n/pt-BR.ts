@@ -333,6 +333,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.dragIntent.use": "USAR",
   "game.dragIntent.attack": "ATACAR",
   "game.matchLog": "Registro da partida",
+  "game.skipPresentation": "Pular animações",
   "game.noActions": "Nenhuma ação ainda.",
   "game.surrender": "Desistir",
   "game.stats.turns": "Turnos",

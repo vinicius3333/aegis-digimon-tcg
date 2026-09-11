@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ATTACK_ANNOUNCE_MS, SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS } from "./sidePanels";
-import { NOTICE_CROWDED_LIFETIME_MS, NOTICE_LIFETIME_MS } from "./notices";
+import { NOTICE_LIFETIME_MS } from "./notices";
 import {
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   SECURITY_EFFECT_NARRATION_MS,
 } from "@aegis/shared";
+import { NARRATION_TICK_MS } from "./narration";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
 import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
 import {
@@ -160,8 +161,12 @@ describe("battle timings", () => {
     expect(ATTACK_ANNOUNCE_MS).toBe(TIMINGS.attackAnnounce);
   });
 
-  it("gives a crowded notice stack less time than a lone notice", () => {
+  it("derives the notice reading time from the table", () => {
     expect(NOTICE_LIFETIME_MS).toBe(TIMINGS.noticeLifetime);
-    expect(NOTICE_CROWDED_LIFETIME_MS).toBeLessThan(NOTICE_LIFETIME_MS);
+  });
+
+  it("ticks a presented item's clock often enough for a tap to feel immediate", () => {
+    expect(NARRATION_TICK_MS).toBeLessThan(NOTICE_LIFETIME_MS);
+    expect(NARRATION_TICK_MS).toBeLessThanOrEqual(150);
   });
 });

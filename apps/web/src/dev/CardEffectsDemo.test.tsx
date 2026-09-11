@@ -2784,7 +2784,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("shows Dracomon's completed reveal with hand and sourced resolution log", () => {
+  it("shows Dracomon's completed reveal with hand and sourced resolution log", async () => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-037?effect=resolved");
     render(
@@ -2797,7 +2797,9 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(/hand 2/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Wingdramon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Examon" })).toBeTruthy();
-    expect(screen.getByText(/Dracomon adicionou Wingdramon e Examon.*fundo do baralho/i)).toBeTruthy();
+    // The clause is narrated by the presentation queue now, so it arrives on the queue's
+    // first step rather than with the render.
+    expect(await screen.findByText(/Dracomon adicionou Wingdramon e Examon.*fundo do baralho/i)).toBeTruthy();
   });
 
   it.each([

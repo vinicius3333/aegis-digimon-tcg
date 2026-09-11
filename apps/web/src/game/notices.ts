@@ -2,38 +2,22 @@
    rejection flash, a recovery toast and an effect-clause toast, each with its
    own placement and its own timer.
 
-   A notice is anchored by whose moment it is — the viewer's effects sit
-   bottom-left, the opponent's top-right — so a glance at the corner says whose
-   turn to read it is. The opponent's corner is the right one because the
-   opponent's action feed and card panels own the board's left edge, where they
-   sit clear of the half of the field the opponent plays into.
+   A notice no longer owns a corner or a clock of its own. It is half of a
+   narration item (narration.ts), and the animation queue presents one item at a
+   time per slot: the viewer's side, the opponent's side, or the phone's single
+   centred slot. A refused action is the exception — it answers the viewer's own
+   tap, so it is shown at once rather than queued.
 
-   A notice raised while a security card resolves mirrors to
-   the side opposite the panel stack, because the revealed card and its panels
-   already own that half of the screen.
-
-   This module is the pure half: the model, the anchoring, and the stacking and
-   expiry rules. Card text and translation belong to NoticeStack.tsx. */
+   This module is the pure half: the model and the mapping from server events.
+   Card text and translation belong to NoticeStack.tsx. */
 
 import { digiXrosRequirementFor, type Seat, type ServerEvent } from "@aegis/shared";
 import { TIMINGS } from "./timings";
 
-/** How long a notice stays readable on its own. */
+/** How long a notice gets to be read. Nothing on the board shortens it any more. */
 export const NOTICE_LIFETIME_MS = TIMINGS.noticeLifetime;
 
-/** A crowded stack disperses on this shorter clock instead. */
-export const NOTICE_CROWDED_LIFETIME_MS = TIMINGS.noticeCrowdedLifetime;
-
-/** Three notices at once is the point where the stack starts clearing itself faster. */
-export const NOTICE_CROWDED_AT = 3;
-
-/** Beyond this the oldest notice is dropped rather than shrinking the type. */
-export const MAX_VISIBLE_NOTICES = 3;
-
 export type NoticeSide = "you" | "opp";
-export type NoticeVertical = "top" | "middle" | "bottom";
-export type NoticeHorizontal = "left" | "right";
-export type NoticeAnchor = `${NoticeVertical}-${NoticeHorizontal}`;
 
 export type NoticeBody =
   | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
@@ -50,7 +34,7 @@ export type NoticeVariant = NoticeBody["variant"];
 export interface MatchNotice {
   id: string;
   side: NoticeSide;
-  /** Raised while a security card was resolving, so it mirrors away from the panels. */
+  /** Raised while a security card was resolving. Provenance only: it no longer moves the notice. */
   fromSecurity: boolean;
   body: NoticeBody;
   createdAt: number;
@@ -164,90 +148,18 @@ export function rejectionNotice(reason: string, id: string, nowMs: number): Matc
   return { id, side: "you", fromSecurity: false, body: { variant: "rejection", reason }, createdAt: nowMs };
 }
 
-/**
- * Where a notice sits. The viewer reads from the bottom-left and the opponent's
- * moments arrive top-right, clear of the opponent feed and panels on the left;
- * anything a security card raised mirrors to the half the panel stack does not
- * occupy.
- */
-export function noticeAnchor(notice: MatchNotice, panelSide: NoticeHorizontal = "right"): NoticeAnchor {
-  if (notice.fromSecurity) return `middle-${panelSide === "right" ? "left" : "right"}`;
-  return notice.side === "you" ? "bottom-left" : "top-right";
-}
-
-/** How long a notice gets to be read, given how many share the screen. */
-export function noticeLifetime(stackSize: number): number {
-  return stackSize >= NOTICE_CROWDED_AT ? NOTICE_CROWDED_LIFETIME_MS : NOTICE_LIFETIME_MS;
-}
-
 /** Milliseconds left on a notice's clock, never negative. */
-export function noticeRemaining(notices: readonly MatchNotice[], notice: MatchNotice, nowMs: number): number {
-  return Math.max(0, notice.createdAt + noticeLifetime(notices.length) - nowMs);
-}
-
-export function pushNotice(notices: readonly MatchNotice[], incoming: MatchNotice): MatchNotice[] {
-  return [...notices, incoming].slice(-MAX_VISIBLE_NOTICES);
-}
-
-export function expireNotices(notices: readonly MatchNotice[], nowMs: number): MatchNotice[] {
-  return notices.filter((notice) => noticeRemaining(notices, notice, nowMs) > 0);
-}
-
-/** The soonest a notice in the stack will expire, or null when the stack is empty. */
-export function nextNoticeExpiry(notices: readonly MatchNotice[], nowMs: number): number | null {
-  if (notices.length === 0) return null;
-  return Math.min(...notices.map((notice) => noticeRemaining(notices, notice, nowMs)));
-}
-
-export function dismissNotice(notices: readonly MatchNotice[], id: string): MatchNotice[] {
-  return notices.filter((notice) => notice.id !== id);
+export function noticeRemaining(notice: MatchNotice, nowMs: number): number {
+  return Math.max(0, notice.createdAt + NOTICE_LIFETIME_MS - nowMs);
 }
 
 /**
- * Drop the viewer's own effect notices for `cardId`.
+ * True for the viewer's own effect notice for `cardId`.
  *
  * The decision dialog that asks the viewer whether to activate their own effect already
- * names the card and prints the clause, so the notice would repeat it word for word in the
- * corner. The opponent's notices stay: their dialog is not on this screen.
+ * names the card and prints the clause, so the notice would repeat it word for word.
+ * The opponent's notices stay: their dialog is not on this screen.
  */
-export function dismissOwnEffectNotices(notices: readonly MatchNotice[], cardId: string): readonly MatchNotice[] {
-  const kept = notices.filter(
-    (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
-  );
-  // Same array back when nothing matched, so a caller storing this in state re-renders
-  // only when a notice was actually dropped.
-  return kept.length === notices.length ? notices : kept;
-}
-
-/** The notices sharing one anchor, oldest first — which is how they stack. */
-export function noticesAt(
-  notices: readonly MatchNotice[],
-  anchor: NoticeAnchor,
-  panelSide: NoticeHorizontal = "right",
-): MatchNotice[] {
-  return notices
-    .filter((notice) => noticeAnchor(notice, panelSide) === anchor)
-    .sort((a, b) => a.createdAt - b.createdAt);
-}
-
-/**
- * Every notice as one stack, oldest first.
- *
- * The phone's band: four corners on a 390px screen meant a notice could land on
- * the hand, the actions or the field the player is reading, so the narrow layout
- * folds them into a single top band and the side accent takes over saying whose
- * moment each one is.
- */
-export function noticesCollapsed(notices: readonly MatchNotice[]): MatchNotice[] {
-  return [...notices].sort((a, b) => a.createdAt - b.createdAt);
-}
-
-/** Every anchor the stack currently occupies, in a stable order. */
-export function occupiedAnchors(
-  notices: readonly MatchNotice[],
-  panelSide: NoticeHorizontal = "right",
-): NoticeAnchor[] {
-  const order: NoticeAnchor[] = ["top-left", "middle-left", "bottom-left", "top-right", "middle-right", "bottom-right"];
-  const present = new Set(notices.map((notice) => noticeAnchor(notice, panelSide)));
-  return order.filter((anchor) => present.has(anchor));
+export function isOwnEffectNotice(notice: MatchNotice, cardId: string): boolean {
+  return notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId;
 }

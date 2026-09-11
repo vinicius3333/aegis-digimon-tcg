@@ -176,12 +176,26 @@ scenario("target-decision", () => {
         (permanent) => permanent.topCard?.cardId === "BT1-009" && permanent.isSuspended,
       ),
     ).toHaveLength(1);
-    expect(
-      within(yourBattleArea())
-        .getAllByRole("img", { name: /monodramon/i })
-        .map((image) => image.closest('[data-drop="perm-you"]'))
-        .filter((permanent) => permanent?.querySelector('[data-state="active"]') !== null),
-    ).toHaveLength(1);
+    // The board is the board the narration has reached (docs/presentation-queue-plan.md 3.2),
+    // so the unsuspend reaches it when its own moment is presented. A tap on the board is
+    // how a player asks for the rest at once, which is what this does until the board has
+    // caught up — the same gesture, not a shortcut around the queue.
+    await vi.waitFor(
+      () => {
+        fireEvent.pointerDown(document.querySelector(".game-board") as HTMLElement);
+        const activeLive = opponent.room.state.players[0]!.battleArea.filter(
+          (permanent) => permanent.topCard?.cardId === "BT1-009" && !permanent.isSuspended,
+        ).length;
+        expect(activeLive).toBeGreaterThan(0);
+        expect(
+          within(yourBattleArea())
+            .getAllByRole("img", { name: /monodramon/i })
+            .map((image) => image.closest('[data-drop="perm-you"]'))
+            .filter((permanent) => permanent?.querySelector('[data-state="active"]') !== null),
+        ).toHaveLength(activeLive);
+      },
+      { timeout: 10_000 },
+    );
 
     await opponent.leave();
   }, 30_000);

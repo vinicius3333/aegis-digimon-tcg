@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticeStack } from "./NoticeStack";
+import { NOTICE_LIFETIME_MS } from "./notices";
 import { I18nProvider } from "../i18n";
 import { BoardInputLock, PermanentView } from "./boardPieces";
 import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
@@ -101,10 +102,14 @@ describe("security feedback", () => {
     render(
       <I18nProvider>
         <NoticeStack
-          notices={[
-            { id: "n1", side: "you", fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 2 } },
-          ]}
-          nowMs={0}
+          notice={{
+            id: "n1",
+            side: "you",
+            fromSecurity: false,
+            createdAt: 0,
+            body: { variant: "recovery", amount: 2 },
+          }}
+          remainingMs={NOTICE_LIFETIME_MS}
           onDismiss={() => undefined}
         />
       </I18nProvider>,

@@ -1,21 +1,15 @@
-/* The reference client's timed side panels: titled navy cards listing what just
-   moved, the opponent's stacking down from the top-right and the viewer's up
-   from the bottom-right, each with a border that erodes clockwise over the time
-   it has left. The panel contents come from ./sidePanels; this file only draws
-   them. */
+/* The reference client's timed side panel: a titled navy card listing what just
+   moved, with a border that erodes clockwise over the time it has left.
 
-import type { ReactNode } from "react";
+   One panel, not a column: the presentation queue decides which moment a slot is
+   showing (narration.ts), and this file draws it. The name is kept because the
+   frame is the same thing it always was. The panel contents come from
+   ./sidePanels. */
+
 import { CardMini } from "../design/cards";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
-import {
-  sidePanelColumn,
-  sidePanelRemaining,
-  type AttackAnnouncement,
-  type SidePanel,
-  type SidePanelCard,
-  type SidePanelSide,
-} from "./sidePanels";
+import { type AttackAnnouncement, type SidePanel, type SidePanelCard } from "./sidePanels";
 
 const PANEL_CARD_WIDTH = 78;
 
@@ -46,132 +40,52 @@ function SidePanelCardView({ card, numbered }: { card: SidePanelCard; numbered: 
   );
 }
 
-function SidePanelView({
+export function SidePanelStack({
   panel,
   remainingMs,
+  held = false,
   onDismiss,
 }: {
   panel: SidePanel;
+  /** What is left of the item's reading time, which is what the border erodes over. */
   remainingMs: number;
+  /** The clock is stopped (a decision is waiting), so the eroding border pauses with it. */
+  held?: boolean;
   onDismiss: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const title = t(panel.titleKey);
   return (
-    <section className="side-panel" data-side={panel.side} data-testid="side-panel">
-      {/* The clock a player can see: the border erodes clockwise over exactly the
-          time this panel has left, which nothing else on the board can shorten. */}
-      <span className="side-panel__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
-      <header className="side-panel__header">
-        <h3 className="side-panel__title">{title}</h3>
-        <span className="side-panel__owner">{t(panel.side === "you" ? "panel.yours" : "panel.opponents")}</span>
-        <button
-          className="side-panel__close"
-          type="button"
-          aria-label={t("panel.dismiss", { title })}
-          onClick={() => onDismiss(panel.id)}
-        >
-          <span aria-hidden="true">×</span>
-        </button>
-      </header>
-      <ol className="side-panel__cards">
-        {panel.cards.map((card) => (
-          <SidePanelCardView
-            key={`${panel.id}:${card.badge}`}
-            card={card}
-            numbered={panel.ordered || panel.cards.length > 1}
-          />
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-function SidePanelColumn({
-  panels,
-  side,
-  nowMs,
-  onDismiss,
-  tail,
-  held,
-  underSheet,
-}: {
-  panels: readonly SidePanel[];
-  side: SidePanelSide | "all";
-  nowMs: number;
-  onDismiss: (id: string) => void;
-  /** Rendered under the column's panels, and on its own when the column has none. */
-  tail?: ReactNode;
-  held?: boolean;
-  underSheet?: boolean;
-}) {
-  const column = side === "all" ? [...panels].sort((a, b) => a.createdAt - b.createdAt) : sidePanelColumn(panels, side);
-  if (column.length === 0 && tail === undefined) return null;
-  return (
     // Deliberately not a live region: the opponent action feed already narrates
     // these moments, and a second status would announce every card twice.
-    <div
-      className="side-panel-stack"
-      data-side={side}
-      data-held={held || undefined}
-      data-under-sheet={underSheet || undefined}
-      data-testid="side-panel-stack"
-    >
-      {column.map((panel) => (
-        <SidePanelView
-          key={panel.id}
-          panel={panel}
-          remainingMs={sidePanelRemaining(panel, nowMs)}
-          onDismiss={onDismiss}
-        />
-      ))}
-      {tail}
+    <div className="side-panel-stack" data-held={held || undefined} data-testid="side-panel-stack">
+      <section className="side-panel" data-side={panel.side} data-testid="side-panel">
+        {/* The clock a player can see: the border erodes clockwise over exactly the
+            time this panel has left, which nothing else on the board can shorten. */}
+        <span className="side-panel__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
+        <header className="side-panel__header">
+          <h3 className="side-panel__title">{title}</h3>
+          <span className="side-panel__owner">{t(panel.side === "you" ? "panel.yours" : "panel.opponents")}</span>
+          <button
+            className="side-panel__close"
+            type="button"
+            aria-label={t("panel.dismiss", { title })}
+            onClick={() => onDismiss(panel.id)}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <ol className="side-panel__cards">
+          {panel.cards.map((card) => (
+            <SidePanelCardView
+              key={`${panel.id}:${card.badge}`}
+              card={card}
+              numbered={panel.ordered || panel.cards.length > 1}
+            />
+          ))}
+        </ol>
+      </section>
     </div>
-  );
-}
-
-export function SidePanelStack({
-  panels,
-  nowMs,
-  onDismiss,
-  oppColumnTail,
-  collapse,
-  held,
-  underSheet,
-}: {
-  panels: readonly SidePanel[];
-  /** Injected so the eroding borders start at the right point after a re-render. */
-  nowMs?: number;
-  onDismiss: (id: string) => void;
-  /**
-   * Fold both sides into one column, oldest first, with the tail under all of them —
-   * the portrait phone, where two anchored columns landed on each other.
-   */
-  collapse?: boolean;
-  /**
-   * What follows the opponent's panels down their column. The notices a security card
-   * raises live here: the cards it revealed and the clause that revealed them are one
-   * moment, read top to bottom, rather than two blocks anchored over each other.
-   */
-  oppColumnTail?: ReactNode;
-  /** The clocks are stopped (a decision is waiting), so the eroding borders pause with them. */
-  held?: boolean;
-  /** A decision sheet is open under the column, which then keeps out of its way. */
-  underSheet?: boolean;
-}) {
-  if (panels.length === 0 && oppColumnTail === undefined) return null;
-  const now = nowMs ?? Date.now();
-  const flags = { held, underSheet };
-  if (collapse) {
-    return (
-      <SidePanelColumn panels={panels} side="all" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} {...flags} />
-    );
-  }
-  return (
-    <>
-      <SidePanelColumn panels={panels} side="opp" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} {...flags} />
-      <SidePanelColumn panels={panels} side="you" nowMs={now} onDismiss={onDismiss} {...flags} />
-    </>
   );
 }
 
