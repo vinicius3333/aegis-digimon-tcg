@@ -48,6 +48,10 @@ const BLACK_LV3 = "BT3-060"; // Psychemon, Black Lv.3 5000 DP — the first prin
 const YELLOW_LV3 = "BT3-032"; // Armadillomon, Yellow Lv.3 4000 DP — the second printed route.
 const RED_LV3 = "BT1-009"; // Monodramon, Red Lv.3 — right level, wrong colour.
 const BLACK_LV4 = "BT10-062"; // Golemon, Black Lv.4 — right colour, wrong level.
+// Brachiomon, Black Lv.5 with no printed text: a host whose own deletion adds no [On Deletion]
+// body of its own (BT6-064 Mamemon prints "delete 1 of your opponent's Digimon with a play cost
+// of 7 or less", which would eat the de-digivolve subject and blur what this proof isolates).
+const BLACK_LV5_VANILLA = "BT10-022";
 
 // --- Neutral fixtures --------------------------------------------------------------------------
 const SENTINEL = "BT1-009"; // Monodramon, Red Lv.3 3000 DP, no printed text.
@@ -513,7 +517,7 @@ describe("EX13-053 Thundermon", () => {
           // Lv.5 host sitting on EX13-053, which sits on the Black Lv.3 its catalog route names.
           battleArea: [
             {
-              card: MAMEMON_NAME,
+              card: BLACK_LV5_VANILLA,
               as: "host",
               under: [
                 { card: BLACK_LV3, as: "base" },
