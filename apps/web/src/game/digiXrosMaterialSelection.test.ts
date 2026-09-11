@@ -1,4 +1,11 @@
-import { CardColor, CardKind, type CardDefinition, type DigiXrosRequirement } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  digiXrosRequirementFor,
+  requireCardDefinition,
+  type CardDefinition,
+  type DigiXrosRequirement,
+} from "@aegis/shared";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { describe, expect, it } from "vitest";
 
@@ -141,5 +148,42 @@ describe("eligibleDigiXrosCandidateIds", () => {
     const candidates = [{ instanceId: "sub", definition: substitute, canSubstitute: true }];
 
     expect(eligibleDigiXrosCandidateIds(requirement, candidates, [])).toEqual(new Set(["sub"]));
+  });
+
+  // The engine accepts a `texts`-only slot (BT12-011 and friends: "2 Digimon cards with
+  // ＜Save＞ in their text"); the picker must offer the same materials.
+  it.each(["BT12-011", "BT12-037", "BT12-048", "BT12-051", "BT12-063", "BT12-074", "BT12-075", "BT21-066"])(
+    "offers ＜Save＞ materials for %s",
+    (cardId) => {
+      const requirement = digiXrosRequirementFor(cardId)?.[0];
+      expect(requirement?.materials).toEqual([{ texts: ["Save"] }]);
+      const saver = requireCardDefinition("BT10-019");
+      const plain = requireCardDefinition("BT1-001");
+      const candidates = [saver, plain].map((definition) => ({ instanceId: definition.cardId, definition }));
+
+      expect(eligibleDigiXrosCandidateIds(requirement!, candidates, [])).toEqual(new Set(["BT10-019"]));
+    },
+  );
+
+  it("keeps a ＜Save＞ slot delimiter-anchored", () => {
+    const requirement: DigiXrosRequirement = { count: 2, materials: [{ texts: ["Save"] }] };
+    const materialSave = card("TEST-30", "Savemon", { effectText: "＜Material Save＞" });
+    const candidates = [{ instanceId: materialSave.cardId, definition: materialSave }];
+
+    expect(eligibleDigiXrosCandidateIds(requirement, candidates, [])).toEqual(new Set());
+  });
+
+  it("offers the Tamer a named BT19-102 slot asks for", () => {
+    const requirement = digiXrosRequirementFor("BT19-102")?.[0];
+    expect(requirement?.materials).toEqual([{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }]);
+    const nene = requireCardDefinition("BT19-087");
+    expect(nene.kinds).toEqual([CardKind.Tamer]);
+    const otherTamer = requireCardDefinition("BT19-079");
+    const candidates = [nene, otherTamer].map((definition) => ({
+      instanceId: definition.cardId,
+      definition,
+    }));
+
+    expect(eligibleDigiXrosCandidateIds(requirement!, candidates, [])).toEqual(new Set(["BT19-087"]));
   });
 });

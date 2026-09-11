@@ -7,7 +7,7 @@ import {
   EffectTiming,
   Zone,
   digiXrosRequirementFor,
-  type CardColor,
+  digiXrosSlotMatches,
   type CardDefinition,
   type DigiXrosMaterial,
   type DigiXrosRequirement,
@@ -16,7 +16,7 @@ import {
   type PlayerState,
   type Seat,
 } from "@aegis/shared";
-import { cardHasTrait, definitionOf, dpOf, isDigimon } from "../cards/cardData.js";
+import { cardHasTrait, definitionOf, dpOf } from "../cards/cardData.js";
 import { extractCardAt, placePermanent as appendPermanent, setTopCard } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
 import {
@@ -500,74 +500,8 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
   return undefined;
 }
 
-/**
- * Whether a material's definition satisfies a single recipe slot (name AND color AND level gates).
- * `digiXrosNames` carries additional name aliases granted to this material specifically for
- * DigiXros matching (the "also treated as [X] for a DigiXros" grant, KB Q3068/Q3105/Q3119).
- */
 function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXrosNames?: string[]): boolean {
-  // Named DigiXros slots may explicitly name non-Digimon cards (BT19-102 names a Tamer).
-  // Unnamed/trait-only slots stay Digimon-only so unrelated Tamers and Options cannot leak in.
-  if (!isDigimon(def) && !(slot.names?.some((name) => def.nameEn.toLowerCase() === name.toLowerCase()) ?? false)) {
-    return false;
-  }
-  if (slot.names && slot.names.length > 0) {
-    const allNames = digiXrosNames && digiXrosNames.length > 0 ? [def.nameEn, ...digiXrosNames] : [def.nameEn];
-    // Plain DigiXros recipe slots are printed card names (`[Greymon]`), not
-    // "contains [Greymon]" filters. Match the card's printed/DigiXros-alias names
-    // exactly; substring matching is represented explicitly by nameOrTrait/name.
-    if (!slot.names.some((n) => allNames.some((name) => name.toLowerCase() === n.toLowerCase()))) return false;
-  }
-  if (slot.traits && slot.traits.length > 0) {
-    if (!slot.traits.some((t) => cardHasTrait(def, t))) return false;
-  }
-  if (slot.traitContains && slot.traitContains.length > 0) {
-    const traits = def.types ?? [];
-    if (
-      !slot.traitContains.some((token) => traits.some((trait) => trait.toLowerCase().includes(token.toLowerCase())))
-    ) {
-      return false;
-    }
-  }
-  if (slot.colors && slot.colors.length > 0) {
-    if (!slot.colors.some((c) => def.colors.includes(c as CardColor))) return false;
-  }
-  // Name-OR-trait disjunction ("[Greymon] in name OR [Dragon] trait"): qualify on any ref (union),
-  // reusing the engine's shared name/trait/text matcher (BT19-065, BT21-030).
-  if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
-    if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
-  }
-  // Printed text slots (BT12-011/074/075: "1 Digimon card with ＜Save＞ in its text")
-  // are structural recipe predicates, not unconstrained description text. Match them
-  // through the same full-card-text union used by other "in its text" filters.
-  if (slot.texts && slot.texts.length > 0) {
-    if (!matchNameOrTrait(def, { tokens: slot.texts, match: "text" })) return false;
-  }
-  if (slot.level !== undefined && def.level !== slot.level) return false;
-  if (slot.levelMin !== undefined && (def.level === undefined || def.level < slot.levelMin)) return false;
-  if (slot.levelMax !== undefined && (def.level === undefined || def.level > slot.levelMax)) return false;
-  // Static level comparison ("Lv.5 or lower"/"Lv.6 or higher"): a level-less material never matches.
-  if (slot.levelComparison !== undefined) {
-    const { op, value } = slot.levelComparison;
-    if (def.level === undefined) return false;
-    if (op === "lte" && !(def.level <= value)) return false;
-    if (op === "gte" && !(def.level >= value)) return false;
-    if (op === "eq" && def.level !== value) return false;
-  }
-  // A desc-only slot (no structured predicate) cannot be matched precisely — reject so we never
-  // accept an unconstrained material (the in-scope cards all carry structured name/color slots).
-  const hasStructured =
-    (slot.names?.length ?? 0) > 0 ||
-    (slot.traits?.length ?? 0) > 0 ||
-    (slot.traitContains?.length ?? 0) > 0 ||
-    (slot.colors?.length ?? 0) > 0 ||
-    (slot.nameOrTrait?.length ?? 0) > 0 ||
-    (slot.texts?.length ?? 0) > 0 ||
-    slot.level !== undefined ||
-    slot.levelMin !== undefined ||
-    slot.levelMax !== undefined ||
-    slot.levelComparison !== undefined;
-  return hasStructured;
+  return digiXrosSlotMatches(def, slot, { hasTrait: cardHasTrait, matchNameOrTrait }, digiXrosNames ?? []);
 }
 
 /**

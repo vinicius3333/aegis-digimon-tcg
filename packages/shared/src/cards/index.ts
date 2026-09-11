@@ -6,3 +6,4 @@ export * from "./images.js";
 export * from "./zoneExpanders.js";
 export * from "./cardPool.js";
 export * from "./digivolution.js";
+export * from "./keywordToken.js";

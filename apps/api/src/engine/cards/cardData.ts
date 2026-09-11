@@ -24,7 +24,7 @@ import {
   tamerOntoDigivolveLevel,
 } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
-import { textMatchesToken } from "./keywordToken.js";
+import { textMatchesToken } from "@aegis/shared";
 
 /**
  * Engine-side card-data-model access layer.

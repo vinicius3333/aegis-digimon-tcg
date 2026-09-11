@@ -1,7 +1,7 @@
 // Matching a filter against a CARD DEFINITION, with no board state involved.
 
 import { runtimeCompiledCard } from "../compiledCards.js";
-import { isPrintedKeywordToken, textPrintsKeyword } from "../../../cards/keywordToken.js";
+import { isPrintedKeywordToken, textPrintsKeyword } from "@aegis/shared";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { CardColor, CardKind, digiXrosRequirementFor, effectiveExactNames, effectiveStaticNames } from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";

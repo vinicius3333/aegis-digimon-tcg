@@ -20,6 +20,8 @@ export {
 } from "./data.js";
 export type { TamerOntoDigivolveSpec } from "./data.js";
 export { canAssignDistinctColors, filterToDistinctColors } from "./differentColors.js";
+export { digiXrosSlotMatches } from "./digiXrosSlotMatch.js";
+export type { DigiXrosSlotMatchers, DigiXrosNameOrTraitRef } from "./digiXrosSlotMatch.js";
 export type * from "./ir/actions/action.js";
 export type * from "./ir/actions/base.js";
 export type * from "./ir/actions/board.js";

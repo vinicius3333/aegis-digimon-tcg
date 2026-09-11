@@ -1,24 +1,72 @@
-import { CardKind, type CardDefinition, type DigiXrosMaterial, type DigiXrosRequirement } from "@aegis/shared";
-
-type NameOrTraitRef = NonNullable<DigiXrosMaterial["nameOrTrait"]>[number];
+import {
+  digiXrosSlotMatches,
+  effectiveExactNames,
+  effectiveStaticNames,
+  isPrintedKeywordToken,
+  textPrintsKeyword,
+  type CardDefinition,
+  type DigiXrosMaterial,
+  type DigiXrosNameOrTraitRef,
+  type DigiXrosRequirement,
+} from "@aegis/shared";
 
 function includesFolded(values: readonly string[] | undefined, wanted: string): boolean {
   return values?.some((value) => value.toLocaleLowerCase() === wanted.toLocaleLowerCase()) === true;
 }
 
-function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): boolean {
-  const name = definition.nameEn.toLocaleLowerCase();
-  const types = definition.types ?? [];
+function traitsOf(definition: CardDefinition): string[] {
+  return [...(definition.forms ?? []), ...(definition.attributes ?? []), ...(definition.types ?? [])];
+}
+
+function printedTextOf(definition: CardDefinition): string {
+  return [
+    definition.effectText,
+    definition.inheritedEffectText,
+    definition.securityEffectText,
+    definition.linkEffect,
+    definition.linkRequirement,
+    definition.dualEffect,
+    definition.optionEffect,
+  ]
+    .filter((text): text is string => text !== undefined)
+    .join(" ")
+    .toLocaleLowerCase();
+}
+
+const normalizeName = (value: string): string =>
+  value
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+
+const normalizeTrait = (value: string): string => value.toLocaleLowerCase().replace(/[\s-]+/g, "");
+
+/**
+ * Definition-only mirror of the engine's `matchNameOrTrait`
+ * (apps/api/src/engine/effects/interpreter/matching/definition.ts). The client sees no live
+ * board, so rule-granted traits are out of reach; every other branch must stay identical.
+ */
+function matchesNameOrTrait(definition: CardDefinition, ref: DigiXrosNameOrTraitRef): boolean {
+  const names = effectiveStaticNames(definition).map(normalizeName);
+  const exactNames = effectiveExactNames(definition).map(normalizeName);
+  const traits = traitsOf(definition).map(normalizeTrait);
+  const text = printedTextOf(definition);
   return ref.tokens.some((token) => {
-    const folded = token.toLocaleLowerCase();
-    if (ref.match === "trait") return includesFolded(types, token);
-    if (ref.match === "nameExact") return name === folded;
-    if (ref.match === "text") {
-      return [definition.effectText, definition.inheritedEffectText, definition.securityEffectText].some((text) =>
-        text?.toLocaleLowerCase().includes(folded),
-      );
-    }
-    return name.includes(folded);
+    const rawToken = token.toLocaleLowerCase();
+    const nameToken = normalizeName(token);
+    if (ref.match === "name") return names.some((name) => name.includes(nameToken));
+    if (ref.match === "nameExact") return exactNames.some((name) => name === nameToken);
+    if (ref.match === "trait") return traits.some((trait) => trait === normalizeTrait(rawToken));
+    if (ref.match === "traitContains") return traits.some((trait) => trait.includes(normalizeTrait(rawToken)));
+    if (ref.match !== undefined && ref.match !== "text" && ref.match !== "any") return false;
+    // A printed keyword token ("with ＜Save＞ in its text") is delimiter-anchored and reads the
+    // printed text only; anything else is the full name/trait/text union.
+    if (isPrintedKeywordToken(rawToken)) return textPrintsKeyword(text, rawToken);
+    return (
+      names.some((name) => name.includes(nameToken)) ||
+      traits.some((trait) => trait.includes(normalizeTrait(rawToken))) ||
+      text.includes(rawToken)
+    );
   });
 }
 
@@ -27,47 +75,12 @@ function matchesSlot(
   slot: DigiXrosMaterial,
   digiXrosNames: readonly string[] = [],
 ): boolean {
-  if (!definition.kinds.includes(CardKind.Digimon)) return false;
-  const hasStructuredPredicate =
-    (slot.names?.length ?? 0) > 0 ||
-    (slot.traits?.length ?? 0) > 0 ||
-    (slot.traitContains?.length ?? 0) > 0 ||
-    (slot.colors?.length ?? 0) > 0 ||
-    (slot.nameOrTrait?.length ?? 0) > 0 ||
-    slot.level !== undefined ||
-    slot.levelMin !== undefined ||
-    slot.levelMax !== undefined ||
-    slot.levelComparison !== undefined;
-  if (!hasStructuredPredicate) return false;
-  if (
-    slot.names?.length &&
-    !slot.names.some((name) =>
-      [definition.nameEn, ...digiXrosNames].some((actual) => actual.toLocaleLowerCase() === name.toLocaleLowerCase()),
-    )
-  )
-    return false;
-  if (slot.traits?.length && !slot.traits.some((trait) => includesFolded(definition.types, trait))) return false;
-  if (
-    slot.traitContains?.length &&
-    !slot.traitContains.some((token) =>
-      definition.types?.some((trait) => trait.toLocaleLowerCase().includes(token.toLocaleLowerCase())),
-    )
-  )
-    return false;
-  if (slot.colors?.length && !slot.colors.some((color) => definition.colors.some((actual) => actual === color)))
-    return false;
-  if (slot.nameOrTrait?.length && !slot.nameOrTrait.some((ref) => matchesNameOrTrait(definition, ref))) return false;
-  if (slot.level !== undefined && definition.level !== slot.level) return false;
-  if (slot.levelMin !== undefined && (definition.level === undefined || definition.level < slot.levelMin)) return false;
-  if (slot.levelMax !== undefined && (definition.level === undefined || definition.level > slot.levelMax)) return false;
-  if (slot.levelComparison !== undefined) {
-    const level = definition.level;
-    if (level === undefined) return false;
-    if (slot.levelComparison.op === "lte" && level > slot.levelComparison.value) return false;
-    if (slot.levelComparison.op === "gte" && level < slot.levelComparison.value) return false;
-    if (slot.levelComparison.op === "eq" && level !== slot.levelComparison.value) return false;
-  }
-  return true;
+  return digiXrosSlotMatches(
+    definition,
+    slot,
+    { hasTrait: (card, trait) => includesFolded(traitsOf(card), trait), matchNameOrTrait: matchesNameOrTrait },
+    digiXrosNames,
+  );
 }
 
 function selectionFits(requirement: DigiXrosRequirement, candidates: DigiXrosMaterialCandidateDefinition[]): boolean {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, textMatchesToken } from "@aegis/shared";
 import { matchNameOrTrait } from "../effects/interpreter/matching/definition.js";
-import { textMatchesToken } from "./keywordToken.js";
 import "../../cards/index.js";
 
 /**
