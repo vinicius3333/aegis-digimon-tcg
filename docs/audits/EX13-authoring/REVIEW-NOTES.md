@@ -33,6 +33,56 @@ to an engine lane; this is a real gameplay-legality bug, not test noise.
   Arts base for the card under test, or decline it manually
   (`{ kind: "selectCards", instanceIds: [] }`).
 
+## CONFIRMED engine seam #3 — UntilEndBattle grant can outlive its battle
+
+`EffectDuration.UntilEndBattle` is only swept by
+`GameEngine.sweepCombatDurations()`, called solely from
+`CombatController.cleanup()` at the end of an ATTACK. A `Battle` action
+(a direct DP comparison outside the attack-declaration flow, e.g. an
+effect saying "have this Digimon battle X") runs `forceBattle`/
+`resolveBattle` and never reaches `cleanup()`, so a keyword or DP grant
+scoped `untilEndOfBattle` inside that `Battle` action survives past it
+and can leak into a later battle the same turn. First hit: EX13-076's
+＜Iceclad＞-equivalent count-comparison grant, retained as `it.fails`,
+`coverage: "partial"`. No card-side fix exists — needs `Battle`'s runner
+to sweep combat durations itself when it isn't going through
+`CombatController`.
+
+## CONFIRMED production bug #2 — "place" cost preflight ignores distinctLevels/distinctNames
+
+`canAttemptCost`'s `place`-cost branch
+(`apps/api/src/engine/effects/interpreter/costs.ts`, ~line 403) counts
+raw `candidateLooseInstances` against `cost.target.count` with no
+grouping, while the sibling trash-RETURN cost branch (same file, ~line
+1408) explicitly groups candidates by level or name when
+`distinctLevels`/`distinctNames` is set. A `place` cost with
+`distinctLevels: true` (or `distinctNames`) can therefore preflight as
+payable when the pool has enough raw cards but not enough DISTINCT
+groups — verified while authoring EX13-071 (a two-level-pinned Assembly
+material cost): trashing the 3 revealed cards is irreversible cost
+processing, and the placement itself then fails, splitting an
+all-or-nothing cost (§15-8-4-4-1) into a state-corrupting partial
+payment. EX13-071's own module avoids the primitive shape entirely
+(two level-pinned single-slot components instead of one two-slot
+`distinctLevels` cost) and is unaffected, but ANY future card that
+prints "N cards of different levels/names" as a `place`-cost material
+requirement will hit this. Fix shape: mirror the trash-return branch's
+grouping logic into the `place` branch's preflight. Not fixed here
+(engine file) — route to an engine lane as high priority (real state
+corruption, not just a wrong legality read).
+
+## Secondary finding — narrow, lower priority
+
+`canAttemptDigivolve` (`apps/api/src/engine/effects/interpreter/actions/digivolve.ts:156`)
+only recognizes a `moveToBattleArea` cost's `bindAs` as the pre-payment
+stand-in for `action.target.fromSelectionRef`; a `Digivolve` whose own
+compound cost binds its base via a `place` cost's `bindHostAs` preflights
+against an unbound ref and is never offered as an activatable effect.
+EX13-071 worked around it with the established `CostGatedBlock` idiom
+(BT26-097/BT26-098 precedent), so it cost no red, but it's a real gap in
+`canAttemptDigivolve`'s cost-binding coverage for a future card that
+can't use that idiom.
+
 ## Flaky test found — needs an engine lane, not a card fix
 
 `EX13-053.test.ts`'s "de-digivolves 1 opponent Digimon from under a host,
@@ -79,6 +129,12 @@ weakening the assertion.
   EX13-020's "-4000 DP for every 5000 DP this Digimon has", retained as
   `it.fails` with `coverage: "partial"`. Single-card seam so far; low
   priority unless a repeat shows up later in the set.
+
+Data point: `printedTextOnly` on a `whenPlayed`/`onDeletionOf` filter for
+a card being freshly PLAYED (not a live permanent gaining a stack) is
+typically not behaviourally provable — the subject has an empty stack at
+that point regardless of the flag. Keep the flag for correctness (a later
+stacked case could expose it) but don't claim it as proven by such a test.
 
 ## NOT a gap — read before flagging a "text self-match" case
 
@@ -279,6 +335,23 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   above 5 must be stated explicitly on the action or it is silently
   shaved down.
 
+- Seating `memory` at 0 while a test's effect-driven digivolve charges even
+  1 memory flips the turn immediately, making `waitForMainPhase` throw —
+  seed a small positive memory gauge for reduced-cost digivolve tests.
+- An effect-driven digivolve also takes the digivolution bonus draw, so
+  deck/hand counts move by 2 on a clause that also prints its own draw,
+  not 1 — account for both when asserting final counts.
+
+- ＜Evade＞ is a combat-window decision, not a `state.pendingDecision` —
+  nothing auto-answers it. Any test whose card can lose or tie a battle
+  while unsuspended deadlocks unless the driving promise is held
+  un-awaited and `{ type: "respondEvade", permanentId, accept }` is
+  applied by hand (same class as the existing ＜Alliance＞/＜Counter＞
+  notes).
+- `setupEngine`'s result exposes no `options` object; to mutate
+  `preferInstanceIds` after setup, pass in a local array and push onto
+  it rather than trying to read it back off the harness.
+
 ## Harness notes (not engine gaps, just non-obvious)
 
 - ＜Counter＞ opens **before** the block window when the host is attacked;
@@ -349,6 +422,19 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   BT24-027 has the correct shape. Found while authoring EX13-065's own
   ＜Decode＞ clause. Not fixed here — BT24 is a separate, already-audited
   set.
+
+- `BT20-095.ts` used through `UseOptionWithoutCost` leaves its own card
+  instance in NO zone at all (not hand, board, trash, deck, or security)
+  and stalls the in-flight attack — its `[Main]` ends with a mandatory
+  `PlaceInBattleAreaSelf`, which appears to race the use lifecycle in
+  `runUseOptionWithoutCost` (`borrowed.ts:522`). Sibling **P-204**'s
+  self-place is `optional` and resolves cleanly to the trash — use it
+  instead as the "use an Option that also self-places" fixture, not
+  BT20-095. Not fixed here (BT20 is a separate, already-audited set).
+- EX5-070 "X Antibody Proto Form" is a TRUE positive for `[X Antibody]`
+  `nameExact`, not a near-miss — it carries
+  `[Rule] Name: Also treated as [X Antibody].`, so `effectiveStaticNames`
+  correctly includes it. Don't use it as a "should be refused" fixture.
 
 ## Out-of-scope finding (not EX13, do not fix here)
 
