@@ -107,6 +107,71 @@ describe("EX4-031 Cherubimon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("reduces opposing DP when digivolving through a public digivolve intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-049", as: "antylamon" },
+            { card: "BT1-009", as: "first", suspended: true },
+            { card: "BT1-010", as: "second", suspended: true },
+          ],
+          hand: [{ card: "EX4-031", as: "cherubimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("antylamon").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP !== 10_000);
+
+    expect(s.perm("target").currentDP).toBe(4_000);
+    expect(s.perm("antylamon").topCard.cardId).toBe("EX4-031");
+  });
+
+  it("reduces opposing DP through a public attack intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-031", as: "cherubimon" },
+            { card: "BT1-009", as: "first", suspended: true },
+            { card: "BT1-010", as: "second", suspended: true },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }],
+          security: ["BT1-014"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cherubimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP !== 10_000);
+
+    // Declaring the attack suspends Cherubimon itself, so it counts toward its own scaling
+    // alongside the two Digimon already suspended before the attack.
+    expect(s.perm("target").currentDP).toBe(1_000);
+  });
+
   it("rejects the alternate route when the level-5 two-color source has no green", async () => {
     const s = setupEngine({
       0: {

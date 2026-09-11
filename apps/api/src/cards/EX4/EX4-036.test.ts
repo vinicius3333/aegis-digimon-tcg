@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-036.js";
+import "../BT1/BT1-070.js";
 
 describe("EX4-036 BlackRapidmon", () => {
   it("trashes digivolution cards until level three and then De-Digivolves one opponent Digimon", () => {
@@ -126,6 +128,64 @@ describe("EX4-036 BlackRapidmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT1-009", "BT1-014"]),
     );
+  });
+
+  it("gains Piercing during its turn when a public effect suspends another opposing Digimon, as digivolution material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-021", as: "host", under: ["EX4-036"] }],
+          hand: [{ card: "BT1-070", as: "arukenimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-021", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("arukenimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+    await settle(() => observe(s.engine).hasPierce(s.perm("host")));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+  });
+
+  it("does not gain Piercing from an effect that suspends another Digimon during the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-021", as: "host", under: ["EX4-036"] },
+            { card: "BT1-021", as: "decoy" },
+          ],
+        },
+        1: { hand: [{ card: "BT1-070", as: "arukenimon" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("arukenimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("decoy").isSuspended || s.perm("host").isSuspended);
+
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
   });
 
   ex4CardBehaviorTests("EX4-036");
