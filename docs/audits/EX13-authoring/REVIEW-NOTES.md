@@ -1,5 +1,32 @@
 # EX13 authoring — coordinator notes
 
+## Flaky test found — needs an engine lane, not a card fix
+
+`EX13-053.test.ts`'s "de-digivolves 1 opponent Digimon from under a host,
+without running its own main body" test is intermittently flaky **only**
+when run in the same vitest process as certain other EX13 test files
+(observed with EX13-056, EX13-052) — it is 100% reliable alone. Failure:
+`permanent for "subject" ... is no longer on the board` — the opponent's
+permanent is fully deleted, not just de-digivolved.
+
+EX13-053 has BOTH a main (non-inherited) `OnDeletion` effect (return +
+mandatory `Delete` on an opponent Digimon, play cost ≤3 scaled by the
+return count) and an inherited `OnDeletion` effect (`DeDigivolve`) — a
+shape that appears to be new in this codebase (checked BT20-073 and
+EX13-046, the cited peers for the inherited clause: neither also carries
+its own main effect on the same trigger). The suspected defect: under
+some race, the digivolution card's own MAIN `OnDeletion` body fires even
+though it isn't the top card being deleted directly, and its mandatory
+`Delete` then removes the wrong permanent entirely instead of only the
+inherited `DeDigivolve` peeling its stack. The card's own IR encoding was
+checked and reads correctly (main vs. inherited effects are separated as
+the printed text requires); the race looks like it's in the interpreter's
+trigger dispatch for this permanent-vs-digivolution-card distinction, not
+in EX13-053.ts. Not fixed here — needs an engine lane with time to
+instrument the dispatch path. The test itself is written correctly and
+should stay red-if-real once the seam is found; do not "fix" it by
+weakening the assertion.
+
 ## Engine seams found (queued for an engine lane)
 
 - **Per-card name-exclusion.** `matchNameOrTrait`
@@ -120,6 +147,51 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   effects don't interfere with the assertion — a high-DP or Security-
   effect card can delete the attacker or open an extra decision. Prefer a
   low-DP, no-effect fixture (e.g. BT1-011) over an arbitrary one.
+
+- ＜Guard＞ has no dedicated engine hook (unlike ＜Blocker＞/etc., which
+  combat legality checks directly). `combat/keywords.ts` only tokenizes
+  it; the actual prevention is expressed as an explicit `Replacement`/
+  `wouldLeavePlay` action, same shape as any other leave-prevention
+  clause (EX12-056/EX12-072 precedent). Encode it that way, not as a
+  bare `Static` keyword and nothing else.
+
+- An `[Opponent's Turn]` inherited `Aura` does NOT materialise from
+  merely flipping `state.turnSeat` and calling
+  `recomputeContinuousEffects()` in a test — it needs a real turn. Build
+  cross-card trait proofs for it through an actual turn, or reuse a
+  `[Your Turn]` reader instead when only the trait filter (not the turn
+  scope) needs proving.
+- The `keywords` predicate's printed-text fallback
+  (`matching/definition.ts:286`) scans BOTH `effectText` and
+  `inheritedEffectText`, so "a card with ＜X＞" in a hand/deck filter also
+  matches a card whose ＜X＞ is only inherited. This is shared by every
+  card using the predicate — not a per-card bug, just know it's not
+  top-card-only.
+
+- **Fixture trap for `match: "text"` proofs.** `matchNameOrTrait` folds
+  `effectiveStaticNames(def)` into its `names` list, so a card printing
+  "also treated as [X]" already answers a `match: "name"` filter FROM ITS
+  DEFINITION ALONE — such a card can look like it discriminates
+  `"text"` from `"name"` when it actually doesn't (a false-green
+  mutation test). A genuine text-only fixture must merely *mention* the
+  token in prose, not be treated-as it.
+- `Delete`'s play-cost ceiling can be scaled per-context by putting
+  `playCostLteScaling` (with a `unit`, e.g. `"namedCount"`) on the
+  target `Filter`, not on the action — `runAction.ts` already recognizes
+  it there. Check this before declaring a scaled-Delete-ceiling an
+  engine gap.
+
+- A card's own "without paying the cost" waives the Option's cost, not
+  its colour requirement — `optionUseCandidates` still enforces
+  `optionColorRequirementMet` unless `waiveColorRequirement` is set. A
+  Black/White or mono-color card testing a red-text Option fixture (e.g.
+  BT6-093) needs a same-color permanent in play, or the candidate list is
+  legitimately empty. Not a gap; a fixture requirement.
+- `includeLaterEntrants` is for a grant resolved once inside a *timed*
+  window (e.g. EX1-068/BT17-040's "when X happens"); a RESIDENT continuous
+  clause (`[Opponent's Turn]`, `[All Turns]`, etc.) is re-derived from the
+  live board every pass anyway, so the field is inert there — don't add
+  it to a resident clause just because a timed-window peer has it.
 
 ## Harness notes (not engine gaps, just non-obvious)
 
