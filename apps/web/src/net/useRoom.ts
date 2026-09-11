@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameState } from "@aegis/shared";
-import {
-  EVENT_CHANNEL,
-  DECISION_CHANNEL,
-  type SequencedServerEvent,
-  type DecisionRequest,
-} from "@aegis/shared";
+import { EVENT_CHANNEL, DECISION_CHANNEL, type SequencedServerEvent, type DecisionRequest } from "@aegis/shared";
 import { emptyBatchInbox, receiveServerEvent, type BatchInbox, type ServerBatch } from "./serverBatches";
 import { recordSnapshot, type StateSnapshot } from "./presentedState";
 import {
@@ -21,6 +16,7 @@ import {
   type RoomSlot,
 } from "./client";
 import { intents } from "./intents";
+import { clearReconnectSession, loadReconnectSession, saveReconnectSession } from "./reconnectSession";
 import type { AegisJoinOptions } from "./types";
 
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "error" | "closed";
@@ -160,7 +156,11 @@ function connectRoom(options: AegisJoinOptions, match?: MatchConfig): Promise<Ae
  * monotonically increasing `version`; consumers read the always-current ref.
  */
 export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled = false): UseRoomResult {
-  const [status, setStatus] = useState<ConnectionStatus>("connecting");
+  // A resumable session means this mount reconnects instead of matchmaking, so the
+  // very first render must not show the "finding a match" state.
+  const [status, setStatus] = useState<ConnectionStatus>(() =>
+    !disabled && loadReconnectSession() ? "reconnecting" : "connecting",
+  );
   const [patchVersion, setVersion] = useState(0);
   const [snapshots, setSnapshots] = useState<readonly StateSnapshot[]>([]);
   const [events, setEvents] = useState<SequencedServerEvent[]>([]);
@@ -192,9 +192,16 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       roomRef.current = room;
       roomSlotRef.current = connectionSlot(room);
       setSessionId(room.sessionId);
+      saveReconnectSession({
+        reconnectionToken: room.reconnectionToken,
+        roomId: room.roomId,
+        slot: roomSlotRef.current,
+        savedAt: Date.now(),
+      });
 
       room.onStateChange((next) => {
         stateRef.current = next;
+        if (next.gameOver) clearReconnectSession();
         // The client is mounted and has synchronized state; signal the server it is
         // ready to start (ARCHITECTURE.md / API-CONTRACT "ready"). Sent once per
         // fresh join so the match no longer races the client's asset loading.
@@ -240,6 +247,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         // A clean close is the end of the line; anything else (server restart,
         // dropped socket) is an unexpected drop we try to recover from.
         if (code === WS_NORMAL_CLOSURE) {
+          clearReconnectSession();
           setStatus("closed");
           return;
         }
@@ -254,6 +262,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     const attemptReconnect = async () => {
       const token = roomRef.current?.reconnectionToken;
       if (!token) {
+        clearReconnectSession();
         setStatus("closed");
         return;
       }
@@ -286,11 +295,29 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       }
       if (cancelled) return;
       clearPendingIntents();
+      clearReconnectSession();
       setStatus("closed");
       setError("Connection lost. We could not resume the match.");
     };
 
-    connectRoom(options, match)
+    // A page reload tears down the client while the server still holds the seat.
+    // Resume that seat from the persisted token before considering matchmaking;
+    // the two paths are sequential, so a fresh join never races the resume.
+    const resumeOrConnect = async (): Promise<AegisRoom> => {
+      const saved = loadReconnectSession();
+      if (saved) {
+        try {
+          return await reconnect(saved.reconnectionToken, saved.slot);
+        } catch {
+          clearReconnectSession();
+        }
+      }
+      if (cancelled) throw new Error("cancelled");
+      setStatus("connecting");
+      return connectRoom(options, match);
+    };
+
+    resumeOrConnect()
       .then((room) => {
         if (cancelled) {
           void room.leave();
@@ -307,6 +334,9 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
 
     return () => {
       cancelled = true;
+      // Unmounting is a consented departure (exit to lobby, starting another match);
+      // a reload never runs this, which is exactly when the token must survive.
+      clearReconnectSession();
       void roomRef.current?.leave();
       roomRef.current = undefined;
       roomSlotRef.current = "legacy";
