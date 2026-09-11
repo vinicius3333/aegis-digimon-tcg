@@ -37,6 +37,7 @@ export interface EngineInternals {
   readonly mainEntryPending: boolean;
   recomputeContinuousEffects(): Promise<void>;
   syncActivatableEffects(): void;
+  hasAnyMainPhaseAction(seat: Seat): boolean;
   fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;
   fireTimingForPermanent(timing: EffectTiming, permanent: Permanent, trigger?: TriggerInfo): Promise<void>;
   fireTimingForInstance(timing: EffectTiming, instanceId: string, trigger?: TriggerInfo): Promise<void>;

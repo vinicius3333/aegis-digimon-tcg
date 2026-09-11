@@ -186,6 +186,14 @@ export function observe(engine: GameEngine) {
       });
     },
 
+    /**
+     * Whether the engine still sees a legal Main-phase action for a seat. False makes the
+     * engine force-end the turn, so a scenario with a legal action left must read true.
+     */
+    hasAnyMainPhaseAction(seat: Seat): boolean {
+      return internals.hasAnyMainPhaseAction(seat);
+    },
+
     /** Whether a permanent currently carries a named continuous restriction. */
     hasRestriction(permanent: Permanent | string, restriction: Restriction, sourceKind?: string): boolean {
       return internals.continuous.hasRestriction(idOf(permanent), restriction, sourceKind);

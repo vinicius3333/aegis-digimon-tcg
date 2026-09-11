@@ -1496,26 +1496,50 @@ export class GameEngine {
 
   /**
    * Whether `seat` has at least one legal Main-phase action right now: a playable
-   * card, a digivolve option, an available attack, or an activatable [Main] effect.
-   * Returns as soon as any action is found possible (short-circuit). Used to auto-end
-   * the turn when the player has nothing left to do.
+   * card, a digivolve option, a DNA digivolution, a link declaration, an available
+   * attack, or an activatable [Main] effect. Returns as soon as any action is found
+   * possible (short-circuit). Used to auto-end the turn when the player has nothing
+   * left to do.
+   *
+   * Effect and link availability is read from the projections `syncActivatableEffects`
+   * and `syncLinkTargets` publish for the client, recomputed here so the gate and the
+   * affordances the player sees can never disagree about what is legal.
    */
   private hasAnyMainPhaseAction(seat: Seat): boolean {
     const player = this.state.players[seat];
     if (!player) return false;
 
-    // 1. Activatable [Main] effects (populated by syncActivatableEffects after recompute)
-    for (const perm of player.battleArea) {
+    // 1. Activatable [Main] effects on every zone the projection covers: battle area,
+    //    breeding, hand ([Hand][Main]) and trash ([Trash][Main]).
+    this.syncActivatableEffects();
+    const effectPermanents = [...player.battleArea];
+    if (player.breeding !== undefined) effectPermanents.push(player.breeding);
+    for (const perm of effectPermanents) {
       if (perm.activatableEffectsJson) return true;
     }
+    for (const instance of [...player.hand, ...player.trash]) {
+      if (instance.activatableEffectsJson) return true;
+    }
 
-    // 2. Play a card from hand
+    // 1b. Declare a link (§6-5-1-4) from hand or from a battle-area top card.
+    this.syncLinkTargets();
+    for (const instance of player.hand) {
+      if (instance.linkTargetPermanentIds.length > 0) return true;
+    }
+    for (const perm of player.battleArea) {
+      if (perm.topCard !== undefined && perm.topCard.linkTargetPermanentIds.length > 0) return true;
+    }
+
+    // 2. Play a card from hand. The plain validation prices the card at its printed cost, so a
+    //    DigiXros / Assembly card whose declaration would lower the cost into range must read as
+    //    an available action through the same material-route escape the hand affordances use
+    //    (§7-2 / §7-3) — otherwise the turn auto-ends on a player who can still play it.
     const playDeps = this.playCardDeps();
     for (const card of player.hand) {
       const def = lookupDefinition(card.cardId);
       if (!def || def.kinds.includes(CardKind.DigiEgg)) continue;
       const check = validatePlayCard(this.state, seat, { type: "playCard", instanceId: card.instanceId }, playDeps);
-      if (check.ok) return true;
+      if (playableFromHand(check, card.cardId)) return true;
     }
 
     // 3. App Fusion from hand using an explicitly linked physical material.
@@ -1557,7 +1581,32 @@ export class GameEngine {
       }
     }
 
-    // 4. Attack with an unsuspended Digimon
+    // 5. DNA digivolve (§8-2): a printed DNA requirement names two materials, so the
+    //    single-base `validateDigivolve` probe above always rejects it.
+    if (player.battleArea.length >= 2) {
+      const dnaDeps = this.dnaDigivolveDeps();
+      for (const card of player.hand) {
+        const def = lookupDefinition(card.cardId);
+        if (!def?.kinds.includes(CardKind.Digimon)) continue;
+        for (let first = 0; first < player.battleArea.length; first++) {
+          for (let second = first + 1; second < player.battleArea.length; second++) {
+            const materialPermanentIds = [
+              player.battleArea[first]!.permanentId,
+              player.battleArea[second]!.permanentId,
+            ];
+            const check = validateDnaDigivolve(
+              this.state,
+              seat,
+              { type: "dnaDigivolve", materialPermanentIds, instanceId: card.instanceId },
+              dnaDeps,
+            );
+            if (check.ok) return true;
+          }
+        }
+      }
+    }
+
+    // 6. Attack with an unsuspended Digimon
     const attackDeps = this.attackDeps();
     const oppPlayer = this.state.players[1 - seat];
     for (const perm of player.battleArea) {
