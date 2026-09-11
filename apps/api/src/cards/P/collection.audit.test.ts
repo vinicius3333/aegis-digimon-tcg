@@ -12,10 +12,10 @@ const pCards = allCards()
 const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 
 describe("P collection audit ledger guards", () => {
-  it("covers every committed P catalog entry from P-001 through P-244", () => {
-    expect(pCards).toHaveLength(243);
+  it("covers every committed P catalog entry from P-001 through P-250", () => {
+    expect(pCards).toHaveLength(249);
     expect(pCards[0]?.cardId).toBe("P-001");
-    expect(pCards.at(-1)?.cardId).toBe("P-244");
+    expect(pCards.at(-1)?.cardId).toBe("P-250");
     expect(pCards.some((card) => card.cardId === "P-226")).toBe(false);
   });
 
