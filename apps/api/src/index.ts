@@ -2,7 +2,14 @@ import { createServer } from "node:http";
 import { matchMaker } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import express from "express";
-import { ROOM_TYPE, ROOM_TYPE_BOT, ROOM_TYPE_PRIVATE, ROOM_TYPE_RANKED, ROOM_TYPE_TOURNAMENT } from "@aegis/shared";
+import {
+  ROOM_TYPE,
+  ROOM_TYPE_BETA,
+  ROOM_TYPE_BOT,
+  ROOM_TYPE_PRIVATE,
+  ROOM_TYPE_RANKED,
+  ROOM_TYPE_TOURNAMENT,
+} from "@aegis/shared";
 import { AegisRoom, roomRegistry } from "./rooms/AegisRoom.js";
 import "./cards/index.js"; // side-effect: registers every implemented card EffectModule
 import { log, logError, flushLogs } from "./logger.js";
@@ -185,6 +192,7 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
 gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false });
 gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true });
 gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true });
+gameServer.define(ROOM_TYPE_BETA, AegisRoom, { botRoom: false, betaBattleRoom: true });
 // Filtered by BOTH tournament join keys: the legacy flow matches a room per bracket match, the
 // program flow one per Tournament Game, and neither may ever land in the other's room.
 gameServer

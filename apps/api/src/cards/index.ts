@@ -31,6 +31,7 @@ import "./EX1/index.js";
 import "./EX10/index.js";
 import "./EX11/index.js";
 import "./EX12/index.js";
+import "./EX13/index.js";
 import "./EX2/index.js";
 import "./EX3/index.js";
 import "./EX4/index.js";

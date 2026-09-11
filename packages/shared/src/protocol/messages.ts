@@ -19,6 +19,13 @@ export const ROOM_TYPE_BOT = "aegis_bot" as const;
 /** Public matchmaking queue whose result affects player statistics. */
 export const ROOM_TYPE_RANKED = "aegis_ranked" as const;
 
+/**
+ * Public matchmaking queue that allows cards from an announced-but-unreleased product
+ * (`isBetaOnlyCard`, e.g. EX13 ahead of its street date). Every other room type rejects
+ * such a card at deck-validation time.
+ */
+export const ROOM_TYPE_BETA = "aegis_beta" as const;
+
 /** Authenticated rooms bound to one server-owned tournament bracket match. */
 export const ROOM_TYPE_TOURNAMENT = "aegis_tournament" as const;
 

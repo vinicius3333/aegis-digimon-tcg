@@ -1,9 +1,9 @@
 ---
 set: P
-cards: 243
+cards: 249
 status: verified
-verified_at: 2026-09-10
-catalog_commit: 52da0b5bb
+verified_at: 2026-09-11
+catalog_commit: 88241f0fc
 evidence_commit: a8136a499
 ---
 
@@ -11,12 +11,19 @@ evidence_commit: a8136a499
 
 ## Status
 
-All 243 committed P cards hold accepted clause-level evidence at 10/10, recalculated on 2026-09-05
-on branch `audit-promo-lm-rb-20260905` from base `7209adb89` and verified again after that branch
-was integrated with main `18156ecee`. P-226 is absent from the catalog, so the set has 243 cards
-rather than 244. The winning source is the recalculated ledger `P-AUDIT.md` with its coordinator
-report `PROMO-LM-RB-AUDIT-20260905.md` and four dated range reviews. Re-running the collection on
-2026-09-10 at `eabe99351` confirms it: 260 files and 1,405 tests pass.
+All 249 committed P cards hold accepted clause-level evidence at 10/10. The original 243 were
+recalculated on 2026-09-05 on branch `audit-promo-lm-rb-20260905` from base `7209adb89` and
+verified again after that branch was integrated with main `18156ecee`; P-245 through P-250 (6 new
+promo cards imported on 2026-09-11 from the `TakaOtaku/Digimon-Card-App` community database,
+announced but not yet distributed — Official Store Tournament 2026 Vol.4, street date 2026-10-01)
+were authored and verified fresh on 2026-09-11, each independently to the same 10/10 rubric. P-226
+and P-251 are absent from the catalog (unrevealed placeholder rows in the source database), so the
+set has 249 cards rather than 251. The winning source for P-001..P-244 is the recalculated ledger
+`P-AUDIT.md` with its coordinator report `PROMO-LM-RB-AUDIT-20260905.md` and four dated range
+reviews; P-245..P-250 have no separate range-review document — their evidence is the card ledger
+entries above plus their modules and tests. Re-running the collection on 2026-09-11 confirms it:
+`pnpm --filter @aegis/api exec vitest run src/cards/P` passes 266 files and 1,494 tests, and
+`pnpm effects:sync:set -- --set P` reports 249 records synchronized with no drift outside the set.
 
 The one-card ST11 Special Entry Pack report is folded in here: ST11 is not a starter-deck set with
 `ST11-*` card IDs. The committed `cardPool.ts` promo-product entry labels the product (2022-10-14,
@@ -1515,6 +1522,42 @@ git diff --check
 - Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-244.ts) · [test](../../apps/api/src/cards/P/P-244.test.ts) · clause review (source removed; see History)<br>“delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements”; “uses from hand, plays a qualifying Vemmon/Zenith, and places itself”; “plays EX11-066 Xeno from trash because its Rule also treats its name as Zenith”; “keeps P-244 in play when its Delay is declined during BT21-062's real Vemmon placement”; “accepts Delay and pays the qualifying digivolution with exactly 3 memory reduced”
 
+### P-245 — Kakkinmon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-245.ts) · [test](../../apps/api/src/cards/P/P-245.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-245` returns no entries)<br>“draws once per turn at the end of all turns by suspending a black ＜Blocker＞”; “pays only with a black ＜Blocker＞, never a black non-Blocker or a purple Blocker”; “cannot pay with an already-suspended Blocker”; “draws at exactly seven cards in hand and does nothing at eight”; “declines the optional cost without suspending or drawing”; “fires once per turn across two end-of-turn windows”; “keeps the inherited clause after a real breeding digivolution”
+
+### P-246 — Motimon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-246.ts) · [test](../../apps/api/src/cards/P/P-246.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-246` returns no entries)<br>“digivolves for free into a Sukamon-named destination on another Sukamon-named Digimon's deletion”; “digivolves into a Mamemon-named destination on a Mamemon-named deletion”; “does not fire on an Etemon-only deletion, though Etemon is a legal destination”; “does not fire on an unrelated name”; “does not fire on the opponent's Sukamon deletion or on the opponent's turn”; “declines the optional digivolution”; “fires once per turn across two qualifying deletions”
+
+### P-247 — Nyaromon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-247.ts) · [test](../../apps/api/src/cards/P/P-247.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-247` returns no entries)<br>“deletes an unsuspended level 4 or lower opponent Digimon by trashing a Dark Animal/Shaman/Undead/TS card”; “pays with any of the four accepted traits”; “only the unsuspended Lv.4 target dies on a mixed board; a suspended Lv.4 and an unsuspended Lv.5 survive”; “does nothing when only an unsuspended Lv.5 is present”; “does not pay with a wrong-trait hand”; “declines the optional cost”; “fires once per turn across two attack declarations”; “keeps the clause live through a real breeding-to-battle-area evolution stack”
+
+### P-248 — Veemon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-248.ts) · [test](../../apps/api/src/cards/P/P-248.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-248` returns no entries)<br>“digivolves from DemiVeemon for cost 0 through the public digivolve intent”; “charges the printed cost of 1 for a same-colour non-DemiVeemon egg”; “draws and gains memory at the start of Main by trashing a Free, Armor Form or Veedramon-text card”; “does nothing when no qualifying card is in hand”; “does not fire on the opponent's turn”; “gets +2000 DP on its controller's turn, including after a real digivolution”
+
+### P-249 — Strabimon
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-249.ts) · [test](../../apps/api/src/cards/P/P-249.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-249` returns no entries)<br>“charges the printed cost reduced by exactly 2 on a genuine Hybrid digivolution”; “floors at 0 memory rather than refunding”; “places under a Tamer with inherited effects and digivolves that Tamer instead, leaving the source Digimon untouched”; “excludes a Tamer with no inherited effect from the host choice”; “does nothing on a non-Hybrid placement candidate”; “keeps the placement after declining the optional digivolution”; “does nothing at all when the whole clause is declined”; “plays a Tamer with inherited effects for free from a real On Deletion trigger”
+
+### P-250 — Ogremon (X Antibody)
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-250.ts) · [test](../../apps/api/src/cards/P/P-250.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-250` returns no entries)<br>“digivolves from the trash into itself, paying memory, when a Demon-trait Digimon exists at 5 or fewer cards in hand”; “does nothing at 6 or more cards in hand”; “reaches the printed cost-1 alternate route from a Demon Digimon named Ogremon, Fugamon or Hyogamon through the public digivolve intent, and refuses an illegal Lv.4 base”; “grants ＜Blocker＞ and ＜Retaliation＞ to one Demon/Shaman/Undead Digimon by trashing a card, never to a Flame-trait near-miss”; “shares one once-per-turn budget across on-play, when-digivolving and when-attacking”; “the granted keywords expire at the opponent's turn end”; “deletes an opponent Digimon with a play cost of 6 or less on deletion, and spares a play cost of 10”
+
 ## Mechanisms
 
 ### exact-name conjunction and absolute cost modifiers
@@ -1550,8 +1593,15 @@ Ruling IDs cited by P cards: Q4113,Q4124 Q4128,Q4132 Q4135,Q4138 Q4141,Q4144 Q41
 ## Open items
 
 - No card scores below 10/10 and no ambiguity is recorded.
-- P-226 is absent from the committed catalog. The set is 243 cards, and no module or score exists
-  for that ID.
+- P-226 and P-251 are absent from the committed catalog (unrevealed placeholder rows). The set is
+  249 cards, and no module or score exists for either ID.
+- P-245..P-250 are announced but not yet distributed (Official Store Tournament 2026 Vol.4, street
+  date 2026-10-01). No card-specific KB rulings exist for them; each ledger entry records that and
+  cites the general rules used instead. Two encoding notes worth carrying forward if a future card
+  needs the same shape: P-249 uses a `CostGatedBlock` wrapping an optional `Digivolve` rather than
+  an optional `Digivolve` carrying the cost (the latter would prompt before the cost is proven
+  payable); P-250's `[Trash]` digivolve-from-trash clause follows BT24-080's accepted shape but
+  sets `payCost: true` since P-250's print carries no "without paying the cost" waiver.
 - Post-audit drift not covered by the 2026-09-05 evidence: `09dcca2a5` (2026-09-08) corrected
   `P-107.ts` (Defense Training) and its test after the ledger scored P-107 at 10/10; `969ed488f`
   (2026-09-10) removed `ts-nocheck` from 238 P modules; `d90434a3f` (2026-09-08) repaired settle

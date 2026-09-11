@@ -143,7 +143,7 @@ export function describeRemainingCollectionAuditContract({
           expect(sections[index]?.name, `${card.cardId} exact catalog name`).toBe(card.nameEn);
         }
       }
-      expect(total).toBe(792);
+      expect(total).toBe(798);
     });
 
     it("requires complete five-part scoring and exact module/test links in every ledger row", () => {
@@ -161,7 +161,7 @@ export function describeRemainingCollectionAuditContract({
       }
     });
 
-    it("requires exclusive residual-free IR and a runnable focused proof for all 792 cards", () => {
+    it("requires exclusive residual-free IR and a runnable focused proof for all 798 cards", () => {
       const missingRuntimeProofs: string[] = [];
       const insufficientBehavioralDriverFloor: string[] = [];
       const invalidNoEffectExceptions: string[] = [];

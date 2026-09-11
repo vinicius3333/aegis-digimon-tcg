@@ -14,8 +14,8 @@ const persistedEffects = JSON.parse(
 ) as Record<string, CompiledCard>;
 
 describe("Promo, LM and RB catalog/runtime parity", () => {
-  it("covers all 338 audited catalog cards", () => {
-    expect(auditedCards).toHaveLength(338);
+  it("covers all 344 audited catalog cards", () => {
+    expect(auditedCards).toHaveLength(344);
   });
 
   it.each(auditedCards)("publishes the executable IR for $cardId in the shared catalog", ({ cardId }) => {

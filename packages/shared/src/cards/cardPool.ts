@@ -102,6 +102,8 @@ const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
   BT25: { date: "2026-05-22", label: "BT25" },
   EX12: { date: "2026-07-03", label: "EX12" },
   BT26: { date: "2026-09-04", label: "BT26" },
+  // Announced, not yet in stores as of this table's last verification (2026-09-11).
+  EX13: { date: "2026-10-02", label: "EX13" },
 };
 
 /**
@@ -164,6 +166,9 @@ const PROMO_PRODUCTS: ReadonlyArray<Readonly<PromoProduct>> = [
   { date: "2026-02-13", cardIds: "227 228 229 230 231 232" }, // EX11 Box Topper
   { date: "2026-04-01", cardIds: "233 234 235 236 237 238" }, // Store Tournament 2026 Vol. 2
   { date: "2026-06-01", cardIds: "239 240 241 242 243 244" }, // Store Tournament 2026 Vol. 3
+  // Announced (event window 2026-10-01–12-31), not yet distributed as of this table's
+  // last verification (2026-09-11).
+  { date: "2026-10-01", cardIds: "245 246 247 248 249 250" }, // Store Tournament 2026 Vol. 4
 ];
 
 const PROMO_RELEASE_DATES: Readonly<Record<string, ReleaseDate>> = Object.freeze(
@@ -186,6 +191,18 @@ export function releaseDateForCard(card: CardReference): ReleaseDate | undefined
     return PROMO_RELEASE_DATES[card.cardId];
   }
   return PRODUCT_RELEASES[card.set]?.date;
+}
+
+/**
+ * Whether `card` belongs to a product that has not released yet (its verified date is
+ * strictly after `asOf`, defaulting to today). Cards with no verified date (nothing in
+ * {@link PRODUCT_RELEASES}/{@link PROMO_RELEASE_DATES}) are treated as already released —
+ * this predicate exists to gate a specific announced-but-unreleased product (e.g. EX13
+ * ahead of its 2026-10-02 street date), not to silently hide every uncatalogued card.
+ */
+export function isBetaOnlyCard(card: CardReference, asOf: string = new Date().toISOString().slice(0, 10)): boolean {
+  const date = releaseDateForCard(card);
+  return date !== undefined && date > asOf;
 }
 
 /** The committed promo-card inventory for a named product, in catalog order. */
