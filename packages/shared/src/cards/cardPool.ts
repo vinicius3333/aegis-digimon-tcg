@@ -193,6 +193,18 @@ export function releaseDateForCard(card: CardReference): ReleaseDate | undefined
   return PRODUCT_RELEASES[card.set]?.date;
 }
 
+/**
+ * Whether `card` belongs to a product that has not released yet (its verified date is
+ * strictly after `asOf`, defaulting to today). Cards with no verified date (nothing in
+ * {@link PRODUCT_RELEASES}/{@link PROMO_RELEASE_DATES}) are treated as already released —
+ * this predicate exists to gate a specific announced-but-unreleased product (e.g. EX13
+ * ahead of its 2026-10-02 street date), not to silently hide every uncatalogued card.
+ */
+export function isBetaOnlyCard(card: CardReference, asOf: string = new Date().toISOString().slice(0, 10)): boolean {
+  const date = releaseDateForCard(card);
+  return date !== undefined && date > asOf;
+}
+
 /** The committed promo-card inventory for a named product, in catalog order. */
 export function promoProductCardIds(productLabel: string): string[] {
   const product = PROMO_PRODUCTS.find(({ label }) => label === productLabel);

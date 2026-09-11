@@ -1,4 +1,4 @@
-import { bannedPairViolations, getCardDefinition, CardKind } from "@aegis/shared";
+import { bannedPairViolations, getCardDefinition, isBetaOnlyCard, CardKind } from "@aegis/shared";
 import { MAIN_DECK_SIZE, MAX_EGG_DECK_SIZE } from "./testDecks.js";
 import { effectiveCopyLimit } from "./banlistRestrictions.js";
 
@@ -17,6 +17,8 @@ import { effectiveCopyLimit } from "./banlistRestrictions.js";
  *      banned),
  *   5. no banned pair is present: a banned-pair card is legal alone but may not share
  *      a deck with its partner (`BANNED_PAIRS` in @aegis/shared).
+ *   6. a card from a product that has not released yet (`isBetaOnlyCard`) may only be
+ *      played in a beta-battle-mode match — see `betaBattleMode` below.
  */
 export type DecklistValidation = { ok: true } | { ok: false; reason: string };
 
@@ -25,7 +27,14 @@ interface ReadonlyDecklist {
   readonly eggDeck: readonly string[];
 }
 
-export function validateDecklist(deck: ReadonlyDecklist): DecklistValidation {
+/**
+ * Validate a decklist. `betaBattleMode` gates cards from an announced-but-unreleased
+ * product (`isBetaOnlyCard`, e.g. EX13 ahead of its street date): such a card is
+ * illegal outside a beta-battle-mode match, so a casual/ranked/tournament deck cannot
+ * smuggle in a preview card that has not gone on sale yet.
+ */
+export function validateDecklist(deck: ReadonlyDecklist, options?: { betaBattleMode?: boolean }): DecklistValidation {
+  const betaBattleMode = options?.betaBattleMode ?? false;
   for (const cardId of deck.mainDeck) {
     const def = getCardDefinition(cardId);
     if (def === undefined) {
@@ -33,6 +42,9 @@ export function validateDecklist(deck: ReadonlyDecklist): DecklistValidation {
     }
     if (def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `Digi-Egg ${cardId} belongs in the egg deck, not the main deck` };
+    }
+    if (!betaBattleMode && isBetaOnlyCard(def)) {
+      return { ok: false, reason: `${cardId} is not released yet and is only legal in beta battle mode` };
     }
   }
 
@@ -43,6 +55,9 @@ export function validateDecklist(deck: ReadonlyDecklist): DecklistValidation {
     }
     if (!def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `non-Digi-Egg ${cardId} cannot go in the egg deck` };
+    }
+    if (!betaBattleMode && isBetaOnlyCard(def)) {
+      return { ok: false, reason: `${cardId} is not released yet and is only legal in beta battle mode` };
     }
   }
 

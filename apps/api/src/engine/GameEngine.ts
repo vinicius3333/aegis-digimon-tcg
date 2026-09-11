@@ -239,6 +239,12 @@ export interface GameEngineHooks {
 export interface SeatJoinOptions {
   displayName: string;
   deck: { mainDeck: string[]; eggDeck: string[] }; // arrays of card ids
+  /**
+   * Opts this seat's deck into beta battle mode, the only mode where a card from an
+   * announced-but-unreleased product (`isBetaOnlyCard`) is legal. Both seats must set
+   * the same value — {@link AegisRoom} enforces that before either seat is staged.
+   */
+  betaBattleMode?: boolean;
 }
 
 /**
@@ -6254,7 +6260,7 @@ export class GameEngine {
   seatPlayer(seat: Seat, sessionId: string, options: SeatJoinOptions): void {
     const deckIsEmpty = options.deck.mainDeck.length === 0 && options.deck.eggDeck.length === 0;
     if (!deckIsEmpty) {
-      const verdict = validateDecklist(options.deck);
+      const verdict = validateDecklist(options.deck, { betaBattleMode: options.betaBattleMode === true });
       if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
     }
     const player = new PlayerState();

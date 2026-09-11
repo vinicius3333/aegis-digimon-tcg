@@ -129,6 +129,33 @@ describe("validateDecklist (decklist + banlist legality)", () => {
 
     expect(validateDecklist(modernSet)).toEqual({ ok: true });
   });
+
+  it("rejects an unreleased (beta-only) card outside beta battle mode", () => {
+    const withBeta = clone(RED_DECK);
+    const dropIndex = withBeta.mainDeck.indexOf("BT1-090");
+    withBeta.mainDeck.splice(dropIndex, 1);
+    withBeta.mainDeck.push("EX13-007");
+
+    expect(validateDecklist(withBeta).ok).toBe(false);
+    expect(validateDecklist(withBeta, { betaBattleMode: false }).ok).toBe(false);
+  });
+
+  it("accepts an unreleased (beta-only) card in beta battle mode", () => {
+    const withBeta = clone(RED_DECK);
+    const dropIndex = withBeta.mainDeck.indexOf("BT1-090");
+    withBeta.mainDeck.splice(dropIndex, 1);
+    withBeta.mainDeck.push("EX13-007");
+
+    expect(validateDecklist(withBeta, { betaBattleMode: true })).toEqual({ ok: true });
+  });
+
+  it("rejects an unreleased egg-deck card outside beta battle mode", () => {
+    const withBetaEgg = clone(RED_DECK);
+    withBetaEgg.eggDeck = [...withBetaEgg.eggDeck.slice(0, 4), "P-245"];
+
+    expect(validateDecklist(withBetaEgg).ok).toBe(false);
+    expect(validateDecklist(withBetaEgg, { betaBattleMode: true })).toEqual({ ok: true });
+  });
 });
 
 describe("seatPlayer rejects an illegal deck on join (server-authoritative)", () => {
@@ -160,6 +187,24 @@ describe("seatPlayer rejects an illegal deck on join (server-authoritative)", ()
   it("seats a legal deck (does not throw, populates the seat)", () => {
     const { engine, state } = makeEngine();
     expect(() => engine.seatPlayer(illegalSeat, "honest", { displayName: "Red", deck: clone(RED_DECK) })).not.toThrow();
+    expect(state.players[illegalSeat]).toBeDefined();
+  });
+
+  it("throws on an unreleased card unless betaBattleMode is set", () => {
+    const { engine, state } = makeEngine();
+    const withBeta = clone(RED_DECK);
+    const dropIndex = withBeta.mainDeck.indexOf("BT1-090");
+    withBeta.mainDeck.splice(dropIndex, 1);
+    withBeta.mainDeck.push("EX13-007");
+
+    expect(() => engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: withBeta })).toThrow(
+      "illegal deck",
+    );
+    expect(state.players[illegalSeat]).toBeUndefined();
+
+    expect(() =>
+      engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: withBeta, betaBattleMode: true }),
+    ).not.toThrow();
     expect(state.players[illegalSeat]).toBeDefined();
   });
 });

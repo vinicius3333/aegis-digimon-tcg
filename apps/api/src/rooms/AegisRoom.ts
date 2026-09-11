@@ -136,6 +136,7 @@ export class AegisRoom extends Room<GameState> {
   private readonly BOT_SEAT = 1 as Seat;
   private isPrivate = false;
   private isRankedRoom = false;
+  private isBetaBattleRoom = false;
   private isTournamentRoom = false;
   private tournamentMatchId: string | undefined;
   private tournamentGameId: string | undefined;
@@ -189,6 +190,7 @@ export class AegisRoom extends Room<GameState> {
       return false;
     if ((options.ranked === true) !== this.isRankedRoom || ((this.isRankedRoom || this.isTournamentRoom) && !account))
       return false;
+    if ((options.betaBattleMode === true) !== this.isBetaBattleRoom) return false;
     if (
       (this.isRankedRoom || this.isTournamentRoom) &&
       account &&
@@ -289,6 +291,7 @@ export class AegisRoom extends Room<GameState> {
     private?: boolean;
     botRoom?: boolean;
     rankedRoom?: boolean;
+    betaBattleRoom?: boolean;
     tournamentRoom?: boolean;
     devScenario?: unknown;
   }): void {
@@ -300,6 +303,7 @@ export class AegisRoom extends Room<GameState> {
       if (DEV_SCENARIOS_ENABLED && isDevScenarioId(options.devScenario)) this.devScenario = options.devScenario;
     }
     this.isRankedRoom = options.rankedRoom === true;
+    this.isBetaBattleRoom = options.betaBattleRoom === true;
     this.isTournamentRoom = options.tournamentRoom === true;
     if (options.private) {
       this.isPrivate = true;
