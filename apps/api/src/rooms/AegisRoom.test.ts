@@ -1,8 +1,9 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import type { Client } from "colyseus";
-import { Encoder } from "@colyseus/schema";
+import { ArraySchema, Encoder } from "@colyseus/schema";
 import {
   ALL_FAMOUS_DECKS,
+  CombatWindow,
   DECISION_CHANNEL,
   EVENT_CHANNEL,
   isFamousDeckAvailable,
@@ -378,5 +379,92 @@ describe("AegisRoom sequenced event batches", () => {
     // Raised with nothing open: the board is already at the revision the question is about.
     ask.call(room, 0, { ...request, decisionId: "dec-2" });
     expect(sentDecisions().at(-1)?.stateVersion).toBe(room.state.stateVersion);
+  });
+});
+
+describe("AegisRoom combat windows", () => {
+  afterEach(() => vi.useRealTimers());
+
+  /** Park a block window on the room's synchronized state, as the combat controller would. */
+  function openBlockWindow(room: AegisRoom, seat: 0 | 1): void {
+    const window = new CombatWindow();
+    window.kind = "block";
+    window.seat = seat;
+    window.attackerPermanentId = "attacker";
+    window.eligiblePermanentIds = new ArraySchema<string>("blocker");
+    room.state.combatWindow = window;
+  }
+
+  it("re-sends the open combat window to a seat that reconnects into it", () => {
+    const room = makeRoom();
+    const [a] = joinBothSeats(room);
+    openBlockWindow(room, 0);
+
+    (room as unknown as { resendOpenPrompts: (c: Client, s: number) => void }).resendOpenPrompts.call(room, a, 0);
+
+    const sent = (a.send as unknown as { mock: { calls: [string, ServerEvent][] } }).mock.calls
+      .filter(([channel]) => channel === EVENT_CHANNEL)
+      .map(([, event]) => event);
+    expect(sent.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      attackerPermanentId: "attacker",
+      eligibleBlockerIds: ["blocker"],
+    });
+  });
+
+  it("sends nothing to the seat the window is not asking", () => {
+    const room = makeRoom();
+    const [, b] = joinBothSeats(room);
+    openBlockWindow(room, 0);
+
+    (room as unknown as { resendOpenPrompts: (c: Client, s: number) => void }).resendOpenPrompts.call(room, b, 1);
+
+    const sent = (b.send as unknown as { mock: { calls: [string, ServerEvent][] } }).mock.calls;
+    expect(sent.some(([, event]) => (event as ServerEvent).kind === "blockWindowOpened")).toBe(false);
+  });
+
+  it("closes a combat window nobody ever answers, so the match cannot wedge", () => {
+    vi.useFakeTimers();
+    const room = makeRoom();
+    joinBothSeats(room);
+    const expire = vi.spyOn(
+      (room as unknown as { engine: { expireCombatWindow: () => boolean } }).engine,
+      "expireCombatWindow",
+    );
+
+    openBlockWindow(room, 0);
+    (room as unknown as { syncCombatWindowTimeout: () => void }).syncCombatWindowTimeout.call(room);
+
+    const timeoutMs =
+      (room as unknown as { COMBAT_WINDOW_TIMEOUT_SECONDS: number }).COMBAT_WINDOW_TIMEOUT_SECONDS * 1000;
+    // The grace period a dropped player gets to come back and answer must elapse first.
+    vi.advanceTimersByTime((room as unknown as { RECONNECT_GRACE_SECONDS: number }).RECONNECT_GRACE_SECONDS * 1000);
+    room.clock.tick();
+    expect(expire).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(timeoutMs);
+    room.clock.tick();
+    expect(expire).toHaveBeenCalledTimes(1);
+  });
+
+  it("disarms the timeout once the window is answered", () => {
+    vi.useFakeTimers();
+    const room = makeRoom();
+    joinBothSeats(room);
+    const expire = vi.spyOn(
+      (room as unknown as { engine: { expireCombatWindow: () => boolean } }).engine,
+      "expireCombatWindow",
+    );
+    const sync = (room as unknown as { syncCombatWindowTimeout: () => void }).syncCombatWindowTimeout.bind(room);
+
+    openBlockWindow(room, 0);
+    sync();
+    room.state.combatWindow = undefined;
+    sync();
+
+    vi.advanceTimersByTime(
+      (room as unknown as { COMBAT_WINDOW_TIMEOUT_SECONDS: number }).COMBAT_WINDOW_TIMEOUT_SECONDS * 1000 * 2,
+    );
+    room.clock.tick();
+    expect(expire).not.toHaveBeenCalled();
   });
 });

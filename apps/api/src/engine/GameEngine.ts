@@ -7789,6 +7789,14 @@ export class GameEngine {
    * resolves the match as a surrender. The grace-period clock lives in
    * `AegisRoom.onLeave` via Colyseus's `allowReconnection`.
    */
+  /**
+   * Close an unanswered combat prompt at its safe default (the room's answer-timeout
+   * backstop). Returns whether a window was open to close.
+   */
+  expireCombatWindow(): boolean {
+    return this.combat.expireOpenWindow();
+  }
+
   handleReconnect(seat: Seat): void {
     const player = this.state.players[seat];
     if (player !== undefined) player.connected = true;

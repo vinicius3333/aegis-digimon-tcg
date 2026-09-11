@@ -71,6 +71,8 @@ import {
   activeBlockWindow,
   activeCounterWindow,
   openCombatWindow,
+  mirroredCombatWindow,
+  lastRejectedCombatAnswer,
   buildInstanceIndex,
   decisionCardColors,
   differentColorsAllowCandidate,
@@ -400,6 +402,9 @@ export function GameScreen({
    * time — mirrors `shownCombatWindowKeyRef` but is cleared the moment the window is genuinely
    * gone (whether we answered it or the server moved on), not just once we've shown it. */
   const answeredCombatWindowKeyRef = useRef<string | undefined>(undefined);
+  /** The last combat-answer rejection already rolled back, so one refusal clears the optimistic
+   * hide exactly once. */
+  const rolledBackRejectionSeqRef = useRef<number | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -492,6 +497,11 @@ export function GameScreen({
   // both be open at once (the server never opens one of these while a decision is unanswered),
   // so folding it into the same `decisionPending`/`decisionStateVersion` inputs below is safe.
   const openCombatWindowForBarrier = state ? openCombatWindow(events, state, viewerSeat) : null;
+  // The server's own record of the window still awaiting this seat's answer. Authoritative for
+  // whether a prompt may be shown: the opening event can be missed entirely (broadcast while the
+  // socket was down) or fall out of the capped live log, and an optimistic local hide can outlive
+  // an answer the server refused.
+  const mirroredWindow = state ? mirroredCombatWindow(state, viewerSeat) : null;
   const decisionPendingForViewer = decision?.seat === viewerSeat && decision.kind !== "mulligan";
 
   // Every cue the server provokes: sounds, panels, banners, the security clash,
@@ -1264,10 +1274,10 @@ export function GameScreen({
   };
 
   // ----- derived block window (event-driven; shown only to the defender) -----
-  const blockWindowRaw = activeBlockWindow(events, isMyTurn);
+  const blockWindowRaw = activeBlockWindow(events, isMyTurn, mirroredWindow);
 
   // §11-3 Counter Timing window: shown only to the defending (non-turn) seat.
-  const counterWindowRaw = activeCounterWindow(events, viewerSeat, isMyTurn);
+  const counterWindowRaw = activeCounterWindow(events, viewerSeat, isMyTurn, mirroredWindow);
 
   // Alliance/Evade/Barrier prompts: shown only to the seat that controls permanentId.
   // Scanning backwards from the log tail; dismissed by combatResolved or phaseChanged.
@@ -1287,7 +1297,9 @@ export function GameScreen({
       )
         return null;
     }
-    return null;
+    return mirroredWindow?.kind === "alliance"
+      ? { permanentId: mirroredWindow.permanentId, eligibleAllyIds: mirroredWindow.eligiblePermanentIds }
+      : null;
   })();
 
   const evadeWindowRaw = (() => {
@@ -1306,7 +1318,7 @@ export function GameScreen({
       )
         return null;
     }
-    return null;
+    return mirroredWindow?.kind === "evade" ? { permanentId: mirroredWindow.permanentId } : null;
   })();
 
   const barrierWindowRaw = (() => {
@@ -1325,7 +1337,7 @@ export function GameScreen({
       )
         return null;
     }
-    return null;
+    return mirroredWindow?.kind === "barrier" ? { permanentId: mirroredWindow.permanentId } : null;
   })();
 
   // The barrier holds a combat-prompt window exactly like it holds a decision prompt (see
@@ -1346,6 +1358,15 @@ export function GameScreen({
   // a second answer lands after the window is already moot). Cleared the moment the raw window
   // itself closes, so a genuinely new prompt is never suppressed by an old answer.
   if (openCombatWindowForBarrier === null) answeredCombatWindowKeyRef.current = undefined;
+  // The hide above is optimistic: it happens before the server has accepted the answer. A refused
+  // answer (an ally that just became illegal, no security left to pay Barrier with, an intent
+  // dropped and re-queued across a connection blip) leaves the window open server-side, so the
+  // refusal rolls the hide back and the prompt is answerable again.
+  const lastCombatRejection = lastRejectedCombatAnswer(events);
+  if (lastCombatRejection !== undefined && lastCombatRejection !== rolledBackRejectionSeqRef.current) {
+    rolledBackRejectionSeqRef.current = lastCombatRejection;
+    answeredCombatWindowKeyRef.current = undefined;
+  }
   const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === key;
 
   const blockWindow =

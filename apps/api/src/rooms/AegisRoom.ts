@@ -2,6 +2,8 @@ import { Room, Client, type Delayed } from "colyseus";
 import { randomBytes } from "node:crypto";
 import {
   GameState,
+  combatWindowKey,
+  type CombatWindow,
   type Intent,
   type DecisionRequest,
   type Seat,
@@ -33,6 +35,46 @@ function generateRoomCode(length = 6): string {
     code += CODE_CHARS[bytes[i]! % CODE_CHARS.length]!;
   }
   return code;
+}
+
+/**
+ * Rebuild the opening event of a mirrored combat window, so a client that was offline when the
+ * original broadcast went out (Colyseus never redelivers a channel message to a socket that was
+ * down) receives it on reconnect — the combat counterpart of the resent `pendingDecision`.
+ */
+function combatWindowEvent(window: CombatWindow): ServerEvent | undefined {
+  switch (window.kind) {
+    case "block":
+      return {
+        kind: "blockWindowOpened",
+        attackerPermanentId: window.attackerPermanentId,
+        eligibleBlockerIds: [...window.eligiblePermanentIds],
+        ...(window.mustBlock ? { mustBlock: true } : {}),
+      };
+    case "counter":
+      return {
+        kind: "counterWindowOpened",
+        attackerPermanentId: window.attackerPermanentId,
+        defendingSeat: window.seat,
+        eligibleCounters: JSON.parse(window.eligibleCountersJson || "[]") as {
+          instanceId: string;
+          effectKey: string;
+          description: string;
+        }[],
+      };
+    case "alliance":
+      return {
+        kind: "alliancePrompt",
+        permanentId: window.permanentId,
+        eligibleAllyIds: [...window.eligiblePermanentIds],
+      };
+    case "evade":
+      return { kind: "evadePrompt", permanentId: window.permanentId };
+    case "barrier":
+      return { kind: "barrierPrompt", permanentId: window.permanentId };
+    default:
+      return undefined;
+  }
 }
 
 /**
@@ -174,6 +216,16 @@ export class AegisRoom extends Room<GameState> {
   // assets, or one that crashed before it could send `ready`) before the room gives
   // up waiting and starts anyway, so the match never hangs indefinitely.
   private readonly READY_TIMEOUT_SECONDS = 60;
+
+  // How long an open combat prompt (block, Counter, Alliance, Evade, Barrier) waits for its
+  // answer before the server closes it at the safe default. The attack is parked on an
+  // unresolved promise until then, so an answer that never comes wedges the match for BOTH
+  // seats. Sized above RECONNECT_GRACE_SECONDS so a player who drops mid-window still gets the
+  // full grace period to come back and answer it themselves; past that the seat is gone anyway.
+  private readonly COMBAT_WINDOW_TIMEOUT_SECONDS = 240;
+
+  private combatWindowTimeout: Delayed | undefined;
+  private combatWindowTimeoutKey: string | undefined;
 
   override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
     if (this.matchStartRequested || this.seatByClient.size >= this.maxClients) return false;
@@ -355,6 +407,7 @@ export class AegisRoom extends Room<GameState> {
           console.log("[AegisRoom] broadcastPatch() returned");
         }
         for (const bot of this.bots) bot?.onEvent(event);
+        this.syncCombatWindowTimeout();
       },
     });
     // Route zone arrivals to the per-client StateViews (see exposeCardToClients). Installed
@@ -715,9 +768,7 @@ export class AegisRoom extends Room<GameState> {
           this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
       client.view = this.engine.makeStateView(seat);
-      // Re-send any pending decision so the resumed client can continue.
-      const pending = this.state.pendingDecision;
-      if (pending && pending.seat === seat) client.send(DECISION_CHANNEL, pending);
+      this.resendOpenPrompts(client, seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.
@@ -924,6 +975,40 @@ export class AegisRoom extends Room<GameState> {
   private stampClose(event: ServerEvent, batch: OpenBatch): SequencedServerEvent {
     this.eventSeq += 1;
     return { ...event, seq: this.eventSeq, batch: batch.id, stateVersion: this.state.stateVersion };
+  }
+
+  /**
+   * Hand a resumed client every question still waiting on it: the pending decision and the open
+   * combat prompt. Both live in synchronized state, but their richer channel messages were sent
+   * while this socket was down and are never redelivered.
+   */
+  private resendOpenPrompts(client: Client, seat: Seat): void {
+    const pending = this.state.pendingDecision;
+    if (pending && pending.seat === seat) client.send(DECISION_CHANNEL, pending);
+    const window = this.state.combatWindow;
+    if (!window || window.seat !== seat) return;
+    const event = combatWindowEvent(window);
+    if (event) this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(event)), client);
+  }
+
+  /**
+   * Keep the answer-timeout armed for exactly the combat window that is open. Driven off the
+   * mirrored state rather than off individual event kinds, so every way a window closes — an
+   * answer, an attack that ended early, the match ending — disarms it.
+   */
+  private syncCombatWindowTimeout(): void {
+    const window = this.state.combatWindow;
+    const key = window ? combatWindowKey(window) : undefined;
+    if (key === this.combatWindowTimeoutKey) return;
+    this.combatWindowTimeout?.clear();
+    this.combatWindowTimeout = undefined;
+    this.combatWindowTimeoutKey = key;
+    if (key === undefined) return;
+    this.combatWindowTimeout = this.clock.setTimeout(() => {
+      this.combatWindowTimeout = undefined;
+      this.combatWindowTimeoutKey = undefined;
+      this.withBatch(() => this.engine.expireCombatWindow());
+    }, this.COMBAT_WINDOW_TIMEOUT_SECONDS * 1000);
   }
 
   private handleIntent(client: Client, intent: Intent): void {

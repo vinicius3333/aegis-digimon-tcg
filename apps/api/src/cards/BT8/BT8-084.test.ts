@@ -37,6 +37,34 @@ describe("BT8-084 Kimeramon", () => {
     expect(s.perm("second").currentDP).toBe(3000);
   });
 
+  it("DNA digivolves for 0 from two level-4 Digimon sharing one color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-074", as: "purpleA" },
+            { card: "BT10-075", as: "purpleB" },
+          ],
+          hand: [{ card: "BT8-084", as: "kimeramon" }],
+          deck: ["BT8-035", "BT8-036"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("purpleA").permanentId, s.perm("purpleB").permanentId],
+        instanceId: s.inst("kimeramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-084"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("excludes a face-down stack color from the When Digivolving reduction", async () => {
     const s = setupEngine(
       {

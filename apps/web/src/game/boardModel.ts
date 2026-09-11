@@ -9,10 +9,12 @@ import {
   effectiveStaticNames,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
-  getCompiledCard,
+  dnaDigivolutionRequirementsFor,
   intrinsicDigivolutionCostReductionFor,
   canAssignDistinctColors,
   parseTriggerKey,
+  combatWindowKey,
+  type CombatWindowKind,
   type BaseGrantedDigivolve,
   type CardInstance,
   type DigivolutionRequirement,
@@ -78,8 +80,10 @@ export function eventsAfter(events: readonly ServerEvent[], previous?: ServerEve
 
 /** Find one server-valid-looking DNA material assignment for a hand card on the current board. */
 export function findDnaMaterialCombination(cardId: string, permanents: readonly Permanent[]): string[] | undefined {
-  const requirements = getCompiledCard(cardId)?.dnaDigivolveRequirement;
-  if (!requirements) return undefined;
+  // Same source of truth as the server's `matchingDnaDigivolveCost`: the hand-authored
+  // overrides carry the printed DNA header that the pre-EX9 card imports dropped.
+  const requirements = dnaDigivolutionRequirementsFor(cardId);
+  if (requirements.length === 0) return undefined;
   const digimon = permanents.filter((permanent) => {
     const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
     return def?.kinds.includes(CardKind.Digimon) === true;
@@ -92,7 +96,13 @@ export function findDnaMaterialCombination(cardId: string, permanents: readonly 
       if (spec.level !== undefined && def.level !== spec.level) return false;
       if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
         return false;
-      if (spec.names?.length && !spec.names.some((name) => def.nameEn.includes(name))) return false;
+      const name = (def.nameEn ?? def.cardId).toLowerCase();
+      if (spec.names?.length && !spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
+      if (spec.namesExact?.length && !spec.namesExact.some((token) => name === token.toLowerCase())) return false;
+      if (spec.namesInText?.length) {
+        const text = `${def.effectText ?? ""}\n${def.inheritedEffectText ?? ""}`.toLowerCase();
+        if (!spec.namesInText.some((token) => text.includes(token.toLowerCase()))) return false;
+      }
       const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
       if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
       return true;
@@ -1271,7 +1281,71 @@ export function describeEvent(
  * a missing value the same way a missing `decision.stateVersion` is already treated: no barrier
  * is raised, the prompt just shows immediately.
  */
-type CombatPromptEvent = ServerEvent & { stateVersion?: number };
+type CombatPromptEvent = ServerEvent & { stateVersion?: number; seq?: number };
+
+/**
+ * The open combat prompt as the SERVER reports it in synchronized state (GameState.combatWindow),
+ * already scoped to the viewer's seat.
+ *
+ * The five `*WindowOpened` / `*Prompt` events still drive the presentation queue, but a channel
+ * message sent while this client's socket was down is never redelivered, and the live log is a
+ * capped ring buffer — so whether a window is still open is read from here, and the log is left
+ * to answer only "at which revision did it open" (the presentation barrier's input).
+ */
+export interface MirroredCombatWindow {
+  key: string;
+  kind: CombatWindowKind;
+  seat: Seat;
+  attackerPermanentId: string;
+  permanentId: string;
+  eligiblePermanentIds: string[];
+  eligibleCounters: { instanceId: string; effectKey: string; description: string }[];
+  mustBlock: boolean;
+}
+
+/** The authoritative open combat window for `viewerSeat`, or null when none is open for it. */
+export function mirroredCombatWindow(state: GameState, viewerSeat: Seat): MirroredCombatWindow | null {
+  const window = state.combatWindow;
+  if (!window || window.seat !== viewerSeat) return null;
+  return {
+    key: combatWindowKey(window),
+    kind: window.kind,
+    seat: window.seat,
+    attackerPermanentId: window.attackerPermanentId,
+    permanentId: window.permanentId,
+    eligiblePermanentIds: [...window.eligiblePermanentIds],
+    eligibleCounters: window.eligibleCountersJson
+      ? (JSON.parse(window.eligibleCountersJson) as MirroredCombatWindow["eligibleCounters"])
+      : [],
+    mustBlock: window.mustBlock,
+  };
+}
+
+/** The intents that answer one of the five combat-prompt windows. */
+const COMBAT_ANSWER_INTENTS = new Set<string>([
+  "declareBlock",
+  "declineBlock",
+  "respondCounter",
+  "respondAlliance",
+  "respondEvade",
+  "respondBarrier",
+]);
+
+/**
+ * The `seq` of the most recent refused combat answer, or undefined when none was refused.
+ *
+ * A client hides a combat prompt as soon as it dispatches the answer, before the server has
+ * accepted it. When the server refuses (an ally that just became illegal, no security left to
+ * pay ＜Barrier＞ with, an intent dropped and re-queued across a connection blip) the window is
+ * still open, so the refusal is what rolls that optimistic hide back.
+ */
+export function lastRejectedCombatAnswer(events: readonly CombatPromptEvent[]): number | undefined {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index]!;
+    if (event.kind === "actionRejected" && COMBAT_ANSWER_INTENTS.has(event.intent)) return event.seq ?? index + 1;
+  }
+  return undefined;
+}
 
 export interface ActiveBlockWindow {
   attackerPermanentId: string;
@@ -1283,8 +1357,22 @@ export interface ActiveBlockWindow {
 }
 
 /** Derive a real, still-pending block response from the synchronized event stream. */
-export function activeBlockWindow(events: readonly CombatPromptEvent[], isViewerTurn: boolean): ActiveBlockWindow | null {
-  if (isViewerTurn) return null;
+export function activeBlockWindow(
+  events: readonly CombatPromptEvent[],
+  isViewerTurn: boolean,
+  mirrored?: MirroredCombatWindow | null,
+): ActiveBlockWindow | null {
+  const fromState =
+    mirrored?.kind === "block"
+      ? {
+          attackerPermanentId: mirrored.attackerPermanentId,
+          eligibleBlockerIds: mirrored.eligiblePermanentIds,
+          mustBlock: mirrored.mustBlock,
+        }
+      : null;
+  // The mirrored window names the answering seat, so it needs no turn inference and stands even
+  // when the opening event never reached this client (dropped socket, evicted from the log).
+  if (isViewerTurn) return fromState;
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index]!;
     if (event.kind === "blockWindowOpened") {
@@ -1308,7 +1396,7 @@ export function activeBlockWindow(events: readonly CombatPromptEvent[], isViewer
     )
       return null;
   }
-  return null;
+  return fromState;
 }
 
 export interface ActiveCounterWindow {
@@ -1323,8 +1411,13 @@ export function activeCounterWindow(
   events: readonly CombatPromptEvent[],
   viewerSeat: Seat,
   isViewerTurn: boolean,
+  mirrored?: MirroredCombatWindow | null,
 ): ActiveCounterWindow | null {
-  if (isViewerTurn) return null;
+  const fromState =
+    mirrored?.kind === "counter"
+      ? { attackerPermanentId: mirrored.attackerPermanentId, eligibleCounters: mirrored.eligibleCounters }
+      : null;
+  if (isViewerTurn) return fromState;
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index]!;
     if (event.kind === "counterWindowOpened") {
@@ -1346,7 +1439,7 @@ export function activeCounterWindow(
     )
       return null;
   }
-  return null;
+  return fromState;
 }
 
 /** Which combat-prompt window (if any) is currently open, and at what state revision. */
@@ -1380,6 +1473,12 @@ export function openCombatWindow(
     const event = events[index]!;
     switch (event.kind) {
       case "blockWindowOpened":
+        // `blockWindowOpened` names no seat, so the defender is the player whose turn it is
+        // not — the same test `activeBlockWindow` makes. Without it the ATTACKER's client
+        // also reads the window as its own question and raises a barrier that fast-forwards
+        // the queue, dropping the cues of everything the defender does in that window
+        // (a Blast Digivolve answering the attack, say) before they reach the screen.
+        if (state.turnSeat === viewerSeat) return null;
         if (event.eligibleBlockerIds.length === 0) return null;
         return { key: `block:${event.attackerPermanentId}`, stateVersion: event.stateVersion };
       case "counterWindowOpened":
@@ -1409,5 +1508,9 @@ export function openCombatWindow(
         continue;
     }
   }
-  return null;
+  // No opening event in the live log — it was broadcast while this client was disconnected, or
+  // it has aged out of the capped ring buffer. Synchronized state still knows the window is
+  // open; it carries no revision, and a window with no known revision raises no barrier.
+  const mirrored = mirroredCombatWindow(state, viewerSeat);
+  return mirrored ? { key: mirrored.key } : null;
 }

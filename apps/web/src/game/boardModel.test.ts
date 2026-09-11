@@ -8,6 +8,8 @@ import {
   activeBlockWindow,
   activeCounterWindow,
   openCombatWindow,
+  mirroredCombatWindow,
+  lastRejectedCombatAnswer,
   buildMatchLog,
   canMoveFromBreeding,
   canUseBreedingAction,
@@ -219,14 +221,11 @@ describe("openCombatWindow", () => {
   // cases below (those prompts are scoped by permanent controller, not by defending seat).
   const stateWithPermanent = (permanentId: string, controllerSeat: 0 | 1) =>
     ({
-      players: [
-        { battleArea: [] },
-        { battleArea: controllerSeat === 1 ? [{ permanentId, controllerSeat }] : [] },
-      ],
+      players: [{ battleArea: [] }, { battleArea: controllerSeat === 1 ? [{ permanentId, controllerSeat }] : [] }],
     }) as unknown as import("@aegis/shared").GameState;
-  const noPermanentState = { players: [{ battleArea: [] }, { battleArea: [] }] } as unknown as import(
-    "@aegis/shared"
-  ).GameState;
+  const noPermanentState = {
+    players: [{ battleArea: [] }, { battleArea: [] }],
+  } as unknown as import("@aegis/shared").GameState;
 
   it("returns null when nothing is open", () => {
     expect(openCombatWindow([], noPermanentState, 1)).toBeNull();
@@ -247,6 +246,25 @@ describe("openCombatWindow", () => {
     });
   });
 
+  it("scopes the block window to the defender, like activeBlockWindow", () => {
+    const attackersTurn = {
+      players: [{ battleArea: [] }, { battleArea: [] }],
+      turnSeat: 0,
+    } as unknown as import("@aegis/shared").GameState;
+    const events = [
+      {
+        kind: "blockWindowOpened" as const,
+        attackerPermanentId: "attacker",
+        eligibleBlockerIds: ["blanc"],
+        stateVersion: 42,
+      },
+    ];
+    // Seat 0 is attacking: the question belongs to seat 1, so seat 0 raises no barrier and
+    // keeps narrating what the defender does inside the window.
+    expect(openCombatWindow(events, attackersTurn, 0)).toBeNull();
+    expect(openCombatWindow(events, attackersTurn, 1)).toEqual({ key: "block:attacker", stateVersion: 42 });
+  });
+
   it("scopes the Counter window to the defending seat, like activeCounterWindow", () => {
     const events = [
       {
@@ -263,7 +281,9 @@ describe("openCombatWindow", () => {
 
   it("scopes Alliance/Evade/Barrier prompts to the permanent's controller", () => {
     const state = stateWithPermanent("shoutmon", 1);
-    const alliance = [{ kind: "alliancePrompt" as const, permanentId: "shoutmon", eligibleAllyIds: [], stateVersion: 3 }];
+    const alliance = [
+      { kind: "alliancePrompt" as const, permanentId: "shoutmon", eligibleAllyIds: [], stateVersion: 3 },
+    ];
     expect(openCombatWindow(alliance, state, 0)).toBeNull();
     expect(openCombatWindow(alliance, state, 1)).toEqual({ key: "alliance:shoutmon", stateVersion: 3 });
 
@@ -281,7 +301,9 @@ describe("openCombatWindow", () => {
       eligibleBlockerIds: ["blanc"],
       stateVersion: 1,
     };
-    expect(openCombatWindow([opened, { kind: "blocked", blockerPermanentId: "blanc" }], noPermanentState, 1)).toBeNull();
+    expect(
+      openCombatWindow([opened, { kind: "blocked", blockerPermanentId: "blanc" }], noPermanentState, 1),
+    ).toBeNull();
     expect(
       openCombatWindow([opened, { kind: "blockDeclined", attackerPermanentId: "attacker" }], noPermanentState, 1),
     ).toBeNull();
@@ -458,6 +480,20 @@ describe("findDnaMaterialCombination", () => {
       kind: "dna",
       materialPermanentIds: ["host", "partner"],
     });
+  });
+
+  it("finds two same-color level 4 materials for Kimeramon, whose requirement lives only in the shared overrides", () => {
+    const permanent = (permanentId: string, cardId: string) =>
+      ({
+        permanentId,
+        topCard: { instanceId: `${permanentId}-top`, cardId },
+        stack: [],
+        linked: [],
+      }) as unknown as Permanent;
+
+    expect(
+      findDnaMaterialCombination("BT8-084", [permanent("purpleA", "BT10-074"), permanent("purpleB", "BT10-075")]),
+    ).toEqual(["purpleA", "purpleB"]);
   });
 
   it("returns undefined when the field does not satisfy every DNA slot", () => {
@@ -1153,5 +1189,83 @@ describe("exact vs substring name gates on digivolution routes (Q2868)", () => {
     expect(getDigivolveCostOptions("EX9-018", permOf("BT6-064"))).toContainEqual(
       expect.objectContaining({ type: "alternate", cost: 1 }),
     );
+  });
+});
+
+describe("combat windows read from synchronized state", () => {
+  const withCombatWindow = (window: Record<string, unknown>) =>
+    ({
+      players: [{ battleArea: [] }, { battleArea: [] }],
+      turnSeat: 0,
+      combatWindow: {
+        kind: "block",
+        seat: 1,
+        attackerPermanentId: "",
+        permanentId: "",
+        eligiblePermanentIds: [],
+        eligibleCountersJson: "",
+        mustBlock: false,
+        ...window,
+      },
+    }) as unknown as import("@aegis/shared").GameState;
+
+  it("scopes the mirrored window to the seat that must answer it", () => {
+    const state = withCombatWindow({ attackerPermanentId: "attacker", eligiblePermanentIds: ["blanc"] });
+    expect(mirroredCombatWindow(state, 0)).toBeNull();
+    expect(mirroredCombatWindow(state, 1)).toMatchObject({
+      key: "block:attacker",
+      kind: "block",
+      eligiblePermanentIds: ["blanc"],
+    });
+  });
+
+  it("keeps the block window answerable when its opening event never reached this client", () => {
+    // The exact shape of the deadlock: the broadcast went out while the socket was down (or has
+    // aged out of the capped live log), so the log is empty and only the state mirror is left.
+    const state = withCombatWindow({ attackerPermanentId: "attacker", eligiblePermanentIds: ["blanc"] });
+    const mirrored = mirroredCombatWindow(state, 1);
+
+    expect(activeBlockWindow([], false, mirrored)).toEqual({
+      attackerPermanentId: "attacker",
+      eligibleBlockerIds: ["blanc"],
+      mustBlock: false,
+    });
+    expect(openCombatWindow([], state, 1)).toEqual({ key: "block:attacker" });
+    expect(openCombatWindow([], state, 0)).toBeNull();
+  });
+
+  it("keeps the Counter window answerable from the mirror alone", () => {
+    const counters = [{ instanceId: "ace", effectKey: "counter", description: "Blast Digivolve" }];
+    const state = withCombatWindow({
+      kind: "counter",
+      attackerPermanentId: "attacker",
+      eligibleCountersJson: JSON.stringify(counters),
+    });
+
+    expect(activeCounterWindow([], 1, false, mirroredCombatWindow(state, 1))).toEqual({
+      attackerPermanentId: "attacker",
+      eligibleCounters: counters,
+    });
+  });
+
+  it("still closes on a terminator already in the log", () => {
+    const state = withCombatWindow({ attackerPermanentId: "attacker", eligiblePermanentIds: ["blanc"] });
+    const answered = [{ kind: "blockDeclined" as const, attackerPermanentId: "attacker" }];
+    expect(activeBlockWindow(answered, false, mirroredCombatWindow(state, 1))).toBeNull();
+  });
+});
+
+describe("lastRejectedCombatAnswer", () => {
+  it("reports the refusal that must roll an optimistic hide back", () => {
+    expect(lastRejectedCombatAnswer([])).toBeUndefined();
+    expect(
+      lastRejectedCombatAnswer([{ kind: "actionRejected", intent: "attack", reason: "wrong-phase", seq: 4 }]),
+    ).toBeUndefined();
+    expect(
+      lastRejectedCombatAnswer([
+        { kind: "actionRejected", intent: "respondBarrier", reason: "illegal-target", seq: 4 },
+        { kind: "actionRejected", intent: "respondEvade", reason: "illegal-target", seq: 9 },
+      ]),
+    ).toBe(9);
   });
 });

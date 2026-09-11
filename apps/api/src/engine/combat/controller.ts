@@ -7,8 +7,11 @@ import {
   type AttackTarget,
   type ServerEvent,
   type CardColor,
+  type CombatWindowKind,
+  CombatWindow,
   getCardDefinition,
 } from "@aegis/shared";
+import { ArraySchema } from "@colyseus/schema";
 import type { GameStateAccess } from "../state/access.js";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { eligibleBlockers, hasCollision, type ContinuousLegalityReader } from "./legality.js";
@@ -401,6 +404,63 @@ export class CombatController {
     return (
       this.hooks.hasKeyword?.(permanentId, keyword) ?? this.hooks.continuous?.hasKeyword(permanentId, keyword) ?? false
     );
+  }
+
+  /**
+   * Mirror the open prompt into synchronized state, so a client that missed the broadcast
+   * (a socket down at send time is never redelivered a channel message) still learns the
+   * window is open from its next state sync. Cleared by {@link clearMirroredWindow}.
+   */
+  private mirrorWindow(
+    kind: CombatWindowKind,
+    seat: Seat,
+    fields: {
+      attackerPermanentId?: string;
+      permanentId?: string;
+      eligiblePermanentIds?: readonly string[];
+      eligibleCounters?: readonly { instanceId: string; effectKey: string; description: string }[];
+      mustBlock?: boolean;
+    },
+  ): void {
+    const window = new CombatWindow();
+    window.kind = kind;
+    window.seat = seat;
+    window.attackerPermanentId = fields.attackerPermanentId ?? "";
+    window.permanentId = fields.permanentId ?? "";
+    window.eligiblePermanentIds = new ArraySchema<string>(...(fields.eligiblePermanentIds ?? []));
+    window.eligibleCountersJson = fields.eligibleCounters ? JSON.stringify(fields.eligibleCounters) : "";
+    window.mustBlock = fields.mustBlock === true;
+    this.access.game.combatWindow = window;
+  }
+
+  /** Drop the mirror, but only when it still describes the window that just closed. */
+  private clearMirroredWindow(kind: CombatWindowKind): void {
+    if (this.access.game.combatWindow?.kind === kind) this.access.game.combatWindow = undefined;
+  }
+
+  /**
+   * Resolve whatever prompt is currently parked to its safe default, as the backstop for a
+   * player who never answers (a connection lost beyond the reconnect grace window would
+   * otherwise wedge the match for both seats). Returns whether a window was actually closed.
+   *
+   * The defaults are the ones a player declining costs nothing for: pass the block (unless
+   * ＜Collision＞ forces it, where the first eligible blocker is taken), pass the Counter
+   * window, pass Alliance, and decline Evade / Barrier.
+   */
+  expireOpenWindow(): boolean {
+    if (this.openWindow !== undefined) {
+      const forced = this.openWindow.eligibleBlockerIds.values().next().value;
+      const attacker = this.access.permanentById(this.openWindow.attackerPermanentId);
+      const mustBlock = attacker !== undefined && hasCollision(attacker, this.hooks.continuous);
+      return this.resolveBlock(this.openWindow.defendingSeat, mustBlock ? forced : undefined);
+    }
+    if (this.counterWindow !== undefined) return this.resolveCounterPass(this.counterWindow.defendingSeat);
+    if (this.allianceDecision !== undefined) return this.resolveAlliance(this.allianceDecision.seat, undefined);
+    if (this.evadeDecision !== undefined)
+      return this.resolveEvade(this.evadeDecision.seat, this.evadeDecision.permanentId, false);
+    if (this.barrierDecision !== undefined)
+      return this.resolveBarrier(this.barrierDecision.seat, this.barrierDecision.permanentId, false);
+    return false;
   }
 
   /** True while an attack is mid-resolution (source AttackProcess.IsAttacking). */
@@ -916,6 +976,7 @@ export class CombatController {
       }
     }
     this.openWindow = undefined;
+    this.clearMirroredWindow("block");
     if (blockerPermanentId === undefined) {
       this.hooks.emit({ kind: "blockDeclined", attackerPermanentId: window.attackerPermanentId });
     }
@@ -932,6 +993,7 @@ export class CombatController {
     if (decision === undefined || decision.seat !== seat) return false;
     if (allyPermanentId !== undefined && !decision.eligibleAllyIds.has(allyPermanentId)) return false;
     this.allianceDecision = undefined;
+    this.clearMirroredWindow("alliance");
     this.hooks.emit({ kind: "allianceResolved", permanentId: decision.permanentId });
     decision.resolve(allyPermanentId ?? null);
     return true;
@@ -945,6 +1007,7 @@ export class CombatController {
     const decision = this.evadeDecision;
     if (decision === undefined || decision.seat !== seat || decision.permanentId !== permanentId) return false;
     this.evadeDecision = undefined;
+    this.clearMirroredWindow("evade");
     this.hooks.emit({ kind: "evadeResolved", permanentId, accepted: accept });
     decision.resolve(accept);
     return true;
@@ -958,6 +1021,7 @@ export class CombatController {
     const decision = this.barrierDecision;
     if (decision === undefined || decision.seat !== seat || decision.permanentId !== permanentId) return false;
     this.barrierDecision = undefined;
+    this.clearMirroredWindow("barrier");
     this.hooks.emit({ kind: "barrierResolved", permanentId, accepted: accept });
     decision.resolve(accept);
     return true;
@@ -972,6 +1036,7 @@ export class CombatController {
     const window = this.counterWindow;
     if (window === undefined || window.defendingSeat !== seat) return false;
     this.counterWindow = undefined;
+    this.clearMirroredWindow("counter");
     this.hooks.emit({ kind: "counterResolved", attackerPermanentId: window.attackerPermanentId, activated: false });
     window.resolve();
     return true;
@@ -987,6 +1052,7 @@ export class CombatController {
     const window = this.counterWindow;
     if (window === undefined || window.defendingSeat !== seat) return false;
     this.counterWindow = undefined;
+    this.clearMirroredWindow("counter");
     this.counterActivationsThisAttack += 1;
     this.hooks.emit({ kind: "counterResolved", attackerPermanentId: window.attackerPermanentId, activated: true });
     window.resolve();
@@ -1043,6 +1109,13 @@ export class CombatController {
     // ＜Collision＞ forces the block (§16-30), and `resolveBlock` rejects a decline while a
     // blocker is left. The window says so, so the defender is never offered that refusal.
     const mustBlock = hasCollision(attacker, this.hooks.continuous);
+    // Mirrored before the event goes out: the room arms the window's answer timeout off the
+    // mirrored state as it broadcasts, so the field must already describe this window.
+    this.mirrorWindow("block", defendingSeat, {
+      attackerPermanentId: attacker.permanentId,
+      eligiblePermanentIds: eligibleBlockerIds,
+      mustBlock,
+    });
     this.hooks.emit({
       kind: "blockWindowOpened",
       attackerPermanentId: attacker.permanentId,
@@ -1076,6 +1149,7 @@ export class CombatController {
         resolve,
       };
     });
+    this.mirrorWindow("alliance", seat, { permanentId, eligiblePermanentIds: eligibleAllyIds });
     this.hooks.emit({
       kind: "alliancePrompt",
       permanentId,
@@ -1142,6 +1216,7 @@ export class CombatController {
    * same prompt/decision-window machinery rather than each auto-applying the keyword.
    */
   runEvadeDecision(seat: Seat, permanentId: string): Promise<boolean> {
+    this.mirrorWindow("evade", seat, { permanentId });
     this.hooks.emit({ kind: "evadePrompt", permanentId });
     return new Promise<boolean>((resolve) => {
       this.evadeDecision = { permanentId, seat, resolve };
@@ -1154,6 +1229,7 @@ export class CombatController {
    * {@link runEvadeDecision}.
    */
   runBarrierDecision(seat: Seat, permanentId: string): Promise<boolean> {
+    this.mirrorWindow("barrier", seat, { permanentId });
     this.hooks.emit({ kind: "barrierPrompt", permanentId });
     return new Promise<boolean>((resolve) => {
       this.barrierDecision = { permanentId, seat, resolve };
@@ -1176,6 +1252,10 @@ export class CombatController {
       return undefined;
     }
 
+    this.mirrorWindow("counter", defendingSeat, {
+      attackerPermanentId: attacker.permanentId,
+      eligibleCounters,
+    });
     this.hooks.emit({
       kind: "counterWindowOpened",
       attackerPermanentId: attacker.permanentId,
@@ -1829,6 +1909,9 @@ export class CombatController {
     this.evadeDecision = undefined;
     this.barrierDecision = undefined;
     this.counterWindow = undefined;
+    // An attack that ended without its window being answered (the attacker left play, an
+    // effect ended the attack) leaves no *Resolved event behind, so the mirror is dropped here.
+    this.access.game.combatWindow = undefined;
     this.counterActivationsThisAttack = 0;
     this.resolving = false;
     this.currentAttack = undefined;

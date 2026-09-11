@@ -21,6 +21,37 @@ export class PendingDecision extends Schema {
   @view(PRIVATE_DECISION_VIEW_TAG) @type("string") payloadJson = "";
 }
 
+/** The five combat prompt windows the engine can park an attack on. */
+export type CombatWindowKind = "block" | "counter" | "alliance" | "evade" | "barrier";
+
+/**
+ * The combat prompt window currently awaiting an answer, mirrored into synchronized state.
+ *
+ * The matching `blockWindowOpened` / `counterWindowOpened` / `alliancePrompt` / `evadePrompt` /
+ * `barrierPrompt` events still carry the window for the presentation queue, but a channel
+ * message sent while a socket is down is never redelivered — so the fact that a window is open
+ * lives here, exactly like {@link PendingDecision}, and survives a reconnect's state sync.
+ */
+export class CombatWindow extends Schema {
+  @type("string") kind: CombatWindowKind = "block";
+  @type("uint8") seat!: Seat; // who must answer
+  /** Block / Counter: the attacking permanent. Empty for the keyword prompts. */
+  @type("string") attackerPermanentId = "";
+  /** Alliance / Evade / Barrier: the permanent the prompt is about. Empty otherwise. */
+  @type("string") permanentId = "";
+  /** Block: eligible blockers. Alliance: eligible allies. Empty otherwise. */
+  @type(["string"]) eligiblePermanentIds = new ArraySchema<string>();
+  /** Counter: the eligible `{ instanceId, effectKey, description }` entries, JSON-encoded. */
+  @type("string") eligibleCountersJson = "";
+  /** ＜Collision＞: the block is compulsory, so declining is not offered. */
+  @type("boolean") mustBlock = false;
+}
+
+/** Stable identity of an open combat window, shared by the server mirror and the client. */
+export function combatWindowKey(window: { kind: string; attackerPermanentId: string; permanentId: string }): string {
+  return `${window.kind}:${window.attackerPermanentId || window.permanentId}`;
+}
+
 /**
  * Top-level synchronized object. Holds the shared memory gauge, the turn/phase
  * cursor, both players, and the current pending decision (if any). Mirrors
@@ -41,6 +72,8 @@ export class GameState extends Schema {
   @type([PlayerState]) players = new ArraySchema<PlayerState>(); // index === seat
 
   @type(PendingDecision) pendingDecision?: PendingDecision; // undefined when no decision is open
+
+  @type(CombatWindow) combatWindow?: CombatWindow; // undefined when no combat prompt is open
   /**
    * Revision of this state, incremented once per closed batch of events (see
    * SequencedServerEvent). It pairs a patch with the batch whose mutations it carries,
