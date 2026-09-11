@@ -54,6 +54,12 @@ Effects that need player input create a typed pending decision with a stable id
 and owning seat. The answer must reference that id and satisfy its constraints.
 Only one decision resolves at a time.
 
+A decision sent on the decision channel also carries `stateVersion`: the state
+revision the board will be at when the question is asked, which is the revision
+the batch that raised it closes with. The client uses it as a presentation
+barrier — it catches its narration up to that revision, within a bounded wait,
+before showing the prompt — and never as a rule.
+
 Combat windows use dedicated response intents for mechanics such as blocking,
 Alliance, Evade, and Barrier. These are distinct from general effect decisions
 because they belong to the attack sequence.
@@ -63,6 +69,15 @@ because they belong to the attack sequence.
 State synchronization carries durable game state. Ephemeral presentation events
 may describe animations, reveals, logs, or notifications, but clients cannot
 depend on them as the sole record of game state.
+
+Every event on the event channel carries a sequencing envelope
+(`SequencedServerEvent`): `seq`, monotonic per room and gap-free; `batch`, the id
+of the batch the event belongs to; and `stateVersion`, the state revision the
+event was emitted under. One batch is everything a single entry into the engine
+produced — an intent, a decision answer, a bot action, the match start. The room
+ends each batch with a `batchClosed` event, sent after the state patch carrying
+that batch's mutations, and `GameState.stateVersion` names that revision. The
+client groups its presentation by batch instead of by arrival time.
 
 Rejected intents return a stable failure result and leave authoritative state
 unchanged. Unsupported card behavior fails loudly on the server and is covered

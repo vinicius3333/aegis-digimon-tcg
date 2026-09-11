@@ -41,6 +41,13 @@ export class GameState extends Schema {
   @type([PlayerState]) players = new ArraySchema<PlayerState>(); // index === seat
 
   @type(PendingDecision) pendingDecision?: PendingDecision; // undefined when no decision is open
+  /**
+   * Revision of this state, incremented once per closed batch of events (see
+   * SequencedServerEvent). It pairs a patch with the batch whose mutations it carries,
+   * so the client can narrate a batch over the board that batch produced.
+   */
+  @type("uint32") stateVersion = 0;
+
   @type("boolean") gameOver = false;
   @type("int8") winnerSeat = -1; // -1 until decided
 }

@@ -6,6 +6,13 @@ import type { AttackTarget } from "./intents.js";
  * client cannot derive from a state diff alone. The synchronized GameState delta
  * remains the source of truth for what the board looks like (API-CONTRACT
  * section 5).
+ *
+ * `ServerEvent` is what the engine emits. What travels on EVENT_CHANNEL is the
+ * envelope {@link SequencedServerEvent}: the same event plus its position in the
+ * room's stream (`seq`), the batch it belongs to (`batch`) and the state revision
+ * it was emitted under (`stateVersion`). The room closes each batch with a
+ * `batchClosed` event, so the client groups its presentation by what the rules
+ * resolved together instead of by what happened to arrive between two renders.
  */
 /**
  * The DP compare of a Security Digimon battle (Comprehensive Rules §13-1-8-3), published so
@@ -227,9 +234,35 @@ export type ServerEvent =
       // consumer that forgets the draw case instead of it shipping a UI bug.
       result: { outcome: "win"; winnerSeat: Seat } | { outcome: "draw" };
       reason: "security" | "deckOut" | "surrender" | "effect";
+    }
+  | {
+      /**
+       * The room finished everything one entry into the engine produced. It is sent after
+       * the state patch carrying that batch's mutations, so a client that groups cues by
+       * `batch` knows the board it is narrating over.
+       */
+      kind: "batchClosed";
+      batch: string;
+      stateVersion: number;
+      /** `seq` of the last event of the batch, so a client can tell a gap from a short batch. */
+      lastSeq: number;
     };
 
 export type ServerEventKind = ServerEvent["kind"];
+
+/**
+ * One event as it travels on EVENT_CHANNEL. An intersection rather than a wrapper object,
+ * so every existing consumer keeps reading `event.kind` and its payload unchanged.
+ *
+ * - `seq` — monotonic per room, starting at 1, with no gaps. A gap means a lost message.
+ * - `batch` — the batch this event belongs to; every batch is ended by a `batchClosed`.
+ * - `stateVersion` — the room's state revision this event was emitted under.
+ */
+export type SequencedServerEvent = ServerEvent & {
+  seq: number;
+  batch: string;
+  stateVersion: number;
+};
 
 /**
  * Runtime enumeration of ServerEventKind, pinned to the type in both directions the
@@ -274,6 +307,7 @@ export const SERVER_EVENT_KINDS = [
   "turnEnded",
   "actionRejected",
   "gameOver",
+  "batchClosed",
 ] as const satisfies readonly ServerEventKind[];
 
 type _ServerEventKindsComplete =
@@ -333,6 +367,13 @@ export type TargetFate =
 export interface DecisionRequest {
   decisionId: string;
   seat: Seat;
+  /**
+   * The state revision this decision was raised at: the `stateVersion` the batch that
+   * raised it closes with. The client's presentation queue uses it as a barrier — it
+   * fast-forwards up to that revision before showing the prompt, so the board the
+   * viewer answers over is the board the question was asked about.
+   */
+  stateVersion?: number;
   kind: "optional" | "chooseTargets" | "selectCards" | "orderCards" | "orderTriggers" | "chooseOption" | "mulligan";
   promptText: string;
   /** The card whose effect is asking for input (so the client can show its name/sigil/text without guessing from the event log). */

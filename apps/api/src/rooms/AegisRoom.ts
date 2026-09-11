@@ -5,6 +5,8 @@ import {
   type Intent,
   type DecisionRequest,
   type Seat,
+  type ServerEvent,
+  type SequencedServerEvent,
   EVENT_CHANNEL,
   DECISION_CHANNEL,
 } from "@aegis/shared";
@@ -92,6 +94,17 @@ export function roomCodeDirectory(): RoomCodeDirectory {
 }
 
 /**
+ * A batch being filled. `recipient` is set for a batch that belongs to one client only
+ * (a rejection), which is never broadcast and never bumps the shared state revision.
+ */
+interface OpenBatch {
+  id: string;
+  emitted: number;
+  lastSeq: number;
+  recipient?: Client;
+}
+
+/**
  * The one and only room class (REQUIRED name "AegisRoom"), registered as room
  * type "aegis" in src/index.ts. It is a thin transport adapter: it seats players,
  * forwards intents to the GameEngine, relays decision requests, and broadcasts the
@@ -128,6 +141,15 @@ export class AegisRoom extends Room<GameState> {
   private tournamentGameId: string | undefined;
   private readyTimeout: Delayed | undefined;
   private matchStartRequested = false;
+
+  /** Position of the last event put on the wire; the first event of a room is `seq` 1. */
+  private eventSeq = 0;
+  /** Serial the batch ids are minted from. */
+  private batchSeq = 0;
+  /** The batch events are currently being stamped into, if any. */
+  private currentBatch: OpenBatch | undefined;
+  /** How many nested engine entries are inside the open batch; only the outermost closes it. */
+  private batchDepth = 0;
 
   /** Seam: the tournament series module this room reports to. Tests substitute their own. */
   protected series(): SeriesStore {
@@ -305,7 +327,7 @@ export class AegisRoom extends Room<GameState> {
             console.error("[AegisRoom] failed to persist match result", error),
           );
         }
-        this.broadcast(EVENT_CHANNEL, event);
+        this.broadcast(EVENT_CHANNEL, this.stamp(event));
         // Rebuild each client's StateView after any event that can move a CardInstance
         // into a public zone (battleArea/breeding topCard) from a private one
         // (hand/eggDeck). @colyseus/schema snapshots node visibility when the view is
@@ -520,22 +542,24 @@ export class AegisRoom extends Room<GameState> {
       seat,
       this.state,
       (intent) => {
-        const result = this.engine.applyIntent(seat, intent);
+        const result = this.withBatch(() => this.engine.applyIntent(seat, intent));
         this.rebuildClientViews();
         return result;
       },
       input.botOptions,
     );
-    this.engine.seatPlayer(seat, `bot:${participantId}`, {
-      displayName,
-      deck: { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] },
-    });
+    this.withBatch(() =>
+      this.engine.seatPlayer(seat, `bot:${participantId}`, {
+        displayName,
+        deck: { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] },
+      }),
+    );
     // The bot announces readiness through the ordinary intent, so the ready gate closes for the
     // usual reason rather than being bypassed. Against a person that means the match starts when
     // THEY are ready (with the existing timeout as the fallback), instead of dealing them a hand
     // while their client is still loading; between two bots it means the second seat's readiness
     // starts the match, with nobody waiting on anybody.
-    this.engine.applyIntent(seat, { type: "ready" });
+    this.withBatch(() => this.engine.applyIntent(seat, { type: "ready" }));
     this.armReadyTimeoutIfSeated();
     return true;
   }
@@ -597,14 +621,14 @@ export class AegisRoom extends Room<GameState> {
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} → replacing departed player ${existing.sessionId}`,
       );
       this.seatByClient.set(client.sessionId, seat);
-      this.engine.seatPlayer(seat, client.sessionId, options);
+      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
       client.view = this.engine.makeStateView(seat);
     } else {
       console.log(
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
       );
       this.seatByClient.set(client.sessionId, seat);
-      this.engine.seatPlayer(seat, client.sessionId, options);
+      this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
       // Per-client visibility: hide hidden zones from the other seat.
       client.view = this.engine.makeStateView(seat);
     }
@@ -623,7 +647,7 @@ export class AegisRoom extends Room<GameState> {
     this.matchStartRequested = true;
     this.readyTimeout?.clear();
     this.readyTimeout = undefined;
-    this.engine.startDevScenario(scenario);
+    this.withBatch(() => this.engine.startDevScenario(scenario));
   }
 
   /** Idempotent: only the first caller (ready-gate or timeout) actually starts the match. */
@@ -638,7 +662,7 @@ export class AegisRoom extends Room<GameState> {
       void this.series()
         .markGamePlaying(this.tournamentGameId, this.roomId)
         .catch((error: unknown) => console.error("[AegisRoom] failed to mark tournament game playing", error));
-    this.engine.startMatch();
+    this.withBatch(() => this.engine.startMatch());
   }
 
   override async onLeave(client: Client, consented: boolean): Promise<void> {
@@ -664,8 +688,10 @@ export class AegisRoom extends Room<GameState> {
         await this.lock();
       }
       this.seatByClient.delete(client.sessionId);
-      this.engine.clearReady(seat);
-      this.engine.handleDisconnect(seat, true);
+      this.withBatch(() => {
+        this.engine.clearReady(seat);
+        this.engine.handleDisconnect(seat, true);
+      });
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
@@ -678,11 +704,11 @@ export class AegisRoom extends Room<GameState> {
     this.readyTimeout?.clear();
     this.readyTimeout = undefined;
     await this.lock();
-    this.engine.handleDisconnect(seat, false);
+    this.withBatch(() => this.engine.handleDisconnect(seat, false));
     try {
       await this.allowReconnection(client, this.RECONNECT_GRACE_SECONDS);
       console.log(`[AegisRoom] reconnected sessionId=${client.sessionId} seat=${seat}`);
-      this.engine.handleReconnect(seat);
+      this.withBatch(() => this.engine.handleReconnect(seat));
       if (!this.matchStartRequested) {
         await this.unlock();
         if (this.clients.length === 2)
@@ -699,8 +725,10 @@ export class AegisRoom extends Room<GameState> {
       this.seatByClient.delete(client.sessionId);
       this.readyTimeout?.clear();
       this.readyTimeout = undefined;
-      this.engine.clearReady(seat);
-      this.engine.handleDisconnect(seat, true);
+      this.withBatch(() => {
+        this.engine.clearReady(seat);
+        this.engine.handleDisconnect(seat, true);
+      });
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
@@ -729,7 +757,7 @@ export class AegisRoom extends Room<GameState> {
       return false;
 
     this.bots[this.BOT_SEAT] = new BotPlayer(this.BOT_SEAT, this.state, (intent) => {
-      const result = this.engine.applyIntent(this.BOT_SEAT, intent);
+      const result = this.withBatch(() => this.engine.applyIntent(this.BOT_SEAT, intent));
       // After each bot action, rebuild every human client's StateView so that
       // CardInstances moved from the bot's private hand into public positions
       // (battleArea, breeding) are recognised as newly-visible by @colyseus/schema
@@ -738,10 +766,12 @@ export class AegisRoom extends Room<GameState> {
       return result;
     });
 
-    this.engine.seatPlayer(this.BOT_SEAT, "bot", {
-      displayName: "Bot",
-      deck: botDeckFor(botDeckId),
-    });
+    this.withBatch(() =>
+      this.engine.seatPlayer(this.BOT_SEAT, "bot", {
+        displayName: "Bot",
+        deck: botDeckFor(botDeckId),
+      }),
+    );
 
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
     // has no seatByClient entry for applyIntent to route through) — starting the
@@ -814,17 +844,114 @@ export class AegisRoom extends Room<GameState> {
     this.rebuildClientViews();
   }
 
+  /**
+   * Run one entry into the engine as a single batch of events.
+   *
+   * Every path from this room into `GameEngine` that can emit goes through here, so the
+   * batch boundary is the rules boundary rather than the patch tick. A nested entry — a bot
+   * acting from a settled action while the batch that settled it is still open — reuses the
+   * open batch, because it is part of the same moment for the player watching.
+   */
+  private withBatch<T>(run: () => T, recipient?: Client): T {
+    const opened = this.currentBatch ?? this.openBatch(recipient);
+    this.batchDepth += 1;
+    try {
+      return run();
+    } finally {
+      this.batchDepth -= 1;
+      if (this.batchDepth === 0 && this.currentBatch === opened) this.closeBatch();
+    }
+  }
+
+  private openBatch(recipient?: Client): OpenBatch {
+    this.batchSeq += 1;
+    this.currentBatch = { id: `batch-${this.batchSeq}`, emitted: 0, lastSeq: 0, recipient };
+    return this.currentBatch;
+  }
+
+  /**
+   * Put the envelope on an event and count it into the open batch.
+   *
+   * An event emitted with no batch open — the tail of an asynchronous resolution, which
+   * continues after the intent that started it has returned — gets a batch of its own,
+   * closed once the synchronous burst it belongs to has finished emitting.
+   */
+  private stamp(event: ServerEvent): SequencedServerEvent {
+    const batch = this.currentBatch ?? this.openImplicitBatch();
+    this.eventSeq += 1;
+    batch.emitted += 1;
+    batch.lastSeq = this.eventSeq;
+    return { ...event, seq: this.eventSeq, batch: batch.id, stateVersion: this.state.stateVersion };
+  }
+
+  private openImplicitBatch(): OpenBatch {
+    const batch = this.openBatch();
+    queueMicrotask(() => {
+      // An explicit entry that started inside this batch owns the close instead.
+      if (this.batchDepth === 0 && this.currentBatch === batch) this.closeBatch();
+    });
+    return batch;
+  }
+
+  /**
+   * End the open batch. A batch that emitted nothing (a rejected intent, a join) is closed
+   * silently: there is nothing for a client to group.
+   *
+   * The close is broadcast with `afterNextPatch`, so it reaches clients only after the state
+   * patch carrying the batch's mutations — the client narrating the batch then knows which
+   * board it is narrating over. A batch belonging to one client is sent directly: it changed
+   * no shared state, so there is no patch to wait for.
+   */
+  private closeBatch(): void {
+    const batch = this.currentBatch;
+    this.currentBatch = undefined;
+    if (!batch || batch.emitted === 0) return;
+    if (!batch.recipient) this.state.stateVersion += 1;
+    const closed: ServerEvent = {
+      kind: "batchClosed",
+      batch: batch.id,
+      stateVersion: this.state.stateVersion,
+      lastSeq: batch.lastSeq,
+    };
+    if (batch.recipient) {
+      batch.recipient.send(EVENT_CHANNEL, this.stampClose(closed, batch));
+      return;
+    }
+    this.broadcast(EVENT_CHANNEL, this.stampClose(closed, batch), { afterNextPatch: true });
+  }
+
+  /** The close is part of the batch it ends, so it takes the next `seq` and that batch's id. */
+  private stampClose(event: ServerEvent, batch: OpenBatch): SequencedServerEvent {
+    this.eventSeq += 1;
+    return { ...event, seq: this.eventSeq, batch: batch.id, stateVersion: this.state.stateVersion };
+  }
+
   private handleIntent(client: Client, intent: Intent): void {
     const seat = this.seatByClient.get(client.sessionId);
     if (seat === undefined) return;
-    const result = this.engine.applyIntent(seat, intent);
+    const result = this.withBatch(() => this.engine.applyIntent(seat, intent));
     if (!result.ok) {
-      client.send(EVENT_CHANNEL, {
-        kind: "actionRejected",
-        intent: intent.type,
-        reason: result.reason,
-      });
+      // A refusal is the offending client's alone, so it travels in its own batch rather
+      // than in the (empty) batch of the intent it refused.
+      this.withBatch(
+        () =>
+          client.send(
+            EVENT_CHANNEL,
+            this.stamp({ kind: "actionRejected", intent: intent.type, reason: result.reason }),
+          ),
+        client,
+      );
     }
+  }
+
+  /**
+   * The revision the board will be at when the decision is asked. A decision is raised
+   * inside the batch that produced it and `stateVersion` is bumped when that batch closes,
+   * so an open broadcast batch means the answer belongs to the next revision.
+   */
+  private decisionStateVersion(): number {
+    const open = this.currentBatch;
+    return this.state.stateVersion + (open && !open.recipient ? 1 : 0);
   }
 
   private requestDecision(seat: Seat, req: DecisionRequest): void {
@@ -851,6 +978,6 @@ export class AegisRoom extends Room<GameState> {
     // decision having closed, making a real modal disappear before it can be used.
     this.broadcastPatch();
     // The engine awaits the matching "respondDecision" intent (correlated by decisionId).
-    client?.send(DECISION_CHANNEL, req);
+    client?.send(DECISION_CHANNEL, { ...req, stateVersion: this.decisionStateVersion() });
   }
 }
