@@ -45,6 +45,24 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   whole filter), but a live footgun for a future "this Digimon with [X]
   suspends" card built on `whenSuspended`.
 
+- An optional `RevealAdd` slot surfaces as a `selectCards` decision with
+  `min: 0`, not an `optional` prompt — `autoDeclineOptional` does not
+  decline it, and `autoSelectCards` overrides it. To prove the decline
+  path, answer `{ kind: "selectCards", instanceIds: [] }` manually while
+  holding the driving promise un-awaited (awaiting it first deadlocks).
+- `state.pendingDecision` exposes its candidates only through
+  `payloadJson`, not an `options` object.
+
+- **`PlayWithoutCost`/`PlayMultipleAction` ignore `totalPlayCostBudget`
+  for hand/trash targets.** `pickLoose`
+  (`apps/api/src/engine/effects/interpreter/targeting/loose.ts:502`) never
+  reads `Target.totalPlayCostBudget` and never forwards
+  `maxTotalPlayCost` to `selectCards` — that plumbing exists (`removal.ts`,
+  `reveal.ts`, and `resolveTotalPlayCostBudgetTargets` in
+  `targeting/permanents.ts` for battle-area targets) but is missing on the
+  loose-zone (hand/trash) path. First hit: EX13-035's "up to 6 total play
+  cost", retained as `it.fails`, `coverage: "partial"`.
+
 ## Harness notes (not engine gaps, just non-obvious)
 
 - ＜Counter＞ opens **before** the block window when the host is attacked;
@@ -75,6 +93,43 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   only match). It correctly encodes the rule's intent but cannot be proven
   behaviourally in that shape — say so in the report rather than claiming
   proof.
+
+- Whether declining a `[Once Per Turn]` "by ..." cost window spends the
+  use is unresolved for `CardEffect.frequency`/`sharedUseKey` (only
+  `SubTrigger.oncePerTurnKey` has a documented decline-release path in
+  `subtriggers.ts`). Comprehensive §15-14-1-1 supports spending it;
+  manual §1 can be read either way. Assert only the unambiguous half of a
+  decline until this is settled; don't claim it as an engine gap.
+
+## Out-of-scope finding (not EX13, do not fix here)
+
+- `BT26-033.ts` may be miscoded: its raw text says "this Digimon's top
+  stacked card" (should stay in the battle area, only reparented as
+  security) but its implementation uses bare `placeAsSecurity`, which
+  (`costs.ts:1621`) moves the whole permanent out of the battle area,
+  ignoring `detachPermanentTop`. Found while authoring EX13-032, which hits
+  the identical printed sentence and uses the `place`/`detachPermanentTop`
+  cost shape instead. Flagged for whoever next touches BT26, not fixed
+  here — BT26 is a separate, already-audited set.
+
+- An accepted optional action with a payable cost still pays that cost
+  even when its target set resolves empty — a chosen "may" pays first,
+  finds nothing to hit, and the cost is not refunded.
+- `onDeletionOf` honours `excludeSelf` even though it normally matches
+  against a card definition rather than a live permanent (mutation-
+  confirmed, not documented elsewhere).
+- Whether a mandatory cost (e.g. a trash cost gating a rewrite/replace
+  effect) is spent when the controller declines the optional effect it
+  gates is unresolved pre-release (§15-7 supports "declining costs
+  nothing"). Default to that reading; a later ruling that pre-commits the
+  cost is a one-field fix (`payCostBeforeOptional: true`).
+
+- A `Modal`'s paid branch needs no `optionConditions` restating an
+  affordability check (e.g. `selfHasMinTrash`) — `optionIsAvailable`
+  already preflights through `canPayCost`; the restatement is inert.
+- `countMatching` already excludes breeding-area permanents for a
+  `kind: ["Digimon"]` + `nameOrTrait` filter; an explicit
+  `zone: "battleArea"` on such a gate is declarative, not load-bearing.
 
 ## Per-card decisions
 
