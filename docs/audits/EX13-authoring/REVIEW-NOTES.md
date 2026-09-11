@@ -63,6 +63,36 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   loose-zone (hand/trash) path. First hit: EX13-035's "up to 6 total play
   cost", retained as `it.fails`, `coverage: "partial"`.
 
+- A card with printed ＜Alliance＞ opens an alliance decision on every real
+  attack — a turn-loop test that only awaits `!isAttacking()` will
+  deadlock. Answer `{ type: "respondAlliance" }` (no `allyPermanentId`) to
+  decline, or with `allyPermanentId` to take it. The open window shows at
+  `engine.combat.hasOpenAllianceDecision`, not via `state.pendingDecision`.
+- `alternateRequirementIndex` cannot express "printed route only" —
+  `digivolve.ts:524` fails the WHOLE digivolve when the explicit index
+  matches nothing, so it can't be used to force the catalog EvoCost over
+  an available alternate. Prove "printed route wins" cases with a
+  same-cost positive plus a control that both preferences refuse, not by
+  pinning the index.
+
+- Two different suspend-lock scopes exist and must not be confused:
+  `restriction: "unsuspend"` locks the permanent WHOLE-turn (any effect,
+  any phase); `unsuspendDuringOwnUnsuspendPhase` locks it only for the
+  controller's next unsuspend phase, leaving effect-driven unsuspends
+  legal. Pick the one the printed wording actually says ("their next
+  unsuspend phase" vs. a bare "can't unsuspend").
+
+- **`UseOptionWithoutCost` has no scaled cost reduction.** It carries
+  `reduceCostBy` and `reduceCostByOpponentMemory` only; unlike the sibling
+  `PlayWithoutCost` path (`paidReduction` in `play.ts`), its runner
+  (`runUseOptionWithoutCost`, `borrowed.ts:522`) never calls `scaleFactor`.
+  First hit: EX13-043's "for each suspended Digimon, further reduce it by
+  1" on the Option-USE branch, retained as `it.fails`,
+  `coverage: "partial"`. Will recur on any "play OR use ... for each ..."
+  card. Fix shape: add `reduceCostByScaling?: Scaling` to
+  `UseOptionWithoutCostAction`, wire it into `totalReduction` and
+  `costDelta`.
+
 ## Harness notes (not engine gaps, just non-obvious)
 
 - ＜Counter＞ opens **before** the block window when the host is attacked;
@@ -101,7 +131,28 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   manual §1 can be read either way. Assert only the unambiguous half of a
   decline until this is settled; don't claim it as an engine gap.
 
+- `[Rule] Trait: Has [X] Type.` is already satisfied purely from printed
+  text — `staticTraitsOf` (`apps/api/src/engine/cards/cardData.ts:299`)
+  regex-parses it out of `effectText` directly. A `GrantStatic` IR effect
+  for the same rule is not behaviourally provable (deleting it leaves
+  trait tests green); keep the entry for record completeness like peers
+  do, but don't let a report claim it as proven.
+- A per-card test loads only its own card module. A cross-card proof
+  needs a side-effect import of the peer
+  (`import "../SET/SET-NNN.js";`, per `_a3/revealAdd-cluster.test.ts`) or
+  the other card behaves as vanilla in the fixture.
+
 ## Out-of-scope finding (not EX13, do not fix here)
+
+- `BT13-048.ts` may be miscoded: it encodes the printed "[Beast], [Animal]
+  or [Sovereign], other than [Sea Animal]" sentence with an exact
+  `match: "trait"`, which kills the `[Sea Animal]` exclusion (nothing to
+  exclude under exact match) and wrongly rejects `[Holy Beast]`,
+  `[Dark Animal]`, `[Four Sovereigns]`. Found while authoring EX13-038,
+  which prints the identical sentence and uses `traitContains` +
+  `excludeNameOrTrait` (BT23-012's shape) instead. Not fixed here — BT13
+  is a separate, already-audited set. EX13-042 (Bastemon) prints the same
+  sentence and already used the correct shape.
 
 - `BT26-033.ts` may be miscoded: its raw text says "this Digimon's top
   stacked card" (should stay in the battle area, only reparented as
