@@ -46,6 +46,13 @@ describe("BT23-050 Ankylomon", () => {
       attributes: ["Free"],
       types: ["Ankylosaur", "Hudie", "CS"],
     });
+    // The whole printed contract, clause for clause (catalog text carries U+00A0 separators).
+    expect(getCardDefinition("BT23-050")?.effectText?.replace(/\u00a0/g, " ")).toBe(
+      "[Digivolve] [Armadillomon]/Lv.3 w/[CS] trait: Cost 2 \n\n＜Blocker＞ \n" +
+        "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -2000 DP until their turn ends. " +
+        "Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Shakkoumon] in the hand.",
+    );
+    expect(getCardDefinition("BT23-050")?.inheritedEffectText?.replace(/\u00a0/g, " ")).toBe("＜Blocker＞");
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Armadillomon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["CS"], cost: 2, isAlternate: true },
@@ -308,21 +315,37 @@ describe("BT23-050 Ankylomon", () => {
           // Shakkoumon's [All Turns] replacement plays Ankylomon from its digivolution cards
           // when it is deleted, which is the public route to an [On Play] on the other seat's turn.
           battleArea: [
-            { card: "BT23-032", as: "shakkoumon", under: ["BT23-050"], suspended: true },
+            { card: "BT23-032", as: "shakkoumon", under: ["BT23-050"] },
             { card: "BT23-018", as: "partner" },
           ],
           hand: [{ card: "BT23-032", as: "spareShakkoumon" }],
-          deck: Array(6).fill("BT1-009"),
-          security: ["BT1-010"],
+          deck: Array(8).fill("BT1-009"),
+          security: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [{ card: "BT23-053", as: "attacker", dp: 12000 }],
-          deck: Array(6).fill("BT1-011"),
+          deck: Array(8).fill("BT1-011"),
+          security: ["BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    // Shakkoumon suspends itself by attacking on its own turn, then the real turn loop hands the
+    // turn over, so the opposing attack lands on the opponent's turn without touching state.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shakkoumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shakkoumon").isSuspended && s.state.pendingDecision === undefined);
+    const endResult = s.state.turnSeat === 0 ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
+    expect(endResult).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     const ankyId = s.perm("shakkoumon").stack[0]!.instanceId;
     const spareId = s.inst("spareShakkoumon").instanceId;
@@ -347,6 +370,9 @@ describe("BT23-050 Ankylomon", () => {
       true,
     );
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("control for Q5318: the same pair DNA digivolves when Ankylomon is played normally", async () => {

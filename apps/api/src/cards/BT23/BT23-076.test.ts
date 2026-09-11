@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT10/BT10-110.js";
 import "../index.js";
 import { compiled } from "./BT23-076.js";
 
@@ -178,6 +179,7 @@ describe("BT23-076 Sistermon Blanc", () => {
   });
 
   it("triggers again on a second suspension in the same turn — the clause has no once-per-turn cap", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -189,25 +191,30 @@ describe("BT23-076 Sistermon Blanc", () => {
           hand: [
             { card: "BT13-013", as: "firstBao" },
             { card: "BT20-013", as: "secondBao" },
+            { card: "BT10-110", as: "seikenMeppa" },
           ],
           deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
         1: { battleArea: [prey, secondPrey] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.memory = 6;
+    s.state.memory = 9;
     await s.ready();
     const firstBaoId = s.inst("firstBao").instanceId;
 
     expect(attack(s, "blanc")).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.perm("firstBase").topCard?.instanceId === firstBaoId);
     expect(s.perm("firstBase").topCard?.instanceId).toBe(firstBaoId);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(8);
 
-    // Unsuspend through the Advance surface: nothing in the Main phase unsuspends an attacker,
-    // and the clause under test is exactly "when this Digimon suspends" firing a second time.
-    await advance(s.engine).verb.unsuspend([s.perm("blanc").permanentId]);
+    // Unsuspend Blanc the public way: BT10-110 Seiken Meppa is a [Main] Option that unsuspends
+    // 1 of your Digimon, so the second suspension under test is a real one.
+    preferred.push(s.perm("blanc").permanentId, s.perm("blanc").topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seikenMeppa").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("blanc").isSuspended);
     expect(s.perm("blanc").isSuspended).toBe(false);
 
     expect(attack(s, "blanc", "secondPrey")).toEqual({ ok: true });

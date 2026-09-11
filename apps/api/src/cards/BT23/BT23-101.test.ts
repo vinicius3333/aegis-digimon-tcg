@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -23,22 +23,109 @@ describe("BT23-101 Hudiemon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it("mandatorily scales one opponent's DP by every friendly Hudie after optional play", async () => {
+  it("scales the mandatory DP tail by every friendly Hudie Digimon through a public play", async () => {
     const s = setupEngine(
       {
         0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          hand: [{ card: "BT23-101", as: "hudiemon" }],
           battleArea: [
-            { card: "BT23-101", as: "source" },
-            { card: "BT23-101", as: "ally" },
+            { card: "BT23-040", as: "hudieA" },
+            { card: "BT23-040", as: "hudieB" },
           ],
         },
-        1: { battleArea: [{ card: "BT23-101", as: "target" }] },
+        1: { deck: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT10-055", as: "target" }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("source").topCard!);
-    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hudiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    // Three friendly Hudie Digimon (two Wormmon plus the entering Hudiemon): 13000 - 3 x 3000.
+    await settle(() => s.perm("target").currentDP === 4000 && s.state.pendingDecision === undefined);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  // Q5573: nothing is deleted part-way through the effect; the 0-DP check happens once the whole
+  // [On Play] has resolved. Closest public fixture: the tail itself drives the target to exactly 0.
+  // The printed Q&A board ("all of your Digimon get -5000 DP") has no arrangeable printed source.
+  it("deletes a target the DP tail drives to exactly 0, only after the whole effect resolves (Q5573)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          hand: [
+            { card: "BT23-101", as: "hudiemon" },
+            { card: "BT23-010", as: "freeCs" },
+          ],
+          battleArea: [
+            { card: "BT23-040", as: "hudieA" },
+            { card: "BT23-040", as: "hudieB" },
+          ],
+        },
+        // BT1-059 is an inert level-5 9000-DP body: 9000 - 3 x 3000 = 0.
+        1: { deck: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT1-059", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hudiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("target").instanceId);
+    // The card the same effect played survives the same deletion checkup.
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("freeCs").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
+  // Q5572: the played card's own [On Play] waits until every part of Hudiemon's effect, including
+  // the part after "then", has resolved. BT23-011 Birdramon deletes an opponent Digimon with 4000
+  // DP or less, so it can only reach a 7000-DP body if the -3000 tail already applied.
+  it.each([
+    ["7000 body deleted because the tail resolved first", "BT11-051", true],
+    ["8000 body survives: 5000 is still above Birdramon's 4000 gate", "BT10-010", false],
+  ] as const)("Q5572 derived [On Play] resolves after the DP tail — %s", async (_label, targetCard, deleted) => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          hand: [
+            { card: "BT23-101", as: "hudiemon" },
+            { card: "BT23-011", as: "birdramon" },
+          ],
+        },
+        1: { deck: ["BT1-009", "BT1-010"], battleArea: [{ card: targetCard, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hudiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("birdramon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(
+      deleted,
+    );
+    if (!deleted) expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.state.memory).toBe(3);
   });
 
   it("plays a low-cost CS card and applies the mandatory scaled DP reduction", () => {
@@ -234,7 +321,11 @@ describe("BT23-101 Hudiemon", () => {
         // "[All Turns] when security stacks are removed from, place 1 Digimon as the bottom
         // security card", which this attack's security check fires: it removes ITSELF from the
         // board and the -6000 endpoint can no longer be read.
-        1: { deck: ["BT1-009", "BT1-009", "BT1-009"], security: 3, battleArea: [{ card: "BT10-055", as: "target" }] },
+        1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT10-055", as: "target" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -345,7 +436,7 @@ describe("BT23-101 Hudiemon", () => {
           battleArea: [{ card: "BT23-101", as: "attacker" }],
           hand: [{ card: "BT23-010", as: "freeCs" }],
         },
-        1: { deck: ["BT1-009", "BT1-009"], security: 3 },
+        1: { deck: ["BT1-009", "BT1-009"], security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -422,7 +513,7 @@ describe("BT23-101 Hudiemon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    // No manual unsuspend here: the real Unsuspend phase must have readied the attacker.
     await attack();
     const handAfterReset = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     expect(
@@ -754,7 +845,7 @@ describe("BT23-101 Hudiemon", () => {
           { card: "BT23-101", as: "hudiemon" },
         ],
       },
-      1: { deck: ["BT1-009", "BT1-010"], security: 3 },
+      1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -778,5 +869,90 @@ describe("BT23-101 Hudiemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+  // Q6708, second half: "if a 'Digimon can't digivolve' effect has activated, you can still
+  // digivolve from a Tamer with this digivolve requirement". BT13-007 King Drasil_7D6 in the
+  // breeding area publishes "[Breeding][Your Turn] All of your Digimon can't digivolve."
+  it("keeps the Erika Tamer route legal while a 'Digimon can't digivolve' restriction blocks the Digimon route (Q6708)", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        breeding: { card: "BT13-007", as: "drasil" },
+        battleArea: [
+          { card: "BT23-017", as: "betamon" },
+          { card: "BT23-084", as: "erika" },
+          { card: "BT23-084", as: "erika2" },
+          { card: "BT23-084", as: "erika3" },
+          { card: "BT23-084", as: "erika4" },
+        ],
+        hand: [{ card: "BT23-101", as: "hudiemon" }],
+      },
+      1: { deck: ["BT1-009", "BT1-010"] },
+    });
+    await s.ready();
+    s.state.memory = 6;
+    // Control: the printed Lv.3 w/[CS] route onto a Digimon base is blocked by the restriction.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("betamon").permanentId,
+        instanceId: s.inst("hudiemon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("betamon").topCard.cardId).toBe("BT23-017");
+    // The Tamer route is unaffected: a Tamer is not "your Digimon".
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("erika").permanentId,
+        instanceId: s.inst("hudiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("erika").topCard.instanceId === s.inst("hudiemon").instanceId);
+    expect(s.perm("erika").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("erika").instanceId);
+    expect(s.state.memory).toBe(3);
+  });
+
+  // Q6708, watcher half, second watcher shape (BT5-091 Takumi Aiba, "[Your Turn] When one of
+  // your Digimon digivolves, you may suspend this Tamer to trigger <Draw 1>").
+  it.each([
+    ["Digimon base fires the watcher", "betamon", true],
+    ["Erika Tamer base does not (Q6708)", "erika", false],
+  ] as const)("a second 'when one of your Digimon digivolves' watcher: %s", async (_label, baseAlias, fires) => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          battleArea: [
+            { card: "BT5-091", as: "takumi" },
+            { card: "BT23-017", as: "betamon" },
+            { card: "BT23-084", as: "erika" },
+            { card: "BT23-084", as: "erika2" },
+            { card: "BT23-084", as: "erika3" },
+            { card: "BT23-084", as: "erika4" },
+          ],
+          hand: [{ card: "BT23-101", as: "hudiemon" }],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 6;
+    const deckBefore = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(baseAlias).permanentId,
+        instanceId: s.inst("hudiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm(baseAlias).topCard.instanceId === s.inst("hudiemon").instanceId && s.state.pendingDecision === undefined,
+    );
+    // The digivolution bonus draw (Q6709) always happens; the watcher draw is the extra one.
+    expect(deckBefore - s.state.players[0]!.deck.length).toBe(fires ? 2 : 1);
+    expect(s.perm("takumi").isSuspended).toBe(fires);
   });
 });

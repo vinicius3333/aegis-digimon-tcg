@@ -22,13 +22,13 @@ describe("BT23-022 Oujamon", () => {
       linkEffect: "＜Security A. +1＞",
       linkRequirement: "[Link] [Appmon]\u00a0trait: Cost 3",
     });
-    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static" && !entry.isLinked) as any;
+    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static" && !entry.isLinked)!;
     expect(staticEffect.keywords).toEqual([{ keyword: "Raid", raw: "＜Raid＞" }]);
   });
 
   it("shares one Once Per Turn link activation across When Digivolving and When Attacking", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
-      const effect = compiled.effects.find((entry) => entry.trigger === trigger) as any;
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger)!;
       expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" });
       expect(effect.actions[0]).toMatchObject({
         kind: "Link",
@@ -44,7 +44,7 @@ describe("BT23-022 Oujamon", () => {
   });
 
   it("once per turn may unsuspend only when this Digimon gets linked", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
+    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns")!;
     expect(effect.frequency).toBe("OncePerTurn");
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -59,6 +59,69 @@ describe("BT23-022 Oujamon", () => {
     });
     expect(appFusionCostFor("BT23-022", { topName: "Dosukomon", linkedNames: ["Coachmon"] })).toBe(0);
     expect(appFusionCostFor("BT23-022", { topName: "Coachmon", linkedNames: ["Dosukomon"] })).toBe(0);
+  });
+
+  it("publicly App Fuses Dosukomon and Coachmon into Oujamon for zero", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-021", as: "host", linked: [{ card: "BT23-009", as: "coachmon" }] }],
+          hand: [
+            { card: "BT23-022", as: "oujamon" },
+            { card: "BT23-007", as: "spare" },
+          ],
+          deck: ["BT1-009", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const oldTopId = s.perm("host").topCard!.instanceId;
+    const coachmonId = s.inst("coachmon").instanceId;
+    const deckBefore = s.state.players[0]!.deck.length;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("oujamon").instanceId,
+        linkedInstanceId: coachmonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("oujamon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId, coachmonId]);
+    expect(s.perm("host").linked).toHaveLength(0);
+    // Printed cost 0, and App Fusion still draws the digivolution bonus card.
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "digivolved", mechanic: "appFusion", cardId: "BT23-022" }),
+    );
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
+  it("rejects App Fusion when the linked card is not the printed partner", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-021", as: "host", linked: [{ card: "BT23-007", as: "wrongPartner" }] }],
+          hand: [{ card: "BT23-022", as: "oujamon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const result = s.engine.applyIntent(0, {
+      type: "appFusion",
+      permanentId: s.perm("host").permanentId,
+      instanceId: s.inst("oujamon").instanceId,
+      linkedInstanceId: s.inst("wrongPartner").instanceId,
+    });
+    expect(result.ok).toBe(false);
+    expect(s.perm("host").topCard?.cardId).toBe("BT23-021");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("oujamon").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("links onto an Appmon for 3, adds 4000 DP, and grants Security Attack +1", async () => {
@@ -281,6 +344,78 @@ describe("BT23-022 Oujamon", () => {
     expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("ownLink").instanceId);
     expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
     expect(s.perm("otherHost").linked.map((card) => card.instanceId)).not.toContain(s.inst("otherLink").instanceId);
+  });
+
+  it("unsuspends on the first link of a turn only, and resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-022", as: "oujamon" }],
+          hand: [
+            { card: "BT23-007", as: "linkA" },
+            { card: "BT23-007", as: "linkB" },
+            { card: "BT23-007", as: "linkC" },
+          ],
+          security: ["ST1-02", "ST1-02"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045", "BT1-047"],
+        },
+        1: {
+          hand: [{ card: "ST1-02", as: "neutralOpponent" }],
+          security: ["ST1-02", "ST1-02", "ST1-02", "ST1-02", "ST1-02", "ST1-02"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045", "BT1-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const oujamonId = s.perm("oujamon").permanentId;
+
+    // First attack: [When Attacking] links Musclemon for free, and the linked reaction
+    // unsuspends Oujamon in the same window.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: oujamonId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("oujamon").isSuspended);
+    expect(s.perm("oujamon").isSuspended).toBe(false);
+    expect(s.perm("oujamon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkA").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+
+    // Second attack in the same turn: both Once Per Turn uses are spent, so nothing links
+    // and the manual link that follows leaves Oujamon suspended.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: oujamonId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("oujamon").isSuspended).toBe(true);
+    expect(s.perm("oujamon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkA").instanceId]);
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkB").instanceId,
+        targetPermanentId: oujamonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("oujamon").linked.some((card) => card.instanceId === s.inst("linkB").instanceId));
+    expect(s.perm("oujamon").isSuspended).toBe(true);
+
+    // Next own turn: both Once Per Turn uses have reset.
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: oujamonId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("oujamon").isSuspended);
+    expect(s.perm("oujamon").isSuspended).toBe(false);
+    expect(s.perm("oujamon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkC").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("linkB").instanceId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may unsuspend when it gets linked and may refuse", async () => {

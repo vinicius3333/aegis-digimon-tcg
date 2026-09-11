@@ -113,6 +113,39 @@ describe("BT23-021 Dosukomon", () => {
     expect(s.perm("host").linked).toHaveLength(1);
   });
 
+  it("survives a losing battle against a Security Digimon while linked, per Q5242", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT23-021", as: "dosukomon" }] },
+        // Surfimon has no printed text at all: a 13,000-DP Security Digimon and nothing else.
+        1: { security: ["BT8-030", "BT1-009"], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dosukomon").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("host"), "beDeletedInBattle")).toBe(true);
+    expect(s.perm("host").currentDP).toBe(5000);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    // It loses the security battle to the 13,000-DP Security Digimon and is not deleted.
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toContain(hostId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("host").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+
   it("expires linked battle immunity after the opponent's turn", async () => {
     const s = setupEngine(
       {

@@ -20,6 +20,10 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
+              // Q5383, asked about this printed wording, answers that "on the field" is the
+              // battle area or the breeding area. CR 3-4-7-8 bars referencing breeding-area
+              // information "except for effects that explicitly specify or reference breeding
+              // areas", and that card-specific ruling is exactly such a reference.
               zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {

@@ -125,6 +125,63 @@ describe("BT23-065 Phantomon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("lets the controller pick which of two [Ghostmon] hosts receives Bakemon and Phantomon", async () => {
+    // "any of your [Ghostmon]'s bottom digivolution card": with two hosts the controller
+    // chooses, and only the chosen stack changes.
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-061", as: "firstGhostmon" },
+            { card: "BT23-061", as: "secondGhostmon" },
+            { card: "BT23-087", as: "violet" },
+          ],
+          hand: [{ card: "BT23-065", as: "phantomon" }],
+          trash: [{ card: "BT23-064", as: "bakemon" }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds },
+    );
+    await s.ready();
+    preferInstanceIds.push(s.perm("secondGhostmon").topCard!.instanceId);
+    s.state.memory = 5;
+    const phantomonId = s.inst("phantomon").instanceId;
+    const bakemonId = s.inst("bakemon").instanceId;
+    const secondId = s.inst("secondGhostmon").instanceId;
+    const firstId = s.inst("firstGhostmon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: phantomonId,
+        effectKey: handMainEffectKey(s, s.inst("phantomon")),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondGhostmon").topCard?.instanceId === phantomonId);
+
+    expect(
+      [...s.perm("secondGhostmon").stack, s.perm("secondGhostmon").topCard!].map((card) => card.instanceId),
+    ).toEqual([bakemonId, secondId, phantomonId]);
+    // Both hosts were genuinely offered, so the outcome is the controller's choice.
+    expect(
+      s.decisions.some(({ req }) => {
+        // The host decision lists permanents, so it carries permanent ids.
+        const candidates = req.options?.candidateInstanceIds ?? [];
+        return (
+          candidates.includes(s.perm("firstGhostmon").permanentId) &&
+          candidates.includes(s.perm("secondGhostmon").permanentId)
+        );
+      }),
+    ).toBe(true);
+    // The untouched host keeps its own single-card stack.
+    expect(s.perm("firstGhostmon").topCard!.instanceId).toBe(firstId);
+    expect(s.perm("firstGhostmon").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("refuses the hand Main effect without Violet Inboots", async () => {
     const s = setupEngine(handMainBoard("BT21-065", false), { autoSelectCards: true });
     await s.ready();

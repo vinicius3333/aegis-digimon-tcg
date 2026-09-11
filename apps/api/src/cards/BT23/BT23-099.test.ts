@@ -38,7 +38,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const sistermonId = s.inst("sistermon").instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 3;
     await s.ready();
     expect(
@@ -77,7 +76,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const sistermonId = s.inst("sistermon").instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 3;
     await s.ready();
     expect(
@@ -92,36 +90,36 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === sistermonId)).toBe(true);
   });
 
+  // Seat 1 owns the placed Option; seat 0 (the turn player) digivolves into Huckmon, so this
+  // is an opponent's evolution on the opponent's own turn — no turnSeat write needed.
   it("ignores an opponent's public Huckmon evolution", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-099", as: "option" }],
-          hand: [{ card: "BT23-076", as: "sistermon" }],
-        },
-        1: {
           battleArea: [{ card: "ST12-04", as: "base" }],
           hand: [{ card: "BT6-011", as: "baohuckmon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT23-099", as: "option" }],
+          hand: [{ card: "BT23-076", as: "sistermon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const sistermonId = s.inst("sistermon").instanceId;
-    s.perm("option").placedByEffect = true;
-    s.state.turnSeat = 1;
     s.state.memory = 3;
     await s.ready();
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("baohuckmon").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT6-011");
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sistermonId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === sistermonId)).toBe(true);
   });
 
   it("grants color waiving with Huckmon on the field and places itself after drawing", () => {
@@ -136,7 +134,7 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
       0: {
         breeding: { card: "BT23-006", as: "huckmonInBreeding" },
         hand: [{ card: "BT23-099", as: "option" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.memory = 2;
@@ -235,7 +233,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const cielId = s.inst("ciel").instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 6;
     await s.ready();
 
@@ -282,7 +279,6 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const sistermonId = s.inst("sistermon").instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 3;
     await s.ready();
 
@@ -301,53 +297,53 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  // The security card's owner is seat 1 here, so the real attacker is the turn player seat 0
+  // and no turnSeat write is needed to reach a genuine security check.
   it("free-plays a Sistermon from hand and stays in the battle area when checked from security", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "BT23-099", as: "option" }],
-          hand: [{ card: "BT6-082", as: "blanc" }],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
-        },
-        1: {
           battleArea: [{ card: "BT1-009", as: "attacker" }],
           security: ["BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013"],
+        },
+        1: {
+          security: [{ card: "BT23-099", as: "option" }],
+          hand: [{ card: "BT6-082", as: "blanc" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.inst("option").instanceId;
     const blancId = s.inst("blanc").instanceId;
-    s.state.turnSeat = 1;
 
     const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(1);
-    // The turn start hands seat 1 its 3 memory; take that as the baseline.
-    // Keep seat 1 off zero so the attack does not also end the turn.
+    await advance(s.engine).waitForMainPhase(0);
+    // Keep the attacking seat off zero memory so the attack does not also end the turn.
     s.state.memory = 3;
     const memoryBefore = s.state.memory;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId));
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId));
 
     // The 3-cost Sistermon Blanc arrived from hand without paying.
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === blancId)).toBe(true);
     // No playCard memory movement: the printed 3-cost was never paid.
     expect(
       s.events.filter((event) => event.kind === "memoryChanged" && "reason" in event && event.reason === "playCard"),
     ).toEqual([]);
     expect(s.state.memory).toBe(memoryBefore);
     // "Then, place this card in the battle area" — the checked option is not trashed.
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

@@ -155,7 +155,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
+      namesExact: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
       cost: 1,
       isAlternate: true,
     },

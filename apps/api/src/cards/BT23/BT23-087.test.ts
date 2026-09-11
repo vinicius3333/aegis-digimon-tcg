@@ -9,6 +9,8 @@ import { compiled } from "./BT23-087.js";
 
 /** Enough neutral cards for the draw phase plus a spare playable card so Main stays open. */
 const neutralDeck = Array(12).fill("BT1-009") as string[];
+/** Three inert main-deck Digimon: the numeric `security: n` form seeds a Digi-Egg. */
+const neutralSecurity = ["BT1-010", "BT1-011", "BT1-012"];
 
 describe("BT23-087 Violet Inboots", () => {
   it("matches every catalog field and complete compiled clause", () => {
@@ -107,7 +109,7 @@ describe("BT23-087 Violet Inboots", () => {
           trash: [{ card: "BT23-061", as: "ghostmon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -149,7 +151,7 @@ describe("BT23-087 Violet Inboots", () => {
           ],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -182,7 +184,7 @@ describe("BT23-087 Violet Inboots", () => {
           trash: [{ card: "BT23-061", as: "ghostmon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -220,7 +222,7 @@ describe("BT23-087 Violet Inboots", () => {
           trash: [{ card: "BT23-061", as: "ghostmon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -255,7 +257,7 @@ describe("BT23-087 Violet Inboots", () => {
           trash: [{ card: "BT23-061", as: "ghostmon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -385,7 +387,7 @@ describe("BT23-087 Violet Inboots", () => {
           hand: [{ card: "BT4-080", as: "bakemon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -424,7 +426,7 @@ describe("BT23-087 Violet Inboots", () => {
           hand: [{ card: "BT4-080", as: "bakemon" }],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -467,7 +469,7 @@ describe("BT23-087 Violet Inboots", () => {
           ],
           deck: neutralDeck,
         },
-        1: { deck: neutralDeck, security: 3 },
+        1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -491,24 +493,49 @@ describe("BT23-087 Violet Inboots", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Rush")).toBe(false);
   });
 
-  it("does not react to the opponent's Ghost digivolution on the opponent's turn", async () => {
+  // "any of YOUR Digimon": the watcher is controller-scoped, so the opponent's own Ghost
+  // digivolution never arms it. The printed [Your Turn] window is unreachable separately —
+  // no Ghost-trait card in the catalog can digivolve during the opponent's turn — so the
+  // turn gate itself is verified structurally (trigger "YourTurn") in the IR test above.
+  it("does not react to the opponent's own Ghost digivolution", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-087", as: "violet" }],
+          battleArea: [{ card: "BT23-087", as: "fieldViolet" }],
+          // A hand copy so seat 0's own [Start of Your Main Phase] resolves cleanly and
+          // leaves an unsuspended Violet Inboots watching the opponent's turn.
+          hand: [
+            { card: "BT23-087", as: "handViolet" },
+            { card: "BT1-009", as: "spare" },
+          ],
           deck: neutralDeck,
+          security: [...neutralSecurity],
         },
         1: {
           battleArea: [{ card: "BT23-061", as: "opponentGhost" }],
-          hand: [{ card: "BT4-080", as: "bakemon" }],
+          hand: [
+            { card: "BT4-080", as: "bakemon" },
+            { card: "BT1-009", as: "opponentSpare" },
+          ],
           deck: neutralDeck,
+          security: [...neutralSecurity],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    await s.ready();
+    const handVioletId = s.inst("handViolet").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const violetOnBoard = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === handVioletId)!;
+    expect(violetOnBoard()).toBeDefined();
+    expect(violetOnBoard().isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 6;
-    await advance(s.engine).recompute();
     const bakemonId = s.inst("bakemon").instanceId;
 
     expect(
@@ -520,8 +547,12 @@ describe("BT23-087 Violet Inboots", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("opponentGhost").topCard?.instanceId === bakemonId && !s.state.pendingDecision);
 
-    expect(s.perm("violet").isSuspended).toBe(false);
+    // Seat 0's Tamer stays unsuspended and grants nothing for the opponent's own digivolution.
+    expect(violetOnBoard().isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Rush")).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays itself onto the field for free when checked from security", async () => {

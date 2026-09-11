@@ -255,41 +255,42 @@ describe("BT23-097 Seventh Penetration", () => {
     assertNoLoudGap(s);
   });
 
+  // Seat 1 owns the trashed copy; seat 0 (the turn player) is the one digivolving, so this
+  // is an opponent's digivolution on the opponent's own turn — no turnSeat write needed.
   it("ignores an opponent's digivolution into Belphemon (X Antibody)", async () => {
     const s = setupEngine(
       {
         0: {
-          trash: [{ card: "BT23-097", as: "option" }],
-          battleArea: [{ card: LV3, as: "bystander" }],
-          security: [LV3, LV3],
-        },
-        1: {
           battleArea: [{ card: PURPLE_LV5, as: "base" }],
           hand: [{ card: BELPHEMON_X, as: "belphemon" }, LV3, LV3],
           deck: [LV3, LV3, LV3],
+        },
+        1: {
+          trash: [{ card: "BT23-097", as: "option" }],
+          battleArea: [{ card: LV3, as: "bystander" }],
+          security: [LV3, LV3],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const optionId = s.inst("option").instanceId;
-    s.state.turnSeat = 1;
     s.state.memory = 6;
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("belphemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(optionPrompts(s)).toBe(0);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.deck.some((card) => card.instanceId === optionId)).toBe(false);
-    // The level 3 fell to the opponent's own Belphemon clause, not to this card.
-    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT23-097", LV3].sort());
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.deck.some((card) => card.instanceId === optionId)).toBe(false);
+    // The level 3 fell to the digivolving player's own Belphemon clause, not to this card.
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT23-097", LV3].sort());
     assertNoLoudGap(s);
   });
 

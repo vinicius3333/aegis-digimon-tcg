@@ -1,10 +1,23 @@
 import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-024.js";
+
+/**
+ * Hand the turn to seat 1 through the real turn loop instead of writing `state.turnSeat`.
+ * The loop is returned inside an object so `await` does not chain onto it.
+ */
+async function toOpponentMain(s: EngineSetup): Promise<{ loop: Promise<void> }> {
+  await s.ready();
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  return { loop };
+}
 
 describe("BT23-024 Poseidomon", () => {
   it("declares Evade and Link +1", () => {
@@ -268,33 +281,50 @@ describe("BT23-024 Poseidomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-024", as: "poseidomon", suspended: true }],
-          hand: [{ card: "BT23-007", as: "link" }],
+          battleArea: [{ card: "BT23-024", as: "poseidomon" }],
+          hand: [
+            { card: "BT23-007", as: "link" },
+            { card: "ST1-02", as: "neutralOwn" },
+          ],
+          security: ["ST1-02", "ST1-02"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
         },
         1: {
-          battleArea: [{ card: "BT1-024", as: "oldHighest" }],
+          battleArea: [
+            { card: "BT1-024", as: "oldHighest" },
+            { card: "BT1-009", as: "lowCost" },
+          ],
           hand: [
             { card: "BT12-069", as: "newHighest" },
             { card: "ST1-02", as: "neutral" },
           ],
+          security: ["ST1-02", "ST1-02"],
           deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // The public attack fires [When Attacking], which links Musclemon; the linked reaction
+    // then pays its own cost by unsuspending Poseidomon and arms the restriction.
     expect(
       s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("link").instanceId,
-        targetPermanentId: s.perm("poseidomon").permanentId,
+        type: "attack",
+        attackerPermanentId: s.perm("poseidomon").permanentId,
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.perm("poseidomon").isSuspended);
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("poseidomon").isSuspended);
+    expect(s.perm("poseidomon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
     await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).isRestricted(s.perm("lowCost"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("oldHighest"), "suspend")).toBe(false);
 
-    s.state.turnSeat = 1;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 8;
     expect(
       s.engine.applyIntent(1, {
@@ -306,6 +336,7 @@ describe("BT23-024 Poseidomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).isRestricted(s.perm("oldHighest"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("lowCost"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("newHighest"), "suspend")).toBe(false);
     expect(
       s.engine.applyIntent(1, {
@@ -314,6 +345,78 @@ describe("BT23-024 Poseidomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("reclassifies the exemption after an opponent digivolves into a higher play cost, per Q5251", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-024", as: "poseidomon" }],
+          hand: [
+            { card: "BT23-007", as: "link" },
+            { card: "ST1-02", as: "neutralOwn" },
+          ],
+          security: ["ST1-02", "ST1-02"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
+        },
+        1: {
+          // Two tied play-cost-3 Digimon: per Q5249 both are exempt while they are tied.
+          battleArea: [
+            { card: "BT23-017", as: "tiedA" },
+            { card: "BT23-017", as: "tiedB" },
+          ],
+          hand: [
+            { card: "BT23-020", as: "higher" },
+            { card: "ST1-02", as: "neutralOpponent" },
+          ],
+          security: ["ST1-02", "ST1-02"],
+          deck: ["BT1-009", "BT1-013", "BT1-027", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("poseidomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("poseidomon").isSuspended);
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).isRestricted(s.perm("tiedA"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tiedB"), "suspend")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("tiedA").permanentId,
+        instanceId: s.inst("higher").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tiedA").topCard?.instanceId === s.inst("higher").instanceId);
+    await s.engine.recomputeContinuousEffects();
+    // Seadramon's play cost 5 now beats Betamon's 3, so only the digivolved stack stays exempt.
+    expect(observe(s.engine).isRestricted(s.perm("tiedA"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tiedB"), "suspend")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("tiedB").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("reclassifies through production turns and a public higher-cost play", async () => {
@@ -575,9 +678,8 @@ describe("BT23-024 Poseidomon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    const { loop } = await toOpponentMain(s);
     s.state.memory = 10;
-    await s.ready();
     const poseidomonId = s.perm("poseidomon").permanentId;
     expect(
       s.engine.applyIntent(1, {
@@ -601,6 +703,8 @@ describe("BT23-024 Poseidomon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       accept ? [] : [s.inst("poseidomon").instanceId],
     );
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly enforces the suspension exception and expires it after the opponent turn", async () => {

@@ -35,7 +35,8 @@ const OFF_POOL_LV5 = "BT1-058"; // Chirinmon, yellow level 5
 const ANGEMON = "BT23-027"; // Yellow/Blue level 4, carries the only public DNA route
 const ANKYLOMON = "BT23-050"; // Black/Yellow level 4
 const GARURUMON = "BT23-018"; // Blue level 4
-const OPPONENT_LV3 = "BT1-009"; // Monodramon
+const OPPONENT_LV3 = "BT1-009"; // Monodramon, red — also the colour host for the option below
+const OPPONENT_DELETE_OPTION = "BT15-089"; // Meteor Wing: an OPPONENT effect that deletes this Digimon
 const HOST_LV6 = "ST3-10"; // Magnadramon, yellow level 6 from a yellow level 5, no effects
 
 describe("BT23-032 Shakkoumon", () => {
@@ -368,6 +369,9 @@ describe("BT23-032 Shakkoumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 4;
 
     expect(
@@ -385,16 +389,16 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
     expect(observe(s.engine).customEffectGrants(s.perm("granted"))).toHaveLength(1);
 
+    // Hand the turn over through the production loop. Seat 1's start-of-main forced attack
+    // fires before its Main phase opens for input, and the memory it hands back ends that
+    // turn, so settle on the turn boundary rather than on a Main-ready poll.
     advance(s.engine).endMainPhaseIfOpen(0);
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    // The forced attack fires before seat 1's Main phase opens for input, and the memory it
-    // hands back ends that turn immediately, so `runTurn`'s "Main phase became ready"
-    // guarantee cannot hold. The production turn still runs to completion; settle on it.
-    void advance(s.engine)
-      .runTurn(1)
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"), 2000);
+    await advance(s.engine)
+      .waitForMainPhase(1)
       .catch(() => undefined);
-    await settle(() => s.events.some((event) => event.kind === "turnEnded"), 400);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.events.filter((event) => event.kind === "turnEnded").length >= 2, 2000);
 
     const forced = s.events.filter((event) => event.kind === "attackDeclared");
     expect(forced).toHaveLength(1);
@@ -408,6 +412,9 @@ describe("BT23-032 Shakkoumon", () => {
     // "Until your opponent's turn ends": the grant is gone once that turn has ended.
     expect(s.events.some((event) => event.kind === "turnEnded")).toBe(true);
     expect(observe(s.engine).customEffectGrants(s.perm("granted"))).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q5277 gives the effect to a Digimon unaffected by effects, but it never triggers", async () => {
@@ -427,6 +434,9 @@ describe("BT23-032 Shakkoumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 4;
     advance(s.engine).ledgers.continuous.addRestriction(
       s.perm("granted").permanentId,
@@ -448,19 +458,26 @@ describe("BT23-032 Shakkoumon", () => {
     // Q5277: the grant is still handed out; only its later activation is suppressed.
     expect(observe(s.engine).customEffectGrants(s.perm("granted"))).toHaveLength(1);
 
+    // Hand the turn over through the production loop and let seat 1's whole turn run.
     advance(s.engine).endMainPhaseIfOpen(0);
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.events.filter((event) => event.kind === "turnEnded").length >= 2, 2000);
 
     expect(s.perm("granted").isSuspended).toBe(false);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it.each([
     ["a yellow level-4 card", YELLOW_LV4],
     ["a non-yellow, non-black level-4 [CS] card", CS_ONLY_SOURCE],
   ])("plays %s from its own digivolution cards when an opponent effect deletes it", async (_label, source) => {
+    // Public flow: the opponent plays BT15-089 Meteor Wing ("delete 1 of your opponent's
+    // Digimon with 15000 DP or less", minus 2000 per security card the target's controller
+    // holds — seat 0 keeps an empty security stack, so the 8000 DP host is in range).
     const s = setupEngine(
       {
         0: {
@@ -468,16 +485,30 @@ describe("BT23-032 Shakkoumon", () => {
             { card: "BT23-032", as: "host", under: [{ card: source, as: "source" }] },
             { card: BLACK_LV4, as: "bystander", under: [{ card: YELLOW_LV4, as: "bystanderSource" }] },
           ],
+          // One security card keeps the cap at 13000, still above every target here.
+          security: ["BT1-047"],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_LV3, as: "redHost" }],
+          hand: [{ card: OPPONENT_DELETE_OPTION, as: "meteorWing" }],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const hostId = s.perm("host").permanentId;
     const sourceId = s.inst("source").instanceId;
 
-    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("meteorWing").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sourceId));
     await settle();
 
@@ -489,6 +520,8 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.perm("bystander").stack.map((card) => card.instanceId)).toEqual([s.inst("bystanderSource").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT23-032"]);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays a source when the opponent deletes it in battle", async () => {
@@ -501,15 +534,27 @@ describe("BT23-032 Shakkoumon", () => {
         },
         1: {
           battleArea: [{ card: "BT23-025", as: "attacker" }],
+          security: ["BT1-047", "BT1-049"],
           deck: ["BT1-047", "BT1-049", "BT1-050"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const hostId = s.perm("host").permanentId;
     const sourceId = s.inst("source").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Shakkoumon attacks on its controller's turn, so it is suspended and legally
+    // attackable when the opponent's turn arrives through the production loop.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -525,6 +570,9 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT23-032"]);
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not play a source when its own controller's effect removes it", async () => {
@@ -536,7 +584,6 @@ describe("BT23-032 Shakkoumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
@@ -551,14 +598,29 @@ describe("BT23-032 Shakkoumon", () => {
       {
         0: {
           battleArea: [{ card: "BT23-032", as: "host", under: [{ card: YELLOW_LV4, as: "source" }] }],
+          // One security card keeps the cap at 13000, still above every target here.
+          security: ["BT1-047"],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_LV3, as: "redHost" }],
+          hand: [{ card: OPPONENT_DELETE_OPTION, as: "meteorWing" }],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("meteorWing").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle();
 
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
@@ -566,6 +628,9 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual([YELLOW_LV4, "BT23-032"].sort());
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays nothing when no digivolution card is a level 4 or lower yellow, black or [CS] Digimon", async () => {
@@ -582,20 +647,38 @@ describe("BT23-032 Shakkoumon", () => {
               ],
             },
           ],
+          // One security card keeps the cap at 13000, still above every target here.
+          security: ["BT1-047"],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_LV3, as: "redHost" }],
+          hand: [{ card: OPPONENT_DELETE_OPTION, as: "meteorWing" }],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("meteorWing").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
     await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("wrongColour").instanceId, s.inst("wrongLevel").instanceId]),
     );
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q5279 applies the same replacement from a stack where Shakkoumon is a digivolution card", async () => {
@@ -607,12 +690,26 @@ describe("BT23-032 Shakkoumon", () => {
             { card: "BT23-032", as: "shakkoumon" },
             { card: HOST_LV6, as: "host" },
           ],
+          // One security card keeps the cap at 13000, still above every target here.
+          security: ["BT1-047"],
           deck: [{ card: "BT1-046", as: "firstBonus" }, { card: "BT1-047", as: "secondBonus" }, "BT1-049"],
         },
-        1: { battleArea: [{ card: OPPONENT_LV3, as: "victim" }] },
+        1: {
+          // The forced-attack grant can trade the victim away, so a second red permanent
+          // keeps the option's colour requirement satisfiable.
+          battleArea: [
+            { card: OPPONENT_LV3, as: "victim" },
+            { card: "BT1-012", as: "redHost" },
+          ],
+          hand: [{ card: OPPONENT_DELETE_OPTION, as: "meteorWing" }],
+          deck: ["BT1-047", "BT1-049", "BT1-050"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 6;
     const baseId = s.inst("base").instanceId;
 
@@ -637,25 +734,34 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId, s.inst("shakkoumon").instanceId]);
     expect(s.state.memory).toBe(0);
 
-    s.state.turnSeat = 1;
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect");
+    // The opponent's own effect removes the whole stack, on their turn, publicly.
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("meteorWing").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === baseId));
     await settle();
 
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([baseId]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual([HOST_LV6, "BT23-032"].sort());
+    // The whole stack above the played source is trashed. "BT1-047" is this seat's security
+    // card, checked and lost to the forced attack the [When Digivolving] grant produced.
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(
+      [HOST_LV6, "BT23-032", "BT1-047"].sort(),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   /**
    * Q6250: with BT23-027 Angemon in its digivolution cards, the controller may accept
    * ＜Barrier＞ first and still use this [All Turns] effect to play a source card afterwards.
-   * Retained red: accepting Barrier consumes security and keeps Shakkoumon on the battle
-   * area, but no source-play choice is ever offered, so Angemon stays in the stack. The
-   * suspected seam is the combat Barrier path in `apps/api/src/engine/combat/controller.ts`,
-   * which resolves the prevention without re-entering the `wouldLeavePlay` replacement
-   * registered by `effects/interpreter/actions/replacement.ts`. Engine lane owns the fix.
+   * Accepting Barrier trashes the top security card and keeps Shakkoumon on the battle area;
+   * the leave replacement still offers its source play, and Angemon leaves the stack for the
+   * battle area.
    */
   it("Q6250 plays a source card after ＜Barrier＞ prevents the battle deletion", async () => {
     const s = setupEngine(
@@ -667,15 +773,26 @@ describe("BT23-032 Shakkoumon", () => {
         },
         1: {
           battleArea: [{ card: "BT23-025", as: "attacker" }],
+          security: ["BT1-047", "BT1-049"],
           deck: ["BT1-047", "BT1-049", "BT1-050"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     await s.ready();
     const hostId = s.perm("host").permanentId;
     const angemonId = s.inst("angemon").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Shakkoumon attacks on its own turn, so the opponent can legally attack it next turn.
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
@@ -694,5 +811,8 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === angemonId)).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -137,7 +137,12 @@ describe("BT23-042 Waspmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("rejects a level-3 source without the Royal Base or CS trait", async () => {
+  // BT1-009 Monodramon is red, so it fails the printed Green/Black route on color and the
+  // alternate route on trait. Both routes must refuse it.
+  it.each([
+    ["the printed Green/Black route", false],
+    ["the alternate [Royal Base]/[CS] route", true],
+  ])("rejects a level-3 source without the Royal Base or CS trait on %s", async (_label, useAlternateCost) => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-009", as: "illegal" }],
@@ -147,15 +152,18 @@ describe("BT23-042 Waspmon", () => {
     });
     await s.ready();
     s.state.memory = 5;
-    const result = s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("illegal").permanentId,
-      instanceId: s.inst("wasp").instanceId,
-    });
-    expect(result).not.toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("illegal").permanentId,
+        instanceId: s.inst("wasp").instanceId,
+        useAlternateCost,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.perm("illegal").topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT23-042");
     expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("plays a Tamer that only names Royal Base in its text, for free, from hand", async () => {

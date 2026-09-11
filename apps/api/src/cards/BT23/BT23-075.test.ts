@@ -1,4 +1,4 @@
-import { getCardDefinition, type Seat } from "@aegis/shared";
+import { getCardDefinition, Phase, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -260,13 +260,16 @@ describe("BT23-075 Eater EDEN", () => {
           battleArea: [{ card: "BT23-075", as: "eden", dp: 3000 }],
           hand: [{ card: "BT23-073", as: "bit" }],
           deck: ["BT1-009", "BT1-010"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
         1: {
-          battleArea: [{ card: "BT23-074", as: "attacker", dp: 8000 }],
+          battleArea: [
+            { card: "BT23-074", as: "attacker", dp: 8000 },
+            { card: "BT1-009", as: "dummy", dp: 1000, suspended: true },
+          ],
           hand: [{ card: "ST1-02", as: "neutral" }],
           deck: ["BT1-011", "BT1-012"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -274,11 +277,19 @@ describe("BT23-075 Eater EDEN", () => {
     s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    // Suspend Eater EDEN publicly: it attacks on its own turn, so it is a legal target when
+    // the opponent's turn comes around.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("eden").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("dummy").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("eden").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // The Active phase unsuspended the board; only a suspended Digimon is a legal attack target.
-    s.perm("eden").isSuspended = true;
-    await advance(s.engine).recompute();
     const edenPermanentId = s.perm("eden").permanentId;
     const edenInstanceId = s.perm("eden").topCard!.instanceId;
     const bitInstanceId = s.inst("bit").instanceId;
@@ -311,12 +322,15 @@ describe("BT23-075 Eater EDEN", () => {
           battleArea: [{ card: "BT23-075", as: "eden", dp: 3000 }],
           hand: [{ card: "BT23-073", as: "bit" }],
           deck: ["BT1-009", "BT1-010"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
         1: {
-          battleArea: [{ card: "BT23-074", as: "attacker", dp: 8000 }],
+          battleArea: [
+            { card: "BT23-074", as: "attacker", dp: 8000 },
+            { card: "BT1-009", as: "dummy", dp: 1000, suspended: true },
+          ],
           deck: ["BT1-011", "BT1-012"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
       },
       { autoSelectCards: true, autoDeclineOptional: true },
@@ -324,11 +338,19 @@ describe("BT23-075 Eater EDEN", () => {
     s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    // Suspend Eater EDEN publicly: it attacks on its own turn, so it is a legal target when
+    // the opponent's turn comes around.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("eden").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("dummy").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("eden").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // The Active phase unsuspended the board; only a suspended Digimon is a legal attack target.
-    s.perm("eden").isSuspended = true;
-    await advance(s.engine).recompute();
     const edenPermanentId = s.perm("eden").permanentId;
     const edenInstanceId = s.perm("eden").topCard!.instanceId;
     const bitInstanceId = s.inst("bit").instanceId;
@@ -389,7 +411,7 @@ describe("BT23-075 Eater EDEN", () => {
           battleArea: [{ card: "BT23-075", as: "eden" }],
           hand: [{ card: "ST1-02", as: "neutral" }],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
         1: {
           battleArea: [
@@ -398,7 +420,7 @@ describe("BT23-075 Eater EDEN", () => {
           ],
           hand: [{ card: "ST1-02", as: "opponentNeutral" }],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
-          security: 3,
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -436,53 +458,73 @@ describe("BT23-075 Eater EDEN", () => {
     await loop;
   });
 
-  // RETAINED RED (engine seam). Q5352: with BT22-007 [Mother Eater] in a breeding Digimon's digivolution cards, its
+  // Q5352: with BT22-007 [Mother Eater] in a breeding Digimon's digivolution cards, its
   // inherited "place them as this Digimon's bottom digivolution cards" replacement and Eater
   // EDEN's own [All Turns] replacement answer the same leave event. The ruling says you may
   // not chain them: EDEN cannot be placed under the breeding host AND then play a free
-  // [Eater]. No printed card in this pool deletes an opposing Digimon by an opponent effect
-  // at will, so the opponent-effect leave cause is driven through the production removal
-  // verb, the same seam BT22-007's own suite uses.
-  // Seam: apps/api/src/engine/effects/leavePrevention.ts. Exactly one of the two replacements
-  // applies (the Q5352 stacking defect, fixed in engine lane 5), and WHICH one is the affected
-  // player's choice — Q5352 answers only "may I do both?" with "No". Engine lane 6 extended
-  // `orderReplacements` to every multi-eligible set, so the controller is now genuinely asked;
-  // `preferTriggerKeys` answers that prompt with BT22-007's placement, the branch this fixture
-  // asserts. Without the preference the engine's offered order would pick EDEN's own clause,
-  // which is equally legal.
+  // [Eater]. The leave event here is a public battle deletion on the opponent's turn.
+  // Exactly one of the two replacements applies, and WHICH one is the affected player's
+  // choice — Q5352 answers only "may I do both?" with "No". `orderReplacements` asks the
+  // controller, and `preferTriggerKeys` answers that prompt with BT22-007's placement; the
+  // other branch (EDEN's own clause) is equally legal and is covered by the tests above.
   it("does not stack the breeding [Mother Eater] placement with its own leave effect (Q5352)", async () => {
     const s = setupEngine(
       {
         0: {
           breeding: { card: "BT22-079", as: "breeder", under: ["BT22-007"] },
-          battleArea: [{ card: "BT23-075", as: "eden" }],
+          battleArea: [{ card: "BT23-075", as: "eden", dp: 3000 }],
           hand: [{ card: "BT23-073", as: "bit" }],
           deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-027", "BT1-028", "BT1-045"],
         },
-        1: { deck: ["BT1-011", "BT1-012"] },
+        1: {
+          battleArea: [
+            { card: "BT23-074", as: "attacker", dp: 8000 },
+            { card: "BT1-009", as: "dummy", dp: 1000, suspended: true },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-027", "BT1-028", "BT1-045"],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true, preferTriggerKeys: ["BT22-007"] },
     );
-    await s.ready();
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    // The breeding area holds a legal move, so the Breeding window waits for an answer.
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
     const edenPermanentId = s.perm("eden").permanentId;
     const edenInstanceId = s.perm("eden").topCard!.instanceId;
     const bitInstanceId = s.inst("bit").instanceId;
 
-    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
-    try {
-      await advance(s.engine).verb.deletePermanent([edenPermanentId], "byEffect");
-    } finally {
-      advance(s.engine).verb.leaveEffectResolution();
-    }
-    await settle();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: edenPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("dummy").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: edenPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === edenPermanentId)).toBe(false);
-    const placedUnderBreeder = s.perm("breeder").stack.some((card) => card.instanceId === edenInstanceId);
-    const playedFreeEater = s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId);
-    expect(placedUnderBreeder).toBe(true);
-    expect(playedFreeEater).toBe(false);
+    expect(s.perm("breeder").stack.some((card) => card.instanceId === edenInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bitInstanceId)).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === bitInstanceId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // Coordinator probe for BT23-074's Q6706/Q6707. Erika Mishima (BT23-084) is a Tamer whose

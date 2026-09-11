@@ -51,8 +51,11 @@ export const compiled: CompiledCard = {
               zone: "breeding",
               nameOrTrait: [
                 {
+                  // Printed as a bracketed card name, so the breeding host must match exactly;
+                  // `name` is substring matching (matchNameOrTrait in
+                  // engine/effects/interpreter/matching/definition.ts).
                   tokens: ["Mother Eater"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -87,8 +90,11 @@ export const compiled: CompiledCard = {
               zone: "breeding",
               nameOrTrait: [
                 {
+                  // Printed as a bracketed card name, so the breeding host must match exactly;
+                  // `name` is substring matching (matchNameOrTrait in
+                  // engine/effects/interpreter/matching/definition.ts).
                   tokens: ["Mother Eater"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

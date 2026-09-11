@@ -236,18 +236,28 @@ describe("BT23-051 Golemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-051", as: "gole" }], security: SECURITY },
+        0: {
+          battleArea: [{ card: "BT23-051", as: "gole" }],
+          security: SECURITY,
+          deck: Array(10).fill("BT1-011"),
+        },
         1: {
           battleArea: [
             { card: "BT1-019", as: "attacker", dp: 3000 },
             { card: "BT1-010", as: "bystander", dp: 4000 },
           ],
+          deck: Array(10).fill("BT1-010"),
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    // Reach the opponent's turn through the real turn loop rather than writing `turnSeat`.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
     const goleId = s.perm("gole").permanentId;
     const attackerId = s.perm("attacker").permanentId;
     const bystanderId = s.perm("bystander").permanentId;
@@ -268,6 +278,9 @@ describe("BT23-051 Golemon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(s.state.turnSeat, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("deletes when an ally's Alliance suspends it rather than only when it attacks", async () => {

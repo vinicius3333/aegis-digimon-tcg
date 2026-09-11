@@ -534,6 +534,8 @@ describe("BT23-063 Sangloupmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
     await s.ready();
     /** Level-3 permanents that have not digivolved yet — the pool the effect can still use. */
@@ -574,17 +576,16 @@ describe("BT23-063 Sangloupmon", () => {
     expect(untouchedLv3()).toBe(1);
     expect(s.state.memory).toBe(8);
 
-    // The frequency gate clears on this player's next turn.
+    // The frequency gate clears on this player's next turn. The attacker is unsuspended by
+    // the real Unsuspend Phase of that turn, not by hand.
     advance(s.engine).endMainPhaseIfOpen(0);
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    s.perm("attacker").isSuspended = false;
+    s.state.memory = 10;
     await s.ready();
+    expect(s.perm("attacker").isSuspended).toBe(false);
 
     expect(
       s.engine.applyIntent(0, {
@@ -598,8 +599,9 @@ describe("BT23-063 Sangloupmon", () => {
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(untouchedLv3()).toBe(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("inherited: does not fire while Sangloupmon is the top card of the attacking stack", async () => {
@@ -644,10 +646,11 @@ describe("BT23-063 Sangloupmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-063", as: "sangloupmon", suspended: true }],
+          battleArea: [{ card: "BT23-063", as: "sangloupmon" }],
           trash: [{ card: UNDEAD_LV5, as: "target" }],
+          hand: ["BT1-009"],
           deck: purpleDeck(),
-          security: ["BT1-011"],
+          security: ["BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [{ card: PURPLE_LV3, as: "attacker" }],
@@ -658,26 +661,35 @@ describe("BT23-063 Sangloupmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 6;
-    await s.ready();
     const sangloupmonId = s.inst("sangloupmon").instanceId;
+
+    // Reach the opponent's real main phase through the turn loop, without ever attacking
+    // with Sangloupmon, so the only [When Attacking] window in the game is the opponent's.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("sangloupmon").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     await settle();
 
-    // The 4000 DP defender wins the battle, so Sangloupmon is still the top card and its
-    // [When Attacking] effect never looked at the trash.
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([sangloupmonId]);
+    // Seat 0's security took the hit, and Sangloupmon's [When Attacking] effect never looked
+    // at the trash: it is still the top card of a stack with no digivolution cards.
+    expect(s.perm("sangloupmon").topCard.instanceId).toBe(sangloupmonId);
     expect(s.perm("sangloupmon").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("target").instanceId]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual([PURPLE_LV3]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

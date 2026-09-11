@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-019.js";
 
@@ -167,6 +168,33 @@ describe("BT23-019 Gekomon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId).every((cardId) => sourceIds.includes(cardId))).toBe(
       true,
     );
+  });
+
+  it("carries Blocker only as an inherited effect, not on Gekomon itself", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: {
+        battleArea: [
+          { card: "BT23-019", as: "gekomonTop" },
+          { card: "BT1-041", as: "inheritedHost", under: ["BT23-019"] },
+        ],
+        security: ["BT1-009"],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("gekomonTop"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "Blocker")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("inheritedHost").permanentId],
+    });
   });
 
   it("uses the inherited Blocker keyword in a real attack window", async () => {

@@ -160,6 +160,38 @@ describe("BT23-031 Angewomon", () => {
     }
   });
 
+  it("never discounts a digivolution: the reduction is play-only", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LADYDEVIMON, as: "lady" },
+            { card: "BT23-008", as: "host" },
+          ],
+          hand: [{ card: ANGEWOMON, as: "angewomon" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: [{ card: "BT1-014", as: "drawn" }, "BT1-027"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("angewomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    // The printed [Digivolve] Lv.4 w/[CS] cost 3 is paid in full; the play-cost clause never applies.
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
   // --- the On Play / When Digivolving security clause ---
 
   it("moves the physical top security card to hand and recovers back to four, without firing its Security effect", async () => {

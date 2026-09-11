@@ -33,6 +33,31 @@ async function openMain(board: BoardSpec, opts: SetupEngineOptions, memory = 10)
   };
 }
 
+/**
+ * Suspend an ally the ordinary way: it attacks the opponent's security inside the open Main
+ * phase. The turn loop's Active phase unsuspends everything, so a board-spec `suspended: true`
+ * cannot survive into Main, and writing `isSuspended` by hand would arrange the very endpoint
+ * these cases measure. BT1-009 Monodramon (3000 DP) beats every Digimon in `SECURITY`, so it
+ * survives its own check and stays suspended.
+ */
+async function suspendAllyByAttacking(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
+  const securityBefore = s.state.players[1]!.security.length;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      !observe(s.engine).isAttacking() &&
+      s.state.players[1]!.security.length === securityBefore - 1 &&
+      s.state.pendingDecision === undefined,
+  );
+  expect(s.perm(alias).isSuspended).toBe(true);
+}
+
 describe("BT23-045 TigerVespamon ACE", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition("BT23-045")).toMatchObject({
@@ -372,7 +397,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
         0: {
           battleArea: [
             { card: "BT23-045", as: "tiger" },
-            { card: "BT1-009", as: "ally", suspended: true },
+            { card: "BT1-009", as: "ally" },
           ],
           hand: [{ card: "ST1-02", as: "keeper" }],
           security: [
@@ -385,8 +410,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    // The turn loop's Active phase unsuspends the board, so arm the ally inside the open Main.
-    s.perm("ally").isSuspended = true;
+    await suspendAllyByAttacking(s, "ally");
     prefer.push(s.perm("ally").topCard!.instanceId);
     const topId = s.inst("topSecurity").instanceId;
 
@@ -411,7 +435,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
         0: {
           battleArea: [
             { card: "BT23-045", as: "tiger" },
-            { card: "BT1-009", as: "ally", suspended: true },
+            { card: "BT1-009", as: "ally" },
           ],
           hand: [{ card: "ST1-02", as: "keeper" }],
           security: [
@@ -424,7 +448,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.perm("ally").isSuspended = true;
+    await suspendAllyByAttacking(s, "ally");
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -449,7 +473,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
         0: {
           battleArea: [
             { card: "BT23-045", as: "tiger" },
-            { card: "BT1-009", as: "ally", suspended: true },
+            { card: "BT1-009", as: "ally" },
           ],
           hand: [{ card: "ST1-02", as: "keeper" }],
           security: [
@@ -462,7 +486,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.perm("ally").isSuspended = true;
+    await suspendAllyByAttacking(s, "ally");
     prefer.push(s.perm("ally").topCard!.instanceId);
     expect(
       s.engine.applyIntent(0, {
@@ -487,7 +511,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
         0: {
           battleArea: [
             { card: "BT23-045", as: "tiger" },
-            { card: "BT1-009", as: "ally", suspended: true },
+            { card: "BT1-009", as: "ally" },
           ],
           hand: [{ card: "ST1-02", as: "keeper" }],
           security: [
@@ -500,7 +524,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.perm("ally").isSuspended = true;
+    await suspendAllyByAttacking(s, "ally");
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

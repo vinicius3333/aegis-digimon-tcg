@@ -139,22 +139,31 @@ describe("BT23-078 Gorou Matayoshi", () => {
 
   it("stays silent at the start of the opponent's Main phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-078", as: "gorou" }] },
+      0: {
+        battleArea: [{ card: "BT23-078", as: "gorou" }],
+        hand: [{ card: "BT1-013", as: "ownSpare" }],
+        deck: ["BT1-014", "BT1-015"],
+      },
       1: {
         battleArea: [{ card: "BT1-009", as: "enemy" }],
         hand: [{ card: "BT1-010", as: "spare" }],
         deck: ["BT1-011", "BT1-012"],
       },
     });
-    await s.ready();
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
+    // Reach seat 1's Main through the real turn loop: seat 0 takes its turn and passes.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     const before = s.events.length;
 
-    await advance(s.engine).runTurn(1);
+    await advance(s.engine).waitForMainPhase(1);
 
+    expect(s.state.turnSeat).toBe(1);
     expect(singleMemoryGains(s.events.slice(before))).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-078")).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("returns itself to hand, gives +3000 DP and lets a Digimon attack when a [Bird] Digimon is played", async () => {

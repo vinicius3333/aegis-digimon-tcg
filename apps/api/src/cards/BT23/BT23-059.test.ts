@@ -44,7 +44,7 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
       types: ["Cyborg", "Hudie", "CS"],
     });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Justimon: Accel Arm", "Justimon: Critical Arm"], cost: 1, isAlternate: true },
+      { namesExact: ["Justimon: Accel Arm", "Justimon: Critical Arm"], cost: 1, isAlternate: true },
       { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
     ]);
     expect(compiled.coverage).toBe("full");
@@ -358,6 +358,8 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  // Q5323: the cost trashes an Option placed in a battle area by a "place this card in the
+  // battle area" effect, with no restriction on whose battle area it sits in.
   it("accepts an Option in the OPPONENT's battle area as the trash cost", async () => {
     const s = setupEngine(
       {
@@ -439,7 +441,16 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("ignores an opponent Digimon's DP reduction once the Option trash grants immunity", async () => {
+  // Q5324: "effects don't affect" means the printed consequence never lands — a chosen -3000 DP
+  // leaves the DP untouched.
+  // Q5326 / Q5328 / Q5329 are the same ruling read from three other angles (a granted keyword is
+  // not counted, the effect applies again once the immunity drops, a granted trigger does not fire
+  // while the immunity is up). None of them is reachable from this card through a public flow:
+  // Blitz Arm's immunity lasts only "for the turn" and only covers the opponent's DIGIMON effects,
+  // and no opponent Digimon effect in the corpus grants this card a keyword or a trigger inside
+  // that same turn. The shared seam they all run through (`isRestrictedByEffect(..., "beAffected",
+  // "Digimon")`) is asserted below and in the Q5325 and Q5327 cases.
+  it("ignores an opponent Digimon's DP reduction once the Option trash grants immunity (Q5324)", async () => {
     const run = async (placeOption: boolean): Promise<{ dp: number; immune: boolean }> => {
       const s = setupEngine(
         {

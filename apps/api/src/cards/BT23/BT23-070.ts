@@ -36,30 +36,6 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Restrict",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          restriction: "attacks without suspending",
-          duration: "forTheTurn",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Belphemon"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "a card with [Belphemon] in its name is in this Digimon's digivolution cards",
-          },
-        },
-        {
           kind: "Attack",
           target: {
             filter: {
@@ -102,7 +78,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Belphemon: Sleep Mode"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

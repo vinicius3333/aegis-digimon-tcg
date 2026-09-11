@@ -55,8 +55,27 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(security.actions.map((action: any) => action.kind)).toEqual(["PlaceInBattleAreaSelf"]);
   });
 
-  // C1 (Q5366): "on the field" is the battle area OR the breeding area.
-  it("waives the blue color requirement from an off-color Appmon Digimon in breeding", async () => {
+  // C1: the battle-area half, satisfied by an off-color [Appmon] Digimon.
+  it("waives the blue color requirement from an off-color Appmon Digimon in the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: APPMON_WITH_LINK, as: "appmon" }],
+        hand: [{ card: "BT23-093", as: "option" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 2;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  // C1 (Q5366, asked about this printed wording): "on the field" is the battle area OR the
+  // breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
+  it("waives the blue color requirement from an off-color Appmon Digimon in breeding (Q5366)", async () => {
     const s = setupEngine({
       0: {
         breeding: { card: APPMON_WITH_LINK, as: "appmonInBreeding" },
@@ -70,6 +89,7 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 
@@ -338,15 +358,23 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([eligibleId]);
   });
 
+  // Controller boundary, reached through the real turn loop: the printed subject is "your
+  // [Appmon] trait Digimon", so the OPPONENT's Appmon suspending on their own turn arms
+  // nothing, even though the clause itself is [All Turns].
   it("does not pay Delay for an opponent-controlled Appmon suspension", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT23-093", as: "option" }],
-          security: [WEAK_SECURITY, WEAK_SECURITY],
-          hand: [{ card: APPMON_WITH_LINK, as: "eligible" }],
+          security: [WEAK_SECURITY, WEAK_SECURITY, WEAK_SECURITY],
+          hand: [{ card: APPMON_WITH_LINK, as: "eligible" }, VANILLA_ROOKIE],
+          deck: Array(10).fill(VANILLA_ROOKIE),
         },
-        1: { battleArea: [{ card: APPMON_NO_LINK, as: "opponentAttacker", dp: SURVIVES_SECURITY }] },
+        1: {
+          battleArea: [{ card: APPMON_NO_LINK, as: "opponentAttacker", dp: SURVIVES_SECURITY }],
+          hand: [VANILLA_ROOKIE],
+          deck: Array(10).fill(VANILLA_ROOKIE),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -354,13 +382,17 @@ describe("BT23-093 Big Bang Punch", () => {
     s.perm("option").placedByEffect = true;
     const eligibleId = s.inst("eligible").instanceId;
     const attackerId = s.perm("opponentAttacker").permanentId;
-    s.state.turnSeat = 1;
     await s.ready();
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
-        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        attackerPermanentId: attackerId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
@@ -368,7 +400,10 @@ describe("BT23-093 Big Bang Punch", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.perm("opponentAttacker").linked).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([eligibleId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === eligibleId)).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // Q5367 in isolation: the ONLY Appmon card in hand has no [Link], so `canAttemptLink`

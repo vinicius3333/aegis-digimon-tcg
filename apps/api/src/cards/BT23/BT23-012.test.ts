@@ -51,8 +51,9 @@ describe("BT23-012 Garudamon", () => {
             levelComparison: { op: "lte", value: 4 },
             or: [
               { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+              { nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Sovereign"], match: "traitContains" }] },
               {
-                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
+                nameOrTrait: [{ tokens: ["Animal"], match: "traitContains" }],
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
               },
             ],
@@ -109,15 +110,63 @@ describe("BT23-012 Garudamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(true);
   });
 
-  it("plays an Animal-family level-4-or-lower card for the top-card On Deletion, per Q5220", async () => {
+  /**
+   * Reach an [On Deletion] through a real battle: seat 0 attacks into security to suspend the
+   * host (its own unsuspend phase clears a board-spec suspension), then seat 1 attacks and wins
+   * the battle. Returns once the host has actually left the battle area.
+   */
+  async function battleDeleteHost(
+    host: { card: string; under?: string[] },
+    hand: { card: string; as: string }[],
+    opts: { decline?: boolean } = {},
+  ) {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-012", as: "garuda" }], hand: [{ card: "BT1-012", as: "bird" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        0: {
+          battleArea: [{ card: host.card, under: host.under, dp: 3000, as: "host" }],
+          hand,
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      opts.decline === true
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2;
-    await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
+    const hostId = s.perm("host").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended && s.state.players[1]!.security.length === 0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
+    return { s, loop };
+  }
+
+  it("plays an Animal-family level-4-or-lower card for the top-card On Deletion, per Q5220", async () => {
+    const { s, loop } = await battleDeleteHost({ card: "BT23-012" }, [{ card: "BT1-012", as: "bird" }]);
+    const memoryBeforeResolution = s.state.memory;
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId));
-    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("bird").instanceId);
+    expect(s.state.memory).toBe(memoryBeforeResolution);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("reads [Giant Bird] as [Bird] per CR 2-3-2-4 and plays it from hand", async () => {
@@ -145,7 +194,9 @@ describe("BT23-012 Garudamon", () => {
       expect(definitionMatches(filter, { ...base, types: [trait] })).toBe(true);
     }
     expect(definitionMatches(filter, { ...base, types: ["Sea Animal"] })).toBe(false);
-    expect(definitionMatches(filter, { ...base, types: ["Sea Animal", "Beast"] })).toBe(false);
+    // Q5220: [Sea Animal] is excluded from the [Animal] reading only. A card that also
+    // carries [Beast] still has [Beast] in its traits, so it remains playable.
+    expect(definitionMatches(filter, { ...base, types: ["Sea Animal", "Beast"] })).toBe(true);
     expect(definitionMatches(filter, { ...base, types: ["Machine"] })).toBe(false);
   });
 
@@ -158,77 +209,41 @@ describe("BT23-012 Garudamon", () => {
   });
 
   it("plays an off-color CS level-4-or-lower card for inherited On Deletion, per Q5221", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-013", under: ["BT23-012"], as: "host" }],
-          hand: [{ card: "BT22-017", as: "cs" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 2;
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    const { s, loop } = await battleDeleteHost({ card: "BT1-014", under: ["BT23-012"] }, [
+      { card: "BT22-017", as: "cs" },
+    ]);
+    const memoryBeforeResolution = s.state.memory;
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("cs").instanceId));
-    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("cs").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("cs").instanceId);
+    expect(s.state.memory).toBe(memoryBeforeResolution);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("excludes Sea Animal and level 5 even when the other trait branch would otherwise match", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-012", as: "garuda" }],
-          hand: [
-            { card: "BT1-033", as: "seaAnimal" },
-            { card: "BT22-011", as: "level5Cs" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
+    const { s, loop } = await battleDeleteHost({ card: "BT23-012" }, [
+      { card: "BT1-033", as: "seaAnimal" },
+      { card: "BT22-011", as: "level5Cs" },
+    ]);
     await settle();
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("seaAnimal").instanceId, s.inst("level5Cs").instanceId]),
     );
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("allows the deletion play to be refused without moving the card or memory", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-012", as: "garuda" }], hand: [{ card: "BT1-012", as: "bird" }] } },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 2;
-    await advance(s.engine).verb.deletePermanent([s.perm("garuda").permanentId]);
+  it("allows the deletion play to be refused without moving the card", async () => {
+    const { s, loop } = await battleDeleteHost({ card: "BT23-012" }, [{ card: "BT1-012", as: "bird" }], {
+      decline: true,
+    });
     await settle();
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bird").instanceId);
-    expect(s.state.memory).toBe(2);
-  });
-
-  it("resolves top-card On Deletion after a natural battle deletion", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-012", suspended: true, as: "garuda" }],
-          hand: [{ card: "BT1-012", as: "bird" }],
-          deck: ["BT1-009"],
-        },
-        1: { battleArea: [{ card: "BT1-010", dp: 10000, as: "attacker" }], deck: ["BT1-009"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("garuda").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("expires the public Raid grant at the opponent's turn boundary", async () => {

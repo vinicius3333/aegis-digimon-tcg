@@ -22,6 +22,19 @@ import type { EngineSetup } from "../../engine/testkit/harness.js";
  * So every attack by Kabuterimon opens an Alliance prompt that the test must answer.
  */
 
+/**
+ * Hand the turn over to the opponent through the real turn loop rather than writing
+ * `state.turnSeat`: run seat 0's turn, end its Main, and stop inside seat 1's Main.
+ * Returns `{ loop }` — awaiting the loop promise directly would hang until the game ends.
+ */
+async function passTurnToOpponent(s: EngineSetup): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  return { loop };
+}
+
 /** Answer Kabuterimon's ＜Alliance＞ prompt with "no ally", leaving the attack otherwise plain. */
 async function declineAlliance(s: EngineSetup): Promise<void> {
   await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
@@ -46,8 +59,10 @@ describe("BT23-041 Kabuterimon", () => {
       attributes: ["Vaccine"],
       types: ["Insectoid", "Hudie", "CS"],
     });
-    const effectText = getCardDefinition("BT23-041")!.effectText;
-    expect(effectText).toContain("[Digivolve] Lv.3 w/[CS] trait: Cost 2");
+    // The catalog stores a non-breaking space before "trait" in the Digivolve line. Normalise
+    // it here so this file holds no invisible character; the catalog itself is not edited.
+    const effectText = getCardDefinition("BT23-041")!.effectText!.replaceAll("\u00a0", " ");
+    expect(effectText).toContain("[Digivolve] Lv.3 w/[CS] trait: Cost 2");
     expect(effectText).toContain("＜Alliance＞");
     expect(effectText).toContain(
       "[All Turns] [Once Per Turn] When this Digimon suspends, 1 of your Digimon gains ＜Piercing＞ and +3000 DP for the turn.",
@@ -160,18 +175,19 @@ describe("BT23-041 Kabuterimon", () => {
     // Only Kabuterimon is on the controller's board, so the recipient it picks is itself.
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-041", as: "kabuterimon" }] },
+        0: { battleArea: [{ card: "BT23-041", as: "kabuterimon" }], deck: Array(8).fill("BT1-011") },
         1: {
           battleArea: [{ card: "BT23-039", as: "greenSource" }],
           hand: [{ card: "BT1-110", as: "flowerCannon" }],
+          deck: Array(8).fill("BT1-011"),
         },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const kabuterimonBaseDp = s.perm("kabuterimon").currentDP;
+    const { loop } = await passTurnToOpponent(s);
+    s.state.memory = 3;
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flowerCannon").instanceId })).toEqual({
       ok: true,
@@ -184,6 +200,9 @@ describe("BT23-041 Kabuterimon", () => {
     expect(observe(s.engine).hasPierce(s.perm("greenSource"))).toBe(false);
     expect(s.perm("greenSource").currentDP).toBe(1000);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-110");
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("grants only once in a turn even when it suspends a second time", async () => {
@@ -279,7 +298,7 @@ describe("BT23-041 Kabuterimon", () => {
     preferred.push(s.perm("ally").permanentId, s.perm("ally").topCard.instanceId);
     const allyBaseDp = s.perm("ally").currentDP;
 
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -293,22 +312,17 @@ describe("BT23-041 Kabuterimon", () => {
     expect(s.perm("ally").currentDP).toBe(allyBaseDp + 3000);
 
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
 
-    // "For the turn" ends with the turn that granted it.
+    // "For the turn" ends with the turn that granted it: the opponent's Main already sees it gone.
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
     expect(s.perm("ally").currentDP).toBe(allyBaseDp);
+    advance(s.engine).endMainPhaseIfOpen(1);
 
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    await advance(s.engine).runTurn(1);
-    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
-    expect(s.perm("ally").currentDP).toBe(allyBaseDp);
-
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
-    const nextOwnTurn = s.engine.runOneTurn();
+    // Next own turn: the Active phase unsuspends it and the once-per-turn counter has reset.
     await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
+    expect(s.perm("ally").currentDP).toBe(allyBaseDp);
     expect(s.perm("kabuterimon").isSuspended).toBe(false);
 
     expect(
@@ -323,7 +337,7 @@ describe("BT23-041 Kabuterimon", () => {
     expect(s.perm("ally").currentDP).toBe(allyBaseDp + 3000);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await nextOwnTurn;
+    await loop;
   });
 
   it("offers only the controller's own Digimon and rejects an opponent's Digimon as the recipient", async () => {

@@ -14,6 +14,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - "1 of your Digimon with ..." is Digimon-only. The generated Restrict target filter had no
 //   `kind`, so a Tamer carrying one of the listed traits (Yuuko Kamishiro has [CS]) was offered
 //   as a protection target.
+// - "[Vegetation], [Plant] or [Fairy] in any of its traits or the [CS] trait" mixes two match
+//   modes. The first three are substring (`traitContains`), so [Carnivorous Plant] and
+//   [Ancient Fairy] qualify; [CS] is a bracket trait and stays exact (`traits`), so
+//   [Abadin Electronics] — which contains "cs" — does not.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -63,20 +67,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
-              or: [
-                {
-                  trait: "Vegetation",
-                },
-                {
-                  trait: "Plant",
-                },
-                {
-                  trait: "Fairy",
-                },
-                {
-                  trait: "CS",
-                },
-              ],
+              or: [{ traitContains: ["Vegetation", "Plant", "Fairy"] }, { traits: ["CS"] }],
               controller: "mine",
             },
             count: 1,
@@ -108,20 +99,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
-              or: [
-                {
-                  trait: "Vegetation",
-                },
-                {
-                  trait: "Plant",
-                },
-                {
-                  trait: "Fairy",
-                },
-                {
-                  trait: "CS",
-                },
-              ],
+              or: [{ traitContains: ["Vegetation", "Plant", "Fairy"] }, { traits: ["CS"] }],
               controller: "mine",
             },
             count: 1,

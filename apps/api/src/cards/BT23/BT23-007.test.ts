@@ -145,7 +145,7 @@ describe("BT23-007 Musclemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-009", as: "host", linked: ["BT23-007"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -239,6 +239,58 @@ describe("BT23-016 Dokamon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("serves as a public App Fusion material at cost 0 with Perorimon linked, and rejects a non-material link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-016", as: "dokamon", linked: [{ card: "BT23-039", as: "perorimon" }] }],
+          hand: [{ card: "BT23-021", as: "dosukomon" }],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const dokamonId = s.inst("dokamon").instanceId;
+    const perorimonId = s.inst("perorimon").instanceId;
+    const dosukomonId = s.inst("dosukomon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("dokamon").permanentId,
+        instanceId: dosukomonId,
+        linkedInstanceId: perorimonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").topCard.instanceId === dosukomonId);
+
+    expect(s.perm("dokamon").topCard.instanceId).toBe(dosukomonId);
+    expect(s.perm("dokamon").stack.map((card) => card.instanceId)).toEqual([dokamonId, perorimonId]);
+    expect(s.perm("dokamon").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-016", as: "dokamon", linked: [{ card: "BT23-016", as: "duplicate" }] }],
+        hand: [{ card: "BT23-021", as: "dosukomon" }],
+      },
+    });
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: illegal.perm("dokamon").permanentId,
+        instanceId: illegal.inst("dosukomon").instanceId,
+        linkedInstanceId: illegal.inst("duplicate").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(illegal.perm("dokamon").topCard.cardId).toBe("BT23-016");
+    expect(illegal.perm("dokamon").linked).toHaveLength(1);
+  });
+
   it("caps the Your Turn Eri trigger per turn and resets it on the next own turn", async () => {
     const s = setupEngine(
       {

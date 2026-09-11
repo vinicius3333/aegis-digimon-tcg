@@ -1,6 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT24/BT24-016.js";
@@ -172,18 +173,70 @@ describe("BT23-005 Elizamon", () => {
     expect(s.perm("elizamon").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("dimetromon").instanceId);
   });
 
-  it("gives the evolved host +2000 DP only during its controller's turn", async () => {
+  it("gives the evolved host +2000 DP only on its controller's turn, through the public turn loop", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-017", under: ["BT23-005"], as: "host" }] },
+      0: { battleArea: [{ card: "BT21-017", under: ["BT23-005"], as: "host" }], deck, hand: [{ card: "BT1-009" }] },
+      1: { deck, hand: [{ card: "BT1-009" }], security: ["BT1-013", "BT1-027"] },
     });
+    const loop = s.engine.startTurnLoop();
 
-    s.state.turnSeat = 0;
-    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("is reached publicly from a red Lv2 egg in breeding", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX6-001", as: "redEgg" },
+        hand: [{ card: "BT23-005", as: "elizamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const eggId = s.inst("redEgg").instanceId;
+    const elizamonId = s.inst("elizamon").instanceId;
+    const permanentId = s.perm("redEgg").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: elizamonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === elizamonId);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.breeding?.permanentId).toBe(permanentId);
+    expect(s.state.players[0]!.breeding?.stack.map(({ instanceId }) => instanceId)).toEqual([eggId]);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT23-005");
+  });
+
+  it("refuses an off-color egg source for Elizamon's only digivolution requirement", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT23-004", as: "purpleEgg" },
+        hand: [{ card: "BT23-005", as: "elizamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    const refused = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("purpleEgg").permanentId,
+      instanceId: s.inst("elizamon").instanceId,
+    });
+    expect(refused.ok).toBe(false);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT23-004");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT23-005"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not apply the main reduction when Elizamon is only an inherited source", async () => {

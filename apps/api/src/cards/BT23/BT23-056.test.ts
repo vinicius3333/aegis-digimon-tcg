@@ -43,7 +43,6 @@ describe("BT23-056 WereGarurumon", () => {
       1: { battleArea: [{ card: "BT23-056", as: "were" }], security: [FILLER, FILLER] },
     });
     await s.ready();
-    s.state.turnSeat = 0;
 
     expect(observe(s.engine).hasKeyword(s.perm("were"), "Blocker")).toBe(true);
     expect(

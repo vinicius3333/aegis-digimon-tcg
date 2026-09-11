@@ -79,6 +79,45 @@ describe("BT23-028 Coordemon", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
+  it("still plays itself at the end of a security battle it lost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-045", as: "dpTarget", dp: 20_000 },
+            { card: "BT1-024", as: "attacker" },
+          ],
+        },
+        1: {
+          security: [{ card: "BT23-028", as: "securityCoordemon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const coordemonId = s.inst("securityCoordemon").instanceId;
+    const dpTargetBase = s.perm("dpTarget").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    // 10000 DP beats the 4000 DP security Digimon, so Coordemon is trashed by the battle and
+    // the deferred security clause still plays it from there, with its [On Play] attached.
+    const securityBattle = s.events.find((event) => event.kind === "securityChecked");
+    expect(securityBattle && "battle" in securityBattle ? securityBattle.battle : undefined).toMatchObject({
+      attackerDeleted: false,
+      securityDigimonDeleted: true,
+    });
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === coordemonId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === coordemonId)).toBe(false);
+    expect(s.perm("dpTarget").currentDP).toBe(dpTargetBase - 3000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("links for 2, contributes 3000 DP and restricts an opposing Digimon when linking", async () => {
     const s = setupEngine(
       {

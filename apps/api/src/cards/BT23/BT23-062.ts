@@ -26,6 +26,10 @@ export const compiled: CompiledCard = {
             },
             raw: "By trash 1 card with the [Undead], [Dark Animal] or [CS] trait from your hand",
           },
+          // CR 15-7-4: the player chooses whether to execute an optional processing
+          // condition ("By ..., gain 1 memory"), and 15-7-2 stops the payload when they
+          // decline. Peer BT11-092 carries the same printed shape and the same pair.
+          optional: true,
           abortOnDecline: true,
         },
       ],

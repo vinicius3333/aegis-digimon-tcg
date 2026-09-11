@@ -393,4 +393,75 @@ describe("BT23-052 Consulmon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("refuses to link onto a host without the [Appmon] trait", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-052", as: "nonAppmon" }],
+        hand: [{ card: "BT23-052", as: "consul" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const baseDp = s.perm("nonAppmon").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("consul").instanceId,
+        targetPermanentId: s.perm("nonAppmon").permanentId,
+      }).ok,
+    ).toBe(false);
+
+    expect(s.perm("nonAppmon").linked).toHaveLength(0);
+    expect(s.perm("nonAppmon").currentDP).toBe(baseDp);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT23-052"]);
+    expect(observe(s.engine).hasKeyword(s.perm("nonAppmon"), "Reboot")).toBe(false);
+  });
+
+  it("keeps the linked Reboot and Blocker through the opponent's turn and drops them at its end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "host" }],
+        hand: [
+          { card: "BT23-052", as: "consul" },
+          { card: "ST1-02", as: "spare" },
+        ],
+        security: SECURITY,
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: { security: SECURITY, deck: ["BT1-012", "BT1-013", "BT1-014"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const consulId = s.inst("consul").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: consulId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Blocker"));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    // "until your opponent's turn ends": both keywords survive the whole opponent turn.
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([consulId]);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

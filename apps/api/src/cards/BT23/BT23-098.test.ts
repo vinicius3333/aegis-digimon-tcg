@@ -207,7 +207,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     );
     const optionId = s.perm("option").topCard!.instanceId;
     const delayBaseId = s.perm("delayGhost").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 5;
     await s.ready();
 
@@ -252,7 +251,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 5;
     await s.ready();
 
@@ -294,7 +292,6 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
       { autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
     s.state.memory = 5;
     await s.ready();
 
@@ -402,28 +399,28 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await loop;
   });
 
+  // Seat 1 owns the placed Option; seat 0 (the turn player) suspends its own Violet Inboots,
+  // so this is an opponent's suspension on the opponent's turn — no turnSeat write needed.
   it("ignores an opponent-controlled Violet Inboots suspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-098", as: "option" }] },
-        1: {
+        0: {
           battleArea: [
             { card: "BT23-087", as: "violet" },
             { card: "BT23-061", as: "naturalGhost" },
           ],
           hand: [{ card: "BT20-068", as: "naturalEvolver" }],
         },
+        1: { battleArea: [{ card: "BT23-098", as: "option" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
-    s.perm("option").placedByEffect = true;
-    s.state.turnSeat = 1;
     s.state.memory = 5;
     await s.ready();
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("naturalGhost").permanentId,
         instanceId: s.inst("naturalEvolver").instanceId,
@@ -432,8 +429,8 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await settle(() => s.perm("violet").isSuspended);
 
     expect(s.perm("violet").isSuspended).toBe(true);
-    expect(optionPermanent(s, 0, optionId)).toBeDefined();
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(optionPermanent(s, 1, optionId)).toBeDefined();
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
   });
 
   it("runs the full [Main] effect from a real security check", async () => {

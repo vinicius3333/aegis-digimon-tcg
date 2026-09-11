@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -30,9 +30,10 @@ describe("BT23-060 Machinedramon", () => {
   });
 
   it("de-digivolves first, then deletes the resulting 8000-DP-or-lower Digimon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-060", as: "machinedramon" }] },
+        0: { hand: [{ card: "BT23-060", as: "machine" }], deck: ["BT1-010", "BT1-011"] },
         1: {
           battleArea: [
             { card: "BT23-068", under: ["BT23-063"], as: "stacked" },
@@ -40,17 +41,28 @@ describe("BT23-060 Machinedramon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
+    await s.ready();
+    // Pin the ＜De-Digivolve 1＞ onto the stacked Digimon; the 14000 DP Dullahamon has no
+    // digivolution cards, so choosing it would make the clause a no-op.
+    preferred.push(s.perm("stacked").topCard!.instanceId);
+    s.state.memory = 12;
     const stackedId = s.perm("stacked").permanentId;
     const largeId = s.perm("large").permanentId;
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("machinedramon").permanentId });
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === stackedId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === largeId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === stackedId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // 13000 DP GranDracmon shed its top card down to 4000 DP Sangloupmon, so the follow-up
+    // deletion could reach it; 14000 DP Dullahamon stayed above the 8000 DP band.
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([largeId]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT23-063", "BT23-068"]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("exposes Security Attack +1 and Reboot through the live keyword seam", async () => {
@@ -377,22 +389,27 @@ describe("BT23-060 Machinedramon", () => {
   it("leaves a 9000-DP opposing Digimon alive because the delete stops at 8000 DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-060", as: "machinedramon" }] },
+        0: { hand: [{ card: "BT23-060", as: "machine" }], deck: ["BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "AD1-001", as: "big", dp: 9000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.memory = 12;
     const bigId = s.perm("big").permanentId;
 
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("machinedramon").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 0 && s.state.pendingDecision === undefined);
+    await settle();
 
+    // The lone opposing Digimon carries no digivolution cards, so ＜De-Digivolve 1＞ changes
+    // nothing and 9000 DP stays one step above the deletion band.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === bigId)).toBe(true);
     expect(s.perm("big").currentDP).toBe(9000);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("checks two security cards on a player attack through Security Attack +1", async () => {

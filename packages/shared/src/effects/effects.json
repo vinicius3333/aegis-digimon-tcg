@@ -85030,10 +85030,9 @@
                 "levelComparison": { "op": "lte", "value": 4 },
                 "or": [
                   { "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] },
+                  { "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Sovereign"], "match": "traitContains" }] },
                   {
-                    "nameOrTrait": [
-                      { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
-                    ],
+                    "nameOrTrait": [{ "tokens": ["Animal"], "match": "traitContains" }],
                     "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
                   }
                 ]
@@ -85059,10 +85058,9 @@
                 "levelComparison": { "op": "lte", "value": 4 },
                 "or": [
                   { "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }] },
+                  { "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Sovereign"], "match": "traitContains" }] },
                   {
-                    "nameOrTrait": [
-                      { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
-                    ],
+                    "nameOrTrait": [{ "tokens": ["Animal"], "match": "traitContains" }],
                     "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
                   }
                 ]
@@ -86276,8 +86274,6 @@
           {
             "kind": "CostGatedBlock",
             "cost": { "kind": "payMemory", "memory": 1, "raw": "By paying 1 cost" },
-            "optional": true,
-            "abortOnDecline": true,
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -86351,7 +86347,7 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "zone": "hand", "isSelfRef": true },
             "actions": [
               {
                 "kind": "Replacement",
@@ -86635,6 +86631,7 @@
                 "kind": "Restrict",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "restriction": "cannotReturnToHandOrDeck",
+                "byOpponentEffectsOnly": true,
                 "duration": "untilOpponentTurnEnd"
               },
               {
@@ -87409,7 +87406,7 @@
             "target": {
               "filter": {
                 "kind": ["Digimon"],
-                "or": [{ "trait": "Vegetation" }, { "trait": "Plant" }, { "trait": "Fairy" }, { "trait": "CS" }],
+                "or": [{ "traitContains": ["Vegetation", "Plant", "Fairy"] }, { "traits": ["CS"] }],
                 "controller": "mine"
               },
               "count": 1
@@ -87435,7 +87432,7 @@
             "target": {
               "filter": {
                 "kind": ["Digimon"],
-                "or": [{ "trait": "Vegetation" }, { "trait": "Plant" }, { "trait": "Fairy" }, { "trait": "CS" }],
+                "or": [{ "traitContains": ["Vegetation", "Plant", "Fairy"] }, { "traits": ["CS"] }],
                 "controller": "mine"
               },
               "count": 1
@@ -87732,7 +87729,7 @@
                     "suspended": true,
                     "kind": ["Digimon"],
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation", "Plant", "Fairy"], "match": "trait" },
+                      { "tokens": ["Vegetation", "Plant", "Fairy"], "match": "traitContains" },
                       { "tokens": ["CS"], "match": "trait" }
                     ]
                   },
@@ -88635,7 +88632,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Justimon: Accel Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["Justimon: Accel Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
       { "level": 5, "traits": ["CS"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -88792,6 +88789,7 @@
               },
               "raw": "By trash 1 card with the [Undead], [Dark Animal] or [CS] trait from your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           }
         ]
@@ -89377,17 +89375,6 @@
             }
           },
           {
-            "kind": "Restrict",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "restriction": "attacks without suspending",
-            "duration": "forTheTurn",
-            "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Belphemon"], "match": "name" }] },
-              "raw": "a card with [Belphemon] in its name is in this Digimon's digivolution cards"
-            }
-          },
-          {
             "kind": "Attack",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "withoutSuspending": true,
@@ -89408,7 +89395,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Belphemon: Sleep Mode"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Belphemon: Sleep Mode"], "match": "nameExact" }]
             },
             "payCost": false,
             "from": ["trash"],
@@ -89632,7 +89619,7 @@
                       "filter": {
                         "controller": "mine",
                         "zone": "breeding",
-                        "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
+                        "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "nameExact" }]
                       },
                       "count": 1
                     },
@@ -89704,7 +89691,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "zone": "breeding",
-                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "nameExact" }]
               },
               "raw": "you have [Mother Eater] in the breeding area"
             },
@@ -89730,7 +89717,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "zone": "breeding",
-                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "nameExact" }]
               },
               "raw": "you have [Mother Eater] in the breeding area"
             },
@@ -91036,7 +91023,7 @@
             "condition": {
               "kind": "youHave",
               "filter": {
-                "zone": "battleArea",
+                "zone": ["battleArea", "breeding"],
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]

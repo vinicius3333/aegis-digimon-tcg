@@ -60,7 +60,7 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
             { card: "BT1-015", as: "low" },
           ],
           deck: [...OPPONENT_DECK],
-          security: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -68,8 +68,20 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
     s.state.memory = 3;
     void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    // Suspend after the Active phase, which would otherwise unsuspend the board (Q5342).
-    s.perm("belphemon").isSuspended = true;
+    // Suspend the base publicly, by attacking with it, so the Q5342 proof never writes state
+    // directly. The Unsuspend phase has already run, so the suspension survives into the
+    // digivolution below.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("belphemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("belphemon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    s.state.memory = 3;
 
     const baseInstanceId = s.perm("belphemon").topCard!.instanceId;
     const highAInstanceId = s.perm("highA").topCard!.instanceId;
@@ -103,7 +115,7 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
     // Q5342: the attack happens even though this Digimon was already suspended, and it stays suspended.
     expect(s.perm("belphemon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
 
     // End of Attack: digivolve into [Belphemon: Sleep Mode] in the trash, free, requirements ignored.
     expect(s.perm("belphemon").topCard?.cardId).toBe("EX10-021");
@@ -258,6 +270,49 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("leaves [Belphemon: Rage Mode] in the trash — the End of Attack destination is an exact name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-088", as: "belphemon" }],
+          hand: [
+            { card: "BT23-070", as: "x" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [{ card: "BT13-091", as: "rage" }],
+          deck: [...OWN_DECK],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "high" }],
+          deck: [...OPPONENT_DECK],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    void s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const xInstanceId = s.inst("x").instanceId;
+    const rageInstanceId = s.inst("rage").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("belphemon").permanentId,
+        instanceId: xInstanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    // The attack happened, so the [End of Attack] clause was reached — and still took nothing.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("belphemon").topCard?.instanceId).toBe(xInstanceId);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === rageInstanceId)).toBe(true);
+  });
+
   it("deletes all opposing highest-level Digimon and attacks without suspending when Belphemon is in its stack", () => {
     const actions = (compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any).actions;
     expect(actions[0]).toMatchObject({
@@ -265,16 +320,14 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
       target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestLevel" }, count: "all" },
     });
     expect(actions[1]).toMatchObject({
-      kind: "Restrict",
-      restriction: "attacks without suspending",
-      condition: { kind: "selfDigivolutionStackHasTrait" },
-    });
-    expect(actions[2]).toMatchObject({
       kind: "Attack",
       withoutSuspending: true,
       mandatory: true,
       condition: { kind: "selfDigivolutionStackHasTrait" },
     });
+    // "attacks without suspending" is not a RestrictionKind, so a Restrict carrying it would
+    // install a dead continuous restriction. The Attack action's `withoutSuspending` is the seam.
+    expect(actions).toHaveLength(2);
   });
 
   it("can digivolve into Belphemon: Sleep Mode from trash after attacking", () => {
@@ -285,7 +338,8 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
       payCost: false,
       ignoreRequirements: true,
       optional: true,
-      into: { nameOrTrait: [{ tokens: ["Belphemon: Sleep Mode"], match: "name" }] },
+      // Bracket-only reference: exact name (comprehensive rules 2-3-1-2), not a substring.
+      into: { nameOrTrait: [{ tokens: ["Belphemon: Sleep Mode"], match: "nameExact" }] },
     });
   });
 });

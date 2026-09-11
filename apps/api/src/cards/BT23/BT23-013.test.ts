@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -22,7 +22,7 @@ describe("BT23-013 Jesmon", () => {
       attributes: ["Data"],
       types: ["Holy Warrior", "Royal Knight", "CS"],
       effectText:
-        "[Digivolve] [SaviorHuckmon]/Lv.5 w/[CS]\u00a0trait: Cost 3\n[Digivolve] While opponent has a 10000 DP or higher Digimon, [Huckmon]: Cost 5 \n\n＜Rush＞ \n＜Alliance＞ \n[When Digivolving] [When Attacking] You may play 1 [Atho, RenxE9 & Por] Token (Digimon/White/6000 DP/＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞) or, from your hand or trash, 1 Digimon card with [Sistermon]\u00a0in its name without paying the cost. This effect can't play cards with the same names as any of your Digimon.\n[Your Turn] [Once Per Turn] When any of your other Digimon are played, this Digimon may attack.",
+        "[Digivolve] [SaviorHuckmon]/Lv.5 w/[CS]\u00a0trait: Cost 3\n[Digivolve] While opponent has a 10000 DP or higher Digimon, [Huckmon]: Cost 5 \n\n＜Rush＞ \n＜Alliance＞ \n[When Digivolving] [When Attacking] You may play 1 [Atho, René & Por] Token (Digimon/White/6000 DP/＜Reboot＞ ＜Blocker＞ ＜Decoy (Red/Black)＞) or, from your hand or trash, 1 Digimon card with [Sistermon]\u00a0in its name without paying the cost. This effect can't play cards with the same names as any of your Digimon.\n[Your Turn] [Once Per Turn] When any of your other Digimon are played, this Digimon may attack.",
     });
     const keywords = compiled.effects.filter((entry) => entry.trigger === "Static").flatMap((entry) => entry.keywords);
     expect(keywords).toEqual([
@@ -30,14 +30,16 @@ describe("BT23-013 Jesmon", () => {
       { keyword: "Alliance", raw: "＜Alliance＞" },
     ]);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
-      const actions = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions;
+      const actions = compiled.effects.find((entry) => entry.trigger === trigger)!.actions;
       expect(actions[0]).toMatchObject({
         kind: "RestrictEffect",
         restriction: "cannotPlaySameNameAsOwnDigimon",
         scope: "thisEffect",
       });
-      expect(actions[1]).toMatchObject({ kind: "Modal", optional: true, choose: 1, options: expect.any(Array) });
-      expect(actions[1].options[0][0]).toMatchObject({
+      const modal = actions[1]!;
+      expect(modal).toMatchObject({ kind: "Modal", optional: true, choose: 1, options: expect.any(Array) });
+      if (modal.kind !== "Modal") throw new Error(`${trigger} action 1 is not a Modal`);
+      expect(modal.options[0]![0]).toMatchObject({
         kind: "PlayToken",
         tokens: [
           {
@@ -50,13 +52,13 @@ describe("BT23-013 Jesmon", () => {
         count: 1,
         payCost: false,
       });
-      expect(actions[1].options[1][0]).toMatchObject({
+      expect(modal.options[1]![0]).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["hand", "trash"],
         payCost: false,
       });
     }
-    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn") as any;
+    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn")!;
     expect(effect.frequency).toBe("OncePerTurn");
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -96,23 +98,29 @@ describe("BT23-013 Jesmon", () => {
     expect(matchingAlternateDigivolutionRequirement("BT23-013", "BT6-011")).toBeUndefined();
   });
 
-  it("plays the exact 6000-DP token with Reboot, Blocker, and red/black Decoy", async () => {
+  it("refuses the exact-name [Huckmon] route to BaoHuckmon even with the DP gate satisfied", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-013", as: "jesmon" }] } },
-      { autoAcceptOptional: true, autoChooseOption: true },
+      {
+        0: { battleArea: [{ card: "BT6-011", as: "bao" }], hand: [{ card: "BT23-013", as: "jesmon" }] },
+        1: { battleArea: [{ card: "BT1-024", dp: 12000, as: "large" }] },
+      },
+      { autoDeclineOptional: true },
     );
-    s.state.turnSeat = 1;
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("jesmon"));
-    await settle(() => s.state.players[0]!.battleArea.length === 2);
-    const token = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.permanentId !== s.perm("jesmon").permanentId,
-    )!;
-
-    expect(token.currentDP).toBe(6000);
-    expect(observe(s.engine).hasKeyword(token, "Reboot")).toBe(true);
-    expect(observe(s.engine).hasKeyword(token, "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(token, "Decoy")).toBe(true);
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("bao").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.perm("bao").topCard!.cardId).toBe("BT6-011");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("jesmon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(8);
   });
 
   it("resolves the modal from a public SaviorHuckmon evolution and can refuse it", async () => {
@@ -136,7 +144,9 @@ describe("BT23-013 Jesmon", () => {
       (p) => p.permanentId !== accepted.perm("base").permanentId,
     )!;
     expect(token.currentDP).toBe(6000);
+    expect(observe(accepted.engine).hasKeyword(token, "Reboot")).toBe(true);
     expect(observe(accepted.engine).hasKeyword(token, "Blocker")).toBe(true);
+    expect(observe(accepted.engine).hasKeyword(token, "Decoy")).toBe(true);
 
     const refused = setupEngine(
       { 0: { battleArea: [{ card: "BT6-015", as: "base" }], hand: [{ card: "BT23-013", as: "jesmon" }] } },

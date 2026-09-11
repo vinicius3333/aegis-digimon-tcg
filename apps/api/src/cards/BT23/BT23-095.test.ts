@@ -33,8 +33,9 @@ describe("BT23-095 Crescent Leaf", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // Q5383: "on the field" is the battle area OR the breeding area, and the printed
-    // "[CS] trait" is exact trait matching (CR 2-3-2-3), not `traitContains`.
+    // Q5383: "on the field" is the battle area OR the breeding area (the CR 3-4-7-8
+    // "explicitly references breeding areas" exception), and the printed "[CS] trait" is
+    // exact trait matching (CR 2-3-2-3), not `traitContains`.
     const waiver = compiled.effects.find((effect) => effect.trigger === "Static") as any;
     expect(waiver.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
@@ -78,6 +79,28 @@ describe("BT23-095 Crescent Leaf", () => {
   // Clause 1 — static color waiver (Q5383)
   // ---------------------------------------------------------------------------
 
+  it("waives the green color requirement from an off-color CS Digimon in the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT22-008", as: "csDigimon" }],
+        hand: [{ card: "BT23-095", as: "option" }],
+      },
+      1: { deck: ["BT1-012"] },
+    });
+    s.state.memory = 5;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  // Q5383, asked about this printed wording, answers that "on the field" is the battle area
+  // OR the breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
   it("waives the green color requirement from an off-color CS Digimon in breeding (Q5383)", async () => {
     const s = setupEngine({
       0: {
@@ -96,6 +119,27 @@ describe("BT23-095 Crescent Leaf", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+  });
+
+  // A Digimon's traits are its top card's: a [CS] card in the digivolution cards beneath a
+  // non-[CS] top card is not a "[CS] trait Digimon".
+  it("does not waive the color requirement from a CS card under a non-CS top card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "stack", under: ["BT22-008"] }],
+        hand: [{ card: "BT23-095", as: "option" }],
+      },
+      1: { deck: ["BT1-012"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT22-008"]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.memory).toBe(5);
   });
 
   it("waives the green color requirement from an off-color CS Tamer in the battle area (Q5383)", async () => {
@@ -182,7 +226,7 @@ describe("BT23-095 Crescent Leaf", () => {
             { card: "BT1-013", as: "activeBystander" },
           ],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -232,7 +276,7 @@ describe("BT23-095 Crescent Leaf", () => {
         1: {
           battleArea: [{ card: "BT1-013", as: "activeOnly" }],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -346,7 +390,7 @@ describe("BT23-095 Crescent Leaf", () => {
         1: {
           battleArea: [{ card: "BT1-013", as: "target", suspended: true }],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -385,7 +429,7 @@ describe("BT23-095 Crescent Leaf", () => {
         1: {
           battleArea: [{ card: "BT1-013", as: "target", suspended: true }],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -478,7 +522,7 @@ describe("BT23-095 Crescent Leaf", () => {
         1: {
           battleArea: [{ card: "BT1-013", as: "target", suspended: true }],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -515,7 +559,7 @@ describe("BT23-095 Crescent Leaf", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "attacker" }],
           deck: ["BT1-012", "BT1-014"],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
         1: {
           security: [{ card: "BT23-095", as: "securityOption" }],

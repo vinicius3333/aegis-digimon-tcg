@@ -103,6 +103,47 @@ describe("BT23-044 Lilamon", () => {
     assertNoLoudGap(s);
   });
 
+  // "with [Vegetation], [Plant] or [Fairy] in any of its traits or the [CS] trait" mixes two
+  // match modes. BT1-071 Vegiemon is [Carnivorous Plant] — a substring hit that must qualify.
+  // BT16-039 Pulsemon is [Beastkin]/[Abadin Electronics]; "Electronics" contains "cs", so an
+  // accidental substring match on the bracket trait [CS] would wrongly offer it.
+  it("protects a Digimon whose trait merely contains Plant, but not one whose trait merely contains CS", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-071", as: "carnivorousPlant" },
+            { card: "BT16-039", as: "abadin" },
+          ],
+          hand: [{ card: "BT23-044", as: "lilamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(getCardDefinition("BT1-071")?.types).toEqual(["Carnivorous Plant"]);
+    expect(getCardDefinition("BT16-039")?.types).toEqual(["Beastkin", "Abadin Electronics"]);
+    preferred.push(s.perm("carnivorousPlant").permanentId, s.perm("carnivorousPlant").topCard!.instanceId);
+    const lilamonId = s.inst("lilamon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: lilamonId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("carnivorousPlant"), "beReturned"));
+
+    expect(observe(s.engine).isRestricted(s.perm("carnivorousPlant"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("abadin"), "beReturned")).toBe(false);
+    // Neither board Digimon carries the exact [CS] trait, so the play cost is not reduced.
+    expect(s.state.memory).toBe(3);
+
+    const protectionDecision = s.decisions.filter((entry) => entry.req.kind === "chooseTargets").at(-1)!.req;
+    expect(protectionDecision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("carnivorousPlant").permanentId, s.perm("lilamon").permanentId]),
+    );
+    expect(protectionDecision.options?.candidateInstanceIds).not.toContain(s.perm("abadin").permanentId);
+    assertNoLoudGap(s);
+  });
+
   it("leaves every Digimon unsuspended and unprotected when the entry effect is declined", async () => {
     const s = setupEngine(
       {
@@ -146,7 +187,7 @@ describe("BT23-044 Lilamon", () => {
     );
     await s.ready();
     const lilamonId = s.inst("lilamon").instanceId;
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 6;
     const handBeforeDigivolve = s.state.players[0]!.hand.length;
@@ -171,11 +212,8 @@ describe("BT23-044 Lilamon", () => {
     // The opponent's [Main] "return 1 of your opponent's Digimon to the hand" cannot move it.
     const lilamonPermanentId = s.perm("base").permanentId;
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bounce").instanceId })).toEqual({
       ok: true,
     });
@@ -187,8 +225,10 @@ describe("BT23-044 Lilamon", () => {
 
     // The protection lapses when that opponent turn ends.
     advance(s.engine).endMainPhaseIfOpen(1);
-    await turn;
+    await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("lets an opponent's return effect move the same Digimon when the entry effect is declined", async () => {
@@ -210,7 +250,7 @@ describe("BT23-044 Lilamon", () => {
     );
     await s.ready();
     const lilamonId = s.inst("lilamon").instanceId;
-    const ownTurn = s.engine.runOneTurn();
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 6;
 
@@ -225,11 +265,8 @@ describe("BT23-044 Lilamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bounce").instanceId })).toEqual({
       ok: true,
     });
@@ -237,8 +274,8 @@ describe("BT23-044 Lilamon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === lilamonId)).toBe(true);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await turn;
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // "their effects can't return" — only the OPPONENT's effects are prohibited.
@@ -396,7 +433,7 @@ describe("BT23-044 Lilamon", () => {
   it("trashes security once per turn and again on the next turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-080", as: "host", under: ["BT23-044"], suspended: true }],
+        battleArea: [{ card: "BT1-080", as: "host", under: ["BT23-044"] }],
         deck: ["BT1-011", "BT1-011", "BT1-011", "BT1-011"],
       },
       1: {
@@ -404,17 +441,32 @@ describe("BT23-044 Lilamon", () => {
           { card: "BT1-009", as: "firstAttacker" },
           { card: "BT1-010", as: "secondAttacker" },
         ],
-        security: [{ card: "BT1-011", as: "sec1" }, { card: "BT1-011", as: "sec2" }, "BT1-011"],
+        security: ["BT1-011", { card: "BT1-011", as: "sec1" }, { card: "BT1-011", as: "sec2" }, "BT1-011"],
         deck: ["BT1-011", "BT1-011", "BT1-011", "BT1-011"],
       },
     });
     await s.ready();
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    const opponentTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
-
     const hostPermanentId = s.perm("host").permanentId;
+
+    // Suspend the host the ordinary way — it attacks the opponent on its own turn — so the
+    // opponent can legally attack it next turn. Beating a Security Digimon is not "deletes
+    // your opponent's Digimon in battle", so the once-per-turn gate is still unused.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostPermanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("sec1").instanceId,
+      s.inst("sec2").instanceId,
+      s.state.players[1]!.security[2]!.instanceId,
+    ]);
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 3;
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -439,15 +491,11 @@ describe("BT23-044 Lilamon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
-
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
 
     // The next turn resets the gate: the same host deletes again and trashes security.
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
-    const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
     const victim = s.putOnBoard(1, { card: "BT1-009", as: "victim", suspended: true });
     await s.ready();
 
@@ -464,7 +512,7 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).not.toContain(s.inst("sec2").instanceId);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await ownTurn;
+    await loop;
   });
 
   it("does not trash security after its carrier wins against a Security Digimon", async () => {
@@ -535,7 +583,8 @@ describe("BT23-044 Lilamon", () => {
             controller: "mine",
             // "1 of your Digimon": a [CS] trait Tamer is not an eligible protection target.
             kind: ["Digimon"],
-            or: [{ trait: "Vegetation" }, { trait: "Plant" }, { trait: "Fairy" }, { trait: "CS" }],
+            // Substring for the first three traits, exact for the bracket trait [CS].
+            or: [{ traitContains: ["Vegetation", "Plant", "Fairy"] }, { traits: ["CS"] }],
           },
           count: 1,
         },

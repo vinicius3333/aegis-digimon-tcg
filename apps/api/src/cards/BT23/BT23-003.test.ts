@@ -5,6 +5,8 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT23-003.js";
 import "./index.js";
+import "../BT1/BT1-108.js";
+import "../BT22/BT22-100.js";
 import "./BT23-100.js";
 
 describe("BT23-003 Motimon", () => {
@@ -106,23 +108,59 @@ describe("BT23-003 Motimon", () => {
     expect(s.state.players[1]!.security).toHaveLength(4);
   });
 
-  it("does not trigger for a non-CS Option", async () => {
+  it("does not trigger for a non-CS Option played through the public route", async () => {
     const s = setupEngine(
       {
         0: {
           deck: ["BT1-009", "BT1-010", "BT1-011"],
           battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }],
-          hand: [{ card: "ST20-14", as: "nonCsOption" }],
+          hand: [{ card: "BT1-108", as: "nonCsOption" }],
+        },
+        1: { security: ["BT1-009"], battleArea: [{ card: "BT1-009", as: "opponentTarget", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonCsOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT1-108"));
+
+    expect(s.perm("motimonHost").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not trigger for a CS Option that is never placed in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }],
+          hand: [{ card: "BT22-100", as: "securityOption" }],
+          security: [
+            { card: "BT1-013", faceUp: false },
+            { card: "BT1-027", faceUp: false },
+          ],
         },
         1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
+    await s.ready();
+    const optionId = s.inst("securityOption").instanceId;
 
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("nonCsOption").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT22-100"));
 
+    // BT22-100's [Main] places it as the bottom SECURITY card, so the printed
+    // "placed in the battle area" condition is never met.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
     expect(s.perm("motimonHost").isSuspended).toBe(false);
-    expect(s.decisions).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("resets the inherited Option attack on the next own turn through the public turn loop", async () => {
@@ -159,19 +197,42 @@ describe("BT23-003 Motimon", () => {
     await loop;
   });
 
-  it("does not trigger when the opponent places a CS Option", async () => {
+  it("does not trigger when the opponent plays a CS Option on their own turn", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }] },
-        1: { hand: [{ card: "BT23-100", as: "opponentCsOption" }], security: ["BT1-009"] },
+        0: {
+          deck,
+          hand: [{ card: "BT1-009" }],
+          security: ["BT1-013", "BT1-027"],
+          battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }],
+        },
+        1: {
+          deck,
+          hand: [{ card: "BT23-100", as: "opponentCsOption" }],
+          security: ["BT1-013", "BT1-027"],
+          battleArea: [{ card: "BT22-044", as: "opponentCs" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("opponentCsOption").instanceId);
+    await advance(s.engine).waitForMainPhase(1);
+    const optionId = s.inst("opponentCsOption").instanceId;
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
 
+    expect(s.state.turnSeat).toBe(1);
     expect(s.perm("motimonHost").isSuspended).toBe(false);
-    expect(s.decisions).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("allows the controller to refuse the optional attack", async () => {
@@ -211,23 +272,30 @@ describe("BT23-003 Motimon", () => {
   });
 
   it("does not react during the opponent's turn when its own CS Option enters from security", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
     const s = setupEngine(
       {
         0: {
+          deck,
+          hand: [{ card: "BT1-009" }],
           battleArea: [{ card: "BT22-043", under: ["BT23-003"], as: "motimonHost" }],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
           security: ["BT23-100"],
         },
         1: {
-          battleArea: [{ card: "BT1-010", as: "opponentAttacker" }],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
-          security: ["BT1-009"],
+          deck,
+          hand: [{ card: "BT1-009" }],
+          security: ["BT1-013", "BT1-027"],
+          battleArea: [{ card: "BT1-010", as: "opponentAttacker", dp: 20_000 }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -235,10 +303,18 @@ describe("BT23-003 Motimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-100"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-100")).toBe(true);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-100") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.perm("motimonHost").isSuspended).toBe(false);
-    expect(s.decisions).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("publicly attacks after a CS Option is played", async () => {

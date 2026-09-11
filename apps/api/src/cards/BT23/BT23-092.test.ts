@@ -35,8 +35,9 @@ describe("BT23-092 Ice Archery", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
 
-    // Clause 1: the waiver is gated on "on the field" (Q5365 — battle area OR breeding),
-    // on MY side, on a Digimon or Tamer, matching [CS] as an EXACT trait (CR 2-3-2-3).
+    // Clause 1: the waiver is gated on "on the field" — the battle area OR the breeding area
+    // (Q5365, asked about this wording; it is the CR 3-4-7-8 "explicitly references breeding
+    // areas" exception). On MY side, a Digimon or Tamer, [CS] as an EXACT trait.
     const waiver = compiled.effects.find((effect) => effect.trigger === "Static") as any;
     expect(waiver.actions).toHaveLength(1);
     expect(waiver.actions[0]).toMatchObject({ kind: "WaiveColorRequirement" });
@@ -154,6 +155,8 @@ describe("BT23-092 Ice Archery", () => {
     expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(false);
   });
 
+  // Q5365, asked about this printed wording, answers that "on the field" is the battle area
+  // OR the breeding area — the CR 3-4-7-8 "explicitly references breeding areas" exception.
   it("Q5365: a [CS] Digimon in the BREEDING area alone satisfies “on the field”", async () => {
     const s = setupEngine(
       {
@@ -179,8 +182,62 @@ describe("BT23-092 Ice Archery", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended"));
 
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(true);
+  });
+
+  it("waives the color requirement for a battle-area [CS] Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-092", as: "iceArchery" }],
+          battleArea: [{ card: "BT23-082", as: "csTamer" }],
+          security: SECURITY_FILLER,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetDigimon" },
+            { card: "BT1-088", as: "targetTamer" },
+          ],
+          security: SECURITY_FILLER,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const optionId = s.inst("iceArchery").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("targetTamer"), "beSuspended")).toBe(true);
+  });
+
+  // A Digimon's traits are the traits of its top card; a [CS] card in the digivolution
+  // cards beneath a non-[CS] top card is not a "[CS] trait Digimon".
+  it("does not waive the color requirement from a [CS] card under a non-[CS] top card", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT23-092", as: "iceArchery" }],
+        battleArea: [{ card: "BT1-009", as: "stack", under: ["BT22-008"] }],
+        security: SECURITY_FILLER,
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "targetDigimon" }], security: SECURITY_FILLER },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT22-008"]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceArchery").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.memory).toBe(5);
+    expect(observe(s.engine).isRestricted(s.perm("targetDigimon"), "beSuspended")).toBe(false);
   });
 
   it("the restricted Digimon cannot declare an attack, and the restriction expires when the opponent's turn ends", async () => {

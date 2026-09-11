@@ -13,6 +13,11 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: {
+            // "When this card would be played FROM THE HAND": the printed provenance gate.
+            // The pay-time self-reducer (GameEngine.fireBeforePayCost) has no origin-zone
+            // signal, so this records the printed boundary; every effect-driven play from a
+            // non-hand zone in the catalog is a free play, so the reduction cannot leak.
+            zone: "hand",
             isSelfRef: true,
           },
           actions: [

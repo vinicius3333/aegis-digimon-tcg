@@ -195,31 +195,94 @@ describe("BT23-089 Takumi Aiba", () => {
   // [All Turns] leave prevention.
   // ---------------------------------------------------------------------------
 
-  it("pays the compound cost to keep a [CS] Digimon that would be deleted in battle", async () => {
+  /**
+   * Seat 1's board for an own-turn battle: two big Digimon seeded SUSPENDED, so seat 0 can
+   * attack them and lose the attacker in battle. Seat 1 never unsuspends on seat 0's turn.
+   */
+  function opponentBlockers() {
+    return {
+      battleArea: [
+        { card: "BT1-009", as: "bigA", dp: 12_000, suspended: true },
+        { card: "BT1-009", as: "bigB", dp: 12_000, suspended: true },
+      ],
+      hand: [{ card: "BT1-010", as: "opponentSpare" }],
+      deck: ["BT1-013", "BT1-014", "BT1-012"],
+      security: NEUTRAL_SECURITY,
+    };
+  }
+
+  /** Start the real turn loop and stop inside `seat`'s open Main phase. */
+  async function reachMainPhase(s: ReturnType<typeof setupEngine>, seat: 0 | 1): Promise<void> {
+    await advance(s.engine).waitForMainPhase(seat);
+  }
+
+  /**
+   * Open seat 0's own Main phase through the real turn loop. Returns the loop WRAPPED:
+   * an async function that returned it directly would resolve to the loop promise itself
+   * and hang the test.
+   */
+  async function openOwnTurn(s: ReturnType<typeof setupEngine>): Promise<{ loop: Promise<unknown> }> {
+    const loop = s.engine.startTurnLoop();
+    await reachMainPhase(s, 0);
+    return { loop };
+  }
+
+  /** Attack `alias` into the named suspended opposing Digimon and let the battle settle. */
+  async function attackInto(s: ReturnType<typeof setupEngine>, attacker: string, defender: string) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(attacker).permanentId,
+        target: { kind: "permanent", permanentId: s.perm(defender).permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  }
+
+  it("pays the compound cost on the OPPONENT's turn to keep a [CS] Digimon deleted in battle", async () => {
+    // [All Turns]: seat 0 suspends its own Angewomon by attacking the player on its own turn,
+    // then seat 1 attacks that suspended Digimon on seat 1's turn.
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT23-089", as: "takumi" },
-            { card: "BT23-031", as: "angewomon", suspended: true, under: SAME_LEVEL_STACK },
+            { card: "BT23-031", as: "angewomon", under: SAME_LEVEL_STACK },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }],
-          deck: ["BT1-013", "BT1-014"],
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12_000 }],
+          hand: [{ card: "BT1-010", as: "opponentSpare" }],
+          deck: ["BT1-013", "BT1-014", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const angewomonPermanentId = s.perm("angewomon").permanentId;
     const stackIds = s.perm("angewomon").stack.map((card) => card.instanceId);
     expect(stackIds).toHaveLength(2);
+
+    const { loop } = await openOwnTurn(s);
+    // Suspend the Angewomon publicly: its 6000 DP beats seat 1's 3000 DP top security card.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: angewomonPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("angewomon").isSuspended).toBe(true);
+    expect(s.perm("takumi").isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await reachMainPhase(s, 1);
+    const trashBefore = s.state.players[0]!.trash.length;
 
     expect(
       s.engine.applyIntent(1, {
@@ -234,10 +297,13 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.perm("angewomon").topCard?.cardId).toBe("BT23-031");
     expect(s.perm("angewomon").stack).toHaveLength(0);
     expect(s.perm("takumi").isSuspended).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual([...stackIds].sort());
+    const trashed = s.state.players[0]!.trash.slice(trashBefore).map((card) => card.instanceId);
+    expect(trashed.sort()).toEqual([...stackIds].sort());
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
-    expect(observe(s.engine).isAttacking()).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("lets the controller decline: the Digimon leaves and nothing is paid", async () => {
@@ -246,33 +312,22 @@ describe("BT23-089 Takumi Aiba", () => {
         0: {
           battleArea: [
             { card: "BT23-089", as: "takumi" },
-            { card: "BT23-031", as: "angewomon", suspended: true, under: SAME_LEVEL_STACK },
+            { card: "BT23-031", as: "angewomon", under: SAME_LEVEL_STACK },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
-        1: {
-          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }],
-          deck: ["BT1-013", "BT1-014"],
-          security: NEUTRAL_SECURITY,
-        },
+        1: opponentBlockers(),
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const angewomonPermanentId = s.perm("angewomon").permanentId;
     const angewomonId = s.perm("angewomon").topCard!.instanceId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: angewomonPermanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const { loop } = await openOwnTurn(s);
+    await attackInto(s, "angewomon", "bigA");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angewomonPermanentId)).toBe(
       false,
@@ -282,6 +337,9 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.perm("takumi").isSuspended).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("cannot pay from a stack without a same-level pair", async () => {
@@ -290,32 +348,21 @@ describe("BT23-089 Takumi Aiba", () => {
         0: {
           battleArea: [
             { card: "BT23-089", as: "takumi" },
-            { card: "BT23-031", as: "angewomon", suspended: true, under: MIXED_LEVEL_STACK },
+            { card: "BT23-031", as: "angewomon", under: MIXED_LEVEL_STACK },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
-        1: {
-          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }],
-          deck: ["BT1-013", "BT1-014"],
-          security: NEUTRAL_SECURITY,
-        },
+        1: opponentBlockers(),
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const angewomonPermanentId = s.perm("angewomon").permanentId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: angewomonPermanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const { loop } = await openOwnTurn(s);
+    await attackInto(s, "angewomon", "bigA");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angewomonPermanentId)).toBe(
       false,
@@ -323,47 +370,51 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.perm("takumi").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
-  it("cannot pay while this Tamer is already suspended", async () => {
+  it("cannot pay a second time while this Tamer is already suspended by the first payment", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT23-089", as: "takumi", suspended: true },
-            { card: "BT23-031", as: "angewomon", suspended: true, under: SAME_LEVEL_STACK },
+            { card: "BT23-089", as: "takumi" },
+            { card: "BT23-031", as: "angewomonA", under: SAME_LEVEL_STACK },
+            { card: "BT23-031", as: "angewomonB", under: SAME_LEVEL_STACK },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
-        1: {
-          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }],
-          deck: ["BT1-013", "BT1-014"],
-          security: NEUTRAL_SECURITY,
-        },
+        1: opponentBlockers(),
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
-    const angewomonPermanentId = s.perm("angewomon").permanentId;
+    const permanentA = s.perm("angewomonA").permanentId;
+    const permanentB = s.perm("angewomonB").permanentId;
+    const bId = s.perm("angewomonB").topCard!.instanceId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: angewomonPermanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const { loop } = await openOwnTurn(s);
+    // First payment: A is saved, the Tamer suspends, A's same-level pair is trashed.
+    await attackInto(s, "angewomonA", "bigA");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentA)).toBe(true);
+    expect(s.perm("takumi").isSuspended).toBe(true);
+    expect(s.perm("angewomonA").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angewomonPermanentId)).toBe(
-      false,
-    );
-    expect(s.state.players[0]!.trash).toHaveLength(3);
+    // Second would-leave event with the suspend half of the cost unpayable: B leaves.
+    await attackInto(s, "angewomonB", "bigB");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentB)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(bId);
+    expect(s.state.players[0]!.trash).toHaveLength(5);
     expect(s.perm("takumi").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not protect a Digimon without the [CS] trait even when the cost is payable", async () => {
@@ -373,39 +424,31 @@ describe("BT23-089 Takumi Aiba", () => {
           battleArea: [
             { card: "BT23-089", as: "takumi" },
             { card: "BT23-031", as: "angewomon", under: SAME_LEVEL_STACK },
-            { card: "BT1-013", as: "plain", suspended: true },
+            { card: "BT1-013", as: "plain" },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
-        1: {
-          battleArea: [{ card: "BT1-009", as: "attacker", dp: 12000 }],
-          deck: ["BT1-013", "BT1-014"],
-          security: NEUTRAL_SECURITY,
-        },
+        1: opponentBlockers(),
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const plainPermanentId = s.perm("plain").permanentId;
     const plainId = s.perm("plain").topCard!.instanceId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: plainPermanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const { loop } = await openOwnTurn(s);
+    await attackInto(s, "plain", "bigA");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === plainPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([plainId]);
     expect(s.perm("takumi").isSuspended).toBe(false);
     expect(s.perm("angewomon").stack).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not protect the opponent's [CS] Digimon", async () => {
@@ -415,32 +458,27 @@ describe("BT23-089 Takumi Aiba", () => {
           battleArea: [
             { card: "BT23-089", as: "takumi" },
             { card: "BT23-031", as: "angewomon", under: SAME_LEVEL_STACK },
-            { card: "BT1-009", as: "attacker", dp: 12000 },
+            { card: "BT1-009", as: "attacker", dp: 12_000 },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
         1: {
           battleArea: [{ card: "BT23-006", as: "opponentCs", suspended: true }],
-          deck: ["BT1-013", "BT1-014"],
+          hand: [{ card: "BT1-010", as: "opponentSpare" }],
+          deck: ["BT1-013", "BT1-014", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
     await s.ready();
     const opponentCsPermanentId = s.perm("opponentCs").permanentId;
     const opponentCsId = s.perm("opponentCs").topCard!.instanceId;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: opponentCsPermanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const { loop } = await openOwnTurn(s);
+    await attackInto(s, "attacker", "opponentCs");
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentCsPermanentId)).toBe(
       false,
@@ -449,6 +487,9 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.perm("takumi").isSuspended).toBe(false);
     expect(s.perm("angewomon").stack).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("saves every [CS] Digimon leaving together for a single payment", async () => {
@@ -462,22 +503,27 @@ describe("BT23-089 Takumi Aiba", () => {
             { card: "BT23-031", as: "angewomonA", under: SAME_LEVEL_STACK },
             { card: "BT23-031", as: "angewomonB", under: SAME_LEVEL_STACK },
           ],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "opponentDigimon" }],
           hand: [{ card: "BT25-093", as: "flare" }],
-          deck: ["BT1-013", "BT1-014"],
+          deck: ["BT1-013", "BT1-014", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 5;
     await s.ready();
     const permanentIds = [s.perm("angewomonA").permanentId, s.perm("angewomonB").permanentId];
+
+    const loop = s.engine.startTurnLoop();
+    await reachMainPhase(s, 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await reachMainPhase(s, 1);
+    s.state.memory = 5;
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("takumi").isSuspended && s.state.pendingDecision === undefined);
@@ -491,6 +537,9 @@ describe("BT23-089 Takumi Aiba", () => {
     const stackSizes = [s.perm("angewomonA").stack.length, s.perm("angewomonB").stack.length].sort();
     expect(stackSizes).toEqual([0, 2]);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   // ---------------------------------------------------------------------------
@@ -502,20 +551,26 @@ describe("BT23-089 Takumi Aiba", () => {
       {
         0: {
           security: [{ card: "BT23-089", as: "securityTakumi" }],
-          deck: ["BT1-010", "BT1-011"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [{ card: "BT1-024", as: "attacker" }],
-          deck: ["BT1-013", "BT1-014"],
+          hand: [{ card: "BT1-010", as: "opponentSpare" }],
+          deck: ["BT1-013", "BT1-014", "BT1-012"],
           security: NEUTRAL_SECURITY,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
     await s.ready();
     const takumiId = s.inst("securityTakumi").instanceId;
+
+    const loop = s.engine.startTurnLoop();
+    await reachMainPhase(s, 0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await reachMainPhase(s, 1);
+    const memoryBefore = s.state.memory;
 
     expect(
       s.engine.applyIntent(1, {
@@ -530,7 +585,10 @@ describe("BT23-089 Takumi Aiba", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === takumiId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(0);
     // Seat 1 is the turn player: its memory is unchanged by seat 0's free play.
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

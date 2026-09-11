@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { settle, setupEngine, type BoardSpec } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { type EngineSetup, settle, setupEngine, type BoardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-067.js";
@@ -12,6 +13,43 @@ const MIREI = "BT22-089"; // Tamer [Mirei Mikagura]
 const OPPONENT_LOW = "BT23-063"; // Sangloupmon, purple Lv.4 with [CS]
 const OPPONENT_HIGH = "BT23-068"; // GranDracmon, purple Lv.6
 const NEUTRAL = "BT1-009"; // Monodramon, a legal main-deck security/deck filler
+
+const FILLER_DECK = ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-027", "BT1-028", "BT1-045"];
+
+/**
+ * Hand the turn to seat 1 through the real turn loop, so an opponent-turn attack never needs a
+ * direct `turnSeat` write. Returns the loop promise; end it with `finishTurnLoop`.
+ */
+async function passTurnToOpponent(s: EngineSetup, suspendAlias?: string): Promise<{ loop: Promise<void> }> {
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  await settle(() => s.state.pendingDecision === undefined);
+  if (suspendAlias !== undefined) {
+    // Suspend publicly: the Digimon attacks the opponent on its own turn and stays suspended into
+    // the opponent's turn, which a Board Spec `suspended: true` could not survive (the Unsuspend
+    // phase of seat 0's turn would clear it).
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(suspendAlias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm(suspendAlias).isSuspended).toBe(true);
+  }
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.state.turnSeat).toBe(1);
+  // Returned inside a wrapper: awaiting a promise that resolves TO the loop promise would
+  // flatten onto the loop and hang the test.
+  return { loop };
+}
+
+async function finishTurnLoop(s: EngineSetup, loop: Promise<void>): Promise<void> {
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
 
 /** Play LadyDevimon from hand with `memory` available; card-selection prompts answer themselves. */
 function playFromHand(memory: number, board: BoardSpec) {
@@ -292,12 +330,18 @@ describe("BT23-067 LadyDevimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: LADYDEVIMON, as: "lady" }],
+        hand: [{ card: NEUTRAL, as: "spare0" }],
+        deck: [...FILLER_DECK],
         security: [{ card: NEUTRAL, as: "secTop" }, "BT1-010", "BT1-011", "BT1-012"],
       },
-      1: { battleArea: [{ card: "BT1-014", dp: 5000, as: "attacker" }] },
+      1: {
+        battleArea: [{ card: "BT1-014", dp: 5000, as: "attacker" }],
+        hand: [{ card: NEUTRAL, as: "spare1" }],
+        deck: [...FILLER_DECK],
+      },
     });
     await s.ready();
-    s.state.turnSeat = 1;
+    const { loop } = await passTurnToOpponent(s);
     expect(observe(s.engine).hasKeyword(s.perm("lady"), "Blocker")).toBe(true);
 
     expect(
@@ -319,6 +363,7 @@ describe("BT23-067 LadyDevimon", () => {
     expect(s.perm("lady").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("secTop").instanceId);
+    await finishTurnLoop(s, loop);
   });
 
   it("does not pass Blocker down to a carrier", async () => {
@@ -334,16 +379,23 @@ describe("BT23-067 LadyDevimon", () => {
       {
         0: {
           battleArea: [
-            { card: "ST3-10", dp: 4000, suspended: true, as: "carrier", under: [LADYDEVIMON] },
+            { card: "ST3-10", dp: 4000, as: "carrier", under: [LADYDEVIMON] },
             { card: "BT1-014", dp: 1000, as: "sacrifice" },
           ],
+          hand: [{ card: NEUTRAL, as: "spare0" }],
+          deck: [...FILLER_DECK],
         },
-        1: { battleArea: [{ card: "BT1-014", dp: 9000, as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-014", dp: 9000, as: "attacker" }],
+          hand: [{ card: NEUTRAL, as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: [NEUTRAL, NEUTRAL, NEUTRAL],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const { loop } = await passTurnToOpponent(s, "carrier");
     expect(observe(s.engine).hasKeyword(s.perm("carrier"), "Scapegoat")).toBe(true);
     const sacrificeId = s.inst("sacrifice").instanceId;
 
@@ -358,18 +410,28 @@ describe("BT23-067 LadyDevimon", () => {
 
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([s.inst("carrier").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([sacrificeId]);
+    await finishTurnLoop(s, loop);
   });
 
   it("deletes the carrier normally when there is no other Digimon to sacrifice", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST3-10", dp: 4000, suspended: true, as: "carrier", under: [LADYDEVIMON] }] },
-        1: { battleArea: [{ card: "BT1-014", dp: 9000, as: "attacker" }] },
+        0: {
+          battleArea: [{ card: "ST3-10", dp: 4000, as: "carrier", under: [LADYDEVIMON] }],
+          hand: [{ card: NEUTRAL, as: "spare0" }],
+          deck: [...FILLER_DECK],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", dp: 9000, as: "attacker" }],
+          hand: [{ card: NEUTRAL, as: "spare1" }],
+          deck: [...FILLER_DECK],
+          security: [NEUTRAL, NEUTRAL, NEUTRAL],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.turnSeat = 1;
+    const { loop } = await passTurnToOpponent(s, "carrier");
     const carrierId = s.inst("carrier").instanceId;
 
     expect(
@@ -385,6 +447,7 @@ describe("BT23-067 LadyDevimon", () => {
     // The whole stack goes to the trash: the carrier plus its LadyDevimon digivolution card.
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain(LADYDEVIMON);
+    await finishTurnLoop(s, loop);
   });
 
   it("does not give LadyDevimon itself Scapegoat", async () => {

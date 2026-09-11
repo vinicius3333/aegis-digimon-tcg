@@ -11,6 +11,21 @@ import { compiled } from "./BT23-080.js";
 const CS_SUBJECT = "BT23-006";
 // BT1-026 Breakdramon is a vanilla Lv.6 11000 DP <Piercing> attacker (Q5355).
 const PIERCER = "BT1-026";
+// A suspended vanilla 3000 DP opponent Digimon: a legal attack target the 5000 DP defenders below survive,
+// so the defender can be suspended by attacking on its own turn instead of by a state write.
+const BAIT = { card: "BT1-009", as: "bait", suspended: true } as const;
+
+/** Suspend one of seat 0's Digimon the public way: attack the suspended bait on seat 0's turn. */
+async function suspendByAttacking(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "permanent", permanentId: s.perm("bait").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking() && s.perm(alias).isSuspended);
+}
 
 describe("BT23-080 Yu Nogi", () => {
   it("matches every catalog field and complete compiled clause", () => {
@@ -195,14 +210,14 @@ describe("BT23-080 Yu Nogi", () => {
         0: {
           battleArea: [
             { card: "BT23-080", as: "yu" },
-            { card: CS_SUBJECT, as: "subject", suspended: true },
+            { card: CS_SUBJECT, as: "subject", dp: 5000 },
           ],
           hand: [{ card: "ST1-02", as: "neutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
-          battleArea: [{ card: PIERCER, as: "piercer" }],
+          battleArea: [{ card: PIERCER, as: "piercer" }, BAIT],
           hand: [{ card: "ST1-02", as: "opponentNeutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
@@ -216,11 +231,12 @@ describe("BT23-080 Yu Nogi", () => {
     const piercerPermanentId = s.perm("piercer").permanentId;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    // An attack may only target a suspended Digimon. Suspend the defender the public way:
+    // it attacks the suspended 1000 DP bait on its own turn and survives.
+    await suspendByAttacking(s, "subject");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Seat 0's Active phase unsuspended its own board, so arm the defender now: an
-    // attack may only target a suspended Digimon.
-    s.perm("subject").isSuspended = true;
+    expect(s.perm("subject").isSuspended).toBe(true);
     const deckSizeBefore = s.state.players[0]!.deck.length;
 
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
@@ -259,14 +275,14 @@ describe("BT23-080 Yu Nogi", () => {
         0: {
           battleArea: [
             { card: "BT23-080", as: "yu" },
-            { card: CS_SUBJECT, as: "subject", suspended: true },
+            { card: CS_SUBJECT, as: "subject", dp: 5000 },
           ],
           hand: [{ card: "ST1-02", as: "neutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
-          battleArea: [{ card: PIERCER, as: "piercer" }],
+          battleArea: [{ card: PIERCER, as: "piercer" }, BAIT],
           hand: [{ card: "ST1-02", as: "opponentNeutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
@@ -280,11 +296,12 @@ describe("BT23-080 Yu Nogi", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    // An attack may only target a suspended Digimon. Suspend the defender the public way:
+    // it attacks the suspended 1000 DP bait on its own turn and survives.
+    await suspendByAttacking(s, "subject");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    // Seat 0's Active phase unsuspended its own board, so arm the defender now: an
-    // attack may only target a suspended Digimon.
-    s.perm("subject").isSuspended = true;
+    expect(s.perm("subject").isSuspended).toBe(true);
 
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
     expect(
@@ -316,14 +333,14 @@ describe("BT23-080 Yu Nogi", () => {
         0: {
           battleArea: [
             { card: "BT23-080", as: "yu" },
-            { card: "BT1-009", as: "plain", suspended: true },
+            { card: "BT1-009", as: "plain", dp: 5000 },
           ],
           hand: [{ card: "ST1-02", as: "neutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
-          battleArea: [{ card: PIERCER, as: "piercer" }],
+          battleArea: [{ card: PIERCER, as: "piercer" }, BAIT],
           hand: [{ card: "ST1-02", as: "opponentNeutral" }],
           security: ["BT1-009", "BT1-010", "BT1-011"],
           deck: ["BT1-012", "BT1-013", "BT1-014"],
@@ -338,9 +355,10 @@ describe("BT23-080 Yu Nogi", () => {
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    await suspendByAttacking(s, "plain");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    s.perm("plain").isSuspended = true;
+    expect(s.perm("plain").isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
