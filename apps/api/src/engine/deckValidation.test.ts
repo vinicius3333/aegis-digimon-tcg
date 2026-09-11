@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { GameState, bannedPairViolations, type Seat } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
 import { validateDecklist } from "./deckValidation.js";
@@ -11,6 +11,12 @@ import type { Decklist } from "./setup.js";
  * illegal deck on join and never stage it. RED_DECK is a known-legal 50+5 deck with
  * no banlisted card — the base fixture each illegal case mutates.
  */
+
+// The beta-only cases below use real EX13 / P-245 cards, which stop being beta-only on their
+// street dates (2026-10-02 / 2026-10-01). Pin the clock so the proofs do not expire with them.
+const BEFORE_EX13_RELEASE = new Date("2026-09-11T12:00:00Z");
+beforeEach(() => vi.useFakeTimers({ toFake: ["Date"], now: BEFORE_EX13_RELEASE }));
+afterEach(() => vi.useRealTimers());
 
 function clone(deck: Decklist): Decklist {
   return { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] };
