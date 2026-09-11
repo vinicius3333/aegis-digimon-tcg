@@ -16,9 +16,10 @@ import {
 
 /**
  * Every catalog deck except the nine built around Nyaromon (BT15-003), banned outright on
- * 2026-09-01: a recipe with a banned card cannot be adapted by trimming copies, so it is withheld.
+ * 2026-09-01 (a recipe with a banned card cannot be adapted by trimming copies, so it is
+ * withheld), and except repeated archetypes within one collection, which are offered once.
  */
-const CATALOG_AVAILABLE_DECKS = 339;
+const CATALOG_AVAILABLE_DECKS = 301;
 
 const futureDeck: FamousDeck = {
   deckId: "future-ex12-example",
@@ -50,6 +51,19 @@ describe("famous deck catalog", () => {
     };
 
     expect(isFamousDeckAvailable(bannedRecipe)).toBe(false);
+  });
+
+  it("offers each archetype once per collection, keeping the first available recipe", () => {
+    const firstJupitermon: FamousDeck = { ...futureDeck, deckId: "jupitermon-1", archetype: "Jupitermon" };
+    const secondJupitermon: FamousDeck = { ...futureDeck, deckId: "jupitermon-2", archetype: "Jupitermon" };
+    const olderJupitermon: FamousDeck = { ...secondJupitermon, deckId: "jupitermon-bt25", block: "BT25" };
+
+    const groups = famousDeckGroups([firstJupitermon, secondJupitermon, olderJupitermon]);
+
+    expect(groups.map((group) => group.decks.map((deck) => deck.deckId))).toEqual([
+      ["jupitermon-1"],
+      ["jupitermon-bt25"],
+    ]);
   });
 
   it("groups available decks from the most recent format collection to the oldest", () => {

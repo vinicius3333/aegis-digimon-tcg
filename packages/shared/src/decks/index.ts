@@ -147,11 +147,19 @@ export interface FamousDeckGroup {
   decks: readonly FamousDeck[];
 }
 
-/** Available deck recipes grouped from the most recent format collection to the oldest. */
+/**
+ * Available deck recipes grouped from the most recent format collection to the oldest. Presets
+ * are presented by archetype, so within one collection only the first available recipe of each
+ * archetype is offered; later tournament results for the same archetype would read as duplicates.
+ */
 export function famousDeckGroups(decks: readonly FamousDeck[] = ALL_FAMOUS_DECKS): FamousDeckGroup[] {
   const byCollection = new Map<string, FamousDeck[]>();
+  const seenArchetypes = new Set<string>();
   for (const deck of decks) {
     if (!isFamousDeckAvailable(deck)) continue;
+    const archetypeKey = `${deck.block}\u0000${deck.archetype}`;
+    if (seenArchetypes.has(archetypeKey)) continue;
+    seenArchetypes.add(archetypeKey);
     byCollection.set(deck.block, [...(byCollection.get(deck.block) ?? []), deck]);
   }
   return [...byCollection.entries()]
