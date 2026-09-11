@@ -1,5 +1,38 @@
 # EX13 authoring — coordinator notes
 
+## CONFIRMED production bug — affects every DUAL card, not just EX13
+
+`printedColorRequirementMet` (`apps/api/src/engine/GameEngine.ts:6131`):
+
+```ts
+const required = definition.optionColorRequirements ?? (mode === "option" ? (definition.colors ?? []) : []);
+```
+
+The doc comment right above it says color requirements should apply
+"ONLY when this play resolves as an Option (`mode === "option"`)" and
+that a DUAL card played on its Digimon side "is never gated by this
+fallback." But `optionColorRequirements` is always DEFINED on a DUAL
+card, so the `??` short-circuits to it regardless of `mode` — playing a
+DUAL card's DIGIMON side is incorrectly gated by the OPTION side's color
+requirement too. Verified by reading the source (not just a worker
+report): `mode` is `"permanent" | "option"`
+(`apps/api/src/engine/actions/playCard.ts:72`), and the ternary is
+provably dead code whenever `optionColorRequirements` exists. Confirmed
+affecting all pre-existing DUAL cards (the comment names 6 of them) plus
+EX13-065/EX13-066. Fix shape: gate the whole expression on `mode`, e.g.
+`mode === "option" ? (definition.optionColorRequirements ?? definition.colors ?? []) : []`.
+Not fixed here (engine file, out of a card lane's allowed edits) — route
+to an engine lane; this is a real gameplay-legality bug, not test noise.
+
+- An Arts Digivolve prompt (CR §4-19, offered after a DUAL card's Option
+  side resolves) surfaces as a `selectCards` decision with `min: 0` —
+  `autoSelectCards: true` ACCEPTS it and `autoDeclineOptional` does NOT
+  decline it. Leaving it on auto can silently digivolve a board permanent
+  into the DUAL card and fire its `[When Digivolving]` clauses,
+  corrupting an unrelated assertion. Either seed a board with no legal
+  Arts base for the card under test, or decline it manually
+  (`{ kind: "selectCards", instanceIds: [] }`).
+
 ## Flaky test found — needs an engine lane, not a card fix
 
 `EX13-053.test.ts`'s "de-digivolves 1 opponent Digimon from under a host,
@@ -120,6 +153,33 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   `UseOptionWithoutCostAction`, wire it into `totalReduction` and
   `costDelta`.
 
+- **Pooled ＜Guard＞ can't express per-holder "other than itself".** Leave-
+  prevention `Replacement`s are registered per SOURCE permanent, and
+  `Filter.excludeSelf` is source-relative — so a ＜Guard＞ granted to a
+  *pool* of Digimon (rather than printed on one card) cannot enforce
+  §16-45-1's "another Guard holder, not itself" scope per holder. First
+  hit: EX13-063, whose module takes the narrower `excludeSelf: true`
+  reading (correct for saving itself, loses "a second holder saves this
+  one") and documents the gap rather than risking an illegal self-save.
+  Needs an engine ＜Guard＞ hook subscribing once per keyword holder, not
+  a card-side field. EX12-072 has the same approximation, unobserved.
+
+- Assembly material slots have no `keywords: [...]` field to express a
+  printed keyword requirement. Route it through
+  `nameOrTrait: [{ tokens: ["＜Blocker＞"], match: "text" }]`, which
+  `matchNameOrTrait` resolves via its delimiter-anchored keyword-token
+  path. This is also the ONLY way to satisfy
+  `materialMatchesAssemblySlot`'s requirement that every slot carry a
+  name/trait/text anchor — a colour+level-only slot is rejected as
+  unenforceable.
+
+- `advance(...).verb.suspend(ids, byEffectSeat)` bypasses target
+  resolution, so it is not a valid probe for a `beAffected`/continuous
+  immunity — an immune permanent will still appear to suspend through it.
+  Prove immunity with `enterEffectResolution(seat, [kinds])` +
+  `deletePermanent` (or the real action the immunity guards), whose
+  `isRestricted` path actually reads the effect-source-kinds stack.
+
 - `settle(predicate)` can return mid-resolution: after it settles on a
   count predicate (e.g. `trash.length === 1`), add a bare `await settle()`
   before asserting a final count, or an effect that produces more than
@@ -193,6 +253,32 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   live board every pass anyway, so the field is inert there — don't add
   it to a resident clause just because a timed-window peer has it.
 
+- `abortOnDecline` is inert on a `CostGatedBlock` that is its effect's
+  only action — it only tells the caller to skip later SIBLING actions,
+  and the block's own nested actions are already skipped when its cost
+  goes unpaid. Kept for peer consistency, not load-bearing; don't treat
+  it as proven by a mutation test.
+- A turn-loop test whose only hand card is the one the effect plays makes
+  Main auto-pass, ending the turn — `state.memory` then reads the
+  negated OPPONENT side's value. Keep a spare playable card in hand.
+- A seeded breeding-area Digimon parks `runOneTurn` waiting for a
+  hatch/move action (`waitForMainPhase` throws "...Breeding/..."); fire
+  the timing directly instead of driving a full turn when breeding state
+  is present but not the point of the test.
+
+- ＜Piercing＞ granted continuously via `GainKeyword` is invisible to
+  `observe().hasKeyword(p, "Piercing")` — it lands in the battle-modifier
+  ledger. Use `observe().hasPierce(p)` instead, or the test gets a
+  confusing false negative on a fully-active keyword.
+- A GRANTED (not just printed) ＜Alliance＞ opens the alliance decision
+  the same as a printed one, including on an effect-driven `forceAttack`
+  — any test whose card grants Alliance to a group will park every
+  attack on `combat.hasOpenAllianceDecision`, not just tests on cards
+  that print the keyword themselves.
+- `UseOptionWithoutCost` defaults its cost cap to 5; a printed ceiling
+  above 5 must be stated explicitly on the action or it is silently
+  shaved down.
+
 ## Harness notes (not engine gaps, just non-obvious)
 
 - ＜Counter＞ opens **before** the block window when the host is attacked;
@@ -254,6 +340,15 @@ text prints tokens it also filters by — it is a one-field fix, not a seam.
   needs a side-effect import of the peer
   (`import "../SET/SET-NNN.js";`, per `_a3/revealAdd-cluster.test.ts`) or
   the other card behaves as vanilla in the fixture.
+
+- `BT24-014.ts` may be miscoded: it encodes `＜Decode ([Aegiomon])＞` with
+  substring `match: "name"` (should be exact per the bracketed-name
+  convention) and carries a duplicated `isInherited: true` copy of both
+  the keyword and the leave-prevention replacement, though the catalog
+  text prints the keyword only on the Digimon's own line. Sibling
+  BT24-027 has the correct shape. Found while authoring EX13-065's own
+  ＜Decode＞ clause. Not fixed here — BT24 is a separate, already-audited
+  set.
 
 ## Out-of-scope finding (not EX13, do not fix here)
 
