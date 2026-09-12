@@ -38,7 +38,8 @@ Full-collection reaudit is in progress on branch `promo-full-reaudit`, in a new 
 worktree based on `de4dda717d8c9e0c2420796cb387f68b1379b863`. Historical 10/10 scores below
 are retained as prior evidence; current delivery gates and clause review are not yet complete.
 Two Luna reviewers inspect all 249 cards against the catalog, local KB, direct IR and existing
-behavioral tests. Reviewers do not run tests; the coordinator serializes test execution.
+behavioral tests. Initial reviewers did not run tests. During evidence repairs, all lanes and the coordinator use
+a global serialized test runner: only one Vitest process at a time, one worker, 2 GB heap.
 
 - Initial source search found no `ts-nocheck` directives in `apps/api/src/cards/P` and no legacy
   `registerCard` calls in production modules. The existing collection guard independently checks
@@ -65,10 +66,19 @@ behavioral tests. Reviewers do not run tests; the coordinator serializes test ex
   `OncePerTurn`; current colocated tests generally lack an accepted full real-turn cycle.
 - Accepted atomic commits: `5d6edb72b` (P-094 redirection costs/refusal/limit/reset proof) and
   `fac7cdfe7` (Training comments, P-107 ruling references and assertion API cleanup).
-- New P-060/P-061/P-137 proofs remain unaccepted: their focused run failed due to
-  incomplete/invalid resources, pending combat, automatic Main pass or insufficient turn
-  baselines. These failures are under correction and do not supersede the green baseline
-  collection gate. They must pass before any affected row is restored to 10/10.
+- Repaired P-060/P-061/P-123/P-125–P-129/P-137 proofs independently pass: 9 files, 37 tests.
+  Fixtures now use legal normal deck/security cards; natural turns prove frequency resets,
+  and Tamer tests resolve real Start of Main and Security behavior. Earlier failing repair
+  attempts are superseded by this focused result. Closing collection gates remain pending.
+- First fixture cleanup: 15 focused files, 54 tests passed in the worker; coordinator
+  independently passed those files plus P-060/P-061 (17 files, 60 tests). Nine edited fixture
+  files were committed as `0e5ff34ab`; lint, format and diff checks passed.
+- Catalog AST scan found remaining normal deck/security Digi-Egg literals in 90 files
+  after the first repairs. These existing fixture corrections remain in progress.
+- P-004 IR now declares Your Turn and Once Per Turn. Synchronization and check report one
+  semantic P change, 249 synchronized records, and zero semantic or byte changes outside P.
+  Its public legal-stack/reset proof remains pending; privileged trigger tests alone do not
+  establish complete behavioral fidelity.
 - Remaining second-lane review findings to verify and repair include P-149's monochrome
   negative, P-157's black-Tamer negative, P-158's Mother D-Reaper stack cost scale, P-160/P-202
   inherited Piercing battle, P-201 inherited end-of-opponent-turn suspension, P-203's real
@@ -617,23 +627,23 @@ git diff --check
 
 ### P-060 — Angoramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-060.ts) · [test](../../apps/api/src/cards/P/P-060.test.ts) · clause review (source removed; see History)<br>“gains 1 memory when its host attacks while Ruli is in play”; “gains memory only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; errata entry present; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Three focused tests pass: legal inherited host attacks gain memory once, a second same-turn attack does not gain again, and an attack after natural turns 0 → 1 → 0 gains again. Regular deck/security fixtures replace Digi-Eggs.
 
 ### P-061 — Jellymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-061.ts) · [test](../../apps/api/src/cards/P/P-061.test.ts) · clause review (source removed; see History)<br>“draws 1 when its host attacks while Kiyoshiro is in play”; “draws only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Three focused tests pass: legal inherited host attacks draw once, the second same-turn attack leaves the identified card in deck, and a new natural turn draws the distinct effect card after the ordinary turn draw. Regular deck/security fixtures replace Digi-Eggs.
 
 ### P-062 — Hiro Amanokawa
 
@@ -1165,13 +1175,13 @@ git diff --check
 
 ### P-123 — Ukkomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-123.ts) · [test](../../apps/api/src/cards/P/P-123.test.ts) · clause review (source removed; see History)<br>“hatches and gains memory when a Digimon moves from breeding”; “Q4236 gains memory even when the optional hatch is declined”; “Q4239 triggers when Ukkomon itself moves from breeding”
 
 - Local KB lookup (2026-09-12): Q4236, Q4237, Q4238, Q4239; errata entry present; restriction entry: restricted.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+- Reaudit proof accepted (2026-09-12): Five focused tests pass: accepted/declined hatching and self-movement rulings, same-turn effect-driven second raise through P-130 with no extra hatch/memory, and another raise after natural turns 0 → 1 → 0. Public breeding digivolution uses catalog-legal BT1-009 over BT1-001.
 
 ### P-124 — Davis Motomiya
 
@@ -1190,53 +1200,57 @@ git diff --check
 
 ### P-125 — Ken Ichijoji
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-125.ts) · [test](../../apps/api/src/cards/P/P-125.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into Stingmon for free”; “plays Wormmon from hand through the first On Play mode”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Security auto-play is not exercised behaviorally; Start of Main proof must use the real turn loop rather than injected timing. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit focused proof accepted (2026-09-12): all four tests pass. Public On Play choices
+  play Wormmon or legally evolve into Stingmon for free while Ken costs exactly three memory.
+  A complete natural turn cycle proves Free-trait Start of Main memory gain; a no-Free board
+  proves the negative. A real Security attack plays Ken and a neutral Wormmon without cost.
+  Spare legal hand cards and regular decks keep the intended Main phase observable.
 
 ### P-126 — Yolei Inoue
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-126.ts) · [test](../../apps/api/src/cards/P/P-126.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into Aquilamon for free”; “plays Hawkmon from hand through the first On Play mode”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Security auto-play is not exercised behaviorally; Start of Main proof must use the real turn loop rather than injected timing. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Four focused tests pass: both public On Play modes, actual Start of Main memory in the real turn loop, and real Security attack auto-play with the On Play choice fully resolved.
 
 ### P-127 — Kari Kamiya
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-127.ts) · [test](../../apps/api/src/cards/P/P-127.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into Gatomon for free”; “plays Salamon from hand through the first On Play mode”; “does not gain memory merely when security counts are equal”; “gains one memory at start of main when behind on security”
 
 - Local KB lookup (2026-09-12): Q4240; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Security auto-play is not exercised behaviorally; Start of Main proof must use the real turn loop rather than injected timing. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Five focused tests pass: both public On Play modes, equal/behind security-count gates in real Start of Main, and real Security auto-play plus complete On Play resolution. Security fixtures are regular cards.
 
 ### P-128 — Cody Hida
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-128.ts) · [test](../../apps/api/src/cards/P/P-128.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into Ankylomon for free”; “plays Armadillomon from hand through the first On Play mode”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Security auto-play is not exercised behaviorally; Start of Main proof must use the real turn loop rather than injected timing. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Four focused tests pass: both public On Play modes, actual Start of Main memory in the real turn loop, and real Security attack auto-play with the On Play choice fully resolved.
 
 ### P-129 — T.K. Takaishi
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-129.ts) · [test](../../apps/api/src/cards/P/P-129.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into Angemon for free”; “plays Patamon from hand through the first On Play mode”; “does not gain memory when security counts are equal”; “gains one memory at start of main when ahead on security”
 
 - Local KB lookup (2026-09-12): Q4241; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Security auto-play is not exercised behaviorally; Start of Main proof must use the real turn loop rather than injected timing. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Five focused tests pass: both public On Play modes, equal/ahead security-count gates in real Start of Main, and real Security auto-play plus Patamon On Play resolution. Security resolution waits for a new securityChecked event, no pending decision, and idle attack state; security fixtures are regular cards.
 
 ### P-130 — Lui Ohwada
 
@@ -1304,13 +1318,13 @@ git diff --check
 
 ### P-137 — Flamedramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-137.ts) · [test](../../apps/api/src/cards/P/P-137.test.ts) · clause review (source removed; see History)<br>“digivolves from Veemon and exposes Armor Purge and Raid”; “moves the opponent's top security card to hand when its attack target switches”; “does not react when another Digimon's attack target switches”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit proof accepted (2026-09-12): Five focused tests pass: catalog evolution/keywords, own-versus-other target-switch response, same-turn denial on a second blocked attack, and renewed security-to-hand transfer after natural turns 0 → 1 → 0. Distinct security instance IDs establish the transfers.
 
 ### P-138 — Veedramon
 
@@ -2314,7 +2328,7 @@ Ruling IDs cited by P cards: Q4113,Q4124 Q4128,Q4132 Q4135,Q4138 Q4141,Q4144 Q41
 
 ## Open items
 
-- The 2026-09-12 reaudit currently has 65 cards at 9/10 and P-004 at 8/10 for missing real timing, Security or
+- The 2026-09-12 reaudit currently has 64 cards at 9/10 and P-004 at 8/10 for missing real timing, Security or
   next-turn frequency-reset proof. Implementation IR has no confirmed defect in these rows;
   focused evidence work is ongoing, and completion is not claimed.
 - P-226 and P-251 are absent from the committed catalog (unrevealed placeholder rows). The set is
