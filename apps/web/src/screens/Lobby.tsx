@@ -72,7 +72,7 @@ export function Lobby({
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
-  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string) => void;
+  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean) => void;
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
@@ -108,7 +108,7 @@ export function Lobby({
         : [],
     [active],
   );
-  const betaEnabled = mode === "casual" && betaBattleMode;
+  const betaEnabled = (mode === "casual" || mode === "practice") && betaBattleMode;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
@@ -363,7 +363,7 @@ export function Lobby({
         <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
 
         <div style={{ flex: 1 }}>
-          {mode === "casual" ? (
+          {mode === "casual" || mode === "practice" ? (
             <div className="lobby-beta-option">
               <label htmlFor="lobby-beta-battle">
                 <input
@@ -459,6 +459,7 @@ export function Lobby({
                     </label>
                     <select
                       id="lobby-bot-deck"
+                      className="lobby-bot-deck-select"
                       value={botDeckId}
                       onChange={(event) => setBotDeckId(event.target.value)}
                       style={{
@@ -467,7 +468,7 @@ export function Lobby({
                         borderRadius: 10,
                         border: "1px solid var(--ds-border-strong)",
                         background: "var(--ds-surface-raised)",
-                        color: "var(--ds-fg)",
+                        color: "var(--ds-brand-ink)",
                         fontSize: 13,
                         fontFamily: "var(--ds-font-body)",
                         outline: "none",
@@ -492,7 +493,7 @@ export function Lobby({
                       full
                       icon={Icons.Bot}
                       disabled={!deckLegal}
-                      onClick={() => onStart("bot", undefined, botDeckId || undefined)}
+                      onClick={() => onStart("bot", undefined, botDeckId || undefined, betaBattleMode)}
                     >
                       {t("lobby.playVsBot")}
                     </Button>

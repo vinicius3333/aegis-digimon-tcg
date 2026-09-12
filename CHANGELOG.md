@@ -3,6 +3,12 @@
 All notable changes to Aegis are documented here. This file is generated from
 `releases.json`; use `pnpm release:prepare` to add a release.
 
+## [1.2.1] - 2026-09-12
+
+### Fixed
+
+- allow preview cards in bot battles
+
 ## [1.2.0] - 2026-09-12
 
 ### Added

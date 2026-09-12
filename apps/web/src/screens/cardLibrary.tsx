@@ -138,6 +138,7 @@ const SET_RELEASE_ORDER: Record<string, number> = {
   AD1: 60,
   BT25: 61,
   EX12: 62,
+  EX13: 63,
 };
 
 // Sets with no single release date — always sorted to the bottom.

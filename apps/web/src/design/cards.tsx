@@ -269,7 +269,22 @@ export function CardFull({
       }}
     >
       {urlIndex >= urls.length ? (
-        <Sigil cardId={cardId} color={key} size={Math.round(h * 0.4)} />
+        <div
+          style={{
+            display: "grid",
+            justifyItems: "center",
+            gap: 8,
+            padding: 10,
+            textAlign: "center",
+            color: "var(--ds-foreground)",
+            fontSize: 11,
+            fontWeight: 700,
+          }}
+        >
+          <Sigil cardId={cardId} color={key} size={Math.round(h * 0.32)} />
+          <span>{def.nameEn}</span>
+          <span style={{ fontFamily: "var(--ds-font-mono)", color: "var(--ds-foreground-muted)" }}>{cardId}</span>
+        </div>
       ) : (
         <img
           src={urls[urlIndex]}

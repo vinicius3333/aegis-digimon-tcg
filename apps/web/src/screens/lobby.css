@@ -150,6 +150,17 @@
 .lobby-alert {
   margin-bottom: var(--ds-space-4);
 }
+.lobby-bot-deck-select {
+  color-scheme: light;
+  color: var(--ds-brand-ink) !important;
+  background: var(--ds-brand-on-ink) !important;
+  border-color: var(--ds-brand-accent-soft) !important;
+}
+.lobby-bot-deck-select option,
+.lobby-bot-deck-select optgroup {
+  color: var(--ds-brand-ink);
+  background: var(--ds-brand-on-ink);
+}
 .lobby-alert .aegis-alert__body > div {
   margin-top: var(--ds-space-1);
 }

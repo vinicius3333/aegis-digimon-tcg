@@ -283,6 +283,7 @@ export function GameScreen({
   startMode = "casual",
   roomCode,
   botDeckId,
+  betaBattleMode,
   onExit,
   signedIn = false,
   demoConnection,
@@ -295,6 +296,7 @@ export function GameScreen({
   roomCode?: string;
   /** Famous-deck preset the seated bot should play; absent means the server picks at random. */
   botDeckId?: string;
+  betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
@@ -324,8 +326,12 @@ export function GameScreen({
     return { mode: startMode, roomCode };
   }, [startMode, roomCode]);
   const roomOptions = useMemo(
-    () => ({ ...joinOptions, ranked: startMode === "ranked", betaBattleMode: startMode === "beta" }),
-    [joinOptions, startMode],
+    () => ({
+      ...joinOptions,
+      ranked: startMode === "ranked",
+      betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
+    }),
+    [joinOptions, startMode, betaBattleMode],
   );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {

@@ -6,6 +6,7 @@ import {
   ROOM_TYPE_PRIVATE,
   ROOM_TYPE_RANKED,
   ROOM_TYPE_BETA,
+  ROOM_TYPE_BETA_BOT,
   type Intent,
 } from "@aegis/shared";
 import {
@@ -102,7 +103,8 @@ export class AegisConnectionRouter {
   private async createBotWithFreshManifest(options: AegisJoinOptions, retriedAfterDrain: boolean): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     try {
-      const created = await this.client(manifest.active.slot).create(ROOM_TYPE_BOT, options);
+      const roomType = options.betaBattleMode ? ROOM_TYPE_BETA_BOT : ROOM_TYPE_BOT;
+      const created = await this.client(manifest.active.slot).create(roomType, options);
       return this.remember(created, manifest.active.slot);
     } catch (error) {
       if (!retriedAfterDrain && isDrainingResponse(error)) {
@@ -270,7 +272,8 @@ export async function joinWithBot(roomId: string, botDeckId?: string): Promise<v
 /** Create an isolated one-human room for a match against the server bot. */
 export async function createBot(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().createBot(options);
-  const created = await getLegacyClient().create<GameState>(ROOM_TYPE_BOT, options);
+  const roomType = options.betaBattleMode ? ROOM_TYPE_BETA_BOT : ROOM_TYPE_BOT;
+  const created = await getLegacyClient().create<GameState>(roomType, options);
   return rememberLegacy(created);
 }
 

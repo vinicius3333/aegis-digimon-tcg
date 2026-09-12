@@ -8,6 +8,7 @@ import {
   matchesTraitOrAttributeFilter,
   readableEffectText,
   sortCards,
+  sortByCollection,
 } from "./cardLibrary";
 
 describe("deck-builder color filtering", () => {
@@ -104,5 +105,18 @@ describe("card effect readability", () => {
     expect(readableEffectText("Digivolve: 0 from [Jesmon]＜Piercing＞[When Digivolving] Play 1 [Sistermon].")).toBe(
       "Digivolve: 0 from [Jesmon]\n＜Piercing＞\n[When Digivolving] Play 1 [Sistermon].",
     );
+  });
+});
+
+describe("collection chronology", () => {
+  it("places EX13 after the latest dated expansion instead of the unknown-set tail", () => {
+    const cards = [
+      { cardId: "P-250", set: "P" },
+      { cardId: "EX12-001", set: "EX12" },
+      { cardId: "EX13-001", set: "EX13" },
+      { cardId: "BT25-001", set: "BT25" },
+    ] as never[];
+
+    expect(sortByCollection(cards).map(({ cardId }) => cardId)).toEqual(["EX13-001", "EX12-001", "BT25-001", "P-250"]);
   });
 });

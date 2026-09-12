@@ -5,6 +5,7 @@ import express from "express";
 import {
   ROOM_TYPE,
   ROOM_TYPE_BETA,
+  ROOM_TYPE_BETA_BOT,
   ROOM_TYPE_BOT,
   ROOM_TYPE_PRIVATE,
   ROOM_TYPE_RANKED,
@@ -191,6 +192,7 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
 // into bot mode by sending `{ botRoom: true }` themselves.
 gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false });
 gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true, betaBattleRoom: false });
+gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, { botRoom: true, betaBattleRoom: true });
 gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true, betaBattleRoom: false });
 gameServer.define(ROOM_TYPE_BETA, AegisRoom, {
   botRoom: false,

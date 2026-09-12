@@ -827,6 +827,7 @@ export class AegisRoom extends Room<GameState> {
       this.engine.seatPlayer(this.BOT_SEAT, "bot", {
         displayName: "Bot",
         deck: botDeckFor(botDeckId),
+        betaBattleMode: this.isBetaBattleRoom,
       }),
     );
 
