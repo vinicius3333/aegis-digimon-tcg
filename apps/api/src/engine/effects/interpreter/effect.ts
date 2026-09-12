@@ -40,7 +40,7 @@ import { allowsOptionalProcessingCostWithoutTarget } from "./processingCondition
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect, Cost, Filter, Target } from "@aegis/shared";
+import type { Action, CardEffect, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -780,41 +780,11 @@ export function canActivateEffect(
     if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;
     return (action.costOptions?.length ?? 0) === 0 || action.costOptions!.some((cost) => canPayCost(ctx, cost));
   };
-  /**
-   * The place costs of `cost` (a single cost or a compound), keyed by the selection ref each one
-   * binds its chosen HOST to. A block's payload reads its target through that binding, so the
-   * binding's destination filter is what the payload can be preflighted against before payment.
-   */
-  const hostFilterBySelectionRef = (cost: Cost | number | undefined): Map<string, Filter> => {
-    const out = new Map<string, Filter>();
-    if (cost === undefined || typeof cost === "number") return out;
-    for (const nested of cost.kind === "compound" ? (cost.costs ?? []) : [cost]) {
-      if (nested.kind !== "place" || nested.bindHostAs === undefined) continue;
-      const hostFilter =
-        nested.underFilter ??
-        (nested.host !== undefined && nested.host !== null && typeof nested.host === "object"
-          ? nested.host.filter
-          : undefined);
-      if (hostFilter !== undefined) out.set(nested.bindHostAs, hostFilter);
-    }
-    return out;
-  };
   const intrinsicPossible = (action: ParsedAction): boolean => {
-    // A CostGatedBlock is "by paying [cost], [payload]": the ACTIVATION is possible only when the
-    // payload is, so preflight through to the inner actions. Without this the block activates,
-    // pays its compound place cost and then fizzles when no legal payload exists — BT17-085's
-    // Rika with no [Sakuyamon] in hand buries herself, [Kyubimon] and [Taomon] under Renamon
-    // (Q2868). The payload's own target is not yet bound, so it is preflighted against the
-    // destination filter of the cost that will bind it, exactly as `runActionInner` does.
-    if (action.kind === "CostGatedBlock") {
-      const hostFilters = hostFilterBySelectionRef(action.cost);
-      return (action.actions ?? []).some((inner) => {
-        const ref = (inner as { target?: { fromSelectionRef?: string } }).target?.fromSelectionRef;
-        const hostFilter = ref === undefined ? undefined : hostFilters.get(ref);
-        if (hostFilter === undefined) return intrinsicPossible(inner as ParsedAction);
-        return intrinsicPossible({ ...inner, target: { filter: hostFilter, count: 1 } } as ParsedAction);
-      });
-    }
+    // CR 15-7-5 permits performing a payable processing condition even when
+    // its subsequent content cannot execute. The cost/condition gates below
+    // still apply; the nested resolver decides which payload actions can run.
+    if (action.kind === "CostGatedBlock") return true;
     if (action.kind === "Digivolve") {
       const costProducedTarget =
         action.cost?.kind === "place" &&
