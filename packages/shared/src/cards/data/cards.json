@@ -140122,7 +140122,7 @@
     "types": [
       "LIBERATOR"
     ],
-    "effectText": "[Main] You may play 1 [Vemmon] or [Zenith] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[All Turns] When effects place [Vemmon] as any of your Digimon's digivolution cards, ＜Delay＞ \n・1 of your Digimon with [Vemmon] in its text may digivolve into a Digimon card with [Vemmon] in its text in the hand or trash with the cost reduced by 3.",
+    "effectText": "[Main] You may play 1 [Vemmon] or [Zenith] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Your Turn] When effects place [Vemmon] as any of your Digimon's digivolution cards, ＜Delay＞ \n・1 of your Digimon with [Vemmon] in its text may digivolve into a Digimon card with [Vemmon] in its text in the hand or trash with the cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
     "nameJp": "ユニークエンブレム：終焉の到達者"
   },
