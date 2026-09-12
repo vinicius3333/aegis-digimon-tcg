@@ -201689,7 +201689,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "nameExact" }]
             },
             "actions": [
               {
