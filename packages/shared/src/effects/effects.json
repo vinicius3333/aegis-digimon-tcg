@@ -200047,6 +200047,37 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Raid", "raw": "＜Raid＞" }] },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }] },
       {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanBattle",
+            "raw": "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "trigger": "WhenDigivolving",
         "actions": [
           {
@@ -200090,6 +200121,38 @@
         "actions": [],
         "isInherited": true,
         "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanBattle",
+            "raw": "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "isInherited": true
       }
     ],
     "coverage": "full",
