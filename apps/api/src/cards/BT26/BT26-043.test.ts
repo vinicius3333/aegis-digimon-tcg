@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT26-043.js";
 import "../index.js";
 

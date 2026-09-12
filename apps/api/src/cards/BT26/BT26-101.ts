@@ -8,7 +8,6 @@ const tsCard: Filter = {
   playCostLte: 4,
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
 };
-const _tsDigimon: Filter = { ...ts, levelLte: 99 };
 const namedTamer: Filter = {
   controller: "mine",
   kind: ["Tamer"],

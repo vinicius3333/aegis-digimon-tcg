@@ -57,14 +57,33 @@ describe("BT26-103 compiled fidelity", () => {
   it("trashes one security card and recovers two when digivolving", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-103", as: "wrathMode" }],
+        battleArea: [{ card: "BT5-030", as: "olymposBase" }],
+        hand: [{ card: "BT26-103", as: "wrathMode" }],
         security: ["BT1-009"],
-        deck: ["BT1-010", "BT1-011"],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }, "BT1-011", "BT1-012"],
       },
     });
+    s.state.memory = 5;
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("olymposBase").permanentId,
+        instanceId: s.inst("wrathMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("olymposBase").topCard.cardId === "BT26-103" &&
+        s.state.players[0]!.security.length === 2 &&
+        s.state.players[0]!.deck.length === 0 &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-103"),
+    );
 
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("olymposBase").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("olymposBase").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
@@ -72,15 +91,57 @@ describe("BT26-103 compiled fidelity", () => {
   it("Q7188: recovers two even with no security card to trash", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-103", as: "wrathMode" }],
-        deck: ["BT1-010", "BT1-011"],
+        battleArea: [{ card: "BT5-030", as: "olymposBase" }],
+        hand: [{ card: "BT26-103", as: "wrathMode" }],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }, "BT1-011", "BT1-012"],
       },
     });
+    s.state.memory = 5;
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("olymposBase").permanentId,
+        instanceId: s.inst("wrathMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("olymposBase").topCard.cardId === "BT26-103" &&
+        s.state.players[0]!.security.length === 2 &&
+        s.state.players[0]!.deck.length === 0 &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-103"),
+    );
 
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("olymposBase").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("olymposBase").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("rejects the printed evolution from a non-Olympos XII level-6 Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-080", as: "invalidBase" }],
+        hand: [{ card: "BT26-103", as: "wrathMode" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("invalidBase").permanentId,
+        instanceId: s.inst("wrathMode").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-080");
+    expect(s.perm("invalidBase").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wrathMode").instanceId);
   });
 
   it("activates from the defending Counter window and spends the shared recovery use", async () => {
@@ -115,6 +176,13 @@ describe("BT26-103 compiled fidelity", () => {
         effectKey: counter!.effectKey,
       }),
     ).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: counter!.instanceId,
+        effectKey: counter!.effectKey,
+      }).ok,
+    ).toBe(false);
     await settle(() => s.state.players[1]!.deck.length === 2);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

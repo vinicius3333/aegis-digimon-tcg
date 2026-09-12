@@ -196,7 +196,7 @@ describe("BT26-044 Lilamon", () => {
     );
     await s.ready();
 
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);

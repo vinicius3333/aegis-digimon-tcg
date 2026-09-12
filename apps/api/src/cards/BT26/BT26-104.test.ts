@@ -47,10 +47,11 @@ describe("BT26-104 compiled fidelity", () => {
   });
 
   it("gains one memory at the start of its controller's main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-104", as: "kunlun" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-104", as: "kunlun" }], deck: ["BT1-009", "BT1-010"] } });
     s.state.memory = 0;
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("kunlun"));
+    await s.ready();
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(1);
   });
@@ -59,18 +60,29 @@ describe("BT26-104 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-104", as: "kunlun" }],
-          hand: [{ card: "BT26-013", as: "shambalaCost" }],
+          hand: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT26-013", as: "shambalaCost" },
+          ],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kunlun"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kunlun").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.length === 1 && s.state.players[0]!.trash.some((card) => card.cardId === "BT26-013"),
+    );
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT26-013")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
   });
 
   it("does not draw when no Shambala card can pay the on-play cost", async () => {
@@ -202,15 +214,21 @@ describe("BT26-104 compiled fidelity", () => {
 
   it("plays itself without cost from security", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "BT26-104", as: "security", faceUp: true }] },
+      0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      1: { security: [{ card: "BT26-104", as: "security" }] },
     });
-    s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-104"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-104"));
 
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

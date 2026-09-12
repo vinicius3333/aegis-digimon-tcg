@@ -103,7 +103,7 @@ describe("BT26-001 Yokomon", () => {
         1: {
           battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }],
           deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },

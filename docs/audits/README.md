@@ -112,7 +112,7 @@ build when it is stale.
 | BT23 | 102 | verified | 2026-09-10 | [BT23.md](BT23.md) |
 | BT24 | 102 | verified | 2026-09-08 | [BT24.md](BT24.md) |
 | BT25 | 104 | verified | 2026-09-06 | [BT25.md](BT25.md) |
-| BT26 | 104 | verified | 2026-09-10 | [BT26.md](BT26.md) |
+| BT26 | 104 | verified | 2026-09-12 | [BT26.md](BT26.md) |
 | EX1 | 73 | verified | 2026-09-10 | [EX1.md](EX1.md) |
 | EX2 | 74 | verified | 2026-09-10 | [EX2.md](EX2.md) |
 | EX3 | 74 | verified | 2026-09-10 | [EX3.md](EX3.md) |
@@ -125,8 +125,9 @@ build when it is stale.
 | EX10 | 74 | verified | 2026-09-08 | [EX10.md](EX10.md) |
 | EX11 | 74 | verified | 2026-09-09 | [EX11.md](EX11.md) |
 | EX12 | 77 | verified | 2026-09-08 | [EX12.md](EX12.md) |
+| EX13 | 60 | incomplete | 2026-09-11 | [EX13.md](EX13.md) |
 | LM | 62 | verified | 2026-09-10 | [LM.md](LM.md) |
-| P | 243 | verified | 2026-09-10 | [P.md](P.md) |
+| P | 249 | verified | 2026-09-11 | [P.md](P.md) |
 | RB1 | 33 | verified | 2026-09-10 | [RB1.md](RB1.md) |
 | ST1 | 16 | verified | 2026-09-05 | [ST1.md](ST1.md) |
 | ST2 | 16 | verified | 2026-09-05 | [ST2.md](ST2.md) |

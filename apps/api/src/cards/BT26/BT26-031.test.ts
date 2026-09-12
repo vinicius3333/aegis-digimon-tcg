@@ -105,7 +105,7 @@ describe("BT26-031 compiled fidelity", () => {
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
       ).continuous.hasRestriction(s.perm("target").permanentId, "suspend"),
     ).toBe(true);
-    const loop = s.engine.startTurnLoop();
+    s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);

@@ -12,7 +12,6 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-063.js";
 import "../index.js";

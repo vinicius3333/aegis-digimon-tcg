@@ -1,4 +1,4 @@
-import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
+import { Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
@@ -214,11 +214,11 @@ describe("BT26-008 Kotemon", () => {
       0: {
         battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
-        security: 5,
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
       1: {
         deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-        security: 5,
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
     seedTurnLoop(opponentTurn);

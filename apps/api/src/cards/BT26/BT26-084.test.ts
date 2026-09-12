@@ -187,7 +187,7 @@ describe("BT26-084 compiled behavior", () => {
     );
 
     s.state.memory = 6;
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -225,7 +225,7 @@ describe("BT26-084 compiled behavior", () => {
     );
     s.state.memory = 8;
 
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
@@ -317,7 +317,7 @@ describe("BT26-084 compiled behavior", () => {
     yourTurn.state.memory = 6;
     yourTurn.give(0, Zone.Hand, { card: "BT26-019", as: "firstLink" });
     yourTurn.give(0, Zone.Hand, { card: "BT26-019", as: "secondLink" });
-    const yourTurnLoop = yourTurn.engine.startTurnLoop();
+    void yourTurn.engine.startTurnLoop();
     await advance(yourTurn.engine).waitForMainPhase(0);
     for (const alias of ["firstLink", "secondLink"]) {
       expect(
@@ -346,7 +346,7 @@ describe("BT26-084 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    const opponentsTurnLoop = opponentsTurn.engine.startTurnLoop();
+    void opponentsTurn.engine.startTurnLoop();
     await advance(opponentsTurn.engine).waitForMainPhase(0);
     advance(opponentsTurn.engine).endMainPhaseIfOpen(0);
     await advance(opponentsTurn.engine).waitForMainPhase(1);

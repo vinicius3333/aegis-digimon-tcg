@@ -82,13 +82,13 @@ describe("BT26-003 Kyaromon", () => {
         1: {
           battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     seedTurnLoop(s);
-    const loop = s.engine.startTurnLoop();
+    s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -122,7 +122,7 @@ describe("BT26-003 Kyaromon", () => {
         1: {
           battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -160,7 +160,7 @@ describe("BT26-003 Kyaromon", () => {
         1: {
           battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -203,7 +203,7 @@ describe("BT26-003 Kyaromon", () => {
         1: {
           battleArea: [{ card: "BT21-025", as: "progressAttacker", dp: 7000 }],
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -254,7 +254,7 @@ describe("BT26-003 Kyaromon", () => {
         },
         1: {
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           battleArea: [
             { card: "BT26-014", as: "firstAttacker", dp: 7000 },
             { card: "BT26-014", as: "secondAttacker", dp: 7000 },
@@ -308,7 +308,7 @@ describe("BT26-003 Kyaromon", () => {
         1: {
           battleArea: [{ card: "BT26-014", as: "attacker", dp: 7000 }],
           deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-          security: 5,
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
