@@ -138444,7 +138444,7 @@
       "Olympos XII",
       "Light Fang"
     ],
-    "effectText": "[Digivolve] Lv.5 w/[Light Fang]/[Night Claw] trait: Cost 4 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait. Then, delete up to 7000 DP total worth of their Digimon.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.",
+    "effectText": "[Digivolve] Lv.5 w/[Light Fang]/[Night Claw] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait. Then, delete up to 7000 DP total worth of their Digimon.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.",
     "inheritedEffectText": "[End of Your Turn] [Once Per Turn] 1 of your Digimon may attack.",
     "rarity": "SEC",
     "maxCountInDeck": 4,
