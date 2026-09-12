@@ -196559,7 +196559,17 @@
         "actions": [
           {
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "levels": [3, 4, 5] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "levels": [3] }, "count": 1 },
+            "to": "hand"
+          },
+          {
+            "kind": "Return",
+            "target": { "filter": { "controller": "opponent", "levels": [4] }, "count": 1 },
+            "to": "hand"
+          },
+          {
+            "kind": "Return",
+            "target": { "filter": { "controller": "opponent", "levels": [5] }, "count": 1 },
             "to": "hand"
           }
         ]
@@ -196576,9 +196586,11 @@
             ],
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
+              "detachPermanentTop": true,
               "destination": "security",
               "position": "top",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["digivolutionCards"] },
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By placing this Digimon's top card as your top security card"
             },
             "optional": true,
@@ -198071,11 +198083,8 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 9 }, "count": 1 },
             "cost": {
               "kind": "trash",
-              "target": {
-                "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] },
-                "count": 1
-              },
-              "raw": "By trashing 1 of your opponent's Option cards in the battle area"
+              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 },
+              "raw": "By trashing 1 of your Option cards in the battle area"
             },
             "optional": true,
             "abortOnDecline": true
@@ -198092,11 +198101,8 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 9 }, "count": 1 },
             "cost": {
               "kind": "trash",
-              "target": {
-                "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] },
-                "count": 1
-              },
-              "raw": "By trashing 1 of your opponent's Option cards in the battle area"
+              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 },
+              "raw": "By trashing 1 of your Option cards in the battle area"
             },
             "optional": true,
             "abortOnDecline": true
@@ -198109,7 +198115,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Justimon: Blitz Arm", "Justimon: Accel Arm"], "cost": 1, "isAlternate": true }
+      { "namesExact": ["Justimon: Blitz Arm", "Justimon: Accel Arm"], "cost": 1, "isAlternate": true }
     ]
   },
   "P-180": {
@@ -200134,6 +200140,7 @@
               },
               "destination": "digivolutionStack",
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "position": "bottom",
               "host": "target",
               "raw": "by placing this Digimon under another Digimon with Seadramon in its text"
@@ -200185,6 +200192,7 @@
               },
               "destination": "digivolutionStack",
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "position": "bottom",
               "host": "target",
               "raw": "by placing this Digimon under another Digimon with Seadramon in its text"
@@ -200249,7 +200257,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Betamon", "ModokiBetamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Betamon", "ModokiBetamon"], "cost": 0, "isAlternate": true }]
   },
   "P-215": {
     "effects": [

@@ -137114,7 +137114,7 @@
     "types": [
       "Cyborg"
     ],
-    "effectText": "[Digivolve]3-Color [MagnaGarurumon]: Cost 2 \n\n＜Armor Purge＞\n[When Digivolving] Return 1 of your opponent's level 3, level 4 and level 5 to the hand.\n[End of Attack] By placing this Digimon’s top card as your top security card, unsuspend this Digimon or Tamer.",
+    "effectText": "[Digivolve]3-Color [MagnaGarurumon]: Cost 2 \n\n＜Armor Purge＞\n[When Digivolving] Return 1 each of your opponent's level 3, level 4 and level 5 Digimon to the hand.\n[End of Attack] By placing this Digimon’s top card as your top security card, unsuspend this Digimon or Tamer.",
     "rarity": "SEC",
     "maxCountInDeck": 4,
     "imageId": "P-153"
@@ -139222,7 +139222,7 @@
       "Aquatic",
       "X Antibody"
     ],
-    "effectText": "[Digivolve] [Betamon]/[ModokiBetamon]: Cost 2 \n\n＜Decode ([Betamon])/([ModokiBetamon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Betamon] or [ModokiBetamon] from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Seadramon] in its text, return 1 of your opponent's Digimon with as high or lower a level as 1 of your Digimon with [Seadramon] in its text to the bottom of the deck.",
+    "effectText": "[Digivolve] [Betamon]/[ModokiBetamon]: Cost 0 \n\n＜Decode ([Betamon])/([ModokiBetamon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Betamon] or [ModokiBetamon] from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Seadramon] in its text, return 1 of your opponent's Digimon with as high or lower a level as 1 of your Digimon with [Seadramon] in its text to the bottom of the deck.",
     "inheritedEffectText": "[All Turns] When this Digimon with [Seadramon] in its text would leave the battle area by your opponent's effects, by trashing 2 same-level cards in its digivolution cards, it doesn't leave.",
     "rarity": "SEC",
     "maxCountInDeck": 4,
