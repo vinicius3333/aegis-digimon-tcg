@@ -431,13 +431,15 @@ git diff --check
 
 ### P-034 — DemiDevimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-034.ts) · [test](../../apps/api/src/cards/P/P-034.test.ts) · clause review (source removed; see History)<br>“counts itself after deletion as the seventh Devimon and offers DanDevimon (Q4148)”; “lets the player decline the single optional play”; “does not prompt when its deletion leaves only six Devimon cards in trash”
 
 - Local KB lookup (2026-09-12): Q4148; no errata entry; no restriction entry.
 
 - Reaudit proof accepted (2026-09-12): Both threshold/deletion cases use a legal neutral Purple level-4 Meramon above DemiDevimon, preserving Devimon-name source-count boundaries. Coordinator independently passed the focused checkpoint: 8 files, 29 tests; Oxlint/Oxfmt and diff check green. Package regressions now use legal Ghost Game hosts and a legal Purple chain while retaining the original Digi-Burst costs and isolated inherited Retaliation. Collection closing gates remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact DanDevimon (the explicitly printed Devimon-in-name trash condition stays broad) clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-035 — Red Memory Boost!
 
@@ -663,31 +665,37 @@ git diff --check
 
 ### P-059 — Gammamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-059.ts) · [test](../../apps/api/src/cards/P/P-059.test.ts) · clause review (source removed; see History)<br>“gives its host +2000 DP during your turn while Hiro is in play”; “does not give +2000 DP without Hiro Amanokawa”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Final independent printed-name hold (2026-09-12): The exact Hiro Amanokawa clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
 ### P-060 — Angoramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-060.ts) · [test](../../apps/api/src/cards/P/P-060.test.ts) · clause review (source removed; see History)<br>“gains 1 memory when its host attacks while Ruli is in play”; “gains memory only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; errata entry present; no restriction entry.
 
 - Reaudit proof accepted (2026-09-12): Three focused tests pass: legal inherited host attacks gain memory once, a second same-turn attack does not gain again, and an attack after natural turns 0 → 1 → 0 gains again. Regular deck/security fixtures replace Digi-Eggs.
 
+- Final independent printed-name hold (2026-09-12): The exact Ruli Tsukiyono clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
 ### P-061 — Jellymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-061.ts) · [test](../../apps/api/src/cards/P/P-061.test.ts) · clause review (source removed; see History)<br>“draws 1 when its host attacks while Kiyoshiro is in play”; “draws only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit proof accepted (2026-09-12): Three focused tests pass: legal inherited host attacks draw once, the second same-turn attack leaves the identified card in deck, and a new natural turn draws the distinct effect card after the ordinary turn draw. Regular deck/security fixtures replace Digi-Eggs.
+
+- Final independent printed-name hold (2026-09-12): The exact Kiyoshiro Higashimitarai clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-062 — Hiro Amanokawa
 
@@ -916,13 +924,15 @@ git diff --check
 
 ### P-087 — Ritsu Kodo
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-087.ts) · [test](../../apps/api/src/cards/P/P-087.test.ts) · clause review (source removed; see History)<br>“Q4179: suspends when Pulsemon is played and gets both bonuses at exactly 3 security”; “plays itself from security without paying its play cost”
 
 - Local KB lookup (2026-09-12): Q4179; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Pulsemon clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-088 — Siriusmon
 
@@ -949,8 +959,8 @@ git diff --check
 
 ### P-090 — Diarbbitmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-090.ts) · [test](../../apps/api/src/cards/P/P-090.test.ts) · clause review (source removed; see History)<br>“requires the UI to choose exactly 2 opponent Digimon to suspend when digivolving”; “unsuspends an ally after another Digimon wins a battle while Angoramon is in its stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -959,6 +969,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Reaudit frequency proof accepted (2026-09-12, commit `fdd177876`): Public cost-3 digivolution retains the original source. Three real battles unsuspend an explicitly prepared recipient on the first, deny the same-turn repeat and renew after natural turns. Opponent target suspension is prepared after its actual Active phase; all battles fully settle. Coordinator independently passed both suites: 2 files, 6 tests; lint/format/diff checks are green. Collection closing gates remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Angoramon in this Digimon’s source stack clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-091 — Saberdramon
 
@@ -970,8 +982,8 @@ git diff --check
 
 ### P-092 — Dracomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-092.ts) · [test](../../apps/api/src/cards/P/P-092.test.ts) · clause review (source removed; see History)<br>“digivolves itself directly into Wingdramon for 3 by ignoring level requirements”; “inherited effect digivolves a legal level 4 host into Wingdramon for free”; “Q4182 does not offer inherited Wingdramon evolution from an illegal level 3 host”
 
 - Local KB lookup (2026-09-12): Q4182; no errata entry; no restriction entry.
@@ -979,6 +991,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Reaudit public behavior and source proof accepted (2026-09-12): Both public effect-evolution positives now retain exact original parent/source instances beneath Wingdramon and assert paid memory. The inherited path uses a legal Blue level-4 host; a legal Green level-4 host is incompatible with Wingdramon and preserves zero P-092 decisions, confirming requirements are not waived. Coordinator independently passed the final two-card run: 2 files, 7 tests; Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Groundramon event and Wingdramon destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-093 — Bastemon
 
@@ -995,8 +1009,8 @@ git diff --check
 
 ### P-094 — Destromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-094.ts) · [test](../../apps/api/src/cards/P/P-094.test.ts) · clause review (source removed; see History)<br>“deletes the single eligible opponent Digimon (play cost within budget)”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1010,6 +1024,8 @@ git diff --check
   real turn loop now begins before the first attack. No engine or IR behavior change was needed.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Vemmon scaling and returned source cards clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-095 — Pause Plug-In P
 
@@ -1160,13 +1176,15 @@ git diff --check
 
 ### P-110 — Shadramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-110.ts) · [test](../../apps/api/src/cards/P/P-110.test.ts) · clause review (source removed; see History)<br>“plays exactly one Veemon or Wormmon from trash suspended when digivolving”; “plays an eligible Veemon or Wormmon from hand through the inherited On Deletion effect”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Veemon/Wormmon free-play targets clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-111 — Knightmon
 
@@ -1183,13 +1201,15 @@ git diff --check
 
 ### P-112 — Morphomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-112.ts) · [test](../../apps/api/src/cards/P/P-112.test.ts) · clause review (source removed; see History)<br>“uses its inherited effect when another Eosmon is played to digivolve from hand”; “may place itself under an Eosmon and play the revealed Menoa Bellucci”; “reveals three and adds both Eosmon and Menoa Bellucci when both are present”; “adds the one matching card when only one of Eosmon or Menoa is revealed”
 
 - Local KB lookup (2026-09-12): Q4216, Q4217, Q4218; no errata entry; no restriction entry.
 
 - Reaudit public evolution cycle accepted (2026-09-12): Legal Green level-4 Kuwagamon/P-112 host responds to real Eosmon attack-triggered White level-4 plays. First evolution to White level 5 pays 0 (printed 3 reduced by 3), second same-turn play cannot evolve to level 6, and the natural 0-to-1-to-0 cycle renews the level-6 reduction (incoming 3 to 1, printed 5 reduced by 3). Exact original Kuwagamon and P-112 instances remain in the final level-6 stack. Coordinator independently passed P-112/P-117: 2 files, 6 tests; P-112 Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Eosmon/Menoa Bellucci targets, event and destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-113 — RustTyrannomon
 
@@ -1206,14 +1226,16 @@ git diff --check
 
 ### P-114 — Diaboromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-114.ts) · [test](../../apps/api/src/cards/P/P-114.test.ts) · clause review (source removed; see History)<br>“plays a Diaboromon Token when digivolving and counts the token for deletion scaling”; “plays a Diaboromon Token from the When Attacking effect”
 
 - Local KB lookup (2026-09-12): Q4220, Q4221, Q4222; no errata entry; no restriction entry.
 
 
 - Reaudit proof accepted (2026-09-12): public cost-3 digivolution retains the exact Lv.5 source and creates a token. A preferred cost-8 opponent is excluded at the first printed limit of 7 while an eligible cost-2 opponent is deleted; a second same-turn token play cannot delete, and a real next-turn attack creates another token and deletes the preferred cost-8 opponent at the increased limit. Coordinator independently passed all three tests, lint and formatting. Collection closeout gates remain pending.
+
+- Final independent printed-name hold (2026-09-12): The exact Diaboromon field scaling clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-115 — SkullKnightmon
 
@@ -1302,8 +1324,8 @@ git diff --check
 
 ### P-124 — Davis Motomiya
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-124.ts) · [test](../../apps/api/src/cards/P/P-124.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into ExVeemon for free”; “plays Veemon from hand through the first On Play mode”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1314,6 +1336,8 @@ git diff --check
   Main stays open using neutral spare legal hand cards. The initial memory mismatch was an
   automatically passed empty-action Main fixture, not an extra card cost; the correct paid-cost
   assertion was preserved.
+
+- Final independent printed-name hold (2026-09-12): The exact Veemon play target and ExVeemon evolution destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
 ### P-125 — Ken Ichijoji
 
@@ -2556,8 +2580,8 @@ git diff --check
 
 ### P-240 — Arcturusmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-240.ts) · [test](../../apps/api/src/cards/P/P-240.test.ts) · clause review (source removed; see History)<br>“has Collision, Piercing, Reboot, and Blocker”; “de-digivolves on play and when digivolving, then uses two qualifying trash cards”; “plays Proximamon from hand or trash on deletion and redirects one attack once per turn”; “de-digivolves three cards and places two qualifying trash cards underneath”; “also de-digivolves on the digivolving timing”; “plays Proximamon from hand when it is deleted”; “redirects an opponent attack to its inherited host once per turn”; “grants Collision to a resident Arcturusmon”
 
 - Local KB lookup (2026-09-12): Q6924, Q6925, Q6926; no errata entry; no restriction entry.
@@ -2568,6 +2592,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Confirmed name-scope defect (2026-09-12): Official printed On Deletion text permits exact [Proximamon], not names containing that token. The module uses `match: "name"` for the free-play destination. Exact destination scope and attributable public leave/attack-redirection evidence remain pending. [Official collection list](https://world.digimoncard.com/cards/?category=522901&search=true).
+
+- Reaudit accepted (2026-09-12): exact Proximamon free play is proven from hand and trash. Public play pays 13; legal public evolution pays 5, preserves permanent and original source, and resolves De-Digivolve 3 on a legal Purple Lv4/Lv5/Lv6/Lv7 stack. Each exact trash-cost source leaves trash. The granted attack executes at the opponent’s natural Start of Main and expires on handoff. The same inherited host redirects the first completed battle, suppresses the second player attack, and redirects the third completed battle after natural turn reset; exact attacker deaths prevent vacuous idle predicates. Coordinator independently passed all 10 tests and focused lint/format. This supersedes the prior scope and public-cycle holds.
 
 ### P-241 — Yujin Ozora
 
