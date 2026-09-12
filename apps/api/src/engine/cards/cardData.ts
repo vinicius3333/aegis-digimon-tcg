@@ -9,6 +9,7 @@ import {
   digivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
+  nameIncludesToken,
   isTokenDefinition,
   intrinsicDigivolutionCostReductionFor,
   type CardDefinition,
@@ -481,7 +482,7 @@ function matchGatedRequirement(
 
     // Name gate: base name must contain at least one token (substring; "[X] in name").
     if (req.names && req.names.length > 0) {
-      if (!req.names.some((n) => baseEffectiveNames.some((name) => name.includes(n)))) continue;
+      if (!req.names.some((n) => baseEffectiveNames.some((name) => nameIncludesToken(name, n)))) continue;
     }
 
     // Exact-name gate: one of the base's effective names must EQUAL one token. It reads the

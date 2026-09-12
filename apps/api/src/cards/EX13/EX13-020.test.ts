@@ -118,9 +118,8 @@ describe("EX13-020 Magnamon", () => {
       ]);
     }
 
-    // The "for every 5000 DP this Digimon has" multiplier is the one unrepresentable clause.
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toEqual(["give -4000 DP until their turn ends for every 5000 DP this Digimon has"]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   // ---------------------------------------------------------------------------
@@ -434,14 +433,53 @@ describe("EX13-020 Magnamon", () => {
     expect(s.perm("untouched").currentDP).toBe(20_000);
   });
 
-  // RETAINED RED — engine gap, not a card bug.
-  // Printed: "give -4000 DP ... for every 5000 DP this Digimon has". With 4 colors in the
-  // trashes Magnamon is at 11,000 DP when the second sentence resolves, which is 2 units of
-  // 5000, so the opponent's Digimon must take -8000, not -4000.
-  // Seam: `Scaling.unit` (packages/shared/src/effects/ir/predicates/scaling.ts) has no DP-valued
-  // unit, and `scaleFactor` (apps/api/src/engine/effects/interpreter/scaling.ts) therefore cannot
-  // derive a multiplier from the SOURCE permanent's live DP. Expected -8000, actual -4000.
-  it.fails("scales the opponent debuff by every 5000 DP this Digimon has", async () => {
+  it.each([
+    [0, 7000, 13000],
+    [2, 9000, 13000],
+    [3, 10000, 9000],
+    [4, 11000, 9000],
+    [6, 13000, 9000],
+  ])("publicly plays with %i trash colors and scales from the post-buff DP", async (colors, sourceDP, targetDP) => {
+    const trashCards = ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-062", "BT10-079"].slice(0, colors);
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "magnamon" }],
+          trash: trashCards.slice(0, 2),
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT12-112", as: "victim" }],
+          trash: trashCards.slice(2),
+          deck: ["BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const trashIds = s.state.players.map((player) => player.trash.map((card) => card.instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magnamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim").currentDP < 17000);
+    const host = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("magnamon").instanceId,
+    )!;
+    expect(host.currentDP).toBe(sourceDP);
+    expect(s.perm("victim").currentDP).toBe(targetDP);
+    expect(host.stack.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players.map((player) => player.trash.map((card) => card.instanceId))).toEqual(trashIds);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  // Explicit timing seam corroborates the public play boundaries above.
+  it("scales the opponent debuff by every 5000 DP this Digimon has", async () => {
     const s = setupEngine(
       {
         0: {
@@ -453,7 +491,7 @@ describe("EX13-020 Magnamon", () => {
           hand: [{ card: "BT1-010", as: "spare" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "victim", dp: 20_000 }],
+          battleArea: [{ card: "BT12-112", as: "victim" }],
           trash: [{ card: "BT18-044", as: "greenBlack" }],
           security: ["BT1-012", "BT1-013"],
         },
@@ -465,7 +503,7 @@ describe("EX13-020 Magnamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magnamon"));
 
     expect(s.perm("magnamon").currentDP).toBe(11_000);
-    expect(s.perm("victim").currentDP).toBe(12_000);
+    expect(s.perm("victim").currentDP).toBe(9000);
   });
 
   it("shares one [Once Per Turn] across all three timings and resets on the next own turn", async () => {

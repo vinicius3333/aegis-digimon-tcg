@@ -76,10 +76,9 @@ describe("EX13-035 KingEtemon", () => {
   });
 
   it("compiles the play clause under both printed timings as one exclusive-branch modal", () => {
-    // The aggregate play-cost cap is the one retained red; everything else is covered.
     expect(runtimeCompiledCard(cardId)).toMatchObject({
-      coverage: "partial",
-      residual: ["[On Play] [When Digivolving] ... and up to 6 total play cost (the across-cards sum)"],
+      coverage: "full",
+      residual: [],
     });
 
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
@@ -319,16 +318,7 @@ describe("EX13-035 KingEtemon", () => {
     assertNoLoudGap(s);
   });
 
-  // RETAINED RED — the across-cards play-cost sum.
-  // Seam: `pickLoose` (apps/api/src/engine/effects/interpreter/targeting/loose.ts:502) resolves a
-  // loose-card play target without ever reading `Target.totalPlayCostBudget`, and never passes a
-  // `maxTotalPlayCost` to `ctx.ask.selectCards` even though `decisionApi.selectCards`
-  // (apps/api/src/engine/decisions/decisionApi.ts:141) already accepts and clamps to one. Only
-  // `resolveTotalPlayCostBudgetTargets` (targeting/permanents.ts:305) honors the field, and that
-  // path resolves battle-area permanents, not hand/trash cards.
-  // Expected: KingSukamon (6) + Chuumon (3) = 9 exceeds the printed maximum of 6, so only one of
-  // the two may be played. Actual: both are played, because each clears the per-card ceiling.
-  it.fails("caps the combined play cost of the cards it plays at the printed maximum", async () => {
+  it("caps the combined play cost of the cards it plays at the printed maximum", async () => {
     const s = setupEngine(
       {
         0: {
@@ -354,6 +344,180 @@ describe("EX13-035 KingEtemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
+
+  it.each(
+    [
+      { first: KING_SUKAMON_6, second: CHUUMON_3, selection: ["first", "second"], played: ["first"] },
+      { first: CHUUMON_3, second: KING_SUKAMON_6, selection: ["first", "second"], played: ["first"] },
+      { first: CHUUMON_3, second: SUKAMON_3, selection: ["first", "second"], played: ["first", "second"] },
+      { first: KING_SUKAMON_6, second: CHUUMON_3, selection: [], played: [] },
+    ].flatMap((testCase) => (["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({ ...testCase, trigger }))),
+  )(
+    "enforces the base aggregate budget at $trigger for $first + $second with selection $selection",
+    async ({ first, second, selection, played, trigger }) => {
+      const s = setupEngine(
+        {
+          0: {
+            ...(trigger === "WhenDigivolving" ? { battleArea: [{ card: ETEMON_7, as: "base" }] } : {}),
+            hand: [
+              { card: cardId, as: "king" },
+              { card: first, as: "first" },
+            ],
+            trash: [{ card: second, as: "second" }],
+            deck: ["BT1-028", "BT1-028"],
+            security: [SENTINEL],
+          },
+          1: { deck: ["BT7-032", "BT7-032"], security: [SENTINEL] },
+        },
+        { autoAcceptOptional: true, autoChooseOption: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const ids = new Map(["first", "second"].map((alias) => [alias, s.inst(alias).instanceId]));
+      expect(
+        s.engine.applyIntent(
+          0,
+          trigger === "OnPlay"
+            ? { type: "playCard", instanceId: s.inst("king").instanceId }
+            : {
+                type: "digivolve",
+                permanentId: s.perm("base").permanentId,
+                instanceId: s.inst("king").instanceId,
+                useAlternateCost: true,
+              },
+        ),
+      ).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.state.pendingDecision!;
+      const payload = JSON.parse(decision.payloadJson);
+      expect(decision.seat).toBe(0);
+      expect(payload.maxTotalPlayCost).toBe(6);
+      expect(payload.min).toBe(0);
+      expect(payload.max).toBe(2);
+      expect(new Set(payload.candidateInstanceIds)).toEqual(new Set(ids.values()));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: selection.map((alias) => ids.get(alias)!) },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId).sort()).toEqual(
+        [s.inst("king").instanceId, ...played.map((alias) => ids.get(alias)!)].sort(),
+      );
+      expect(s.state.players[0]!.hand.filter((c) => c.cardId !== "BT1-028").map((c) => c.instanceId)).toEqual(
+        played.includes("first") ? [] : [ids.get("first")!],
+      );
+      expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+        played.includes("second") ? [] : [ids.get("second")!],
+      );
+      expect(s.state.players[0]!.deck).toHaveLength(trigger === "OnPlay" ? 2 : 1);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.memory).toBe(trigger === "OnPlay" ? -3 : 6);
+      expect(s.state.players[0]!.hand.filter((c) => c.cardId === "BT1-028")).toHaveLength(trigger === "OnPlay" ? 0 : 1);
+      const king = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("king").instanceId)!;
+      expect(king.stack.map((c) => c.instanceId)).toEqual(trigger === "OnPlay" ? [] : [s.inst("base").instanceId]);
+      assertNoLoudGap(s);
+    },
+  );
+
+  it.each(
+    [
+      { first: KING_SUKAMON_6, second: KING_SUKAMON_6, played: ["first", "second"] },
+      { first: ETEMON_7, second: KING_SUKAMON_6, played: ["first"] },
+      { first: KING_SUKAMON_6, second: ETEMON_7, played: ["first"] },
+    ].flatMap((testCase) => (["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({ ...testCase, trigger }))),
+  )(
+    "enforces the paid aggregate budget at $trigger for $first + $second",
+    async ({ first, second, played, trigger }) => {
+      const fodderCards = [
+        CHUUMON_3,
+        CHUUMON_3,
+        CHUUMON_3,
+        CHUUMON_3,
+        SUKAMON_3,
+        SUKAMON_3,
+        SUKAMON_3,
+        SUKAMON_3,
+        PLATINUM_SUKAMON_LV4,
+        PLATINUM_SUKAMON_LV4,
+      ];
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            ...(trigger === "WhenDigivolving" ? { battleArea: [{ card: ETEMON_7, as: "base" }] } : {}),
+            hand: [
+              { card: cardId, as: "king" },
+              { card: first, as: "first" },
+              { card: second, as: "second" },
+            ],
+            trash: fodderCards.map((card, n) => ({ card, as: `paid${n}` })),
+            deck: [
+              ...(trigger === "WhenDigivolving" ? [{ card: "BT1-028", as: "bonusDraw" }] : []),
+              { card: "BT1-028", as: "deckTop" },
+            ],
+            security: [SENTINEL],
+          },
+          1: { deck: ["BT7-032", "BT7-032"], security: [SENTINEL] },
+        },
+        {
+          autoAcceptOptional: true,
+          autoChooseOption: true,
+          preferOptionIndex: 1,
+          autoSelectCards: true,
+          preferInstanceIds: preferred,
+          autoOrderTriggers: true,
+        },
+      );
+      const firstId = s.inst("first").instanceId;
+      const secondId = s.inst("second").instanceId;
+      const paidIds = fodderCards.map((_, n) => s.inst(`paid${n}`).instanceId);
+      preferred.push(...paidIds, firstId, secondId);
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(
+          0,
+          trigger === "OnPlay"
+            ? { type: "playCard", instanceId: s.inst("king").instanceId }
+            : {
+                type: "digivolve",
+                permanentId: s.perm("base").permanentId,
+                instanceId: s.inst("king").instanceId,
+                useAlternateCost: true,
+              },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.length >= 2 && s.state.pendingDecision === undefined);
+      const budgetDecision = s.decisions.find(
+        ({ req }) => req.kind === "selectCards" && req.options?.maxTotalPlayCost === 12,
+      )?.req;
+      expect(budgetDecision).toBeDefined();
+      expect(new Set(budgetDecision!.options?.candidateInstanceIds)).toEqual(new Set([firstId, secondId]));
+      expect(budgetDecision!.options?.max).toBe(2);
+      const playedIds = played.map((alias) => s.inst(alias).instanceId);
+      expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId).sort()).toEqual(
+        [s.inst("king").instanceId, ...playedIds].sort(),
+      );
+      expect(s.state.players[0]!.hand.filter((c) => c.cardId !== "BT1-028").map((c) => c.instanceId)).toEqual(
+        [firstId, secondId].filter((id) => !playedIds.includes(id)),
+      );
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      const finalDeck = s.state.players[0]!.deck.map((c) => c.instanceId);
+      expect(finalDeck[0]).toBe(s.inst("deckTop").instanceId);
+      expect(finalDeck.slice(1).sort()).toEqual([...paidIds].sort());
+      expect(s.state.memory).toBe(trigger === "OnPlay" ? -3 : 6);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.hand.filter((c) => c.cardId === "BT1-028")).toHaveLength(trigger === "OnPlay" ? 0 : 1);
+      const king = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("king").instanceId)!;
+      expect(king.stack.map((c) => c.instanceId)).toEqual(trigger === "OnPlay" ? [] : [s.inst("base").instanceId]);
+      assertNoLoudGap(s);
+    },
+  );
 
   // ---------------------------------------------------------------------------
   // [Digivolve] Lv.5 w/[Sukamon]/[Etemon] in name: Cost 4, and [When Digivolving].

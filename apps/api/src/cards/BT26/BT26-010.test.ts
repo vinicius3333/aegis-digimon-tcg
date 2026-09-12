@@ -242,7 +242,7 @@ describe("BT26-010 Roleplaymon", () => {
           security: ["BT1-009"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoDeclineOptional: true },
     );
     const defenderId = s.perm("defender").permanentId;
     expect(
@@ -261,10 +261,13 @@ describe("BT26-010 Roleplaymon", () => {
   });
 
   it("declining Detach in an equal-DP battle deletes both Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 4000, linked: [{ card: CARD_ID }] }] },
-      1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 4000, linked: [{ card: CARD_ID }] }] },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+      },
+      { autoDeclineOptional: true },
+    );
     const attackerId = s.perm("attacker").permanentId;
     const defenderId = s.perm("defender").permanentId;
     expect(
@@ -309,16 +312,19 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(2);
   });
 
-  it("does not offer Detach for a linked card without the noted Seven Code trait", async () => {
+  it("does not allow Detach payment with a link without the noted Seven Code trait", async () => {
     // BT21-009 carries its own link DP (2000, Comprehensive Rules §4-2-4: "A Digimon gets
     // the link DP value on its link card"), so the attacker's effective DP is 4000 (own) +
     // 2000 (link) = 6000. Give the attacker a lower own DP so the total still ties the
     // defender's 4000 — otherwise this is a clean win, not the tie the test needs to prove
-    // Detach isn't offered for an ineligible linked card.
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 2000, linked: [{ card: "BT21-009" }] }] },
-      1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
-    });
+    // Detach payment is unavailable for an ineligible linked card.
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 2000, linked: [{ card: "BT21-009" }] }] },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+      },
+      { autoDeclineOptional: true },
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -330,7 +336,7 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
   });
 
-  it("never offers battle-only Detach for deletion by an effect", async () => {
+  it("does not offer Detach for deletion by the owner’s own effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-019", as: "target", linked: [{ card: CARD_ID }] }] },
     });

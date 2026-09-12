@@ -507,6 +507,12 @@ export async function pickLoose(
   asker: SeatScopedDecisionApi = ctx.ask,
   visible?: string[],
 ): Promise<string[]> {
+  const maxTotalPlayCost = target.totalPlayCostBudget;
+  if (maxTotalPlayCost !== undefined) {
+    candidates = candidates.filter(
+      (candidate) => (ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost ?? 0) <= maxTotalPlayCost,
+    );
+  }
   if (candidates.length === 0) return [];
   const visibleCards = visible
     ?.map((instanceId) => findLooseCandidateByInstance(ctx, instanceId))
@@ -697,9 +703,21 @@ export async function pickLoose(
     }
     return chosen;
   }
-  if (target.count === "all" && cap === undefined && !target.upTo && !requireDifferentColors)
+  if (
+    target.count === "all" &&
+    cap === undefined &&
+    !target.upTo &&
+    !requireDifferentColors &&
+    maxTotalPlayCost === undefined
+  )
     return candidates.map((c) => c.instanceId);
-  if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
+  if (
+    candidates.length <= want &&
+    !target.upTo &&
+    !requireDifferentColors &&
+    target.forceSelection !== true &&
+    maxTotalPlayCost === undefined
+  )
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
   const min = target.upTo ? Math.min(target.minimum ?? 0, candidates.length) : Math.min(want, candidates.length);
@@ -710,6 +728,7 @@ export async function pickLoose(
     min,
     max,
     differentColors: requireDifferentColors,
+    ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
     visible,
     visibleCards,
   });

@@ -55,7 +55,7 @@ markNotTestable(
   "'If that card is placed in an area by an effect, it isn't placed in the trash' (a checked " +
     "security card that a [Security] effect relocates is exempt from the default trash " +
     "destination) restates the same conditional-destination rule already tested at " +
-    "ch13-security-checks.test.ts §13-1-8-3-2 (comprehensive-0154).",
+    "ch13-security-checks.test.ts §13-1-8-3-2 (comprehensive-0318).",
 );
 
 markNotTestable(
@@ -80,7 +80,7 @@ markNotTestable(
     "without switching' restates comprehensive-0104, already tested at ch06-game-procedures.test." +
     "ts §6-1-4. Digimon ACE (low play cost, <Blast Digivolve>/<Blast DNA Digivolve>, <Overflow>) " +
     "restates comprehensive-0049/0050 (ch02 §2-10/§2-11, already tested — isAce, overflowMemory) " +
-    "and comprehensive-0088 (ch04 §4-18, already tested — Overflow moves the memory marker).",
+    "and comprehensive-0305 (ch04 §4-19, already tested — Overflow moves the memory marker).",
 );
 
 markNotTestable(
@@ -103,24 +103,24 @@ markNotTestable(
   "manual-0026",
   "<Overflow>'s processing timing and ordering ('as soon as' a card with Overflow leaves the " +
     "field or is played from a digivolution stack, before any 'then' text on the SAME effect') " +
-    "restates comprehensive-0088, already tested at ch04-basic-terminology.test.ts §4-18 " +
-    "(including the simultaneous-Overflow turn-player-first ordering, 4-18-5).",
+    "restates comprehensive-0305, already tested at ch04-basic-terminology.test.ts §4-19 " +
+    "(including the simultaneous-Overflow turn-player-first ordering, 4-19-5).",
 );
 
 markNotTestable(
   "manual-0027",
   "'Overflow isn't processed when a card with Overflow is placed under a card' (a narrower " +
-    "exemption than the general leaving-the-field trigger) restates comprehensive-0088, already " +
-    "tested at ch04 §4-18. Dual cards ('included in both the Digimon card and Option card " +
-    "categories'; 'don't have a play cost and can't be played') restate comprehensive-0072, " +
-    "already tested — including its it.fails DIVERGENCE — at ch04-basic-terminology.test.ts §4-5.",
+    "exemption than the general leaving-the-field trigger) restates comprehensive-0305, already " +
+    "tested at ch04 §4-19. Dual cards ('included in both the Digimon card and Option card " +
+    "categories'; 'don't have a play cost and can't be played') restate comprehensive-0289, " +
+    "already tested — including its it.fails DIVERGENCE — at ch04-basic-terminology.test.ts §4-6.",
 );
 
 markNotTestable(
   "manual-0028",
   "Arts Digivolve ('instead of trashing after use, your cards may digivolve into this card " +
-    "without paying the cost') restates comprehensive-0089, already tested at ch04-basic-" +
-    "terminology.test.ts §4-19 — GameEngine.resolveArtsDigivolve offers the free digivolve " +
+    "without paying the cost') restates comprehensive-0306, already tested at ch04-basic-" +
+    "terminology.test.ts §4-20 — GameEngine.resolveArtsDigivolve offers the free digivolve " +
     "(via the cost-free `digivolveFromInstance` primitive) BEFORE the pending-trash step in " +
     "playCard.ts's Option branch, for every isDualCard card (a rule on the DUAL-card mechanic " +
     "itself, not a per-card parameter).",
@@ -129,19 +129,19 @@ markNotTestable(
 markNotTestable(
   "manual-0029",
   "Dual card rules (referenceable as either a Digimon or Option card; no play cost; color-" +
-    "requirement gating for Option use) restate comprehensive-0072..0074, already tested at ch04 " +
-    "§4-5/§4-5-5/§4-5-6. Arts Digivolve restates comprehensive-0089/comprehensive-0050, already " +
-    "tested at ch04-basic-terminology.test.ts §4-19 and ch02-card-information.test.ts §2-11.",
+    "requirement gating for Option use) restate comprehensive-0289..0291, already tested at ch04 " +
+    "§4-6/§4-6-5/§4-6-6. Arts Digivolve restates comprehensive-0306, already " +
+    "tested at ch04-basic-terminology.test.ts §4-20 and ch02-card-information.test.ts §2-11.",
 );
 
 markNotTestable(
   "manual-0030",
   "The worked Arts Digivolve procedure ('use the [GeoGrey Sword] Option text ... Arts Digivolve " +
     "allows you to digivolve into one of your cards on the field without paying the cost instead " +
-    "of trashing it') restates the SAME rule already tested end-to-end at comprehensive-0089 " +
-    "(ch04 §4-19: playing BT25-043 as its Option side, applying its -8000 DP, then accepting the " +
+    "of trashing it') restates the SAME rule already tested end-to-end at comprehensive-0306 " +
+    "(ch04 §4-20: playing BT25-043 as its Option side, applying its -8000 DP, then accepting the " +
     "Arts Digivolve prompt to digivolve a Lv.5 Yellow permanent into it instead of trashing it) " +
-    "and comprehensive-0072 (ch04 §4-5) — there is no additional engine surface this worked " +
+    "and comprehensive-0289 (ch04 §4-6) — there is no additional engine surface this worked " +
     "example reaches that those tests don't already exercise.",
 );
 

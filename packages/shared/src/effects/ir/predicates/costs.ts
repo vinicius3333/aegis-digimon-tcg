@@ -80,6 +80,8 @@ export interface Cost {
   stopIfZero?: boolean;
   /** Order cards selected by a compound bottom-deck return as one final choice. */
   orderReturnedCards?: boolean;
+  /** Select a complete compound bottom-placement batch, then order its physical materials. */
+  orderPlacedCards?: boolean;
   /** Dynamic loose-zone return count: move every matching card above this many remaining. */
   leaveInZone?: number;
   /** Do not reveal selected loose-card definitions to the player paying this cost. */

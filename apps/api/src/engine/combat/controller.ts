@@ -240,6 +240,10 @@ export interface CombatHooks {
    * combat unit tests (which pass a minimal hooks object) need no change.
    */
   sweepEndOfAttack?: () => void;
+  /** Expire battle durations after all Digimon-battle reactions, preserving attack durations. */
+  sweepEndOfBattle?: () => Promise<void>;
+  /** Re-derive passive effects when the field-Digimon battle context opens or closes. */
+  recomputeBattleEffects?: () => Promise<void>;
   /**
    * The shared continuous-rule reader (ContinuousEffectLedger). When supplied, the
    * block window only offers Digimon with ＜Blocker＞ and no `block` restriction
@@ -252,8 +256,8 @@ export interface CombatHooks {
   /** Number of independent Alliance instances currently active on the attacker. */
   allianceCount?: (permanentId: string) => number;
   /**
-   * Add a battle-scoped DP modifier (UntilEndBattle). Used by ＜Alliance＞ (§16-24) to
-   * boost the attacking Digimon's DP for the current battle. The modifier is cleaned
+   * Add an attack-scoped DP modifier (UntilEndAttack). Used by ＜Alliance＞ (§16-24) to
+   * boost the attacking Digimon's DP for the current attack. The modifier is cleaned
    * up by `sweepEndOfAttack`. Optional so combat unit tests (minimal hooks) keep the
    * base behavior.
    */
@@ -310,10 +314,7 @@ export interface CombatHooks {
    * cost. Backs ＜Fragment＞'s cost payment (§16-37). Optional, mirrors `armorPurge`.
    */
   trashDigivolutionCards?: (hostPermanentId: string, instanceIds: string[]) => Promise<void>;
-  /** Eligible linked cards for a battle-only ＜Detach (trait)＞ prevention. */
-  detachEligibleLinkedCards?: (permanentId: string) => CardInstance[];
-  /** Trash the accepted eligible link through the ordinary trash/event/Overflow seam. */
-  detachLinkedCard?: (permanentId: string, instanceId: string) => Promise<boolean>;
+
   /**
    * Place a card instance already loose in trash at the top of its owner's security stack, on
    * an already-accepted decision. Backs ＜Ascension＞'s reaction (§16-43). Optional, mirrors
@@ -342,6 +343,16 @@ export interface CombatHooks {
 }
 
 export class CombatController {
+  private readonly battles: { attacker: Permanent; defender: Permanent }[] = [];
+
+  /** Only the innermost active field battle contributes battle-conditional passive effects. */
+  battleOpponentOf(permanentId: string): Permanent | undefined {
+    const battle = this.battles.at(-1);
+    if (battle?.attacker.permanentId === permanentId) return battle.defender;
+    if (battle?.defender.permanentId === permanentId) return battle.attacker;
+    return undefined;
+  }
+
   private attackSequence = 0;
   private openWindow: OpenBlockWindow | undefined;
   private resolving = false;
@@ -1358,6 +1369,18 @@ export class CombatController {
   }
 
   private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+    this.battles.push({ attacker, defender });
+    try {
+      await this.hooks.recomputeBattleEffects?.();
+      await this.resolveDigimonBattleResult(attacker, defender);
+      await this.hooks.sweepEndOfBattle?.();
+    } finally {
+      this.battles.pop();
+      await this.hooks.recomputeBattleEffects?.();
+    }
+  }
+
+  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
     const continuous = this.hooks.continuous;
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
@@ -1453,33 +1476,11 @@ export class CombatController {
       await this.hooks.consultLeavePrevention?.([...barrieredIds], { insteadOnly: true });
     }
 
-    // ＜Detach (trait)＞ (Q6964): immediately before this Digimon is deleted IN BATTLE,
-    // its controller may trash 1 eligible link card to prevent only this deletion. The
-    // link leaves now — before the opponent is deleted and before Piercing is read — so
-    // linked effects from that card are no longer active when battle deletion settles.
-    const detachedIds = new Set<string>();
-    for (const permanentId of postBarrierDeletedIds) {
-      const perm = this.access.permanentById(permanentId);
-      if (perm === undefined) continue;
-      const eligible = this.hooks.detachEligibleLinkedCards?.(permanentId) ?? [];
-      if (eligible.length === 0) continue;
-      const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
-        perm.controllerSeat,
-        eligible.map((card) => card.instanceId),
-        "＜Detach＞: trash 1 eligible link card to prevent this Digimon's battle deletion?",
-      );
-      if (chosenInstanceId === undefined) continue;
-      if ((await this.hooks.detachLinkedCard?.(permanentId, chosenInstanceId)) === true) {
-        detachedIds.add(permanentId);
-      }
-    }
-    const postDetachDeletedIds = postBarrierDeletedIds.filter((id) => !detachedIds.has(id));
-
     // ＜Armor Purge＞ (§16-19): by trashing this Digimon's own top card (promoting the
     // digivolution card beneath it to the new top), prevent this Digimon's deletion. Requires
     // >= 1 digivolution card to promote.
     const armorPurgedIds = new Set<string>();
-    for (const permanentId of postDetachDeletedIds) {
+    for (const permanentId of postBarrierDeletedIds) {
       if (!this.hasKeyword(permanentId, "Armor Purge")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined || perm.stack.length === 0) continue;
@@ -1492,7 +1493,7 @@ export class CombatController {
       await this.hooks.armorPurge?.(permanentId);
       armorPurgedIds.add(permanentId);
     }
-    const postArmorPurgeDeletedIds = postDetachDeletedIds.filter((id) => !armorPurgedIds.has(id));
+    const postArmorPurgeDeletedIds = postBarrierDeletedIds.filter((id) => !armorPurgedIds.has(id));
 
     // ＜Fragment (N)＞ (§16-37): by choosing and trashing N of ITS OWN digivolution cards,
     // prevent this Digimon's deletion. All-or-nothing: fewer than N chosen is a decline.

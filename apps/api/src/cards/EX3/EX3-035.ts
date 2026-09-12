@@ -45,7 +45,7 @@ const compiled: CompiledCard = {
                   filter: {
                     zone: "trash",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Magnadramon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Magnadramon"], match: "nameExact" }],
                   },
                   count: 1,
                   upTo: true,
@@ -60,7 +60,7 @@ const compiled: CompiledCard = {
                   filter: {
                     zone: "trash",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Azulongmon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Azulongmon"], match: "nameExact" }],
                   },
                   count: 1,
                 },
@@ -72,7 +72,7 @@ const compiled: CompiledCard = {
                   filter: {
                     zone: "trash",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Megidramon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Megidramon"], match: "nameExact" }],
                   },
                   count: 1,
                 },

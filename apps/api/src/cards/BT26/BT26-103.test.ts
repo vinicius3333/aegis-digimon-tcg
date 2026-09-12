@@ -23,7 +23,7 @@ describe("BT26-103 compiled fidelity", () => {
       expect.objectContaining({ keyword: "Piercing" }),
       expect.objectContaining({ keyword: "Reboot" }),
       expect.objectContaining({ keyword: "Blocker" }),
-      expect.objectContaining({ keyword: "UseReq" }),
+      expect.objectContaining({ keyword: "Succession" }),
     ]);
     expect(card?.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",

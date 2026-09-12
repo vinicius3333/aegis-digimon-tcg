@@ -1,5 +1,6 @@
 import type {
   CardColor,
+  Keyword,
   CardDefinition,
   CardInstance,
   DisableTiming,
@@ -186,6 +187,7 @@ export interface TriggerInfo {
     stackInstanceId: string;
     trigger?: string;
     excludeInherited?: boolean;
+    excludeKeywords?: Keyword[];
     inheritedOnly?: boolean;
   }[];
   /** Named effect grants captured at the same pre-deletion boundary. */
@@ -549,6 +551,8 @@ export interface GameAccess {
   player(seat: Seat): PlayerState;
   opponentOf(seat: Seat): Seat;
   permanentById(permanentId: string): Permanent | undefined;
+  /** The other participant of the active field-Digimon battle; absent outside that battle. */
+  battleOpponentOf?(permanentId: string): Permanent | undefined;
   /**
    * Only `cardId` is read, so a bare `{ cardId }` — a loose-card candidate, a recorded trigger
    * subject — is a legal argument without materializing a whole {@link CardInstance}.
@@ -864,6 +868,11 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { belowTop?: boolean; faceUp?: boolean },
   ): Promise<CardInstance[]>;
+  /** Atomically place ordered loose cards and whole permanent materials at stack bottom.
+   * The first material group is nearest the bottom; each source keeps its attached cards.
+   * Existing host sources remain above the added materials.
+   */
+  placeMixedMaterialsUnder?(targetPermanentId: string, orderedInstanceIds: string[]): Promise<CardInstance[]>;
   /** Place the controller's deck top face-down under a battle-area permanent. */
   placeUnderFromDeck(targetPermanentId: string, seat: Seat): Promise<CardInstance | undefined>;
   /**
@@ -1442,7 +1451,13 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: {
+      trigger?: string;
+      excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    },
   ): void;
   /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
   stackEffectConferrals?(): readonly {
@@ -1450,6 +1465,7 @@ export interface Primitives {
     stackInstanceId: string;
     trigger?: string;
     excludeInherited?: boolean;
+    excludeKeywords?: Keyword[];
     inheritedOnly?: boolean;
     granterInstanceId?: string;
   }[];
@@ -1983,6 +1999,8 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /** A public Main declaration has committed this resolution's leading processing condition. */
+  declaredProcessingCondition?: boolean;
   /** Internal marker for effects re-derived by the continuous-effect pass. */
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */

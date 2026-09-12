@@ -147,6 +147,12 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
     if (effect.isInherited || effect.isLinked) return false;
     return true;
   }
+  // CR §4-7-9: a hidden stacked card has no referenceable information or active effects.
+  if (
+    permanent.stack?.some((card) => card.instanceId === ctx.source.instanceId && card.faceUp === false) &&
+    !(ctx.continuousPass && effect.isColorWaiverStatic && ctx.source.definition.kinds.includes(CardKind.Option))
+  )
+    return false;
   if (permanent.topCard === undefined) return true;
 
   const isTop = permanent.topCard.instanceId === ctx.source.instanceId;

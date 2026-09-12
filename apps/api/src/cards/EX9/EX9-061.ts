@@ -29,6 +29,22 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      cost: {
+        kind: "place",
+        target: {
+          filter: {
+            controller: "mine",
+          },
+          count: 1,
+          from: ["deck"],
+        },
+        raw: "By placing your deck's top card face down as this Digimon's bottom digivolution card",
+        destination: "digivolutionStack",
+        position: "bottom",
+        host: "self",
+        faceDown: true,
+        optional: true,
+      },
       actions: [
         {
           kind: "Delete",
@@ -47,23 +63,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-              },
-              count: 1,
-              from: ["deck"],
-            },
-            raw: "By placing your deck's top card face down as this Digimon's bottom digivolution card",
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "self",
-            faceDown: true,
-          },
-          optional: true,
-          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",

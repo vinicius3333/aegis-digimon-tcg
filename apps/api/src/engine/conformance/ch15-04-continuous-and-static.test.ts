@@ -15,7 +15,7 @@ import "../../cards/index.js";
  * §15-14 (Effect Icons: [X Per Turn]/{Hand}/{Trash}/{Breeding}/{Security}), and
  * §15-16 (Effect Timings, the bracketed-icon windows). Also closes out §15-8-5
  * (Immediate-Type Effects, deferred here from ch15-02) and picks up
- * comprehensive-0095 (ch04 §4-25, deferred as chapter-15 scaffolding).
+ * comprehensive-0312 (ch04 §4-26, deferred as chapter-15 scaffolding).
  *
  * comprehensive-0192 (bare §15-14 heading) is already seeded in `not-testable.ts`.
  *
@@ -699,14 +699,15 @@ describe("§15-8-5 Immediate-Type Effects, real ＜Barrier＞ (comprehensive-017
   });
 });
 
-describe("§4-25 'With/Have X Cards' (comprehensive-0095, picked up from ch04)", () => {
+describe("§4-26 'With/Have X Cards' (comprehensive-0312, picked up from ch04)", () => {
   it("BT22-007's selfDigivolutionCountAtLeast condition gates its play-3 clause on 10+ digivolution cards, driven through the REAL interpreter", async () => {
     cite(
-      "comprehensive-0095",
-      "ch04 §4-25 '[has] N digivolution cards' gate (Condition kind " +
+      "comprehensive-0312",
+      "ch04 §4-26 '[has] N digivolution cards' gate (Condition kind " +
         "selfDigivolutionCountAtLeast, real card BT22-007, KB Q4858) — driven here end-to-end " +
         "against the real GameEngine (not a synthetic fixture), unlike the pre-existing unit-" +
         "level A3 test at apps/api/src/cards/BT22/BT22-007.test.ts.",
+      "8917d35ea7b38493262c75ec43753539c0759cdaa76880f45fe55cf5a0cef736",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });

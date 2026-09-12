@@ -140,6 +140,7 @@ describe("BT14-090", () => {
           ],
           trash: [
             { card: "BT14-012", as: "greymon" },
+            { card: "BT14-012", as: "otherGreymon" },
             { card: "BT14-014", as: "metalgreymon" },
           ],
         },
@@ -172,7 +173,7 @@ describe("BT14-090", () => {
     const firstPaymentEntry = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId);
     const firstPaymentRequest = firstPaymentEntry?.req;
     expect(firstPaymentRequest?.kind).toBe("selectCards");
-    expect(firstPaymentRequest?.options?.candidateInstanceIds).toEqual([greymonId, metalGreymonId]);
+    expect(firstPaymentRequest?.options?.candidateInstanceIds).toEqual([greymonId, s.inst("otherGreymon").instanceId]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -241,5 +242,133 @@ describe("BT14-090", () => {
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-007"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-007")).toBe(true);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT14-090")).toBe(true);
+  });
+  it("does not consume MetalGreymon as the missing exact Greymon payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-095", as: "tai" },
+            { card: "BT14-007", as: "agumon" },
+          ],
+          hand: [
+            { card: "BT14-090", as: "option" },
+            { card: "BT14-101", as: "wargreymon" },
+          ],
+          trash: [{ card: "BT14-014", as: "metalgreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("metalgreymon").instanceId);
+    expect(s.perm("agumon").stack).toHaveLength(0);
+    expect(s.perm("agumon").topCard.cardId).toBe("BT14-007");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wargreymon").instanceId);
+  });
+  it.each([["an Agumon X Antibody host", "BT9-008", "BT14-101"]])(
+    "rejects %s without consuming either placement",
+    async (_label, host, destination) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT12-095", as: "tai" },
+              { card: host, as: "host" },
+            ],
+            hand: [
+              { card: "BT14-090", as: "option" },
+              { card: destination, as: "destination" },
+            ],
+            trash: [
+              { card: "BT14-012", as: "greymon" },
+              { card: "BT14-014", as: "metalgreymon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const optionId = s.inst("option").instanceId;
+      const paymentIds = [s.inst("greymon").instanceId, s.inst("metalgreymon").instanceId];
+      const destinationId = s.inst("destination").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
+      );
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(paymentIds));
+      expect(s.perm("host").stack).toHaveLength(0);
+      expect(s.perm("host").topCard.cardId).toBe(host);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(destinationId);
+    },
+  );
+
+  it("chooses exact WarGreymon while leaving WarGreymon X Antibody in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-007", as: "agumon" }],
+          hand: [
+            { card: "BT14-090", as: "option" },
+            { card: "BT9-016", as: "nearDestination" },
+            { card: "BT14-101", as: "exactDestination" },
+          ],
+          trash: ["BT14-012", "BT14-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const nearId = s.inst("nearDestination").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("agumon").topCard.cardId === "BT14-101");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(nearId);
+    expect(s.perm("agumon").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT14-007", "BT14-012", "BT14-014"]),
+    );
+  });
+
+  it("Security does not play Agumon X Antibody as an exact Agumon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-058", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT14-090", as: "option" }],
+          hand: [{ card: "BT9-008", as: "nearAgumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const nearId = s.inst("nearAgumon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === optionId),
+    );
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(nearId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

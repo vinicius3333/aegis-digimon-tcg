@@ -1,4 +1,4 @@
-import type { Action, CompiledCard, Filter, Keyword } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true } satisfies Filter;
@@ -63,7 +63,7 @@ const digivolveBody = [
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "Alliance", raw: "＜Alliance＞" },
-    { keyword: "Succession" as Keyword, raw: "＜Succession ([Ceresmon])＞" },
+    { keyword: "Succession", raw: "＜Succession ([Ceresmon])＞" },
   ],
   effects: [
     { trigger: "WhenDigivolving", actions: digivolveBody },
@@ -81,6 +81,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -88,6 +89,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: ceresmon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

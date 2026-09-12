@@ -40,7 +40,7 @@ import { allowsOptionalProcessingCostWithoutTarget } from "./processingCondition
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect, Cost, Filter, Target } from "@aegis/shared";
+import type { Action, CardEffect, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -549,6 +549,9 @@ function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
 }
 
 export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> {
+  const declaredProcessingCondition = ctx.declaredProcessingCondition === true;
+  // Consume even if this resolution fizzles before any action can run.
+  ctx.declaredProcessingCondition = false;
   if (effect.condition && !evaluateCondition(ctx, effect.condition)) return;
   // Turn-condition gate for triggers that carry an explicit turnCondition field rather than
   // encoding the turn direction in the trigger name (e.g. whenTrashedFromBattleArea, BT19-095).
@@ -561,6 +564,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // A caller that already seeded `selections` is asking to be resolved ON ITS OWN context, because
   // it reads back what the actions write there (GameEngine.fireBeforePayCost and its
   // `playCostDelta`). Copying would strand every such write, so only an unseeded context is cloned.
+  // Nested effects receive their own choice; the declaration commits only this clause.
   const ctxWithSelections: EffectContext = ctx.selections ? ctx : { ...ctx, selections: new Map() };
   // Restrictions belong to this effect resolution only, so the inherited set is swapped for a clone
   // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
@@ -581,6 +585,14 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // preflight it before anything resolves and pay it once. An action inside the clause that
   // aborts — an opponent declining an optional — does not refund it.
   if (effect.cost !== undefined) {
+    if (
+      effect.cost.optional === true &&
+      ctx.borrowedEffectOverrides?.forceCostProcessing !== true &&
+      !(await ctxWithSelections.ask.optional(ctxWithSelections, effect.cost.raw ?? "Pay processing condition?"))
+    ) {
+      ctxWithSelections.effectRestrictions = outerRestrictions;
+      return;
+    }
     const paid = canPayCost(ctxWithSelections, effect.cost) && (await payCost(ctxWithSelections, effect.cost));
     if (!paid) {
       ctxWithSelections.effectRestrictions = outerRestrictions;
@@ -664,7 +676,11 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
       let abort: boolean;
       try {
-        abort = await runAction(ctxWithSelections, action);
+        const resolvingAction =
+          declaredProcessingCondition && actionIndex === 0 && action.kind === "CostGatedBlock"
+            ? { ...action, optional: false, cost: { ...action.cost, optional: false } }
+            : action;
+        abort = await runAction(ctxWithSelections, resolvingAction);
       } finally {
         ctxWithSelections.activeActionPath = outerActionPath;
         ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
@@ -727,6 +743,7 @@ function dependsOnSelection(actions: readonly Action[], name: string): boolean {
  */
 export interface ActivationGateOptions {
   readonly collectsMandatoryTrigger?: boolean;
+  readonly collectsTriggeredEffect?: boolean;
 }
 
 export function canActivateEffect(
@@ -740,6 +757,10 @@ export function canActivateEffect(
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   // A whole-clause cost is a processing condition for every action below it, so an unpayable
   // one refuses the declaration outright — the same gate `runEffect` applies at resolution.
+  // CR 15-7-4/5: a triggered optional processing condition remains available
+  // even when payment or the following payload cannot succeed. Activated Main
+  // declarations retain the separate affordability gate (15-8-4-3-1).
+  if (effect.cost?.optional === true && options.collectsTriggeredEffect === true) return true;
   if (effect.cost !== undefined && !canPayCost(ctx, effect.cost)) return false;
   type ParsedAction = Exclude<Action, { kind: "RawUnparsed" }>;
   const relevantActions = (effect.actions ?? []).filter(
@@ -767,41 +788,11 @@ export function canActivateEffect(
     if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;
     return (action.costOptions?.length ?? 0) === 0 || action.costOptions!.some((cost) => canPayCost(ctx, cost));
   };
-  /**
-   * The place costs of `cost` (a single cost or a compound), keyed by the selection ref each one
-   * binds its chosen HOST to. A block's payload reads its target through that binding, so the
-   * binding's destination filter is what the payload can be preflighted against before payment.
-   */
-  const hostFilterBySelectionRef = (cost: Cost | number | undefined): Map<string, Filter> => {
-    const out = new Map<string, Filter>();
-    if (cost === undefined || typeof cost === "number") return out;
-    for (const nested of cost.kind === "compound" ? (cost.costs ?? []) : [cost]) {
-      if (nested.kind !== "place" || nested.bindHostAs === undefined) continue;
-      const hostFilter =
-        nested.underFilter ??
-        (nested.host !== undefined && nested.host !== null && typeof nested.host === "object"
-          ? nested.host.filter
-          : undefined);
-      if (hostFilter !== undefined) out.set(nested.bindHostAs, hostFilter);
-    }
-    return out;
-  };
   const intrinsicPossible = (action: ParsedAction): boolean => {
-    // A CostGatedBlock is "by paying [cost], [payload]": the ACTIVATION is possible only when the
-    // payload is, so preflight through to the inner actions. Without this the block activates,
-    // pays its compound place cost and then fizzles when no legal payload exists — BT17-085's
-    // Rika with no [Sakuyamon] in hand buries herself, [Kyubimon] and [Taomon] under Renamon
-    // (Q2868). The payload's own target is not yet bound, so it is preflighted against the
-    // destination filter of the cost that will bind it, exactly as `runActionInner` does.
-    if (action.kind === "CostGatedBlock") {
-      const hostFilters = hostFilterBySelectionRef(action.cost);
-      return (action.actions ?? []).some((inner) => {
-        const ref = (inner as { target?: { fromSelectionRef?: string } }).target?.fromSelectionRef;
-        const hostFilter = ref === undefined ? undefined : hostFilters.get(ref);
-        if (hostFilter === undefined) return intrinsicPossible(inner as ParsedAction);
-        return intrinsicPossible({ ...inner, target: { filter: hostFilter, count: 1 } } as ParsedAction);
-      });
-    }
+    // CR 15-7-5 permits performing a payable processing condition even when
+    // its subsequent content cannot execute. The cost/condition gates below
+    // still apply; the nested resolver decides which payload actions can run.
+    if (action.kind === "CostGatedBlock") return true;
     if (action.kind === "Digivolve") {
       const costProducedTarget =
         action.cost?.kind === "place" &&

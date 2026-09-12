@@ -27,11 +27,12 @@ supported way to look a chunk up by rule number.
   ```ts
   function loadRuleIndex(): RuleIndex;
   function getChunk(id: string): RuleChunk; // throws on unknown id
-  function cite(id: string, note?: string): RuleChunk; // throws on unknown id, records id
+  function cite(id: string, note?: string, expectedFingerprint?: string): RuleChunk;
+  function ruleFingerprint(chunk: RuleChunk): string; // SHA-256 of exact UTF-8 text
   function markNotTestable<Reason extends string>(id: string, reason: NonEmptyString<Reason>): void;
   function getCitedIds(): string[];
   function getNotTestableIds(): string[];
-  function getCitations(): readonly { id: string; note?: string; file?: string }[];
+  function getCitations(): readonly { id: string; note?: string; file?: string; fingerprint?: string }[];
   function getNotTestableReason(id: string): string | undefined;
   function getObservedFiles(): string[];
   ```
@@ -77,27 +78,24 @@ it. Concretely, this means:
 - This is a real fragility for any test that cites an id and never re-validates
   what that id currently means.
 
-**Mitigation used here:** `getChunk()` throws loudly on an id that no longer
-exists after a re-scrape (a shrink or reorder that drops an id), which catches
-the easy case. It does **not** catch the hard case — an id that still exists
-but now points at different text. That would need each citation to also carry
-a content fingerprint (e.g. a short hash of the chunk's `text` at citation
-time, stored alongside the id and checked in `cite()`), so a re-scrape that
-silently swaps a chunk's content under a stable id fails the citation instead
-of passing on the wrong rule. That fingerprint check is **not implemented** in
-this change — it's flagged here as the next hardening step before this suite
-is trusted long-term, not as something to be skipped.
+**Mitigation:** `getChunk()` rejects missing IDs. Reviewed citations can also
+supply a SHA-256 fingerprint of exact chunk text as a third argument to `cite()`.
+A mismatch throws before the citation is recorded. Keep the reviewed fingerprint
+as a literal in the test; computing it from current KB content inside a behavioral
+test would accept drift automatically and defeat the check. `ruleFingerprint()`
+is provided for review tooling and citation-infrastructure tests.
 
-Until that mitigation lands: **after any KB re-scrape, re-run the full
-conformance suite and manually diff `getCitations()` output against the new
-index before trusting a green run.**
+Existing two-argument citations remain compatible but are unpinned. They do not
+detect an existing positional ID whose content changed. `getCitations()` exposes
+reviewed fingerprints and calling files for diagnostics; citations still do not
+prove every normative obligation in a chunk. After a KB update, review changed
+content and unpinned citations before trusting a green conformance run.
 
 ## Coverage reporting is a proxy, not proof
 
 `_kb.meta.test.ts`'s coverage report (chunks that are neither cited nor
-marked not-testable) is `console.log` output today, not an assertion. With
-zero chapter test files existing yet, "coverage" would trivially be "almost
-nothing is covered" — reporting that as a failure would just be noise. Per the
+marked not-testable) is `console.log` output today, not an assertion. Chapter suites now exist; citation presence still does not establish complete
+behavioral coverage of every obligation within a chunk. Per the
 honesty contract in the repo root `AGENTS.md`: **this report is not proof of
 coverage and must not be read as such.** It becomes meaningful, and should be
 flipped to an enforcing `expect(...)`, once chapter test files exist and
@@ -137,5 +135,5 @@ pnpm --filter @aegis/api test:conformance
 ```
 
 which runs `vitest run src/engine/conformance --pool=forks
---poolOptions.forks.maxForks=1 --no-file-parallelism` — the same single-fork
+--maxWorkers=1 --no-file-parallelism` — the same single-fork
 shape mandated for this lane's own verification runs.

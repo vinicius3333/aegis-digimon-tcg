@@ -1,4 +1,4 @@
-import type { CompiledCard, Filter, Keyword } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] } satisfies Filter;
@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
     { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
     { keyword: "Reboot", raw: "＜Reboot＞" },
     { keyword: "Blocker", raw: "＜Blocker＞" },
-    { keyword: "Succession" as Keyword, raw: "＜Succession (Lv.6 w/[Chronomon] in name)＞" },
+    { keyword: "Succession", raw: "＜Succession (Lv.6 w/[Chronomon] in name)＞" },
   ],
   effects: [
     {
@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -48,6 +49,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: chronomon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

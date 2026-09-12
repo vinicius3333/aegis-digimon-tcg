@@ -88,7 +88,7 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
       const p0 = s.state.players[0] as PlayerState;
       const p1 = s.state.players[1] as PlayerState;
       // A Yellow source on p0's own field so this test doesn't ride on the separately
-      // documented color-requirement-enforcement gap (ch04 comprehensive-0091 divergence).
+      // documented color-requirement-enforcement gap (ch04 comprehensive-0308 divergence).
       p0.battleArea.push(digimon(0, 1000, "BT1-045"));
       const target = digimon(1, 3000, "AD1-001"); // raw DP exactly 3000: -3000 lands it at 0
       p1.battleArea.push(target);

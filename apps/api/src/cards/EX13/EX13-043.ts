@@ -88,13 +88,8 @@ const perSuspendedDigimon: Scaling = {
 // activation chooses, rather than installing an unscoped `wouldBePlayed` reduceCost subscription
 // that would discount every play in the window.
 //
-// ENGINE SEAM (retained red, see EX13-043.test.ts): `UseOptionWithoutCostAction`
-// (`packages/shared/src/effects/ir/actions/meta.ts:121`) declares `reduceCostBy` but no
-// `reduceCostByScaling`, and `runUseOptionWithoutCost`
-// (`apps/api/src/engine/effects/interpreter/actions/borrowed.ts:522`) builds `totalReduction`
-// from `reduceCostBy` plus `reduceCostByOpponentMemory` only — it never calls `scaleFactor`. The
-// sibling `PlayWithoutCost` path does. So the per-suspended-Digimon half of this printed sentence
-// reaches the PLAY branch and cannot reach the USE branch today.
+// Both verbs forward the same live scaling reduction to their affordability and payment
+// paths; the shared Option use primitive owns payment and floors the effective cost at zero.
 const playOrUseTraitCard: Action = {
   kind: "Modal",
   choose: 1,
@@ -119,6 +114,8 @@ const playOrUseTraitCard: Action = {
         from: ["hand"],
         payCost: true,
         reduceCostBy: 4,
+        allowMultiColor: true,
+        reduceCostByScaling: perSuspendedDigimon,
         optional: true,
         raw: "You may use 1 [Mammal], [Beast], [Beastkin] or [Royal Knight] trait card from your hand with the cost reduced by 4",
       },
@@ -179,10 +176,8 @@ export const compiled: CompiledCard = {
     playOrUse("WhenAttacking"),
     { trigger: "AllTurns", frequency: "OncePerTurn", actions: [preventSuspendedLeave] },
   ],
-  // The [Mammal]/[Beast]/[Beastkin]/[Royal Knight] USE branch cannot carry the printed
-  // per-suspended-Digimon reduction; everything else is behaviourally proven.
-  coverage: "partial",
-  residual: ["For each suspended Digimon, further reduce it by 1. (Option-use branch only)"],
+  coverage: "full",
+  residual: [],
   // "[Digivolve] [Leopardmon: Leopard Mode]: Cost 1" — an EXACT name route (`namesExact`), so the
   // plain [Leopardmon] printings do NOT reach it even though "Leopardmon" is a substring of
   // "Leopardmon: Leopard Mode". The printed header carries no level, so the route is name-only

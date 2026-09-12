@@ -8,7 +8,7 @@
 //
 // Text extraction uses `pdftotext` (poppler). Install with: brew install poppler
 //
-// Usage: node tools/kb/index-rules.mjs [--force]
+// Usage: node tools/kb/index-rules.mjs [--force] [--source=comprehensive|manual]
 
 import fs from "node:fs";
 import path from "node:path";
@@ -17,8 +17,10 @@ import { execFileSync } from "node:child_process";
 import { fetchBinary } from "./lib/http.mjs";
 import { writeJson, updateManifest } from "./lib/manifest.mjs";
 import { RAW_DIR, RULES_DIR, RULES_INDEX_PATH, SOURCES } from "./lib/paths.mjs";
+import { reconcileRuleChunks } from "./lib/reconcile-rule-chunks.mjs";
 
 const force = process.argv.includes("--force");
+const selectedSource = process.argv.find((arg) => arg.startsWith("--source="))?.slice("--source=".length);
 const OCR_SWIFT = path.join(path.dirname(fileURLToPath(import.meta.url)), "lib/ocr.swift");
 const OCR_DPI = "300";
 const CHUNK_TARGET_WORDS = 220;
@@ -122,12 +124,25 @@ function cleanOcrText(text) {
 // Re-flow wrapped lines into numbered "units" (one per rule or heading). A unit
 // starts at a line beginning with a section number; subsequent lines are its
 // continuation. Standalone page numbers are dropped.
-function buildUnits(text) {
+export function buildUnits(text) {
   const units = [];
   let current = null;
+  let inHistory = false;
   for (const raw of text.split("\n")) {
     const line = raw.trim();
     if (!line || /^\d+$/.test(line)) continue;
+    if (line === "Update History") {
+      if (current) units.push(current);
+      units.push({ num: null, depth: 1, text: line, marked: true });
+      current = null;
+      inHistory = true;
+      continue;
+    }
+    if (inHistory) {
+      if (current) current.text += ` ${line}`;
+      else current = { num: null, depth: 0, text: line };
+      continue;
+    }
     const ruleMatch = line.match(RULE_RE);
     const markMatch = line.match(MARK_RE);
     if (ruleMatch) {
@@ -167,7 +182,7 @@ function splitByWords(text, target) {
 // stay in the text as content; ■ glossary markers are pure labels. A unit longer
 // than the target (e.g. a whole glossary section) is split by word count, merged
 // with any pending buffer so no orphan fragments are emitted.
-function chunkUnits(units, source) {
+export function chunkUnits(units, source) {
   const chunks = [];
   let title = source.title;
   let section = null;
@@ -225,12 +240,47 @@ function chunkUnits(units, source) {
   return chunks;
 }
 
+// Reviewed migration for the old chunker's mixed normative/history chunk.
+// Keep the loop-rule citation; history-only chunks retire through reconciliation.
+export function migrateMixedHistoryChunks(chunks) {
+  return chunks.map((chunk) => {
+    if (
+      chunk.source === "comprehensive" &&
+      chunk.title === "Infinite Loops" &&
+      /^18-3\. Infinite Loops\s/.test(chunk.text) &&
+      chunk.text.includes("Update History")
+    ) {
+      return { ...chunk, section: "18-3", text: chunk.text.split("Update History")[0].trim() };
+    }
+    return chunk;
+  });
+}
+
 async function main() {
+  if (
+    selectedSource !== undefined &&
+    !SOURCES.rulesPdfs.some((source) => source.id === selectedSource && !source.archived)
+  ) {
+    throw new Error(`Unknown or archived refresh source: ${selectedSource}`);
+  }
   ensurePdftotext();
   fs.mkdirSync(RULES_DIR, { recursive: true });
 
   const allChunks = [];
+  const documents = [];
+  const previous = fs.existsSync(RULES_INDEX_PATH)
+    ? JSON.parse(fs.readFileSync(RULES_INDEX_PATH, "utf8"))
+    : { chunks: [], retiredIds: [] };
   for (const source of SOURCES.rulesPdfs) {
+    if (source.archived || (selectedSource && source.id !== selectedSource)) {
+      const historical = previous.chunks.filter((chunk) => chunk.source === source.id);
+      if (historical.length === 0) throw new Error(`Preserved source ${source.id} has no committed chunks`);
+      allChunks.push(...historical);
+      log(
+        `rules: ${source.id} (${source.archived ? "archived" : "not refreshed"}) — ${historical.length} committed chunks retained`,
+      );
+      continue;
+    }
     const pdfPath = path.join(RAW_DIR, "pdf", `${source.id}.pdf`);
     const { cached } = await fetchBinary(source.url, { cacheFile: pdfPath, force });
     let text = extractText(pdfPath);
@@ -239,11 +289,10 @@ async function main() {
       text = ocrImagePdf(pdfPath, source.id);
       via = "OCR";
       if (wordCount(text) === 0) {
-        log(`rules: ${source.id} — warn: no text layer and no OCR backend available; skipped`);
-        continue;
+        throw new Error(`rules: ${source.id} — no text layer and no OCR backend available`);
       }
     }
-    fs.writeFileSync(path.join(RULES_DIR, `${source.id}.md`), `# ${source.title}\n\n${text}\n`);
+    documents.push({ source, text });
 
     const chunks = chunkUnits(buildUnits(text), source);
     allChunks.push(...chunks);
@@ -251,15 +300,31 @@ async function main() {
   }
 
   if (allChunks.length === 0) throw new Error("no rule chunks produced — extraction may have failed");
-  writeJson(RULES_INDEX_PATH, { sources: SOURCES.rulesPdfs, chunks: allChunks });
+  const reconciled = reconcileRuleChunks({
+    previousChunks:
+      selectedSource && selectedSource !== "comprehensive"
+        ? previous.chunks
+        : migrateMixedHistoryChunks(previous.chunks),
+    retiredIds: previous.retiredIds,
+    chunks: allChunks,
+  });
+  // Validate every source and citation identity before replacing committed output.
+  for (const { source, text } of documents) {
+    fs.writeFileSync(path.join(RULES_DIR, `${source.id}.md`), `# ${source.title}\n\n${text}\n`);
+  }
+  writeJson(RULES_INDEX_PATH, { sources: SOURCES.rulesPdfs, ...reconciled });
   updateManifest("rules", {
     sources: SOURCES.rulesPdfs.map((s) => s.url),
+    archivedSources: SOURCES.rulesPdfs.filter((s) => s.archived).map((s) => s.url),
+    refreshedSources: documents.map(({ source }) => source.url),
     chunks: allChunks.length,
   });
   log(`rules: ${allChunks.length} chunks -> ${path.relative(process.cwd(), RULES_INDEX_PATH)}`);
 }
 
-main().catch((err) => {
-  process.stderr.write(`error: ${err.message}\n`);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    process.stderr.write(`error: ${err.message}\n`);
+    process.exit(1);
+  });
+}

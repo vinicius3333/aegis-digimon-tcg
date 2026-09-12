@@ -94,9 +94,31 @@ function assertNarrativeRubricScore(cardId: string, body: string): void {
   expect(deliveryGatesLine, `${cardId} delivery gates at 0/2`).toMatch(/0\/2/);
 }
 
-function assertStandardLedgerScore(cardId: string, body: string): void {
-  expect(body, `${cardId} total`).toMatch(/10\/10/);
-  expect(countMatches(body, /2\/2/g) >= 5, `${cardId} five scores`).toBe(true);
+/** Read the authoritative current score, never a superseded score in its history. */
+export function standardLedgerScore({ body, verified = false }: { body: string; verified?: boolean }): number {
+  const reported = body.match(/^- Current score:.*$/m) ?? body.match(/^- Score:.*$/m);
+  const scoreText = reported?.[0].match(
+    /^- (?:Current score|Score):\s*(?:capped at\s+)?\*{0,2}([^\s*·;:()]+)\/10\b(?!\/|[.,]\d)/,
+  )?.[1];
+  if (reported === null || scoreText === undefined) throw new Error("Missing current ledger score");
+  const clauseLine = body.match(/^- Clause scores:.*$/m);
+  const componentText = clauseLine?.[0] ?? (reported[0].includes("/2") ? reported[0] : body.slice(0, reported.index));
+  const ratingTexts = [...componentText.matchAll(/([^\s*·;:()]+)\/2\b(?!\/|[.,]\d)/g)].map((match) => match[1]!);
+  if (![scoreText, ...ratingTexts].every((value) => /^\d+$/.test(value))) {
+    throw new Error("Ledger score must equal five integer component ratings out of two");
+  }
+  const components = ratingTexts.map(Number);
+  const score = Number(scoreText);
+  if (
+    components.length !== 5 ||
+    components.some((value) => value > 2) ||
+    score > 10 ||
+    components.reduce((sum, value) => sum + value, 0) !== score
+  ) {
+    throw new Error("Ledger score must equal five component ratings out of two");
+  }
+  if (verified && score !== 10) throw new Error("Verified collection contains an incomplete card score");
+  return score;
 }
 
 function switchCaseSource(source: string, cardId: string): string {
@@ -156,7 +178,7 @@ export function describeRemainingCollectionAuditContract({
           expect(hasTestReference(set, cardId, body), `${cardId} test reference`).toBe(true);
 
           if (narrative) assertNarrativeRubricScore(cardId, body);
-          else assertStandardLedgerScore(cardId, body);
+          else standardLedgerScore({ body, verified: /^status: verified$/m.test(source) });
         }
       }
     });

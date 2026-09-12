@@ -17,13 +17,14 @@ export const compiled: CompiledCard = {
     { keyword: "Piercing", raw: "＜Piercing＞" },
     { keyword: "Reboot", raw: "＜Reboot＞" },
     { keyword: "Blocker", raw: "＜Blocker＞" },
-    { keyword: "UseReq", raw: "＜Succession ([Jupitermon])＞" },
+    { keyword: "Succession", raw: "＜Succession ([Jupitermon])＞" },
   ],
   effects: [
     { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
     { trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -31,6 +32,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: jupitermon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

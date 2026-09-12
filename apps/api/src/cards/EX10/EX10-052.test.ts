@@ -194,7 +194,7 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
         },
         1: { battleArea: [{ card: INERT_A, as: "theirs" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
     s.state.memory = 7;
@@ -204,6 +204,27 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("lucemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const costChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costChoice.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== costChoice.decisionId,
+    );
+    const deletionChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletionChoice.decisionId,
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);

@@ -19,7 +19,7 @@ const bacchusmon: Filter = {
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
-    { keyword: "UseReq", raw: "＜Succession ([Bacchusmon])＞" },
+    { keyword: "Succession", raw: "＜Succession ([Bacchusmon])＞" },
   ],
   effects: [
     {
@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -53,6 +54,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: bacchusmon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

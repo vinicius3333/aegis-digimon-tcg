@@ -233,13 +233,16 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const permanentId of ids) {
           const permanent = ctx.game.permanentById(permanentId);
           if (permanent === undefined) continue;
-          const matches = permanent.stack.filter((stackCard) =>
-            definitionMatches(action.filter!, ctx.game.definitionOf(stackCard) as DefinitionFacts),
+          const matches = permanent.stack.filter(
+            (stackCard) =>
+              stackCard.faceUp !== false &&
+              definitionMatches(action.filter!, ctx.game.definitionOf(stackCard) as DefinitionFacts),
           );
           const sources = action.topmostOnly === true ? matches.slice(-1) : matches;
           for (const stackCard of sources) {
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
               excludeInherited: action.excludeInherited === true,
+              excludeKeywords: action.excludeKeywords,
               granterInstanceId: ctx.source.instanceId,
               ...(action.copyTrigger !== undefined ? { trigger: action.copyTrigger } : {}),
             });
@@ -404,6 +407,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           const permanent = ctx.game.permanentById(permanentId);
           if (permanent === undefined) continue;
           for (const stackCard of permanent.stack) {
+            if (stackCard.faceUp === false) continue;
             const def = ctx.game.definitionOf(stackCard);
             if (!definitionMatches(parsedFilter, def as DefinitionFacts)) continue;
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
@@ -642,6 +646,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const permanent = ctx.game.permanentById(permanentId);
         if (permanent === undefined) continue;
         for (const stackCard of permanent.stack) {
+          if (stackCard.faceUp === false) continue;
           const def = ctx.game.definitionOf(stackCard);
           if (!definitionMatches(action.filter, def as DefinitionFacts)) continue;
           ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {

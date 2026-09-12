@@ -73,7 +73,17 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       : [effect];
   });
   const rootKeywords = (compiled as CompiledCard & { keywords?: CardEffect["keywords"] }).keywords ?? [];
-  if (rootKeywords.length > 0) effects.push({ trigger: "Static", actions: [], keywords: rootKeywords });
+  // Resident markers are separate keyword effects so a selective copy can omit one
+  // without dropping sibling keywords or their numerical values.
+  for (const [index, keyword] of rootKeywords.entries()) {
+    effects.push({
+      trigger: "Static",
+      actions: [],
+      keywords: [keyword],
+      keywordEffect: keyword.keyword,
+      effectKey: `${cardId}/keyword/${keyword.keyword}/${index}`,
+    });
+  }
   // ＜Training＞ compiles two ways depending on the runtime record path: either as `effect.keywords`
   // metadata on the printed-keyword line, or (the common case for EX9's Digimon, e.g. EX9-008/
   // EX9-016) as a self-targeted `GainKeyword` ACTION inside a Static effect. Checking only
@@ -152,7 +162,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const build = builderForTrigger(effect);
     const markedBuild = (options: BuilderOptions): Effect => {
       const built = build(options);
-      return containsPlayCostReduction(effect.actions) ? { ...built, isPlayCostReduction: true } : built;
+      return {
+        ...built,
+        ...(containsPlayCostReduction(effect.actions) ? { isPlayCostReduction: true } : {}),
+        ...(effect.keywordEffect !== undefined ? { keywordEffect: effect.keywordEffect } : {}),
+      };
     };
     for (const timing of timings) {
       const list = byTiming.get(timing) ?? [];
@@ -351,7 +365,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             (timing === EffectTiming.BeforePayCost ? effectCondition(effect, ctx) : triggerCondition(effect, ctx)),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
-            canActivateEffect(ctx, effect, { collectsMandatoryTrigger: isMandatoryTrigger }),
+            canActivateEffect(ctx, effect, {
+              collectsMandatoryTrigger: isMandatoryTrigger,
+              collectsTriggeredEffect: timing !== EffectTiming.OnDeclaration && timing !== EffectTiming.None,
+            }),
           resolve: async (ctx) => {
             const outerEffectKey = ctx.activeEffectKey;
             ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);

@@ -3,7 +3,14 @@
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { isPrintedKeywordToken, textPrintsKeyword } from "@aegis/shared";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
-import { CardColor, CardKind, digiXrosRequirementFor, effectiveExactNames, effectiveStaticNames } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  digiXrosRequirementFor,
+  effectiveExactNames,
+  effectiveStaticNames,
+  nameIncludesToken,
+} from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";
 import { staticTraitsOf } from "../../../cards/cardData.js";
 
@@ -179,7 +186,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Name-exclusion ("other than [X], [Y]"): reject when the card's name matches any.
   if (filter.excludeNames && filter.excludeNames.length > 0) {
     const name = (def.nameEn ?? "").toLowerCase();
-    if (filter.excludeNames.some((n) => name.includes(n.toLowerCase()))) return false;
+    if (filter.excludeNames.some((n) => nameIncludesToken(name, n))) return false;
   }
   if (filter.excludeCardIds && filter.excludeCardIds.length > 0 && def.cardId !== undefined) {
     if (filter.excludeCardIds.includes(def.cardId)) return false;
@@ -358,7 +365,7 @@ export function matchNameOrTrait(
   const matches = (ref.tokens ?? []).some((token) => {
     const rawToken = token.toLowerCase();
     const nameToken = normalizeName(token);
-    if (ref.match === "name") return names.some((name) => name.includes(nameToken));
+    if (ref.match === "name") return names.some((name) => nameIncludesToken(name, nameToken));
     // named "Cerberusmon: Werewolf Mode" does NOT match "Cerberusmon" (KB Q1231/Q1232).
     if (ref.match === "nameExact") return exactNames.some((name) => name === nameToken);
     if (ref.match === "trait") return traits.some((x) => x === normalizeTrait(rawToken));
@@ -373,7 +380,7 @@ export function matchNameOrTrait(
     // not have ＜Save＞ (EX10 seam 12).
     if (isPrintedKeywordToken(rawToken)) return textPrintsKeyword(text, rawToken);
     return (
-      names.some((name) => name.includes(nameToken)) ||
+      names.some((name) => nameIncludesToken(name, nameToken)) ||
       traits.some((x) => x.includes(normalizeTrait(rawToken))) ||
       text.includes(rawToken)
     );

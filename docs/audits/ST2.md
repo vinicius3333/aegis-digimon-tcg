@@ -1,7 +1,7 @@
 ---
 set: ST2
 cards: 16
-status: verified
+status: in-progress
 verified_at: 2026-09-05
 catalog_commit: e540204fb
 evidence_commit: eabe99351
@@ -11,9 +11,30 @@ evidence_commit: eabe99351
 
 ## Status
 
-All 16 committed ST2 cards are verified at a 10/10 evidence score. Every card has a direct compiled IR module registered exclusively through `registerIrCard`, a colocated focused test, reviewed printed-clause evidence and applicable KB rulings. The winning source is the starter-deck reaudit closeout of 2026-09-05 (`ST-REAUDIT-RESULTS.md` and the per-card `ST-REAUDIT-EVIDENCE.json` ledger), backed by `ST2-PROOF-AUDIT.md` of the same date. Earlier reports are historical: the `ST2-AUDIT.md` ledger (2026-08-31) and the provisional `ST1-8-LUNA-REAUDIT.md` checkpoint. Where they disagree with the closeout, the closeout wins, and every disagreement is listed under Open items. The reviewed batch for this set was pushed as `e4cae2ca2`.
+The 2026-09-05 closeout reported all 16 committed ST2 cards at 10/10. The 2026-09-12 public Marsmon effect-battle reproduction contradicts ST2-01's historical certification: its attack/block subscriptions omit a direct battle. ST2 is reopened and is not currently certified. ST2-01 is capped at 8/10 pending complete public evolution-line and peer/stack proof; other card scores below retain their historical scope. Every card has a direct compiled IR module registered exclusively through `registerIrCard`, a colocated focused test, reviewed printed-clause evidence and applicable KB rulings. The winning source is the starter-deck reaudit closeout of 2026-09-05 (`ST-REAUDIT-RESULTS.md` and the per-card `ST-REAUDIT-EVIDENCE.json` ledger), backed by `ST2-PROOF-AUDIT.md` of the same date. Earlier reports are historical: the `ST2-AUDIT.md` ledger (2026-08-31) and the provisional `ST1-8-LUNA-REAUDIT.md` checkpoint. For historical disagreements the closeout wins; the newer direct-battle evidence supersedes its ST2-01 claim. Every disagreement is listed under Open items. The reviewed batch for this set was pushed as `e4cae2ca2`.
 
 ## Gates
+
+### Current continuous-battle correction, 2026-09-12
+
+Baseline `1873b797d`. Tsunomon's public direct-battle reproduction reopened
+the historical collection certification. The corrected card/Alliance/EX13-076
+selection passed three files and 27 tests. Broader ST2/combat/IR registration,
+resolution, conformance and direct-Piercing regression passed 155 files and
+1378 tests. Final full default API passed 5108 files / 42256 tests, with four declared
+expected failures (42260 total), in 180.30 seconds. Shared, API and web
+typecheck passed. The broader ST2 prefix also includes ST20–ST23; it is
+not an exact ST2-only file count. Final card/layout checks passed two files and twelve tests; scoped lint,
+changed-file formatting, the current 66-set index, diff checks and independent
+read-only review passed.
+
+Effects sync reported three semantic changes and sixteen synchronized records
+with zero out-of-set semantic or byte changes. Besides Tsunomon's new
+continuous condition, pre-existing ST2-08 aura and ST2-14 filter/duration
+snapshots were aligned with their unchanged direct modules. Their catalog
+contracts and modules were inspected, and their existing tests are included
+in the broader regression. This does not recalculate their historical scores.
+No whole-card or collection completion is claimed.
 
 Final combined serial run (`ST-REAUDIT-RESULTS.md`, `ST-REAUDIT-EVIDENCE.json`, 2026-09-05):
 
@@ -115,7 +136,15 @@ Serial mechanism tests passed for the shared risks: ST1 wargreymon-historical-de
 
 ### ST2-01 — Tsunomon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 1/2.
+- Current score: capped at 8/10, provisional. The direct-battle defect is corrected in the working implementation, but public evolution-line and remaining peer/stack proof remain pending. The full default API gate is green; this does not certify the whole card.
+- Contract: exact catalog inherited text, Your Turn, plus 1000 DP while battling an opponent field Digimon with zero sources. No main or Security effect is printed.
+- Sources: local card query found no rulings; comprehensive §14 battle procedure and current manual security-type distinction were read. Complete source identities and boundary obligations are in [the engine duration ledger](engine/battle-duration-boundaries.md).
+- Trace: continuous inherited YourTurn condition `selfBattlesOpponentMatching` reads the active battle opponent and exact zero-source filter. It modifies only its own host, and is re-derived when the field battle opens/closes. Exclusive `registerIrCard` is preserved.
+- Public proof: Marsmon's public play costs seven (twelve minus five), leaving three memory; Elecmon's three thousand plus Marsmon's three thousand plus Tsunomon's one thousand defeats neutral Gorillamon's six thousand in the generated battle. The exact egg remains under Elecmon and DP returns to six thousand after the battle. A one-source opponent instead produces a tie and exact physical cards are trashed.
+- Duration proof: a legal seeded blue egg/rookie/champion/ultimate/Gryphon line wins a source-less eleven-thousand-DP battle at twelve thousand, then loses a Piercing security tie at eleven thousand. All five exact owner cards and both opponent cards reach their respective trash. This seeded line does not prove public evolution through every step.
+- Counterfactual: restoring the old direct module fails the no-source public battle at the missing surviving host; one-source control passes. Omitting context removal fails postbattle DP and security battle verdict, while one-source control passes. Both mutations were restored in finally.
+- Historical score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05; superseded for current certification.
 - Module: `apps/api/src/cards/ST2/ST2-01.ts`
 - Focused test: `apps/api/src/cards/ST2/ST2-01.test.ts`
 - Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
@@ -427,7 +456,7 @@ No `KB-INDEX.md` file exists for ST2. The applicable KB Q&A identifiers are reco
 
 ## Open items
 
-- No ST2 card scores below 10/10 in `ST-REAUDIT-EVIDENCE.json` (2026-09-05).
+- ST2-01 is reopened below 10/10 after the 2026-09-12 direct-battle reproduction. The old results JSON reported no card below 10/10, but did not prove this path. Public full evolution-line and complete peer interactions remain pending; green delivery gates do not restore a whole-card ten.
 - `ST1-8-LUNA-REAUDIT.md` (2026-09-05) says it is a checkpoint and not a collection certification; `ST2-PROOF-AUDIT.md` (2026-09-05) says it supersedes historical completion claims. The proof audit and the final results ledger win.
 - `ST2-AUDIT.md` (2026-08-31) records the serial flag `--poolOptions.forks.singleFork=true`, which `ST-REAUDIT-PLAN.md` (2026-09-05) records as rejected by the installed Vitest 5.
 

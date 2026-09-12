@@ -4,12 +4,12 @@ const host = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Gaomon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Gaomon"], match: "nameExact" }],
 } satisfies Filter;
 const first = {
   kind: "place",
   target: {
-    filter: { controller: "mine", nameOrTrait: [{ tokens: ["Gaogamon"], match: "name" }] },
+    filter: { controller: "mine", nameOrTrait: [{ tokens: ["Gaogamon"], match: "nameExact" }] },
     from: ["trash"],
     count: 1,
   },
@@ -21,7 +21,7 @@ const first = {
 const second = {
   kind: "place",
   target: {
-    filter: { controller: "mine", nameOrTrait: [{ tokens: ["MachGaogamon"], match: "name" }] },
+    filter: { controller: "mine", nameOrTrait: [{ tokens: ["MachGaogamon"], match: "nameExact" }] },
     from: ["trash"],
     count: 1,
   },
@@ -31,7 +31,7 @@ const second = {
 } satisfies Cost;
 const playThomasFilter = {
   kind: ["Tamer"],
-  nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }],
 } satisfies Filter;
 export const compiled: CompiledCard = {
   effects: [
@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: { filter: host, count: 1, fromSelectionRef: "gaomonHost" },
-              into: { nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "name" }] },
+              into: { nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "nameExact" }] },
               from: ["hand"],
               payCost: false,
               ignoreRequirements: true,
@@ -77,7 +77,7 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gaomon"], match: "name" }] },
+            filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gaomon"], match: "nameExact" }] },
             orFilters: [playThomasFilter],
             count: 1,
             upTo: true,

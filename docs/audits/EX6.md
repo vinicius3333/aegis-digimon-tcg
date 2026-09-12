@@ -1,7 +1,7 @@
 ---
 set: EX6
 cards: 74
-status: verified
+status: incomplete
 verified_at: 2026-09-09
 catalog_commit: e540204fb
 evidence_commit: eabe99351
@@ -10,6 +10,8 @@ evidence_commit: eabe99351
 # EX6 audit
 
 ## Status
+
+2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
 All 74 EX6 cards are verified at 10/10 (aggregate 740/740). The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
 
@@ -43,82 +45,82 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX6 --pool=forks --poolOption
 
 Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX6-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
 
-| Card    | Status | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report                           |
-| ------- | ------ | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | -------------------------------- |
-| EX6-001 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-002 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-003 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-004 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-005 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-006 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-007 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-008 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-009 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-010 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-011 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-012 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-013 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-014 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-015 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-016 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-017 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-018 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-019 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-020 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-021 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-022 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-023 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-024 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-025 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-026 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-027 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-028 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-029 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-030 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-031 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-032 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-033 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-034 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-035 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-036 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-037 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-038 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-039 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-040 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-041 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-042 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-043 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-044 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-045 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-046 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-047 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-048 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-049 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-050 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-051 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-052 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-053 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-054 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-055 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-056 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-057 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-058 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-059 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-060 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-061 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-062 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-063 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-064 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-065 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-066 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-067 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-068 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-069 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-070 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-071 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-072 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-073 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
-| EX6-074 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | see below |
+| Card    | Status   | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report    |
+| ------- | -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | --------- |
+| EX6-001 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-002 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-003 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-004 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-005 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-006 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-007 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-008 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-009 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-010 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-011 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-012 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-013 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-014 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-015 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-016 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-017 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-018 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-019 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-020 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-021 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-022 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-023 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-024 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-025 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-026 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-027 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-028 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-029 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-030 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-031 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-032 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-033 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-034 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-035 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-036 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-037 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-038 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-039 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-040 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-041 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-042 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-043 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-044 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-045 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-046 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-047 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-048 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-049 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-050 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-051 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-052 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-053 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-054 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-055 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-056 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-057 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-058 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-059 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-060 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-061 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-062 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-063 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-064 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-065 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-066 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-067 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-068 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-069 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-070 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-071 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-072 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-073 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-074 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
 
 ### EX6-001 — Sakuttomon
 
@@ -176,6 +178,8 @@ Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card
 - Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
 
 ### EX6-006 — Gate of Deadly Sins
+
+Current score: **8/10, provisional cap**. The reproducible hidden-source and missing event-position gap supersedes historical ten-point credit. Current bounded public/empty-deck proof and delivery gates are owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint); full card revalidation remains open.
 
 - Catalog contract: purple Digi-Egg; breeding start-of-main places the top Digi-Egg under itself, deletes all your Digimon, and if this effect deleted, places one `Seven Great Demon Lords` card from trash beneath it. At opponent-turn end, by deleting this stack with 7+ distinct names, may play `Ogudomon` from trash free. Inherited breeding your-turn once per turn: may reduce a Seven Great Demon Lords Digimon play by 3, or by 4 with 5+ distinct source names.
 - KB: Q3694 requires deleting all your Digimon even with an empty Digi-Egg deck; Q3695/Q3696 define distinct names and count Gate itself; Q3697 permits overlapping copies; Q3698 says inherited reduction is optional; Q3699 allows effect-play; Q3700 permits choosing -3 despite 5+ names.
@@ -415,13 +419,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: the shared once-per-turn key joins On Play and When Attacking use; `digiXrosCount` guards both self grants so a later attack cannot receive them. Temporary DP and keyword entries expire at the opponent-turn boundary. Host-filtered stack `Return` resolves within the `wouldLeavePlay` replacement, while OR-material selection is covered by the shared DigiXros regression.
 - Focused runtime proof: the colocated public-runtime suite exercises the catalog and KB clauses with applicable positive, negative, boundary, timing, and optionality cases; shared mechanism tests provide mapped primitive coverage.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-026` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-026.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 11 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-026.ts apps/api/src/cards/EX6/EX6-026.test.ts docs/audits/EX6-reaudit/EX6-026.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-026`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-026.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 11 tests**.                               |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-026.ts apps/api/src/cards/EX6/EX6-026.test.ts docs/audits/EX6-reaudit/EX6-026.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -460,13 +465,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: security trash and security-to-hand paths publish `whenSecurityRemoved` with the affected seat; the watcher gate compares that seat to the source owner. Ordered action resolution aborts a tail when the leading accepted-or-declined gated action produces no effect. `GainKeyword(Recovery)` invokes Recovery’s deck-to-security primitive on the opponent-turn branch; frequency state prevents a second response in the same turn.
 - Focused runtime proof: `primitives.test.ts` proves security-to-hand publishes the generic event, interpreter tests prove abort-on-decline tails, and shared attack/recovery/frequency suites cover the downstream mechanics. The colocated suite asserts the IR contract; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-027` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-027.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-027.ts apps/api/src/cards/EX6/EX6-027.test.ts docs/audits/EX6-reaudit/EX6-027.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-027`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-027.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-027.ts apps/api/src/cards/EX6/EX6-027.test.ts docs/audits/EX6-reaudit/EX6-027.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -505,13 +511,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: Recovery adds deck cards and publishes `whenAddSecurity` after the state mutation, so the dynamic level bound reads the post-add count. `fireCondition` rejects opponent security additions. The timing stack groups same-controller simultaneous triggers and asks `chooseOrder`, directly providing the Q3747 order choice.
 - Focused runtime proof: shared recovery/add-security, fire-condition, dynamic level-comparison, return, frequency, and `stack.test.ts` same-side ordering suites cover the mechanism; the colocated suite checks the card IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-028` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-028.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 6 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-028.ts apps/api/src/cards/EX6/EX6-028.test.ts docs/audits/EX6-reaudit/EX6-028.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-028`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-028.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 6 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-028.ts apps/api/src/cards/EX6/EX6-028.test.ts docs/audits/EX6-reaudit/EX6-028.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -550,13 +557,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: `PlayWithoutCost` selects only controller-owned qualifying loose cards from hand/trash and leaves the following Then independent of a decline. Field-source `placeAsSecurity` removes the selected other permanent and puts it at the bottom of its owner's security, while `SecurityManipulation.leaveCount` computes `max(0, opponent security - 4)` and trashes exactly that many top cards. The Blast DNA keyword and DNA-context predicate are supplied by the entry pipeline.
 - Focused runtime proof: EX6-029 covers owner-security routing, mandatory tails, declined play, owner boundaries, 5-to-4/4-to-4 limits, and the non-DNA negative branch.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-029` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 8 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6-reaudit/EX6-029.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-029`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 8 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6-reaudit/EX6-029.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -595,13 +603,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: SearchSecurity shows the controller its own security, optionally plays one selected eligible card, and always shuffles before returning, so the next mandatory -7000 action runs even after no selection (Q3748). Replacement installation applies the trait/controller source filter to each leaving permanent, rejects battle cause, and uses a single prevent check/payload for all matching simultaneous leaves. The normal modifier ledger expires at each turn end; the Rule action augments the source trait union.
 - Focused runtime proof: SearchSecurity, optional continuation, shuffle, ordered Then, temporary DP, all-target replacement, cause filtering, and single-payment simultaneous-prevention mechanisms have focused shared coverage; the colocated suite now asserts the card contract; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-030` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-030.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 7 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-030.ts apps/api/src/cards/EX6/EX6-030.test.ts docs/audits/EX6-reaudit/EX6-030.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-030`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-030.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 7 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-030.ts apps/api/src/cards/EX6/EX6-030.test.ts docs/audits/EX6-reaudit/EX6-030.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -640,14 +649,15 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: deletion and return seams publish their distinct events, so trash/security/breeding leaves do not invoke the free-play clause. The inversion ledger flips individual grants without aggregating them, matching Q3751/Q3752. The security-placement primitive accepts keyword presence regardless of signed amount and routes the chosen permanent to its owner security. DigiXros selection uses one candidate per named slot and caps selection by slot count, multiplying the fixed `count` reduction across selected material cards.
 - Focused runtime proof: shared SecurityAttack inversion, signed-keyword target resolution, deletion/return event filtering, stack play, owner security routing, once-per-turn, and multi-slot DigiXros recipe suites cover the mechanisms; the colocated suite asserts the card shape; deletion and both return destinations are green. The mechanism regression proves that return-to-hand awaits both nested stack plays before completing.
 - Status: static/IR and behavioral review complete; focused behavioral verification passed for all 13 tests, plus the focused serialized return/play regression.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-031` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-031.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 13 tests**. |
-| `pnpm --filter @aegis/api exec vitest run src/engine/returnPlaySerialization.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 1 test**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-031.test.ts apps/api/src/engine/returnPlaySerialization.test.ts docs/audits/EX6-reaudit/EX6-031.md docs/audits/EX6-reaudit/RETURN-PLAY-MECHANISM.md` | **PASS**. |
+| Command                                                                                                                                                                                              | Result                                                     |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-031`                                                                                                                                                               | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-031.test.ts --maxWorkers=1 --no-file-parallelism`                                                                                        | **PASS — 1 file, 13 tests**.                               |
+| `pnpm --filter @aegis/api exec vitest run src/engine/returnPlaySerialization.test.ts --maxWorkers=1 --no-file-parallelism`                                                                           | **PASS — 1 file, 1 test**.                                 |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-031.test.ts apps/api/src/engine/returnPlaySerialization.test.ts docs/audits/EX6-reaudit/EX6-031.md docs/audits/EX6-reaudit/RETURN-PLAY-MECHANISM.md` | **PASS**.                                                  |
 
 #### Allowed-file changes and gaps
 
@@ -686,13 +696,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: Suspend resolves battle-area permanents from either controller and respects normal target legality. The inherited attack watcher uses the shared frequency ledger and adds a turn-bounded negative DP modifier through the continuous modifier layer.
 - Focused runtime proof: generic suspend targeting, inherited trigger frequency, opponent target filtering, and temporary DP modifier tests cover the shared mechanics; the colocated suite asserts the card shape; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-032` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-032.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 6 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-032.ts apps/api/src/cards/EX6/EX6-032.test.ts docs/audits/EX6-reaudit/EX6-032.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-032`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-032.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 6 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-032.ts apps/api/src/cards/EX6/EX6-032.test.ts docs/audits/EX6-reaudit/EX6-032.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -731,13 +742,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: entry timing selects either controller's battle-area Digimon and uses the standard optional target decision. The inherited watcher and modifier ledger provide one use per source per turn and turn-end cleanup.
 - Focused runtime proof: shared tests already cover optional any-target suspend at both entry timings plus inherited opponent DP targeting, frequency, and expiry; the colocated suite checks the direct IR contract; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-033` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-033.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 3 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-033.ts apps/api/src/cards/EX6/EX6-033.test.ts docs/audits/EX6-reaudit/EX6-033.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-033`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-033.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 3 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-033.ts apps/api/src/cards/EX6/EX6-033.test.ts docs/audits/EX6-reaudit/EX6-033.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -776,13 +788,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: cost payment selects an own suspended battle-area Digimon other than the source, moves it into hand, then the normal hand target resolver sees all current hand cards—including the returned one. Alliance uses the combat keyword path; EndOfAttack timing and the frequency ledger prevent a second source use that turn.
 - Focused runtime proof: shared cost-before-target, return-to-hand, free-play, Alliance, end-of-attack, and frequency suites cover the mechanism; the colocated suite checks the card contract; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-034` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-034.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 7 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-034.ts apps/api/src/cards/EX6/EX6-034.test.ts docs/audits/EX6-reaudit/EX6-034.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-034`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-034.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 7 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-034.ts apps/api/src/cards/EX6/EX6-034.test.ts docs/audits/EX6-reaudit/EX6-034.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -821,13 +834,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: ordered action resolution finishes the hand play and following modifier before the effect stack opens the new On Play window or applies state-based zero-DP deletion, matching Q5726/Q5727. Scaling reads all other own live Digimon after the play; ModifyDP selects exactly one opposing permanent (Q3756) and records the opponent-turn expiry.
 - Focused runtime proof: EX6-035 covers declined-play Then behavior, zero/one/multiple scaling, and Q5726/Q5727 ordering with event-index assertions.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-035` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-035.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 8 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-035.ts apps/api/src/cards/EX6/EX6-035.test.ts docs/audits/EX6-reaudit/EX6-035.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-035`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-035.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 8 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-035.ts apps/api/src/cards/EX6/EX6-035.test.ts docs/audits/EX6-reaudit/EX6-035.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -866,13 +880,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: RevealAdd evaluates all revealed cards per bucket, removes each accepted instance before the next bucket, and forces up to its available capped match count before trashing leftovers. The deletion snapshot preserves the host trait at event time; PlayToken creates the defined Diaboromon token only after the optional decision.
 - Focused runtime proof: shared reveal/add forced-bucket, no-duplicate, trash-remainder, deletion snapshot, condition, and token creation suites cover all runtime primitives; the colocated file asserts the direct IR; the focused colocated runtime suite must be rerun after the final fixture correction.
 - Status: behavioral verification passed in the final 404/404 collection gate.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-036` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-036.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 4 tests in the final 404/404 collection gate**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-036.ts apps/api/src/cards/EX6/EX6-036.test.ts docs/audits/EX6-reaudit/EX6-036.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-036`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-036.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 4 tests in the final 404/404 collection gate**.   |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-036.ts apps/api/src/cards/EX6/EX6-036.test.ts docs/audits/EX6-reaudit/EX6-036.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -911,13 +926,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: action possibility and cost payment require every additional cost before entering resolution; the place operation relocates this hand instance only after a legal host is selected. The hand trash cost is likewise all-or-nothing before Draw 2. The inherited delete target resolver enforces the 3000 ceiling and turn frequency.
 - Focused runtime proof: shared atomic additional-cost, hand self-placement, OR-host filter, cost abort, trait-hand-trash, Draw, DP-ceiling delete, and inherited frequency suites cover the behavioral seams; the colocated suite asserts the IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-037` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-037.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 9 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-037.ts apps/api/src/cards/EX6/EX6-037.test.ts docs/audits/EX6-reaudit/EX6-037.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-037`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-037.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 9 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-037.ts apps/api/src/cards/EX6/EX6-037.test.ts docs/audits/EX6-reaudit/EX6-037.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -956,13 +972,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: atomic compound cost validation requires the memory and self-placement host before it resolves, satisfying Q3761. The bound host survives as an action selection reference and receives the exact modifier. The `onAddDigivolutionCards` payload supplies the receiving host; self filtering gates Draw to Ludomon's own stack, and its standard frequency ledger permits one response each turn.
 - Focused runtime proof: shared atomic place-cost, self-from-hand, OR-host, selected-host modifier, self-gated stack-add watcher, Draw, temporary/permanent DP, and inherited frequency suites cover these seams; the colocated suite asserts the corrected IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: behavioral verification passed in the final 404/404 collection gate.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-038` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-038.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 5 tests in the final 404/404 collection gate**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-038.ts apps/api/src/cards/EX6/EX6-038.test.ts docs/audits/EX6-reaudit/EX6-038.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-038`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-038.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 5 tests in the final 404/404 collection gate**.   |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-038.ts apps/api/src/cards/EX6/EX6-038.test.ts docs/audits/EX6-reaudit/EX6-038.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1001,13 +1018,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: the would-play replacement installs only for this card's entry, validates/pays the optional own-Digimon deletion before recording a play-cost delta, and skips it on decline. Target resolution uses printed play cost rather than level/DP. The deletion event preserves historical trait facts for the inherited token condition.
 - Focused runtime proof: shared self-scoped would-play, optional delete cost/reduction, play-cost target filter, multi-timing entry, deletion trait snapshot, and token suites cover the mechanisms; the colocated suite validates the IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-039` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-039.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 5 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-039.ts apps/api/src/cards/EX6/EX6-039.test.ts docs/audits/EX6-reaudit/EX6-039.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-039`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-039.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 5 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-039.ts apps/api/src/cards/EX6/EX6-039.test.ts docs/audits/EX6-reaudit/EX6-039.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1046,13 +1064,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: the Main action’s place cost binds the selected own legal host, and its additional one-memory cost is atomic with that placement. The stack-add event carries the receiving permanent; the self filter compares it to the watcher host before its temporary keyword grants resolve. The inherited Opponent's Turn modifier uses a permanent grant conditioned by timing.
 - Focused runtime proof: shared atomic self-placement, bound-host modifier, level/trait OR eligibility, stack-add self gating, temporary Blocker/Reboot, inherited opponent-turn DP, and frequency suites cover every primitive; the colocated suite verifies the exact IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: behavioral verification passed in the final 404/404 collection gate.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-040` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-040.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 5 tests in the final 404/404 collection gate**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-040.ts apps/api/src/cards/EX6/EX6-040.test.ts docs/audits/EX6-reaudit/EX6-040.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-040`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-040.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 5 tests in the final 404/404 collection gate**.   |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-040.ts apps/api/src/cards/EX6/EX6-040.test.ts docs/audits/EX6-reaudit/EX6-040.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1091,13 +1110,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: cost payment deletes the selected own named permanent before offering normal-requirement evolution candidates; invalid hand candidates remain unavailable. The played-event payload exposes the subject and controller, letting the source filter reject Infermon itself and nonmatching names; the De-Digivolve primitive stops at level 3.
 - Focused runtime proof: shared paid hand evolution, requirement enforcement, self/other `whenPlayed` filtering, De-Digivolve floor, and inherited frequency suites cover the runtime seams; the colocated suite verifies explicit IR options; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-041` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-041.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-041.ts apps/api/src/cards/EX6/EX6-041.test.ts docs/audits/EX6-reaudit/EX6-041.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-041`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-041.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-041.ts apps/api/src/cards/EX6/EX6-041.test.ts docs/audits/EX6-reaudit/EX6-041.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1136,13 +1156,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: compound costs require memory plus self placement before the opponent target can receive the delayed forced-attack aura; normal attack legality later handles Q3765/Q3766. Stack-add source filtering checks the receiving permanent. Deletion prevention checks causal seat, offers one optional payment from the protected host stack, and runs before deletion; delayed play and replacement timing keep the Q3816 interaction available.
 - Focused runtime proof: shared compound self-placement, delayed attack aura, legal-target/illegal-action distinction, stack-add self gate, cause-filtered deletion prevention, host-source trash, self source cost, and replacement ordering suites cover the primitives. The colocated suite now asserts the corrected direct IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-042` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-042.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-042.ts apps/api/src/cards/EX6/EX6-042.test.ts docs/audits/EX6-reaudit/EX6-042.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-042`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-042.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-042.ts apps/api/src/cards/EX6/EX6-042.test.ts docs/audits/EX6-reaudit/EX6-042.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1181,13 +1202,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: timing registration exposes only the two printed token windows. The `whenPlayed` source filter restricts the reactive action to opponent Digimon entries; ActivateEffect obtains the source’s non-inherited When Digivolving list, excluding buried source inherited effects. Permanent all-target keyword grants re-evaluate eligible other own named Digimon.
 - Focused runtime proof: shared timing registration, free token play, opponent-play filtering, non-inherited effect reactivation, Aura/keyword, and once-per-turn suites cover the primitives; the colocated suite now asserts no Main entry and the explicit inherited exclusion; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-043` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-043.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-043.ts apps/api/src/cards/EX6/EX6-043.test.ts docs/audits/EX6-reaudit/EX6-043.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-043`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-043.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-043.ts apps/api/src/cards/EX6/EX6-043.test.ts docs/audits/EX6-reaudit/EX6-043.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1226,13 +1248,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: compound host selection and memory cost enforce Q3770; dynamic `relativeTo` reads host DP for every target. The timing layer installs inherited prevention only during opponent turn. Leave prevention distinguishes bounce from deletion, causes by resolving seat, and the exact `exceptDeletion` exception.
 - Focused runtime proof: the colocated full-mechanism suite constructs a real inherited RagnaLoardmon stack and proves opponent-turn bounce prevention, owner-effect bounce allowance, and Q3771 opponent deletion. Shared tests cover selected-host DP bounds, immunity, static keywords, and alternates; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-044` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-044.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 5 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-044.ts apps/api/src/cards/EX6/EX6-044.test.ts docs/audits/EX6-reaudit/EX6-044.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-044`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-044.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 5 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-044.ts apps/api/src/cards/EX6/EX6-044.test.ts docs/audits/EX6-reaudit/EX6-044.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1271,13 +1294,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: a subtrigger cost must pay by a real other-own deletion before its body runs, matching Q3772. EndAttack changes the current attack timing rather than targeting the attacker, skips Counter/block progression, and emits the normal EndOfAttack window, implementing Q3773–Q3776.
 - Focused runtime proof: the colocated public-runtime suite exercises the catalog and KB clauses with applicable positive, negative, boundary, timing, and optionality cases; shared mechanism tests provide mapped primitive coverage.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-045` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-045.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-045.ts apps/api/src/cards/EX6/EX6-045.test.ts docs/audits/EX6-reaudit/EX6-045.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-045`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-045.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-045.ts apps/api/src/cards/EX6/EX6-045.test.ts docs/audits/EX6-reaudit/EX6-045.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1316,13 +1340,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: zone-count predicates use current opponent hand size at each action; Draw credits the source owner. Each Trash uses its proper controller/chooser, and the Aura recomputes DP when the hand boundary changes.
 - Focused runtime proof: shared zone-count, controller-owned Draw, self/opponent hand trash with chooser, sequential branch, and continuous Aura tests cover all primitives; the colocated suite checks exact IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-046` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-046.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-046.ts apps/api/src/cards/EX6/EX6-046.test.ts docs/audits/EX6-reaudit/EX6-046.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-046`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-046.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-046.ts apps/api/src/cards/EX6/EX6-046.test.ts docs/audits/EX6-reaudit/EX6-046.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1361,13 +1386,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: RevealAdd forces each bucket up to matches, removes selected instances between buckets, and reports one overall effect-acted signal. The following Trash receives that single signal rather than selected-card count. The Aura recalculates through hand boundary changes.
 - Focused runtime proof: shared forced multi-bucket reveal/add, bottom routing, effect-acted conditional tail, single trash after multiple selections, zone-count Aura, and self target suites cover the primitives; the colocated suite checks IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-047` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-047.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-047.ts apps/api/src/cards/EX6/EX6-047.test.ts docs/audits/EX6-reaudit/EX6-047.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-047`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-047.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-047.ts apps/api/src/cards/EX6/EX6-047.test.ts docs/audits/EX6-reaudit/EX6-047.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1406,13 +1432,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: a temporary aura attaches to the target permanent, surviving card-stack identity changes until its duration ends, as Q3781 requires. Paid subtrigger sequencing prevents end attack on a failed delete; EndAttack transitions directly to EndOfAttack without affecting the attacker or offering Counter timing.
 - Focused runtime proof: the colocated public-runtime suite exercises the catalog and KB clauses with applicable positive, negative, boundary, timing, and optionality cases; shared mechanism tests provide mapped primitive coverage.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-048` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-048.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-048.ts apps/api/src/cards/EX6/EX6-048.test.ts docs/audits/EX6-reaudit/EX6-048.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-048`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-048.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-048.ts apps/api/src/cards/EX6/EX6-048.test.ts docs/audits/EX6-reaudit/EX6-048.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1451,13 +1478,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: hand-count conditions are evaluated against the opponent at each entry action; target resolution enforces level 3 and opponent ownership. The ≥7 trash gives the correct player selection control, while the inherited Aura updates continuously at the six-card boundary.
 - Focused runtime proof: shared zone-count branch, opposing level target, opponent hand-trash chooser, multi-entry timing, and continuous Aura suites cover every primitive; the colocated test checks IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-049` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-049.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-049.ts apps/api/src/cards/EX6/EX6-049.test.ts docs/audits/EX6-reaudit/EX6-049.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-049`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-049.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-049.ts apps/api/src/cards/EX6/EX6-049.test.ts docs/audits/EX6-reaudit/EX6-049.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1496,13 +1524,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Shared primitive trace: zone-count conditions are live and owner-relative. The opponent-directed optional trash records whether it actually moved a card; this action result gate—not number of cards—permits the fallback free play. The play resolver restricts to own purple level-3 Digimon in trash, and source-instance frequency controls attacks.
 - Focused runtime proof: shared hand-count branches, opponent-controlled optional discard, acted/not-acted conditional tails, free play from trash, color/level filtering, Blocker, and inherited frequency suites cover all primitives; the colocated suite checks IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
+
 #### Commands and results
 
-| Command | Result |
-| --- | --- |
-| `node tools/kb/query.mjs card EX6-050` | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-050.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 4 tests**. |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-050.ts apps/api/src/cards/EX6/EX6-050.test.ts docs/audits/EX6-reaudit/EX6-050.md` | **PENDING final coordinator gate**. |
+| Command                                                                                                                           | Result                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-050`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
+| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-050.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-050.ts apps/api/src/cards/EX6/EX6-050.test.ts docs/audits/EX6-reaudit/EX6-050.md` | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 

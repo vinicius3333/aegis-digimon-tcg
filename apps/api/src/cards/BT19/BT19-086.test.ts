@@ -388,30 +388,24 @@ describe("BT19-086 Ryo Akiyama — [Main] suspend + trash 4 Devices, play [Cyber
     await s.ready();
     const deviceInstances = [0, 1, 2, 3].map((n) => s.inst(`device${n}`).instanceId);
 
-    // Accept the [Main] activation itself, then DECLINE the trailing optional play. A blanket
-    // flag cannot separate two optionals in one effect, so answer per decision.
-    let seen = 0;
-    const engine = s.engine;
-    const answer = (): void => {
-      const pending = s.state.pendingDecision;
-      if (pending === undefined || pending.kind !== "optional") return;
-      seen += 1;
-      engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: pending.decisionId,
-        response: { kind: "optional", accept: seen === 1 },
-      });
-    };
-
+    // Declaring Main commits its processing condition; only the trailing
+    // Cyberdramon play remains optional (CR 15-8-4-4-1 / Q3151).
     expect(activateRyo(s)).toEqual({ ok: true });
-    for (let i = 0; i < 40; i += 1) {
-      if (seen >= 2) break;
-      answer();
-      await settle(() => true, 5);
-    }
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.perm("ryo").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining(deviceInstances),
+    );
+    const playChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playChoice.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(seen).toBe(2);
     // The cost was paid in full...
     expect(s.perm("ryo").isSuspended).toBe(true);
     for (const instanceId of deviceInstances) {

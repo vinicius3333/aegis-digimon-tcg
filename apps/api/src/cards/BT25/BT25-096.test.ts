@@ -1,9 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT25-096.js";
+import { cite } from "../../engine/conformance/_kb.js";
 
 describe("BT25-096 Mirage Beast Knight", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0034",
+      "Bracket-only Gaomon-line and Thomas references require exact names",
+      "c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2",
+    );
+  });
   it("binds both required materials and 'that Digimon' evolution to one Gaomon", () => {
     const block = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
     expect(block).toMatchObject({
@@ -114,6 +122,41 @@ describe("BT25-096 Mirage Beast Knight", () => {
     expect(incomplete.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
       incomplete.inst("onlyMaterial").instanceId,
     );
+  });
+
+  it.each([
+    ["Gaogamon", "BT5-064", "BT25-027"],
+    ["MachGaogamon", "BT25-023", "BT5-068"],
+  ])("rejects near-named %s processing material without partial payment", async (_name, first, second) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-096", as: "option" },
+            { card: "BT25-029", as: "mirage" },
+          ],
+          trash: [
+            { card: first, as: "first" },
+            { card: second, as: "second" },
+          ],
+          battleArea: [{ card: "BT25-021", as: "host" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    expect(s.perm("host").topCard.cardId).toBe("BT25-021");
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId, optionId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("mirage").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Security may free-play a named card from trash, then adds itself to hand", async () => {

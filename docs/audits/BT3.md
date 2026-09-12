@@ -1,7 +1,7 @@
 ---
 set: BT3
 cards: 112
-status: verified
+status: incomplete
 verified_at: 2026-09-10
 catalog_commit: unknown
 evidence_commit: eabe99351
@@ -10,6 +10,12 @@ evidence_commit: eabe99351
 # BT3 audit
 
 ## Status
+
+2026-09-12: the historical collection certificate is reopened. Native BT3-056
+granted a Digisorption discount despite an impossible suspension payment. Its
+current score is capped at 8/10 pending complete lifecycle/category evidence;
+the historical 112/112 ten-point claim below is superseded. See
+[succession-lifecycle.md](engine/succession-lifecycle.md).
 
 All 112 BT3 production modules are audited and the 2026-09-10 re-audit closed its delivery gates: 1120/1120, 112/112 cards at 10/10. The exact BT3 collection passed 123 files and 371 tests, the bounded mechanism manifest passed 9 files and 101 tests, `pnpm typecheck` passed shared, web, and API, and effects sync, lint, format, and `git diff --check` were clean. The 2026-09-10 re-audit (`docs/audits/BT3-REAUDIT-LEDGER.md` and `docs/audits/BT3-reaudit/`) is the winning source; the 2026-09-02 static pass and the archival range reports under `internal-docs/audits/BT3/` are superseded, and their clause evidence is kept below only for the cards that got no fresh report. The important caveat is the shape of the evidence: only five BT3 cards (BT3-001, BT3-006, BT3-009, BT3-011, BT3-012) received a new per-card report in the re-audit. The other 107 were accepted individually by the coordinator from catalog and IR review reconciled against the already-green focused baseline, not from new lifecycle proof. That is recorded under Open items. No source recorded a catalog commit, only the blob `efbecc002fb9000789123e2f91f201466e1e5b0a`, so `catalog_commit` is `unknown`.
 
@@ -966,6 +972,24 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-056 — Ceresmon
+
+Current score: **8/10, provisional cap**. At baseline `edbf770b9`, a public
+evolution with an unsuspendable, source-free BT19-101 opposing target wrongly
+cost two instead of five. The shared payment now excludes prohibited choices
+and requires a successful suspension before granting reduction or consuming
+redirect usage. Native suspension reactions are also exercised publicly; a
+failed-transition injection is supplemental evidence only. This supersedes the
+historical ten-point credit below without certifying full reset, source changes
+or qualified immunity. See [succession-lifecycle.md](engine/succession-lifecycle.md).
+
+2026-09-12 bounded native/copy comparison at `ee85c20e7`: public Green level-5
+Okuwamon evolution into Ceresmon proves native opposing suspension with cost
+five minus three; two Argomon evolutions use its printed redirect only once.
+The peer BT26-032 public formation exposed a missing copied-ability lookup,
+corrected in the shared cost query. Native behavior was green at the failing
+copied baseline. See [succession-lifecycle.md](engine/succession-lifecycle.md).
+This supplements the historical ledger without newly certifying full card,
+collection, source-loss, reset or prevented-suspension behavior.
 
 Score: 10/10. Digisorption cost paths and redirect source/controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).

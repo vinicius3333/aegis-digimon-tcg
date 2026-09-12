@@ -1,7 +1,7 @@
 ---
 set: P
 cards: 249
-status: verified
+status: in-progress
 verified_at: 2026-09-11
 catalog_commit: 88241f0fc
 evidence_commit: a8136a499
@@ -11,7 +11,7 @@ evidence_commit: a8136a499
 
 ## Status
 
-All 249 committed P cards hold accepted clause-level evidence at 10/10. The original 243 were
+The prior closeout reported all 249 committed P cards at 10/10. The 2026-09-12 public P-009 evolution to BurningGreymon reproduction contradicts that card's name-gating certification; P is reopened. P-009 is provisionally capped at 8/10 pending complete source/stack and interaction proof. Other scores below are historical, not a fresh collection recalculation. The original 243 were
 recalculated on 2026-09-05 on branch `audit-promo-lm-rb-20260905` from base `7209adb89` and
 verified again after that branch was integrated with main `18156ecee`; P-245 through P-250 (6 new
 promo cards imported on 2026-09-11 from the `TakaOtaku/Digimon-Card-App` community database,
@@ -114,9 +114,12 @@ git diff --check
 
 ### P-009 — Agumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
-- Evidence: [module](../../apps/api/src/cards/P/P-009.ts) · [test](../../apps/api/src/cards/P/P-009.test.ts) · clause review (source removed; see History)<br>“gives +2000 DP only to a Greymon-family host during its owner's turn”
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 1/2.
+- Score: **8/10** provisional; historical 10/10 superseded.
+- Evidence: [module](../../apps/api/src/cards/P/P-009.ts) · [test](../../apps/api/src/cards/P/P-009.test.ts).
+- Public legal seeded stack ST1-01 → P-009 evolves into BT7-011 BurningGreymon for three memory and draws the exact deck top. Standardized-name exclusion keeps it at 6000 DP: its ordinary battle ties BT1-037 Gorillamon and both leave play, with exact source/top trash IDs. The P-010 Greymon control evolves for two memory, receives +2000 DP to 7000 and wins the same battle. Neither branch checks security or leaves a pending choice. Baseline `33053bf14` incorrectly gave BurningGreymon 8000 DP; the positive control passed.
+- P-009's direct compiled module remains unchanged and registered exclusively with `registerIrCard`. The reusable correction is traced in [name-standardization.md](engine/name-standardization.md).
+- Initial public fixture used the wrong digivolve permanent field; this was corrected before the genuine wrong-DP reproduction. Public initial egg-to-rookie evolution, all excluded peers, opponent-turn transitions and full inherited identity/lifecycle remain open; green gates do not restore ten.
 
 ### P-010 — Greymon
 
@@ -1592,7 +1595,7 @@ Ruling IDs cited by P cards: Q4113,Q4124 Q4128,Q4132 Q4135,Q4138 Q4141,Q4144 Q41
 
 ## Open items
 
-- No card scores below 10/10 and no ambiguity is recorded.
+- P-009 is reopened at a provisional 8/10 after the public BurningGreymon reproduction. Complete initial public evolution and peer/identity/turn interactions remain open; other scores retain historical scope.
 - P-226 and P-251 are absent from the committed catalog (unrevealed placeholder rows). The set is
   249 cards, and no module or score exists for either ID.
 - P-245..P-250 are announced but not yet distributed (Official Store Tournament 2026 Vol.4, street

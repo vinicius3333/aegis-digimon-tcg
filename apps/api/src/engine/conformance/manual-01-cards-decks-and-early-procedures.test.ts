@@ -32,8 +32,8 @@ markNotTestable(
   "manual-0000",
   "Table of contents + 'About the Game' flavor intro. The one normative sentence " +
     "('Digi-Egg cards and Digimon cards are treated as Digimon while on the field') " +
-    "restates comprehensive-0069, already behaviorally proven at ch04-basic-terminology" +
-    ".test.ts §4-2 (comprehensive-0069, 4-2-1).",
+    "restates comprehensive-0286, already behaviorally proven at ch04-basic-terminology" +
+    ".test.ts §4-3 (comprehensive-0286, 4-3-1).",
 );
 
 markNotTestable(
@@ -58,9 +58,9 @@ markNotTestable(
     "is interleaved mid-sentence with the Tamer/Option card-anatomy field list, and " +
     "'Tomoro Tenma & Kyo Sawes hir' is a garbled card name. The identifiable normative " +
     "content ('Tamer cards are treated as Tamers while on the field'; the Security " +
-    "Effect / Inherited Effect field definition) restates comprehensive-0070 (ch04 " +
-    "§4-3, already tested) and the Security Digimon rule already tested at " +
-    "comprehensive-0071 (ch04 §4-4) / comprehensive-0221 (ch16a §16-1..16-4-3).",
+    "Effect / Inherited Effect field definition) restates comprehensive-0287 (ch04 " +
+    "§4-4, already tested) and the Security Digimon rule already tested at " +
+    "comprehensive-0288 (ch04 §4-5) / comprehensive-0221 (ch16a §16-1..16-4-3).",
 );
 
 markNotTestable(
@@ -90,8 +90,8 @@ markNotTestable(
 markNotTestable(
   "manual-0005",
   "Token Cards intro (non-game cards, prepared in advance, can't be included in a deck/Digi-Egg " +
-    "deck, must show orientation) restates comprehensive-0090 (4-20-1) and comprehensive-0100/" +
-    "0101, already tested at ch04-basic-terminology.test.ts §4-20 and ch05-game-preparation.test." +
+    "deck, must show orientation) restates comprehensive-0307 (4-21-1) and comprehensive-0100/" +
+    "0101, already tested at ch04-basic-terminology.test.ts §4-21 and ch05-game-preparation.test." +
     "ts §5-1/§5-2 (which specifically proves token cards can never appear in a legal decklist).",
 );
 
@@ -166,7 +166,7 @@ markNotTestable(
 markNotTestable(
   "manual-0008",
   "Card Orientation (unsuspended vs. suspended, 'suspending'/'unsuspending') restates " +
-    "comprehensive-0082, already tested at ch04-basic-terminology.test.ts §4-12 " +
+    "comprehensive-0299, already tested at ch04-basic-terminology.test.ts §4-13 " +
     "(GameStateAccess.suspend/unsuspend). The Unsuspend/Draw/Breeding/Main phase list restates " +
     "comprehensive-0103..0110, already tested at ch06-game-procedures.test.ts.",
 );
@@ -175,7 +175,7 @@ describe("manual-0009 — Breeding Phase: moving isn't playing, and a moved Digi
   it(
     "moving a Digimon out of the breeding area does NOT fire its [On Play] effect, and it CAN " +
       "attack the turn it was moved (no summoning sickness) — a distinct behavioral angle from " +
-      "the orientation-preservation fact ch04's comprehensive-0086 already proves",
+      "the orientation-preservation fact ch04's comprehensive-0303 already proves",
     async () => {
       cite(
         "manual-0009",
@@ -202,7 +202,7 @@ describe("manual-0009 — Breeding Phase: moving isn't playing, and a moved Digi
       expect(hatchResult.ok).toBe(true);
       const hatched = p0.breeding!;
       hatched.baseDP = 5000;
-      hatched.currentDP = 5000; // a moved Digimon must HAVE DP (§4-16-2) to be movable at all
+      hatched.currentDP = 5000; // a moved Digimon must HAVE DP (§4-17-2) to be movable at all
 
       const moveEvents: unknown[] = [];
       const moveResult = applyMoveFromBreeding(
@@ -250,7 +250,7 @@ markNotTestable(
   "manual-0012",
   "'A digivolution card ... isn't considered to be a card on the field'; digivolution cards " +
     "carrying inherited effects; <De-Digivolve> carrying over display format — restates " +
-    "comprehensive-0076/0077 (ch04 §4-6-8/§4-7, already tested: stacked cards are trashed " +
+    "comprehensive-0293/0294 (ch04 §4-7-8/§4-8, already tested: stacked cards are trashed " +
     "together, digivolution cards live in permanent.stack not battleArea). The Option-card use " +
     "procedure restates comprehensive-0137/0138, already tested at ch09-using-cards.test.ts.",
 );
@@ -258,8 +258,8 @@ markNotTestable(
 markNotTestable(
   "manual-0013",
   "Color Requirements (need a same-color Digimon/Tamer on the field; a multicolor Option needs " +
-    "ALL its colors present) restates comprehensive-0091, already tested at " +
-    "ch04-basic-terminology.test.ts §4-21 (GameEngine.printedColorRequirementMet now falls " +
+    "ALL its colors present) restates comprehensive-0308, already tested at " +
+    "ch04-basic-terminology.test.ts §4-22 (GameEngine.printedColorRequirementMet now falls " +
     "back to an ordinary Option's own printed `colors` when it carries no " +
     "`optionColorRequirements`). The Linking intro restates comprehensive-0140, already tested " +
     "at ch10-link.test.ts §10-1.",
@@ -268,7 +268,7 @@ markNotTestable(
 markNotTestable(
   "manual-0014",
   "'The link DP value shown on a linked Digimon's link card is added to that Digimon's total " +
-    "DP' is the SAME divergence already documented at comprehensive-0069's it.fails (ch04 §4-2, " +
+    "DP' is the SAME divergence already documented at comprehensive-0286's it.fails (ch04 §4-3, " +
     "'a Digimon with a Link card should get the printed link DP bonus added to its DP' — " +
     "ModifierLedger.baseDpOf/recomputeDP never read `permanent.linked` or `linkDp`). The link " +
     "declare/pay/plug procedure restates comprehensive-0140/0141, already tested at " +

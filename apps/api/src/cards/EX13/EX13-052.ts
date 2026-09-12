@@ -14,18 +14,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - §4-23-1 / manual §1 "with XX in its text": the token anywhere in the information printed
 //     on the card — name, traits, effects, inherited effects, rule and requirement lines.
 //
-// ＜Guard＞
-//   The engine has no behavioural Guard hook: `combat/keywords.ts` only tokenizes the printed
-//   icon and `leavePrevention.ts` reads IR `Replacement` subscriptions, never a keyword grant.
-//   So the keyword is executed the way EX12-056 (the other printed-＜Guard＞ card) and EX12-072
-//   (which grants it) execute it: a `wouldLeavePlay` prevention with
-//   `leaveCause: "byOpponentEffect"`, protecting `controller: "mine"` + `excludeSelf` ("any of
-//   your OTHER Digimon"), `affectsAll: true` ("they don't leave" — one payment saves every
-//   matching permanent in the same leave event), and a `deleteOwn` cost on the source itself
-//   ("by deleting this Digimon").
-//   The `Static` `keywords` entry is kept as well: per the coordinator notes a Static keyword
-//   entry is load-bearing, not decorative — it grants the token through the continuous ledger,
-//   which is what `observe().hasKeyword` and any future Guard-aware rule will read.
+// ＜Guard＞ is granted by the Static keyword entry and executed by the shared
+// live per-holder reaction in effects/guard.ts, including its optional self-payment.
 //
 // [On Play] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.
 //   One printed sentence under two timings and no [Once Per Turn], so it compiles to two
@@ -76,31 +66,6 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnDeletion",
       actions: deDigivolveOne(),
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: {
-            filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-            // `runReplacement` reads only `target.filter`/`target.isSelf`; `affectsAll` already
-            // carries "they don't leave", so this count is declarative (EX12-056's note).
-            count: "all",
-          },
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-          cost: {
-            kind: "deleteOwn",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            raw: "by deleting this Digimon",
-          },
-          raw: "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)",
-        },
-      ],
     },
     {
       trigger: "AllTurns",

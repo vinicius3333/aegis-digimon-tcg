@@ -74,13 +74,15 @@ if (problems.length > 0) {
 
 rows.sort((left, right) => compareSets(left.set, right.set));
 
-const table = [
-  "| Set | Cards | Status | Verified at | Doc |",
-  "| --- | --- | --- | --- | --- |",
-  ...rows.map(
-    (row) => `| ${row.set} | ${row.cards} | ${row.status} | ${row.verified_at} | [${row.set}.md](${row.set}.md) |`,
-  ),
-].join("\n");
+const headings = ["Set", "Cards", "Status", "Verified at", "Doc"];
+const cells = rows.map((row) => [row.set, row.cards, row.status, row.verified_at, `[${row.set}.md](${row.set}.md)`]);
+const widths = headings.map((heading, column) =>
+  Math.max(3, heading.length, ...cells.map((row) => row[column].length)),
+);
+const formatRow = (row) => `| ${row.map((cell, column) => cell.padEnd(widths[column])).join(" | ")} |`;
+const table = [formatRow(headings), formatRow(widths.map((width) => "-".repeat(width))), ...cells.map(formatRow)].join(
+  "\n",
+);
 
 const readme = readFileSync(readmePath, "utf8");
 const start = readme.indexOf(startMarker);

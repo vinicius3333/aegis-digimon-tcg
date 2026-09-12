@@ -50,6 +50,15 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
   switch (cond.kind) {
     case "true":
       return true;
+    case "selfBattlesOpponentMatching": {
+      const source = ctx.source.permanent();
+      const opponent = source === undefined ? undefined : ctx.game.battleOpponentOf?.(source.permanentId);
+      return (
+        opponent !== undefined &&
+        cond.filter !== undefined &&
+        permanentMatchesFilter(ctx, opponent, cond.filter, ctx.source)
+      );
+    }
     case "attackTargetsPlayer":
       return (
         ctx.trigger.attackerPermanentId !== undefined &&

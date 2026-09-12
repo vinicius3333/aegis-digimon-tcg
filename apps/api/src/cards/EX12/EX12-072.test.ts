@@ -19,29 +19,20 @@ describe("EX12-072 Metal Empire", () => {
         filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
       },
     });
-    // ＜Guard＞ is executed, not flagged. "Guard" is not in the shared `Keyword` union and no
-    // engine seam reads a "Guard" keyword grant, so the persisted GainKeyword was both a type
-    // error and a no-op; this is the printed reminder text as a real leave prevention.
+    // The live Guard holder owns prevention/payment; face-up security only grants it.
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns" && effect.isSecurity)).toMatchObject({
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
-          cost: {
-            kind: "deleteOwn",
-            target: {
-              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
-              count: 1,
-            },
+          kind: "Aura",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
+            count: "all",
           },
+          effect: { kind: "keyword", keyword: { keyword: "Guard" } },
         },
       ],
     });
-    expect(compiled.effects.some((effect) => effect.actions.some((action) => action.kind === "GainKeyword"))).toBe(
+    expect(compiled.effects.some((effect) => effect.actions.some((action) => action.kind === "Replacement"))).toBe(
       false,
     );
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions).toEqual([

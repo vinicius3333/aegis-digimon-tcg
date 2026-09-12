@@ -15,6 +15,7 @@ export interface Scaling {
   /** The counted pool. Not needed for `digivolutionCards` or `usePaidCount`. */
   filter?: Filter;
   unit:
+    | "selfDP" // source permanent's current effective DP, floored at zero
     | "cards" // battle-area permanents matching `filter`
     | "colors" // distinct colors among the matching cards
     /** Matching permanents, collapsing same-named ones to one (BT21-082). */

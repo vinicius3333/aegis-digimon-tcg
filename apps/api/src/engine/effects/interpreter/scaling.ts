@@ -209,6 +209,11 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(ids.length / per);
   }
   switch (scaling.unit) {
+    case "selfDP": {
+      const self = ctx.source.permanent();
+      raw = self === undefined ? 0 : Math.max(0, ctx.game.effectiveDP?.(self.permanentId) ?? self.currentDP);
+      break;
+    }
     case "lastDeletedLevel":
       raw = ctx.lastDeletedLevel ?? 0;
       break;

@@ -25,7 +25,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      actions silently matched zero candidates. Re-authored as `PlaceUnder{fromEggDeck:true}`
 //      targeting self — the EX6-006 pattern (same "[Breeding][Start of Your Main Phase] ...
 //      Digi-Egg deck ... bottom digivolution card" shape) — which places the top egg-deck card
-//      face-down under the host via the dedicated primitive (KB Q3694: no-ops on an empty deck,
+//      face-up under the host via the dedicated primitive (KB Q3694: no-ops on an empty deck,
 //      the rest of the effect still resolves).
 //   2. The Royal Knight placement relocates whole BATTLE-AREA PERMANENTS under this card, not
 //      loose cards from a zone — `targetIsPermanent:true` routes it through interpreter.ts's
@@ -101,35 +101,18 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          fromEggDeck: true,
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-        },
-        {
-          kind: "PlaceUnder",
+          groupedEggAndPermanents: true,
           targetIsPermanent: true,
           target: {
             filter: {
               controller: "mine",
               zone: "battleArea",
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Royal Knight"],
-                  match: "trait",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
             },
             count: "all",
           },
-          underFilter: {
-            isSelfRef: true,
-          },
+          underFilter: { isSelfRef: true },
           position: "bottom",
         },
       ],

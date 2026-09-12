@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type Keyword } from "@aegis/shared";
 import { setupEngine } from "../testkit/harness.js";
 import { createCardSource } from "../cards/CardSource.js";
 import { effectsOf, collectTriggeredEffects } from "./collect.js";
@@ -138,6 +138,39 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
 });
 
 describe("gatherTriggeredEffects (full instance -> source -> collection chain)", () => {
+  it.each([
+    { exclude: [] as Keyword[], expected: ["SecurityAttack", "Succession"] },
+    { exclude: ["Succession"] as Keyword[], expected: ["SecurityAttack"] },
+    { exclude: ["SecurityAttack"] as Keyword[], expected: ["Succession"] },
+  ])("supplemental selective keyword collection excludes $exclude without dropping siblings", (scenario) => {
+    // Synthetic conferral isolates marker exclusion; public Bagramon/attack proves the legal consumer path.
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "recipient", under: [{ card: "BT26-080", as: "lender" }] }] },
+    });
+    const recipient = s.perm("recipient");
+    const lender = s.inst("lender");
+    const continuous = new ContinuousEffectLedger();
+    continuous.conferStackEffects(recipient.permanentId, lender.instanceId, {
+      excludeKeywords: scenario.exclude,
+      granterInstanceId: recipient.topCard.instanceId,
+    });
+    const collected = gatherTriggeredEffects(
+      {
+        state: s.state,
+        fx: unimplementedPrimitives(),
+        ask: unimplementedDecisions(),
+        tracker: new UseTracker(),
+        continuous,
+      },
+      EffectTiming.None,
+      [recipient.topCard, lender],
+    );
+    const keywords = collected
+      .filter((entry) => entry.conferredToPermanentId === recipient.permanentId)
+      .flatMap((entry) => (entry.effect.keywordEffect === undefined ? [] : [entry.effect.keywordEffect]));
+    expect([...new Set(keywords)].sort()).toEqual(scenario.expected);
+  });
+
   it("builds sources from instances and collects triggered effects", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT7-089", as: "perm" }] } });
     s.state.turnSeat = 0;

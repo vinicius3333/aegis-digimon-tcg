@@ -1,12 +1,60 @@
 import { getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import "./EX3-035.js";
 import "./EX3-069.js";
 import "../BT16/BT16-014.js";
 
 describe("EX3-035 Goldramon", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0034",
+      "The three bracket-only return-cost names require exact matching",
+      "c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2",
+    );
+  });
+
+  it("does not pay with Magnadramon X Antibody when exact Magnadramon is absent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-035", as: "goldramon" }],
+          trash: [
+            { card: "BT9-043", as: "near" },
+            { card: "EX3-025", as: "azulongmon" },
+            { card: "EX3-064", as: "megidramon" },
+          ],
+          deck: [{ card: "BT1-009", as: "deckTop" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", dp: 10000, as: "target" }],
+          security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    const materialIds = [s.inst("near").instanceId, s.inst("azulongmon").instanceId, s.inst("megidramon").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("goldramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.security.length < 4 &&
+        s.perm("target").currentDP === 4000,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(materialIds);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("deckTop").instanceId]);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX3-035" && req.kind === "orderCards")).toBe(false);
+  });
   it("has the official metadata, digivolves for 3, and plays for 12", async () => {
     expect(getCardDefinition("EX3-035")).toMatchObject({
       cardId: "EX3-035",
@@ -274,6 +322,7 @@ describe("EX3-035 Goldramon", () => {
           trash: [
             { card: "EX3-036", as: "magnadramon" },
             { card: "EX3-036", as: "duplicateMagnadramon" },
+            { card: "BT9-043", as: "nearMagnadramon" },
             { card: "EX3-025", as: "azulongmon" },
             { card: "EX3-064", as: "megidramon" },
           ],
@@ -318,7 +367,10 @@ describe("EX3-035 Goldramon", () => {
     expect(s.perm("unchosenTarget").currentDP).toBe(10000);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.length).toBeGreaterThanOrEqual(2);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("magnadramon").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("magnadramon").instanceId,
+      s.inst("nearMagnadramon").instanceId,
+    ]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("deckTop").instanceId,
       ...requestedOrder,
@@ -327,14 +379,16 @@ describe("EX3-035 Goldramon", () => {
     const selections = s.decisions.filter(({ req }) => req.sourceCardId === "EX3-035" && req.kind === "selectCards");
     expect(selections).toHaveLength(3);
     expect(selections.map(({ req }) => req.options?.min)).toEqual([0, 1, 1]);
-    expect(selections[0]!.req.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.inst("magnadramon").instanceId, s.inst("duplicateMagnadramon").instanceId]),
-    );
+    expect(selections[0]!.req.options?.candidateInstanceIds).toEqual([
+      s.inst("magnadramon").instanceId,
+      s.inst("duplicateMagnadramon").instanceId,
+    ]);
     expect(selections[1]!.req.options?.candidateInstanceIds).toEqual([s.inst("azulongmon").instanceId]);
     expect(selections[2]!.req.options?.candidateInstanceIds).toEqual([s.inst("megidramon").instanceId]);
     const allTrashIds = [
       s.inst("magnadramon").instanceId,
       s.inst("duplicateMagnadramon").instanceId,
+      s.inst("nearMagnadramon").instanceId,
       s.inst("azulongmon").instanceId,
       s.inst("megidramon").instanceId,
     ];

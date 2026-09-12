@@ -54,3 +54,35 @@ describe("trash scaling identity filters", () => {
     ).toBe(3);
   });
 });
+
+describe("source live DP scaling", () => {
+  it.each([
+    [0, 0],
+    [4999, 0],
+    [5000, 1],
+    [9999, 1],
+    [10000, 2],
+    [14999, 2],
+    [15000, 3],
+    [-1000, 0],
+  ])("counts whole units at %i DP", (dp, units) => {
+    const ctx = {
+      source: { permanent: () => ({ permanentId: "source", currentDP: dp }) },
+      game: {},
+      trigger: {},
+    } as unknown as EffectContext;
+    expect(scaleFactor(ctx, { per: 5000, unit: "selfDP" })).toBe(units);
+  });
+  it("reads authoritative effective DP instead of a stale projection", () => {
+    const ctx = {
+      source: { permanent: () => ({ permanentId: "source", currentDP: 7000 }) },
+      game: { effectiveDP: (id: string) => (id === "source" ? 15000 : 0) },
+      trigger: {},
+    } as unknown as EffectContext;
+    expect(scaleFactor(ctx, { per: 5000, unit: "selfDP" })).toBe(3);
+  });
+  it("contributes no units after the source has left", () => {
+    const ctx = { source: { permanent: () => undefined }, game: {}, trigger: {} } as unknown as EffectContext;
+    expect(scaleFactor(ctx, { per: 5000, unit: "selfDP" })).toBe(0);
+  });
+});

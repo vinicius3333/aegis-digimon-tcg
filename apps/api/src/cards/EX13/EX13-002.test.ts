@@ -55,9 +55,9 @@ describe("EX13-002 DemiVeemon", () => {
         },
       ],
     });
-    // The [Rule] name-exclusion clause is not executed; it stays declared as residual.
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toEqual(["[Rule] Name: Not treated as including [Vee]."]);
+    // The shared standardized-name matcher executes the printed exclusion.
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   it("unsuspends a Veedramon host when its controller plays a blue Tamer", async () => {
@@ -364,14 +364,15 @@ describe("EX13-002 DemiVeemon", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  // ENGINE GAP — retained red for the printed "[Rule] Name: Not treated as including [Vee]."
-  // Seam: `matchNameOrTrait` in
-  // apps/api/src/engine/effects/interpreter/matching/definition.ts (the `ref.match === "name"`
-  // branch) matches a `[Vee]` name ref by plain substring over `effectiveNames`, with no
-  // per-card name-exclusion registry. Expected: false for EX13-002. Actual: true.
-  // No shipped card can observe this today (the only other `[Vee]` ref, BT2-086, is gated to
-  // `kind: ["Digimon"]` and EX13-002 is a Digi-Egg), so the proof is taken at the matcher.
-  it.fails("does not treat DemiVeemon's name as including [Vee]", () => {
-    expect(matchNameOrTrait(getCardDefinition("EX13-002")!, { tokens: ["Vee"], match: "name" })).toBe(false);
+  // Printed name exclusion, including the official universal Veemon reference rule.
+  // No printed [Vee] consumer can select this Digi-Egg today: BT2-086 requires
+  // Digimon. Probe the production matcher; do not claim a public producer path.
+  it("does not treat DemiVeemon's name as including [Vee]", () => {
+    const definition = getCardDefinition("EX13-002")!;
+    expect(matchNameOrTrait(definition, { tokens: ["Vee"], match: "name" })).toBe(false);
+    expect(matchNameOrTrait(definition, { tokens: ["Veemon"], match: "name" })).toBe(false);
+    expect(matchNameOrTrait(definition, { tokens: ["DemiVeemon"], match: "nameExact" })).toBe(true);
+    expect(matchNameOrTrait(definition, { tokens: ["Vee"], match: "name", negate: true })).toBe(true);
+    expect(matchNameOrTrait(definition, { tokens: ["Vee", "DemiVeemon"], match: "name" })).toBe(true);
   });
 });

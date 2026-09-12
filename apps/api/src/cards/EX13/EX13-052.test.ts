@@ -65,7 +65,7 @@ describe("EX13-052 Gladimon", () => {
     // No printed [Digivolve] header: the single Black Lv.3 route is the catalog EvoCost.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
-    expect(compiled.effects).toHaveLength(5);
+    expect(compiled.effects).toHaveLength(4);
 
     expect(compiled.effects[0]).toEqual({
       trigger: "Static",
@@ -88,26 +88,7 @@ describe("EX13-052 Gladimon", () => {
       ]);
     }
 
-    const guard = compiled.effects.find((effect) => effect.trigger === "AllTurns" && effect.isInherited !== true)!;
-    expect(guard).toMatchObject({
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: "all" },
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-          cost: {
-            kind: "deleteOwn",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          },
-        },
-      ],
-    });
-    expect(guard.frequency).toBeUndefined();
+    expect(compiled.effects.some((effect) => effect.trigger === "AllTurns" && effect.isInherited !== true)).toBe(false);
 
     const inherited = compiled.effects.find((effect) => effect.isInherited === true)!;
     expect(inherited).toMatchObject({

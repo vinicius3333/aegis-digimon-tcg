@@ -58,47 +58,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   EX13-059's `lowestPlayCost`). No "may" and no cost, so the action is mandatory and carries
 //   neither `optional` nor `abortOnDecline`.
 //
-// [All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞
-//   A RESIDENT continuous grant, which is `Aura` — the continuous layer re-derives it from the
-//   live board on every recompute, so a [Mamemon] Digimon that enters later is covered and one
-//   that leaves loses the keyword. `Aura` confers exactly one behavior per record, so the two
-//   printed icons are two actions. No `includeLaterEntrants`: per the coordinator notes that field
-//   is for a grant resolved once inside a TIMED window and is inert on a resident clause.
-//   `count: "all"` over `controller: "mine"` + `kind: ["Digimon"]` + `match: "name"`. The clause
-//   says "all of your Digimon", not "all of your OTHER Digimon", and "PrinceMamemon" contains
-//   [Mamemon] as a substring, so this card grants to itself too — no `excludeSelf`.
-//
-//   ＜Blocker＞ rides the keyword ledger: `combat/legality.ts` consults the continuous grant
-//   FIRST and only falls back to regex-parsing printed text, so the `Aura` grant is what makes a
-//   textless [Mamemon] Digimon a legal blocker.
-//
-//   ＜Guard＞ has NO behavioural engine hook: `combat/keywords.ts` only tokenizes the icon and
-//   `leavePrevention.ts` reads IR `Replacement` subscriptions, never a keyword grant. So the
-//   keyword is executed the way EX12-072 executes the same GRANTED ＜Guard＞ (and EX13-052 /
-//   EX12-056 their printed one): a `wouldLeavePlay` prevention with
-//   `leaveCause: "byOpponentEffect"`, `affectsAll: true` ("they don't leave" — one payment saves
-//   every permanent in the same leave event, §16-45-1), protecting `controller: "mine"` Digimon,
-//   and a `deleteOwn` cost over the Digimon that HOLD the granted keyword — this controller's
-//   [Mamemon]-named Digimon. §16-45-3 makes the processing optional, which is what the
-//   `Replacement` cost window already is.
-//   The `Aura` ＜Guard＞ grant is kept alongside it: per the coordinator notes a keyword grant is
-//   not decorative — it is what `observe().hasKeyword` and any future Guard-aware rule read.
-//
-//   RETAINED SEAM — a POOLED ＜Guard＞ grant cannot be scoped per holder. §16-45-1 scopes the
-//   protection to the holder's OTHER Digimon, but a `Replacement` is registered once against the
-//   permanent that carries the IR (`leavePrevention` keys its subscriptions by source permanent),
-//   and `excludeSelf` is SOURCE-relative. So with one anchored subscription only one of the two
-//   printed readings is expressible:
-//     - without `excludeSelf`, PrinceMamemon saves ITSELF by deleting itself, which §16-45-1
-//       forbids outright (observed: an opponent-effect deletion of PrinceMamemon alone returned a
-//       deleted count of 0);
-//     - with `excludeSelf` (what this module does), PrinceMamemon's own ＜Guard＞ behaves exactly
-//       as printed, and the only unmodelled case is a SECOND granted holder paying to save
-//       PrinceMamemon itself. That case is kept as an `it.fails` in the test file.
-//   The narrower reading is taken because it never produces an illegal save. Fixing the remaining
-//   case needs a real ＜Guard＞ hook that subscribes once per keyword HOLDER (engine lane), not a
-//   card-side change. EX12-072 grants the same keyword and carries the same approximation; there
-//   it is unobservable because its source is a face-up security card rather than a Digimon.
+// [All Turns] grants both keywords through continuous auras, including to itself.
+// The shared Guard hook binds prevention and fixed self-payment to each live holder,
+// so another granted Mamemon may save this grantor while a lone holder cannot save itself.
 const mamemonNamed: Filter = {
   controller: "mine",
   kind: ["Digimon"],
@@ -147,36 +109,9 @@ export const compiled: CompiledCard = {
     { trigger: "OnDeletion", actions: [revealAndFreePlay()] },
     { trigger: "OnDeletion", actions: [deleteHighestPlayCost()] },
     { trigger: "AllTurns", actions: [grantKeyword("Blocker"), grantKeyword("Guard")] },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: {
-            filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-            // `runReplacement` reads only `target.filter`/`target.isSelf`; `affectsAll` already
-            // carries "they don't leave", so this count is declarative (EX12-056's note).
-            count: "all",
-          },
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-          cost: {
-            kind: "deleteOwn",
-            target: { filter: mamemonNamed, count: 1 },
-            raw: "by deleting 1 of your Digimon with [Mamemon] in its name that has ＜Guard＞",
-          },
-          raw: "All of your Digimon with [Mamemon] in their names gain ＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)",
-        },
-      ],
-    },
   ],
-  coverage: "partial",
-  residual: [
-    "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Guard＞ — a granted holder other than PrinceMamemon cannot pay to save PrinceMamemon itself (leave-prevention Replacements are anchored per source permanent, so a pooled keyword grant has no per-holder scope).",
-  ],
+  coverage: "full",
+  residual: [],
   assemblyRequirement: [
     {
       reduceCost: 4,

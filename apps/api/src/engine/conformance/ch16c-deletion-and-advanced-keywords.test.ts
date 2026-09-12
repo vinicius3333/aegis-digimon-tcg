@@ -906,8 +906,9 @@ describe("§16-42 <Use Req.> (comprehensive-0261) — NOW MET: compiles to, and 
 
   it("baseline (unaffected): BT25-093's own color requirement is still enforced when unmet and no Use Req. condition holds", () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+      "comprehensive-0308",
+      "4-22-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup({ autoAcceptOptional: true });

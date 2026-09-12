@@ -154,6 +154,7 @@ export async function applyActivateEffect(
   if (!check.ok) return check;
 
   const { source, effect, ctx } = check;
+  ctx.declaredProcessingCondition = true;
   const sourceKinds = effect.isLinked ? ["Digimon"] : [...(source.definition.kinds ?? [])];
   ctx.effectSourceKinds = sourceKinds;
   deps.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);

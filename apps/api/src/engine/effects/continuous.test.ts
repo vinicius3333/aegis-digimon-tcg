@@ -32,6 +32,18 @@ function boardWithOnePermanent(): { state: ReturnType<typeof setupEngine>["state
 }
 
 describe("ContinuousEffectLedger", () => {
+  it("ends battle grants without ending attack grants", () => {
+    const { state, permanentId } = boardWithOnePermanent();
+    const ledger = new ContinuousEffectLedger();
+    ledger.addKeywordGrant(permanentId, "Rush", EffectDuration.UntilEndAttack);
+    ledger.addKeywordGrant(permanentId, "IceClad", EffectDuration.UntilEndBattle);
+    ledger.sweep(state, "endBattle", 0);
+    expect(ledger.hasKeyword(permanentId, "Rush")).toBe(true);
+    expect(ledger.hasKeyword(permanentId, "IceClad")).toBe(false);
+    ledger.sweep(state, "endAttack", 0);
+    expect(ledger.hasKeyword(permanentId, "Rush")).toBe(false);
+  });
+
   it("stacks distinct named-effect grants and deduplicates one activation identity", () => {
     const ledger = new ContinuousEffectLedger();
     const firstActivation = {};

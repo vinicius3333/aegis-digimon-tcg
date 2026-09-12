@@ -2,6 +2,7 @@ import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming, getC
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX13-043.js";
@@ -88,8 +89,8 @@ describe("EX13-043 Leopardmon", () => {
 
   it("compiles every printed clause and nothing else", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({
-      coverage: "partial",
-      residual: ["For each suspended Digimon, further reduce it by 1. (Option-use branch only)"],
+      coverage: "full",
+      residual: [],
     });
     expect(compiled.effects.map((effect) => effect.trigger)).toEqual([
       "OnPlay",
@@ -150,6 +151,8 @@ describe("EX13-043 Leopardmon", () => {
               from: ["hand"],
               payCost: true,
               reduceCostBy: 4,
+              allowMultiColor: true,
+              reduceCostByScaling: perSuspended,
               optional: true,
             },
           ],
@@ -584,20 +587,150 @@ describe("EX13-043 Leopardmon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("option").instanceId);
   });
 
-  // RETAINED RED — engine seam, routed to an engine lane.
-  //
-  // `UseOptionWithoutCostAction` (packages/shared/src/effects/ir/actions/meta.ts:121) declares
-  // `reduceCostBy` but no `reduceCostByScaling`, and `runUseOptionWithoutCost`
-  // (apps/api/src/engine/effects/interpreter/actions/borrowed.ts:522) computes
-  // `totalReduction = (action.reduceCostBy ?? 0) + reduceCostByOpponentMemory` — it never calls
-  // `scaleFactor`. The sibling `PlayWithoutCost` path does, in `paidReduction`
-  // (apps/api/src/engine/effects/interpreter/actions/play.ts:104). So the printed "For each
-  // suspended Digimon, further reduce it by 1" reaches the PLAY branch (proven above) and cannot
-  // reach the USE branch.
-  //
-  // Expected with 2 suspended Digimon: use cost 6 - 4 - 2 = 0, memory stays 5.
-  // Actual: 6 - 4 = 2 is charged, memory 3.
-  it.fails("applies the per-suspended-Digimon reduction to the Option USE branch too", async () => {
+  it.each([
+    [0, 9],
+    [1, 10],
+    [2, 10],
+  ])("uses an Option during a public attack with %i suspended opponents", async (opponents, memory) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "leopardmon" },
+            { card: WHITE_SOURCE, as: "whiteSource" },
+          ],
+          hand: [{ card: ROYAL_KNIGHT_OPTION, as: "option" }],
+          deck: [{ card: "BT1-009", as: "draw" }, "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: Array.from({ length: opponents }, (_, index) => ({
+            card: "BT10-064",
+            as: `opponent${index}`,
+            suspended: true,
+          })),
+          deck: ["BT1-009"],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const host = s.perm("leopardmon");
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(memory);
+    expect(host.isSuspended).toBe(true);
+    expect(host.currentDP).toBe(12000);
+    expect(s.perm("whiteSource").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("draw").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("leopardmon").instanceId,
+      s.inst("whiteSource").instanceId,
+      s.inst("option").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(opponents);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it.each(["decline", "missingWhite"])("keeps the Option and memory during public attack: %s", async (mode) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "leopardmon" },
+            ...(mode === "missingWhite" ? [] : [{ card: WHITE_SOURCE, as: "whiteSource" }]),
+          ],
+          hand: [{ card: ROYAL_KNIGHT_OPTION, as: "option" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: { deck: ["BT1-009"], security: [{ card: "BT1-009", as: "security" }] },
+      },
+      {
+        autoDeclineOptional: mode === "decline",
+        autoAcceptOptional: mode === "missingWhite",
+        autoSelectCards: true,
+        autoChooseOption: true,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const boardIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("leopardmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(boardIds);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("publicly chooses the Option face of a two-color Beastkin DUAL card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "leopardmon" },
+            { card: "BT26-025", as: "yellowSource" },
+          ],
+          hand: [{ card: "BT26-031", as: "dual" }],
+          deck: ["BT1-009"],
+          security: [{ card: "BT1-009", as: "paidSecurity" }],
+        },
+        1: {
+          battleArea: [{ card: "BT12-112", as: "victim" }],
+          deck: ["BT1-009"],
+          security: [{ card: "BT1-009", as: "checkedSecurity" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("leopardmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("victim").currentDP).toBe(4000);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("leopardmon").instanceId,
+      s.inst("yellowSource").instanceId,
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("paidSecurity").instanceId, s.inst("dual").instanceId].sort(),
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("checkedSecurity").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  // Supplemental explicit timing seam; public attack boundaries are above.
+  it("applies the per-suspended-Digimon reduction to the Option USE branch too", async () => {
     const s = setupEngine(
       {
         0: {

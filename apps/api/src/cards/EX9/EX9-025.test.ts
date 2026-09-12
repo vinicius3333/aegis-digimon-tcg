@@ -13,13 +13,12 @@ describe("EX9-025", () => {
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
       frequency: "OncePerTurn",
+      cost: { kind: "place", destination: "digivolutionStack", faceDown: true, optional: true },
       actions: [
         {
           kind: "ModifyDP",
           amount: -2000,
           duration: "forTheTurn",
-          optional: true,
-          cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
           scaling: { unit: "selfFaceDownDigivolutionCards" },
         },
       ],
@@ -107,11 +106,11 @@ describe("EX9-025", () => {
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    // An empty own deck leaves no legal cost payment, so the optional reduction is
-    // never offered as a decision at all; just drain and assert the no-op.
+    // §15-7-4 permits choosing the processing condition even with an empty deck.
+    // Payment cannot succeed, so the reduction does not resolve.
     await drainMicrotasks();
 
-    expect(s.decisions).toHaveLength(0);
+    expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);
     expect(source.stack).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(1);

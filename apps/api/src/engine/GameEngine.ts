@@ -4,6 +4,7 @@ import { isTimingActivationDisabled } from "./effects/timingActivation.js";
 import type { Client } from "colyseus";
 import {
   CardKind,
+  getCardDefinition,
   AppFusionRoute,
   GameState,
   PlayerState,
@@ -39,7 +40,8 @@ import {
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
 import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController, type CombatTrigger } from "./combat/controller.js";
-import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
+import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
+import { guardLeaveReplacements } from "./effects/guard.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
@@ -1010,13 +1012,15 @@ export class GameEngine {
           return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes("Piercing");
         })(),
       addDpModifier: (permanentId, delta) =>
-        this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndBattle),
+        this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndAttack),
       addSecurityAttack: (permanentId) =>
         this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
+      sweepEndOfBattle: () => this.sweepBattleDurations(),
+      recomputeBattleEffects: () => this.recomputeContinuousEffects(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -1081,24 +1085,6 @@ export class GameEngine {
       },
       trashDigivolutionCards: async (hostPermanentId, instanceIds) => {
         await this.primitives.trashDigivolutionCards(hostPermanentId, instanceIds);
-      },
-      detachEligibleLinkedCards: (permanentId) => {
-        const permanent = this.access.permanentById(permanentId);
-        if (permanent?.topCard === undefined) return [];
-        const traits = detachTraitTokens(definitionOf(permanent.topCard));
-        if (traits.length === 0) return [];
-        return detachableLinkedCards(permanent, traits, (card) => definitionOf(card));
-      },
-      detachLinkedCard: async (permanentId, instanceId) => {
-        const permanent = this.access.permanentById(permanentId);
-        if (permanent?.topCard === undefined) return false;
-        const traits = detachTraitTokens(definitionOf(permanent.topCard));
-        if (traits.length === 0) return false;
-        return (
-          (await detachLinkedCard(permanent, instanceId, traits, (card) => definitionOf(card), {
-            trash: async (ids) => this.primitives.trash(ids),
-          })) !== undefined
-        );
       },
       ascendToSecurity: async (instanceId) => {
         await this.primitives.ascendToSecurity(instanceId);
@@ -1330,6 +1316,7 @@ export class GameEngine {
           (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
         ),
       (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
+      (id) => this.combat.battleOpponentOf(id),
     );
     return this.gameAccess;
   }
@@ -1407,6 +1394,34 @@ export class GameEngine {
     return consultLeavePrevention(
       {
         subTriggers: this.subTriggers,
+        keywordReplacements: (ids) => [
+          ...detachLeaveReplacements(ids, {
+            permanentById: (id) => this.access.permanentById(id),
+            hasDetach: (id) => this.continuous.hasKeyword(id, "Detach"),
+            traitTokens: (id) => {
+              const permanent = this.access.permanentById(id);
+              if (permanent?.topCard === undefined) return [];
+              const printed = detachTraitTokens(definitionOf(permanent.topCard));
+              const granted = this.continuous.keywordGrantSources(id, "Detach").flatMap((source) => {
+                const definition =
+                  source.sourceCardId === undefined ? undefined : getCardDefinition(source.sourceCardId);
+                return detachTraitTokens({ effectText: source.effectText ?? definition?.effectText });
+              });
+              return [...new Set([...printed, ...granted])];
+            },
+            definitionOf: (card) => definitionOf(card),
+            trash: (paymentIds) => this.primitives.trash(paymentIds),
+          }),
+          ...guardLeaveReplacements(
+            [...this.state.players].flatMap((player) => player.battleArea.map((permanent) => permanent.permanentId)),
+            {
+              idOffset: ids.length,
+              permanentById: (id) => this.access.permanentById(id),
+              isBattleAreaDigimon: (permanent) => this.access.isBattleAreaDigimon(permanent, this.continuous),
+              hasGuard: (id) => this.continuous.hasKeyword(id, "Guard"),
+            },
+          ),
+        ],
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {
@@ -1751,15 +1766,20 @@ export class GameEngine {
     }
   }
 
-  /**
-   * Expire attack/battle-scoped durations at the end of an attack and re-derive the
-   * continuous tier (the combat analogue of {@link sweepDurations}). `endBattle`
-   * subsumes `endAttack`, so one sweep at each boundary suffices; the sweep is
-   * owner-agnostic (the seat argument is unused for these durations).
-   */
-  private async sweepCombatDurations(): Promise<void> {
+  /** Expire battle grants after its reactions, independently of the enclosing attack. */
+  private async sweepBattleDurations(): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+    this.recomputeExpiredAffectationRecipients();
+    await this.recomputeContinuousEffects();
+  }
+
+  /** Expire attack grants, including unused battle grants when no battle occurred. */
+  private async sweepCombatDurations(): Promise<void> {
+    for (const boundary of ["endBattle", "endAttack"] as const) {
+      this.modifiers.sweep(this.state, boundary, this.state.turnSeat);
+      this.continuous.sweep(this.state, boundary, this.state.turnSeat);
+    }
     this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
   }
@@ -2345,24 +2365,50 @@ export class GameEngine {
   private static readonly DIGISORPTION_REDIRECT_KEY = "digisorption-redirect";
 
   /**
-   * An UNUSED ＜Digisorption＞-redirector permanent (BT3-056) on `seat`'s battle area this turn, or
+   * An UNUSED printed or conferred ＜Digisorption＞ redirect ability on `seat`'s battle area this turn, or
    * undefined. The redirect's [Your Turn][Once Per Turn] gate requires the
    * redirector to be a battle-area Digimon on its controller's turn and within its per-turn limit.
    * KB Q4703: a card cannot redirect its OWN digivolve-into suspend, so the redirector must be a
    * SEPARATE permanent already in play (the card being digivolved into is still in hand here).
    */
-  private digisorptionRedirector(seat: Seat, excludeInstanceId?: string): Permanent | undefined {
+  private digisorptionRedirector(
+    seat: Seat,
+    excludeInstanceId?: string,
+  ): { sourceInstanceId: string; effectKey: string } | undefined {
     if (this.state.turnSeat !== seat) return undefined;
-    return this.access
-      .player(seat)
-      .battleArea.find(
-        (p) =>
-          this.access.isBattleAreaDigimon(p) &&
-          p.topCard !== undefined &&
-          p.topCard.instanceId !== excludeInstanceId &&
-          isDigisorptionRedirector(p.topCard.cardId) &&
-          this.tracker.count(p.topCard.instanceId, GameEngine.DIGISORPTION_REDIRECT_KEY) < 1,
-      );
+    for (const permanent of this.access.player(seat).battleArea) {
+      if (!this.access.isBattleAreaDigimon(permanent) || permanent.topCard.instanceId === excludeInstanceId) continue;
+      const nativeKey = GameEngine.DIGISORPTION_REDIRECT_KEY;
+      if (
+        isDigisorptionRedirector(permanent.topCard.cardId) &&
+        this.tracker.count(permanent.topCard.instanceId, nativeKey) < 1
+      ) {
+        return { sourceInstanceId: permanent.topCard.instanceId, effectKey: nativeKey };
+      }
+      // A copied persistent ability belongs to the live host, but its once-per-turn
+      // identity retains both the physical lender and the source of the conferral.
+      for (const conferral of this.continuous.listStackEffectConferrals()) {
+        if (
+          conferral.targetPermanentId !== permanent.permanentId ||
+          conferral.inheritedOnly === true ||
+          (conferral.trigger !== undefined && conferral.trigger !== "YourTurn")
+        )
+          continue;
+        const lender = permanent.stack.find((card) => card.instanceId === conferral.stackInstanceId);
+        if (
+          lender === undefined ||
+          !lender.faceUp ||
+          lender.instanceId === excludeInstanceId ||
+          !isDigisorptionRedirector(lender.cardId)
+        )
+          continue;
+        const effectKey = `${nativeKey}/conferral/${conferral.granterInstanceId ?? permanent.topCard.instanceId}`;
+        if (this.tracker.count(lender.instanceId, effectKey) < 1) {
+          return { sourceInstanceId: lender.instanceId, effectKey };
+        }
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -2372,12 +2418,14 @@ export class GameEngine {
    * redirect's `PermanentCondition`).
    */
   private digisorptionSuspendCandidates(seat: Seat, excludeRedirectorInstanceId?: string): Permanent[] {
-    const own = this.access.player(seat).battleArea.filter((p) => this.access.isBattleAreaDigimon(p) && !p.isSuspended);
+    const canSuspend = (permanent: Permanent): boolean =>
+      this.access.isBattleAreaDigimon(permanent) &&
+      !permanent.isSuspended &&
+      !this.continuous.hasRestriction(permanent.permanentId, "beSuspended");
+    const own = this.access.player(seat).battleArea.filter(canSuspend);
     if (this.digisorptionRedirector(seat, excludeRedirectorInstanceId) === undefined) return own;
     const opponentSeat = this.access.opponentOf(seat);
-    const opponent = this.access
-      .player(opponentSeat)
-      .battleArea.filter((p) => this.access.isBattleAreaDigimon(p) && !p.isSuspended);
+    const opponent = this.access.player(opponentSeat).battleArea.filter(canSuspend);
     return [...own, ...opponent];
   }
 
@@ -2425,17 +2473,15 @@ export class GameEngine {
     const target = chosen.length >= 1 ? byInstanceId.get(chosen[0]!) : undefined;
     if (target === undefined) return 0;
 
-    // Redirect once-per-turn: when the chosen Digimon is an opponent's, the BT3-056 redirect was
-    // used — record its use so it can't redirect a second ＜Digisorption＞ this turn (documented behavior
-    // isOverMaxCountPerTurn on the WhenDigisorption effect).
-    if (target.controllerSeat !== seat) {
-      const redirector = this.digisorptionRedirector(seat, into.instanceId);
-      if (redirector?.topCard !== undefined) {
-        this.tracker.register(redirector.topCard.instanceId, GameEngine.DIGISORPTION_REDIRECT_KEY);
-      }
-    }
+    const redirector = target.controllerSeat !== seat ? this.digisorptionRedirector(seat, into.instanceId) : undefined;
+    if (target.controllerSeat !== seat && redirector === undefined) return 0;
+    // Commit usage only after an actual transition, before its triggered reactions.
+    // A prohibited or stale payment grants neither the discount nor a spent redirect.
+    const suspended = await this.primitives.suspend([target.permanentId], { byEffectSeat: seat, deferTriggers: true });
+    if (!suspended.includes(target.permanentId)) return 0;
+    if (redirector !== undefined) this.tracker.register(redirector.sourceInstanceId, redirector.effectKey);
+    await this.primitives.fireSuspensionTriggers?.(suspended, { byEffectSeat: seat });
 
-    await this.primitives.suspend([target.permanentId], { byEffectSeat: seat });
     return amount;
   }
 
@@ -5011,6 +5057,7 @@ export class GameEngine {
       colorRequirementAlternatives: (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       canDeclareAttack: (permanent) =>
         canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
+      battleOpponentOf: (id) => this.combat.battleOpponentOf(id),
       triggerInfo: trigger,
     };
   }
@@ -5790,6 +5837,7 @@ export class GameEngine {
     // a one-shot stale value left from an earlier window.
     await this.recomputeContinuousEffects();
     const deps: SecurityCheckDeps = {
+      sweepEndOfBattle: () => this.sweepBattleDurations(),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       // Strike = the number of security cards checked: base 1 plus every ＜Security
       // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these

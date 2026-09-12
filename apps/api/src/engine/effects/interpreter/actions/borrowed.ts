@@ -495,6 +495,19 @@ function optionUseCandidates(
   return { candidates, zones, seat };
 }
 
+function optionUseReduction(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
+  seat: Seat,
+): number {
+  const memoryReduction =
+    action.reduceCostByOpponentMemory === true
+      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+      : 0;
+  const scalingReduction = action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling);
+  return (action.reduceCostBy ?? 0) + memoryReduction + scalingReduction;
+}
+
 export async function canAttemptUseOptionWithoutCost(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
@@ -502,11 +515,7 @@ export async function canAttemptUseOptionWithoutCost(
   const candidates = optionUseCandidates(ctx, action, true).candidates;
   if (candidates.length === 0) return false;
   if (action.payCost !== true || ctx.fx.canAffordEffectPlay === undefined) return true;
-  const dynamicReduction =
-    action.reduceCostByOpponentMemory === true
-      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(ctx.source.ownerSeat)))
-      : 0;
-  const costDelta = (action.reduceCostBy ?? 0) + dynamicReduction;
+  const costDelta = optionUseReduction(ctx, action, ctx.source.ownerSeat);
   const affordability = await Promise.all(
     candidates.map((instanceId) =>
       ctx.fx.canAffordEffectPlay!(instanceId, {
@@ -549,11 +558,7 @@ export async function runUseOptionWithoutCost(
 
   // The shared use verb owns payment so play-cost restrictions and insufficient-memory checks
   // run exactly once. Fold both printed reductions into its signed cost delta.
-  const dynamicReduction =
-    action.reduceCostByOpponentMemory === true
-      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
-      : 0;
-  const totalReduction = (action.reduceCostBy ?? 0) + dynamicReduction;
+  const totalReduction = optionUseReduction(ctx, action, seat);
 
   // Effect resolution + lifecycle (trash the Option, fire whenOptionUsed) both now live behind
   // `ctx.fx.useOptionFromHand` (primitives.ts), which resolves the chosen card's registered

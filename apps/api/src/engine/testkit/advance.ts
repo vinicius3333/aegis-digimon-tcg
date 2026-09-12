@@ -18,6 +18,18 @@ import { internalsOf } from "./internals.js";
 export function advance(engine: GameEngine) {
   const internals = internalsOf(engine);
   return {
+    /** Supplemental fault injection; this is not a legal in-game replacement producer. */
+    failNextSuspension(): () => void {
+      const original = internals.primitives.suspend;
+      function restore(): void {
+        internals.primitives.suspend = original;
+      }
+      internals.primitives.suspend = async function failedSuspension(): Promise<string[]> {
+        restore();
+        return [];
+      };
+      return restore;
+    },
     /** Wait until the requested seat's production Main controller is authoritatively open. */
     async waitForMainPhase(seat: Seat): Promise<void> {
       // Poll on MICROTASKS. Production opens Main, runs its start-of-main timing and can

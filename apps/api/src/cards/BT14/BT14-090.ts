@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Greymon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -69,7 +69,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Agumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -87,7 +87,7 @@ const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["MetalGreymon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Agumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -120,7 +120,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Agumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -132,7 +132,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["WarGreymon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -158,7 +158,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Agumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

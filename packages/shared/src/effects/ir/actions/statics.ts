@@ -2,7 +2,7 @@
 
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
-import type { KeywordRef } from "../keywords.js";
+import type { Keyword, KeywordRef } from "../keywords.js";
 import type { Condition } from "../predicates/conditions.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
@@ -161,6 +161,8 @@ export interface GrantStaticAction extends ActionBase {
   excludeInherited?: boolean;
   /** Copy only the highest matching digivolution card, as required by <Succession>. */
   topmostOnly?: boolean;
+  /** For effects grants, omit these keyword effects and their resident markers. */
+  excludeKeywords?: Keyword[];
   staticEffect?: { kind: string; [key: string]: unknown };
   duration?: EffectDurationRef;
   /** Apply named granted effects to matching permanents that enter before the duration expires. */

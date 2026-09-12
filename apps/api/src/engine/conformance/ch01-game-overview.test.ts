@@ -12,26 +12,6 @@ import {
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js"; // registers the seeded not-testable manifest as a side effect
 
-/**
- * FINDING (chunk-id positional fragility, see README "Chunk ids are positional"):
- * comprehensive-0273..0276 are tagged section "1-9" by tools/kb/index-rules.mjs's chunker,
- * but their TEXT is the document's revision-history changelog ("Ver.2.2 Added ... Ver.2.3
- * Updated ..."), not chapter 1 rule prose — there is no rule "1-9" in the Comprehensive
- * Rules table of contents; the chunker mis-tagged them with the last section number it had
- * seen before the trailing appendix. They carry zero normative content (a bibliographic
- * changelog), so no engine behavior could ever hang off them — unlike a genuine bare
- * heading, there is no future rule text to eventually attach a test to. Marked not-testable
- * here (rather than the shared not-testable.ts manifest) because the reason is specific to
- * this mis-tagging, not the generic TOC/heading reasons already recorded there.
- */
-for (const id of ["comprehensive-0273", "comprehensive-0274", "comprehensive-0275", "comprehensive-0276"]) {
-  markNotTestable(
-    id,
-    "Revision-history changelog entry ('Ver.X.Y Updated/Added/Deleted ...'), mis-tagged section " +
-      '"1-9" by the chunker (positional chunk-id artifact — there is no rule 1-9). Zero rule ' +
-      "content; nothing to assert.",
-  );
-}
 import { GameEngine } from "../GameEngine.js";
 import { GameStateAccess } from "../state/access.js";
 import { canAttackerDeclare, type ContinuousLegalityReader } from "../combat/legality.js";
@@ -249,23 +229,6 @@ describe("§1-3-7..1-3-11-3 Fundamental Principles, cont'd (comprehensive-0024)"
     expect(state.memory).toBe(MEMORY_MIN);
   });
 });
-
-// §1-3-11-4 (comprehensive-0025): this sub-rule is a composite of the generic "can't declare
-// use without paying its (alternate) cost" rule (1-3-11-1..1-3-11-3, behaviorally proven above
-// via comprehensive-0023's canAttackerDeclare-driven test) applied specifically to DigiXros/
-// Assembly's immediate-effect cost interaction. There is no lighter, chapter-1-scoped consequence
-// distinct from that generic mechanism — proving the COMPOSITE requires a full DigiXros/Assembly
-// play scenario (materials placed, cost reduced, declaration gated on affordability), which is
-// chapter 7/8 territory (apps/api/src/engine/actions/digiXros.ts), not this chapter's area/
-// overview scope. Not testable here; the DigiXros half of that composite IS driven end-to-end in
-// ch02-card-information.test.ts's §2-3-7 test.
-markNotTestable(
-  "comprehensive-0025",
-  "Composite of the generic declare-cost-gating rule (already behaviorally proven under " +
-    "comprehensive-0023) specialized to DigiXros/Assembly's immediate-effect cost interaction. " +
-    "Testing the composite itself requires a full DigiXros/Assembly play scenario, which is " +
-    "chapter 7/8 scope, not chapter 1's game-overview scope.",
-);
 
 describe("§1-4-1 Deck and Digi-Egg deck (comprehensive-0027)", () => {
   it("1-4-1-2-1: a legal main deck must be exactly 50 cards, not more or fewer", () => {

@@ -124,6 +124,8 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   filter: Filter;
   payCost: boolean;
   reduceCostBy?: number;
+  /** Additional reduction computed from live state for this single use. */
+  reduceCostByScaling?: Scaling;
   /** Dynamic reduction equal to the source controller's opponent's current memory. */
   reduceCostByOpponentMemory?: boolean;
   /** The granting effect explicitly ignores the chosen Option's color requirements. */

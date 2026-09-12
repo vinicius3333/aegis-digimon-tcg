@@ -20,6 +20,7 @@ import {
   type GameState,
   type PlayerState,
   type Seat,
+  type Keyword,
   type ServerEvent,
   type ZoneRef,
 } from "@aegis/shared";
@@ -2068,7 +2069,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { belowTop?: boolean; faceUp?: boolean },
   ): Promise<CardInstance[]> => {
     const permanent = access.permanentById(targetPermanentId);
-    if (permanent === undefined) return [];
+    if (permanent?.topCard === undefined) return [];
+    // Validate the complete physical batch before moving anything. A duplicate can
+    // otherwise remove the first card again from the destination stack itself.
+    if (
+      new Set(instanceIds).size !== instanceIds.length ||
+      instanceIds.some((id) => peekLooseInstance(state, id) === undefined)
+    )
+      return [];
     const placed: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       const instance = removeLooseInstance(state, instanceId);
@@ -2095,7 +2103,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
-        addedDigivolutionCardsPosition: opts?.belowTop ? "bottom" : "top",
+        addedDigivolutionCardsPosition: opts?.belowTop ? "top" : "bottom",
         ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
@@ -2113,7 +2121,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [card.instanceId],
-      addedDigivolutionCardsPosition: "top",
+      addedDigivolutionCardsPosition: "bottom",
       ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return card;
@@ -2206,6 +2214,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     destPermanentId: string,
     sourcePermanentId: string,
     opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
+    emitMovementEvents = true,
   ): boolean => {
     if (destPermanentId === sourcePermanentId) return false;
     if (isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")) return false;
@@ -2242,7 +2251,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       card.faceUp = false;
       insertCard(player(card.ownerSeat), Zone.Trash, card);
     }
-    if (toShed.length > 0) {
+    if (toShed.length > 0 && emitMovementEvents) {
       engine.emit({
         kind: "cardsMoved",
         instanceIds: toShed.map((c) => c.instanceId),
@@ -2262,12 +2271,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       else unshiftOnStack(dest, card);
     }
 
-    engine.emit({
-      kind: "cardsMoved",
-      instanceIds: toAttach.map((c) => c.instanceId),
-      from: Zone.BattleArea,
-      to: Zone.BattleArea,
-    });
+    if (emitMovementEvents) {
+      engine.emit({
+        kind: "cardsMoved",
+        instanceIds: toAttach.map((c) => c.instanceId),
+        from: Zone.BattleArea,
+        to: Zone.BattleArea,
+      });
+    }
     return true;
   };
 
@@ -2280,7 +2291,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const movedCardIds =
       movedSource === undefined
         ? []
-        : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
+        : (opts?.shedOwnCards
+            ? [movedSource.topCard]
+            : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
+          )
             .filter((card): card is CardInstance => card !== undefined)
             .map((card) => card.instanceId);
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
@@ -2291,6 +2305,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,
+        addedDigivolutionCardsPosition: opts?.belowTop === false ? "bottom" : "top",
         ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
@@ -2339,16 +2354,88 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       moved.push(sourcePermanentId);
     }
     for (const source of sources) {
-      const movedCardIds = [source!.topCard, ...source!.stack, ...source!.linked]
+      const movedCardIds = (
+        opts?.shedOwnCards ? [source!.topCard] : [source!.topCard, ...source!.stack, ...source!.linked]
+      )
         .filter((card): card is CardInstance => card !== undefined)
         .map((card) => card.instanceId);
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,
+        addedDigivolutionCardsPosition: opts?.belowTop === false ? "bottom" : "top",
         ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
     return moved;
+  };
+
+  const placeMixedMaterialsUnder: NonNullable<Primitives["placeMixedMaterialsUnder"]> = async (hostId, orderedIds) => {
+    const host = access.permanentById(hostId);
+    if (host?.topCard === undefined || orderedIds.length === 0 || new Set(orderedIds).size !== orderedIds.length)
+      return [];
+    const materials = orderedIds.map((id) => {
+      const source = [...state.players]
+        .flatMap((owner) => [...owner.battleArea])
+        .find((permanent) => permanent.topCard?.instanceId === id);
+      if (source !== undefined) {
+        if (source.permanentId === hostId || isRestricted(source.permanentId, "leaveBattleAreaExceptByDeletion"))
+          return undefined;
+        return { card: source.topCard!, source };
+      }
+      const card = peekLooseInstance(state, id);
+      return card === undefined ? undefined : { card, source: undefined };
+    });
+    if (materials.some((material) => material === undefined)) return [];
+    const movedPhysicalIds = materials.flatMap((material) =>
+      material?.source === undefined
+        ? material === undefined
+          ? []
+          : [material.card.instanceId]
+        : [material.source.topCard!, ...material.source.stack, ...material.source.linked].map(
+            (card) => card.instanceId,
+          ),
+    );
+    // Whole-permanent materials already include their attached cards; a loose
+    // material inside another selected source cannot be paid independently again.
+    if (new Set(movedPhysicalIds).size !== movedPhysicalIds.length) return [];
+    const existingStack = [...host.stack];
+    const existingIds = new Set([
+      host.topCard.instanceId,
+      ...host.stack.map((card) => card.instanceId),
+      ...host.linked.map((card) => card.instanceId),
+    ]);
+    if (movedPhysicalIds.some((id) => existingIds.has(id))) return [];
+    const orderedCards = materials.flatMap((material) =>
+      material?.source === undefined
+        ? material === undefined
+          ? []
+          : [material.card]
+        : [...material.source.stack, ...material.source.linked, material.card],
+    );
+    // No awaits until every validated material moves; callbacks see the complete batch.
+    for (const material of [...materials].reverse()) {
+      if (material === undefined) return [];
+      if (material.source !== undefined) {
+        if (!relocatePermanent(hostId, material.source.permanentId, { belowTop: false, faceUp: true }, false))
+          return [];
+      } else {
+        const moved = removeLooseInstance(state, material.card.instanceId);
+        if (moved === undefined) return [];
+        moved.faceUp = true;
+        unshiftOnStack(host, moved);
+      }
+    }
+    replaceStack(host, [...orderedCards, ...existingStack]);
+    const addedIds = host.stack.filter((card) => !existingIds.has(card.instanceId)).map((card) => card.instanceId);
+    engine.emit({ kind: "cardsMoved", instanceIds: addedIds, from: "various", to: Zone.BattleArea });
+    await engine.recomputeContinuousEffects?.();
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: hostId,
+      addedDigivolutionCardInstanceIds: addedIds,
+      addedDigivolutionCardsPosition: "bottom",
+      ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
+    });
+    return materials.flatMap((material) => (material === undefined ? [] : [material.card]));
   };
 
   /**
@@ -5442,12 +5529,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: {
+      trigger?: string;
+      excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
       excludeInherited: opts?.excludeInherited,
+      excludeKeywords: opts?.excludeKeywords,
       inheritedOnly: opts?.inheritedOnly,
       granterInstanceId: opts?.granterInstanceId,
     });
@@ -6002,6 +6096,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     relocatePermanent,
     relocatePermanentByEffect,
     relocatePermanentsByEffect,
+    placeMixedMaterialsUnder,
     movePermanentZone,
     hatch,
     placeUnderFromEggDeck,

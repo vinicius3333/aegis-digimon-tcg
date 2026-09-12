@@ -145,7 +145,7 @@ describe("A3 breeding/hatch — place top of Digi-Egg deck under a permanent", (
 
     // Both the egg (from the Digi-Egg deck) and the Royal Knight are now under the host.
     expect(self.stack.some((c) => c.instanceId === egg.instanceId)).toBe(true);
-    expect(self.stack.find((c) => c.instanceId === egg.instanceId)?.faceUp).toBe(false);
+    expect(self.stack.find((c) => c.instanceId === egg.instanceId)?.faceUp).toBe(true);
     expect(self.stack.some((c) => c.instanceId === knightInstanceId)).toBe(true);
     expect(p0.battleArea.some((p) => p.permanentId === knight.permanentId)).toBe(false);
     expect(p0.eggDeck.some((c) => c.instanceId === egg.instanceId)).toBe(false);

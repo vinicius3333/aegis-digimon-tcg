@@ -440,14 +440,16 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
       "comprehensive-0169",
       '15-7-1 optional processing conditions include text such as "by X, Y" — the ' +
         "player chooses whether to execute the conditions, then the payload runs",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
     cite(
       "comprehensive-0170",
       "15-7-4/15-7-5 a player can choose to execute optional processing conditions " +
         "regardless of whether the content after them can be executed",
+      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
     );
 
-    const s = setup();
+    const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;
     const base = digimon(0, 9000, "BT10-022"); // real Black Lv.5, matches BT9-042's evoCost
     p0.battleArea.push(base);
@@ -478,6 +480,10 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
       response: { kind: "optional", accept: true },
     });
     expect(acceptResult).toEqual({ ok: true });
+    await settle(() => p0.trash.some(({ instanceId }) => instanceId === machineCard.instanceId));
+    expect(p0.hand.some(({ instanceId }) => instanceId === machineCard.instanceId)).toBe(false);
+    expect(base.topCard?.cardId).toBe("BT9-042");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
 
@@ -504,11 +510,38 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     ).toEqual({ ok: true });
   };
 
+  it("15-7-1/2: refusing a payable processing condition preserves the hand and skips the whole payload", async () => {
+    cite(
+      "comprehensive-0169",
+      "Refusal of by-X processing gates every following action",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+    );
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: LUCEMON_CHAOS_MODE, as: "lucemon" }],
+          hand: [{ card: INERT_DIGIMON, as: "payment" }],
+          deck: [RECOVERED_CARD, INERT_FILLER],
+        },
+        1: { battleArea: [{ card: INERT_DIGIMON, as: "theirs" }], security: [INERT_DIGIMON] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await attackWithLucemon(s);
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("payment").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(true);
+  });
+
   it("15-7-2: an unpayable clause cost skips every action of the clause, not just the first", async () => {
     cite(
       "comprehensive-0169",
       "15-7-2 if the content of the optional processing conditions isn't executed, the " +
         "processing after the conditions can't be executed",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(
@@ -528,12 +561,53 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(true);
+  });
+
+  it("the opponent owns the choice between two deletion targets after the source pays", async () => {
+    cite(
+      "comprehensive-0169",
+      "Processing payment precedes the opponent-owned payload",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+    );
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: LUCEMON_CHAOS_MODE, as: "lucemon" }],
+          hand: [{ card: INERT_DIGIMON, as: "payment" }],
+          deck: [RECOVERED_CARD, INERT_FILLER],
+        },
+        1: {
+          battleArea: [
+            { card: INERT_DIGIMON, as: "first" },
+            { card: INERT_FILLER, as: "second" },
+          ],
+          security: [INERT_DIGIMON],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await attackWithLucemon(s);
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetChoice = s.state.pendingDecision!;
+    const response = { kind: "chooseTargets" as const, instanceIds: [s.perm("second").permanentId] };
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: targetChoice.decisionId, response }).ok).toBe(
+      false,
+    );
+    expect(s.engine.applyIntent(1, { type: "respondDecision", decisionId: targetChoice.decisionId, response })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("first").permanentId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("payment").instanceId]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("15-7-1: a payable clause cost is paid exactly once and the whole clause then resolves", async () => {
     cite(
       "comprehensive-0169",
-      '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then ' + "performed",
+      '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then performed',
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(
@@ -561,6 +635,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "15-7-2 the optional processing condition is executed before the processing after it; " +
         "a declined optional inside that processing does not undo it",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(
@@ -572,9 +647,31 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
         },
         1: { battleArea: [{ card: INERT_DIGIMON, as: "theirs" }], security: [INERT_DIGIMON] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await attackWithLucemon(s);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const processingChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: processingChoice.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== processingChoice.decisionId,
+    );
+    const opponentChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: opponentChoice.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

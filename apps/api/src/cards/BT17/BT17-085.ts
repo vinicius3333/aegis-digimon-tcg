@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",
+            orderPlacedCards: true,
             costs: [
               {
                 kind: "place",
@@ -45,7 +46,7 @@ export const compiled: CompiledCard = {
                 underFilter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Renamon"], match: "nameExact" }],
                 },
                 destination: "digivolutionStack",
                 position: "bottom",
@@ -60,7 +61,7 @@ export const compiled: CompiledCard = {
                     zone: "trash",
                     controller: "mine",
                     kind: ["Digimon"],
-                    nameOrTrait: [{ tokens: ["Kyubimon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Kyubimon"], match: "nameExact" }],
                   },
                   count: 1,
                   from: ["trash"],
@@ -76,7 +77,7 @@ export const compiled: CompiledCard = {
                     zone: "trash",
                     controller: "mine",
                     kind: ["Digimon"],
-                    nameOrTrait: [{ tokens: ["Taomon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Taomon"], match: "nameExact" }],
                   },
                   count: 1,
                   from: ["trash"],
@@ -96,7 +97,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Renamon"], match: "nameExact" }],
                 },
                 count: 1,
                 fromSelectionRef: "rikaTarget",
