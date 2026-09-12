@@ -1,6 +1,6 @@
 # Battle and attack duration boundary audit
 
-Status: in progress. The EX13-076 direct Digimon-battle expiration defect is corrected in the working implementation. Security-specific expiration, nested-battle duration ownership, and the complete consumer denominator remain open. Neither this mechanism nor EX13 is certified.
+Status: in progress. The EX13-076 direct Digimon-battle expiration defect is corrected in the working implementation. A bounded security-to-security DP-duration proof is recorded below; complete security producer coverage, nested-battle duration ownership, and the complete consumer denominator remain open. Neither this mechanism nor EX13 is certified.
 
 ## Contract and implementation
 
@@ -193,3 +193,74 @@ test inventory. Final ST2 sync/check both reported sixteen synchronized
 records and three in-set semantic changes, with zero out-of-set semantic
 or byte changes. The two pre-existing snapshot alignments remain as
 described above. Scoped Oxlint is clean; no temporary mutation remains.
+
+## Security-to-security duration correction, 2026-09-12
+
+Baseline `39aadc6ae`. The complete committed comprehensive-0153 (§13-1)
+was read: checks proceed one card at a time, a checked Digimon becomes a
+Security Digimon, and effects resolve before the battle step. Text SHA-256:
+`8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60`. Comprehensive-0155's complete battle procedure, pinned
+above, includes Security Digimon battles and reaction processing. These
+sources establish this boundary contract, not exhaustive end-battle timing
+or replacement certification.
+
+`runSecurityCheck` previously resolved the DP result, card trash and
+`whenSecurityBattleEnded` reactions without sweeping battle-scoped grants.
+The new optional `SecurityCheckDeps.sweepEndOfBattle` is bound by GameEngine
+to the existing battle-only sweep. It is awaited after the actual battle
+result and reactions, before another check. The guard is `battle !== undefined`:
+a Tamer check, relocated card or absent attacker does not itself complete
+a battle. Both modifier and continuous ledgers use this same sweep; the
+integration proof below directly probes only the modifier DP grant.
+
+`combat/attackDuration.test.ts` adds three public attack integration cases.
+A seeded BT23-047 Examon has printed 15000 DP and Security Attack +1.
+Two BT1-084 Omnimon Security Digimon each have 15000 DP; their printed
+When Digivolving/When Attacking clauses do not activate as checked cards.
+Examon's removal clause has no eligible opponent field objects. The named
+`advance(...).ledgers.modifiers` seam arms a +1000 DP grant before the public
+attack: no currently established public card produces this pre-security
+battle-scoped DP shape. This explicitly seeded producer seam prevents a
+whole-card/public-producer certification claim.
+
+| Obligation                                             | Public result                                                                                                                              | Status                   |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| Battle DP ends before the next Security Digimon battle | First 16000-vs-15000 comparison wins; second 15000 tie deletes Examon, with exact owner trash and both security cards trashed              | Verified seeded DP shape |
+| Attack DP survives both battles                        | UntilEndAttack wins both comparisons; Examon remains, then returns to 15000 DP at attack cleanup                                           | Verified seeded DP shape |
+| A non-Digimon check does not end a battle              | First checked BT1-085 Tai plays via Security; subsequent Omnimon loses to 16000 DP; Tai and Examon remain, with exact security/trash zones | Verified Tamer control   |
+
+Tai is unsuspended and has no legal deletion target for Examon's clause;
+his red-four-source Security Attack aura cannot affect source-free Examon.
+All three cases assert two checked events, raw DP battle verdicts, exact
+physical live/trash IDs, zero security, ten memory, no pending choice and
+no loud implementation gap. Raw securityDigimonDeleted is a comparison
+verdict; a checked Security Digimon is trashed rather than actually deleted.
+
+The initial test used an invalid `security` attack target and was corrected
+to the public `player` target; that fixture failure is not mutation evidence.
+The genuine baseline then failed one case and passed four: the second
+Security Digimon comparison incorrectly spared Examon. After the sweep,
+all five cases passed. Independent read-only review found no introduced
+boundary, fixture or scope blocker. Broader security/combat/conformance,
+direct-Piercing, ST2 prefix (including ST20–ST23), EX13-076 and BT23-047
+regression passed 163 files / 1250 tests. Final proof/layout passed two files / nine tests; scoped lint, six-file formatting, current 66-set index and diff checks passed.
+
+Open: complete security-battle producer inventory, continuous-grant public
+integration, explicit asynchronous reaction/sweep suspension proof, grants
+created during reactions, nested battle ownership and every remaining
+normative/consumer shape. This correction does not close the overall audit.
+
+Security-boundary gate commands:
+
+- `pnpm --filter @aegis/api exec vitest run src/engine/combat/attackDuration.test.ts --maxWorkers=1 --no-file-parallelism`
+- `pnpm --filter @aegis/api exec vitest run src/engine/security src/engine/combat src/engine/conformance src/engine/directBattlePiercing.test.ts src/cards/ST2 src/cards/EX13/EX13-076.test.ts src/cards/BT23/BT23-047.test.ts --maxWorkers=1 --no-file-parallelism`
+- `pnpm typecheck` passed shared, API and web.
+- `pnpm --filter @aegis/api exec vitest run --maxWorkers=1 --no-file-parallelism`: first run completed with 5107 passing files and one failed file, 42258 passing tests, four declared expected failures and one additional failure (42263 total), in 180.81 seconds. `accounts/routes.profile.test.ts` unauthenticated avatar request received HTTP 404 instead of 401. All seven profile tests pass isolated (902 ms). This broad run is not a green gate; unchanged-input confirmation passed 5108 files / 42259 tests with four declared expected failures (42263 total), in 167.90 seconds. The profile failure did not recur. The first failure remains recorded; its root cause is not established, and it is not presented as a green run.
+
+Final security-boundary delivery: shared/API/web typechecks, 163-file / 1250-test
+mechanism regression, nine final proof/layout tests, scoped Oxlint, six-file
+Oxfmt, current 66-set index, clean diff checks and independent read-only review
+passed. The unchanged-input full API confirmation above is green with the four
+known EX13 expected failures (002, 020, 043, 063). No Postgres lane was run;
+no database behavior changed. No temporary mutation or snapshot change remains.
+Complete engine/keyword certification is still open.

@@ -76,6 +76,8 @@ export type SecurityCheckReason = "attack" | "piercing";
  * supplies these; unit tests supply fakes.
  */
 export interface SecurityCheckDeps {
+  /** Expire battle-scoped grants after an actual Security Digimon battle and its reactions. */
+  sweepEndOfBattle?(): Promise<void>;
   /** Re-derive live auras before deciding whether another check remains. */
   recomputeContinuousEffects?(): Promise<void>;
   /**
@@ -348,6 +350,9 @@ export async function runSecurityCheck(
           attackerPermanentId: attacker.permanentId,
           securityInstanceId: revealed.instanceId,
         });
+      }
+      if (battle !== undefined) {
+        await deps.sweepEndOfBattle?.();
       }
     });
 

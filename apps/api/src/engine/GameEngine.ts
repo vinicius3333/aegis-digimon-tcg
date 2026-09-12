@@ -5800,6 +5800,7 @@ export class GameEngine {
     // a one-shot stale value left from an earlier window.
     await this.recomputeContinuousEffects();
     const deps: SecurityCheckDeps = {
+      sweepEndOfBattle: () => this.sweepBattleDurations(),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       // Strike = the number of security cards checked: base 1 plus every ＜Security
       // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these
