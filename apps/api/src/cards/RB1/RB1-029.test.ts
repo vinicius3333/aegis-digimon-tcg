@@ -14,7 +14,7 @@ describe("RB1-029 GulusGammamon", () => {
             { card: "BT1-019", as: "equal" },
             { card: "BT1-021", as: "higher" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-010", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -49,5 +49,46 @@ describe("RB1-029 GulusGammamon", () => {
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === higherPermanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gulusInstanceId)).toBe(true);
+  });
+
+  it("does not revive a different Gammamon-name Digimon such as KausGammamon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-029", as: "gulus" }], trash: [{ card: "RB1-012", as: "kaus" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const gulusId = s.inst("gulus").instanceId;
+    const kausId = s.inst("kaus").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gulus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "RB1-029"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === gulusId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === kausId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === kausId)).toBe(true);
+  });
+
+  it("rejects BetelGammamon as a base for the exact Gammamon alternate requirement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-008", as: "base" }], hand: [{ card: "RB1-029", as: "gulus" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulus").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

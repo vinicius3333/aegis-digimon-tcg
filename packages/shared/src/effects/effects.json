@@ -202605,7 +202605,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -202644,7 +202644,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -202653,7 +202656,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
               },
               "raw": "you don't have [Hiro Amanokawa]"
             },
@@ -202664,7 +202667,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-009": {
     "effects": [
@@ -202776,7 +202779,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -202808,7 +202811,7 @@
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Evade", "raw": "＜Evade＞" }] }],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-013": {
     "effects": [
@@ -202820,7 +202823,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -202830,7 +202833,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "raw": "you don't have [Kiyoshiro Higashimitarai]"
             },
@@ -203374,7 +203377,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -203408,7 +203411,7 @@
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-022": {
     "effects": [
@@ -203418,7 +203421,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -203427,7 +203433,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
               },
               "raw": "you don't have [Ruli Tsukiyono]"
             },
@@ -203858,7 +203864,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
@@ -203870,7 +203876,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-030": {
     "effects": [
@@ -203961,6 +203967,7 @@
         "actions": [
           {
             "kind": "PlaceUnder",
+            "position": "bottom",
             "target": {
               "filter": {
                 "zone": "trash",
@@ -203977,7 +203984,6 @@
             "kind": "Delete",
             "target": {
               "filter": {
-                "controllerDefault": "opponent",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 0, "scaling": { "per": 1, "unit": "digivolutionCards" } }
               },
@@ -203999,7 +204005,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -204010,7 +204016,7 @@
                 "filter": {
                   "zone": "hand",
                   "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Siriusmon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Siriusmon"], "match": "nameExact" }]
                 },
                 "count": 1
               },
@@ -204408,7 +204414,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Siriusmon"],
+        "namesExact": ["Siriusmon"],
         "cost": 3,
         "isAlternate": true,
         "minNameStackCount": 1,

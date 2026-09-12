@@ -28,6 +28,8 @@ describe("RB1-036 Proximamon", () => {
         hand: [{ card: "RB1-036", as: "proximamon" }],
       },
     });
+    const priorStackIds = s.perm("siriusmon").stack.map((card) => card.instanceId);
+    const oldTopId = s.perm("siriusmon").topCard.instanceId;
     s.state.memory = 3;
     await s.ready();
     expect(
@@ -41,6 +43,7 @@ describe("RB1-036 Proximamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("siriusmon").topCard?.cardId === "RB1-036");
     expect(s.perm("siriusmon").topCard?.cardId).toBe("RB1-036");
+    expect(s.perm("siriusmon").stack.map((card) => card.instanceId)).toEqual([...priorStackIds, oldTopId]);
     expect(s.state.memory).toBe(0);
   });
 

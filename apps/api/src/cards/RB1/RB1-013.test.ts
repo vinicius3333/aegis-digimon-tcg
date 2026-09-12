@@ -34,6 +34,7 @@ describe("RB1-013 TeslaJellymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    const baseTopId = s.perm("base").topCard.instanceId;
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -46,6 +47,8 @@ describe("RB1-013 TeslaJellymon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "RB1-033"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "RB1-033")).toBe(true);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.some((card) => card.instanceId === baseTopId)).toBe(true);
   });
 
   it("does not play another Kiyoshiro when one is already present", async () => {

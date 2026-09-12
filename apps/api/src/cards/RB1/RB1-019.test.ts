@@ -23,6 +23,7 @@ describe("RB1-019 ShinMonzaemon", () => {
       },
       { autoSelectCards: true },
     );
+    const oldTopId = s.inst("base").instanceId;
     const ownLevel3 = s.perm("ownLevel3").topCard.instanceId;
     const opposingLevel3 = s.perm("opposingLevel3").topCard.instanceId;
 
@@ -41,6 +42,8 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(s.state.players[1]!.security.at(0)).toMatchObject({ instanceId: opposingLevel3, faceUp: false });
     expect(s.perm("opposingLevel5").currentDP).toBe(5000);
     expect(observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack")).toBe(-1);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(oldTopId);
   });
 
   it("places the attacked opponent Digimon face down at security bottom after trashing Numemon", async () => {
@@ -93,6 +96,8 @@ describe("RB1-019 ShinMonzaemon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("shin").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");

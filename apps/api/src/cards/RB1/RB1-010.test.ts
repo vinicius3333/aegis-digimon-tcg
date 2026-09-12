@@ -13,6 +13,7 @@ describe("RB1-010 Siriusmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    const oldTopId = s.inst("base").instanceId;
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -26,7 +27,9 @@ describe("RB1-010 Siriusmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.perm("sirius").stack.some((card) => card.cardId === "RB1-005")).toBe(true);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(oldTopId);
+    expect(s.perm("base").stack.some((card) => card.cardId === "RB1-005")).toBe(true);
   });
 
   it("does not pay the placement cost or delete when the player declines", async () => {

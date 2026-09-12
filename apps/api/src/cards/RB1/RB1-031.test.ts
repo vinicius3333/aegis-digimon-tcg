@@ -17,6 +17,8 @@ describe("RB1-031 Arcturusmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const gammamonInstanceId = s.inst("gammamon").instanceId;
+    const priorStackIds = s.perm("base").stack.map((card) => card.instanceId);
+    const oldTopId = s.perm("base").topCard.instanceId;
     const opponentPermanentId = s.perm("opponent").permanentId;
 
     s.state.memory = 10;
@@ -26,15 +28,69 @@ describe("RB1-031 Arcturusmon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("arcturus").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").stack.some((card) => card.instanceId === gammamonInstanceId));
 
     expect(s.perm("base").stack.some((card) => card.instanceId === gammamonInstanceId)).toBe(true);
+    expect(priorStackIds.every((id) => s.perm("base").stack.some((card) => card.instanceId === id))).toBe(true);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(gammamonInstanceId);
+    expect(
+      s
+        .perm("base")
+        .stack.slice(1)
+        .map((card) => card.instanceId),
+    ).toEqual([...priorStackIds, oldTopId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentPermanentId)).toBe(
       false,
     );
+  });
+
+  it("chooses among own and opponent Digimon within the stack-count level cap", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-030", as: "base", under: [{ card: "RB1-005" }, { card: "RB1-005" }] },
+            { card: "BT1-014", as: "ownVictim" },
+          ],
+          hand: [{ card: "RB1-031", as: "arcturus" }],
+          trash: [{ card: "RB1-005", as: "gammamon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "opponent" },
+            { card: "BT1-020", as: "above" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const ownId = s.perm("ownVictim").permanentId;
+    const opponentId = s.perm("opponent").permanentId;
+    const aboveId = s.perm("above").permanentId;
+    preferred.push(opponentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("arcturus").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "RB1-031" && req.kind === "chooseTargets"));
+    const decision = s.decisions.find(({ req }) => req.sourceCardId === "RB1-031" && req.kind === "chooseTargets")!.req;
+    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([ownId, opponentId]));
+    expect(decision.options?.candidateInstanceIds).not.toContain(aboveId);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === ownId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
   });
 
   it("returns a trash Digimon, then trashes Siriusmon to play Proximamon on deletion", async () => {

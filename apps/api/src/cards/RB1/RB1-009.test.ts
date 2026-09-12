@@ -35,7 +35,7 @@ describe("RB1-009 Canoweissmon", () => {
   it("uses the special cost-3 path from Lv.3 Gammamon when its stack has Gammamon in its name", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "RB1-005", as: "host", under: [{ card: "RB1-005" }] }],
+        battleArea: [{ card: "RB1-005", as: "host", under: [{ card: "RB1-008" }] }],
         hand: [{ card: "RB1-009", as: "canoweissmon" }],
       },
     });
@@ -56,10 +56,11 @@ describe("RB1-009 Canoweissmon", () => {
   it("can use the printed Lv.4 Gammamon-name evolution without the special stack condition", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "RB1-008", as: "host" }],
+        battleArea: [{ card: "RB1-021", as: "host" }],
         hand: [{ card: "RB1-009", as: "canoweissmon" }],
       },
     });
+    const oldTopId = s.perm("host").topCard.instanceId;
     s.state.memory = 3;
 
     expect(
@@ -71,6 +72,9 @@ describe("RB1-009 Canoweissmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "RB1-009");
     expect(s.perm("host").topCard.cardId).toBe("RB1-009");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([oldTopId]);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 
   it("copies effects from a Gammamon-named source but not inherited effects", async () => {

@@ -46,4 +46,21 @@ describe("RB1-021 WezenGammamon", () => {
     expect(s.state.memory).toBe(8);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["RB1-005"]);
   });
+
+  it("rejects BetelGammamon as a base for the exact Gammamon alternate requirement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-008", as: "base" }], hand: [{ card: "RB1-021", as: "wezen" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wezen").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });

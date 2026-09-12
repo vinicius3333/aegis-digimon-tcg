@@ -65,6 +65,8 @@ describe("RB1-016 Amphimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "RB1-011").length === 2);
 
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["RB1-014"]);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "RB1-011")).toHaveLength(2);
     expect(s.perm("second").stack).toHaveLength(2);
     expect(s.state.players[1]!.deck).toHaveLength(1);

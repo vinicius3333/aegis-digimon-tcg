@@ -153,17 +153,21 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
     );
     s.state.memory = 10;
     await s.ready();
+    const baseSourceIds = s.perm("base").stack.map((card) => card.cardId);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("evolving").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === RB1_030);
 
     expect(s.perm("base").topCard?.cardId).toBe(RB1_030);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toContain(GAMMAMON_EFFECT_SOURCE);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([...baseSourceIds, GULUS_LV4]);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Retaliation")).toBe(true);
   });
 

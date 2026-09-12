@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Ruli Tsukiyono"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
