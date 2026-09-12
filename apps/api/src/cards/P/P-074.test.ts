@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-074.js";
 
 describe("P-074 Boutmon", () => {
@@ -92,14 +94,26 @@ describe("P-074 Boutmon", () => {
 
   it("unsuspends its host once per turn only at exactly 3 security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-057", as: "host", under: ["P-074"] }], security: 3 },
+      0: {
+        battleArea: [{ card: "BT1-062", as: "host", under: ["P-074"] }],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-009", "BT1-010"],
+        security: 3,
+      },
       1: {
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-009", "BT1-010"],
         battleArea: [
           { card: "BT1-009", as: "first", suspended: true, dp: 1000 },
           { card: "BT1-010", as: "second", suspended: true, dp: 1000 },
+          { card: "BT1-011", as: "third", suspended: true, dp: 1000 },
         ],
       },
     });
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const thirdId = s.perm("third").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -120,5 +134,34 @@ describe("P-074 Boutmon", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").isSuspended).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await (
+      s.engine as unknown as { primitives: { unsuspend(permanentIds: string[]): Promise<void> } }
+    ).primitives.unsuspend([s.perm("host").permanentId]);
+    await (
+      s.engine as unknown as { primitives: { suspend(permanentIds: string[]): Promise<void> } }
+    ).primitives.suspend([s.perm("third").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("third").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("host").isSuspended &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === thirdId) &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === thirdId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
