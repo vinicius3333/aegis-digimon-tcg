@@ -2,18 +2,39 @@
 set: EX7
 cards: 74
 status: verified
-verified_at: 2026-09-09
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+verified_at: 2026-09-12
+catalog_commit: de4dda717
+evidence_commit: 9377780ac
 ---
 
 # EX7 audit
 
 ## Status
 
-All 74 EX7 cards are verified at 10/10 (aggregate 740/740). The winning source is the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
+Independent re-audit completed on 2026-09-12 in branch `ex7-full-reaudit`, from `de4dda717d8c9e0c2420796cb387f68b1379b863`. Three Luna lanes independently reviewed all 74 catalog contracts, KB rulings, direct compiled modules, and existing behavioral/peer/stack proofs. Recalculated scores are 2/2 in each of the five rubric areas for every card: **74/74 at 10/10, aggregate 740/740**. This current review and the closing gates below supersede historical provisional scores and open-item contradictions reproduced later in this document. All 74 cards already had exclusive IR registration and zero TypeScript suppressions; no new card code or test cases were needed. Repairs cover compatible inherited hosts in 25 existing suites, ordinary Digimon Security in EX7-046, paid public repeated-attack flows, and four stale persisted EX7 effect records. Shared/card changes are delivered by `c65365241` and `9377780ac`; branch is pushed and [draft PR #4734](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4734) is open.
+
+Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates
+
+### Current re-audit closeout — 2026-09-12
+
+- `pnpm install --offline --frozen-lockfile`: passed, 423 packages reused.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX7 --maxWorkers=1 --no-file-parallelism`: 74 files / 572 tests passed in 119.40 seconds.
+- `pnpm effects:check:set -- --set EX7 --base de4dda717d8c9e0c2420796cb387f68b1379b863`: shared compilation passed; API build exceeded the tool’s 120000 ms timeout and received SIGTERM. That initial failed attempt was not accepted; the sync/check reruns below passed.
+- Independent EX7-026–050 review corrected EX7-046’s inherited redirect fixture: BT1-001/002/003 were illegal Digi-Egg security; replaced with BT1-014/015/016. No new test was required.
+- Required mechanism/collection regression with `TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX7 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`: 214 files / 2655 tests passed before the subsequent fixture corrections. The final corrected-state rerun is recorded below.
+- `NODE_OPTIONS=--max-old-space-size=3072 pnpm effects:sync:set -- --set EX7 --base de4dda717d8c9e0c2420796cb387f68b1379b863` and the corresponding `effects:check:set` rerun passed: all 74 records synchronized; four EX7 semantic record changes (EX7-008/022/030/064), zero semantic or byte changes outside EX7.
+- Typecheck at 3072 MB exhausted the API heap; rerun at 4096 MB passed shared, API, and web.
+- Final fixture repairs reuse every existing scenario. EX7-017/019 pay 3 for public ST8-11 Victory Sword; EX7-028 pays 2 for Wind Slicer and responds to both real target decisions; EX7-032/035 pay 3 for Dimension Scissor and then prove same-turn suppression and real next-turn rearming.
+- Closing regression: `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` — **214 files / 2655 tests passed**, 10.46 seconds; this includes all 74 EX7 files / 572 existing tests after every correction and recovery.
+- Closing `NODE_OPTIONS=--max-old-space-size=4096 pnpm typecheck` — shared/API/web passed. `pnpm exec oxlint apps/api/src/cards/EX7`, `pnpm exec oxfmt --check apps/api/src/cards/EX7 packages/shared/src/effects/effects.json`, and `git diff --check` passed.
+- Inventory revalidated: 74 catalog identities, 74 production modules, 74 direct suites, 74 unique exclusive `registerIrCard` calls; zero TypeScript suppressions, legacy registration, injected timing, skipped/expected-failure/exclusive tests. All 74 KB queries rerun; no catalog correction.
+- Source-record reconciliation: EX7-008 exact Option play-cost filter, EX7-022 turn duration, EX7-030 current Puppet/Token target schema, EX7-064 explicit bound-target count/filter. Semantic comparison confirms these are the only four changed effect records.
+- Formatter incident: one lane passed an empty file list, formatting the whole worktree. Coordinator preserved a recovery patch, restored 177 unrelated paths from the base, and recovered historical Markdown formatting while retaining current evidence. Closing scope checks prove only EX7 tests, this ledger/index, and the four EX7 effect records changed. Closing regression ran after recovery.
+- Delivery: focused suites, mechanisms, closing collection regression, independent peer review, typecheck, sync/check, style, and diff gates passed. Shared/cards committed atomically and branch pushed; draft PR #4734 records the evidence. Every row is recalculated at 2+2+2+2+2 = 10/10. The historical AD1-002 unsupported-effect diagnostic is expected by a passing mechanism test.
+
+### Historical gates — 2026-09-09
 
 Copied from `docs/audits/EX7-reaudit/RUN.md` (`7430b511f`), sections "Baseline measured before worker acceptance" and the closeout entries.
 
@@ -43,7 +64,7 @@ One known-green diagnostic: the AD1-002 unsupported-effect log is asserted behav
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX7-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX7-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+Scores below were independently recalculated on 2026-09-12 against current sources and gates; historical clause reports remain for detailed traceability. The earlier scores came from `docs/audits/EX7-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX7-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
 
 | Card    | Name                     | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                                                                                                           |
 | ------- | ------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -124,6 +145,8 @@ Scores are the final ones from `docs/audits/EX7-REAUDIT-LEDGER.md`; the per-card
 
 ### EX7-001 — DemiMeramon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-001.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Audit result
 
 Score: 8/10 (maximum permitted by the EX7 re-audit brief; both gates are 0 by policy).
@@ -185,6 +208,8 @@ Result after the audit changes: 8 tests passed in 1 file.
 No git write was performed. `git diff --check` is intentionally reported separately by the coordinator workflow; this card lane did not alter any other path.
 
 ### EX7-002 — Hiyarimon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-002.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Status: fully card-audited; provisional **8/10**. The executed-gates column is intentionally **0/2**, as required by the EX7 worker brief, so this report cannot exceed 8/10.
 
@@ -248,6 +273,8 @@ The module is already complete compiled IR with `coverage: "full"`, an empty `re
 | **Total** | **8/10** | Maximum permitted for this audit lane. |
 
 ### EX7-003 — Kyaromon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-003.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, session 1 (2026-09-09). No git write was performed. Files touched:
 `apps/api/src/cards/EX7/EX7-003.ts`, `apps/api/src/cards/EX7/EX7-003.test.ts`, and this report.
@@ -378,6 +405,8 @@ meteor npm run quave-check-ci                                 UNAVAILABLE: missi
 
 ### EX7-004 — Fluffymon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-004.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Audit result
 
 Score: 8/10 (the worker brief caps the lane at 8/10; gates are 0 by policy).
@@ -457,6 +486,8 @@ No git write, commit, or push was performed. No card module, shared/catalog data
 
 ### EX7-005 — Kapurimon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-005.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
@@ -516,6 +547,8 @@ No `it.fails` red is retained: the production placement/provenance path and all 
 No git write, commit, push, or unrelated-file edit was performed.
 
 ### EX7-006 — Yaamon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-006.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-006. No git write was performed.
 
@@ -624,6 +657,8 @@ ledger, or other-card file was edited.
 
 ### EX7-007 — Vorvomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-007.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10** (audit cap applied; gates are 0/2).
@@ -681,6 +716,8 @@ No card-specific engine gap or retained red exists. All card-specific behavior i
 No git write, commit, push, or edit outside the permitted EX7-007 test/report scope was performed.
 
 ### EX7-008 — ToyAgumon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-008.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-008. No git write was performed.
 
@@ -809,6 +846,8 @@ No engine, shared, catalog, ledger, or other-card file was edited.
 
 ### EX7-009 — Lavorvomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-009.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 Worker lane, 2026-09-09. Scope is exactly EX7-009. No git write was performed.
 
 #### Card and printed clauses
@@ -934,6 +973,8 @@ performed.
 
 ### EX7-010 — Deputymon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-010.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10**. The audit cap leaves gates at 0/2; the card and mechanism evidence are green, including the corrected Q3831 breeding-area negative.
@@ -995,6 +1036,8 @@ The mechanism regression `apps/api/src/engine/cards/ex7BreedingStaticGrant.test.
 No git write, commit, push, or edit outside the permitted EX7-010 test/report scope was performed.
 
 ### EX7-011 — Megadramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-011.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-011. No git write was performed.
 
@@ -1156,6 +1199,8 @@ report paths changed; `EX7-011.ts` remains unchanged.
 
 ### EX7-012 — Lavogaritamon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-012.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 Worker lane, 2026-09-09. Scope is exactly EX7-012. No git write was performed.
 
 #### Card and printed clauses
@@ -1289,6 +1334,8 @@ git write was performed.
 
 ### EX7-013 — MagnaKidmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-013.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10**. Gates remain 0/2 for this bounded card lane. Q3832 is green: the public flow proves the BT10-077 watcher trashes exactly five cards from the opponent's hand.
@@ -1349,6 +1396,8 @@ No Digi-Egg appears in deck or security. All draw fixtures use inert BT1-009 thr
 No git write, commit, push, or edit outside the permitted EX7-013 lane scope was performed.
 
 ### EX7-014 — Volcanicdramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-014.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-014. No git write was performed.
 
@@ -1462,6 +1511,8 @@ The required workspace `pnpm typecheck` passes for shared, web, and API with no 
 commit, branch, push, reset, or other git write was performed.
 
 ### EX7-015 — Otamamon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-015.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -1583,6 +1634,8 @@ by both restricted and unrestricted regression cases.
 
 ### EX7-016 — Bulucomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-016.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10** provisional (the delivery-gates column remains coordinator-owned
@@ -1698,6 +1751,8 @@ performed.
 | Delivery gates | 0/2 | Coordinator-owned per the brief; focused/static gates themselves are green |
 
 ### EX7-017 — SnowAgumon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-017.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-017. No git write was performed.
 
@@ -1827,6 +1882,8 @@ write was performed.
 
 ### EX7-018 — Gekomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-018.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**.
@@ -1947,6 +2004,8 @@ performed.
 | Delivery gates | 0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green |
 
 ### EX7-019 — Sorcermon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-019.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-019. No git write was performed.
 
@@ -2069,6 +2128,8 @@ or other git write was performed.
 **Total: 8 / 10.**
 
 ### EX7-020 — Paledramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-020.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -2195,6 +2256,8 @@ performed.
 | Delivery gates | 0/2 | Coordinator-owned per the worker brief; focused/static commands themselves are green |
 
 ### EX7-021 — CrysPaledramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-021.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-021. No git write was performed.
 
@@ -2329,6 +2392,8 @@ other git write was performed.
 
 ### EX7-022 — ShogunGekomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-022.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**.
@@ -2451,6 +2516,8 @@ No git write was performed.
 
 ### EX7-023 — Hexeblaumon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-023.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 Serialized engine lane, 2026-09-09. Scope is exactly EX7-023. No git write was performed.
 
 #### Conclusion
@@ -2544,6 +2611,8 @@ push, reset, or other git write was performed.
 
 ### EX7-024 — Shoemon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-024.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 Status: DONE; provisional lane score 8/10. Delivery gates remain 0/2 by coordinator policy.
 
 #### Sources and contract
@@ -2604,6 +2673,8 @@ No once-per-turn clause is printed on EX7-024, so no once-per-turn reset proof i
 No git write was performed. Only EX7-024.ts, EX7-024.test.ts, and this report were owned; no engine, shared, catalog, ledger, RUN, or other-card files were edited.
 
 ### EX7-025 — ShoeShoemon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-025.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-025. No git write was performed.
 
@@ -2721,6 +2792,8 @@ ledger, RUN, or other git write was performed.
 **Total: 8 / 10.**
 
 ### EX7-026 — Starmon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-026.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 Worker lane, 2026-09-09. Scope is exactly EX7-026. No git write was performed.
 
@@ -2841,6 +2914,8 @@ ledger, RUN, or other git write was performed.
 
 ### EX7-027 — Chaperomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-027.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. The card remains compiled IR registered exclusively through `registerIrCard`; all seven public tests pass.
@@ -2874,6 +2949,8 @@ The former red attacked a 1000-DP host into a 5000-DP Security Digimon during th
 
 ### EX7-028 — Piximon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-028.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight public tests pass; the former same-turn red did not fund Cerberusmon's second When Attacking cost.
@@ -2906,6 +2983,8 @@ Score: **8/10 provisional**. All eight public tests pass; the former same-turn r
 The former fixture supplied only the first of BT1-039's two three-card When Attacking costs. Its second resolution therefore did not establish the intended same-turn state and the loop reached the turn boundary, correctly expiring `forTheTurn`. Funding both printed costs proves the unchanged modifier lifecycle. No engine change was required.
 
 ### EX7-029 — SaberLeomon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-029.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -2941,6 +3020,8 @@ The former fixture left the active player with no legal Main action after playin
 
 ### EX7-030 — Cendrillmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-030.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass, including Q3847's Familiar/When Attacking combination.
@@ -2975,6 +3056,8 @@ Nested deletion timing is deferred behind the causing effect, but deleted Tokens
 
 ### EX7-031 — Pteromon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-031.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. Six focused tests and all nine EX11-032 peer tests pass.
@@ -3007,6 +3090,8 @@ Score: **8/10 provisional**. Six focused tests and all nine EX11-032 peer tests 
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-032 — Galemon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-032.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3041,6 +3126,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-033 — Monochromon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-033.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All five focused tests pass with public evolution and combat evidence.
@@ -3072,6 +3159,8 @@ Score: **8/10 provisional**. All five focused tests pass with public evolution a
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-034 — GrandGalemon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-034.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3107,6 +3196,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-035 — Triceramon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-035.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, combat, and real-turn evidence.
@@ -3140,6 +3231,8 @@ Score: **8/10 provisional**. All seven focused tests pass with public play, evol
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-036 — Zephagamon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-036.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3176,6 +3269,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-037 — Tlalocmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-037.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All six focused tests pass with public DNA, ordinary evolution, free-play, and attack evidence.
@@ -3210,6 +3305,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-038 — Gotsumon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-038.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All five focused tests pass with public evolution, blocking, attack, and real-turn Reboot evidence.
@@ -3241,6 +3338,8 @@ Score: **8/10 provisional**. All five focused tests pass with public evolution, 
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-039 — Jazamon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-039.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3275,6 +3374,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-040 — ToyAgumon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-040.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, and real-turn inherited-keyword evidence.
@@ -3308,6 +3409,8 @@ None found in executable card behavior. The positive alternate-evolution catalog
 
 ### EX7-041 — Tortomon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-041.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public combat, card-effect, evolution, and real-turn evidence.
@@ -3340,6 +3443,8 @@ Score: **8/10 provisional**. All seven focused tests pass with public combat, ca
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-042 — Jazardmon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-042.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3376,6 +3481,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-043 — Tankmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-043.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public play, evolution, link-rule, and real-turn evidence.
@@ -3409,6 +3516,8 @@ Score: **8/10 provisional**. All seven focused tests pass with public play, evol
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-044 — Gigadramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-044.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3446,6 +3555,8 @@ Score: **8/10 provisional**. All eight focused tests pass; the former reveal-res
 
 ### EX7-045 — Jagamon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-045.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All five focused tests pass with public play, evolution, combat, and real-turn evidence.
@@ -3479,6 +3590,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-046 — Jazarichmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-046.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All three focused scenarios pass with public play, evolution, attack, and multi-turn evidence.
@@ -3511,6 +3624,8 @@ Score: **8/10 provisional**. All three focused scenarios pass with public play, 
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-047 — Eldradimon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-047.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3546,6 +3661,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-048 — Gundramon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-048.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight focused tests pass with public reveal/use, evolution, replacement, link-rule, and combat evidence.
@@ -3580,6 +3697,8 @@ Score: **8/10 provisional**. All eight focused tests pass with public reveal/use
 None found in the audited behavior. Successful `useOption` returns its reveal remainder correctly, narrowing EX7-044's retained defect to the `placeUnder` branch. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-049 — Metallicdramon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-049.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3617,6 +3736,8 @@ Metallicdramon now marks its all-target restriction as live. The interpreter rec
 
 ### EX7-050 — Impmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-050.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution and real-turn evidence.
@@ -3650,6 +3771,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-051 — Sparrowmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-051.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All six focused tests pass with public Start-of-Main, evolution, and battle evidence.
@@ -3682,6 +3805,8 @@ Score: **8/10 provisional**. All six focused tests pass with public Start-of-Mai
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-052 — Tsukaimon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-052.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3718,6 +3843,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-053 — Eyesmon: Scatter Mode
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-053.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight focused tests pass with public play, evolution, and battle evidence.
@@ -3750,6 +3877,8 @@ Score: **8/10 provisional**. All eight focused tests pass with public play, evol
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-054 — BlackGatomon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-054.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3786,6 +3915,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-055 — Punkmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-055.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution and real-turn evidence.
@@ -3819,6 +3950,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-056 — Orochimon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-056.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass with public evolution, battle, blocking, and protection evidence.
@@ -3851,6 +3984,8 @@ Score: **8/10 provisional**. All seven focused tests pass with public evolution,
 None found in the audited behavior. The score remains provisional until collection-wide delivery gates pass.
 
 ### EX7-057 — Loudmon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-057.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3886,6 +4021,8 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-058 — LadyDevimon (X Antibody)
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-058.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All seven focused tests pass; collection delivery gates remain coordinator-owned.
@@ -3919,6 +4056,8 @@ Score: **8/10 provisional**. All seven focused tests pass; collection delivery g
 The engine now binds `ContinuousEffectLedger` to the existing printed-keyword parser for each live top card and inherited stack. The canonical token definition was already correct; its Blocker and Retaliation are now visible through the same live keyword API used by synchronized observers. See `TOKEN-PRINTED-KEYWORD-MECHANISM.md`.
 
 ### EX7-059 — BeelStarmon
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-059.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -3954,6 +4093,8 @@ Blast validation now ignores the level portion of an alternate requirement only 
 
 ### EX7-060 — Nidhoggmon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-060.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All nine focused tests pass; collection delivery gates remain coordinator-owned.
@@ -3986,6 +4127,8 @@ Score: **8/10 provisional**. All nine focused tests pass; collection delivery ga
 None found for EX7-060.
 
 ### EX7-061 — Lilithmon (X Antibody)
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-061.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4023,6 +4166,8 @@ None found for EX7-061.
 
 ### EX7-062 — HeavyMetaldramon
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-062.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All 13 focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4057,6 +4202,8 @@ Score: **8/10 provisional**. All 13 focused tests pass; collection delivery gate
 None found for EX7-062.
 
 ### EX7-063 — Arisa Kinosaki
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-063.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4093,6 +4240,8 @@ None found for EX7-063.
 
 ### EX7-064 — Shoto Kazama
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-064.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All nine focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4127,6 +4276,8 @@ Score: **8/10 provisional**. All nine focused tests pass; collection delivery ga
 None found for EX7-064.
 
 ### EX7-065 — Yuuki
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-065.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4163,6 +4314,8 @@ None found for EX7-065.
 
 ### EX7-066 — Chaos Triangular
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-066.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eleven focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4195,6 +4348,8 @@ Score: **8/10 provisional**. All eleven focused tests pass; collection delivery 
 None found for EX7-066.
 
 ### EX7-067 — Summon Frost
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-067.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4229,6 +4384,8 @@ None found for EX7-067.
 
 ### EX7-068 — Wonder Stomp
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-068.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4260,6 +4417,8 @@ Score: **8/10 provisional**. All eight focused tests pass; collection delivery g
 None found for EX7-068.
 
 ### EX7-069 — Wind Slicer
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-069.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4294,6 +4453,8 @@ None found for EX7-069.
 
 ### EX7-070 — Der Blitz
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-070.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All eight focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4326,6 +4487,8 @@ None found for EX7-070.
 
 ### EX7-071 — Hurricane Screw Shot
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-071.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All six focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4357,6 +4520,8 @@ Score: **8/10 provisional**. All six focused tests pass; collection delivery gat
 None found for EX7-071.
 
 ### EX7-072 — Seventh Fascination
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-072.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -4391,6 +4556,8 @@ None found for EX7-072.
 
 ### EX7-073 — BeelStarmon (X Antibody)
 
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-073.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+
 #### Result
 
 Score: **8/10 provisional**. All twelve focused tests pass; collection delivery gates remain coordinator-owned.
@@ -4424,6 +4591,8 @@ Score: **8/10 provisional**. All twelve focused tests pass; collection delivery 
 None found for EX7-073.
 
 ### EX7-074 — Vortex Resonance
+
+Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-074.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result
 
@@ -5187,7 +5356,11 @@ No catalog corrections identified yet. Card lanes report discrepancies to the co
 
 ## Knowledge base index
 
-Generated from the committed local knowledge base with `node tools/kb/query.mjs card <ID> --json` on 2026-09-09. Every listed Q&A must be covered by the corresponding card report/test; `none` is backed by the command result, not inference.
+### Current source reconciliation — 2026-09-12
+
+All 74 committed catalog records were matched to 74 production modules and 74 direct suites. The coordinator reran `node tools/kb/query.mjs card <ID> --json` for every EX7 ID; the Q&A/errata/restriction evidence below remains the reference for the independent clause reviews. No source correction or new card behavior was identified.
+
+Generated from the committed local knowledge base with `node tools/kb/query.mjs card <ID> --json` on 2026-09-12. Every listed Q&A must be covered by the corresponding card report/test; `none` is backed by the command result, not inference.
 
 | Card | Q&A ids | Errata | Banlist |
 | --- | --- | --- | --- |
@@ -5268,13 +5441,17 @@ Generated from the committed local knowledge base with `node tools/kb/query.mjs 
 
 ## Open items
 
+Current re-audit: none. EX7-059/Q6391 is an ordinary passing test in both the collection and closing mechanism regression; the historical expected-failure contradiction is resolved. EX7-014’s departure replacement removes its own source identity; reusable once-per-turn ledger coverage plus public activation/DigiXros mechanisms prove the applicable accounting, so no artificial repeated-departure test was added. Historical notes below are retained solely for provenance and do not describe remaining work.
+
 - No card is below 10/10, and `docs/audits/EX7-reaudit/SOURCE-RECONCILIATION.md` records no catalog correction (`7430b511f`).
-- Contradiction inside one file, unresolved: `docs/audits/EX7-reaudit/REVIEW-NOTES.md` (`7430b511f`) says EX7-059's Q6391 Tamer Blast Digivolve base was resolved in Blast validation with focused and proportional Blast suites at 54/54, and then, in the following bullet of the same entry, says the case is "retained as a top-level `it.fails`" and queued for serialized Blast Digivolve candidate validation. The ledger scores EX7-059 at 10/10. Confirm against the current suite whether an `it.fails` marker still exists for this card.
+- Historical contradiction, resolved by the 2026-09-12 passing ordinary Q6391 test: `docs/audits/EX7-reaudit/REVIEW-NOTES.md` (`7430b511f`) says EX7-059's Q6391 Tamer Blast Digivolve base was resolved in Blast validation with focused and proportional Blast suites at 54/54, and then, in the following bullet of the same entry, says the case is "retained as a top-level `it.fails`" and queued for serialized Blast Digivolve candidate validation. The ledger scores EX7-059 at 10/10. Current suite contains no `it.fails` marker for this card, and both collection and mechanism runs pass.
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`) contains a mid-file note that "Blast evolution still requires mapped runtime evidence" at `2c271deff`, while its own final validation section and the 2026-09-09 re-audit both report all 74 cards at 10/10. The re-audit wins; the note belongs to an earlier state of that file.
 - Two cards were accepted at 7/10 provisional mid-run with retained expected failures (EX7-014 for Q3835/Q3836/Q6718 and EX7-027 for inherited leave-prevention reset). Both were later promoted to 8/10 by serialized lanes and then to 10/10 at delivery; the intermediate reds are closed.
 - Engine changes shipped with this set touch shared behaviour outside EX7: `playOrMove` restrictions on effect-driven moves to breeding, DigiXros leave-replacement consultation and cost-reduction policy, continuous source-relative restriction predicates, deferred token deletion candidates, future-entrant evolution restrictions, and the live printed-keyword reader. Their mechanism reports are reproduced under Mechanisms; tests referencing them should link to `docs/audits/EX7.md#mechanisms`.
 
 ## History
+
+- 2026-09-12 — independent full-collection re-audit from `de4dda717`; shared record sync `c65365241`, existing fixture repairs `9377780ac`, draft PR #4734. No TypeScript suppression existed to remove.
 
 - `docs/audits/EX7-AUDIT.md` — last at `03b7cc52a`, 2026-09-05. Card-by-card ledger with a final validation section at `fd50ecd45`; superseded by the 2026-09-09 re-audit.
 - `docs/audits/EX7-REAUDIT-LEDGER.md` — last at `43e6f893d`, 2026-09-09. Winning scoring table; merged into the Card ledger section above.
