@@ -196655,7 +196655,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Pawn Device"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Pawn Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Pawn Device]"
             }

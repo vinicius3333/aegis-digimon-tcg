@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Pawn Device"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
