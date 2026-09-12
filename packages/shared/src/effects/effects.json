@@ -202239,7 +202239,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand", "trash"],
