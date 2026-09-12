@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -85,6 +86,7 @@ interface Citation {
   id: string;
   note?: string;
   file?: string;
+  fingerprint?: string;
 }
 
 const citedIds = new Set<string>();
@@ -119,11 +121,20 @@ function callerFile(): string | undefined {
  * Cite a KB chunk as the behavioral source for a test assertion. Returns the chunk
  * (so the caller can assert against `.text`) and records the id as covered.
  */
-export function cite(id: string, note?: string): RuleChunk {
+export function ruleFingerprint(chunk: RuleChunk): string {
+  return createHash("sha256").update(chunk.text, "utf8").digest("hex");
+}
+
+export function cite(id: string, note?: string, expectedFingerprint?: string): RuleChunk {
   const chunk = getChunk(id);
-  citedIds.add(id);
-  citations.push({ id, note });
+  if (expectedFingerprint !== undefined && ruleFingerprint(chunk) !== expectedFingerprint) {
+    throw new Error(
+      `KB citation drift for "${id}": reviewed content changed; review the source before updating its fingerprint.`,
+    );
+  }
   const file = callerFile();
+  citedIds.add(id);
+  citations.push({ id, note, file, fingerprint: expectedFingerprint });
   if (file) {
     const set = citedByFile.get(file) ?? new Set<string>();
     set.add(id);
