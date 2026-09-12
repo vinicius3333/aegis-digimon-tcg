@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -60,7 +60,7 @@ describe("AD1-011 Paildramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "BT12-030", as: "imperialdramon" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
@@ -83,7 +83,7 @@ describe("AD1-011 Paildramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "BT12-030", as: "imperialdramon" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -103,21 +103,44 @@ describe("AD1-011 Paildramon", () => {
   });
 
   it("applies the attack-target lock only to DNA digivolution while battle protection is unconditional", async () => {
-    const dna = setupEngine({ 0: { battleArea: [{ card: "AD1-011", as: "paildramon" }] } });
-    await dna.ready();
-    await advance(dna.engine).fireForPermanent(EffectTiming.WhenDigivolving, dna.perm("paildramon"), {
-      isDnaDigivolve: true,
+    const dna = setupEngine({
+      0: {
+        battleArea: [
+          { card: "AD1-010", as: "blue" },
+          { card: "BT8-053", as: "green" },
+        ],
+        hand: [{ card: "AD1-011", as: "paildramon" }],
+      },
     });
-    expect(observe(dna.engine).isRestricted(dna.perm("paildramon"), "beDeletedInBattle")).toBe(true);
-    expect(observe(dna.engine).isRestricted(dna.perm("paildramon"), "attackTargetChange")).toBe(true);
+    dna.state.memory = 8;
+    expect(
+      dna.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [dna.perm("blue").permanentId, dna.perm("green").permanentId],
+        instanceId: dna.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => dna.state.players[0]!.battleArea.length === 1);
+    const dnaPaildramon = dna.state.players[0]!.battleArea[0]!;
+    expect(observe(dna.engine).isRestricted(dnaPaildramon, "beDeletedInBattle")).toBe(true);
+    expect(observe(dna.engine).isRestricted(dnaPaildramon, "attackTargetChange")).toBe(true);
 
-    const normal = setupEngine({ 0: { battleArea: [{ card: "AD1-011", as: "paildramon" }] } });
-    await normal.ready();
-    await advance(normal.engine).fireForPermanent(EffectTiming.WhenDigivolving, normal.perm("paildramon"), {
-      isDnaDigivolve: false,
+    const normal = setupEngine({
+      0: { battleArea: [{ card: "AD1-010", as: "blue" }], hand: [{ card: "AD1-011", as: "paildramon" }] },
     });
-    expect(observe(normal.engine).isRestricted(normal.perm("paildramon"), "beDeletedInBattle")).toBe(true);
-    expect(observe(normal.engine).isRestricted(normal.perm("paildramon"), "attackTargetChange")).toBe(false);
+    normal.state.memory = 5;
+    expect(
+      normal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: normal.perm("blue").permanentId,
+        instanceId: normal.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => normal.perm("blue").topCard.cardId === "AD1-011");
+    expect(normal.state.memory).toBe(1);
+    expect(normal.perm("blue").stack.map((card) => card.cardId)).toContain("AD1-010");
+    expect(observe(normal.engine).isRestricted(normal.perm("blue"), "beDeletedInBattle")).toBe(true);
+    expect(observe(normal.engine).isRestricted(normal.perm("blue"), "attackTargetChange")).toBe(false);
   });
 
   it("partitions into its specified Blue Lv.4 and Green Lv.4 cards after opponent-effect deletion", async () => {

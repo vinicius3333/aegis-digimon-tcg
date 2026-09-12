@@ -49,18 +49,18 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
   });
 
   it("draws on play and when digivolving", async () => {
-    const played = setup({ 0: { deck: ["BT1-001"], hand: [{ card: "AD1-010", as: "garurumon" }] } });
+    const played = setup({ 0: { deck: ["BT1-009"], hand: [{ card: "AD1-010", as: "garurumon" }] } });
     played.state.memory = 5;
     expect(played.engine.applyIntent(0, { type: "playCard", instanceId: played.inst("garurumon").instanceId })).toEqual(
       { ok: true },
     );
     await settle(() => played.state.players[0]!.hand.length === 1);
-    expect(played.state.players[0]!.hand[0]!.cardId).toBe("BT1-001");
+    expect(played.state.players[0]!.hand[0]!.cardId).toBe("BT1-009");
 
     const evolved = setup({
       0: {
         battleArea: [{ card: "BT22-017", as: "base" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
         hand: [{ card: "AD1-010", as: "garurumon" }],
       },
     });
@@ -72,7 +72,7 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
         instanceId: evolved.inst("garurumon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => evolved.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => evolved.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(evolved.state.memory).toBe(1);
   });
 

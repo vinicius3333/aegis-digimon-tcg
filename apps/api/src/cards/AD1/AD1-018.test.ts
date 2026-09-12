@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -31,6 +31,83 @@ describe("AD1-018 LordKnightmon", () => {
     });
     await settle(() => s.perm("opponent").stack.length === 0);
     expect(s.perm("opponent").stack).toHaveLength(0);
+  });
+
+  it("resets the Knightmon watcher on the next real turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-018", as: "lord" }],
+          hand: [
+            { card: "ST13-12", as: "first" },
+            { card: "ST13-12", as: "same-turn" },
+            { card: "ST13-12", as: "next-turn" },
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "first-host", under: ["BT1-010", "BT1-015"] },
+            { card: "BT1-020", as: "second-host", under: ["BT1-010", "BT1-015"] },
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 30;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.perm("first-host").topCard!.instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("first-host").stack.length === 0);
+    expect(s.perm("second-host").stack).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("same-turn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("second-host").stack).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("second-host").topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("next-turn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("second-host").stack.length === 0);
+    expect(s.perm("second-host").stack).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("triggers its own Knightmon-text watcher when LordKnightmon is played (Q6094)", async () => {
@@ -111,15 +188,31 @@ describe("AD1-018 LordKnightmon", () => {
       0: { security: [{ card: "AD1-018", as: "security" }] },
       1: { battleArea: [{ card: "BT1-015", as: "qualified", under: ["BT1-010"] }] },
     });
-    await advance(qualified.engine).fireForInstance(EffectTiming.SecuritySkill, qualified.inst("security"));
+    qualified.state.turnSeat = 1;
+    await qualified.ready();
+    expect(
+      qualified.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: qualified.perm("qualified").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => qualified.state.players[1]!.battleArea.length === 0);
     expect(qualified.state.players[1]!.battleArea).toHaveLength(0);
 
     const boundary = setupEngine({
       0: { security: [{ card: "AD1-018", as: "security" }] },
-      1: { battleArea: [{ card: "BT1-015", as: "too-expensive" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "too-expensive", dp: 20000 }] },
     });
-    await advance(boundary.engine).fireForInstance(EffectTiming.SecuritySkill, boundary.inst("security"));
+    boundary.state.turnSeat = 1;
+    await boundary.ready();
+    expect(
+      boundary.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: boundary.perm("too-expensive").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(boundary.state.players[1]!.battleArea).toHaveLength(1);
     expect(boundary.perm("too-expensive").topCard.cardId).toBe("BT1-015");

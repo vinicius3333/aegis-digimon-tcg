@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -119,21 +119,27 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
 
   it("gains 1 memory at start of main only while the opponent has a Digimon", async () => {
     const qualified = setupEngine({
-      0: { battleArea: [{ card: "AD1-019", as: "tamer" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      0: { battleArea: [{ card: "AD1-019", as: "tamer" }], hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent" }], deck: ["BT1-012", "BT1-013"] },
     });
     qualified.state.memory = 0;
-    await advance(qualified.engine).fire(EffectTiming.OnStartMainPhase, qualified.perm("tamer"));
+    const turn = qualified.engine.runOneTurn();
+    await advance(qualified.engine).waitForMainPhase(0);
     expect(qualified.state.memory).toBe(1);
+    advance(qualified.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("does not gain memory at start of main when the opponent has no Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-019", as: "tamer" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-019", as: "tamer" }], hand: ["BT1-009"], deck: ["BT1-010"] },
+    });
     s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("can decline the optional ADVENTURE play after a qualifying evolution", async () => {

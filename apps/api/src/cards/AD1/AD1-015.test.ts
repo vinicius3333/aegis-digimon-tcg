@@ -67,7 +67,7 @@ describe("AD1-015 Beowolfmon", () => {
             { card: "BT17-083", as: "koji" },
           ],
           hand: [{ card: "BT12-009", as: "hybrid" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "red-source" }], hand: [{ card: "ST1-16", as: "gaia-force" }] },
       },
@@ -84,7 +84,7 @@ describe("AD1-015 Beowolfmon", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.perm("koji").stack.some((card) => card.cardId === "BT12-009")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
   });
 
   it("places a Ten Warriors card under itself and draws two after the attack", async () => {
@@ -93,9 +93,9 @@ describe("AD1-015 Beowolfmon", () => {
         0: {
           battleArea: [{ card: "AD1-015", as: "beowolf" }],
           hand: [{ card: "BT17-017", as: "ten-warriors" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -110,7 +110,7 @@ describe("AD1-015 Beowolfmon", () => {
     await settle(() => s.perm("beowolf").stack.some((card) => card.cardId === "BT17-017"));
 
     expect(s.perm("beowolf").stack.some((card) => card.cardId === "BT17-017")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
   });
 
   it("does not draw when the hand has neither a Hybrid nor a Ten Warriors card", async () => {
@@ -119,9 +119,9 @@ describe("AD1-015 Beowolfmon", () => {
         0: {
           battleArea: [{ card: "AD1-015", as: "beowolf" }],
           hand: [{ card: "BT1-010", as: "unrelated" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -137,14 +137,14 @@ describe("AD1-015 Beowolfmon", () => {
 
     expect(s.perm("beowolf").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 
   it("inherits the when-attacking -4000 DP effect", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-017", as: "host", under: ["AD1-015"] }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }], security: ["BT1-011"] },
       },
       { autoSelectCards: true },
     );
