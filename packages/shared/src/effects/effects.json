@@ -193319,7 +193319,7 @@
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "condition": {
                   "kind": "selfDigivolutionStackHasTrait",
-                  "filter": { "nameOrTrait": [{ "tokens": ["Angoramon"], "match": "name" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Angoramon"], "match": "nameExact" }] },
                   "raw": "[Angoramon] is in this Digimon's digivolution cards"
                 }
               }
