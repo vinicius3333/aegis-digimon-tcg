@@ -1184,6 +1184,7 @@ export class GameEngine {
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
       },
       prepareDigiXrosPlay: (instanceId) => this.prepareDigiXrosPlay(instanceId),
+      prepareDigiXrosPlays: (instanceIds) => this.prepareDigiXrosPlays(instanceIds),
       finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
         const deps = this.digivolveDeps();
         const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
@@ -4810,32 +4811,48 @@ export class GameEngine {
    * exists so a replacement can grant its material zones before the picker builds candidates.
    */
   private async prepareDigiXrosPlay(instanceId: string): Promise<string[]> {
-    const instance = this.findLooseInstance(instanceId);
-    if (instance === undefined) return [];
-    const source = this.cardSourceOf(instance);
-    const playTarget = new Permanent();
-    playTarget.permanentId = `pending-play-${instance.instanceId}`;
-    playTarget.controllerSeat = source.ownerSeat;
-    setTopCard(playTarget, instance);
-    playTarget.inBreeding = false;
-    playTarget.baseDP = source.definition.dp ?? 0;
-    playTarget.currentDP = playTarget.baseDP;
-    const sourcePermanentIds: string[] = [];
+    const prepared = await this.prepareDigiXrosPlays([instanceId]);
+    return prepared[instanceId] ?? [];
+  }
+
+  private async prepareDigiXrosPlays(instanceIds: readonly string[]): Promise<Record<string, string[]>> {
+    const targets: Permanent[] = [];
+    for (const instanceId of instanceIds) {
+      const instance = this.findLooseInstance(instanceId);
+      if (instance === undefined) continue;
+      const source = this.cardSourceOf(instance);
+      const playTarget = new Permanent();
+      playTarget.permanentId = `pending-play-${instance.instanceId}`;
+      playTarget.controllerSeat = source.ownerSeat;
+      setTopCard(playTarget, instance);
+      playTarget.inBreeding = false;
+      playTarget.baseDP = source.definition.dp ?? 0;
+      playTarget.currentDP = playTarget.baseDP;
+      targets.push(playTarget);
+    }
+    if (targets.length === 0) return {};
+    const handledByPlay: Record<string, string[]> = Object.fromEntries(
+      targets.map((target) => [target.topCard!.instanceId, []]),
+    );
     await this.subTriggers.activateInsteadReplacementsFor(
       "wouldBePlayed",
-      playTarget,
-      (sourcePermanentId, sourceInstanceId) => {
+      targets,
+      (sourcePermanentId, sourceInstanceId, targetInstanceId) => {
+        const pendingInstance = this.findLooseInstance(targetInstanceId ?? targets[0]!.topCard!.instanceId);
+        const pendingOwnerSeat = pendingInstance?.ownerSeat ?? targets[0]!.controllerSeat;
         const resident =
           this.access.permanentById(sourcePermanentId) ??
-          (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
-            ? this.state.players[source.ownerSeat]?.breeding
+          (this.state.players[pendingOwnerSeat]?.breeding?.permanentId === sourcePermanentId
+            ? this.state.players[pendingOwnerSeat]?.breeding
             : undefined);
         const sourceCard = this.findInstance(sourceInstanceId ?? "")?.instance ?? resident?.topCard;
         if (sourceCard === undefined) return undefined;
         return {
           ...this.buildEffectContext(this.cardSourceOf(sourceCard), {
-            wouldBePlayedInstanceId: instance.instanceId,
-            wouldBePlayedCardId: instance.cardId,
+            wouldBePlayedInstanceId: targetInstanceId ?? targets[0]!.topCard!.instanceId,
+            wouldBePlayedCardId:
+              this.findLooseInstance(targetInstanceId ?? targets[0]!.topCard!.instanceId)?.cardId ??
+              targets[0]!.topCard!.cardId,
             wouldBePlayedAsOption: false,
           }),
           selections: new Map(),
@@ -4845,13 +4862,17 @@ export class GameEngine {
         hasFired: (key) => this.tracker.count(key, "replacement") > 0,
         markFired: (key) => this.tracker.register(key, "replacement"),
       },
-      (replacement) => {
+      (replacement, targetInstanceIds) => {
         // The static picker represents the same printed ability. An offered source stays
         // handled after refusal so it cannot receive a second activation offer for this play.
-        if (replacement.sourcePermanentId !== undefined) sourcePermanentIds.push(replacement.sourcePermanentId);
+        if (replacement.sourcePermanentId !== undefined) {
+          for (const pendingId of targetInstanceIds ?? []) {
+            (handledByPlay[pendingId] ??= []).push(replacement.sourcePermanentId);
+          }
+        }
       },
     );
-    return sourcePermanentIds;
+    return handledByPlay;
   }
 
   /** Resolve the in-hand half of BeforePayCost for an imminent digivolution. */

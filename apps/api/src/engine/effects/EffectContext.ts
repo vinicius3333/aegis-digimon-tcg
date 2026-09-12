@@ -507,6 +507,8 @@ export interface TriggerInfo {
    * (BT19-081: "place cards from under your Tamers as DigiXros materials for this Digimon").
    */
   wouldBePlayedInstanceId?: string;
+  /** All cards in one effect-driven play batch sharing this replacement window. */
+  wouldBePlayedInstanceIds?: readonly string[];
   /**
    * The card ID of a card directly trashed from a player's deck (whenTrashedFromDeck, CAP-H-01).
    * Fired once per milled card (unlike onDiscardLibrary which fires once per mill action).
@@ -776,6 +778,8 @@ export interface Primitives {
       effectSourceCardId?: string;
       /** Server-selected DigiXros materials to place before firing this effect-played card's On Play. */
       digiXrosMaterialInstanceIds?: string[];
+      /** Per-play DigiXros materials when several effect plays resolve as one batch. */
+      digiXrosMaterialInstanceIdsByPlay?: Record<string, string[]>;
       /** Assembly materials selected from trash for this effect-driven play. */
       assemblyMaterialInstanceIds?: string[];
       /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
@@ -1587,6 +1591,7 @@ export interface Primitives {
   consumeDigiXrosPlayExpansions?(seat: Seat, pendingPlayInstanceId?: string): void;
   /** Resolve matching wouldBePlayed replacements before effect-driven DigiXros material selection. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
+  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
 
   /** Spawn a token Digimon as a new battle-area permanent. */
   playToken(
