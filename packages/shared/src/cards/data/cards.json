@@ -133949,10 +133949,10 @@
       "Rookie"
     ],
     "attributes": [
-      "Ceratopsian"
+      "Virus"
     ],
     "types": [
-      "Virus"
+      "Ceratopsian"
     ],
     "inheritedEffectText": "[Your Turn] While you have a [Hiro Amanokawa] in play, this Digimon gets +2000 DP.",
     "rarity": "P",
@@ -134019,10 +134019,10 @@
       "Rookie"
     ],
     "attributes": [
-      "Mollusk"
+      "Data"
     ],
     "types": [
-      "Data"
+      "Mollusk"
     ],
     "inheritedEffectText": "[When Attacking][Once Per Turn] If you have a [Kiyoshiro Higashimitarai] in play, ＜Draw 1＞. (Draw 1 card from your deck.)",
     "rarity": "P",
@@ -134433,10 +134433,10 @@
       "Ultimate"
     ],
     "attributes": [
-      "Beastkin"
+      "Vaccine"
     ],
     "types": [
-      "Vaccine"
+      "Beastkin"
     ],
     "effectText": "[Your Turn] When this Digimon would digivolve into a card with [Shaman] or [Wizard] in its traits, you may trash up to 3 of your security cards. For each security card trashed with this effect, reduce the digivolution cost by 1.",
     "inheritedEffectText": "[When Attacking][Once Per Turn] If you have exactly 3 security cards, unsuspend this Digimon.",
@@ -134511,10 +134511,10 @@
       "Champion"
     ],
     "attributes": [
-      "Composite"
+      "Virus"
     ],
     "types": [
-      "Virus"
+      "Composite"
     ],
     "effectText": "[Your Turn] When this Digimon would digivolve into a card with 2 colors or [Composite] in its traits, reduce the digivolution cost by 2.",
     "inheritedEffectText": "[When Attacking] For each of this Digimon’s colors, delete 1 of your opponent's Digimon with 3000 DP or less.",
@@ -134547,10 +134547,10 @@
       "Champion"
     ],
     "attributes": [
-      "Wizard"
+      "Data"
     ],
     "types": [
-      "Data"
+      "Wizard"
     ],
     "effectText": "When this card is trashed from your deck, gain 1 memory.",
     "inheritedEffectText": "[When Attacking] You may reveal 1 purple card from your hand and place it on top of your deck.",
@@ -135200,7 +135200,8 @@
     "set": "P",
     "nameEn": "Zubamon",
     "colors": [
-      "Red"
+      "Red",
+      "Black"
     ],
     "kinds": [
       "Digimon"
@@ -136841,7 +136842,7 @@
       }
     ],
     "forms": [
-      "Champion"
+      "Ultimate"
     ],
     "attributes": [
       "Virus"
@@ -137254,13 +137255,13 @@
     "dp": 0,
     "evoCosts": [],
     "forms": [
-      "D-Reaper"
+      "-"
     ],
     "attributes": [
       "-"
     ],
     "types": [
-      "-"
+      "D-Reaper"
     ],
     "effectText": "[On Play] Reveal the top 4 cards of your deck. Add 1 card with the [D-Reaper] trait among them to the hand. Return the rest to the bottom of the deck.\n[Main] By returning this Tamer to the bottom of the deck. You may play 1 Digimon card with the[D-Reaper] traitand play cost of 3 or less from your hand without paying the cost. For each digivolution card under 1 of your [Mother D-Reaper], add 1 to the maximum play cost you may play with this effect.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
@@ -137627,10 +137628,10 @@
       "-"
     ],
     "attributes": [
-      "LIBERATOR"
+      "-"
     ],
     "types": [
-      "-"
+      "LIBERATOR"
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[All Turns] When effects trash digivolution cards of any of your [Mineral]/[Rock] trait Digimon, by suspending this Tamer, place 1 card with the [Mineral]/[Rock] trait from your trash as any of your Digimon’s bottom digivolution card.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
