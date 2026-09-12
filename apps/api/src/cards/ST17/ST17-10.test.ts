@@ -1,10 +1,67 @@
-import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { effectsOf } from "../../engine/effects/collect.js";
+import { cite } from "../../engine/conformance/_kb.js";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST17-10 Henry Wong", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0034",
+      "Bracket-only Terriermon-line references require exact names",
+      "c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2",
+    );
+  });
+  it.each([
+    ["Terriermon", "BT5-046", "ST17-05", "ST17-07"],
+    ["Gargomon", "ST17-02", "EX4-035", "ST17-07"],
+    ["Rapidmon", "ST17-02", "ST17-05", "EX4-036"],
+  ])("refuses near-named %s before paying any processing component", async (_name, host, first, second) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: host, as: "host" },
+            { card: "ST17-10", as: "henry" },
+          ],
+          trash: [
+            { card: first, as: "first" },
+            { card: second, as: "second" },
+          ],
+          hand: [{ card: "ST17-08", as: "mega" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const source = observe(s.engine).cardSource(s.perm("henry"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("ST17-10/"),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("henry").instanceId,
+        effectKey: effect!.effectKey,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("host").topCard.cardId).toBe(host);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.perm("henry").topCard.cardId).toBe("ST17-10");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("mega").instanceId);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("gains 1 memory at the start of your Main Phase when the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST17-10", as: "henry" }] },
@@ -41,7 +98,7 @@ describe("ST17-10 Henry Wong", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("places Henry, Gargomon, and Rapidmon under one Terriermon before the free MegaGargomon digivolution", async () => {
+  it("places Henry, Gargomon, and Rapidmon under one Terriermon before the four-memory MegaGargomon digivolution", async () => {
     const s = setupEngine(
       {
         0: {

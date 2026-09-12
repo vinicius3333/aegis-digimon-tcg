@@ -208026,12 +208026,15 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "nameExact" }]
               },
               "count": 1,
               "bindAs": "terriermon"
             },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["MegaGargomon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["MegaGargomon"], "match": "nameExact" }]
+            },
             "payCost": true,
             "from": ["hand"],
             "costOverride": 4,
@@ -208049,7 +208052,7 @@
                   "underFilter": {
                     "controllerDefault": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "nameExact" }]
                   },
                   "position": "bottom"
                 },
@@ -208060,7 +208063,7 @@
                       "controller": "mine",
                       "zone": "trash",
                       "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Gargomon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Gargomon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -208070,7 +208073,7 @@
                   "underFilter": {
                     "controllerDefault": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "nameExact" }]
                   },
                   "position": "bottom"
                 },
@@ -208081,7 +208084,7 @@
                       "controller": "mine",
                       "zone": "trash",
                       "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Rapidmon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Rapidmon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -208091,7 +208094,7 @@
                   "underFilter": {
                     "controllerDefault": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "nameExact" }]
                   },
                   "position": "bottom"
                 }

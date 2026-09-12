@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Terriermon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -64,7 +64,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["MegaGargomon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -85,7 +85,7 @@ const compiled: CompiledCard = {
                 underFilter: {
                   controllerDefault: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "nameExact" }],
                 },
                 position: "bottom",
               },
@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
                     controller: "mine",
                     zone: "trash",
                     kind: ["Digimon"],
-                    nameOrTrait: [{ tokens: ["Gargomon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Gargomon"], match: "nameExact" }],
                   },
                   count: 1,
                   from: ["trash"],
@@ -106,7 +106,7 @@ const compiled: CompiledCard = {
                 underFilter: {
                   controllerDefault: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "nameExact" }],
                 },
                 position: "bottom",
               },
@@ -117,7 +117,7 @@ const compiled: CompiledCard = {
                     controller: "mine",
                     zone: "trash",
                     kind: ["Digimon"],
-                    nameOrTrait: [{ tokens: ["Rapidmon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Rapidmon"], match: "nameExact" }],
                   },
                   count: 1,
                   from: ["trash"],
@@ -127,7 +127,7 @@ const compiled: CompiledCard = {
                 underFilter: {
                   controllerDefault: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "nameExact" }],
                 },
                 position: "bottom",
               },

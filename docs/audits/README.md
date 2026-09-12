@@ -144,7 +144,7 @@ build when it is stale.
 | ST14 | 12    | verified    | 2026-09-05  | [ST14.md](ST14.md) |
 | ST15 | 16    | verified    | 2026-09-05  | [ST15.md](ST15.md) |
 | ST16 | 16    | verified    | 2026-09-05  | [ST16.md](ST16.md) |
-| ST17 | 13    | verified    | 2026-09-05  | [ST17.md](ST17.md) |
+| ST17 | 13    | in-progress | 2026-09-05  | [ST17.md](ST17.md) |
 | ST18 | 15    | verified    | 2026-09-05  | [ST18.md](ST18.md) |
 | ST19 | 15    | verified    | 2026-09-05  | [ST19.md](ST19.md) |
 | ST20 | 15    | verified    | 2026-09-05  | [ST20.md](ST20.md) |
