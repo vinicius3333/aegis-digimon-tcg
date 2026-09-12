@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 233/249 at 10/10; 16 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 236/249 at 10/10; 13 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -1610,8 +1610,8 @@ git diff --check
 
 ### P-152 — Shoutmon + Dorulu Cannon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-152.ts) · [test](../../apps/api/src/cards/P/P-152.test.ts) · clause review (source removed; see History)<br>“encodes the attack DP reduction and Xros Heart placement cost”; “encodes both zero-cost named digivolution paths, Rule names, and DigiXros materials”; “reduces an opposing Digimon by 2000, then deletes it at the post-reduction boundary”
 
 - Local KB lookup (2026-09-12): Q4267; no errata entry; no restriction entry.
@@ -1619,6 +1619,8 @@ git diff --check
 - Additional root proof hold (2026-09-12): Its only attack proof injects OnUseAttack. Public attack completion, exact Xros Heart source placement cost, target boundary and paid public named evolution/DigiXros source identity remain unproved. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 - Confirmed name-scope defect (2026-09-12): Official printed text and Q4267 require exact [Shoutmon] or [Dorulumon] names (including genuine Rule aliases), each with play cost at most 4. The module uses substring `names` for both alternate evolution requirements; the engine explicitly resolves this field with `includes`. Replace those requirements with exact names and retain attributable public evolution/attack-cost evidence. DigiXros material matching also requires review against the printed exact names. [Official collection list](https://world.digimoncard.com/cards/?category=522901&search=true).
+
+- Independently accepted repair (2026-09-12, commit `0e3a805c5`): Both alternate evolution paths use exact printed names at cost zero and retain the exact source/permanent in public evolution. A real attack pays the Xros Heart source placement under the exact Tamer, deletes the eligible reduced-DP target and completes its Security check. Existing DigiXros exact-name/OR/trait mechanism evidence is reused; recipe names already match exactly. Root focused mechanism batch passes 4 files, 15 tests. API types, focused formatting/lint and 249-record Promo sync with zero outside-set drift pass.
 
 ### P-153 — MagnaGarurumon
 
@@ -1971,8 +1973,8 @@ git diff --check
 
 ### P-187 — Mastemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-187.ts) · [test](../../apps/api/src/cards/P/P-187.test.ts) · clause review (source removed; see History)<br>“recovers independently of DNA and conditionally places any other Digimon or Tamer for DNA”; “shares one once-per-turn top-security cost across digivolving and attacking”; “performs Recovery +1 when its digivolution effect resolves”; “trashes its top security and plays a qualifying Digimon when attacking”
 
 - Local KB lookup (2026-09-12): Q4631, Q4632; no errata entry; no restriction entry.
@@ -1983,6 +1985,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Confirmed executable placement hold (2026-09-12): Recovery keyword metadata does not execute the printed deck recovery. The permanent security-placement processing-cost branch ignores choice and always places on top. A proposed action rewrite passes tests but transfers an opponent card to the controller’s Security and loses the optional processing cost, violating CR 3-1-3-8 (unqualified destinations follow the card owner). That proposal and its incorrect destination assertions are rejected. Restore owner Security and optional cost gating, repair top/bottom choice at the existing engine seam, and independently verify both destination owners plus eligible refusal.
+
+- Independently accepted repair (2026-09-12, commit `dca801c22`): Recovery executes a deck-to-Security action. The DNA processing cost selects an actual battle-area Digimon/Tamer and places its exact top card in that card owner Security at the chosen top or bottom; accepting the cost enables the opposing top trash, refusing it prevents that benefit. Real public DNA proves paid recipe, both material/source dispositions and the separate DNA draw/recovery deck IDs. Root focused suite passes 5 tests; mechanism regression passes 139 files, 2079 tests. API types and focused style pass. See [security placement cost mechanism](engine/security-placement-cost-choice.md).
 
 ### P-188 — DemiVeemon
 
@@ -2051,14 +2055,16 @@ git diff --check
 
 ### P-193 — The Wicked God Emerges!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-193.ts) · [test](../../apps/api/src/cards/P/P-193.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and battle-area placement behind trashing a Composite or Wicked God card”; “delays a Wicked God play behind deleting your Millenniummon and activates Main from Security”; “draws two after paying the Composite/Wicked God hand cost and places itself”; “activates its Main effect when revealed in Security”; “activates Delay to delete Millenniummon and play a Wicked God from trash”
 
 - Local KB lookup (2026-09-12): Q4987; no errata entry; no restriction entry.
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Reopened executable/public-window hold (2026-09-12): Printed Main placement is mandatory once its optional hand-trash processing cost is paid; the module marks placement itself optional. Delay names exact Millenniummon, while its cost filter uses substring matching. The only Delay proof calls fireGlobal(OnEndTurn), not a natural End window; public Main uses memory 20. Correct both IR scopes and reuse/rework the existing tests for legal paid Main, exact cost/disposition, natural reactive Delay and eligible refusal. Generic injected timing does not establish this printed clause. [Official printed source](https://digimoncard.com/cards/?category=503901&search=true).
 
 ### P-194 — Aegiomon
 
@@ -2600,23 +2606,23 @@ git diff --check
 
 ### P-246 — Motimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-246.ts) · [test](../../apps/api/src/cards/P/P-246.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-246` returns no entries)<br>“digivolves for free into a Sukamon-named destination on another Sukamon-named Digimon's deletion”; “digivolves into a Mamemon-named destination on a Mamemon-named deletion”; “does not fire on an Etemon-only deletion, though Etemon is a legal destination”; “does not fire on an unrelated name”; “does not fire on the opponent's Sukamon deletion or on the opponent's turn”; “declines the optional digivolution”; “fires once per turn across two qualifying deletions”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+- Independently accepted repair (2026-09-12, commit `bee5aa0be`): The existing natural deletion cycle retains the exact inherited P246 source and resident permanent through eligible same-turn suppression and a real opponent/own turn reset. The third qualifying deletion evolves for free and preserves all three exact stack IDs. Security attack evidence checks the new turn counter and completed idle state. Coordinator independently passed P246/P247 together: 2 files, 24 tests; focused style and legal catalog source/host checks pass.
 
 ### P-247 — Nyaromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-247.ts) · [test](../../apps/api/src/cards/P/P-247.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-247` returns no entries)<br>“deletes an unsuspended level 4 or lower opponent Digimon by trashing a Dark Animal/Shaman/Undead/TS card”; “pays with any of the four accepted traits”; “only the unsuspended Lv.4 target dies on a mixed board; a suspended Lv.4 and an unsuspended Lv.5 survive”; “does nothing when only an unsuspended Lv.5 is present”; “does not pay with a wrong-trait hand”; “declines the optional cost”; “fires once per turn across two attack declarations”; “keeps the clause live through a real breeding-to-battle-area evolution stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+- Independently accepted repair (2026-09-12, commit `0cfebd51b`): Existing public attacks pay the exact Undead and Shaman hand cards, delete only the legal unsuspended level-4 target, and retain the same inherited physical P247 source/permanent across suppression and a natural opponent/own reset. Completed attacks establish Security counts 1, 2 and 3 without injected attack timing. The Purple level-3 host and Purple egg source are legal. Coordinator independently passed P246/P247 together: 2 files, 24 tests; focused style and catalog legality checks pass.
 
 ### P-248 — Veemon
 
