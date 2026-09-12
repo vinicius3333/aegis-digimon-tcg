@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-126.js";
@@ -31,16 +30,19 @@ describe("P-126 Yolei Inoue", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [
-            { card: "P-126", as: "yolei" },
-            { card: "P-119", as: "hawkmon" },
-          ],
+          hand: [{ card: "P-126", as: "yolei" }, { card: "P-119", as: "hawkmon" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
         },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"], security: ["BT1-009"] },
       },
       { autoChooseOption: true, preferOptionIndex: 0, autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const beforePlay = s.state.memory;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yolei").instanceId })).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hawkmon").instanceId),
@@ -48,10 +50,75 @@ describe("P-126 Yolei Inoue", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hawkmon").instanceId)).toBe(
       true,
     );
-    const beforeStart = s.state.memory;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yolei"));
-    await settle();
-    expect(s.state.memory).toBe(beforeStart + 1);
+    expect(s.state.memory).toBe(beforePlay - 3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("does not gain memory at the start of your main phase without a [Free] Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-126", as: "yolei" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
+  });
+
+  it("plays from security for free and resolves a legal On Play choice without changing memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-119", as: "hawkmon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: [{ card: "P-126", as: "yolei" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-025", as: "attacker" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoChooseOption: true, preferOptionIndex: 0, autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("yolei").instanceId) &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hawkmon").instanceId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });
 });
