@@ -11,6 +11,8 @@ const enter: Action[] = [
     kind: "PlaceUnder",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     targetIsPermanent: true,
+    position: "bottom",
+    shedOwnCards: true,
     underFilter: { controller: "opponent", excludeSelf: true, kind: ["Digimon"] },
     condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
   },

@@ -338,3 +338,7 @@ source/face changes and reset, remains open.
 ## Hidden stack source checkpoint
 
 The copied and inherited live-source face-down boundary is owned by [stack-card-information.md](stack-card-information.md). Three public Giromon placement/evolution/attack sequences distinguish two baseline failures from a neutral hidden control. This adds a bounded contract, not certification of all hidden information; highest visible matching, snapshots, visibility changes, native scans and dynamic references remain open. BT22 historical completion is reopened.
+
+## Bottom relocation parameter checkpoint
+
+BT11-088 public bottom placement/source-shedding evidence is owned by [BT11.md](../BT11.md#bt11-088--bagramon). Both entry timings now pass the existing relocation parameters required by printed text and Q2113; BT11 historical complete status is reopened. Shared relocation identity/event payloads, inherited treated-as-Digimon hosts, immunity and simultaneous departure remain separate open obligations.

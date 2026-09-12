@@ -1,21 +1,31 @@
 import { describe, it, expect } from "vitest";
-import { getCardDefinition, GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
+import {
+  getCardDefinition,
+  GameState,
+  PlayerState,
+  Permanent,
+  CardInstance,
+  Phase,
+  type Seat,
+  type DecisionRequest,
+} from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
 import { compiled } from "./BT11-088.js";
+import { assertNoLoudGap, setupEngine, settle as settleEngine } from "../../engine/testkit/harness.js";
 
 // A3 for BT11-088 (Bagramon — Purple Lv.6 Digimon).
 //
 // [On Play] / [When Digivolving]: If the opponent has 1 or fewer Digimon in play, trash 1 card
-// from their hand. If they have 2 or more, place 1 of their Digimon under this Digimon.
-// (Q2113: source Digimon leaves their field when placed under Bagramon.)
+// from their hand. If they have 2 or more, place 1 of their Digimon under another of their Digimon as its bottom source.
+// (Q2113: the source leaves their field and its own sources are trashed.)
 //
 // FAILS-WHEN-REVERTED: The original stub left both effects inert.
 //   Test 1: opponent has 1 Digimon in play → a card is trashed from their hand.
-//   Test 2: opponent has 2+ Digimon in play → 1 opponent Digimon is placed under Bagramon.
+//   Test 2: opponent has 2+ Digimon in play → 1 opponent Digimon is placed under their other Digimon.
 //
 // Cards:
-//   BT11-088  — Bagramon (Purple Lv.6, playCost 11)
+//   BT11-088  — Bagramon (Purple Lv.6, playCost 14)
 //   AD1-001   — Greymon (Red Lv.4) — opponent's Digimon
 //   BT1-038   — Monzaemon (Blue Lv.5) — another opponent Digimon for the 2+ test
 //   BT1-001   — filler hand card
@@ -92,7 +102,13 @@ async function settle(predicate: () => boolean, maxTicks = 800): Promise<void> {
 
 describe("BT11-088 Bagramon [On Play] conditional effect", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-088")).toMatchObject({ cardId: "BT11-088", colors: ["Purple"], level: 6, playCost: 14, dp: 13000 });
+    expect(getCardDefinition("BT11-088")).toMatchObject({
+      cardId: "BT11-088",
+      colors: ["Purple"],
+      level: 6,
+      playCost: 14,
+      dp: 13000,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "Trash" }, { kind: "PlaceUnder" }] },
       { trigger: "WhenDigivolving", actions: [{ kind: "Trash" }, { kind: "PlaceUnder" }] },
@@ -151,7 +167,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     const oppHandCard = inst("BT1-001", 1);
     p1.hand.push(oppHandCard);
 
-    // Bagramon in seat 0's hand. playCost = 11, memory needs to cover it.
+    // Bagramon in seat 0's hand. playCost = 14, memory needs to cover it.
     const bagramon = inst("BT11-088", 0);
     p0.hand.push(bagramon);
     s.state.memory = 10; // memory 10 for opponent seat → enough
@@ -208,5 +224,86 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     expect(opponentLostDigimon && opponentDigimonHasStack).toBe(true);
     expect(p1.hand.some((card) => card.instanceId === handCard.instanceId)).toBe(true);
     expect(p1.trash.some((card) => card.instanceId === handCard.instanceId)).toBe(false);
+  });
+});
+
+describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
+  it.each([
+    { mode: "play", stacked: true },
+    { mode: "play", stacked: false },
+    { mode: "digivolve", stacked: true },
+    { mode: "digivolve", stacked: false },
+  ])("$mode places only the source top card at the bottom; source stacked $stacked", async ({ mode, stacked }) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: mode === "digivolve" ? [{ card: "BT6-063", as: "base" }] : [],
+          hand: [{ card: "BT11-088", as: "bagramon" }],
+          deck: ["BT1-028", "BT1-028"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT6-063",
+              as: "host",
+              under: [
+                { card: "BT2-052", as: "hostBottom" },
+                { card: "BT3-067", as: "hostUpper" },
+              ],
+            },
+            {
+              card: "BT3-067",
+              as: "source",
+              under: stacked ? [{ card: "BT4-065", as: "sourceUnder" }] : [],
+            },
+          ],
+          hand: [{ card: "BT1-028", as: "untouchedHand" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    const hostId = s.inst("host").instanceId;
+    const bagramonId = s.inst("bagramon").instanceId;
+    const hostStack = [s.inst("hostBottom").instanceId, s.inst("hostUpper").instanceId];
+    const sourceUnderId = stacked ? s.inst("sourceUnder").instanceId : undefined;
+    preferred.push(sourceId);
+    const intent =
+      mode === "play"
+        ? { type: "playCard" as const, instanceId: bagramonId }
+        : { type: "digivolve" as const, instanceId: bagramonId, permanentId: s.perm("base").permanentId };
+    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+    await settleEngine(() => s.state.players[1]!.battleArea.length === 1);
+    await settleEngine();
+    const host = s.perm("host");
+    expect(host.stack.map((card) => card.instanceId)).toEqual([sourceId, ...hostStack]);
+    expect(host.stack[0]!.faceUp).toBe(true);
+    expect(host.topCard.instanceId).toBe(hostId);
+    expect(host.controllerSeat).toBe(1);
+    expect(host.currentDP).toBe(10000);
+    expect(host.isSuspended).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(sourceUnderId ? [sourceUnderId] : []);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("untouchedHand").instanceId]);
+    expect(s.state.players[1]!.deck).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    const bagramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === bagramonId)!;
+    expect(bagramon.stack.map((card) => card.instanceId)).toEqual(
+      mode === "digivolve" ? [s.inst("base").instanceId] : [],
+    );
+    expect(bagramon.controllerSeat).toBe(0);
+    expect(bagramon.currentDP).toBe(13000);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(mode === "digivolve" ? 1 : 2);
+    expect(s.state.players[0]!.hand).toHaveLength(mode === "digivolve" ? 1 : 0);
+    expect(s.state.memory).toBe(mode === "digivolve" ? 5 : -4);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
   });
 });
