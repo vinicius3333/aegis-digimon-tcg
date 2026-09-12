@@ -91,6 +91,51 @@ Resolve every queued/unresolved obligation, inspect all cost consumer shapes,
 run final gates, and identify the delivery commit. No 10/10 or mechanism
 completion is claimed from this checkpoint.
 
+## Compound assignment checkpoint (2026-09-12)
+
+BT14-090 Dragon of Courage is the reviewed printed consumer for this bounded
+compound-cost proof. Its Main clause requires placing one exact [Greymon] and
+one exact [MetalGreymon] from the controller's trash under one exact [Agumon],
+then makes the [WarGreymon] evolution optional. Q2466 confirms that both
+placements resolve before the optional evolution. Comprehensive-0169 §15-7-3
+requires the compound condition to be paid as a whole. Because BT14-090 is an
+activation-type [Main] effect, comprehensive-0176 §15-8-4-4-1 additionally
+requires its condition to be performable before the player declares the effect;
+the §15-7-4 triggered-effect choice rule does not override that declaration gate.
+
+The new `activation-cost-compound-assignment.test.ts` uses only catalog cards
+from BT14-090's printed filters. Its accepting public Option play supplies two
+distinct exact Greymon instances and one MetalGreymon, then verifies that the
+resulting Agumon stack contains exactly one physical instance for each payment
+component and leaves the second Greymon in trash. Its impossible-payment control
+supplies only one Greymon and verifies that the activation-type effect does not
+declare, does not move the available Greymon, leaves the host unchanged, and
+charges only the Option's ordinary play cost. Focused result: **2 tests passed**.
+
+The source contract is satisfied for this activation-type consumer: an
+unperformable compound condition is rejected before declaration. §15-7-4's
+impossible-payment choice remains a separate triggered-effect obligation already
+covered by the earlier ledger entries. The accepting case proves distinct
+physical assignment for this consumer, but general candidate disjointness across
+the 19 compound cost consumers remains open. The exact Greymon/MetalGreymon
+filters here are disjoint by card identity; arbitrary overlapping filters,
+multiple hosts, and other compound component shapes remain open.
+
+The complete persisted inventory contains **20 compound-cost occurrences across
+19 distinct cards**. Direct-module review classifies every component pair by its
+printed zone, kind, exact name/trait, level, host, or self-reference constraints:
+BT14-090, BT15-091, BT17-085, BT25-096, BT26-098, and ST17-10 use distinct
+named material constraints, with the applicable self-reference or bound-host
+constraint preserved; BT16-090, BT19-086, BT23-084, BT23-089, BT23-090,
+BT25-092, EX5-064, and EX10-067 combine a self/permanent or source-class
+component with a different card class; BT17-050, EX6-038, and EX6-042 combine
+memory with a placement; EX3-035 uses three distinct named return classes; and
+EX13-071 separates its level-4 and level-5 Holy Beast placements after a
+face-down-source component. No current printed consumer yields a reproducible
+same-physical-card overlap between two compound components. This is an
+inventory finding, not a generic uniqueness proof: malformed filters, future
+cards, and runtime candidate exclusion still require a reusable seam test.
+
 ## History
 
 - 2026-09-12: initial optional-cost reproduction and correction on
