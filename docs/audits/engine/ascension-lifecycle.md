@@ -36,10 +36,11 @@ card directly trashed from security.
 | Place the exact deleted card face-down on top security | BT25-040/BT26-029 preserve holder instance IDs; evolution source goes to trash; security card is face-down | Verified for native path |
 | Preserve source identity and destinations | BT25-040 and BT26-029 stacks assert holder/source/security instance IDs and final zones | Verified for demonstrated stacks |
 | Resolve simultaneous deletion effects in controller-selected order | BT26-075 public `orderTriggers` response selects Ascension first; pending On Deletion play is dropped and the same card reaches security | Verified for one multi-trigger provider |
-| Support granted Ascension | BT26-030 publicly trashes the selected hand-cost instance, grants Ascension to an Iliad Digimon, then a real battle deletion moves that exact instance to security; BT26-030 provider tests cover declined cost and no-grant behavior | Verified for acceptance and refusal; expiry in a full turn-loop remains open |
+| Support granted Ascension | BT26-030 is played through the public `playCard` intent, publicly trashes the selected hand-cost instance, grants Ascension to an Iliad Digimon, then a real battle deletion moves that exact instance to security; BT26-030 provider tests cover declined cost and no-grant behavior; the expiry case observes the temporary keyword absent after the completed public turn boundary | Verified for demonstrated acceptance, refusal, and keyword expiry only |
 | Support inherited Ascension | No fresh public conformance case yet; inherited keyword consumers and stack behavior remain to be exercised | Open |
 | Support copied/runtime-conferral Ascension | No public copy case in this bounded file; conferral identity and duplicate-instance semantics remain open | Open |
 | Handle source departure, top changes, face state, and re-entry | No live removal/re-entry sequence in this audit | Open |
+| Prove post-expiry deletion behavior | The expiry case does not perform a later public deletion after the granted keyword disappears | Open |
 | Enforce timing, duplicate copies, and once-per-turn behavior | Ascension itself has no printed once-per-turn clause; multiple provider/grant interactions remain unproved | Open |
 
 ## Provider inventory
@@ -63,18 +64,20 @@ deletion proof.
 ## Public proof
 
 `apps/api/src/engine/conformance/keyword-ascension-lifecycle.test.ts` contains
-seven cases. The native cases prove BT25-034/BT25-040/BT26-029 acceptance with exact
+eight cases. The native cases prove BT25-034/BT25-040/BT26-029 acceptance with exact
 holder/source IDs, an explicit BT25-040 refusal, a BT1-052 non-keyword negative
 control, and final battle/security/trash state. The added BT26-075 case answers a real public
 `orderTriggers` decision and proves Ascension-first pending-effect loss. The
-added BT26-030 case observes the granted keyword, asserts the exact hand-cost
-instance was trashed, and uses the grant in a real battle deletion. Its provider
-suite separately proves declined or unavailable hand costs leave the cost in
-hand and grant neither keyword. A full turn-loop expiry proof remains open
-because the direct timing helper does not advance the production turn boundary.
+added BT26-030 case invokes the public `playCard` intent, observes the granted
+keyword, asserts the exact hand-cost instance was trashed, and uses the grant in
+a real battle deletion. Its provider suite separately proves declined or
+unavailable hand costs leave the cost in hand and grant neither keyword. The
+expiry case uses the same public turn loop, declines both generated Execute
+prompts, and confirms only that the temporary Ascension is gone after
+`runOneTurn()` completes. A later public deletion after expiry remains open.
 
 Focused result: `pnpm --filter @aegis/api exec vitest run
-src/engine/conformance/keyword-ascension-lifecycle.test.ts` — 1 file, 7 tests,
+src/engine/conformance/keyword-ascension-lifecycle.test.ts` — 1 file, 8 tests,
 all passing. The six-provider regression command passed 7 files / 79 tests.
 The short-circuit counterfactual was restored in `finally`; the pre/post SHA-256
 for `apps/api/src/engine/effects/primitives.ts` was

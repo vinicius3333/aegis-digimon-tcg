@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { cite } from "./_kb.js";
 import { observe } from "../testkit/observe.js";
 import { advance } from "../testkit/advance.js";
@@ -151,15 +150,13 @@ describe("Ascension through public battle deletion", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-019", as: "iliad", suspended: true },
-          ],
+          battleArea: [{ card: "BT24-019", as: "iliad", suspended: true }],
           hand: [
             { card: "BT26-030", as: "pumpkinmon" },
             { card: "BT1-009", as: "cost" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-011"] },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-085"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -167,9 +164,9 @@ describe("Ascension through public battle deletion", () => {
     const grantedId = s.perm("iliad").topCard.instanceId;
     await s.ready();
     s.state.memory = 10;
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -190,4 +187,64 @@ describe("Ascension through public battle deletion", () => {
     assertNoLoudGap(s);
   });
 
+  it("records the public turn-loop boundary after declining granted Execute", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-019", as: "iliad" }],
+          hand: [
+            { card: "BT26-030", as: "pumpkinmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+        1: { security: ["BT1-085"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("iliad").permanentId);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const grant = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: grant.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    for (let i = 0; i < 3; i += 1) {
+      await settle(() => s.state.pendingDecision?.kind === "optional" || s.state.phase === "End");
+      if (s.state.pendingDecision === undefined) break;
+      const execute = s.state.pendingDecision;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: execute.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+    }
+    const completed = await Promise.race([
+      turn.then(() => true),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 100)),
+    ]);
+    expect(completed).toBe(true);
+    expect({ phase: s.state.phase, turnSeat: s.state.turnSeat, pending: s.state.pendingDecision?.kind }).toEqual({
+      phase: "End",
+      turnSeat: 0,
+      pending: undefined,
+    });
+    expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(false);
+    assertNoLoudGap(s);
+  });
 });
