@@ -16,12 +16,12 @@ describe("P-144 Gotsumon (X Antibody)", () => {
           restriction: "attack",
           condition: {
             kind: "selfLacksInDigivolutionCards",
-            filter: { nameOrTrait: [{ tokens: ["Gotsumon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Gotsumon", "X Antibody"], match: "nameExact" }] },
           },
         },
       ],
     });
-    expect(JSON.stringify(effect)).not.toContain("X Antibody");
+    expect(JSON.stringify(effect)).toContain("X Antibody");
   });
 
   it("encodes Blocker, target-switch unsuspension, and inherited Blocker DP", () => {

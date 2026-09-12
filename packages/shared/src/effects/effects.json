@@ -196094,8 +196094,8 @@
             "duration": "permanent",
             "condition": {
               "kind": "selfLacksInDigivolutionCards",
-              "filter": { "nameOrTrait": [{ "tokens": ["Gotsumon"], "match": "name" }] },
-              "raw": "this Digimon has no [Gotsumon] name in its digivolution cards"
+              "filter": { "nameOrTrait": [{ "tokens": ["Gotsumon", "X Antibody"], "match": "nameExact" }] },
+              "raw": "this Digimon has no [Gotsumon] or [X Antibody] name in its digivolution cards"
             }
           }
         ]
