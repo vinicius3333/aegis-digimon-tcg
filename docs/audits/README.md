@@ -99,7 +99,7 @@ build when it is stale.
 | BT10 | 112   | verified    | 2026-09-10  | [BT10.md](BT10.md) |
 | BT11 | 112   | incomplete  | 2026-09-10  | [BT11.md](BT11.md) |
 | BT12 | 112   | verified    | 2026-09-10  | [BT12.md](BT12.md) |
-| BT13 | 112   | verified    | 2026-09-10  | [BT13.md](BT13.md) |
+| BT13 | 112   | incomplete  | 2026-09-10  | [BT13.md](BT13.md) |
 | BT14 | 102   | in-progress | 2026-09-10  | [BT14.md](BT14.md) |
 | BT15 | 102   | in-progress | 2026-09-10  | [BT15.md](BT15.md) |
 | BT16 | 102   | verified    | 2026-09-10  | [BT16.md](BT16.md) |
@@ -118,7 +118,7 @@ build when it is stale.
 | EX3  | 74    | in-progress | 2026-09-10  | [EX3.md](EX3.md)   |
 | EX4  | 74    | verified    | 2026-09-10  | [EX4.md](EX4.md)   |
 | EX5  | 74    | verified    | 2026-09-09  | [EX5.md](EX5.md)   |
-| EX6  | 74    | verified    | 2026-09-09  | [EX6.md](EX6.md)   |
+| EX6  | 74    | incomplete  | 2026-09-09  | [EX6.md](EX6.md)   |
 | EX7  | 74    | verified    | 2026-09-09  | [EX7.md](EX7.md)   |
 | EX8  | 74    | verified    | 2026-09-10  | [EX8.md](EX8.md)   |
 | EX9  | 74    | incomplete  | 2026-09-09  | [EX9.md](EX9.md)   |

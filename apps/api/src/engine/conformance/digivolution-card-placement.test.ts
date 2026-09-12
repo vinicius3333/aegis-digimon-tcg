@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
+import { advance } from "../testkit/advance.js";
 import { observe } from "../testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
@@ -194,4 +195,90 @@ describe("optional deck payment with no opposing payload target", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
+});
+
+describe("public Digi-Egg bottom placement visibility", () => {
+  it.each(
+    [
+      { card: "BT13-007", deletes: false },
+      { card: "EX6-006", deletes: true },
+    ].flatMap((provider) => [true, false].map((hasEgg) => ({ ...provider, hasEgg }))),
+  )(
+    "$card actual turn with egg=$hasEgg retains face-up bottom placement and full processing",
+    async ({ card, deletes, hasEgg }) => {
+      cite(
+        "comprehensive-0292",
+        "4-7-5: source cards are face-up unless specified otherwise",
+        "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      );
+      const s = setupEngine(
+        {
+          0: {
+            breeding: { card, as: "host", under: [{ card: "BT1-001", as: "oldSource" }] },
+            eggDeck: hasEgg
+              ? [
+                  { card, as: "egg" },
+                  { card, as: "remainingEgg" },
+                ]
+              : [],
+            battleArea: [{ card: "BT1-009", as: "ownNeutral" }],
+            deck: [{ card: "BT1-028", as: "deckCard" }],
+            security: ["BT1-028"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponentNeutral" }], deck: ["BT1-028"], security: ["BT1-028"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 3;
+      s.state.isFirstPlayersFirstTurn = true;
+      await s.ready();
+      const host = s.perm("host");
+      const hostId = host.topCard.instanceId;
+      const oldId = s.inst("oldSource").instanceId;
+      const ownId = s.inst("ownNeutral").instanceId;
+      const opponentId = s.inst("opponentNeutral").instanceId;
+      const eggId = hasEgg ? s.inst("egg").instanceId : undefined;
+      const events = await observe(s.engine).captureSubTriggers(async () => {
+        await advance(s.engine).runTurn(0);
+        await settle();
+      });
+      expect(host.stack.map((source) => source.instanceId)).toEqual(hasEgg ? [eggId, oldId] : [oldId]);
+      expect(host.stack.map((source) => source.faceUp)).toEqual(hasEgg ? [true, true] : [true]);
+      const expectedAddition = {
+        event: "onAddDigivolutionCards",
+        payload: expect.objectContaining({
+          subjectPermanentId: host.permanentId,
+          addedDigivolutionCardInstanceIds: [eggId],
+          addedDigivolutionCardsPosition: "bottom",
+          byEffectSeat: 0,
+        }),
+      };
+      expect(events.filter((entry) => entry.event === "onAddDigivolutionCards")).toEqual(
+        hasEgg ? [expectedAddition] : [],
+      );
+      expect(s.state.players[0]!.eggDeck.map((source) => source.instanceId)).toEqual(
+        hasEgg ? [s.inst("remainingEgg").instanceId] : [],
+      );
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(
+        deletes ? [] : [ownId],
+      );
+      expect(s.state.players[0]!.trash.map((source) => source.instanceId)).toEqual(deletes ? [ownId] : []);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([opponentId]);
+      expect(s.state.players[1]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(hostId);
+      expect(host.inBreeding).toBe(true);
+      expect(host.controllerSeat).toBe(0);
+      expect(host.currentDP).toBe(0);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      expect(s.state.memory).toBe(-3);
+      expect(s.state.turnSeat).toBe(0);
+      expect(s.state.gameOver).toBe(false);
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.players[0]!.deck.map((source) => source.instanceId)).toEqual([s.inst("deckCard").instanceId]);
+      expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
 });

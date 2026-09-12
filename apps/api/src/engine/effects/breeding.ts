@@ -109,7 +109,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
    * bottom digivolution card"). By default the card goes to the BOTTOM of the stack
    * (`stack[0]`); `belowTop` inserts it directly beneath the current top instead. No-op
    * (returns undefined) when the Digi-Egg deck is empty or the host permanent is missing.
-   * The placed card becomes face-down (a digivolution card is not revealed).
+   * The placed source is face-up unless the effect specifies otherwise (§4-7-5).
    */
   const placeUnderFromEggDeck = async (
     targetPermanentId: string,
@@ -121,7 +121,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     const host = permanentById(targetPermanentId);
     if (host === undefined) return undefined;
     const egg = takeTop(owner, Zone.EggDeck)!;
-    egg.faceUp = false;
+    egg.faceUp = true;
     if (opts?.belowTop) pushOnStack(host, egg);
     else unshiftOnStack(host, egg);
     engine.emit({
@@ -134,6 +134,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [egg.instanceId],
+      addedDigivolutionCardsPosition: opts?.belowTop ? "top" : "bottom",
       byEffectSeat: seat,
     });
     return egg;

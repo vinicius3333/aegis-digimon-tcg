@@ -97,7 +97,7 @@ describe("BT13-007 King Drasil_7D6", () => {
     await settle(() => s.perm("drasil").stack.some((card) => card.instanceId === eggId));
 
     expect(s.perm("drasil").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([eggId, knightId]));
-    expect(s.perm("drasil").stack.find((card) => card.instanceId === eggId)?.faceUp).toBe(false);
+    expect(s.perm("drasil").stack.find((card) => card.instanceId === eggId)?.faceUp).toBe(true);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("nonKnight").permanentId,
     ]);
