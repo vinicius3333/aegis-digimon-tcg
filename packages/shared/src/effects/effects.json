@@ -201418,7 +201418,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Suzune Kazuki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Suzune Kazuki"], "match": "nameExact" }]
             },
             "actions": [
               {
