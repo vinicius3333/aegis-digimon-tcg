@@ -193,7 +193,7 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
         s.engine.applyIntent(1, {
           type: "attack",
           attackerPermanentId: s.perm("attacker").permanentId,
-          target: { kind: "player", seat: 0 },
+          target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
       await settle(
