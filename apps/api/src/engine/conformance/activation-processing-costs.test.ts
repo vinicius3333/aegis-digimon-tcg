@@ -211,4 +211,86 @@ describe("declared optional processing conditions", () => {
       expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(withDestination ? ["ST17-08"] : []);
     },
   );
+  it.each(
+    [
+      { tamer: "ST17-10", host: "ST17-02", first: "ST17-05", second: "ST17-07" },
+      { tamer: "BT17-085", host: "BT17-031", first: "BT17-032", second: "BT17-035" },
+    ].flatMap((card) =>
+      [
+        [0, 1, 2],
+        [0, 2, 1],
+        [1, 0, 2],
+        [1, 2, 0],
+        [2, 0, 1],
+        [2, 1, 0],
+      ].map((permutation) => ({ ...card, permutation })),
+    ),
+  )(
+    "$tamer publicly orders its complete unpaid placement batch: $permutation",
+    async ({ tamer, host, first, second, permutation }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: tamer, as: "tamer" },
+              { card: host, as: "host", under: [{ card: "BT1-009", as: "existing" }] },
+            ],
+            trash: [
+              { card: first, as: "first" },
+              { card: second, as: "second" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoOrderCards: false },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      const ids = [s.inst("tamer").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
+      const existingId = s.inst("existing").instanceId;
+      const source = observe(s.engine).cardSource(s.perm("tamer"));
+      const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+        entry.effectKey.startsWith(`${tamer}/`),
+      );
+      if (!effect) throw new Error("Missing ordered placement declaration");
+      expect(
+        s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: ids[0]!, effectKey: effect.effectKey }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderCards");
+      const decision = s.state.pendingDecision!;
+      expect(
+        s.decisions.find(({ req }) => req.kind === "orderCards" && req.sourceCardId === tamer)?.req.options
+          ?.candidateInstanceIds,
+      ).toEqual(ids);
+      expect(s.perm("tamer").topCard.instanceId).toBe(ids[0]);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(ids.slice(1));
+      expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([existingId]);
+      for (const invalidOrder of [ids.slice(1), [ids[0]!, ids[0]!, ids[2]!], ["forged-material", ids[1]!, ids[2]!]]) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: { kind: "orderCards", order: invalidOrder },
+          }).ok,
+        ).toBe(false);
+        expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+        expect(s.perm("tamer").topCard.instanceId).toBe(ids[0]);
+        expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(ids.slice(1));
+        expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([existingId]);
+      }
+      const chosenOrder = permutation.map((index) => ids[index]!);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderCards", order: chosenOrder },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.perm("host").stack.length === 4);
+      expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([...chosenOrder, existingId]);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.battleArea).toHaveLength(1);
+      expect(s.perm("host").topCard.cardId).toBe(host);
+      expect(s.state.memory).toBe(10);
+    },
+  );
 });

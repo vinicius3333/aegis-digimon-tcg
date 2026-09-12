@@ -65,7 +65,7 @@ describe("ST17-10 Henry Wong", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it.fails("offers all three processing cards for arbitrary bottom-stack ordering", async () => {
+  it("offers all three processing cards for arbitrary bottom-stack ordering", async () => {
     const s = setupEngine(
       {
         0: {

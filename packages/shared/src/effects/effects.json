@@ -47794,6 +47794,7 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "compound",
+              "orderPlacedCards": true,
               "costs": [
                 {
                   "kind": "place",
@@ -208024,6 +208025,7 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "compound",
+              "orderPlacedCards": true,
               "costs": [
                 {
                   "kind": "place",

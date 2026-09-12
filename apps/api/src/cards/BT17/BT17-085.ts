@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",
+            orderPlacedCards: true,
             costs: [
               {
                 kind: "place",

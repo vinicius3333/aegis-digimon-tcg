@@ -272,7 +272,7 @@ Baseline `fdcd148ea`; sole consumer evidence in `docs/audits/ST17.md`. The exist
 
 This proves bound-host continuation and conditional Rush recipient for this consumer. Rush expiry and arbitrary player-selected stack order remain open; historical whole-card/collection certification remains reopened.
 
-### Arbitrary compound bottom placement: unresolved reproduction
+### Arbitrary compound bottom placement: historical red reproduction
 
 Baseline `c1ad19382`; sole consumer evidence in `docs/audits/ST17.md`. Public exact-name Henry declaration reaches MegaGargomon/Rush with no pending decision but offers no ordering of Henry/Gargomon/Rapidmon despite printed `in any order`. Ordinary red: one failure / six passes at missing `orderCards` candidate list. The explicit `it.fails` is unresolved evidence, not certification; both reviewed name citation and printed order-clause guards run outside expected-failure capture.
 
@@ -301,6 +301,20 @@ Review identified movement events emitted during provisional placement. The mixe
 Closing gates: final focused real-primitives proof passed 155 tests. Final API typecheck, scoped Oxlint, changed-file Oxfmt, audit layout (4/4) and `git diff --check` passed. Card modules and persisted card IR remain unchanged.
 
 This is the movement prerequisite, not a complete ordering implementation. Cost target/host collection, public order decisions, stale selections after those decisions, manual nondefault ST17-10/BT17-085 permutations, source-specific Tamer-attached-card rulings and breeding-top material support still require classification/proof. ST17-10's expected ordering failure remains intentional unresolved evidence; no card, collection or mechanism completion is claimed.
+
+### Public ordered placement payment for ST17-10 and BT17-085
+
+Baseline `240e5fcc9`. Added `Cost.orderPlacedCards` for an explicit first-permanent / bound-loose-material compound shape. The resolver collects the complete unpaid batch and one destination on local bindings, offers a public stack-bottom order, validates an exact distinct permutation, refreshes source/host/material identity and eligibility after the awaited choice, and calls the atomic mixed-placement primitive before committing parent bindings/paid state. Ordinary non-ordered compound and Digivolve paths retain their behavior.
+
+Both printed any-order consumers now enable the policy. Manual public conformance for ST17-10 and BT17-085 offers exactly the three payment identities before any movement. Incomplete, duplicate and forged responses reject and retain the same decision/Tamer/materials/old host source. A nondefault second-material/Tamer/first-material permutation commits exactly beneath the pre-existing host source with empty trash, source departure, unchanged unevolved host, ten memory and no pending decision. The ST17-10 missing-order marker was removed; its former red test is now ordinary passing proof. Focused three-file proof passed 24 tests; final conformance including forged-order assertions passed eight tests.
+
+Scoped ST17 synchronization against the baseline produced thirteen records, one semantic change and zero changes outside ST17. Attempting BT17 synchronization against the same baseline correctly refused the already authorized ST17 semantic change without writing it away; BT17 was then synchronized against the current document (102 records). Final semantic comparison to baseline has exactly `ST17-10` and `BT17-085` changed. Sole collection evidence stays in `docs/audits/ST17.md` and `docs/audits/BT17.md`. Independent read-only review found no blocker in these enabled shapes.
+
+Final public matrix covers all six material permutations for each consumer. Full engine/cards regression passed 5046 files / 41324 tests with six existing EX13 expected failures (41330 total). Typecheck initially found the IR target source can be a single zone or list; both selection and revalidation now normalize through existing `zoneList`. For these two array-zone consumers runtime behavior is unchanged. Final ST17/BT17/effects/conformance regression after normalization and expanded matrix passed 195 files / 2404 tests; independent final read-only review found no new blocker.
+
+Final delivery gates: full workspace shared/API/web typecheck, scoped Oxlint, changed-file Oxfmt, audit layout (4/4) and `git diff --check` passed.
+
+This verifies the two public permutation/refusal boundaries, not all compound costs or the full mechanism. Multiple-candidate overlap/assignment, other ordered shapes, attached-Tamer source rulings, stale selection interactions, Rush expiry and complete collection fidelity remain open. Earlier expected-failure and unintegrated-seam paragraphs are historical checkpoints, superseded only by this bounded proof.
 
 ### Current primary-source check
 
