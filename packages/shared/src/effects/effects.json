@@ -196911,7 +196911,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Rook Device"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Rook Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Rook Device]"
             }
