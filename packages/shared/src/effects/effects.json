@@ -195141,7 +195141,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Hawkmon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Hawkmon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195155,7 +195158,7 @@
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Aquilamon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Aquilamon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
