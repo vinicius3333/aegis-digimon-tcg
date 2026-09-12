@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-003.js";
@@ -98,6 +99,51 @@ describe("LM-003 TeslaJellymon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
   });
 
+  it("loses battle immunity after its own turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-003", as: "attacker", dp: 4000 }],
+          hand: [{ card: "BT1-029", as: "blueCost" }, "BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "opponent", dp: 5000, suspended: true }],
+          deck: ["BT1-009"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isRestricted(s.perm("attacker").permanentId, "beDeletedInBattle")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
   it("is still deleted by Retaliation, which is effect deletion rather than battle deletion, per Q3992", async () => {
     const s = setupEngine(
       {
@@ -132,7 +178,7 @@ describe("LM-003 TeslaJellymon", () => {
           hand: ["BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029"],
           deck: ["BT1-027"],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -158,7 +204,7 @@ describe("LM-003 TeslaJellymon", () => {
           hand: ["BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029"],
           deck: ["BT1-027", "BT1-028"],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

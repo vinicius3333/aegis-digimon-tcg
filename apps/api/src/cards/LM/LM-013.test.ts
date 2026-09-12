@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Zone, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-013.js";
 
@@ -29,7 +30,7 @@ describe("LM-013 Diarbbitmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-013", as: "diarbbitmon" }] },
+        0: { battleArea: [{ card: "LM-012", as: "base" }], hand: [{ card: "LM-013", as: "diarbbitmon" }] },
         1: {
           battleArea: [
             { card: "BT1-080", as: "victim" },
@@ -40,10 +41,16 @@ describe("LM-013 Diarbbitmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("victim").permanentId);
-    s.state.memory = 0;
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("diarbbitmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("diarbbitmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("victim").isSuspended, 2000);
 
     expect(s.perm("victim").isSuspended).toBe(true);
@@ -94,23 +101,63 @@ describe("LM-013 Diarbbitmon", () => {
       {
         0: {
           battleArea: [{ card: "LM-013", as: "diarbbitmon" }],
-          hand: [{ card: "LM-011", as: "symbare" }],
+          hand: [
+            { card: "LM-008", as: "angoramon" },
+            { card: "LM-008", as: "symbare" },
+          ],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("diarbbitmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("diarbbitmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
     await settle(
-      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-011"),
+      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-008"),
       2000,
     );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-011")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-008")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("leaves the optional Angoramon play in hand when declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-013", as: "diarbbitmon" }],
+          hand: [
+            { card: "LM-008", as: "angoramon" },
+            { card: "LM-011", as: "symbare" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("diarbbitmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
+    await settle(() => s.state.pendingDecision == null);
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "LM-011")).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "LM-011")).toHaveLength(
+      0,
+    );
   });
 
   it("returns the played Digimon to hand at the next end of the opponent's turn, trashing its stack", async () => {
@@ -118,30 +165,49 @@ describe("LM-013 Diarbbitmon", () => {
       {
         0: {
           battleArea: [{ card: "LM-013", as: "diarbbitmon" }],
-          hand: [{ card: "LM-011", as: "symbare" }],
+          hand: [{ card: "LM-008", as: "angoramon" }, { card: "LM-011", as: "symbare" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("diarbbitmon"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-011"), 2000);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("diarbbitmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-008"), 2000);
 
     // Q4001: the top card goes back to the hand and everything under it is trashed.
-    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "LM-011")!;
-    played.stack.push(s.give(0, Zone.Trash, { card: "LM-008", as: "beneath" }));
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "LM-008")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: played.permanentId,
+        instanceId: s.inst("symbare").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => played.topCard?.cardId === "LM-011", 2000);
 
-    s.state.turnSeat = 1;
-    // The DelayedEffect is a one-shot `endOfTurn` watcher; firing it raw keeps the armed
-    // subscription intact, which is what production does between an event and its bodies.
-    await advance(s.engine).fireArmedSubTriggers("endOfTurn", {});
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "LM-011"), 2000);
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "LM-011")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-011")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-008")).toBe(true);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

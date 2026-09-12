@@ -1,11 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { EffectDuration, EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./LM-020.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST3/ST3-11.js";
+import "../ST3/ST3-14.js";
 
 // LM-020 (Quantumon) — two clauses with dense official Q&A:
 //
@@ -103,7 +106,7 @@ describe("LM-020 Quantumon", () => {
           ],
           hand: [{ card: "LM-020", as: "quantumon" }],
         },
-        1: { security: ["BT1-001", "BT1-085"] },
+        1: { security: ["BT1-009", "BT1-085"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -152,7 +155,7 @@ describe("LM-020 Quantumon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
-        1: { battleArea: [{ card: "LM-016", as: "theirs" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "LM-016", as: "theirs" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -174,6 +177,64 @@ describe("LM-020 Quantumon", () => {
       s.state.players[1]!.security.some((card) => card.cardId === "LM-016") ||
         s.state.players[1]!.deck.some((card) => card.cardId === "LM-016"),
     ).toBe(true);
+  });
+
+  it("accepts a Digimon token as the security placement cost and removes it from play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
+        1: { battleArea: [{ card: "TOKEN-Diaboromon", as: "token" }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("token").permanentId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("quantumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.state.players[1]!.security.some((card) => card.cardId === "TOKEN-Diaboromon") ||
+        s.state.players[1]!.deck.some((card) => card.cardId === "TOKEN-Diaboromon"),
+    ).toBe(false);
+  });
+
+  it("accepts Mother D-Reaper as the placement cost and applies the opponent security exchange", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-036", as: "base" },
+            { card: "EX2-007", as: "mother" },
+          ],
+          hand: [{ card: "LM-020", as: "quantumon" }],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("mother").permanentId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("quantumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every((perm) => perm.topCard?.cardId !== "EX2-007"), 2000);
+
+    expect(s.state.players[0]!.eggDeck.some((card) => card.cardId === "EX2-007")).toBe(true);
+    expect(s.state.players[1]!.security.length).toBeLessThan(2);
+    expect(s.state.players[1]!.deck.length).toBeGreaterThan(0);
   });
 
   const module = getEffectModule("LM-020");
@@ -205,18 +266,24 @@ describe("LM-020 Quantumon", () => {
 
   it("declares Digimon, gains only Digimon-effect immunity, and returns the matching reveal to deck bottom", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "LM-020", as: "quantumon" }] },
+      0: { battleArea: [{ card: "LM-020", as: "quantumon", suspended: true }] },
       1: {
+        battleArea: [
+          { card: "ST3-11", as: "attacker", dp: 1000, suspended: true },
+          { card: "BT1-045", as: "yellowSource" },
+        ],
         deck: [
           { card: "LM-016", as: "revealed" },
+          { card: "BT1-009", as: "drawn" },
           { card: "BT1-085", as: "tail" },
         ],
+        hand: [{ card: "ST3-14", as: "option" }],
       },
     });
     s.state.turnSeat = 1;
-    await s.ready();
-
-    const resolving = advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("quantumon"));
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 10;
+    const resolving = s.engine.runOneTurn();
     await settle(() => s.state.pendingDecision?.kind === "chooseOption");
     const category = s.state.pendingDecision!;
     expect(
@@ -239,28 +306,77 @@ describe("LM-020 Quantumon", () => {
         response: { kind: "chooseOption", optionIndex: 1 },
       }),
     ).toEqual({ ok: true });
-    await resolving;
-
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("tail").instanceId,
       s.inst("revealed").instanceId,
     ]);
 
-    const driver = advance(s.engine);
-    driver.verb.enterEffectResolution(1, ["Digimon"]);
-    try {
-      await driver.verb.modifyDP(s.perm("quantumon").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
-    } finally {
-      driver.verb.leaveEffectResolution();
-    }
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("quantumon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("quantumon").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("quantumon"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("quantumon"), "beAffected", "Option")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("quantumon").currentDP === 11000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await resolving;
+    expect(s.perm("quantumon").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("quantumon"), "beAffected", "Digimon")).toBe(false);
+  });
 
-    driver.verb.enterEffectResolution(1, ["Option"]);
-    try {
-      await driver.verb.modifyDP(s.perm("quantumon").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
-    } finally {
-      driver.verb.leaveEffectResolution();
-    }
-    expect(s.perm("quantumon").currentDP).toBe(12000);
+  it("returns a matching category reveal to the top when that placement is chosen", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "LM-020", as: "quantumon" }] },
+      1: {
+        deck: [
+          { card: "LM-016", as: "revealed" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-085", as: "tail" },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.isFirstPlayersFirstTurn = false;
+
+    const resolving = s.engine.runOneTurn();
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const category = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: category.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseOption" && s.state.pendingDecision.decisionId !== category.decisionId,
+    );
+    const placement = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placement.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("revealed").instanceId)).toBe(true);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("drawn").instanceId,
+      s.inst("tail").instanceId,
+    ]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await resolving;
   });
 });

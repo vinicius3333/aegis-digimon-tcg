@@ -1,12 +1,13 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-001.js";
 
-// A three-color digivolution stack: Blue Armadillomon and Yellow Tsukaimon under a Red
-// MetalTyrannomon, so digivolving into Siriusmon leaves Blue/Yellow/Red beneath it.
-const threeColorBase = { card: "BT1-024", as: "base", under: ["BT1-027", "BT1-045"] };
+// Legal yellow level 3 → yellow/blue level 4 → red/yellow level 5 source stack.
+const threeColorBase = { card: "BT8-015", as: "base", under: ["BT1-045", "BT13-040"] };
 
 describe("LM-001 Siriusmon", () => {
   it("blast-digivolves from hand in the counter window without paying the cost", async () => {
@@ -80,7 +81,7 @@ describe("LM-001 Siriusmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-027", "BT1-045", "BT1-024"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-045", "BT13-040", "BT8-015"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -161,7 +162,7 @@ describe("LM-001 Siriusmon", () => {
             { card: "BT1-080", as: "first", dp: 3000, suspended: true },
             { card: "BT1-080", as: "second", dp: 3000, suspended: true },
           ],
-          security: 2,
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -187,6 +188,63 @@ describe("LM-001 Siriusmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(memoryAfterFirst);
+  });
+
+  it("resets the deletion watcher on the controller's next turn", async () => {
+    const s = setupEngine({
+      0: {
+        hand: ["BT1-009"],
+        security: ["BT1-085", "BT1-085"],
+        battleArea: [{ card: "LM-001", as: "siriusmon", dp: 12000 }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-080", as: "first", dp: 3000, suspended: true },
+          { card: "BT1-080", as: "second", dp: 3000, suspended: true },
+        ],
+        deck: ["BT1-009"],
+        hand: ["BT1-010"],
+      },
+    });
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    const firstGain = s.state.memory;
+    expect(firstGain).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const nextMemory = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("siriusmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.memory).toBe(nextMemory + 1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

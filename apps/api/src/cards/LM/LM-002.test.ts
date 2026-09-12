@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -11,13 +11,19 @@ describe("LM-002 Jellymon", () => {
   it("draws at the start of its owner's main phase with seven cards in hand", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-002", as: "jellymon" }], hand: [...sevenCards], deck: ["BT1-027"] },
+        0: {
+          battleArea: [{ card: "LM-002", as: "jellymon" }],
+          hand: sevenCards.slice(0, 6),
+          deck: ["BT1-027", "BT1-028"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("jellymon"));
+    s.state.isFirstPlayersFirstTurn = false;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
   });
@@ -25,13 +31,15 @@ describe("LM-002 Jellymon", () => {
   it("does not draw with eight cards in hand", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-002", as: "jellymon" }], hand: [...sevenCards, "BT1-029"], deck: ["BT1-027"] },
+        0: { battleArea: [{ card: "LM-002", as: "jellymon" }], hand: [...sevenCards], deck: ["BT1-027"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("jellymon"));
+    s.state.isFirstPlayersFirstTurn = false;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
   });
@@ -40,12 +48,16 @@ describe("LM-002 Jellymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-002", as: "jellymon" }], hand: [...sevenCards], deck: ["BT1-027"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("jellymon"));
+    s.state.isFirstPlayersFirstTurn = false;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
 
     expect(s.state.players[0]!.hand).toHaveLength(7);
   });
@@ -58,16 +70,17 @@ describe("LM-002 Jellymon", () => {
             { card: "LM-002", as: "first" },
             { card: "LM-002", as: "second" },
           ],
-          hand: [...sevenCards],
-          deck: ["BT1-027", "BT1-028"],
+          hand: sevenCards.slice(0, 6),
+          deck: ["BT1-027", "BT1-028", "BT1-029"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("first"));
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("second"));
+    s.state.isFirstPlayersFirstTurn = false;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     // The first draw puts the hand at 8, so the second copy's condition no longer holds.
     expect(s.state.players[0]!.hand).toHaveLength(8);
@@ -81,7 +94,7 @@ describe("LM-002 Jellymon", () => {
           hand: [...sevenCards],
           deck: ["BT1-027"],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -107,7 +120,7 @@ describe("LM-002 Jellymon", () => {
           hand: [...sevenCards],
           deck: ["BT1-027", "BT1-028"],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

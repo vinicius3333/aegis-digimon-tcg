@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -14,29 +14,33 @@ describe("LM-008 Angoramon", () => {
             { card: "LM-008", as: "angoramon" },
             { card: "BT9-086", as: "tamer" },
           ],
+          hand: ["BT1-029"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-    s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("angoramon"));
-
-    expect(s.state.memory).toBe(1);
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("gains nothing without a Tamer", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "LM-008", as: "angoramon" }] } },
+      { 0: { battleArea: [{ card: "LM-008", as: "angoramon" }], hand: ["BT1-029"], deck: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-    s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("angoramon"));
-
-    expect(s.state.memory).toBe(0);
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("stays silent on the opponent's main phase", async () => {
@@ -48,15 +52,18 @@ describe("LM-008 Angoramon", () => {
             { card: "BT9-086", as: "tamer" },
           ],
         },
+        1: { hand: ["BT1-029"], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("angoramon"));
-
-    expect(s.state.memory).toBe(0);
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("grants +2000 DP on your turn to a host whose text mentions Angoramon", async () => {

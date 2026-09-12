@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -11,7 +11,7 @@ describe("LM-010 Chamblemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-010", as: "chamblemon" }] },
+        0: { hand: [{ card: "LM-010", as: "chamblemon" }] },
         1: {
           battleArea: [
             { card: "BT9-086", as: "oppTamer" },
@@ -21,10 +21,13 @@ describe("LM-010 Chamblemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     preferred.push(s.perm("oppTamer").permanentId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("chamblemon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chamblemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("oppTamer").isSuspended, 2000);
 
     expect(s.perm("oppTamer").isSuspended).toBe(true);
@@ -36,17 +39,17 @@ describe("LM-010 Chamblemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "LM-010", as: "chamblemon" },
-            { card: "BT9-086", as: "myTamer" },
-          ],
+          battleArea: [{ card: "BT9-086", as: "myTamer" }],
+          hand: [{ card: "LM-010", as: "chamblemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("chamblemon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chamblemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("myTamer").isSuspended, 2000);
 
     expect(s.perm("myTamer").isSuspended).toBe(true);
@@ -56,13 +59,16 @@ describe("LM-010 Chamblemon", () => {
   it("locks an opposing Tamer that arrives after the effect resolved", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-010", as: "chamblemon" }] },
+        0: { hand: [{ card: "LM-010", as: "chamblemon" }] },
         1: { battleArea: [{ card: "BT9-086", as: "oppTamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("chamblemon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chamblemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("oppTamer").permanentId, "unsuspend"), 2000);
 
     const late = s.putOnBoard(1, { card: "BT9-086", as: "lateTamer" });
