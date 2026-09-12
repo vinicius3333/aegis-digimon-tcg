@@ -67,7 +67,7 @@ describe("P-140 MegaKabuterimon", () => {
       0: { battleArea: [{ card: "BT1-081", as: "host", under: ["P-140"], dp: 12000 }] },
       1: {
         battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
-        security: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-090", "BT1-090", "BT1-090"],
       },
     });
     await s.ready();
@@ -82,6 +82,60 @@ describe("P-140 MegaKabuterimon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("limits inherited battle deletion to once per turn and resets naturally", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "host", under: ["P-140"], dp: 12000 }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target1", suspended: true },
+            { card: "BT1-009", as: "target2", suspended: true },
+            { card: "BT1-009", as: "target3", suspended: true },
+          ],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = async (target: string) => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm(target).permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+    };
+
+    await attack("target1");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await attack("target2");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("target3").permanentId]);
+    await attack("target3");
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("does not react when another allied Digimon wins the battle", async () => {
     const s = setupEngine({
       0: {
@@ -90,7 +144,7 @@ describe("P-140 MegaKabuterimon", () => {
           { card: "BT1-009", as: "ally", dp: 12000 },
         ],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-090"] },
     });
     await s.ready();
     expect(
