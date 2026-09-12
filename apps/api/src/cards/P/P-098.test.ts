@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-048.js";
 import "../BT5/BT5-092.js";
 import "./P-098.js";
+import "./P-129.js";
 
 describe("P-098 Seadramon", () => {
   it("protects exactly the chosen blue Digimon from battle deletion through the opponent's turn", async () => {
@@ -90,95 +94,126 @@ describe("P-098 Seadramon", () => {
     assertNoLoudGap(s);
   });
 
-  it("Q4184 grants Rush when Nokia plays a Digimon by an effect, only once per turn", async () => {
+  it("Q4184 grants Rush from a public effect-play, only once per turn, then resets naturally", async () => {
+    expect(getCardDefinition("P-098")).toMatchObject({
+      cardId: "P-098",
+      nameEn: "Seadramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
+    });
+
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-038", as: "host", under: ["P-098"] }],
-          hand: [
-            { card: "BT5-092", as: "firstNokia" },
-            { card: "BT5-092", as: "secondNokia" },
-            { card: "BT1-029", as: "firstGabumon" },
-            { card: "EX1-011", as: "secondGabumon" },
+          battleArea: [
+            {
+              card: "BT1-040",
+              as: "host",
+              under: [{ card: "P-098", as: "source" }],
+            },
+            { card: "BT1-028", as: "firstRecipient" },
+            { card: "BT1-028", as: "secondRecipient" },
           ],
-          deck: ["BT1-009", "BT1-009"],
+          hand: [
+            { card: "P-129", as: "firstTk" },
+            { card: "P-129", as: "secondTk" },
+            { card: "P-129", as: "thirdTk" },
+            { card: "BT1-048", as: "firstPatamon" },
+            { card: "BT1-048", as: "secondPatamon" },
+            { card: "BT1-048", as: "thirdPatamon" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: Array.from({ length: 20 }, () => "BT1-101"),
         },
-        1: { security: ["BT1-028", "BT1-028"] },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: Array.from({ length: 20 }, () => "BT1-101"),
+          security: [],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: false },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        preferOptionIndex: 0,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
     );
-    s.state.turnCount = 1;
+    preferred.push(s.perm("firstRecipient").permanentId);
     s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
-        instanceId: s.inst("firstNokia").instanceId,
+        instanceId: s.inst("firstTk").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const firstPlay = s.decisions.at(-1)!.req;
-    expect(firstPlay.sourceCardId).toBe("BT5-092");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: firstPlay.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("firstGabumon").instanceId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("firstGabumon").instanceId,
-      ),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("firstPatamon").instanceId,
+        ) && s.state.pendingDecision === undefined,
     );
-    const firstGabumon = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard.instanceId === s.inst("firstGabumon").instanceId,
+    const firstRecipient = s.perm("firstRecipient");
+    const firstPatamon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("firstPatamon").instanceId,
     )!;
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const rushTarget = s.decisions.at(-1)!.req;
-    expect(rushTarget.sourceCardId).toBe("P-098");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: rushTarget.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [firstGabumon.permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(firstGabumon, "Rush"));
-    expect(observe(s.engine).hasKeyword(firstGabumon, "Rush")).toBe(true);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: firstGabumon.permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(firstPatamon).toBeDefined();
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstTk").instanceId)).toBe(false);
+    expect(observe(s.engine).hasKeyword(firstRecipient, "Rush")).toBe(true);
 
+    preferred.unshift(s.perm("secondRecipient").permanentId);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
-        instanceId: s.inst("secondNokia").instanceId,
+        instanceId: s.inst("secondTk").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("secondGabumon").instanceId,
-      ),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("secondPatamon").instanceId,
+        ) && s.state.pendingDecision === undefined,
     );
-    const secondGabumon = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard.instanceId === s.inst("secondGabumon").instanceId,
-    )!;
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondTk").instanceId)).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("secondRecipient"), "Rush")).toBe(false);
 
-    expect(observe(s.engine).hasKeyword(secondGabumon, "Rush")).toBe(false);
-    expect(s.decisions.filter(({ req }) => req.sourceCardId === "P-098")).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasKeyword(firstRecipient, "Rush")).toBe(false);
+    preferred.splice(0, preferred.length, s.perm("secondRecipient").permanentId);
+    expect(s.state.memory).toBe(3);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdTk").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("thirdPatamon").instanceId,
+        ) && s.state.pendingDecision === undefined,
+    );
     expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: secondGabumon.permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("thirdPatamon").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("secondRecipient"), "Rush")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("thirdTk").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
