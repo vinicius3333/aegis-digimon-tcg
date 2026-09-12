@@ -63,11 +63,11 @@ describe("P-205 Insane Synthetic Monster", () => {
         0: {
           hand: [
             { card: "P-205", as: "option" },
-            { card: "BT1-001", as: "trash1" },
-            { card: "BT1-002", as: "trash2" },
+            { card: "BT1-101", as: "trash1" },
+            { card: "BT1-101", as: "trash2" },
           ],
           battleArea: [{ card: "BT19-065", as: "color" }],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-028", "BT1-028"],
         },
       },
       { autoSelectCards: true },
@@ -88,10 +88,10 @@ describe("P-205 Insane Synthetic Monster", () => {
         0: {
           security: [{ card: "P-205", as: "option" }],
           hand: [
-            { card: "BT1-001", as: "trash1" },
-            { card: "BT1-002", as: "trash2" },
+            { card: "BT1-101", as: "trash1" },
+            { card: "BT1-101", as: "trash2" },
           ],
-          deck: ["BT1-003", "BT1-004"],
+          deck: ["BT1-028", "BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

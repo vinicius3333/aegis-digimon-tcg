@@ -83,7 +83,7 @@ describe("Purple trash promo decks", () => {
             { card: "ST10-15", as: "darknessWave" },
             { card: "BT2-107", as: "topDeckOption" },
           ],
-          deck: [{ card: "P-077", as: "milledWizardmon" }, "BT1-001", "BT1-002"],
+          deck: [{ card: "P-077", as: "milledWizardmon" }, "BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
       },

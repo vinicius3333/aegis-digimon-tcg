@@ -16,7 +16,7 @@ describe("Imperialdramon promo Option deck", () => {
             { card: "ST9-05", as: "paildramon" },
             { card: "BT3-111", as: "dragonMode" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },

@@ -38,7 +38,7 @@ describe("P-149 Minomon", () => {
       {
         0: {
           battleArea: [{ card: "P-152", as: "host", under: ["P-149"] }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "ST1-16", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "level3" }] },
       },

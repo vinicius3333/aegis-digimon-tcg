@@ -23,7 +23,7 @@ describe("P-188 DemiVeemon", () => {
       0: {
         battleArea: [{ card: "BT1-009", as: "host", under: ["P-188"] }],
         hand: [{ card: "BT1-086", as: "tamer" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     await s.ready();

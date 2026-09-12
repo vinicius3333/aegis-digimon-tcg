@@ -54,7 +54,7 @@ describe("P-236 engine behavior", () => {
       {
         0: {
           hand: [{ card: "P-236", as: "dawn" }],
-          deck: [{ card: "BT25-032", as: "glowingDawn" }, "BT1-001", "BT1-002"],
+          deck: [{ card: "BT25-032", as: "glowingDawn" }, "BT1-009", "BT1-009"],
           battleArea: ["BT1-088", "BT25-003"],
         },
       },
@@ -70,7 +70,7 @@ describe("P-236 engine behavior", () => {
 
   it("places itself after resolving its Security reveal", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "P-236", as: "dawn" }], deck: ["BT25-032", "BT1-001", "BT1-002"] } },
+      { 0: { security: [{ card: "P-236", as: "dawn" }], deck: ["BT25-032", "BT1-009", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

@@ -103,7 +103,7 @@ describe("P-238 engine behavior", () => {
           { card: "BT22-008", as: "cs" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.perm("cannon").placedByEffect = true;
     s.state.turnSeat = 0;

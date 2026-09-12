@@ -33,7 +33,7 @@ describe("P-190 Tweetmon", () => {
 describe("P-190 engine behavior", () => {
   it("draws the top card when played", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "P-190", as: "demiveemon" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      0: { hand: [{ card: "P-190", as: "demiveemon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
     });
     s.state.memory = 20;
     await s.ready();
@@ -49,7 +49,7 @@ describe("P-190 engine behavior", () => {
       0: {
         battleArea: [{ card: "P-190", as: "host" }],
         hand: [{ card: "BT21-009", as: "linked" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     s.state.memory = 10;
@@ -71,7 +71,7 @@ describe("P-190 engine behavior", () => {
         0: {
           battleArea: [{ card: "BT21-009", as: "appmonHost" }],
           hand: [{ card: "P-190", as: "tweetmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

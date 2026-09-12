@@ -72,7 +72,7 @@ describe("P-181 Royal Base", () => {
             { card: "ST6-03" },
             { card: "BT1-084" },
           ],
-          security: ["BT1-005", "BT1-006"],
+          security: ["BT1-048", "BT1-067"],
         },
       },
       { autoSelectCards: true },
@@ -83,7 +83,7 @@ describe("P-181 Royal Base", () => {
       ok: true,
     });
     await settle();
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-005")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-048")).toBe(true);
     const placed = s.state.players[0]!.security.at(-1)!;
     expect(placed.instanceId).toBe(s.inst("source").instanceId);
     expect(placed.faceUp).toBe(true);

@@ -44,7 +44,7 @@ describe("P-194 Aegiomon", () => {
           { card: "P-194", as: "aegio" },
           { card: "BT1-057", as: "higher" },
         ],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     s.state.memory = 4;

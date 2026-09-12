@@ -48,8 +48,8 @@ describe("P-196 Gomamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-009", as: "host", under: ["P-196"] }],
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
-        deck: [{ card: "BT1-008", as: "drawn" }],
+        hand: ["ST1-16", "ST1-16", "BT1-101", "BT1-101", "BT1-107", "BT1-108", "BT10-105"],
+        deck: [{ card: "BT1-108", as: "drawn" }],
       },
       1: { security: 1 },
     });

@@ -18,8 +18,8 @@ describe("Diaboromon promo line deck", () => {
           ],
         },
         1: {
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
-          deck: ["BT1-007"],
+          security: ["BT1-009", "BT1-009", "BT1-028", "BT1-028", "BT1-048", "BT1-067"],
+          deck: ["BT1-067"],
         },
       },
       { autoAcceptOptional: true },
@@ -66,7 +66,7 @@ describe("Diaboromon promo line deck", () => {
           { card: "P-016", as: "secondDiaboromon" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-028", "BT1-028"] },
     });
     await s.ready();
     await s.engine.recomputeContinuousEffects();

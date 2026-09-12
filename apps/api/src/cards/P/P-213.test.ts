@@ -65,7 +65,7 @@ describe("P-213 engine behavior", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-213", as: "aegiomon" }], security: 4 },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

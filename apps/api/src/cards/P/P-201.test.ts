@@ -53,9 +53,9 @@ describe("P-201 Phascomon", () => {
         0: {
           hand: [
             { card: "P-201", as: "source" },
-            { card: "BT1-001", as: "filler" },
+            { card: "ST1-16", as: "filler" },
           ],
-          deck: [{ card: "BT13-084", as: "match" }, "BT1-002", "BT1-003"],
+          deck: [{ card: "BT13-084", as: "match" }, "BT1-009", "BT1-028"],
         },
       },
       { autoSelectCards: true },
@@ -75,8 +75,8 @@ describe("P-201 Phascomon", () => {
       {
         0: {
           battleArea: [{ card: "P-201", as: "source" }],
-          hand: [{ card: "BT1-001", as: "filler" }],
-          deck: [{ card: "BT13-084", as: "match" }, "BT1-002", "BT1-003"],
+          hand: [{ card: "ST1-16", as: "filler" }],
+          deck: [{ card: "BT13-084", as: "match" }, "BT1-009", "BT1-028"],
         },
       },
       { autoSelectCards: true },

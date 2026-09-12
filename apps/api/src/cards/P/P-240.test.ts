@@ -118,7 +118,7 @@ describe("P-240 engine behavior", () => {
   it("redirects an opponent attack to its inherited host once per turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["P-240"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["P-240"] }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

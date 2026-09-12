@@ -60,7 +60,7 @@ describe("P-239 inherited engine behavior", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "ST1-16", as: "cost" }],
           battleArea: [{ card: "BT15-076", as: "host", under: [{ card: "P-239", as: "demidevimon" }] }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },

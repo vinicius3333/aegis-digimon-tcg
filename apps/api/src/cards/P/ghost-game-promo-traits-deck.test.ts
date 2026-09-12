@@ -21,7 +21,7 @@ describe("Ghost Game promo trait decks", () => {
             { card: "BT1-014", as: "angoramonHost", under: ["P-060"] },
             { card: "BT1-009", as: "jellymonHost", under: ["P-061"] },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: {
           battleArea: [

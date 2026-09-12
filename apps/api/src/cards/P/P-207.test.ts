@@ -99,7 +99,7 @@ describe("P-207 Minervamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-207", as: "minerva" }], trash: [{ card: "BT1-013", as: "avian" }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

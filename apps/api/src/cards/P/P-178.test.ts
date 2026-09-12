@@ -52,7 +52,7 @@ describe("P-178 Sagittarimon", () => {
           ],
           // Non-empty security so the player-directed attack below runs a real
           // security check instead of instantly winning against an empty stack.
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

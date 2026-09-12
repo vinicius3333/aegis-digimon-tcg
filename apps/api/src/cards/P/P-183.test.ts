@@ -47,7 +47,7 @@ describe("P-183 Gaiomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-183", as: "gaiomon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

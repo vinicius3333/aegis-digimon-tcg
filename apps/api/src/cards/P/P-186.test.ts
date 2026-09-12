@@ -101,7 +101,7 @@ describe("P-186 engine behavior", () => {
   it("recovers one card when its play effect deletes no qualifying Digimon", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-005"], deck: ["BT1-006"] },
+        0: { hand: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-048"], deck: ["BT1-067"] },
         1: { battleArea: [{ card: "BT1-009", dp: 14000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -117,7 +117,7 @@ describe("P-186 engine behavior", () => {
 
   it("also deletes a boundary target and recovers when digivolving", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-001"], deck: ["BT1-006"] },
+      0: { battleArea: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-009"], deck: ["BT1-067"] },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 13000 }] },
     });
     await s.ready();

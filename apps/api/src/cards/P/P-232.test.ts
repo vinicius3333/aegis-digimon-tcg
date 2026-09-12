@@ -74,7 +74,7 @@ describe("P-232 engine behavior", () => {
       {
         0: {
           hand: [{ card: "P-232", as: "emblem" }],
-          deck: [{ card: "BT12-010", as: "evil" }, { card: "BT18-060", as: "liberator" }, "BT1-001"],
+          deck: [{ card: "BT12-010", as: "evil" }, { card: "BT18-060", as: "liberator" }, "BT1-009"],
           battleArea: ["BT1-009", "BT1-037", "BT1-063", "BT1-088", "P-016", "ST6-03", "BT1-084"],
         },
       },
@@ -93,7 +93,7 @@ describe("P-232 engine behavior", () => {
 
   it("runs its Evil/Dark Dragon/LIBERATOR reveal when checked from Security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "P-232", as: "emblem" }], deck: ["BT12-010", "BT18-060", "BT1-001"] } },
+      { 0: { security: [{ card: "P-232", as: "emblem" }], deck: ["BT12-010", "BT18-060", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

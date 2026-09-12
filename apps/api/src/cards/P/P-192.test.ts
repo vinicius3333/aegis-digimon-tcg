@@ -42,7 +42,7 @@ describe("P-192 engine behavior", () => {
   it("trashes a hand card and deletes an opposing Digimon when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-192", as: "demidevimon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: { battleArea: [{ card: "P-192", as: "demidevimon" }], hand: [{ card: "ST1-16", as: "cost" }] },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -61,7 +61,7 @@ describe("P-192 engine behavior", () => {
         0: {
           hand: [
             { card: "P-192", as: "demidevimon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "ST1-16", as: "cost" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },

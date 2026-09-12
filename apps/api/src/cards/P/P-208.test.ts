@@ -91,7 +91,7 @@ describe("P-208 Merukimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-208", as: "meruki" }] },
-        1: { battleArea: [{ card: "BT1-009", suspended: true, as: "victim" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", suspended: true, as: "victim" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

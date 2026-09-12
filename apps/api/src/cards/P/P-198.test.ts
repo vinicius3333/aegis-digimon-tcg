@@ -43,8 +43,8 @@ describe("P-198 DemiDevimon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["P-198"] }],
-          hand: [{ card: "BT1-001", as: "discarded" }],
-          deck: [{ card: "BT1-002", as: "drawn" }],
+          hand: [{ card: "ST1-16", as: "discarded" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { security: 1 },
       },

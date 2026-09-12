@@ -65,9 +65,9 @@ describe("P-193 The Wicked God Emerges!", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "P-193", as: "option" }, { card: "BT19-065", as: "cost" }, "BT1-001"],
+          hand: [{ card: "P-193", as: "option" }, { card: "BT19-065", as: "cost" }, "ST1-16"],
           battleArea: [{ card: "BT19-065", as: "color" }],
-          deck: ["BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -81,7 +81,7 @@ describe("P-193 The Wicked God Emerges!", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === optionId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("activates its Main effect when revealed in Security", async () => {
@@ -90,7 +90,7 @@ describe("P-193 The Wicked God Emerges!", () => {
         0: {
           security: [{ card: "P-193", as: "option" }],
           hand: [{ card: "BT19-065", as: "cost" }],
-          deck: ["BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -102,7 +102,7 @@ describe("P-193 The Wicked God Emerges!", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
     ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("activates Delay to delete Millenniummon and play a Wicked God from trash", async () => {

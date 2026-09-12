@@ -17,7 +17,7 @@ describe("Veedramon Zero promo deck", () => {
             { card: "BT2-028", as: "aero", under: ["P-011"] },
             { card: "P-012", as: "tai" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", { card: "BT1-004", as: "drawn" }],
+          deck: ["BT1-009", "BT1-009", "BT1-028", { card: "BT1-028", as: "drawn" }],
           trash: ["BT1-009", "BT1-086", "BT1-094"],
         },
         1: {

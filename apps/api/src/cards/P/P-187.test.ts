@@ -60,7 +60,7 @@ describe("P-187 Mastemon", () => {
 
   it("performs Recovery +1 when its digivolution effect resolves", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-187", as: "mastemon" }], security: ["BT1-005"], deck: ["BT1-006"] },
+      0: { battleArea: [{ card: "P-187", as: "mastemon" }], security: ["BT1-048"], deck: ["BT1-067"] },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mastemon"));
@@ -73,7 +73,7 @@ describe("P-187 Mastemon", () => {
       {
         0: {
           battleArea: [{ card: "P-187", as: "mastemon" }],
-          security: ["BT1-005", "BT1-006"],
+          security: ["BT1-048", "BT1-067"],
           hand: [{ card: "BT1-045", as: "tsukaimon" }],
         },
       },

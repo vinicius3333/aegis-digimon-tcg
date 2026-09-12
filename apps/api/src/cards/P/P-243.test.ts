@@ -95,11 +95,11 @@ describe("P-243 engine behavior", () => {
         0: {
           hand: [
             { card: "P-243", as: "digiseabass" },
-            { card: "BT1-001", as: "cost" },
+            { card: "ST1-16", as: "cost" },
           ],
           deck: [
-            { card: "BT1-002", as: "drawOne" },
-            { card: "BT1-003", as: "drawTwo" },
+            { card: "BT1-009", as: "drawOne" },
+            { card: "BT1-009", as: "drawTwo" },
           ],
           battleArea: [{ card: "P-016", as: "black" }],
         },
@@ -124,7 +124,7 @@ describe("P-243 engine behavior", () => {
         0: {
           hand: [
             { card: "P-243", as: "digiseabass" },
-            { card: "BT1-001", as: "cost" },
+            { card: "ST1-16", as: "cost" },
           ],
           trash: [
             { card: "BT22-049", as: "dmReturn" },

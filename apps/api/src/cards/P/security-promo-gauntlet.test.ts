@@ -16,8 +16,8 @@ describe("Security promo gauntlet", () => {
       {
         0: {
           deck: [
-            { card: "BT1-001", as: "firstDraw" },
-            { card: "BT1-002", as: "secondDraw" },
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-009", as: "secondDraw" },
             { card: "BT2-052", as: "blackReveal" },
           ],
           trash: [{ card: "BT2-069", as: "purpleRookie" }],

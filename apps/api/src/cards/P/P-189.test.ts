@@ -27,7 +27,7 @@ describe("P-189 Dimetromon", () => {
       {
         0: {
           security: [{ card: "P-189", as: "dimetromon" }, "BT1-090"],
-          hand: [{ card: "BT1-001", as: "nonLiberator" }],
+          hand: [{ card: "ST1-16", as: "nonLiberator" }],
           trash: [{ card: "BT18-060", as: "liberator" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
@@ -77,7 +77,7 @@ describe("P-189 Dimetromon", () => {
           { card: "BT1-009", as: "host2" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 0;

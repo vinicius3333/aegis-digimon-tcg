@@ -15,8 +15,8 @@ describe("Greymon and Garurumon promo decks", () => {
           { card: "P-008", as: "wereGarurumon", under: ["P-007"] },
           { card: "BT1-044", as: "metalGarurumon", under: ["P-008"] },
         ],
-        hand: Array.from({ length: 8 }, () => "BT1-001"),
-        deck: [{ card: "BT1-002", as: "drawn" }],
+        hand: Array.from({ length: 8 }, () => "ST1-16"),
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
     });
