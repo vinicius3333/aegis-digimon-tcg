@@ -195543,7 +195543,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pteromon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pteromon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
