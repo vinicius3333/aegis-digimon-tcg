@@ -1444,13 +1444,11 @@ export class CombatController {
       }
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));
-    // KB Q6250: ＜Barrier＞ and a same-event "instead" replacement (Shakkoumon's [All Turns]
-    // "play 1 Digimon from this Digimon's digivolution cards") are one ordered set of options
-    // on the SAME would-leave event. Preventing the deletion settles only the leave; it does
-    // not cancel the sibling replacement, which the controller may still use. The prevention
-    // half is already decided here, so only the "instead" half is offered.
+    // Q4262: Barrier does not cancel same-event prevention or instead siblings. The shared
+    // consult preserves Q6250/Q5352 instead exclusivity while allowing eligible prevention
+    // candidates such as P-146 (Q4261/Q4262) to resolve independently.
     if (barrieredIds.size > 0) {
-      await this.hooks.consultLeavePrevention?.([...barrieredIds], { insteadOnly: true });
+      await this.hooks.consultLeavePrevention?.([...barrieredIds]);
     }
 
     // ＜Detach (trait)＞ (Q6964): immediately before this Digimon is deleted IN BATTLE,
