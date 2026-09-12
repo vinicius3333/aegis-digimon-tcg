@@ -153,4 +153,62 @@ describe("declared optional processing conditions", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT17-038");
     expect(s.state.memory).toBe(4);
   });
+  it.each([true, false])(
+    "Henry pays his declared condition independently of evolution availability: destination=%s",
+    async (withDestination) => {
+      cite(
+        "comprehensive-0170",
+        "15-7-5 permits Henry placements without a subsequent evolution destination",
+        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      );
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "ST17-02", as: "host" },
+              { card: "ST17-10", as: "henry" },
+            ],
+            trash: [
+              { card: "ST17-05", as: "gargomon" },
+              { card: "ST17-07", as: "rapidmon" },
+            ],
+            hand: withDestination ? [{ card: "ST17-08", as: "mega" }] : [],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      const paymentIds = [s.inst("henry").instanceId, s.inst("gargomon").instanceId, s.inst("rapidmon").instanceId];
+      const source = observe(s.engine).cardSource(s.perm("henry"));
+      const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+        entry.effectKey.startsWith("ST17-10/"),
+      );
+      if (!effect) throw new Error("Missing Henry Main activation");
+      try {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "activateEffect",
+            sourceInstanceId: paymentIds[0]!,
+            effectKey: effect.effectKey,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() =>
+          withDestination
+            ? s.state.pendingDecision?.kind === "optional"
+            : s.perm("host").stack.length === 3 && s.state.pendingDecision === undefined,
+        );
+        expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(paymentIds));
+        expect(s.state.players[0]!.trash).toHaveLength(0);
+        expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === paymentIds[0])).toBe(false);
+      } finally {
+        await finishOptional(s);
+      }
+      expect(s.perm("host").topCard.cardId).toBe("ST17-02");
+      expect(s.perm("host").stack).toHaveLength(3);
+      expect(s.state.memory).toBe(10);
+      expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(withDestination ? ["ST17-08"] : []);
+    },
+  );
 });
