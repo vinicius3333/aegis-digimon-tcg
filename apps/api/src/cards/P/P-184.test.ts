@@ -29,7 +29,7 @@ describe("P-184 Dorugoramon", () => {
           },
           condition: {
             kind: "selfDigivolutionStackHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "nameExact" }] },
           },
         },
       ],
