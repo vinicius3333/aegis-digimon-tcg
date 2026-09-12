@@ -47,22 +47,14 @@ const selfDpBuff: Action = {
 
 const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
 
-// ENGINE GAP (retained red). "for every 5000 DP this Digimon has" is a multiplier driven by the
-// SOURCE permanent's live DP, and `Scaling.unit`
-// (packages/shared/src/effects/ir/predicates/scaling.ts) has no DP-valued unit: `scaleFactor`
-// (apps/api/src/engine/effects/interpreter/scaling.ts) can count cards, colors, security, trash,
-// stack cards, memory and named counters, but never a permanent's DP. EX13-020 is the only card in
-// the whole catalog printing this sentence, so there is no prior art to copy either.
-// Until an engine lane adds the unit, the action carries the printed BASE amount with no scaling,
-// which equals the correct value only while this Digimon has 5000-9999 DP (one unit) — its printed
-// 7000 DP before any modifier. It under-applies once the buff above pushes it to 10000+ and
-// over-applies if it is ever below 5000 DP. `coverage` is "partial" and the sentence is listed in
-// `residual`; EX13-020.test.ts keeps the scaling proof as an `it.fails`.
+// The second process reads the SOURCE's live effective DP after the preceding color buff.
+// Whole 5000-DP units determine the multiplier; DP below 5000 contributes zero.
 const opponentDpDebuff: Action = {
   kind: "ModifyDP",
   target: opponentDigimon,
   amount: -4000,
   duration: "untilOpponentTurnEnd",
+  scaling: { per: 5000, unit: "selfDP" },
   raw: "to 1 of your opponent's Digimon, give -4000 DP until their turn ends for every 5000 DP this Digimon has",
 };
 
@@ -121,8 +113,8 @@ export const compiled: CompiledCard = {
       actions: [unsuspendFreeOrRoyalKnight],
     },
   ],
-  coverage: "partial",
-  residual: ["give -4000 DP until their turn ends for every 5000 DP this Digimon has"],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ namesExact: ["Veemon"], cost: 3, isAlternate: true }],
   assemblyRequirement: [{ reduceCost: 2, materials: [{ namesExact: ["Veemon"], count: 1 }] }],
 };

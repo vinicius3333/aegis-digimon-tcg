@@ -227718,6 +227718,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilOpponentTurnEnd",
+            "scaling": { "per": 5000, "unit": "selfDP" },
             "raw": "to 1 of your opponent's Digimon, give -4000 DP until their turn ends for every 5000 DP this Digimon has"
           }
         ]
@@ -227740,6 +227741,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilOpponentTurnEnd",
+            "scaling": { "per": 5000, "unit": "selfDP" },
             "raw": "to 1 of your opponent's Digimon, give -4000 DP until their turn ends for every 5000 DP this Digimon has"
           }
         ]
@@ -227762,6 +227764,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilOpponentTurnEnd",
+            "scaling": { "per": 5000, "unit": "selfDP" },
             "raw": "to 1 of your opponent's Digimon, give -4000 DP until their turn ends for every 5000 DP this Digimon has"
           }
         ]
@@ -227806,8 +227809,8 @@
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": ["give -4000 DP until their turn ends for every 5000 DP this Digimon has"],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [{ "namesExact": ["Veemon"], "cost": 3, "isAlternate": true }],
     "assemblyRequirement": [{ "reduceCost": 2, "materials": [{ "namesExact": ["Veemon"], "count": 1 }] }]
   },
