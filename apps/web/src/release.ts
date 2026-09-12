@@ -1,6 +1,6 @@
 /* This file is generated from releases.json. */
 
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 
 export interface ReleaseNote {
   version: string;
@@ -13,6 +13,13 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: "1.2.0",
+    date: "2026-09-12",
+    changes: [
+      { type: "added", description: "Optional beta battles support unreleased cards, including EX13 and new promos.", translations: {"pt-BR":"Batalhas beta opcionais com cartas de lançamentos futuros, incluindo EX13 e novas promos."} },
+    ],
+  },
   {
     version: "1.1.0",
     date: "2026-08-09",
@@ -34,11 +41,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     version: "1.0.0",
     date: "2026-08-09",
     changes: [
-      {
-        type: "added",
-        description: "Initial production release.",
-        translations: { "pt-BR": "Lançamento inicial de produção." },
-      },
+      { type: "added", description: "Initial production release.", translations: {"pt-BR":"Lançamento inicial de produção."} },
     ],
   },
 ];

@@ -3,6 +3,12 @@
 All notable changes to Aegis are documented here. This file is generated from
 `releases.json`; use `pnpm release:prepare` to add a release.
 
+## [1.2.0] - 2026-09-12
+
+### Added
+
+- Optional beta battles support unreleased cards, including EX13 and new promos.
+
 ## [1.1.0] - 2026-08-09
 
 ### Fixed
