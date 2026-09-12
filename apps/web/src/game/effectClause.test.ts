@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { cardEffectClauseForTiming, effectClauseForTiming, playerFacingEffectClause } from "./overlays";
 
 // AD1-001: a single printed clause fires under either timing.
@@ -6,6 +7,53 @@ const SHARED =
   "[Digivolve] Lv.3: Cost 2\n\n[On Play] [When Digivolving] You may return 1 card with [Greymon] in its name from your trash to the hand.\n[All Turns] When your Digimon are played, this may digivolve.";
 
 describe("effectClauseForTiming", () => {
+  it.each([
+    "BT15-092",
+    "BT18-098",
+    "BT19-100",
+    "BT21-095",
+    "BT22-100",
+    "BT24-090",
+    "BT24-094",
+    "BT25-094",
+    "BT25-095",
+    "BT25-097",
+    "BT25-099",
+    "BT25-102",
+    "BT26-100",
+    "BT3-097",
+    "EX12-069",
+    "EX12-072",
+    "EX12-074",
+    "EX8-068",
+    "EX8-069",
+    "EX8-071",
+    "EX9-072",
+    "P-181",
+    "ST20-15",
+    "ST21-15",
+    "ST22-10",
+  ])("uses %s's checked-card Security clause rather than its resident clause", (cardId) => {
+    const expected = effectClauseForTiming(getCardDefinition(cardId)!.securityEffectText, "SecuritySkill");
+    expect(expected).toBeTruthy();
+    for (const timing of ["Security", "SecuritySkill"]) {
+      expect(cardEffectClauseForTiming(cardId, timing)).toBe(expected);
+      expect(playerFacingEffectClause({ cardId, timing, description: undefined })).toBe(expected);
+      expect(playerFacingEffectClause({ cardId, timing, description: "[Security] PlayWithoutCost" })).toBe(expected);
+    }
+  });
+
+  it.each([
+    ["EX12-074", "YourTurn"],
+    ["P-181", "YourTurn"],
+    ["ST22-10", "AllTurns"],
+  ])("keeps %s's resident %s clause separate from its checked-card skill", (cardId, timing) => {
+    const definition = getCardDefinition(cardId)!;
+    const expected = effectClauseForTiming(definition.effectText, timing);
+    expect(cardEffectClauseForTiming(cardId, timing)).toBe(expected);
+    expect(expected).not.toBe(definition.securityEffectText);
+  });
+
   it("returns the shared body for BOTH timings of a stacked-bracket clause", () => {
     const onPlay = effectClauseForTiming(SHARED, "OnPlay");
     const whenDigi = effectClauseForTiming(SHARED, "WhenDigivolving");

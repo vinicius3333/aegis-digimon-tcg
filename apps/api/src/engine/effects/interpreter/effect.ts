@@ -572,7 +572,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     effect.description ??
     (effect.isInherited
       ? sourceDefinition?.inheritedEffectText
-      : effect.isSecurity
+      : // Resident [Security][Your Turn] clauses are printed in the main text.
+        // Only the checked-card skill uses the separate security-effect text.
+        effect.trigger === "Security"
         ? sourceDefinition?.securityEffectText
         : sourceDefinition?.effectText);
   // A whole-clause cost is an activation cost for every action below it (Comprehensive §5-3):

@@ -172,6 +172,13 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
 
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-025");
     expect(s.state.memory).toBe(2);
+    const optional = s.decisions.find(({ req }) => req.kind === "optional");
+    expect(optional?.req).toMatchObject({
+      options: {
+        timing: "YourTurn",
+        effectText: expect.stringContaining("digivolve into a [Shambala]"),
+      },
+    });
   });
 
   it("uses the face-up security digivolution only once per turn", async () => {
@@ -326,6 +333,46 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
       s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  // Seat scoping for the [Security] free play: only the CHECKED card's security effect
+  // activates, so this copy sitting face up in the ATTACKER's own security must stay put
+  // while the defender's security is checked. The candidate is a [Shambala] TAMER on
+  // purpose: a Digimon candidate would also satisfy this card's other, legitimate
+  // [Security][Your Turn] "when one of your [Shambala] Digimon attacks" digivolve, which
+  // does fire here and would mask the scoping this case guards.
+  it("does not use the Security effect when a different seat's security is checked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "attacker" }],
+          hand: [{ card: "BT26-104", as: "candidate" }],
+          security: [{ card: CARD_ID, as: "ownSecurity", faceUp: true }],
+        },
+        1: {
+          security: [{ card: "BT1-101", as: "opponentSecurity", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("candidate").instanceId),
+    ).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("ownSecurity").instanceId,
+    ]);
   });
 
   // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-071 is an

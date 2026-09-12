@@ -1010,9 +1010,14 @@ export function cardEffectClauseForTiming(
   isInherited = false,
 ): string | undefined {
   const definition = getCardDefinition(cardId);
-  const boxes = isInherited
-    ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
-    : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
+  // Checked-card skills and resident [Security][Your Turn] clauses can share
+  // the Security bracket while belonging to different printed text boxes.
+  const isSecuritySkill = timing === "Security" || timing === "SecuritySkill";
+  const boxes = isSecuritySkill
+    ? [definition?.securityEffectText, definition?.effectText, definition?.inheritedEffectText]
+    : isInherited
+      ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
+      : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
   const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
