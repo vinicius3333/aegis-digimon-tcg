@@ -32,7 +32,7 @@ docs/audits/
 
 ## Per-set template
 
-````markdown
+```markdown
 ---
 set: BT20
 cards: 102
@@ -75,7 +75,7 @@ file names and dates.
 
 One bullet per superseded file or directory: path, last commit SHA and date, one-line description.
 Group per-card directories as one bullet with the file count.
-````
+```
 
 ## Status index
 
@@ -84,73 +84,73 @@ build when it is stale.
 
 <!-- index:start -->
 
-| Set | Cards | Status | Verified at | Doc |
-| --- | --- | --- | --- | --- |
-| AD1 | 25 | verified | 2026-09-10 | [AD1.md](AD1.md) |
-| BT1 | 115 | verified | 2026-09-10 | [BT1.md](BT1.md) |
-| BT2 | 112 | verified | 2026-09-10 | [BT2.md](BT2.md) |
-| BT3 | 112 | verified | 2026-09-10 | [BT3.md](BT3.md) |
-| BT4 | 115 | verified | 2026-09-10 | [BT4.md](BT4.md) |
-| BT5 | 112 | verified | 2026-09-10 | [BT5.md](BT5.md) |
-| BT6 | 112 | verified | 2026-09-10 | [BT6.md](BT6.md) |
-| BT7 | 112 | verified | 2026-09-10 | [BT7.md](BT7.md) |
-| BT8 | 112 | verified | 2026-09-10 | [BT8.md](BT8.md) |
-| BT9 | 112 | verified | 2026-09-10 | [BT9.md](BT9.md) |
-| BT10 | 112 | verified | 2026-09-10 | [BT10.md](BT10.md) |
-| BT11 | 112 | verified | 2026-09-10 | [BT11.md](BT11.md) |
-| BT12 | 112 | verified | 2026-09-10 | [BT12.md](BT12.md) |
-| BT13 | 112 | verified | 2026-09-10 | [BT13.md](BT13.md) |
-| BT14 | 102 | verified | 2026-09-10 | [BT14.md](BT14.md) |
-| BT15 | 102 | verified | 2026-09-10 | [BT15.md](BT15.md) |
-| BT16 | 102 | verified | 2026-09-10 | [BT16.md](BT16.md) |
-| BT17 | 102 | verified | 2026-09-09 | [BT17.md](BT17.md) |
-| BT18 | 102 | verified | 2026-09-10 | [BT18.md](BT18.md) |
-| BT19 | 102 | verified | 2026-09-09 | [BT19.md](BT19.md) |
-| BT20 | 102 | verified | 2026-09-10 | [BT20.md](BT20.md) |
-| BT21 | 102 | verified | 2026-09-06 | [BT21.md](BT21.md) |
-| BT22 | 102 | verified | 2026-09-07 | [BT22.md](BT22.md) |
-| BT23 | 102 | verified | 2026-09-10 | [BT23.md](BT23.md) |
-| BT24 | 102 | verified | 2026-09-08 | [BT24.md](BT24.md) |
-| BT25 | 104 | verified | 2026-09-06 | [BT25.md](BT25.md) |
-| BT26 | 104 | verified | 2026-09-12 | [BT26.md](BT26.md) |
-| EX1 | 73 | verified | 2026-09-10 | [EX1.md](EX1.md) |
-| EX2 | 74 | verified | 2026-09-10 | [EX2.md](EX2.md) |
-| EX3 | 74 | verified | 2026-09-10 | [EX3.md](EX3.md) |
-| EX4 | 74 | verified | 2026-09-10 | [EX4.md](EX4.md) |
-| EX5 | 74 | verified | 2026-09-09 | [EX5.md](EX5.md) |
-| EX6 | 74 | verified | 2026-09-09 | [EX6.md](EX6.md) |
-| EX7 | 74 | verified | 2026-09-09 | [EX7.md](EX7.md) |
-| EX8 | 74 | verified | 2026-09-10 | [EX8.md](EX8.md) |
-| EX9 | 74 | verified | 2026-09-09 | [EX9.md](EX9.md) |
-| EX10 | 74 | verified | 2026-09-08 | [EX10.md](EX10.md) |
-| EX11 | 74 | verified | 2026-09-09 | [EX11.md](EX11.md) |
-| EX12 | 77 | verified | 2026-09-08 | [EX12.md](EX12.md) |
-| EX13 | 60 | incomplete | 2026-09-11 | [EX13.md](EX13.md) |
-| LM | 62 | verified | 2026-09-10 | [LM.md](LM.md) |
-| P | 249 | verified | 2026-09-11 | [P.md](P.md) |
-| RB1 | 33 | verified | 2026-09-10 | [RB1.md](RB1.md) |
-| ST1 | 16 | verified | 2026-09-05 | [ST1.md](ST1.md) |
-| ST2 | 16 | verified | 2026-09-05 | [ST2.md](ST2.md) |
-| ST3 | 16 | verified | 2026-09-05 | [ST3.md](ST3.md) |
-| ST4 | 16 | verified | 2026-09-05 | [ST4.md](ST4.md) |
-| ST5 | 16 | verified | 2026-09-05 | [ST5.md](ST5.md) |
-| ST6 | 16 | verified | 2026-09-05 | [ST6.md](ST6.md) |
-| ST7 | 12 | verified | 2026-09-05 | [ST7.md](ST7.md) |
-| ST8 | 12 | verified | 2026-09-05 | [ST8.md](ST8.md) |
-| ST9 | 15 | verified | 2026-09-05 | [ST9.md](ST9.md) |
-| ST10 | 15 | verified | 2026-09-05 | [ST10.md](ST10.md) |
-| ST12 | 16 | verified | 2026-09-05 | [ST12.md](ST12.md) |
-| ST13 | 16 | verified | 2026-09-05 | [ST13.md](ST13.md) |
-| ST14 | 12 | verified | 2026-09-05 | [ST14.md](ST14.md) |
-| ST15 | 16 | verified | 2026-09-05 | [ST15.md](ST15.md) |
-| ST16 | 16 | verified | 2026-09-05 | [ST16.md](ST16.md) |
-| ST17 | 13 | verified | 2026-09-05 | [ST17.md](ST17.md) |
-| ST18 | 15 | verified | 2026-09-05 | [ST18.md](ST18.md) |
-| ST19 | 15 | verified | 2026-09-05 | [ST19.md](ST19.md) |
-| ST20 | 15 | verified | 2026-09-05 | [ST20.md](ST20.md) |
-| ST21 | 15 | verified | 2026-09-05 | [ST21.md](ST21.md) |
-| ST22 | 14 | verified | 2026-09-05 | [ST22.md](ST22.md) |
-| ST23 | 15 | verified | 2026-09-05 | [ST23.md](ST23.md) |
-| ST24 | 15 | verified | 2026-09-05 | [ST24.md](ST24.md) |
+| Set  | Cards | Status     | Verified at | Doc                |
+| ---- | ----- | ---------- | ----------- | ------------------ |
+| AD1  | 25    | verified   | 2026-09-10  | [AD1.md](AD1.md)   |
+| BT1  | 115   | verified   | 2026-09-10  | [BT1.md](BT1.md)   |
+| BT2  | 112   | verified   | 2026-09-10  | [BT2.md](BT2.md)   |
+| BT3  | 112   | verified   | 2026-09-10  | [BT3.md](BT3.md)   |
+| BT4  | 115   | verified   | 2026-09-10  | [BT4.md](BT4.md)   |
+| BT5  | 112   | verified   | 2026-09-10  | [BT5.md](BT5.md)   |
+| BT6  | 112   | verified   | 2026-09-10  | [BT6.md](BT6.md)   |
+| BT7  | 112   | verified   | 2026-09-10  | [BT7.md](BT7.md)   |
+| BT8  | 112   | verified   | 2026-09-10  | [BT8.md](BT8.md)   |
+| BT9  | 112   | verified   | 2026-09-10  | [BT9.md](BT9.md)   |
+| BT10 | 112   | verified   | 2026-09-10  | [BT10.md](BT10.md) |
+| BT11 | 112   | verified   | 2026-09-10  | [BT11.md](BT11.md) |
+| BT12 | 112   | verified   | 2026-09-10  | [BT12.md](BT12.md) |
+| BT13 | 112   | verified   | 2026-09-10  | [BT13.md](BT13.md) |
+| BT14 | 102   | verified   | 2026-09-10  | [BT14.md](BT14.md) |
+| BT15 | 102   | verified   | 2026-09-10  | [BT15.md](BT15.md) |
+| BT16 | 102   | verified   | 2026-09-10  | [BT16.md](BT16.md) |
+| BT17 | 102   | verified   | 2026-09-09  | [BT17.md](BT17.md) |
+| BT18 | 102   | verified   | 2026-09-10  | [BT18.md](BT18.md) |
+| BT19 | 102   | verified   | 2026-09-09  | [BT19.md](BT19.md) |
+| BT20 | 102   | verified   | 2026-09-10  | [BT20.md](BT20.md) |
+| BT21 | 102   | verified   | 2026-09-06  | [BT21.md](BT21.md) |
+| BT22 | 102   | verified   | 2026-09-07  | [BT22.md](BT22.md) |
+| BT23 | 102   | verified   | 2026-09-10  | [BT23.md](BT23.md) |
+| BT24 | 102   | verified   | 2026-09-08  | [BT24.md](BT24.md) |
+| BT25 | 104   | verified   | 2026-09-06  | [BT25.md](BT25.md) |
+| BT26 | 104   | verified   | 2026-09-12  | [BT26.md](BT26.md) |
+| EX1  | 73    | verified   | 2026-09-10  | [EX1.md](EX1.md)   |
+| EX2  | 74    | verified   | 2026-09-10  | [EX2.md](EX2.md)   |
+| EX3  | 74    | verified   | 2026-09-10  | [EX3.md](EX3.md)   |
+| EX4  | 74    | verified   | 2026-09-10  | [EX4.md](EX4.md)   |
+| EX5  | 74    | verified   | 2026-09-09  | [EX5.md](EX5.md)   |
+| EX6  | 74    | verified   | 2026-09-09  | [EX6.md](EX6.md)   |
+| EX7  | 74    | verified   | 2026-09-09  | [EX7.md](EX7.md)   |
+| EX8  | 74    | verified   | 2026-09-10  | [EX8.md](EX8.md)   |
+| EX9  | 74    | verified   | 2026-09-09  | [EX9.md](EX9.md)   |
+| EX10 | 74    | verified   | 2026-09-08  | [EX10.md](EX10.md) |
+| EX11 | 74    | verified   | 2026-09-09  | [EX11.md](EX11.md) |
+| EX12 | 77    | verified   | 2026-09-08  | [EX12.md](EX12.md) |
+| EX13 | 60    | incomplete | 2026-09-11  | [EX13.md](EX13.md) |
+| LM   | 62    | complete   | 2026-09-12  | [LM.md](LM.md)     |
+| P    | 249   | verified   | 2026-09-11  | [P.md](P.md)       |
+| RB1  | 33    | verified   | 2026-09-10  | [RB1.md](RB1.md)   |
+| ST1  | 16    | verified   | 2026-09-05  | [ST1.md](ST1.md)   |
+| ST2  | 16    | verified   | 2026-09-05  | [ST2.md](ST2.md)   |
+| ST3  | 16    | verified   | 2026-09-05  | [ST3.md](ST3.md)   |
+| ST4  | 16    | verified   | 2026-09-05  | [ST4.md](ST4.md)   |
+| ST5  | 16    | verified   | 2026-09-05  | [ST5.md](ST5.md)   |
+| ST6  | 16    | verified   | 2026-09-05  | [ST6.md](ST6.md)   |
+| ST7  | 12    | verified   | 2026-09-05  | [ST7.md](ST7.md)   |
+| ST8  | 12    | verified   | 2026-09-05  | [ST8.md](ST8.md)   |
+| ST9  | 15    | verified   | 2026-09-05  | [ST9.md](ST9.md)   |
+| ST10 | 15    | verified   | 2026-09-05  | [ST10.md](ST10.md) |
+| ST12 | 16    | verified   | 2026-09-05  | [ST12.md](ST12.md) |
+| ST13 | 16    | verified   | 2026-09-05  | [ST13.md](ST13.md) |
+| ST14 | 12    | verified   | 2026-09-05  | [ST14.md](ST14.md) |
+| ST15 | 16    | verified   | 2026-09-05  | [ST15.md](ST15.md) |
+| ST16 | 16    | verified   | 2026-09-05  | [ST16.md](ST16.md) |
+| ST17 | 13    | verified   | 2026-09-05  | [ST17.md](ST17.md) |
+| ST18 | 15    | verified   | 2026-09-05  | [ST18.md](ST18.md) |
+| ST19 | 15    | verified   | 2026-09-05  | [ST19.md](ST19.md) |
+| ST20 | 15    | verified   | 2026-09-05  | [ST20.md](ST20.md) |
+| ST21 | 15    | verified   | 2026-09-05  | [ST21.md](ST21.md) |
+| ST22 | 14    | verified   | 2026-09-05  | [ST22.md](ST22.md) |
+| ST23 | 15    | verified   | 2026-09-05  | [ST23.md](ST23.md) |
+| ST24 | 15    | verified   | 2026-09-05  | [ST24.md](ST24.md) |
 
 <!-- index:end -->
