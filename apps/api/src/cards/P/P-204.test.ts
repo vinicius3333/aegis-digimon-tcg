@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-204.js";
+import "../index.js";
 
 describe("P-204 Release of the Sealed Knight!", () => {
   const answerOptional = async (s: ReturnType<typeof setupEngine>, prompt: string, accept: boolean) => {
@@ -195,10 +196,10 @@ describe("P-204 Release of the Sealed Knight!", () => {
         0: {
           battleArea: [
             { card: "P-204", as: "option" },
-            { card: "BT20-012", as: "host" },
+            { card: "BT20-010", as: "host" },
           ],
           hand: [
-            { card: "BT20-015", as: "chronicleEvolution" },
+            { card: "BT20-012", as: "chronicleEvolution" },
             { card: "BT20-021", as: "tooHigh" },
             { card: "BT20-013", as: "wrongTrait" },
             { card: "BT1-009", as: "playable" },
@@ -231,6 +232,13 @@ describe("P-204 Release of the Sealed Knight!", () => {
     await settle(
       () => s.state.pendingDecision?.kind === "optional" && s.events.every((event) => event.kind !== "securityChecked"),
     );
+    if (s.state.pendingDecision?.promptText === "Digivolve") {
+      await answerOptional(s, "Digivolve", false);
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "optional" && s.events.every((event) => event.kind !== "securityChecked"),
+      );
+    }
     expect(s.state.pendingDecision?.promptText).toContain("Trash this card to activate its ＜Delay＞");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.perm("host").topCard.instanceId).toBe(hostSourceId);
@@ -450,11 +458,11 @@ describe("P-204 Release of the Sealed Knight!", () => {
       0: {
         battleArea: [
           { card: "P-204", as: "option" },
-          { card: "BT1-009", as: "attacker" },
+          { card: "BT1-009", as: "attacker", dp: 2000 },
         ],
         hand: [{ card: "BT1-009", as: "playable" }],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 4000 }], security: ["BT1-009"] },
     });
     s.perm("option").placedByEffect = true;
     s.state.turnSeat = 0;
@@ -467,9 +475,16 @@ describe("P-204 Release of the Sealed Knight!", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "combatResolved") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(optionId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("attacker").instanceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
