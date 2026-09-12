@@ -201621,7 +201621,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Altea"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Altea"], "match": "nameExact" }]
             },
             "actions": [
               {
