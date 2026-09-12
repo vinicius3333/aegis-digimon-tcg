@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Garurumon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Gabumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -84,7 +84,7 @@ const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["WereGarurumon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -109,7 +109,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Gabumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -121,7 +121,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["MetalGarurumon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -145,7 +145,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gabumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -35397,7 +35397,7 @@
                     "filter": {
                       "zone": "trash",
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -35406,7 +35406,7 @@
                   "underFilter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "nameExact" }]
                   },
                   "destination": "digivolutionStack",
                   "position": "bottom",
@@ -35419,7 +35419,7 @@
                     "filter": {
                       "zone": "trash",
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["WereGarurumon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["WereGarurumon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -35439,14 +35439,14 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "nameExact" }]
                   },
                   "count": 1,
                   "fromSelectionRef": "bt15091Gabumon"
                 },
                 "into": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["MetalGarurumon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["MetalGarurumon"], "match": "nameExact" }]
                 },
                 "payCost": false,
                 "from": ["hand"],
@@ -35463,7 +35463,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand", "trash"],
