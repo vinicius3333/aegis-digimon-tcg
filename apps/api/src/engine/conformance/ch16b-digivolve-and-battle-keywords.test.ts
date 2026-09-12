@@ -205,6 +205,11 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
       "Rush permits attacks the turn played and is a persistent keyword",
       "6f597fcf757c2632ff18ed331c9d1fd671a194944ac62dfdc95564ba4305b7aa",
     );
+    cite(
+      "comprehensive-0160",
+      "Inherited effects are gained from digivolution cards",
+      "2c055b02ffa9c5dbe1734f499d80029364ab320d2d5543f76237a9fcc2f9d487",
+    );
   });
   it.each(["BT4-038", "BT8-077"])(
     "%s publicly attacks the turn played while the neutral control cannot",
@@ -297,6 +302,68 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
+  it.each([
+    { source: "BT10-008", destination: "BT19-012", receivesRush: true, memory: 2 },
+    { source: "BT19-008", destination: "BT19-012", receivesRush: true, memory: 2 },
+    { source: "BT10-008", destination: "AD1-001", receivesRush: false, memory: 4 },
+    { source: "BT19-008", destination: "AD1-001", receivesRush: false, memory: 4 },
+  ])(
+    "$source inherited Rush matches the publicly evolved $destination host",
+    async ({ source, destination, receivesRush, memory }) => {
+      const s = setup(
+        {
+          0: {
+            hand: [{ card: source, as: "base" }, { card: destination, as: "evolver" }, "BT1-009"],
+            deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        { autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const baseInstanceId = s.inst("base").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: baseInstanceId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === baseInstanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const host = s.perm("base");
+      const permanentId = host.permanentId;
+      const enteredTurn = host.enterFieldTurnCount;
+      expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(false);
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      const evolverInstanceId = s.inst("evolver").instanceId;
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: evolverInstanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => host.topCard.instanceId === evolverInstanceId && s.state.pendingDecision === undefined);
+      expect(host.permanentId).toBe(permanentId);
+      expect(host.enterFieldTurnCount).toBe(enteredTurn);
+      expect(host.stack.map((c) => c.instanceId)).toEqual([baseInstanceId]);
+      expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(receivesRush);
+      expect(s.state.memory).toBe(memory);
+      const attack = s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      });
+      expect(attack).toEqual(receivesRush ? { ok: true } : { ok: false, reason: "illegal-target" });
+      if (receivesRush) {
+        await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+      }
+      expect(host.isSuspended).toBe(receivesRush);
+      expect(s.state.players[1]!.security).toHaveLength(receivesRush ? 2 : 3);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.memory).toBe(memory);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
