@@ -115,7 +115,7 @@ build when it is stale.
 | BT26 | 104   | in-progress | 2026-09-12  | [BT26.md](BT26.md) |
 | EX1  | 73    | verified    | 2026-09-10  | [EX1.md](EX1.md)   |
 | EX2  | 74    | verified    | 2026-09-10  | [EX2.md](EX2.md)   |
-| EX3  | 74    | verified    | 2026-09-10  | [EX3.md](EX3.md)   |
+| EX3  | 74    | in-progress | 2026-09-10  | [EX3.md](EX3.md)   |
 | EX4  | 74    | verified    | 2026-09-10  | [EX4.md](EX4.md)   |
 | EX5  | 74    | verified    | 2026-09-09  | [EX5.md](EX5.md)   |
 | EX6  | 74    | verified    | 2026-09-09  | [EX6.md](EX6.md)   |
