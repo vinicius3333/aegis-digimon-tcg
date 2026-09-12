@@ -195512,7 +195512,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "nameExact" }]
               },
               "raw": "you have [Shoto Kazama]"
             }
