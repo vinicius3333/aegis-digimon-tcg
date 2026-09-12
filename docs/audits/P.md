@@ -1,151 +1,67 @@
 ---
 set: P
 cards: 249
-status: incomplete
-verified_at: 2026-09-11
-catalog_commit: 88241f0fc
-evidence_commit: a8136a499
+status: verified
+verified_at: 2026-09-12
+catalog_commit: faa9bee51
+evidence_commit: fe5b5f59d
 ---
 
 # P audit
 
 ## Status
 
-Historical evidence scored all 249 committed P cards at 10/10. The 2026-09-12 independent
-reaudit has identified missing behavioral proofs; affected rows below are provisionally below 10/10. Fixture holds also supersede historical scores until repaired evidence is independently accepted.
-The original 243 were
-recalculated on 2026-09-05 on branch `audit-promo-lm-rb-20260905` from base `7209adb89` and
-verified again after that branch was integrated with main `18156ecee`; P-245 through P-250 (6 new
-promo cards imported on 2026-09-11 from the `TakaOtaku/Digimon-Card-App` community database,
-announced but not yet distributed — Official Store Tournament 2026 Vol.4, street date 2026-10-01)
-were authored and verified fresh on 2026-09-11, each independently to the same 10/10 rubric. P-226
-and P-251 are absent from the catalog (unrevealed placeholder rows in the source database), so the
-set has 249 cards rather than 251. The winning source for P-001..P-244 is the recalculated ledger
-`P-AUDIT.md` with its coordinator report `PROMO-LM-RB-AUDIT-20260905.md` and four dated range
-reviews; P-245..P-250 have no separate range-review document — their evidence is the card ledger
-entries above plus their modules and tests. Re-running the collection on 2026-09-11 confirms it:
-`pnpm --filter @aegis/api exec vitest run src/cards/P` passes 266 files and 1,494 tests, and
-`pnpm effects:sync:set -- --set P` reports 249 records synchronized with no drift outside the set.
+All 249 committed Promo cards are recalculated at 10/10 on `promo-full-reaudit`, in the
+new Orca child worktree based on `de4dda717d8c9e0c2420796cb387f68b1379b863`.
+Independent Luna clause reviews covered the whole collection; focused coordinator proofs and
+the final combined collection/mechanism gate passed. Latest acceptance supersedes historical
+proof holds retained inside card entries. Raw implementations and tests are atomically committed.
+The original workspace was not used for these changes.
 
-The one-card ST11 Special Entry Pack report is folded in here: ST11 is not a starter-deck set with
-`ST11-*` card IDs. The committed `cardPool.ts` promo-product entry labels the product (2022-10-14,
-`cardIds: "065"`) and `promoProductCardIds()` derives `P-065` — Gammamon, Red Lv.3, 2000 DP. ST11
-therefore has no card directory and no audit document of its own.
+Catalog, direct module and ledger reconciliation each yields 249 cards: P001–P250 excluding
+absent P226; P251 is absent too. Every production module uses exactly one `registerIrCard`
+registration with full executable IR. No `ts-nocheck` was present at the initial search or remains
+at closeout. Existing tests were reused; additions cover demonstrated behavioral gaps.
+ST11 Special Entry Pack is the P065 product and remains folded into this ledger.
 
-## Reaudit checkpoint — 2026-09-12
-
-Full-collection reaudit is in progress on branch `promo-full-reaudit`, in a new Orca child
-worktree based on `de4dda717d8c9e0c2420796cb387f68b1379b863`. Historical 10/10 scores below
-are retained as prior evidence; current delivery gates and clause review are not yet complete.
-Two Luna reviewers inspect all 249 cards against the catalog, local KB, direct IR and existing
-behavioral tests. Initial reviewers did not run tests. During evidence repairs, all lanes and the coordinator use
-a global serialized test runner: only one Vitest process at a time, one worker, 2 GB heap.
-
-- Initial source search found no `ts-nocheck` directives in `apps/api/src/cards/P` and no legacy
-  `registerCard` calls in production modules. The existing collection guard independently checks
-  exclusive IR registration, catalog count, compiled records and full coverage.
-- Dependencies installed from the offline pnpm store with the frozen lockfile.
-- Catalog/module/ledger reconciliation: 249 catalog entries, 249 production modules and 249
-  unique ledger sections; no missing card rows.
-- `pnpm exec oxlint apps/api/src/cards/P` and `pnpm exec oxfmt --check apps/api/src/cards/P`
-  pass after removing three unsupported `expect` message arguments from existing package tests.
-  Assertions are preserved. P-103's obsolete cost-reduction limitation comment is corrected.
-- `git diff --check` passes for the current changes.
-- `pnpm typecheck` passed for shared, API and web.
-- `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/P
-  --maxWorkers=1 --no-file-parallelism` passed: 266 files, 1,494 tests, 102.97 seconds
-  on the cold worktree cache.
-- Other independently running audits increased system swap usage. Coordinator lowered priority
-  of its API typecheck and test worker; both completed successfully. Subsequent test gates run
-  with one worker and a 2 GB heap ceiling.
-- Existing tests will be reused where they prove the complete contract. New tests are reserved
-  for demonstrated gaps, as requested.
-- Independent printed-clause/IR/test review covered P-001..P-122 and P-123..P-250 (excluding
-  absent P-226), using two Luna lanes. Code-presence checks were rejected as insufficient and
-  followed by actual clause reviews. The frequency sweep found 61 modules declaring
-  `OncePerTurn`; current colocated tests generally lack an accepted full real-turn cycle.
-- Accepted atomic commits: `5d6edb72b` (P-094 redirection costs/refusal/limit/reset proof) and
-  `fac7cdfe7` (Training comments, P-107 ruling references and assertion API cleanup).
-- Repaired P-060/P-061/P-123/P-125–P-129/P-137 proofs independently pass: 9 files, 37 tests.
-  Fixtures now use legal normal deck/security cards; natural turns prove frequency resets,
-  and Tamer tests resolve real Start of Main and Security behavior. Earlier failing repair
-  attempts are superseded by this focused result. Closing collection gates remain pending.
-- First fixture cleanup: 15 focused files, 54 tests passed in the worker; coordinator
-  independently passed those files plus P-060/P-061 (17 files, 60 tests). Nine edited fixture
-  files were committed as `0e5ff34ab`; lint, format and diff checks passed.
-- Catalog AST scan found remaining normal deck/security Digi-Egg literals in 90 files
-  after the first repairs. These existing fixture corrections remain in progress.
-- P-004 IR now declares Your Turn and Once Per Turn. Synchronization and check report one
-  semantic P change, 249 synchronized records, and zero semantic or byte changes outside P.
-  The public legal-stack/reset proof now passes and is delivered in `9b8a96b7f`.
-- Accepted restart checkpoint (2026-09-12): final fixture validation passed 47 files / 219 tests; reviewed watcher suites passed 7 files / 33 tests; repaired Memory Boost and attack regressions passed 11 files / 46 tests; P-008/P-046/P-048 plus catalog parity passed 4 files / 356 tests; audit layout passed 1 file / 4 tests. These are focused checkpoints, not collection closing gates. Tests remain serialized with a 2 GB heap. Shared/web typechecks passed; the API exceeded the deliberately imposed 2 GB cap and then passed independently with 4 GB. Latest measured system memory was 77% free.
-- Remaining second-lane review findings to verify and repair include P-157's black-Tamer negative, P-158's Mother D-Reaper stack cost scale, P-160/P-202
-  inherited Piercing battle, P-201 inherited end-of-opponent-turn suspension, P-203's real
-  evolution/attack timings and P-204's accepted/declined Delay evolution.
-
-
-- Accepted restart checkpoint (2026-09-12): Memory Boost player attack target typing corrected in `7f4c13bbc`; root focused validation of P035–P040 plus P171 passed 7 files / 28 tests. Full `pnpm typecheck` then passed shared, API and web with serialized workspace execution and a 4 GB heap. System memory was 72% free. P171 public hooks accepted in `95260b584`; current accepted tally is 212/249 at 10/10, with 37 proof holds. These are checkpoints; closing collection gates remain pending.
-- P179 source reconciliation (2026-09-12): the [official Japanese card list](https://digimoncard.com/cards/index.php?notes=%E3%83%86%E3%82%A4%E3%83%9E%E3%83%BC%E3%83%90%E3%83%88%E3%83%AB%E3%83%91%E3%83%83%E3%82%AF27%E5%84%AA%E5%8B%9D&search=true) and [official English printed text](https://world.digimoncard.com/cards/?card_no=P-179&search=true) both require trashing the controller's own battle-area Option. Japanese Q4849 describes placed Options without specifying an opponent; the English Q4849 question erroneously says opponent. The English card list explicitly gives Japanese text priority. The incorrect opponent-Option IR was corrected and the public shared-once cycle independently accepted in `4e11180ea`. Catalog text already agrees with the winning printed source.
-
-- Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
-
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 241/249 at 10/10; 8 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
-
-- Final lower-range peer review accepted (2026-09-12): the independent Luna reader inspected all 124 P001–P124 modules, catalog rows, tests and KB references. Twelve exact-name defects were confirmed and repaired in atomic card/record commits; explicitly printed substring predicates were preserved. No card tests were added or changed for these repairs. Shared Q1033 legacy token identity was reproduced red and corrected; coordinator focused acceptance passed 13 files, 50 tests. Current recalculation is 247/249 at 10/10, with P207/P208 public-cycle holds remaining. The final upper-range independent review and closing collection gates remain pending.
-
-- Printed-source catalog reconciliation (2026-09-12): official English card list rarity metadata corrected 165 entries in `e80c2317f`; the canonical P146 Reload name and actual Security effect were corrected in `740d0fed3`. Direct official card images confirm nine further catalog corrections in `faa9bee51`: Attribute/Type swaps for P059/P061/P074/P076/P077, Red/Black P097, Ultimate P145, D-Reaper P158 and LIBERATOR P169. P158/P169 remain Tamers without a Digimon form/attribute. The same official HTML incorrectly lists P058–P061 DP, P066–P071 play costs and P132 Puppet type; printed images confirm the existing DP/cost/Bird Dragon values, which are retained. Extra types supplied by printed Rule text are retained. Source: [official English Promo list and linked printed card images](https://world.digimoncard.com/cards/?category=522901&search=true). Closing catalog, collection and delivery gates remain pending.
+The [official English Promo collection](https://world.digimoncard.com/cards/?category=522901&search=true)
+and printed card images govern catalog reconciliation for the 243 published cards. Corrected
+rarities, identity metadata, P097 colors and Reload naming are committed. Printed images take
+priority over erroneous list metadata for P058–P061 DP, P066–P071 play costs and P132 Bird Dragon
+traits. Rule-granted aliases are retained. P245–P250 keep their frozen announced community/Japanese
+catalog source; no English published card row or card-specific local Q&A is claimed for them.
+Their ledger entries record the general rules and committed behavioral evidence used.
 
 ## Gates
 
-Current 2026-09-12 gate results on the new worktree at base `de4dda717`:
+Closing verification on 2026-09-12, with a global test lock, one worker and a 2 GB test heap:
 
-- Workspace typecheck: passed.
-- Collection: 266 files, 1,494 tests passed with one worker and 2 GB heap.
-- Shared mechanism regression: `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run
+- Complete selection: 406 files, 3,671 tests passed. It contains all 265 Promo test files,
+  139 mechanism files, persisted catalog parity and the audit-layout guard. Reproduce with:
+  `TEST_HEAP_MB=2048 TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/P
   src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
-  --maxWorkers=1 --no-file-parallelism` passed: 139 files, 2,079 tests, 14.19 seconds.
-- `pnpm effects:sync:set -- --set P --base de4dda717d8c9e0c2420796cb387f68b1379b863`:
-  all 249 records already synchronized; zero semantic or byte changes outside P.
-- Full P lint and format passed after assertion-message cleanup; current diff check passed.
-- `pnpm effects:check:set -- --set P --base de4dda717d8c9e0c2420796cb387f68b1379b863`
-  passed with 249 synchronized records and zero drift outside P.
-- Persisted catalog parity and audit-layout guards: 2 files, 349 tests passed with one worker.
-- Rendered UI stack scenarios: `pnpm --filter @aegis/web exec vitest run
+  src/engine/combatBattle.test.ts src/cards/promo-lm-rb.catalog-parity.test.ts
+  src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`.
+- Complete mechanisms independently passed 139 files / 2,081 tests after the sibling-prevention
+  correction. The covered AD1-002 unsupported legacy payload diagnostic is outside Promo.
+- Final full `pnpm typecheck` passed shared, API and web with serialized workspace execution,
+  `NODE_OPTIONS=--max-old-space-size=4096` and `npm_config_workspace_concurrency=1`.
+- `pnpm effects:sync:set -- --set P --base de4dda717d8c9e0c2420796cb387f68b1379b863`
+  and the corresponding `pnpm effects:check:set` passed: 249 synchronized records, 61 semantic
+  Promo changes against the base, zero semantic or byte changes outside Promo.
+- Rendered UI regression: `pnpm --filter @aegis/web exec vitest run
   test/promoEvolution.scenario.test.tsx test/ex10EvolutionStack.scenario.test.tsx
-  --maxWorkers=1 --no-file-parallelism` passed: 2 files, 2 tests, 19.35 seconds.
-- `pnpm audit:index` regenerated the status index with P marked incomplete.
-- Focused evidence repairs, full-collection recalculation, closing checks, commits and push remain pending.
+  --maxWorkers=1 --no-file-parallelism` passed 2 files / 2 tests with a 2 GB heap.
+- Full Promo plus changed shared prevention/name files passed `pnpm exec oxlint` and
+  `pnpm exec oxfmt --check` (520 files); `git diff --check` passed.
+- Catalog-aware TypeScript fixture scan found no Digi-Egg literals or constant references in
+  normal hand/deck/Security fixtures. Legitimate breeding and inherited source fixtures are retained.
+- Generated audit index and layout are checked after this final recalculation.
 
-
-Re-run for this document on 2026-09-10 at `eabe99351`:
-
-```sh
-pnpm --filter @aegis/api exec vitest run src/cards/P --maxWorkers=1
-```
-
-260 test files and 1,405 tests passed in 6.27 s.
-
-Gates carried from the winning report (`PROMO-LM-RB-AUDIT-20260905.md`, `P-AUDIT.md`), run with
-`--maxWorkers=1 --no-file-parallelism` after integration with main `18156ecee`:
-
-```sh
-pnpm --filter @aegis/api exec vitest run src/cards/P src/cards/LM src/cards/RB1 src/cards/promo-lm-rb.catalog-parity.test.ts --maxWorkers=1 --no-file-parallelism
-pnpm typecheck
-git diff --check
-```
-
-- Combined P/LM/RB1 and persisted parity: 362 files, 1,988 tests passed, in ten serial batches of
-  at most 40 files. The slow monolithic run was stopped and is not counted as passing evidence.
-- Related and incoming shared-engine mechanisms: 19 files, 525 tests passed.
-- Security DP, Delay placement, delayed effects, reactive Delay, copied effects and alternate
-  evolution mechanisms: 6 files, 90 tests passed.
-- Rendered Promo and EX10 evolution-stack scenarios: 2 files, 2 tests passed, including the P-122
-  real-room [evolution-stack scenario](../../apps/web/test/promoEvolution.scenario.test.tsx).
-- Full workspace typecheck, changed-file lint and format, and clean full diff checks passed.
-- Persisted-effect parity: 154 stale P records synchronized via
-  `tools/sync-effects-from-card-modules.mjs`, preserving other sets' bytes. The 338-card parity
-  guard reads the persisted JSON independently, reproduced the stale P-116, P-122 and P-147 records
-  before synchronization, and passed all 339 assertions.
+The first full closing run exposed auxiliary registered-card effects absent from focused tests.
+The existing affected tests now load production registration and account for actual costs,
+Takuya DP, optional App Fuse follow-up decisions and unrelated attack triggers. Full green
+acceptance supersedes that red checkpoint; isolated passing results were not accepted as closeout.
 
 ## Card ledger
 
@@ -1248,6 +1164,10 @@ git diff --check
 
 - Reaudit proof accepted (2026-09-12): Ordinary evolution pays 4 (10 to 6) and Blast evolution pays 0; both retain the exact original parent under the played P-113 instance. Three completed public permanent battles use the same watcher: first trashes Security, second same-turn does not, and third after the natural 0-to-1-to-0 cycle trashes again. Target preparation uses actual suspension after the opponent Active phase. Coordinator independently passed the focused checkpoint: 3 files, 11 tests; Oxlint/Oxfmt and diff check green. Package regressions now use legal Ghost Game hosts and a legal Purple chain while retaining the original Digi-Burst costs and isolated inherited Retaliation. Collection closing gates remain pending.
 
+- Closing collection hold (2026-09-12): focused evidence passes, but the full collection exposes registry-dependent auxiliary behavior. Production-registration fixtures and completed resolution must be independently accepted before restoring 10/10.
+
+- Final coordinator acceptance (2026-09-12, commit `367dafe97`): Production registration and ordinary WarGreymon attackers preserve three completed battle deletions; the same watcher pays once, suppresses the second same-turn trigger, and resets after natural handoff. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-114 — Diaboromon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1293,6 +1213,10 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Reaudit top-discount cycle accepted (2026-09-12): The printed Once Per Turn belongs to the top Free-trait evolution discount, not inherited Draw. Legal alternate-name Veemon evolution into BT16-018 costs 1 (10 to 9); De-Digivolve preparation restores the same P-117 instance, and a second same-turn evolution pays full 2 (9 to 7). After the natural 0-to-1-to-0 cycle, the third costs 1 (incoming 3 to 2). Every evolution asserts the exact top and retained source. A legal two-color inherited host draws on both accepted same-turn attacks, then after the next natural turn; distinct instances separate effect and normal draws. Coordinator independently passed the final 1 file, 2 tests; Oxlint/Oxfmt and diff check green. A prior coordinator brief incorrectly assigned Once to inherited Draw and was corrected against catalog text; no production change was needed. Collection closing gates remain pending.
+
+- Closing collection hold (2026-09-12): focused evidence passes, but the full collection exposes registry-dependent auxiliary behavior. Production-registration fixtures and completed resolution must be independently accepted before restoring 10/10.
+
+- Final coordinator acceptance (2026-09-12, commit `6a0634391`): Production P124 sets incoming memory to four. The third legal evolution explicitly pays one (4 to 3), while the same-turn second pays two; exact top/source instances survive the natural reset. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-118 — Wormmon
 
@@ -1559,8 +1483,8 @@ git diff --check
 
 ### P-139 — Leomon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-139.ts) · [test](../../apps/api/src/cards/P/P-139.test.ts) · clause review (source removed; see History)<br>“reduces an opponent's Digimon by 3000 DP on play”; “encodes zero-cost Leomon digivolution and inherited Recovery”; “applies -3000 DP on the live When Digivolving window”; “grants Blocker and Fortitude while Leomon/X Antibody is in its stack”; “recovers the top deck card when deleted”
 
 - Local KB lookup (2026-09-12): Q4246; no errata entry; no restriction entry.
@@ -1570,6 +1494,8 @@ git diff --check
 - Reaudit public evolution and legal-source proof accepted (2026-09-12): Public Leomon alternate evolution pays 0 (memory remains 10), asserts exact played top and original parent source, and applies -3000 DP. Inherited Recovery uses a legal Yellow/Green level-5 host over P-139 and recovers the deck top after deletion. Coordinator independently passed P-176/P-139/P-145: 3 files, 14 tests; both accepted evolution files pass Oxlint/Oxfmt and diff check. Collection closing gates remain pending.
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+- Final coordinator acceptance (2026-09-12, commit `1a171490e`): Both inherited DP predicates accept exact Leomon or exact X Antibody, including the legal named Option fixture. Trait-only Leomon (X Antibody) is not an exact-name witness; shared exact-name and Rule-alias tests cover that boundary. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-140 — MegaKabuterimon
 
@@ -1619,8 +1545,8 @@ git diff --check
 
 ### P-144 — Gotsumon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-144.ts) · [test](../../apps/api/src/cards/P/P-144.test.ts) · clause review (source removed; see History)<br>“keeps the Your Turn attack restriction when only an X Antibody card is underneath”; “encodes Blocker, target-switch unsuspension, and inherited Blocker DP”; “applies the inherited +1000 DP to Blocker Digimon”; “prevents attacking when no Gotsumon card is in the digivolution stack”; “allows attacking when a Gotsumon card is in the digivolution stack”; “unsuspends a Blocker when an opponent-turn attack target switches”; “only resolves the target-switch reaction once per opponent turn”
 
 - Local KB lookup (2026-09-12): Q4259; no errata entry; no restriction entry.
@@ -1630,10 +1556,12 @@ git diff --check
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
+- Final coordinator acceptance (2026-09-12, commit `468efdd31`): The attack exception accepts exact Gotsumon or X Antibody; trait-only sources retain the restriction. Existing live Blocker DP and natural target-switch frequency/reset proofs are preserved. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-145 — Myotismon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-145.ts) · [test](../../apps/api/src/cards/P/P-145.test.ts) · clause review (source removed; see History)<br>“plays a level-6 Myotismon from trash when deleted with Myotismon in its stack”; “does not revive without Myotismon or X Antibody in its stack”; “deletes an opposing level 4 Digimon on play”; “encodes zero-cost Myotismon digivolution and conditional level-6 revival”; “revives with an X Antibody trait-only digivolution card”; “deletes an opposing level-4 Digimon on When Digivolving”
 
 - Local KB lookup (2026-09-12): Q4260; no errata entry; no restriction entry.
@@ -1642,15 +1570,19 @@ git diff --check
 
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
-### P-146 — Recharge Plug-In Q
+- Final coordinator acceptance (2026-09-12, commit `c2185bd39`): Printed Myotismon/X Antibody source identities are exact; explicitly printed Myotismon-in-name revival scope is retained. Existing Rule-alias coverage remains valid. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 0/2 · behavior 0/2 · stack 2/2
-- Score: **6/10**
-- Evidence: [module](../../apps/api/src/cards/P/P-146.ts) · [test](../../apps/api/src/cards/P/P-146.test.ts) · clause review (source removed; see History)<br>“waives its color requirement with a Tamer and places itself under a non-white Digimon”; “limits both inherited and Security replacement effects to battle deletion”; “gives an opposing Digimon Security Attack -1 from its Security effect”; “uses the Tamer waiver to place this yellow Option under a non-white Digimon”
+### P-146 — Reload Plug-In Q
+
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-146.ts) · [test](../../apps/api/src/cards/P/P-146.test.ts) · clause review (source removed; see History)<br>“waives its color requirement with a Tamer and places itself under a non-white Digimon”; “historical duplicate Security replacement rejected as unprinted; inherited battle-source placement proof under repair”; “gives an opposing Digimon Security Attack -1 from its Security effect”; “uses the Tamer waiver to place this yellow Option under a non-white Digimon”
 
 - Local KB lookup (2026-09-12): Q4261, Q4262; no errata entry; no restriction entry.
 
 - Official source/IR hold (2026-09-12): the official English list names Reload Plug-In Q and prints Security Attack −1 plus one inherited battle-deletion prevention. Catalog commit `740d0fed3` corrects only nameEn and the copied Security field; Shared build passes. The current inherited cost incorrectly selects Digimon/traits and Security or source zones, and an additional Security-stamped replacement is unprinted. A dedicated lane must prove the exact Option moves from this host’s sources to Security bottom, optional refusal/battle cause, public Main within the legal memory gauge and real Security execution. [Official list](https://world.digimoncard.com/cards/?category=522901&search=true).
+
+- Final coordinator acceptance (2026-09-12, commit `085392ef8`): Exactly one inherited battle-deletion replacement pays by placing an exact Reload source from this host into own Security bottom. Public paid Main, ordinary nonimmune Security attack, single Reload, two physical Reload sources (Q4261), and native Barrier plus Reload (Q4262) assert exact dispositions and completed combat. The duplicated Security replacement is removed. Q4261 was observed red before the shared correction; Q4262 has a green behavioral proof. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-147 — Pal
 
@@ -2083,6 +2015,10 @@ git diff --check
 
 - Independently accepted repair (2026-09-12, commit `39a98b39e`): Public Takuya evolution pays 4, retains all five Hybrid source IDs plus the Tamer, and draws the exact deck card. Scaling counts the three colors in the source stack and excludes unrelated battle-area colors; the native 12000 DP becomes 15000 and deletion respects its exact boundary. The same resident source unsuspends at natural owner End turns across a complete turn cycle. Generic Q3528/opponent-frequency tests are reused for the single End window rather than injecting duplicate End events. Root 5 tests passed. Root five-card focus passed 5 files / 35 tests. API typecheck, targeted Oxlint/Oxfmt and diff checks passed. Effects sync/check passed: 249 records, 13 semantic P changes in the current worktree against the base and zero semantic or byte changes outside P. Collection closing gates remain pending.
 
+- Closing collection hold (2026-09-12): focused evidence passes, but the full collection exposes registry-dependent auxiliary behavior. Production-registration fixtures and completed resolution must be independently accepted before restoring 10/10.
+
+- Final coordinator acceptance (2026-09-12, commit `6ed20f56a`): The legal Takuya alternate evolution pays four and retains six original sources. Own-turn DP is 17,000 (12,000 base, three source colors, Takuya inherited +2,000); the live deletion boundary is 17,000 eligible versus 18,000 excluded. Natural consecutive own-turn endings unsuspend the same permanent. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-186 — Gallantmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2272,6 +2208,10 @@ git diff --check
 
 - Independently accepted repair (2026-09-12, commit `e85166092`): Natural Start Main suspends an opposing Digimon at memory 4 and does nothing at 5. Public play pays 3 (10→7) and places the exact card. Legal TS evolution pays 1 instead of 2, suspends Kanan and retains the exact permanent/parent source; a non-TS evolution pays the full 2 without suspending Kanan. Root 6 tests passed within the seven-file / 45-test checkpoint, including five accepted repair suites and the audit layout guard. Targeted Oxlint/Oxfmt and diff checks passed. Generic Security placement reuses actual P125/P129 free-placement/dispatch suites and the existing Security IR; Kanan has no On Play clause. No production module change was needed. Closing collection gates remain pending.
 
+- Closing collection hold (2026-09-12): focused evidence passes, but the full collection exposes registry-dependent auxiliary behavior. Production-registration fixtures and completed resolution must be independently accepted before restoring 10/10.
+
+- Final coordinator acceptance (2026-09-12, commit `691c1499c`): Legal ordinary BT1-045 parents isolate the printed TS discount from P197 automatic evolution. Public evolution receipts and original source/permanent identities are preserved under production registration. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-201 — Phascomon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2307,8 +2247,8 @@ git diff --check
 
 ### P-204 — Release of the Sealed Knight!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-204.ts) · [test](../../apps/api/src/cards/P/P-204.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and placement behind trashing an X Antibody or Chronicle card”; “executes reactive Delay during either player's player attack and allows the Chronicle evolution”; “activates its Main effect from Security”; “draws two after trashing an X Antibody card and places itself”; “executes Delay in its real player attack window”
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
@@ -2320,6 +2260,8 @@ git diff --check
 
 
 - Final attack-completion proof hold (2026-09-12): the Digimon-target Delay negative must wait for an observable completed battle before asserting no offer; the existing immediate idle predicate may settle before attack dispatch. Public positive/decline and shared cost-gating proofs remain accepted.
+
+- Final coordinator acceptance (2026-09-12, commit `966f56c93`): A legal BT20-010 to BT20-012 Chronicle evolution isolates owner player-attack Delay. Acceptance/decline, zero evolution payment, exact Option trash and original source identity remain proved. The Digimon-target negative waits for combatResolved and idle, with the exact attacker in trash. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-205 — Insane Synthetic Monster
 
@@ -2342,8 +2284,8 @@ git diff --check
 
 ### P-207 — Minervamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-207.ts) · [test](../../apps/api/src/cards/P/P-207.test.ts) · clause review (source removed; see History)<br>“requires a level 5 Beastkin or TS Digimon and has Alliance”; “plays eligible hand Digimon on play and digivolution, excluding Sea Animal”; “once per turn plays the same eligible card set from trash when attacking”; “exposes Alliance on the live Minervamon”; “plays an eligible level-4 Avian from hand on play”; “plays the same eligible card from hand when digivolving”; “plays an eligible level-4 card from trash after a real attack”
 
 - Local KB lookup (2026-09-12): Q5398, Q5399; no errata entry; no restriction entry.
@@ -2353,10 +2295,12 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Final coordinator acceptance (2026-09-12, commit `959570403`): Printed trait substrings and the independent TS branch are preserved. Public play pays twelve (10 to -2), legally free-plays Giant Bird Birdramon, and the same Minervamon uses an inert eligible Avian for Alliance: first two checks, second one, third two after natural reset. Exact played trash instances and completed battles prevent vacuous predicates. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-208 — Merukimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-208.ts) · [test](../../apps/api/src/cards/P/P-208.test.ts) · clause review (source removed; see History)<br>“requires a level 5 Beastkin or TS Digimon and has Execute”; “plays an eligible card from trash on digivolution and deletion, excluding Sea Animal”; “once per turn returns an opponent's suspended Digimon to deck bottom when attacking”; “exposes Execute on the live Merukimon”; “plays an eligible level-4 Digimon from trash when deleted”; “plays an eligible level-4 Digimon from trash when digivolving”; “returns a suspended opposing Digimon to the bottom of the deck after a real attack”
 
 - Local KB lookup (2026-09-12): Q5400; no errata entry; no restriction entry.
@@ -2365,6 +2309,8 @@ git diff --check
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Final coordinator acceptance (2026-09-12, commit `3ad4250d8`): Printed trait substrings and the separate TS branch match the catalog. Legal alternate evolution pays three, retaining parent/permanent/source identity. Three actual completed deletion battles prove first return, same-turn suppression and natural next-turn reset. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-209 — Titamon
 
@@ -2730,16 +2676,22 @@ git diff --check
 
 - Reaudit accepted (2026-09-12): exact Proximamon free play is proven from hand and trash. Public play pays 13; legal public evolution pays 5, preserves permanent and original source, and resolves De-Digivolve 3 on a legal Purple Lv4/Lv5/Lv6/Lv7 stack. Each exact trash-cost source leaves trash. The granted attack executes at the opponent’s natural Start of Main and expires on handoff. The same inherited host redirects the first completed battle, suppresses the second player attack, and redirects the third completed battle after natural turn reset; exact attacker deaths prevent vacuous idle predicates. Coordinator independently passed all 10 tests and focused lint/format. This supersedes the prior scope and public-cycle holds.
 
+- Closing collection hold (2026-09-12): focused evidence passes, but the full collection exposes registry-dependent auxiliary behavior. Production-registration fixtures and completed resolution must be independently accepted before restoring 10/10.
+
+- Final coordinator acceptance (2026-09-12, commit `fe5b5f59d`): Production registration and legal Black-compatible Omnimon host retain the exact Arcturusmon source. First and third opponent attacks after natural reset redirect into completed battles with exact attacker deaths and no Security checks; the second same-turn attack checks Security. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
+
 ### P-241 — Yujin Ozora
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-241.ts) · [test](../../apps/api/src/cards/P/P-241.test.ts) · clause review (source removed; see History)<br>“sets memory to three at the start of turn when memory is two or less”; “handles linking in one trigger: grants Appmon Vortex and DP, then permits App Fuse”; “grants the Leviathan trait by Rule and plays from Security”; “sets memory to exactly three at the start of a real turn from memory two”; “plays itself without cost from Security”; “reacts to a real link by suspending, granting Vortex, and adding 3000 DP”; “accepts the linked-trigger App Fuse and merges a legal hand target”
 
 - Local KB lookup (2026-09-12): Q6927; no errata entry; no restriction entry.
 
 
 - Final printed-clause/public-proof hold (2026-09-12): both Vortex and +3000 DP must affect the same selected Appmon after the suspend cost, with DP mandatory. Current independently selected optional DP is incorrect. Existing injected Start of Turn/Security cases require public flow; the App Fuse positive requires paid link cost and original permanent/source/link identity. Q6927 and shared abort-on-decline conformance govern the initial cost gate.
+
+- Final coordinator acceptance (2026-09-12, commit `554f0a251`): Mandatory +3000 DP follows Vortex on the same selected Appmon after suspend payment. Natural Start and actual Security prove Tamer entry/memory. Paid link and App Fuse assert original permanent, exact top/source/link identities and hand removal; decision sources P241/P241/BT21-073 are accepted/accepted/declined to retain the exact App Fuse stack. Independent Luna peer review and closing collection/mechanism gates are green. This supersedes all historical holds in this entry.
 
 ### P-242 — Rei Katsura
 
@@ -2842,6 +2794,18 @@ git diff --check
 
 ## Mechanisms
 
+### sibling battle-deletion prevention
+
+[Sibling battle-deletion payments](engine/sibling-battle-deletion-preventions.md) records the Q4261/Q4262 engine correction and independent prevention/Barrier costs. Public card evidence is P146’s exact physical source transfers and completed battles. Competing instead replacements retain Q5352 exclusivity.
+
+### Security placement processing choice
+
+[Security placement cost choice](engine/security-placement-cost-choice.md) records the permanent-target top/bottom prompt seam used by P187’s public DNA proofs.
+
+### exact token name identity
+
+[Diaboromon token exact-name identity](engine/diaboromon-token-name-identity.md) records Q1033’s shared legacy alias and the two real token identities covered by the matcher.
+
 ### exact-name conjunction and absolute cost modifiers
 
 P-116 requires Agumon, Pulsemon **and** Gammamon by exact name across both players, and its
@@ -2870,33 +2834,15 @@ six destination filters with normally legal evolution candidates.
 
 ## Knowledge base index
 
-Ruling IDs cited by P cards: Q4113,Q4124 Q4128,Q4132 Q4135,Q4138 Q4141,Q4144 Q4147,Q4148 Q4161,Q4169 Q4179,Q4180 Q4181,Q4182 Q4183,Q4184 Q4186,Q4187 Q4188,Q4191 Q4192,Q4195 Q4219,Q4224 Q4236,Q4239 Q4242,Q4251 Q4277,Q4421 Q4627,Q4628 Q4629,Q4630 Q4631,Q4632 Q4846,Q4849 Q4850,Q4854 Q4979,Q4980 Q4986,Q4987 Q5192,Q5193 Q5196,Q5197 Q5198,Q5199 Q5200,Q5201 Q5397,Q5398 Q5399,Q5400 Q5401,Q5519 Q5576,Q5579 Q5582,Q5585 Q5602,Q5606 Q5631,Q5634 Q5670,Q5758 Q5759,Q5760 Q5761,Q5762 Q5763,Q5764 Q5765,Q5766 Q5770,Q5771 Q5772,Q5773 Q5774,Q5960 Q5961,Q5962 Q5963,Q6119 Q6520,Q6521 Q6917,Q6922 Q7089,Q7090
+Frozen card-specific Q&A lookups cover all 249 catalog rows; additional cited cross-card mechanisms are included. Ruling IDs: Q682, Q697, Q1033, Q1661, Q1961, Q2189, Q2624, Q2727, Q2736, Q2758, Q2767, Q3136, Q3528, Q3835, Q4016, Q4023, Q4075, Q4078, Q4079, Q4113, Q4114, Q4115, Q4116, Q4117, Q4118, Q4119, Q4120, Q4121, Q4122, Q4123, Q4124, Q4125, Q4126, Q4127, Q4128, Q4129, Q4130, Q4131, Q4132, Q4133, Q4134, Q4135, Q4136, Q4137, Q4138, Q4139, Q4140, Q4141, Q4142, Q4143, Q4144, Q4145, Q4146, Q4147, Q4148, Q4149, Q4150, Q4151, Q4152, Q4153, Q4154, Q4155, Q4156, Q4157, Q4158, Q4159, Q4160, Q4161, Q4162, Q4163, Q4164, Q4165, Q4166, Q4167, Q4168, Q4169, Q4170, Q4171, Q4172, Q4173, Q4174, Q4175, Q4176, Q4177, Q4178, Q4179, Q4180, Q4181, Q4182, Q4183, Q4184, Q4185, Q4186, Q4187, Q4188, Q4189, Q4190, Q4191, Q4192, Q4193, Q4194, Q4195, Q4196, Q4197, Q4198, Q4199, Q4200, Q4201, Q4202, Q4203, Q4204, Q4205, Q4206, Q4207, Q4208, Q4209, Q4210, Q4211, Q4212, Q4213, Q4214, Q4215, Q4216, Q4217, Q4218, Q4219, Q4220, Q4221, Q4222, Q4223, Q4224, Q4225, Q4226, Q4227, Q4228, Q4229, Q4230, Q4231, Q4232, Q4233, Q4234, Q4235, Q4236, Q4237, Q4238, Q4239, Q4240, Q4241, Q4242, Q4243, Q4244, Q4245, Q4246, Q4247, Q4248, Q4249, Q4250, Q4251, Q4252, Q4253, Q4254, Q4255, Q4256, Q4257, Q4258, Q4259, Q4260, Q4261, Q4262, Q4263, Q4264, Q4265, Q4266, Q4267, Q4268, Q4269, Q4270, Q4271, Q4272, Q4273, Q4274, Q4275, Q4276, Q4277, Q4402, Q4420, Q4421, Q4600, Q4627, Q4628, Q4629, Q4630, Q4631, Q4632, Q4704, Q4845, Q4846, Q4847, Q4848, Q4849, Q4850, Q4851, Q4852, Q4853, Q4854, Q4877, Q4883, Q4979, Q4980, Q4981, Q4982, Q4983, Q4984, Q4985, Q4986, Q4987, Q5092, Q5135, Q5192, Q5193, Q5194, Q5195, Q5196, Q5197, Q5198, Q5199, Q5200, Q5201, Q5203, Q5204, Q5210, Q5211, Q5255, Q5315, Q5335, Q5397, Q5398, Q5399, Q5400, Q5401, Q5519, Q5576, Q5579, Q5582, Q5585, Q5587, Q5602, Q5606, Q5631, Q5634, Q5670, Q5751, Q5752, Q5753, Q5754, Q5755, Q5756, Q5757, Q5758, Q5759, Q5760, Q5761, Q5762, Q5763, Q5764, Q5765, Q5766, Q5767, Q5768, Q5769, Q5770, Q5771, Q5772, Q5773, Q5774, Q5839, Q5960, Q5961, Q5962, Q5963, Q5964, Q6119, Q6237, Q6392, Q6520, Q6521, Q6522, Q6523, Q6524, Q6917, Q6918, Q6919, Q6920, Q6921, Q6922, Q6923, Q6924, Q6925, Q6926, Q6927, Q6928, Q6929, Q6930, Q6931, Q6932, Q7089, Q7090.
 
 ## Open items
 
-- The 2026-09-12 independent reaudit supersedes historical scores with the current per-card
-  proof and fixture holds above. Remaining holds include real timing, Security, next-turn
-  frequency resets. The accepted fixture repairs remove normal-zone Digi-Eggs. P-004 had a confirmed owner-turn
-  and frequency defect, repaired in `9b8a96b7f`. Focused evidence work and closing gates remain
-  pending; completion is not claimed.
-- P-226 and P-251 are absent from the committed catalog (unrevealed placeholder rows). The set is
-  249 cards, and no module or score exists for either ID.
-- P-245..P-250 are announced but not yet distributed (Official Store Tournament 2026 Vol.4, street
-  date 2026-10-01). No card-specific KB rulings exist for them; each ledger entry records that and
-  cites the general rules used instead. Two encoding notes worth carrying forward if a future card
-  needs the same shape: P-249 uses a `CostGatedBlock` wrapping an optional `Digivolve` rather than
-  an optional `Digivolve` carrying the cost (the latter would prompt before the cost is proven
-  payable); P-250's `[Trash]` digivolve-from-trash clause follows BT24-080's accepted shape but
-  sets `payCost: true` since P-250's print carries no "without paying the cost" waiver.
-- Historical drift finding (superseded by the 2026-09-12 baseline gates above): `09dcca2a5` (2026-09-08) corrected
-  `P-107.ts` (Defense Training) and its test after the ledger scored P-107 at 10/10; `969ed488f`
-  (2026-09-10) removed `ts-nocheck` from 238 P modules; `d90434a3f` (2026-09-08) repaired settle
-  predicates in 11 P test files. The collection re-run above is green at `eabe99351`, but the
-  P-107 row's evidence predates its correction, and the shared gates (combined parity run, rendered
-  scenarios, workspace typecheck, lint) were not re-run after that drift.
-- P-177 and P-232 needed fixture work — peer-module registration and an explicit evolution-route
-  choice with a memory baseline — rather than shared-engine changes. Temporary instrumentation and
-  skipped reproductions were rejected as final evidence.
+- No Promo implementation or proof holds remain. The 2026-09-12 acceptance supersedes earlier
+  conflicting scores and pending notes inside entries.
+- P226 and P251 are absent from the committed catalog; neither receives a module or score.
+- P245–P250 are announced cards from the frozen catalog source. No unreleased English card
+  publication or card-specific local ruling is inferred; their provenance limitation is explicit.
 
 ## History
 
