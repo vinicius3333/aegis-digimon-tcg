@@ -192262,7 +192262,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
               },
               "raw": "you have a [Ruli Tsukiyono] in play"
             }
