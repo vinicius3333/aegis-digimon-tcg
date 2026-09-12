@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import "./P-185.js";
 
 describe("P-185 EmperorGreymon", () => {
@@ -122,8 +123,8 @@ describe("P-185 EmperorGreymon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", dp: 15000, as: "equal" },
-            { card: "BT1-009", dp: 16000, as: "over" },
+            { card: "BT1-009", dp: 17000, as: "equal" },
+            { card: "BT1-009", dp: 18000, as: "over" },
           ],
           hand: [{ card: "BT1-009", as: "opponentHand" }],
           deck: Array(20).fill("BT1-013"),
@@ -160,9 +161,9 @@ describe("P-185 EmperorGreymon", () => {
     expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.events).toContainEqual({ kind: "memoryChanged", from: 10, to: 6, reason: "digivolve" });
-    expect(s.perm("emperor").currentDP).toBe(15000);
+    expect(s.perm("emperor").currentDP).toBe(17000);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === equalId)).toBe(false);
-    expect(s.perm("over").currentDP).toBe(16000);
+    expect(s.perm("over").currentDP).toBe(18000);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === overId)).toBe(true);
 
     await advance(s.engine).verb.suspend([hostId]);
