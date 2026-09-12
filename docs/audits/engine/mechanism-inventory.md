@@ -358,3 +358,182 @@ The shared deck-to-stack paid placement shape is owned by [digivolution-card-pla
 The EX9 deck-payment checkpoint also corrects three optional whole-effect processing conditions against §15-7-4/5. Empty-deck choices remain available; accepted impossible payment skips the payload, while targetless payloads do not prohibit payment. Eleven public cases and isolated metadata/module counterfactuals are owned by [digivolution-card-placement.md](digivolution-card-placement.md#deck-top-payment-checkpoint). EX9 sync/check changes exactly three records; final focused, collection, full API and workspace type gates pass, as recorded in the engine owner.
 
 Digi-Egg bottom placement: two real production-turn providers expose incorrect source face-down state and missing bottom event position. §4-7-5 and exact catalog text require face-up placement; four public egg/non-egg controls plus isolated mutations are owned by [digivolution-card-placement.md](digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). BT13/EX6 historical completion is reopened. Joint Drasil ordering and distinct Mother Eater/top-placement producers remain open.
+
+## CURRENT keyword reconciliation (2026-09-12)
+
+This is the reproducible current snapshot for the remaining keyword audit. It
+supersedes the earlier 45-entry table above where counts changed after
+Succession was reconciled. The discovery denominator is 46 canonical names;
+the counts below are card-ID sets and are evidence of representation only.
+
+Discovery command (run from the repository root):
+
+```sh
+node <<'NODE'
+const fs=require('fs');
+const ir=JSON.parse(fs.readFileSync('packages/shared/src/effects/effects.json'));
+const source=fs.readFileSync('packages/shared/src/effects/ir/keywords.ts','utf8');
+const canonical=[...source.matchAll(/\| "([^"]+)"/g)].map(m=>m[1]);
+const decl=new Map(), refs=new Map(), shapes=new Map(), unknown=new Map();
+function walk(x,id,path=''){ if(!x||typeof x!=='object') return;
+  if(Array.isArray(x)){x.forEach((v,i)=>walk(v,id,path+'['+i+']'));return;}
+  if(typeof x.keyword==='string'){
+    const k=x.keyword, shape=JSON.stringify(Object.fromEntries(Object.entries(x).filter(([n])=>n!=='raw')));
+    for(const [m,v] of [[refs, id],[shapes, shape]]) { if(!m.has(k))m.set(k,new Set());m.get(k).add(v); }
+    if(path.includes('.effects[')&&path.includes('.keywords[')){if(!decl.has(k))decl.set(k,new Set());decl.get(k).add(id)}
+    if(!canonical.includes(k)){if(!unknown.has(k))unknown.set(k,new Set());unknown.get(k).add(id)}
+  }
+  Object.entries(x).forEach(([n,v])=>walk(v,id,path+'.'+n)); }
+for(const [id,e] of Object.entries(ir)) walk(e,id);
+console.log('cards',Object.keys(ir).length,'canonical',canonical.length);
+for(const k of [...new Set([...canonical,...refs.keys()])]) console.log(k,decl.get(k)?.size||0,refs.get(k)?.size||0,shapes.get(k)?.size||0);
+console.log('unknown', [...unknown].map(([k,v])=>k+':'+v.size+' '+[...v].join(',')).join('; '));
+NODE
+```
+
+The command reports 4,455 persisted IR entries, 46 canonical names, and the
+following reconciliation (columns are declaration cards, all structured
+reference cards, and distinct structured shapes):
+
+| Keyword | Declarations | References | Shapes |
+| --- | ---: | ---: | ---: |
+| Blocker | 300 | 461 | 2 |
+| Piercing | 99 | 183 | 2 |
+| Rush | 36 | 105 | 2 |
+| Raid | 73 | 94 | 1 |
+| Reboot | 89 | 141 | 2 |
+| Jamming | 71 | 111 | 2 |
+| Retaliation | 62 | 93 | 1 |
+| Barrier | 61 | 68 | 1 |
+| Evade | 22 | 25 | 1 |
+| Save | 47 | 47 | 1 |
+| Delay | 132 | 135 | 1 |
+| Alliance | 57 | 88 | 1 |
+| Fortitude | 28 | 29 | 1 |
+| Blitz | 14 | 25 | 2 |
+| Collision | 25 | 43 | 1 |
+| Vortex | 15 | 18 | 1 |
+| Decoy | 9 | 12 | 2 |
+| Scapegoat | 12 | 17 | 1 |
+| Execute | 6 | 15 | 2 |
+| Progress | 9 | 10 | 1 |
+| IceClad | 12 | 13 | 1 |
+| Training | 19 | 21 | 1 |
+| Armor Purge | 46 | 46 | 1 |
+| Mind Link | 6 | 6 | 1 |
+| Ascension | 4 | 6 | 1 |
+| BlastDigivolve | 75 | 75 | 1 |
+| BlastDNADigivolve | 7 | 7 | 1 |
+| Draw | 2 | 2 | 1 |
+| SecurityAttack | 93 | 317 | 7 |
+| DeDigivolve | 0 | 0 | 0 |
+| Recovery | 11 | 23 | 1 |
+| DigiBurst | 27 | 28 | 5 |
+| Digisorption | 10 | 10 | 2 |
+| MaterialSave | 12 | 13 | 4 |
+| DigiXrosSubstitute | 0 | 1 | 1 |
+| Link | 9 | 11 | 3 |
+| LinkMax | 0 | 1 | 1 |
+| Fragment | 10 | 11 | 2 |
+| Partition | 13 | 13 | 1 |
+| Decode | 27 | 28 | 1 |
+| Overclock | 11 | 11 | 2 |
+| UseReq | 0 | 0 | 0 |
+| Engage | 3 | 5 | 1 |
+| Guard | 4 | 6 | 1 |
+| Detach | 4 | 7 | 1 |
+| Succession | 0 | 4 | 1 |
+
+Structured names outside the canonical union are `EndOfAttack` and
+`OnDeletion` (BT16-015) plus `Unblockable` (EX4-042). These are timing or
+restriction projections until their semantic ownership is reviewed. The
+persisted-only entry `TOKEN-Kotenken` is a token definition. It is excluded
+from the printed-card catalog denominator (4,454 catalog cards versus 4,455
+persisted IR entries), while remaining included in keyword behavior, consumer,
+and structured-reference counts. Token keyword specifications and token grants
+therefore remain audit obligations; token exclusion applies only to the printed
+card catalog join.
+
+The catalog scan across `effectText`, `inheritedEffectText`,
+`securityEffectText`, `dualEffect`, and `optionEffect` finds 2,301 cards with
+at least one literal keyword-name mention (field counts 1,893 / 687 / 29 / 4 /
+18; these overlap and include prose references). This is a discovery union,
+not an intrinsic-keyword count: `printedKeywordsOf` deliberately excludes
+grant clauses, target filters, token clauses, conditional clauses, and
+`Use Req.` tails. Exact marker counts in the earlier catalog table remain the
+raw marker inventory; every marker still needs canonical normalization and
+printed/inherited/security ownership review.
+
+## Runtime registration, readers, and representation split
+
+`packages/shared/src/effects/ir/keywords.ts` is the typed canonical union and
+`KeywordRef` schema (`keyword`, optional `amount`, `raw`, `traitFilter`).
+`registerIrCard(cardId, compiled)` is the production card path; it publishes
+compiled effects to the IR registry. `packages/shared/src/effects/effects.json`
+is the persisted compiled form, and direct card modules may expose a local
+`compiled` object before passing it to that same registration function.
+
+Printed text is independently scanned by `apps/api/src/engine/combat/keywords.ts`
+(`printedKeywordsOf` and its 41 matcher entries), then unioned with active
+`continuous.grantedKeywords` by `resolveKeywords`. Combat legality reads the
+resolved `hasKeyword` seam; security reads Jamming and SecurityAttack through
+its own reader; GameEngine has explicit consumers for Rush, Reboot,
+Alliance, Detach, Guard, SecurityAttack, DigiXrosSubstitute and other
+keyword-specific hooks. Structured IR keyword objects also occur as action
+payloads, grant/restriction references, and conditions, so a reference count
+cannot be treated as a declaration or a runtime grant.
+
+The forms requiring separate proofs are therefore: (1) printed marker in main,
+inherited, or security text; (2) persisted `effects[*].keywords[*]`; (3)
+structured keyword action/grant or condition references; (4) direct compiled
+IR registration; (5) continuous runtime grant records with amount/trait data;
+and (6) legacy text-only cases consumed by the printed matcher. Parameterized
+shapes currently include signed SecurityAttack amounts, amount-bearing
+MaterialSave/Link/Fragment/DigiBurst/Digisorption, Decoy colors, Overclock
+qualifier, Execute trigger kind, Rush SetBaseDP, and selfHasKeyword markers.
+
+## Current proof map and residuals
+
+Existing owner documents provide bounded proof for Rush
+([rush-lifecycle.md](rush-lifecycle.md)), Guard ([guard-lifecycle.md](guard-lifecycle.md)),
+Detach ([detach-lifecycle.md](detach-lifecycle.md)), Succession
+([succession-lifecycle.md](succession-lifecycle.md)), Vortex
+([vortex-timing.md](vortex-timing.md)), costs and placement where keyword
+parameters participate ([activation-costs.md](activation-costs.md),
+[digivolution-card-placement.md](digivolution-card-placement.md)), and
+option-use reductions ([option-use-reductions.md](option-use-reductions.md)).
+The focused current command is:
+
+```sh
+pnpm --filter @aegis/api exec vitest run \
+  src/engine/conformance/ch16a-security-blocker-draw.test.ts \
+  src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts \
+  src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts \
+  src/engine/conformance/keyword-ascension-lifecycle.test.ts \
+  src/engine/conformance/keyword-guard-lifecycle.test.ts \
+  src/engine/conformance/keyword-succession-lifecycle.test.ts \
+  src/engine/combat/keywords.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism
+```
+
+Result: 7 files / 220 tests passed. Static discovery of the scoped engine
+directories finds 9 textual `it.fails`/`test.fails` references (several are
+comments or prose describing historical divergences) and 3 skip-style
+matches; each must be classified by executing the owning suite before it can
+be called an active residual. The full engine suite and all collection suites
+were intentionally not run for this inventory.
+
+No keyword is certified by a catalog hit or test-file count. Open obligations
+include complete printed/inherited/security reconciliation, every distinct
+grant and action shape, amount boundaries and trait filters, source departure
+and top-card changes, duration/reset, duplicate grants, neutral runtime
+recipients, security and battle consumers, and the unclassified
+`EndOfAttack`/`OnDeletion`/`Unblockable` forms. Priority for the next
+independent keyword lanes is SecurityAttack and Blocker/Piercing (largest
+structured unions), then Rush/Raid/Reboot/Jamming/Retaliation, followed by
+amount-bearing DigiBurst/MaterialSave/Link/Fragment and the advanced
+Detach/Succession/Guard/Ascension family. Generic costs, zones, and ordering
+remain separate full-scope mechanisms and should not be inferred from this
+keyword inventory.
+
+History: current reconciliation and focused proof snapshot recorded
+2026-09-12; no completion credit awarded.

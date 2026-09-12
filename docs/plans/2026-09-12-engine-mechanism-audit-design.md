@@ -223,3 +223,36 @@ green; this does not certify newly added/changed normative clauses. Illustrated
 manual OCR reconciliation remains open, and the unavailable old glossary is
 explicitly archived. Normative cost-declaration and immediate-overwrite clauses
 previously excluded for missing implementation/fixtures have been reopened.
+
+## Current execution handoff: full keyword and generic-rules scope
+
+The current inventory is recorded in
+[`docs/audits/engine/mechanism-inventory.md`](../audits/engine/mechanism-inventory.md).
+It reconciles 4,454 catalog cards against 4,455 persisted IR entries (the
+extra `TOKEN-Kotenken` entry is token data) and a 46-name canonical keyword
+union. The inventory separates printed/inherited/security text, persisted
+`effects[*].keywords[*]`, structured action/grant references, direct
+`registerIrCard` modules, and active continuous grants. It also records the
+41 printed matcher names, the `hasKeyword`/security readers, parameterized
+shapes, focused test result (7 files / 220 tests), and explicit unknowns.
+
+The keyword phase must continue at full scope. Counts are discovery aids and
+must not become a behavioral denominator until each canonical name, printed
+field, grant form, parameter shape, source change, duration, reset, and
+consumer is reviewed. `EndOfAttack`, `OnDeletion`, and `Unblockable` remain
+classified as unresolved timing/restriction projections pending source
+review. Priority lanes are SecurityAttack and Blocker/Piercing, then
+Rush/Raid/Reboot/Jamming/Retaliation, then amount-bearing DigiBurst,
+MaterialSave, Link, and Fragment, followed by Detach/Succession/Guard/
+Ascension interactions. Existing owner documents remain the evidence homes;
+do not create per-card or range evidence in this plan.
+
+Generic costs, zones, and ordering are also in the user-requested scope but
+remain independent mechanisms. Continue them through the existing
+`activation-costs.md` and placement owner documents, and create or extend
+dedicated trigger-ordering, targeting/selection, and zones/visibility reports
+under `docs/audits/engine/` as obligations are actually sourced and proved.
+Do not infer their coverage from keyword counts or from the initial conformance
+test count. Each mechanism needs its own normative denominator, distinct
+consumer-shape map, public action proof, skips/fails/residual classification,
+and reproducible gates.
