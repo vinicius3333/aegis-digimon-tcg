@@ -59,6 +59,13 @@ describe("rendered catalog visibility", () => {
     fireEvent.change(search, { target: { value: "EX13-007" } });
     expect(screen.getByAltText("Guilmon")).toBeTruthy();
 
+    fireEvent.change(search, { target: { value: "" } });
+    const setFilter = screen.getByRole("combobox", { name: "Set" });
+    expect(within(setFilter).getByRole("option", { name: "EX13" })).toBeTruthy();
+    fireEvent.change(setFilter, { target: { value: "EX13" } });
+    await waitFor(() => expect(screen.getByText("60 cards")).toBeTruthy());
+    fireEvent.change(setFilter, { target: { value: "" } });
+
     for (const [id, name] of [
       ["P-245", "Kakkinmon"],
       ["P-246", "Motimon"],
