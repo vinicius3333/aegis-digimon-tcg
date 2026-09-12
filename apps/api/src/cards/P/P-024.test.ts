@@ -10,9 +10,9 @@ describe("P-024 Tai's Growing Up!", () => {
           battleArea: [{ card: "P-009", as: "agumon", under: ["BT1-001", "P-002"] }, "BT1-085"],
           hand: [{ card: "P-024", as: "option" }],
           deck: [
-            { card: "BT1-003", as: "draw1" },
-            { card: "BT1-004", as: "draw2" },
-            { card: "BT1-005", as: "draw3" },
+            { card: "BT1-009", as: "draw1" },
+            { card: "BT1-009", as: "draw2" },
+            { card: "BT1-009", as: "draw3" },
           ],
         },
       },
@@ -34,7 +34,7 @@ describe("P-024 Tai's Growing Up!", () => {
         0: {
           battleArea: [{ card: "BT1-011", as: "expert", under: ["BT1-001"] }, "P-012"],
           hand: [{ card: "P-024", as: "option" }],
-          deck: ["BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -55,7 +55,7 @@ describe("P-024 Tai's Growing Up!", () => {
         0: {
           battleArea: ["BT1-085"],
           hand: [{ card: "P-024", as: "option" }],
-          deck: ["BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -74,7 +74,7 @@ describe("P-024 Tai's Growing Up!", () => {
       0: {
         battleArea: [{ card: "P-009", as: "agumon", under: ["BT1-001"] }, "BT1-085"],
         hand: [{ card: "P-024", as: "option" }],
-        deck: ["BT1-003", "BT1-004", "BT1-005"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
       },
     });
     const agumonPermanentId = s.perm("agumon").permanentId;

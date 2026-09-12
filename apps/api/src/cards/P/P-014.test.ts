@@ -6,7 +6,7 @@ describe("P-014 Kurisarimon", () => {
   it("has Blocker and loses exactly 2 memory when it attacks", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "P-014", as: "kurisarimon" }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.state.memory = 5;
     await s.ready();

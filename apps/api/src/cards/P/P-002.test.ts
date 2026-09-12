@@ -7,7 +7,7 @@ describe("P-002 Biyomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-010", as: "attacker", under: ["P-002"], dp: 5000 }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
     });
@@ -32,7 +32,7 @@ describe("P-002 Biyomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-010", as: "attacker", under: ["P-002"], dp: 1000 }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 5000 }] },
     });

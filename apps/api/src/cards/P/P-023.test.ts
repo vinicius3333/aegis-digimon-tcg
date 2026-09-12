@@ -54,7 +54,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
       0: {
         battleArea: ["BT1-087"],
         hand: [{ card: "P-023", as: "option" }],
-        security: [{ card: "BT1-001", as: "existingSecurity" }],
+        security: [{ card: "BT1-009", as: "existingSecurity" }],
       },
     });
     const optionId = s.inst("option").instanceId;
@@ -74,7 +74,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
       0: {
         battleArea: [{ card: "BT1-048", as: "patamon" }],
         hand: [{ card: "P-023", as: "option" }],
-        security: [{ card: "BT1-001", as: "existingSecurity" }],
+        security: [{ card: "BT1-009", as: "existingSecurity" }],
       },
     });
     const patamonId = s.perm("patamon").permanentId;
@@ -104,7 +104,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
           },
         ],
         hand: [{ card: "P-023", as: "option" }],
-        security: [{ card: "BT1-001", as: "existingSecurity" }],
+        security: [{ card: "BT1-009", as: "existingSecurity" }],
       },
     });
     const plain = s.perm("plainPatamon");
