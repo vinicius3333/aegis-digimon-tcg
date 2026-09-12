@@ -72,7 +72,7 @@ describe("P-139 Leomon (X Antibody)", () => {
   });
 
   it("grants Blocker and Fortitude while Leomon/X Antibody is in its stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "P-139", as: "source", under: ["BT9-050"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-139", as: "source", under: ["BT9-109"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Fortitude")).toBe(true);

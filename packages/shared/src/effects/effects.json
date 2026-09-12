@@ -195868,7 +195868,12 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } },
             "while": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Leomon", "X Antibody"], "match": "name" }] },
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Leomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
               "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
             }
           },
@@ -195878,7 +195883,12 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Fortitude", "raw": "＜Fortitude＞" } },
             "while": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Leomon", "X Antibody"], "match": "name" }] },
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Leomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
               "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
             }
           }
