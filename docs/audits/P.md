@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 231/249 at 10/10; 18 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 232/249 at 10/10; 17 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -2246,13 +2246,13 @@ git diff --check
 
 ### P-211 — Monica Simmons
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-211.ts) · [test](../../apps/api/src/cards/P/P-211.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of your main phase when the opponent has a Digimon”; “restricts one opposing Digimon from attacking players until the opponent's turn ends”; “plays itself without paying the cost in security”; “restricts an opposing Digimon from attacking players on play”; “gains exactly 1 memory at the start of the main phase with an opposing Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Additional root proof hold (2026-09-12): Both behavioral proofs inject OnPlay or Start of Main. Natural memory gain, actual public play attack-player restriction, expiry and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
+- Independently accepted repair (2026-09-12, commit `d5b069fee`): Natural Start Main gains one memory only with an opposing Digimon. Actual play pays 3 (10→7), grants the targeted player-attack restriction and preserves the unselected opposing control. A natural pass to the opponent Main phase proves that the selected Digimon cannot attack a player; a natural opponent-turn end clears the restriction. The rejected earlier assertion ran during the wrong turn and is superseded by this complete cycle. Root final 5 tests, targeted Oxlint/Oxfmt and diff checks passed. Generic Security placement/dispatch reuses the actual P125/P129 suites and matching IR. Collection closing gates remain pending.
 
 ### P-212 — Asuna Shiroki
 
@@ -2568,13 +2568,17 @@ git diff --check
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-244.ts) · [test](../../apps/api/src/cards/P/P-244.test.ts) · clause review (source removed; see History)<br>“delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements”; “uses from hand, plays a qualifying Vemmon/Zenith, and places itself”; “plays EX11-066 Xeno from trash because its Rule also treats its name as Zenith”; “keeps P-244 in play when its Delay is declined during BT21-062's real Vemmon placement”; “accepts Delay and pays the qualifying digivolution with exactly 3 memory reduced”
 
 - Local KB lookup (2026-09-12): Q6930, Q6931, Q6932; no errata entry; no restriction entry.
 
 - Additional root proof hold (2026-09-12): Both Delay proofs manually increment turnCount, give the evolution card after readiness and inject WhenDigivolving. They do not establish a real qualifying Vemmon-placement event or legal activation window. Actual public event acceptance/decline, exact Option cost, evolution payment and original source identity require independently accepted repair. Historical 10/10 is superseded.
+
+- Confirmed executable scope defects (2026-09-12): The [official collection list](https://world.digimoncard.com/cards/?category=522901&search=true) limits reactive Delay to Your Turn and effects placing exact Vemmon as digivolution cards. Current IR uses All Turns and matches any added card with Vemmon in its text. Main likewise names exact Vemmon/Zenith, while IR uses substring destinations. Reconcile these scopes and retain the separate text-based host/destination requirements; Q6931 explicitly excludes DigiXros placement, while Q6932 permits the specified When Digivolving source insertion. Real reactive activation and source/cost/entry-turn evidence remain pending.
+
+- Catalog reconciliation accepted (2026-09-12, commit `770ea3b1f`): [Official Japanese printed text](https://digimoncard.com/cards/?category=503901&search=true) and the official English collection list both specify Your Turn. The frozen catalog incorrectly says All Turns; only this single P244 effectText field is corrected, preserving canonical two-space serialization and all other card bytes. Shared build passed. The production IR still requires the three scope repairs above and behavioral delivery remains held.
 
 ### P-245 — Kakkinmon
 
