@@ -309,3 +309,13 @@ Exact-name correction delivery: `9ffe1bf8c`; structured inventory checkpoint: `7
 ## Shared Detach correction checkpoint
 
 The public red reproduction is now green through the shared leave-prevention path, with the separate combat reaction removed. [detach-lifecycle.md](detach-lifecycle.md) records the current source, seven printed consumers, departure/refusal/trait proof, 246 files / 3049 green regression tests, and explicit unresolved obligations. The earlier red test is now part of the implementation delivery; its failure is historical evidence rather than current test state. No keyword family or set certification follows from this checkpoint.
+
+## Status-index formatter compatibility
+
+Baseline `1b5760539`. Required `pnpm audit:index --check` rejected the committed README even though all 66 collection rows matched their ledgers: the generator emitted an unpadded Markdown table while project Oxfmt aligned its columns. A temporary regeneration diff contained formatting changes only, and the README was restored byte-for-byte to the baseline.
+
+`tools/audit-docs/build-index.mjs` now emits aligned columns compatible with Oxfmt. It still compares exact generated content and rejects genuine status drift. No collection status, score, date or evidence reference changed. Three isolated real-CLI tests in `tools/audit-docs-index.test.mjs` prove formatter byte preservation and idempotency; changed status rejection without writing followed by successful regeneration; and invalid front matter rejection before overwriting the index. They execute a temporary copy of the real generator and the installed project formatter, with teardown outside the audit directory.
+
+All three tests passed. Temporarily restoring the baseline generator reproduced one failure at formatter byte preservation, with two other tests passing; the fixed source was restored in `finally`. Actual repository `pnpm audit:index --check` passes for 66 sets and README remains unchanged. This is tooling integrity evidence, not certification of the indexed collections or their historical scores.
+
+Index delivery passed scoped Oxlint, changed-file Oxfmt, clean diff checks and independent read-only review. The generated README is byte-identical to the baseline; no status index change is required.
