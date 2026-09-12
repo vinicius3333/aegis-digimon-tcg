@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 238/249 at 10/10; 11 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 239/249 at 10/10; 10 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -2238,8 +2238,8 @@ git diff --check
 
 ### P-209 — Titamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-209.ts) · [test](../../apps/api/src/cards/P/P-209.test.ts) · clause review (source removed; see History)<br>“has the alternate Demon or TS digivolution requirement and Alliance”; “gates both on-play effects behind trashing a card, then suspends and restricts an opponent's Digimon or Tamer”; “once per turn may play a level 4 or lower Demon from trash when your hand is trashed”; “exposes Alliance on the live Titamon”; “trashes the required hand card, suspends an opponent, and prevents unsuspending it”; “plays a level-4 Demon from trash when an effect actually trashes a hand card”
 
 - Local KB lookup (2026-09-12): Q5401, Q5579, Q5582, Q5602, Q5606, Q5631, Q5634, Q7089, Q7090; no errata entry; no restriction entry.
@@ -2249,6 +2249,8 @@ git diff --check
 - Confirmed catalog/IR omission (2026-09-12): [official Japanese printed text](https://digimoncard.com/cards/?card_no=P-209&search=true) and [English listing](https://world.digimoncard.com/cards/?card_no=P-209&search=true) allow level-4-or-lower Demon **or Titan** cards from trash. Catalog and executable IR omit Titan. Q5401 on the official pages confirms the hand-trash cost gates the continuation; the frozen local KB has no entry. Catalog/IR reconciliation, actual public play/evolution and same-source natural watcher-cycle proof remain pending. Independent suspend and restriction targets are correctly permitted by the printed text.
 
 - Catalog reconciliation accepted (2026-09-12, `2a5e26d8a`): the single P209 effect-text field now includes Titan; canonical catalog formatting is preserved and Shared build passes. Executable IR and behavioral proof remain pending.
+
+- Independently accepted repair (2026-09-12, commit `c60461e6e`): The executable trash-play filter accepts Demon or Titan within level 4. The existing natural cycle plays exact BT24-010 Greymon (Titan, not Demon), suppresses an eligible second hand-trash use and plays the chosen Demon after a real opponent/own reset, retaining the same P209 physical source and permanent. Real paid play records 10 to -1 memory, exact hand cost and Digimon/Tamer restrictions through the opponent turn, then their natural expiry. Existing processing-cost refusal and Alliance mechanisms are reused. Root 8 tests and focused style pass. Promo sync contains 249 records, 18 semantic Promo changes in the current snapshot, and zero outside-set changes; only the accepted P209 record is staged with the card. Full closing gates remain pending.
 
 ### P-210 — Hiroko Sagisaka
 
