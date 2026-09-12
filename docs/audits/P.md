@@ -91,6 +91,8 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 241/249 at 10/10; 8 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
+- Final lower-range peer review accepted (2026-09-12): the independent Luna reader inspected all 124 P001–P124 modules, catalog rows, tests and KB references. Twelve exact-name defects were confirmed and repaired in atomic card/record commits; explicitly printed substring predicates were preserved. No card tests were added or changed for these repairs. Shared Q1033 legacy token identity was reproduced red and corrected; coordinator focused acceptance passed 13 files, 50 tests. Current recalculation is 247/249 at 10/10, with P207/P208 public-cycle holds remaining. The final upper-range independent review and closing collection gates remain pending.
+
 ## Gates
 
 Current 2026-09-12 gate results on the new worktree at base `de4dda717`:
@@ -431,8 +433,8 @@ git diff --check
 
 ### P-034 — DemiDevimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-034.ts) · [test](../../apps/api/src/cards/P/P-034.test.ts) · clause review (source removed; see History)<br>“counts itself after deletion as the seventh Devimon and offers DanDevimon (Q4148)”; “lets the player decline the single optional play”; “does not prompt when its deletion leaves only six Devimon cards in trash”
 
 - Local KB lookup (2026-09-12): Q4148; no errata entry; no restriction entry.
@@ -440,6 +442,8 @@ git diff --check
 - Reaudit proof accepted (2026-09-12): Both threshold/deletion cases use a legal neutral Purple level-4 Meramon above DemiDevimon, preserving Devimon-name source-count boundaries. Coordinator independently passed the focused checkpoint: 8 files, 29 tests; Oxlint/Oxfmt and diff check green. Package regressions now use legal Ghost Game hosts and a legal Purple chain while retaining the original Digi-Burst costs and isolated inherited Retaliation. Collection closing gates remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact DanDevimon (the explicitly printed Devimon-in-name trash condition stays broad) clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `56441ff93`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-035 — Red Memory Boost!
 
@@ -665,18 +669,20 @@ git diff --check
 
 ### P-059 — Gammamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-059.ts) · [test](../../apps/api/src/cards/P/P-059.test.ts) · clause review (source removed; see History)<br>“gives its host +2000 DP during your turn while Hiro is in play”; “does not give +2000 DP without Hiro Amanokawa”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Final independent printed-name hold (2026-09-12): The exact Hiro Amanokawa clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
+- Final printed-name repair accepted (2026-09-12, commit `4fae9d177`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
+
 ### P-060 — Angoramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-060.ts) · [test](../../apps/api/src/cards/P/P-060.test.ts) · clause review (source removed; see History)<br>“gains 1 memory when its host attacks while Ruli is in play”; “gains memory only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; errata entry present; no restriction entry.
@@ -685,10 +691,12 @@ git diff --check
 
 - Final independent printed-name hold (2026-09-12): The exact Ruli Tsukiyono clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
+- Final printed-name repair accepted (2026-09-12, commit `fedf3d0d5`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
+
 ### P-061 — Jellymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-061.ts) · [test](../../apps/api/src/cards/P/P-061.test.ts) · clause review (source removed; see History)<br>“draws 1 when its host attacks while Kiyoshiro is in play”; “draws only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -696,6 +704,8 @@ git diff --check
 - Reaudit proof accepted (2026-09-12): Three focused tests pass: legal inherited host attacks draw once, the second same-turn attack leaves the identified card in deck, and a new natural turn draws the distinct effect card after the ordinary turn draw. Regular deck/security fixtures replace Digi-Eggs.
 
 - Final independent printed-name hold (2026-09-12): The exact Kiyoshiro Higashimitarai clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `3b3dc1498`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-062 — Hiro Amanokawa
 
@@ -924,8 +934,8 @@ git diff --check
 
 ### P-087 — Ritsu Kodo
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-087.ts) · [test](../../apps/api/src/cards/P/P-087.test.ts) · clause review (source removed; see History)<br>“Q4179: suspends when Pulsemon is played and gets both bonuses at exactly 3 security”; “plays itself from security without paying its play cost”
 
 - Local KB lookup (2026-09-12): Q4179; no errata entry; no restriction entry.
@@ -933,6 +943,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Pulsemon clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `d04cab508`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-088 — Siriusmon
 
@@ -959,8 +971,8 @@ git diff --check
 
 ### P-090 — Diarbbitmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-090.ts) · [test](../../apps/api/src/cards/P/P-090.test.ts) · clause review (source removed; see History)<br>“requires the UI to choose exactly 2 opponent Digimon to suspend when digivolving”; “unsuspends an ally after another Digimon wins a battle while Angoramon is in its stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -972,6 +984,8 @@ git diff --check
 
 - Final independent printed-name hold (2026-09-12): The exact Angoramon in this Digimon’s source stack clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
 
+- Final printed-name repair accepted (2026-09-12, commit `a75885af9`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
+
 ### P-091 — Saberdramon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -982,8 +996,8 @@ git diff --check
 
 ### P-092 — Dracomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-092.ts) · [test](../../apps/api/src/cards/P/P-092.test.ts) · clause review (source removed; see History)<br>“digivolves itself directly into Wingdramon for 3 by ignoring level requirements”; “inherited effect digivolves a legal level 4 host into Wingdramon for free”; “Q4182 does not offer inherited Wingdramon evolution from an illegal level 3 host”
 
 - Local KB lookup (2026-09-12): Q4182; no errata entry; no restriction entry.
@@ -993,6 +1007,8 @@ git diff --check
 - Reaudit public behavior and source proof accepted (2026-09-12): Both public effect-evolution positives now retain exact original parent/source instances beneath Wingdramon and assert paid memory. The inherited path uses a legal Blue level-4 host; a legal Green level-4 host is incompatible with Wingdramon and preserves zero P-092 decisions, confirming requirements are not waived. Coordinator independently passed the final two-card run: 2 files, 7 tests; Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Groundramon event and Wingdramon destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `1295582dd`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-093 — Bastemon
 
@@ -1009,8 +1025,8 @@ git diff --check
 
 ### P-094 — Destromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-094.ts) · [test](../../apps/api/src/cards/P/P-094.test.ts) · clause review (source removed; see History)<br>“deletes the single eligible opponent Digimon (play cost within budget)”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1026,6 +1042,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Vemmon scaling and returned source cards clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `2b00ad522`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-095 — Pause Plug-In P
 
@@ -1176,8 +1194,8 @@ git diff --check
 
 ### P-110 — Shadramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-110.ts) · [test](../../apps/api/src/cards/P/P-110.test.ts) · clause review (source removed; see History)<br>“plays exactly one Veemon or Wormmon from trash suspended when digivolving”; “plays an eligible Veemon or Wormmon from hand through the inherited On Deletion effect”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1185,6 +1203,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Veemon/Wormmon free-play targets clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `2f386cd47`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-111 — Knightmon
 
@@ -1201,8 +1221,8 @@ git diff --check
 
 ### P-112 — Morphomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-112.ts) · [test](../../apps/api/src/cards/P/P-112.test.ts) · clause review (source removed; see History)<br>“uses its inherited effect when another Eosmon is played to digivolve from hand”; “may place itself under an Eosmon and play the revealed Menoa Bellucci”; “reveals three and adds both Eosmon and Menoa Bellucci when both are present”; “adds the one matching card when only one of Eosmon or Menoa is revealed”
 
 - Local KB lookup (2026-09-12): Q4216, Q4217, Q4218; no errata entry; no restriction entry.
@@ -1210,6 +1230,8 @@ git diff --check
 - Reaudit public evolution cycle accepted (2026-09-12): Legal Green level-4 Kuwagamon/P-112 host responds to real Eosmon attack-triggered White level-4 plays. First evolution to White level 5 pays 0 (printed 3 reduced by 3), second same-turn play cannot evolve to level 6, and the natural 0-to-1-to-0 cycle renews the level-6 reduction (incoming 3 to 1, printed 5 reduced by 3). Exact original Kuwagamon and P-112 instances remain in the final level-6 stack. Coordinator independently passed P-112/P-117: 2 files, 6 tests; P-112 Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Eosmon/Menoa Bellucci targets, event and destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `7aaac0e5a`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-113 — RustTyrannomon
 
@@ -1226,8 +1248,8 @@ git diff --check
 
 ### P-114 — Diaboromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-114.ts) · [test](../../apps/api/src/cards/P/P-114.test.ts) · clause review (source removed; see History)<br>“plays a Diaboromon Token when digivolving and counts the token for deletion scaling”; “plays a Diaboromon Token from the When Attacking effect”
 
 - Local KB lookup (2026-09-12): Q4220, Q4221, Q4222; no errata entry; no restriction entry.
@@ -1236,6 +1258,8 @@ git diff --check
 - Reaudit proof accepted (2026-09-12): public cost-3 digivolution retains the exact Lv.5 source and creates a token. A preferred cost-8 opponent is excluded at the first printed limit of 7 while an eligible cost-2 opponent is deleted; a second same-turn token play cannot delete, and a real next-turn attack creates another token and deletes the preferred cost-8 opponent at the increased limit. Coordinator independently passed all three tests, lint and formatting. Collection closeout gates remain pending.
 
 - Final independent printed-name hold (2026-09-12): The exact Diaboromon field scaling clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `13b20734b`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above. Q1033 token identity is preserved by shared alias commit `0dfdd5916`, with a reproduced red legacy-token case and green coverage for both token identities; see the [engine mechanism](engine/diaboromon-token-name-identity.md).
 
 ### P-115 — SkullKnightmon
 
@@ -1324,8 +1348,8 @@ git diff --check
 
 ### P-124 — Davis Motomiya
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-124.ts) · [test](../../apps/api/src/cards/P/P-124.test.ts) · clause review (source removed; see History)<br>“uses the second On Play mode to digivolve a Digimon into ExVeemon for free”; “plays Veemon from hand through the first On Play mode”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1338,6 +1362,8 @@ git diff --check
   assertion was preserved.
 
 - Final independent printed-name hold (2026-09-12): The exact Veemon play target and ExVeemon evolution destination clause uses substring name matching. The lower-range peer review confirmed this against the frozen printed catalog and interpreter definition matching. Exact-name IR repair and independently accepted existing card/mechanism tests remain pending; explicitly printed name-substring clauses must retain their broader match.
+
+- Final printed-name repair accepted (2026-09-12, commit `40c794bf3`): bracketed full identities now use nameExact. The coordinator verified the synced record changes only name-to-nameExact predicate values; printed substring clauses are preserved. Existing behavioral cases are unchanged. Coordinator independently passed all twelve affected card suites plus the shared exact-name/Rule-alias matcher: 13 files, 50 tests; focused lint/format passed. This supersedes the exact-name hold above.
 
 ### P-125 — Ken Ichijoji
 
