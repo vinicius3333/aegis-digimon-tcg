@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 229/249 at 10/10; 20 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 231/249 at 10/10; 18 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -1997,16 +1997,16 @@ git diff --check
 
 ### P-189 — Dimetromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-189.ts) · [test](../../apps/api/src/cards/P/P-189.test.ts) · clause review (source removed; see History)<br>“plays an optional LIBERATOR card costing 4 or less from hand or trash in Security”; “actually plays a qualifying LIBERATOR from trash when revealed in Security”; “grants Progress and gains one memory once per turn when your opponent's security is removed”; “exposes Progress on the live Dimetromon”; “gains one memory once per turn when its host's attack removes opponent security”
 
 - Local KB lookup (2026-09-12): Q4979, Q6520; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
-
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Independently accepted repair (2026-09-12, commit `496dc1a1a`): Actual opposing attack finishes one Security check, plays the exact eligible LIBERATOR from trash without spending memory, retains the non-LIBERATOR hand card and sends the original checked Dimetromon to trash. The same legal Green level-5 host and physical inherited source gain memory on the first attack, not the eligible second attack, then again after a natural own→opponent→own cycle; all three Security checks finish without pending decisions. Root final 5 tests passed and independent read-only peer review passed. Root independently passed the three-card focus including P211 (3 files / 15 tests); P211 is still held because its attack denial initially tested the wrong turn. Targeted Oxlint/Oxfmt and diff checks are green. Collection closing gates remain pending.
 
 ### P-190 — Tweetmon
 
@@ -2236,13 +2236,13 @@ git diff --check
 
 ### P-210 — Hiroko Sagisaka
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-210.ts) · [test](../../apps/api/src/cards/P/P-210.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of your main phase when the opponent has a Digimon”; “may return a TS Digimon from your trash on play”; “plays itself without paying the cost in security”; “gains exactly 1 memory at the start of the main phase with an opposing Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Additional root proof hold (2026-09-12): Its only behavioral proof injects Start of Main. Natural memory gain, public OnPlay TS trash return acceptance/decline with exact instance and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
+- Independently accepted repair (2026-09-12, commit `0083a9ff7`): Natural Start Main gains one memory only with an opposing Digimon. Public play pays 3 (10→7), returns the exact TS Digimon from trash to hand, and eligible optional refusal preserves it in trash. Root final 5 tests passed. Generic Security placement and On Play dispatch reuse actual P125/P129 suites and matching IR, rather than duplicate generic tests. Root independently passed the three-card focus including P211 (3 files / 15 tests); P211 is still held because its attack denial initially tested the wrong turn. Targeted Oxlint/Oxfmt and diff checks are green. Collection closing gates remain pending.
 
 ### P-211 — Monica Simmons
 
