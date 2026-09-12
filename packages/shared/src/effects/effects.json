@@ -198872,7 +198872,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "PlaceInBattleAreaSelf", "optional": true }
+          { "kind": "PlaceInBattleAreaSelf" }
         ]
       },
       {
@@ -198893,7 +198893,10 @@
             "cost": {
               "kind": "deleteOwn",
               "target": {
-                "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "name" }] },
+                "filter": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "nameExact" }]
+                },
                 "count": 1
               },
               "raw": "By deleting 1 of your [Millenniummon]"

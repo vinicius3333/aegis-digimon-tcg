@@ -35,7 +35,6 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
-          optional: true,
         },
       ],
     },
@@ -67,7 +66,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Millenniummon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
