@@ -1622,6 +1622,102 @@ describe("primitives: placeUnder / link", () => {
     },
   );
 
+  it.each(["missing", "duplicate"])("preflights a %s mixed batch before its permanent leaves", async (invalid) => {
+    const h = harness({
+      turnSeat: 0,
+      board: {
+        0: {
+          battleArea: [battleDigimon("dest", 5000), { card: TAMER, as: "tamer" }],
+          trash: [{ card: DIGIMON, as: "loose" }],
+        },
+      },
+    });
+    const ids = [h.s.inst("tamer").instanceId, h.s.inst("loose").instanceId];
+    const result = await h.fx.placeMixedMaterialsUnder?.(h.s.perm("dest").permanentId, [
+      ...ids,
+      invalid === "missing" ? "missing" : ids[0]!,
+    ]);
+    expect(result).toEqual([]);
+    expect(h.s.perm("tamer").topCard.cardId).toBe(TAMER);
+    expect(h.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([ids[1]]);
+    expect(h.s.perm("dest").stack).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+    expect(h.subTriggerFires).toHaveLength(0);
+  });
+
+  it.each(["overlap", "restricted", "destination"])(
+    "rejects %s in a mixed batch without moving anything",
+    async (invalid) => {
+      const h = harness({
+        turnSeat: 0,
+        board: {
+          0: {
+            battleArea: [
+              battleDigimon("dest", 5000),
+              { card: TAMER, as: "tamer", under: [{ card: OPTION, as: "attached" }] },
+            ],
+            trash: [{ card: DIGIMON, as: "loose" }],
+          },
+        },
+      });
+      const tamerId = h.s.inst("tamer").instanceId;
+      const attachedId = h.s.inst("attached").instanceId;
+      const looseId = h.s.inst("loose").instanceId;
+      if (invalid === "restricted")
+        h.continuous.addRestriction(
+          h.s.perm("tamer").permanentId,
+          "leaveBattleAreaExceptByDeletion",
+          EffectDuration.Permanent,
+        );
+      const ids =
+        invalid === "destination"
+          ? [h.s.perm("dest").topCard.instanceId, looseId]
+          : invalid === "overlap"
+            ? [tamerId, attachedId, looseId]
+            : [tamerId, looseId];
+      expect(await h.fx.placeMixedMaterialsUnder?.(h.s.perm("dest").permanentId, ids)).toEqual([]);
+      expect(h.s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([attachedId]);
+      expect(h.s.perm("dest").stack).toHaveLength(0);
+      expect(h.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([looseId]);
+      expect(h.events).toHaveLength(0);
+      expect(h.subTriggerFires).toHaveLength(0);
+    },
+  );
+
+  it.each([false, true])(
+    "commits mixed bottom order while preserving material sources: attached=%s",
+    async (withAttached) => {
+      const h = harness({
+        turnSeat: 0,
+        board: {
+          0: {
+            battleArea: [
+              { card: DIGIMON, as: "dest", under: [{ card: OPTION, as: "existing" }] },
+              { card: TAMER, as: "tamer", under: withAttached ? [{ card: OPTION, as: "attached" }] : [] },
+            ],
+            trash: [{ card: DIGIMON, as: "loose" }],
+          },
+        },
+      });
+      const ids = [h.s.inst("loose").instanceId, h.s.inst("tamer").instanceId];
+      const attachedIds = withAttached ? [h.s.inst("attached").instanceId] : [];
+      const expectedAdded = [ids[0]!, ...attachedIds, ids[1]!];
+      const existingId = h.s.inst("existing").instanceId;
+      expect(
+        (await h.fx.placeMixedMaterialsUnder?.(h.s.perm("dest").permanentId, ids))?.map((card) => card.instanceId),
+      ).toEqual(ids);
+      expect(h.s.perm("dest").stack.map((card) => card.instanceId)).toEqual([...expectedAdded, existingId]);
+      expect(h.state.players[0]!.battleArea).toHaveLength(1);
+      expect(h.state.players[0]!.trash).toHaveLength(0);
+      expect(h.events).toEqual([{ kind: "cardsMoved", instanceIds: expectedAdded, from: "various", to: "battleArea" }]);
+      expect(h.subTriggerFires).toHaveLength(1);
+      expect(h.subTriggerFires[0]?.payload).toMatchObject({
+        addedDigivolutionCardInstanceIds: expectedAdded,
+        addedDigivolutionCardsPosition: "bottom",
+      });
+    },
+  );
+
   it("preflights every multi-source move before touching the destination", async () => {
     const h = harness({
       turnSeat: 0,
@@ -2740,6 +2836,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     relocatePermanent: true,
     relocatePermanentByEffect: true,
     relocatePermanentsByEffect: true,
+    placeMixedMaterialsUnder: true,
     resolveCardEffect: true,
     restoreDpReductions: true,
     restrict: true,
