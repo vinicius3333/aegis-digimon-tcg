@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 237/249 at 10/10; 12 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 238/249 at 10/10; 11 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -2029,8 +2029,8 @@ git diff --check
 
 ### P-191 — Apollomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-191.ts) · [test](../../apps/api/src/cards/P/P-191.test.ts) · clause review (source removed; see History)<br>“encodes Light Fang/Night Claw evolution and Blast Digivolve”; “uses a 7000 DP deletion budget plus one per Olympos XII Digimon at both timings”; “keeps the DNA-then-attack sequence and inherited once-per-turn attack”; “reduces an opposing Digimon by 4000 DP on play”; “applies the same budget effect when digivolving and resolves both end-turn attack windows”
 
 - Local KB lookup (2026-09-12): Q4980, Q4981, Q4982, Q4983, Q4984, Q4985, Q4986; no errata entry; no restriction entry.
@@ -2040,6 +2040,8 @@ git diff --check
 - Confirmed printed-rule defects (2026-09-12): [Official Japanese printed text](https://digimoncard.com/cards/?category=503901&search=true) and the English collection list both require Light Fang/Night Claw alternate evolution cost 3, while catalog and IR say 4. The DP deletion budget is fixed at 7000; IR incorrectly adds an Olympos XII count bonus to that budget at both timings. Only the preceding single-target DP reduction scales with the allied count. End-turn DNA destination must also match exact GraceNovamon in hand. Paid public alternate evolution, fixed-budget boundary and natural End/Counter/source-disposition evidence remain pending. ACE display suffixes follow the catalog’s existing separate isAce/overflow metadata convention.
 
 - Catalog reconciliation accepted (2026-09-12, commit `2c7005bbd`): Only the P191 alternate header in effectText changes from cost 4 to cost 3; ordinary Red/Yellow level-5 evolution costs remain 4. Canonical catalog serialization and all other card bytes are preserved. Shared build passed. Fixed-budget, exact DNA destination and public/natural behavior repairs remain pending.
+
+- Independently accepted repair (2026-09-12, commit `90d04bb32`): The alternate cost is 3, both deletion budgets stay at 7000 and the DNA hand destination is exact GraceNovamon. Paid public play (7) and legal Light Fang evolution (3) establish source/permanent retention; the budget boundary excludes an untouched 7001 candidate even with two allied Olympos XII. Natural End DNA uses the zero-cost Red/Blue level-6 recipe, removes both old material permanents, retains both physical sources, draws once and completes the two Security checks. Refused DNA still offers the separate attack; the same inherited resident attacks across a natural turn reset without joining the arrival End window. Existing Blast Digivolve and single natural End-window frequency mechanisms are reused. Root 8 tests, API types and targeted style pass; only the P191 synced record accompanies the atomic commit.
 
 ### P-192 — Bakemon
 
@@ -2569,8 +2571,8 @@ git diff --check
 
 ### P-243 — Digiseabass
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its real Security effect”
 
 - Local KB lookup (2026-09-12): Q6929; no errata entry; no restriction entry.
@@ -2579,6 +2581,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Additional root proof hold (2026-09-12): The Delay proof only injects OnStartTurn immediately after playing the Option; it does not establish the actual Start of Your Turn activation window, entry-turn guard, return cost, exact source disposition or decline. Existing real Security proof remains valid. Natural-turn Delay acceptance/decline and paid source disposition require independently accepted repair. Historical 10/10 is superseded.
+
+- Confirmed executable timing defect (2026-09-12): Printed Delay activates at Start of Your Turn when the opponent has a Digimon. The current GainKeyword/permanent arming plus Main activation splits that window and persists a future ability the printed card does not grant. Use the intrinsic timed Delay registration and its existing source-trash/entry-turn mechanism. Q6929 also requires hand-trash acceptance before Main placement. Natural timed acceptance/refusal and the whole Main cost gate remain pending. [Official collection text](https://world.digimoncard.com/cards/?category=522901&search=true).
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
