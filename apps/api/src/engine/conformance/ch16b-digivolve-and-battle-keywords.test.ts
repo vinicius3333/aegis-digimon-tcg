@@ -210,6 +210,11 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
       "Inherited effects are gained from digivolution cards",
       "2c055b02ffa9c5dbe1734f499d80029364ab320d2d5543f76237a9fcc2f9d487",
     );
+    cite(
+      "comprehensive-0167",
+      "One trigger condition triggers once even when multiple matching events occur simultaneously",
+      "6833093207ae30f62d832ec8605eae546ffbc36cc1d21650e06b65d34d9b8fc6",
+    );
   });
   it.each(["BT4-038", "BT8-077"])(
     "%s publicly attacks the turn played while the neutral control cannot",
@@ -724,6 +729,120 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+  it.each(["EX3-030", "EX3-031"])(
+    "%s chooses one Rush recipient from a public simultaneous Dragon play",
+    async (source) => {
+      const s = setup(
+        {
+          0: {
+            battleArea: [
+              { card: "EX3-033", as: "sourceHost", under: [source] },
+              { card: "BT1-053", as: "olderDragon" },
+              "BT1-086",
+              {
+                card: "BT1-084",
+                as: "batchHost",
+                under: [
+                  { card: "EX3-035", as: "firstDragon" },
+                  { card: "EX3-025", as: "secondDragon" },
+                  { card: "BT1-009", as: "unrelatedSource" },
+                ],
+              },
+            ],
+            hand: [{ card: "BT7-097", as: "option" }, "BT1-009"],
+            deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        { autoOrderTriggers: true, autoOrderCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      const optionId = s.inst("option").instanceId;
+      const firstId = s.inst("firstDragon").instanceId;
+      const secondId = s.inst("secondDragon").instanceId;
+      const unrelatedId = s.inst("unrelatedSource").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const hostDecision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: hostDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("batchHost").permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const materialsDecision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: materialsDecision.decisionId,
+          response: { kind: "selectCards", instanceIds: [firstId, secondId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "chooseTargets" ||
+          s.state.players[0]!.trash.some((c) => c.instanceId === optionId),
+      );
+      expect(s.state.pendingDecision?.kind).toBe("chooseTargets");
+      const rushDecision = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === rushDecision.decisionId)!.req;
+      const first = s.perm("firstDragon");
+      const second = s.perm("secondDragon");
+      expect(request.sourceCardId).toBe(source);
+      expect(new Set(request.options?.candidateInstanceIds)).toEqual(new Set([first.permanentId, second.permanentId]));
+      expect(request.options?.candidateInstanceIds).toHaveLength(2);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: rushDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("olderDragon").permanentId] },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(rushDecision.decisionId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: rushDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [second.permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[0]!.trash.some((c) => c.instanceId === optionId) && s.state.pendingDecision === undefined,
+      );
+      expect(observe(s.engine).hasKeyword(first, "Rush")).toBe(false);
+      expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm("olderDragon"), "Rush")).toBe(false);
+      expect(s.perm("batchHost").stack.map((c) => c.instanceId)).toEqual([unrelatedId]);
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[0]!.deck).toHaveLength(2);
+      expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === source)).toHaveLength(
+        1,
+      );
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: first.permanentId, target: { kind: "player" } }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: second.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+      expect(first.isSuspended).toBe(false);
+      expect(second.isSuspended).toBe(true);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(false);
+      expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === second.permanentId)).toBe(second);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
