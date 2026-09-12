@@ -4,6 +4,7 @@ import { isTimingActivationDisabled } from "./effects/timingActivation.js";
 import type { Client } from "colyseus";
 import {
   CardKind,
+  getCardDefinition,
   AppFusionRoute,
   GameState,
   PlayerState,
@@ -39,7 +40,7 @@ import {
 import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
 import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController, type CombatTrigger } from "./combat/controller.js";
-import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
+import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
@@ -1082,24 +1083,6 @@ export class GameEngine {
       trashDigivolutionCards: async (hostPermanentId, instanceIds) => {
         await this.primitives.trashDigivolutionCards(hostPermanentId, instanceIds);
       },
-      detachEligibleLinkedCards: (permanentId) => {
-        const permanent = this.access.permanentById(permanentId);
-        if (permanent?.topCard === undefined) return [];
-        const traits = detachTraitTokens(definitionOf(permanent.topCard));
-        if (traits.length === 0) return [];
-        return detachableLinkedCards(permanent, traits, (card) => definitionOf(card));
-      },
-      detachLinkedCard: async (permanentId, instanceId) => {
-        const permanent = this.access.permanentById(permanentId);
-        if (permanent?.topCard === undefined) return false;
-        const traits = detachTraitTokens(definitionOf(permanent.topCard));
-        if (traits.length === 0) return false;
-        return (
-          (await detachLinkedCard(permanent, instanceId, traits, (card) => definitionOf(card), {
-            trash: async (ids) => this.primitives.trash(ids),
-          })) !== undefined
-        );
-      },
       ascendToSecurity: async (instanceId) => {
         await this.primitives.ascendToSecurity(instanceId);
       },
@@ -1407,6 +1390,24 @@ export class GameEngine {
     return consultLeavePrevention(
       {
         subTriggers: this.subTriggers,
+        keywordReplacements: (ids) =>
+          detachLeaveReplacements(ids, {
+            permanentById: (id) => this.access.permanentById(id),
+            hasDetach: (id) => this.continuous.hasKeyword(id, "Detach"),
+            traitTokens: (id) => {
+              const permanent = this.access.permanentById(id);
+              if (permanent?.topCard === undefined) return [];
+              const printed = detachTraitTokens(definitionOf(permanent.topCard));
+              const granted = this.continuous.keywordGrantSources(id, "Detach").flatMap((source) => {
+                const definition =
+                  source.sourceCardId === undefined ? undefined : getCardDefinition(source.sourceCardId);
+                return detachTraitTokens({ effectText: source.effectText ?? definition?.effectText });
+              });
+              return [...new Set([...printed, ...granted])];
+            },
+            definitionOf: (card) => definitionOf(card),
+            trash: (paymentIds) => this.primitives.trash(paymentIds),
+          }),
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {

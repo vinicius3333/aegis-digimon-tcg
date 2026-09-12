@@ -14,6 +14,8 @@ function replacementActivationKey(replacement: ReplacementSubscription): string 
  */
 export interface LeavePreventionHost {
   subTriggers: SubTriggerRegistry;
+  /** Live keyword reactions use the same ordering and reentry guards as authored effects. */
+  keywordReplacements?(permanentIds: string[]): ReplacementSubscription[];
   /** The live permanent for an id (undefined when it already left). */
   permanentById(permanentId: string): Permanent | undefined;
   /** Build the reaction's EffectContext for a source permanent (with the leaving id in trigger). */
@@ -76,6 +78,7 @@ export async function consultLeavePrevention(
   // replacementsFor already excludes "reduceCost" (unrelated to leave/delete), leaving the
   // "prevent" and "instead" modes this consult handles.
   let replacements = [
+    ...(host.keywordReplacements?.(permanentIds) ?? []),
     ...(opts.isBounce === true ? [] : host.subTriggers.replacementsFor("wouldBeDeleted")),
     ...host.subTriggers.replacementsFor("wouldLeavePlay"),
   ];

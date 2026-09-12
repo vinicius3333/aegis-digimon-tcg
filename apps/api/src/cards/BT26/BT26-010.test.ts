@@ -330,7 +330,7 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
   });
 
-  it("never offers battle-only Detach for deletion by an effect", async () => {
+  it("does not offer Detach for deletion by the owner’s own effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-019", as: "target", linked: [{ card: CARD_ID }] }] },
     });
