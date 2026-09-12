@@ -99,6 +99,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "effects",
+          excludeInherited: true,
           filter: {
             nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },
@@ -117,6 +118,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "effects",
+          excludeInherited: true,
           filter: {
             nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },

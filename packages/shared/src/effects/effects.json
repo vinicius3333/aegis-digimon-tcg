@@ -202524,6 +202524,9 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
+            "sourceFilter": { "isSelfRef": true },
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ],
@@ -202672,6 +202675,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -202683,6 +202687,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -202740,6 +202745,7 @@
             "actions": [
               {
                 "kind": "Unsuspend",
+                "preserveOncePerTurnOnDecline": true,
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "optional": true
               }
@@ -202783,7 +202789,13 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenTrashedFromHand", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromHand",
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -202829,7 +202841,13 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenTrashedFromHand", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromHand",
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -202950,6 +202968,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -202961,6 +202980,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -203469,6 +203489,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -203480,6 +203501,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -203593,7 +203615,8 @@
           {
             "kind": "Attack",
             "target": { "filter": {}, "count": 1, "fromSelectionRef": "angoramonAttacker" },
-            "attackPlayer": false
+            "attackPlayer": false,
+            "drainTimingWindowDuringAttack": true
           }
         ]
       }
@@ -203610,7 +203633,28 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "modifyDP", "amount": 2000 },
-            "while": { "kind": "youHave", "filter": { "kind": ["Tamer"] }, "raw": "there's a Tamer" }
+            "while": {
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
+              "raw": "there's a Tamer"
+            }
           }
         ],
         "isInherited": true
@@ -203693,12 +203737,25 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } },
             "while": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "battleArea",
-              "filter": { "kind": ["Tamer"] },
-              "op": "gte",
-              "value": 1,
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
               "raw": "there's a Tamer"
             }
           },
@@ -203709,12 +203766,25 @@
             "byOpponentEffectsOnly": true,
             "duration": "permanent",
             "while": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "battleArea",
-              "filter": { "kind": ["Tamer"] },
-              "op": "gte",
-              "value": 1,
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
               "raw": "there's a Tamer"
             }
           }
@@ -203861,6 +203931,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -203873,6 +203944,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -204003,13 +204075,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          {
-            "kind": "Draw",
-            "controller": "mine",
-            "amount": 1,
-            "optional": false,
-            "condition": { "kind": "ifThisEffectActed", "raw": "if you placed a [Gammamon] card for this effect" }
-          }
+          { "kind": "Draw", "controller": "mine", "amount": 1, "optional": false }
         ]
       },
       {

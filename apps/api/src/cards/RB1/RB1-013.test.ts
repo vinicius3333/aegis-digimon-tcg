@@ -1,11 +1,10 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("RB1-013 TeslaJellymon", () => {
-  it("gains memory once when a card is trashed from hand through an inherited stack", async () => {
+  it("does not gain memory when an opponent effect trashes your hand card", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "RB1-014", as: "host", under: [{ card: "RB1-013" }] }],
@@ -15,27 +14,63 @@ describe("RB1-013 TeslaJellymon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trash([s.inst("discarded").instanceId], 0);
+    s.state.turnSeat = 0;
+    await advance(s.engine).verb.trash([s.inst("discarded").instanceId], 1);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(0);
   });
 
-  it("does not play a second Kiyoshiro when one is already present", async () => {
+  it("plays Kiyoshiro on a legal digivolution when none is present", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "RB1-011", as: "base" }],
+          hand: [
             { card: "RB1-013", as: "tesla" },
-            { card: "RB1-032", as: "existing" },
+            { card: "RB1-033", as: "kiyo" },
           ],
-          hand: [{ card: "RB1-032", as: "kiyo" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tesla"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tesla").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "RB1-033"));
 
-    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "RB1-032")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "RB1-033")).toBe(true);
+  });
+
+  it("does not play another Kiyoshiro when one is already present", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "RB1-011", as: "base" },
+          { card: "RB1-033", as: "existing" },
+        ],
+        hand: [
+          { card: "RB1-013", as: "tesla" },
+          { card: "RB1-033", as: "kiyo" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tesla").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "RB1-033")).toHaveLength(1);
   });
 });

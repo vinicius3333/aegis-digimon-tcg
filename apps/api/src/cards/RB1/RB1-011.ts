@@ -50,6 +50,8 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          requireByEffect: true,
+          fireCondition: { kind: "triggerByYourEffect" },
           actions: [
             {
               kind: "GainMemory",

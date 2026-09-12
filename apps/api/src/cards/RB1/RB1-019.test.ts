@@ -70,4 +70,43 @@ describe("RB1-019 ShinMonzaemon", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
     ).toBe(false);
   });
+
+  it("lets the activating player choose the order of multiple opponent level 3 cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-018", as: "base" }], hand: [{ card: "RB1-019", as: "shin" }] },
+        1: {
+          battleArea: [
+            { card: "RB1-011", as: "first" },
+            { card: "BT1-009", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const ordering = s.decisions.at(-1)!.req;
+    expect(ordering.kind).toBe("orderCards");
+    expect(ordering.options?.candidateInstanceIds).toEqual([firstId, secondId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: [secondId, firstId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([secondId, firstId]);
+  });
 });

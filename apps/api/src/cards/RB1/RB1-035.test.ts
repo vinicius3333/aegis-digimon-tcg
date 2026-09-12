@@ -1,15 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("RB1-035 Hokuto Amanokawa", () => {
   it("plays itself from Security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "RB1-035", as: "securityHokuto" }] }, 1: {} });
+    const s = setupEngine({
+      0: { security: [{ card: "RB1-035", as: "securityHokuto" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
     const securityCard = s.inst("securityHokuto");
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, securityCard);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === securityCard.instanceId));
     expect(s.state.players[0]!.security.some((c) => c.instanceId === securityCard.instanceId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === securityCard.instanceId)).toBe(true);
   });
@@ -31,6 +41,24 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("does not gain memory when the opponent has fewer than 3 Tamers", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-035", as: "hokuto" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-085", as: "tamer1" },
+          { card: "BT1-086", as: "tamer2" },
+        ],
+      },
+    });
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });

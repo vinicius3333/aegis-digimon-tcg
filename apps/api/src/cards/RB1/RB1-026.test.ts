@@ -28,4 +28,15 @@ describe("RB1-026 Espimon", () => {
 
     expect(s.perm("host").currentDP).toBe(1000);
   });
+
+  it("gets the bonus when only the opponent controls a Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-005", as: "host", under: [{ card: "RB1-026" }] }] },
+      1: { battleArea: [{ card: "RB1-032", as: "opponentTamer" }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(3000);
+  });
 });

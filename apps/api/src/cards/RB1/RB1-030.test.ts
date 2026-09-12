@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { type PlayerState, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 // Self-register every card module so the engine drives the REGISTERED RB1-030 IR.
 import "../index.js";
@@ -240,5 +241,76 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
     expect(engine.continuous.listCustomEffectGrants().some((g) => g.instanceId === recipient.topCard.instanceId)).toBe(
       false,
     );
+  });
+
+  it("pays the When Attacking grant cost once per turn and resets next owner turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-030", as: "regulus" },
+            { card: "BT1-024", as: "recipient" },
+          ],
+          hand: ["BT10-094", "BT10-094"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("recipient").permanentId);
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const first = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const paid = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regulus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === paid[0]));
+    await advance(s.engine).verb.unsuspend([s.perm("regulus").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regulus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === paid[1])).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await first;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponent = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponent;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const owner = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regulus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === paid[1]));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await owner;
   });
 });
