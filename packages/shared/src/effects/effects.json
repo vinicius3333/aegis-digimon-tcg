@@ -192237,7 +192237,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
               },
               "raw": "you have a [Hiro Amanokawa] in play"
             }
