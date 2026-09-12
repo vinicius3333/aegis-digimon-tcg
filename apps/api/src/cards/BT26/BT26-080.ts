@@ -19,7 +19,7 @@ const bacchusmon: Filter = {
 export const compiled: CompiledCard = {
   keywords: [
     { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
-    { keyword: "UseReq", raw: "＜Succession ([Bacchusmon])＞" },
+    { keyword: "Succession", raw: "＜Succession ([Bacchusmon])＞" },
   ],
   effects: [
     {

@@ -1,0 +1,160 @@
+# Succession lifecycle audit
+
+## Status
+
+Bounded correction at baseline `ba432186d`: the canonical keyword union omitted
+Succession; BT26-080 and BT26-103 incorrectly exposed their Digimon-side marker
+as UseReq. Both now expose Succession. BT26-032/060 no longer need a type cast.
+This is not a complete keyword, card, collection or engine certificate.
+
+## Contract and sources
+
+The [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf)
+is version 4.2, updated 2026-08-18. Full reviewed §16-47 defines persistent gain
+of all effects except Succession from the topmost specified digivolution card.
+Full §15-8-2 defines continuous activation and loss as live conditions change.
+
+Conformance pins the existing loader's reviewed content fingerprints:
+
+- `comprehensive-0324`, §16-47:
+  `d09f994eb5ef5e46d70b28d7d019215d5dc5856d3ec1ffee10d6db6dfa3df717`.
+- `comprehensive-0172`, §15-8-2:
+  `d4b49613685801d2adcd744aeb58471c0a393a33f9f697539d305a9d21e896c6`.
+
+Local full queries read BT26-032 Q7000–7003, BT26-060 Q7079–7087,
+BT26-080 Q7112–7114 and BT26-103 Q7187–7189. BT24-102 Q6945 explicitly
+allows Homeros to activate On Play/When Digivolving effects gained through
+Succession; the existing colocated proof is included in regression. Those
+rulings are not blanket proof of source changes or recursive exclusion.
+The official BT26-080 card-page request failed; committed catalog fields and
+local Q&A remain the inspected card sources, without claiming a fresh page read.
+
+## Implementation trace
+
+`packages/shared/src/effects/ir/keywords.ts` now includes Succession (46 canonical
+names). The old Guard comment is aligned with its reviewed self-deletion contract.
+Every consuming card still registers exclusively through registerIrCard.
+All four use an authored Static GrantStatic grant:effects, topmostOnly:true,
+duration:permanent, with a structured filter. Root keyword markers pass through
+the existing registration module and continuous keyword reader.
+
+`interpreter/actions/grantStatic.ts` filters the physical stack bottom-to-top and
+uses matches.slice(-1). conferStackEffects records the actual matching instance
+and granter. GameEngine rebuilds continuous conferrals; collectConferredEffects
+handles triggered and static copies; the borrowed-effect reader also sees them.
+No shared resolution semantics are changed by this checkpoint. No second
+registration, keyword executor or runner is introduced.
+
+The current authored actions and generic conferral model do not explicitly
+identify the copied Succession ability for exclusion. Full §16-47-1 exclusion
+therefore remains unproved and requires its own reproduction and repair if
+applicable. Removing the type cast alone does not solve that obligation.
+
+## Obligation ledger
+
+| Obligation                                                              | Source                       | Public action and result                                                                                                                      | Proof                                                          | Consumers                                         | Status                       |
+| ----------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------- | ---------------------------- |
+| Correctly identify the printed keyword                                  | §16-47-1; full catalog       | Legal alternate evolution publishes Succession, never the substituted UseReq                                                                  | Four public evolution cases                                    | All four declared consumers                       | verified, bounded            |
+| Preserve paid alternate cost and physical evolution sources             | Catalog routes               | Cost 2/2/5/5, original permanent/controller, exact old/new source identities and final zones                                                  | Same four cases                                                | BT26-032/080/060/103                              | verified, bounded            |
+| Copy printed keyword and attack ability                                 | §16-47-1                     | Destroy Mode gains Holy Mode's Piercing/Engage; public attack optionally deletes a neutral target, wins battle and checks both security cards | Acceptance/refusal attack pair and evolution keyword assertion | BT26-060; BT26-016 lender                         | verified, bounded            |
+| Resolve copied evolution and persistent security effects                | §16-47-1; Jupitermon catalog | Public Wrath evolution over BT24-101 finishes both recovery bodies and the security-removal response                                          | Wrath public evolution, exact final zone counts                | BT26-103; BT24-101 lender                         | verified, bounded            |
+| Select only the highest matching source                                 | §16-47-1                     | Existing injected/conferral tests; no fresh public source-selection sequence here                                                             | Four colocated suites                                          | Four distinct source filters                      | queued for full public proof |
+| Exclude copied Succession                                               | §16-47-1                     | No demonstrated legal public producer here                                                                                                    | No certificate from authored equivalent                        | All relevant nested-source forms                  | queued                       |
+| Follow source departure, top changes, face state and re-entry           | §15-8-2                      | Initial source stack only                                                                                                                     | No live removal sequence here                                  | Printed, inherited and granted forms to reconcile | queued                       |
+| Frequency, duplicate copies, timing prohibitions and borrowing identity | §15-8-2; Q6029/Q6945         | Existing Homeros adapter/injected proof is supplemental                                                                                       | Full equivalent-shape inventory pending                        | All eligible lenders/hosts                        | queued                       |
+
+## Consumer coverage
+
+Catalog text union: exactly BT26-032, BT26-060, BT26-080 and BT26-103. No
+inherited or runtime-granted printed Succession icon was found in the committed
+catalog. All consumers are in BT26; two consumer sets are unavailable in this
+catalog. Lenders executed here include BT25-059/077, BT24-101 and BT26-016.
+
+| Module inspected and executed | Specified source shape                | Fresh public path                                                                              |
+| ----------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| BT26-032                      | Exact Ceresmon name                   | Paid cost-2 evolution over play-cost-12 BT25-059; optional suspensions declined                |
+| BT26-080                      | Exact Bacchusmon name                 | Paid cost-2 evolution over play-cost-12 BT25-077; optional attack/free play declined           |
+| BT26-060                      | Level 6 plus Chronomon name substring | Paid cost-5 evolution over BT26-016; seeded legal final stack public attack acceptance/refusal |
+| BT26-103                      | Exact Jupitermon name                 | Paid cost-5 evolution over BT24-101; complete mandatory security effects                       |
+
+The exact printed-name/level filters identify eight catalog lender candidates:
+Ceresmon BT3-056, BT25-059, BT26-032; Bacchusmon BT25-077, BT26-080;
+Jupitermon BT24-101, BT26-033; level-6 Chronomon BT26-016. Every candidate's
+full committed text was inspected; only four lenders are executed freshly above.
+Aliases granted during play and additional multilingual identities are not covered
+by this printed-name inventory. BT26-032/080 are themselves potential named
+lenders carrying Succession; recursive exclusion cannot be marked not-applicable.
+BT3-056 supplies a distinct pay-time redirect consumer shape: its persistent
+Your Turn ability permits opposing suspension for Digisorption, with Q4703
+excluding the card still in hand. The current redirector query reads only top-card
+registry identities; whether a copied BT3-056 ability reaches that query needs
+a public reproduction, rather than credit from its generic conferral record.
+
+The public evolution cases start at an established legal base, not a reproduced
+initial egg-to-mega line. The attack pair starts at the legal final evolution
+stack and explicitly does not reproduce its formation or once-per-turn reset.
+All decks/security contain ordinary printed Digimon, no eggs or synthetic DP.
+The initial six-card Mono-only evolution deck exceeded the four-copy limit;
+review required a quiet three-Monodramon/three-Elecmon mix, now corrected
+with its original zone counts retained. These are partial staged game states,
+not certificates of a fifty-card deck list.
+The cases drain the full effect queue and use assertNoLoudGap; attacks additionally
+await the actual end of attack. Neither inferred temporal behavior nor a GUI
+certificate is awarded from these tests.
+
+## Gates
+
+`keyword-succession-lifecycle.test.ts` contains six ordinary public cases.
+The first valid four-case baseline fails only BT26-080/103's missing Succession
+assertions; the two already correct markers pass. The initial repaired test
+incorrectly expected opposing security to survive Wrath's copied BT24-101
+response; that fixture assertion was corrected from the printed contract and
+is not counted as an engine failure.
+
+Restoring only the two wrong root markers fails **2 / 6**, with four controls
+green. Disabling only the topmostOnly conferral path while preserving correct
+markers fails **4 / 6**, with two controls green: copied keyword, copied security
+processing, accepted attack deletion and refused attack security/Piercing zones.
+All temporary source mutations are restored before synchronization/delivery.
+The mutation does not prove highest-match selection because these sources are
+single-member; that obligation remains queued.
+
+Commands:
+
+- `pnpm --filter @aegis/api exec vitest run src/engine/conformance/keyword-succession-lifecycle.test.ts src/cards/BT26/BT26-032.test.ts src/cards/BT26/BT26-060.test.ts src/cards/BT26/BT26-080.test.ts src/cards/BT26/BT26-103.test.ts`.
+- `pnpm effects:sync:set -- --set BT26 --base ba432186d`.
+- `pnpm effects:check:set -- --set BT26 --base ba432186d`.
+
+Final full default API at the corrected mixed-deck state passes **5112 files /
+42339 tests**, zero expected failures, in 55.58 seconds:
+`pnpm --filter @aegis/api test`. Workspace shared/API/web typecheck passes:
+`pnpm typecheck`. BT26 sync/check passes 104 records, exactly two semantic
+changes (BT26-080/103), zero semantic or byte changes outside the collection.
+The earlier broad conformance/combat/effects/cards/BT26/Homeros/layout run
+passes 254 files / 3165 tests but overlaps synchronization and predates the
+fixture correction; it is supplemental. The final full API gate covers the
+complete synchronized and corrected source/test state. The first full API run
+also passed, but its over-limit fixture is superseded by this corrected run.
+
+Independent read-only review required the copy-count fix, then confirmed the
+blocker resolved with no further concrete issue. Closing restored consumer/conformance/Homeros/layout command passes **7 files /
+67 tests**, zero expected failures. Both counterfactuals were repeated against
+the corrected deck and retain exactly 2 red / 4 green and 4 red / 2 green; all
+mutations are byte-restored. Scoped Oxlint, changed-file Oxfmt (12 files),
+the current 66-set index and git diff --check pass. Delivery uses the existing
+audit/engine-mechanisms-20260912 branch; no collection completion is claimed.
+
+## Open items
+
+Complete the normative and distinct source/consumer-shape denominator, especially
+explicit exclusion of copied Succession. Reproduce public highest-match and source
+changes, granted/inherited forms where legal, copied Main and pay-time effects,
+linked/security exclusions, duplicate copying and once-per-turn reset/borrowing
+identity. Complete initial evolution stacks and broader keyword interactions.
+The overall engine plan remains active across all phases.
+
+## History
+
+`ba432186d` is the inspected baseline. Historical BT26 whole-card credit is
+superseded for these four consumers by the current below-ten cap in BT26.md.
+A corrected icon and passing bounded path do not recalculate the whole card.

@@ -223670,7 +223670,7 @@
   "BT26-080": {
     "keywords": [
       { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security A. +1＞" },
-      { "keyword": "UseReq", "raw": "＜Succession ([Bacchusmon])＞" }
+      { "keyword": "Succession", "raw": "＜Succession ([Bacchusmon])＞" }
     ],
     "effects": [
       {
@@ -225911,7 +225911,7 @@
       { "keyword": "Piercing", "raw": "＜Piercing＞" },
       { "keyword": "Reboot", "raw": "＜Reboot＞" },
       { "keyword": "Blocker", "raw": "＜Blocker＞" },
-      { "keyword": "UseReq", "raw": "＜Succession ([Jupitermon])＞" }
+      { "keyword": "Succession", "raw": "＜Succession ([Jupitermon])＞" }
     ],
     "effects": [
       {

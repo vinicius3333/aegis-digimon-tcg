@@ -29,7 +29,7 @@ describe("BT26-080 compiled behavior", () => {
     expect(compiled.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
-        expect.objectContaining({ keyword: "UseReq" }),
+        expect.objectContaining({ keyword: "Succession" }),
       ]),
     );
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({

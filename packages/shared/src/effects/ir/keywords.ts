@@ -49,9 +49,12 @@ export type Keyword =
   | "Overclock"
   | "UseReq"
   | "Engage" // EX-12: at the end of your turn, this Digimon may attack
-  | "Guard" // EX-12: while face up in security, may prevent an opponent effect from removing your Digimon
+  /** CR §16-45: optional self-deletion protects other Digimon from opposing effects. */
+  | "Guard"
   /** CR §16-46: optional specified-link payment prevents departure other than by own effects. */
-  | "Detach";
+  | "Detach"
+  /** CR §16-47: gain all effects except Succession from the topmost specified stack card. */
+  | "Succession";
 
 /** A keyword reference: the base keyword plus an optional numeric parameter. */
 export interface KeywordRef {
