@@ -51,7 +51,6 @@ describe("Security promo gauntlet", () => {
           attackerPermanentId: s.perm(`attacker${index}`).permanentId,
           target: { kind: "player" },
         }),
-        promos[index],
       ).toEqual({ ok: true });
       await settle(
         () =>
