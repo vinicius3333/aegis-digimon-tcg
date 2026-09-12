@@ -53,6 +53,7 @@ const compiled: CompiledCard = {
             per: 1,
             filter: {
               controllerDefault: "mine",
+              zone: "digivolutionCards",
             },
             unit: "colors",
           },
@@ -80,7 +81,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Takuya Kanbara"],
+      namesExact: ["Takuya Kanbara"],
       cost: 4,
       isAlternate: true,
       baseIsTamer: true,

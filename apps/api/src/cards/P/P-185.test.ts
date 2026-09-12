@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -10,7 +9,7 @@ describe("P-185 EmperorGreymon", () => {
   it("requires a Takuya Kanbara Tamer with five Hybrid cards under it", () => {
     expect(runtimeCompiledCard("P-185")!.digivolutionRequirement).toEqual([
       {
-        names: ["Takuya Kanbara"],
+        namesExact: ["Takuya Kanbara"],
         cost: 4,
         isAlternate: true,
         baseIsTamer: true,
@@ -42,7 +41,7 @@ describe("P-185 EmperorGreymon", () => {
           kind: "ModifyDP",
           amount: 1000,
           duration: "permanent",
-          scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine" } },
+          scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine", zone: "digivolutionCards" } },
         },
       ],
     });
@@ -70,10 +69,21 @@ describe("P-185 EmperorGreymon", () => {
             },
           ],
           hand: [{ card: "P-185", as: "emperor" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, ...Array(19).fill("BT1-013")],
+          security: Array(3).fill("BT1-009"),
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          deck: Array(20).fill("BT1-013"),
+          security: Array(3).fill("BT1-009"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const originalSourceIds = [
+      s.perm("takuya").topCard.instanceId,
+      ...s.perm("takuya").stack.map((card) => card.instanceId),
+    ];
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -88,39 +98,91 @@ describe("P-185 EmperorGreymon", () => {
     await settle(() => s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId);
     expect(s.perm("takuya").topCard.instanceId).toBe(s.inst("emperor").instanceId);
     expect(s.perm("takuya").stack).toHaveLength(6);
-    expect(
-      s
-        .perm("takuya")
-        .stack.filter((card) => ["BT7-008", "BT7-011", "BT7-019", "BT7-021", "BT7-035"].includes(card.cardId)),
-    ).toHaveLength(5);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(originalSourceIds));
     expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
 
-  it("deletes at its DP boundary, scales its DP by allied colors, and unsuspends at turn end", async () => {
+  it("scales from its own digivolution cards, deletes at the DP boundary, and unsuspends on each own turn end", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "P-185", dp: 10000, suspended: true, as: "emperor" },
-            { card: "P-016", as: "purple" },
-            { card: "BT1-063", as: "yellow" },
+            { card: "BT1-063", as: "unrelatedYellow" },
+            { card: "BT2-076", as: "unrelatedPurple" },
+            {
+              card: "BT7-085",
+              as: "takuya",
+              under: ["BT7-008", "BT7-011", "BT7-019", "BT7-021", "BT7-035"],
+            },
           ],
+          hand: [{ card: "P-185", as: "emperor" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, ...Array(19).fill("BT1-013")],
+          security: Array(3).fill("BT1-009"),
         },
         1: {
           battleArea: [
-            { card: "BT1-009", dp: 10000, as: "equal" },
-            { card: "BT1-009", dp: 11000, as: "over" },
+            { card: "BT1-009", dp: 15000, as: "equal" },
+            { card: "BT1-009", dp: 16000, as: "over" },
           ],
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          deck: Array(20).fill("BT1-013"),
+          security: Array(3).fill("BT1-009"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const hostId = s.perm("takuya").permanentId;
+    const sourceIds = [s.perm("takuya").topCard.instanceId, ...s.perm("takuya").stack.map((card) => card.instanceId)];
+    const equalId = s.perm("equal").permanentId;
+    const overId = s.perm("over").permanentId;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("emperor"));
-    await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("emperor").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.length === 1,
+    );
+    expect(s.perm("takuya").permanentId).toBe(hostId);
+    expect(s.perm("takuya").stack).toHaveLength(6);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 10, to: 6, reason: "digivolve" });
     expect(s.perm("emperor").currentDP).toBe(15000);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("emperor"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === equalId)).toBe(false);
+    expect(s.perm("over").currentDP).toBe(16000);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === overId)).toBe(true);
+
+    await advance(s.engine).verb.suspend([hostId]);
+    expect(s.perm("takuya").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("takuya").isSuspended).toBe(false);
+    expect(s.perm("takuya").permanentId).toBe(hostId);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([hostId]);
+    expect(s.perm("takuya").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("emperor").isSuspended).toBe(false);
+    expect(s.perm("takuya").permanentId).toBe(hostId);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

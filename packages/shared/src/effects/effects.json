@@ -198414,7 +198414,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "amount": 1000,
             "duration": "permanent",
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "colors" }
+            "scaling": {
+              "per": 1,
+              "filter": { "controllerDefault": "mine", "zone": "digivolutionCards" },
+              "unit": "colors"
+            }
           }
         ]
       },
@@ -198428,7 +198432,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Takuya Kanbara"],
+        "namesExact": ["Takuya Kanbara"],
         "cost": 4,
         "isAlternate": true,
         "baseIsTamer": true,
