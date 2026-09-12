@@ -199435,8 +199435,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenTrashedByEffect",
-            "sourceFilter": { "zone": "battleArea", "kind": ["Option"] },
+            "event": "whenOptionInBattleAreaTrashed",
             "actions": [
               {
                 "kind": "Restrict",
@@ -199463,7 +199462,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Justimon: Blitz Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["Justimon: Blitz Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
       { "level": 5, "names": ["Cyberdramon"], "cost": 3, "isAlternate": true }
     ]
   },
