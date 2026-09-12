@@ -193134,7 +193134,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "name" }] },
+            "sourceFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "nameExact" }] },
             "cost": {
               "kind": "suspend",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
