@@ -29,13 +29,27 @@ decision first, followed by seat 1. Both refusals preserve the exact deleted ins
 in their owners' trash. This proves controller priority for this native Ascension
 provider shape without claiming a shared cross-controller ordering prompt.
 
+The same file also retains a three-card public equal-DP battle fixture with valid
+level-5 Cyborg payloads. It asserts `state.turnSeat === 0` and phase `Main` before
+the attack, then observes the first optional deletion request as seat 0/source
+BT19-065. This confirms the controller-priority path when both source effects are
+actually activatable; it does not claim derived-trigger precedence.
+
+The fourth case completes a public derived-trigger chain using BT19-065, BT20-073,
+and BT19-020. The turn player's BT19-065 plays a valid BT20-073 from trash; after
+its public optional delete-own cost is answered with an exact permanent, BT20-073's
+On Play deletes the opposing BT19-020. While the opposing BT19-065 deletion effect
+is still pending, the newly generated BT19-020 On Deletion request is offered first;
+the test then observes the older BT19-065 request and declines both. This is bounded
+proof of non-turn-player derived-trigger precedence with exact request source IDs.
+
 ## Future plan
 
 - Add public fixtures for opposing-controller simultaneous pools and explicit
   controller-selected orders.
 - Add source-identity cases where a pending trigger's card becomes a different physical
   card or moves within the same battle-area host.
-- Add derived-trigger precedence and optional refusal cases while retaining exact
-- trigger source identities in each decision.
+- Add derived chains for other event families and preserve exact source identities
+  and controller decisions in each request.
 - Reconcile every trigger consumer and provider/exception denominator before claiming
   mechanism completion.
