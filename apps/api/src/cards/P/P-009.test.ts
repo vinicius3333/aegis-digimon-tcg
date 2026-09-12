@@ -8,7 +8,7 @@ describe("P-009 Agumon", () => {
       0: {
         battleArea: [
           { card: "P-010", as: "greymon", under: ["P-009"] },
-          { card: "BT1-010", as: "agumon", under: ["P-009"] },
+          { card: "BT1-018", as: "agumon", under: ["P-009"] },
         ],
       },
     });

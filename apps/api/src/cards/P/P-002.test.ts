@@ -6,7 +6,7 @@ describe("P-002 Biyomon", () => {
   it("draws when its host deletes an opposing Digimon in battle and survives", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "attacker", under: ["P-002"], dp: 5000 }],
+        battleArea: [{ card: "BT1-018", as: "attacker", under: ["P-002"], dp: 5000 }],
         deck: [{ card: "BT1-009", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
@@ -31,7 +31,7 @@ describe("P-002 Biyomon", () => {
   it("does not draw when its host loses the battle", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "attacker", under: ["P-002"], dp: 1000 }],
+        battleArea: [{ card: "BT1-018", as: "attacker", under: ["P-002"], dp: 1000 }],
         deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 5000 }] },
