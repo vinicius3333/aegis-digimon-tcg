@@ -272,6 +272,12 @@ Baseline `fdcd148ea`; sole consumer evidence in `docs/audits/ST17.md`. The exist
 
 This proves bound-host continuation and conditional Rush recipient for this consumer. Rush expiry and arbitrary player-selected stack order remain open; historical whole-card/collection certification remains reopened.
 
+### Arbitrary compound bottom placement: unresolved reproduction
+
+Baseline `c1ad19382`; sole consumer evidence in `docs/audits/ST17.md`. Public exact-name Henry declaration reaches MegaGargomon/Rush with no pending decision but offers no ordering of Henry/Gargomon/Rapidmon despite printed `in any order`. Ordinary red: one failure / six passes at missing `orderCards` candidate list. The explicit `it.fails` is unresolved evidence, not certification; both reviewed name citation and printed order-clause guards run outside expected-failure capture.
+
+Compound payment currently orders only all-return bottom-deck costs; other components execute sequentially. Existing order API supports `stackBottom`. The required shared seam must collect all physical payment identities and one destination host before movement, validate a full distinct permutation, preserve pre-existing sources, and commit paid order once. Manual public permutation/refusal/incomplete-proof on ST17-10 and BT17-085 remains required before removing the marker or claiming this obligation verified.
+
 ### Current primary-source check
 
 On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.

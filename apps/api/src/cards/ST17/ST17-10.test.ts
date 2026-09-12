@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { cite } from "../../engine/conformance/_kb.js";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -9,6 +9,9 @@ import "../index.js";
 
 describe("ST17-10 Henry Wong", () => {
   beforeEach(() => {
+    if (!getCardDefinition("ST17-10")?.effectText?.includes("in any order")) {
+      throw new Error("Henry printed placement-order clause changed; review the ordering evidence");
+    }
     cite(
       "comprehensive-0034",
       "Bracket-only Terriermon-line references require exact names",
@@ -60,6 +63,40 @@ describe("ST17-10 Henry Wong", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("mega").instanceId);
     expect(s.state.memory).toBe(10);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.fails("offers all three processing cards for arbitrary bottom-stack ordering", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-02", as: "host" },
+            { card: "ST17-10", as: "henry" },
+          ],
+          trash: [
+            { card: "ST17-05", as: "gargomon" },
+            { card: "ST17-07", as: "rapidmon" },
+          ],
+          hand: [{ card: "ST17-08", as: "mega" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const ids = [s.inst("henry").instanceId, s.inst("gargomon").instanceId, s.inst("rapidmon").instanceId];
+    const source = observe(s.engine).cardSource(s.perm("henry"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("ST17-10/"),
+    );
+    if (!effect) throw new Error("Missing Henry declaration");
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: ids[0]!, effectKey: effect.effectKey }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Rush") && s.state.pendingDecision === undefined);
+    const order = s.decisions.find(({ req }) => req.kind === "orderCards" && req.sourceCardId === "ST17-10");
+    expect(order?.req.options?.candidateInstanceIds).toEqual(expect.arrayContaining(ids));
+    expect(order?.req.options?.candidateInstanceIds).toHaveLength(3);
   });
 
   it("gains 1 memory at the start of your Main Phase when the opponent has a Digimon", async () => {
