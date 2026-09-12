@@ -43,7 +43,7 @@ describe("AD1-003 WarGrowlmon", () => {
         0: {
           battleArea: [{ card: baseCardId, as: "base" }],
           hand: [{ card: "AD1-003", as: "wargrowlmon" }],
-          deck: ["BT1-001"],
+          deck: [{ card: "BT1-009", as: "bonus" }],
         },
       });
       s.state.memory = 3;
@@ -59,6 +59,9 @@ describe("AD1-003 WarGrowlmon", () => {
 
       expect(s.perm("base").topCard?.cardId).toBe("AD1-003");
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([baseCardId]);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonus").instanceId)).toBe(true);
+      expect(s.state.players[0]!.deck.length).toBe(0);
     }
   });
 
@@ -97,8 +100,8 @@ describe("AD1-003 WarGrowlmon", () => {
         0: { battleArea: [{ card: "AD1-003", dp: 7000, as: "attacker" }] },
         1: {
           battleArea: [
-            { card: "BT1-001", dp: 9000, as: "highest" },
-            { card: "BT1-001", dp: 3000, as: "lower" },
+            { card: "BT1-010", dp: 9000, as: "highest" },
+            { card: "BT1-011", dp: 3000, as: "lower" },
           ],
         },
       },
@@ -133,7 +136,7 @@ describe("AD1-003 WarGrowlmon", () => {
             },
           ],
         },
-        1: { battleArea: [{ card: "AD1-005", dp: 13000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-010", dp: 13000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -169,7 +172,7 @@ describe("AD1-003 WarGrowlmon", () => {
             { card: "AD1-008", dp: 12000, suspended: true, as: "gallantmon", under: ["BT12-089", "AD1-003"] },
           ],
         },
-        1: { battleArea: [{ card: "AD1-005", dp: 13000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-010", dp: 13000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -214,6 +217,36 @@ describe("AD1-003 WarGrowlmon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-089")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-007")).toBe(true);
+  });
+
+  it("does not use another Gallantmon's inherited replacement when an unrelated host leaves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-008", dp: 12000, as: "protected", under: ["BT12-089", "BT12-007", "AD1-003"] },
+            { card: "AD1-008", dp: 12000, suspended: true, as: "unrelated" },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-005", dp: 13000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const unrelatedId = s.perm("unrelated").permanentId;
+    const protectedId = s.perm("protected").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([unrelatedId], "byBattle");
+    await settle(
+      () => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== unrelatedId),
+      5000,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === unrelatedId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-089")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-007")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
   });
 
   it("rejects play when memory is below the printed cost", () => {
