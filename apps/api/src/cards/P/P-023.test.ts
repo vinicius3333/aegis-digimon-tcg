@@ -20,7 +20,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
               card: "BT1-048",
               as: "patamon",
               dp: 2000,
-              under: [{ card: "BT1-009", as: "digiCard", faceUp: false }],
+              under: [{ card: "BT1-005", as: "digiCard", faceUp: false }],
             },
           ],
           hand: [{ card: "P-023", as: "option" }],
@@ -100,7 +100,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
           {
             card: "BT1-048",
             as: "stackedPatamon",
-            under: [{ card: "BT1-009", as: "stackSource" }],
+            under: [{ card: "BT1-005", as: "stackSource" }],
           },
         ],
         hand: [{ card: "P-023", as: "option" }],

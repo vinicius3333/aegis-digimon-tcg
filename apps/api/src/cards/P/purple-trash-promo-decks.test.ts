@@ -77,7 +77,7 @@ describe("Purple trash promo decks", () => {
         0: {
           battleArea: [
             { card: "BT2-081", as: "wizardHost", under: ["P-077", "BT2-075"] },
-            { card: "P-027", as: "metalGarurumon", under: ["P-046", "P-019", "P-034"] },
+            { card: "P-027", as: "metalGarurumon", under: ["P-034", "P-046", "P-019"] },
           ],
           hand: [
             { card: "ST10-15", as: "darknessWave" },
@@ -95,8 +95,8 @@ describe("Purple trash promo decks", () => {
     );
     preferred.push(
       s.inst("topDeckOption").instanceId,
-      s.perm("metalGarurumon").stack[1]!.instanceId,
-      s.perm("metalGarurumon").stack[2]!.instanceId,
+      s.perm("metalGarurumon").stack.find((card) => card.cardId === "P-034")!.instanceId,
+      s.perm("metalGarurumon").stack.find((card) => card.cardId === "P-019")!.instanceId,
     );
     const topDeckOptionId = s.inst("topDeckOption").instanceId;
     const milledWizardmonId = s.inst("milledWizardmon").instanceId;
@@ -137,7 +137,7 @@ describe("Purple trash promo decks", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-069", as: "attacker", under: ["P-019", "P-034"], dp: 1000 }],
+          battleArea: [{ card: "BT10-084", as: "attacker", under: ["P-034", "BT3-083", "P-019"], dp: 1000 }],
           trash: [{ card: "BT4-088", as: "danDevimon" }, "BT2-074", "BT3-088", "BT4-081", "BT4-084", "BT5-027"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true, dp: 5000 }] },

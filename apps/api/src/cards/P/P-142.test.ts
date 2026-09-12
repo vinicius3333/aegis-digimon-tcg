@@ -9,7 +9,7 @@ describe("P-142 Falcomon", () => {
   it("trashes an opponent hand card when its inherited host is deleted outside battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-142"] }] },
+        0: { battleArea: [{ card: "BT1-069", as: "host", under: ["P-142"] }] },
         1: { hand: [{ card: "BT1-010", as: "discarded" }] },
       },
       { autoSelectCards: true },
@@ -23,7 +23,7 @@ describe("P-142 Falcomon", () => {
 
   it("does not trash a card when the inherited host is deleted in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-142"] }] },
+      0: { battleArea: [{ card: "BT1-069", as: "host", under: ["P-142"] }] },
       1: { hand: [{ card: "BT1-010", as: "kept" }] },
     });
     await s.ready();
