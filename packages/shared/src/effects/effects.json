@@ -201350,7 +201350,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Ryutaro Williams"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Ryutaro Williams"], "match": "nameExact" }]
             },
             "actions": [
               {
