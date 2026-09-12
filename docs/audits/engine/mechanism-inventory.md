@@ -326,9 +326,11 @@ At baseline `ba432186d`, the canonical union omitted the four committed Successi
 consumers. The correction adds its typed canonical name and replaces the erroneous
 UseReq root markers on BT26-080/103; BT26-032/060 lose their casts. The canonical
 union now contains 46 names. The outside-union list above remains the historical
-structured checkpoint; Succession is resolved only as an inventory/marker mismatch.
+structured checkpoint; the canonical mismatch is resolved, while behavioral
+certification is separate.
 EndOfAttack/OnDeletion are timing or projection tokens and Unblockable is a
 restriction encoding; their final semantic classification remains open.
 Public path, counterfactual, consumer-shape and unresolved normative evidence belongs
 to [succession-lifecycle.md](succession-lifecycle.md). Full keyword certification,
-especially exclusion of copied Succession, remains open.
+including nested-source shapes beyond the demonstrated Bacchusmon exclusion,
+source/face changes and reset, remains open.

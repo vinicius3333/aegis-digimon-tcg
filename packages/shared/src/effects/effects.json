@@ -219202,6 +219202,7 @@
       },
       {
         "trigger": "Static",
+        "keywordEffect": "Succession",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -219213,6 +219214,7 @@
               "nameOrTrait": [{ "tokens": ["Ceresmon"], "match": "nameExact" }]
             },
             "topmostOnly": true,
+            "excludeKeywords": ["Succession"],
             "duration": "permanent"
           }
         ]
@@ -221901,6 +221903,7 @@
       },
       {
         "trigger": "Static",
+        "keywordEffect": "Succession",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -221913,6 +221916,7 @@
               "nameOrTrait": [{ "tokens": ["Chronomon"], "match": "name" }]
             },
             "topmostOnly": true,
+            "excludeKeywords": ["Succession"],
             "duration": "permanent"
           }
         ]
@@ -223700,6 +223704,7 @@
       },
       {
         "trigger": "Static",
+        "keywordEffect": "Succession",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -223711,6 +223716,7 @@
               "nameOrTrait": [{ "tokens": ["Bacchusmon"], "match": "nameExact" }]
             },
             "topmostOnly": true,
+            "excludeKeywords": ["Succession"],
             "duration": "permanent"
           }
         ]
@@ -225934,6 +225940,7 @@
       },
       {
         "trigger": "Static",
+        "keywordEffect": "Succession",
         "actions": [
           {
             "kind": "GrantStatic",
@@ -225945,6 +225952,7 @@
               "nameOrTrait": [{ "tokens": ["Jupitermon"], "match": "nameExact" }]
             },
             "topmostOnly": true,
+            "excludeKeywords": ["Succession"],
             "duration": "permanent"
           }
         ]

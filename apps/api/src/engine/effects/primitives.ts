@@ -20,6 +20,7 @@ import {
   type GameState,
   type PlayerState,
   type Seat,
+  type Keyword,
   type ServerEvent,
   type ZoneRef,
 } from "@aegis/shared";
@@ -5521,12 +5522,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: {
+      trigger?: string;
+      excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
       excludeInherited: opts?.excludeInherited,
+      excludeKeywords: opts?.excludeKeywords,
       inheritedOnly: opts?.inheritedOnly,
       granterInstanceId: opts?.granterInstanceId,
     });

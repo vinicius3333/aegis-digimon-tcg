@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
     { trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -31,6 +32,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: jupitermon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

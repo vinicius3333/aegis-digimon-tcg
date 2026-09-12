@@ -2,7 +2,16 @@
 
 ## Status
 
-Latest bounded correction at baseline `edbf770b9`: native and copied
+Latest bounded correction at baseline `810868b64`: a real Bagramon placement
+buries BT26-080 under another BT26-080. The copied Succession ability previously
+created another conferral and an extra When Attacking deletion: three neutral
+opponents died instead of two. The IR now identifies the Succession effect and
+excludes it from the copy, including its resident root marker. Other printed
+keywords and effects remain available. BT25-077 is the non-nested public
+control; all four consumer modules carry the reviewed exclusion. This closes
+the demonstrated nested Bacchusmon shape, not the complete keyword audit.
+
+Earlier bounded correction at baseline `edbf770b9`: native and copied
 Digisorption granted a three-memory discount when source-free BT19-101 could
 not be suspended. Both legal public cases fail on the baseline. Payment
 candidates now exclude suspension restrictions; the actual primitive must
@@ -61,23 +70,27 @@ The ee85c20e7 marker checkpoint changes no shared resolution semantics;
 the copied-cost correction below changes discovery and payment usage accounting. No second
 registration, keyword executor or runner is introduced.
 
-The current authored actions and generic conferral model do not explicitly
-identify the copied Succession ability for exclusion. Full §16-47-1 exclusion
-therefore remains unproved and requires its own reproduction and repair if
-applicable. Removing the type cast alone does not solve that obligation.
+At `810868b64`, the current authored actions and conferral model did not
+identify Succession for exclusion. `CardEffect.keywordEffect` now identifies the
+whole keyword clause; `GrantStatic.excludeKeywords` is carried through the
+primitive, continuous ledger and event snapshots to `collectConferredEffects`.
+Root keyword markers compile separately with their own keyword identity, so
+excluding Succession preserves neighboring markers and numerical amounts.
+The four authored Succession clauses are tagged and exclude Succession. Other
+keyword action/synthesis encodings are not newly certified by this metadata.
 
 ## Obligation ledger
 
-| Obligation                                                              | Source                       | Public action and result                                                                                                                      | Proof                                                          | Consumers                                         | Status                       |
-| ----------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------- | ---------------------------- |
-| Correctly identify the printed keyword                                  | §16-47-1; full catalog       | Legal alternate evolution publishes Succession, never the substituted UseReq                                                                  | Four public evolution cases                                    | All four declared consumers                       | verified, bounded            |
-| Preserve paid alternate cost and physical evolution sources             | Catalog routes               | Cost 2/2/5/5, original permanent/controller, exact old/new source identities and final zones                                                  | Same four cases                                                | BT26-032/080/060/103                              | verified, bounded            |
-| Copy printed keyword and attack ability                                 | §16-47-1                     | Destroy Mode gains Holy Mode's Piercing/Engage; public attack optionally deletes a neutral target, wins battle and checks both security cards | Acceptance/refusal attack pair and evolution keyword assertion | BT26-060; BT26-016 lender                         | verified, bounded            |
-| Resolve copied evolution and persistent security effects                | §16-47-1; Jupitermon catalog | Public Wrath evolution over BT24-101 finishes both recovery bodies and the security-removal response                                          | Wrath public evolution, exact final zone counts                | BT26-103; BT24-101 lender                         | verified, bounded            |
-| Select only the highest matching source                                 | §16-47-1                     | Existing injected/conferral tests; no fresh public source-selection sequence here                                                             | Four colocated suites                                          | Four distinct source filters                      | queued for full public proof |
-| Exclude copied Succession                                               | §16-47-1                     | No demonstrated legal public producer here                                                                                                    | No certificate from authored equivalent                        | All relevant nested-source forms                  | queued                       |
-| Follow source departure, top changes, face state and re-entry           | §15-8-2                      | Initial source stack only                                                                                                                     | No live removal sequence here                                  | Printed, inherited and granted forms to reconcile | queued                       |
-| Frequency, duplicate copies, timing prohibitions and borrowing identity | §15-8-2; Q6029/Q6945         | Existing Homeros adapter/injected proof is supplemental                                                                                       | Full equivalent-shape inventory pending                        | All eligible lenders/hosts                        | queued                       |
+| Obligation                                                              | Source                       | Public action and result                                                                                                                      | Proof                                                                  | Consumers                                                      | Status                                               |
+| ----------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
+| Correctly identify the printed keyword                                  | §16-47-1; full catalog       | Legal alternate evolution publishes Succession, never the substituted UseReq                                                                  | Four public evolution cases                                            | All four declared consumers                                    | verified, bounded                                    |
+| Preserve paid alternate cost and physical evolution sources             | Catalog routes               | Cost 2/2/5/5, original permanent/controller, exact old/new source identities and final zones                                                  | Same four cases                                                        | BT26-032/080/060/103                                           | verified, bounded                                    |
+| Copy printed keyword and attack ability                                 | §16-47-1                     | Destroy Mode gains Holy Mode's Piercing/Engage; public attack optionally deletes a neutral target, wins battle and checks both security cards | Acceptance/refusal attack pair and evolution keyword assertion         | BT26-060; BT26-016 lender                                      | verified, bounded                                    |
+| Resolve copied evolution and persistent security effects                | §16-47-1; Jupitermon catalog | Public Wrath evolution over BT24-101 finishes both recovery bodies and the security-removal response                                          | Wrath public evolution, exact final zone counts                        | BT26-103; BT24-101 lender                                      | verified, bounded                                    |
+| Select only the highest matching source                                 | §16-47-1                     | Existing injected/conferral tests; no fresh public source-selection sequence here                                                             | Four colocated suites                                                  | Four distinct source filters                                   | queued for full public proof                         |
+| Exclude copied Succession                                               | §16-47-1                     | Real Bagramon placement, then attack: exactly two deletions with nested BT26-080, one with BT25-077; copied Security Attack remains           | Public placement/attack pair; supplemental selective marker projection | BT26-080 nested lender; all four consumer exclusions inspected | verified for demonstrated shape; other shapes queued |
+| Follow source departure, top changes, face state and re-entry           | §15-8-2                      | Initial source stack only                                                                                                                     | No live removal sequence here                                          | Printed, inherited and granted forms to reconcile              | queued                                               |
+| Frequency, duplicate copies, timing prohibitions and borrowing identity | §15-8-2; Q6029/Q6945         | Existing Homeros adapter/injected proof is supplemental                                                                                       | Full equivalent-shape inventory pending                                | All eligible lenders/hosts                                     | queued                                               |
 
 ## Consumer coverage
 
@@ -86,12 +99,12 @@ inherited or runtime-granted printed Succession icon was found in the committed
 catalog. All consumers are in BT26; two consumer sets are unavailable in this
 catalog. Lenders executed here include BT25-059/077, BT24-101 and BT26-016.
 
-| Module inspected and executed | Specified source shape                | Fresh public path                                                                              |
-| ----------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| BT26-032                      | Exact Ceresmon name                   | Paid cost-2 evolution over play-cost-12 BT25-059; optional suspensions declined                |
-| BT26-080                      | Exact Bacchusmon name                 | Paid cost-2 evolution over play-cost-12 BT25-077; optional attack/free play declined           |
-| BT26-060                      | Level 6 plus Chronomon name substring | Paid cost-5 evolution over BT26-016; seeded legal final stack public attack acceptance/refusal |
-| BT26-103                      | Exact Jupitermon name                 | Paid cost-5 evolution over BT24-101; complete mandatory security effects                       |
+| Module inspected and executed | Specified source shape                | Fresh public path                                                                                           |
+| ----------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| BT26-032                      | Exact Ceresmon name                   | Paid cost-2 evolution over play-cost-12 BT25-059; optional suspensions declined                             |
+| BT26-080                      | Exact Bacchusmon name                 | Paid cost-2 evolution over BT25-077; real Bagramon placement of BT26-080/BT25-077 followed by public attack |
+| BT26-060                      | Level 6 plus Chronomon name substring | Paid cost-5 evolution over BT26-016; seeded legal final stack public attack acceptance/refusal              |
+| BT26-103                      | Exact Jupitermon name                 | Paid cost-5 evolution over BT24-101; complete mandatory security effects                                    |
 
 The exact printed-name/level filters identify eight catalog lender candidates:
 Ceresmon BT3-056, BT25-059, BT26-032; Bacchusmon BT25-077, BT26-080;
@@ -270,10 +283,68 @@ Multiple-provider choice, real failed-transition replacement producers,
 source-kind-qualified immunity, source/granter loss and next-turn reset remain
 open. These six cases do not certify all Digisorption or Succession shapes.
 
+## Copied Succession exclusion checkpoint
+
+Source: the fresh official comprehensive PDF remains version 4.2, updated
+2026-08-18; §16-47-1/2 were read in full and match the existing pinned chunk.
+Full local Bagramon Q2113/2114/Q5207 and Bacchusmon Q7112/7113/7114 were read.
+Q2113 confirms an opposing Digimon leaves the battle area when placed under
+another. The placed source is deliberately unstacked: this does not certify
+Bagramon's own-source shedding or complete implementation.
+
+Two public cases start with established unstacked Digimon. Three neutral
+BT6-063 attacks remove quiet security and leave those Digimon suspended. A
+public cost-14 Bagramon play from ten memory puts BT26-080 or BT25-077 under the
+other player's BT26-080 and ends the first turn at -4. The existing production
+turn seam opens the next player's Main at four memory; its caller performs the
+seat/memory handoff, without claiming room-loop certification. Bacchusmon's
+public attack deletes two suspended targets with the nested BT26-080 source,
+but only one with BT25-077. The attacker retains its physical lender, DP,
+controller and suspension. Its own and copied Security Attack +1 check three
+quiet cards in the nested case; the control checks two. Exact surviving field,
+trash and security distinguish suppressed effects from correct exclusion.
+All individual card pools respect four-copy limits and contain no eggs.
+
+The original uncorrected reproduction fails 1 / 19 with eighteen controls
+green because the third target is also deleted. Removing only collector
+exclusion fails 3 / 34 with 31 controls green (one public nested case and two
+supplemental projections). Removing only the BT26-080 Succession effect tag
+fails 1 / 20 with nineteen controls green. Both exact mutations are byte-restored.
+Three explicitly supplemental collector cases independently preserve sibling
+root markers when excluding Succession or Security Attack; they use a synthetic
+conferral and are not public grant-producer certificates.
+
+Focused conformance/collector/registration/four-consumer regression passes
+7 files / 80 tests after formatting. BT26 sync changes only BT26-032/060/080/103
+semantically: one effect tag and one exclusion list per module, 104 records,
+zero out-of-set semantic or byte changes. Final BT26 check confirms 104 records synchronized with the same four-record
+semantic union and zero out-of-set changes. Final full API passes 5112 files /
+42356 tests, zero expected failures, in 58.38 seconds; workspace shared/API/web
+typecheck passes. The earlier 58.85-second run predates removal of two redundant
+unsupported player-target seat fields from the fixture and is superseded.
+The final typed fixture retains exactly 3 red / 31 green for collector removal
+and 1 red / 19 green for the missing card tag; all mutations are byte-restored.
+Independent read-only review found no blocker. Restored conformance, collector,
+registration, four consumer suites and audit layout pass 8 files / 84 tests.
+Scoped lint has no warnings; all 20 changed files pass formatting. The 66-set
+index is current and diff checks pass before atomic delivery.
+The earlier 42351-test result belongs to the previous repair.
+Closing commands: `pnpm --filter @aegis/api exec vitest run`, `pnpm typecheck`,
+`pnpm effects:sync:set -- --set BT26 --base 810868b64`,
+`pnpm effects:check:set -- --set BT26 --base 810868b64`,
+`pnpm --filter @aegis/api exec vitest run src/engine/conformance/keyword-succession-lifecycle.test.ts src/engine/effects/collect.test.ts src/engine/effects/interpreter/registration/module.test.ts src/cards/BT26/BT26-032.test.ts src/cards/BT26/BT26-060.test.ts src/cards/BT26/BT26-080.test.ts src/cards/BT26/BT26-103.test.ts src/cards/audit-docs.test.ts`,
+changed-TypeScript `pnpm exec oxlint`, changed-file `pnpm exec oxfmt --check`,
+`pnpm audit:index`, and `git diff --check`.
+
+The conformance suite now has 20 cases: eighteen public and two supplemental
+failed-transition injections. Full source departure, face boundaries (including
+DUAL Option effects), other nested lender forms and grant/synthesis encodings
+remain open. No card, collection or keyword receives fresh complete certification.
+
 ## Open items
 
 Complete the normative and distinct source/consumer-shape denominator, especially
-explicit exclusion of copied Succession. Reproduce public highest-match and source
+remaining nested-source shapes beyond the public Bacchusmon exclusion proof. Reproduce public highest-match and source
 changes, granted/inherited forms where legal, copied Main and pay-time effects,
 linked/security exclusions, duplicate copying and once-per-turn reset/borrowing
 identity. Complete initial evolution stacks and broader keyword interactions.

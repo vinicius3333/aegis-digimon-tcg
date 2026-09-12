@@ -470,4 +470,99 @@ describe("Succession committed consumer evolution", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
+
+  it.each([
+    { lender: "BT26-080", deleted: ["firstTarget", "secondTarget"], remaining: ["survivor"], security: 1 },
+    { lender: "BT25-077", deleted: ["firstTarget"], remaining: ["secondTarget", "survivor"], security: 2 },
+  ])("public Bagramon placement copies $lender without copying Succession again", async (scenario) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-063", as: "firstTarget" },
+            { card: "BT6-063", as: "secondTarget" },
+            { card: "BT6-063", as: "survivor" },
+          ],
+          hand: [{ card: "BT11-088", as: "bagramon" }],
+          deck: ["BT1-028", "BT1-028"],
+          security: [NEUTRAL, NEUTRAL, NEUTRAL, NEUTRAL],
+        },
+        1: {
+          battleArea: [
+            { card: "BT26-080", as: "host" },
+            { card: scenario.lender, as: "lender" },
+          ],
+          deck: [NEUTRAL, NEUTRAL],
+          security: ["BT1-028", "BT1-028", "BT1-028"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.inst("host").instanceId;
+    const lenderId = s.inst("lender").instanceId;
+    const bagramonId = s.inst("bagramon").instanceId;
+    const targetIds = scenario.deleted.map((alias) => s.inst(alias).instanceId);
+    const remainingIds = scenario.remaining.map((alias) => s.inst(alias).instanceId);
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    // Real attacks leave three neutral opponents suspended for Bacchusmon's orientation filter.
+    for (const alias of ["firstTarget", "secondTarget", "survivor"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+    }
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    preferred.push(lenderId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: bagramonId })).toEqual({ ok: true });
+    await ownTurn;
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([hostId]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([lenderId]);
+    expect(s.state.memory).toBe(-4);
+    expect(s.events.filter((event) => event.kind === "turnEnded")).toMatchObject([{ endingSeat: 0, nextSeat: 1 }]);
+    // runOneTurn's caller owns seat/memory handoff; the turns and placement use production paths.
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const copiedTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    preferred.splice(0, preferred.length, ...targetIds);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      ...remainingIds,
+      bagramonId,
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(scenario.security);
+    expect(
+      s.state.players[0]!.trash.filter((card) => card.cardId === "BT6-063")
+        .map((card) => card.instanceId)
+        .sort(),
+    ).toEqual(targetIds.sort());
+    expect(s.perm("host").topCard.instanceId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([lenderId]);
+    expect(s.perm("host").currentDP).toBe(13000);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").controllerSeat).toBe(1);
+    expect(s.state.memory).toBe(4);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await copiedTurn;
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
 });

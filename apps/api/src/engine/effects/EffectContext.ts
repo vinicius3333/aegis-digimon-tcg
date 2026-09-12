@@ -1,5 +1,6 @@
 import type {
   CardColor,
+  Keyword,
   CardDefinition,
   CardInstance,
   DisableTiming,
@@ -186,6 +187,7 @@ export interface TriggerInfo {
     stackInstanceId: string;
     trigger?: string;
     excludeInherited?: boolean;
+    excludeKeywords?: Keyword[];
     inheritedOnly?: boolean;
   }[];
   /** Named effect grants captured at the same pre-deletion boundary. */
@@ -1449,7 +1451,13 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: {
+      trigger?: string;
+      excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    },
   ): void;
   /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
   stackEffectConferrals?(): readonly {
@@ -1457,6 +1465,7 @@ export interface Primitives {
     stackInstanceId: string;
     trigger?: string;
     excludeInherited?: boolean;
+    excludeKeywords?: Keyword[];
     inheritedOnly?: boolean;
     granterInstanceId?: string;
   }[];

@@ -6,6 +6,7 @@ import {
   type GameState,
   type Permanent,
   type Seat,
+  type Keyword,
   type ZoneRef,
 } from "@aegis/shared";
 import type { Restriction } from "./EffectContext.js";
@@ -319,6 +320,8 @@ export interface StackEffectConferral {
   trigger?: string;
   /** When true, do not confer inherited effects from the matched stack card. */
   excludeInherited?: boolean;
+  /** Keyword effects omitted by this particular copy. */
+  excludeKeywords?: Keyword[];
   inheritedOnly?: boolean;
   /** Physical source of the grant; distinct grant sources confer distinct effect copies (Q1943). */
   granterInstanceId?: string;
@@ -1409,6 +1412,7 @@ export class ContinuousEffectLedger {
       continuous?: boolean;
       trigger?: string;
       excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
       inheritedOnly?: boolean;
       granterInstanceId?: string;
     },
@@ -1419,6 +1423,8 @@ export class ContinuousEffectLedger {
         c.stackInstanceId === stackInstanceId &&
         c.trigger === opts?.trigger &&
         c.inheritedOnly === opts?.inheritedOnly &&
+        (c.excludeKeywords?.length ?? 0) === (opts?.excludeKeywords?.length ?? 0) &&
+        (c.excludeKeywords ?? []).every((keyword) => opts?.excludeKeywords?.includes(keyword) === true) &&
         c.granterInstanceId === opts?.granterInstanceId,
     );
     if (exists) return;
@@ -1428,6 +1434,7 @@ export class ContinuousEffectLedger {
       continuous: opts?.continuous,
       trigger: opts?.trigger,
       excludeInherited: opts?.excludeInherited,
+      excludeKeywords: opts?.excludeKeywords,
       inheritedOnly: opts?.inheritedOnly,
       granterInstanceId: opts?.granterInstanceId,
     });

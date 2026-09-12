@@ -1,3 +1,4 @@
+import type { Keyword } from "@aegis/shared";
 import type { EffectContext } from "./EffectContext.js";
 
 /**
@@ -8,6 +9,8 @@ import type { EffectContext } from "./EffectContext.js";
 export interface Effect {
   /** Original declarative trigger, retained for selective stack-effect conferrals. */
   irTrigger?: string;
+  /** Semantic keyword implemented by this whole effect, retained for selective copying. */
+  keywordEffect?: Keyword;
   /** Stable id within the card (analogue of HashString); e.g. "BT7-089/pierce". */
   effectKey: string;
   /** Rules text shown in the log / decision prompt. */

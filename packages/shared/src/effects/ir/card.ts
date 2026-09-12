@@ -1,7 +1,7 @@
 // `CardEffect` (one trigger window) and the per-card compiled record.
 
 import type { Action } from "./actions/action.js";
-import type { KeywordRef } from "./keywords.js";
+import type { Keyword, KeywordRef } from "./keywords.js";
 import type { Condition } from "./predicates/conditions.js";
 import type { Cost } from "./predicates/costs.js";
 import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./requirements/digivolve.js";
@@ -17,6 +17,8 @@ import type { EffectFrequency, EffectTrigger } from "./triggers.js";
 export interface CardEffect {
   /** Stable optional key used by card-level evidence and diagnostics. */
   effectKey?: string;
+  /** This whole effect implements the named keyword, allowing selective effect copying. */
+  keywordEffect?: Keyword;
   /** Optional runtime timing override for event-backed IR watchers. */
   timingOverride?: string;
   trigger: EffectTrigger;

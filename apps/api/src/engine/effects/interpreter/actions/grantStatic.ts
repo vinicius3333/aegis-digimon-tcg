@@ -240,6 +240,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           for (const stackCard of sources) {
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
               excludeInherited: action.excludeInherited === true,
+              excludeKeywords: action.excludeKeywords,
               granterInstanceId: ctx.source.instanceId,
               ...(action.copyTrigger !== undefined ? { trigger: action.copyTrigger } : {}),
             });

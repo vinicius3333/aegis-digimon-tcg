@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      keywordEffect: "Succession",
       actions: [
         {
           kind: "GrantStatic",
@@ -48,6 +49,7 @@ export const compiled: CompiledCard = {
           grant: "effects",
           filter: chronomon,
           topmostOnly: true,
+          excludeKeywords: ["Succession"],
           duration: "permanent",
         },
       ],

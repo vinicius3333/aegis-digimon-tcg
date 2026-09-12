@@ -10,6 +10,7 @@ import {
   type Permanent,
   type PlayerState,
   type Seat,
+  type Keyword,
 } from "@aegis/shared";
 import { createCardSource, type CardStateLookup } from "../cards/CardSource.js";
 import type { CardSource } from "./CardSource.js";
@@ -437,6 +438,7 @@ export function gatherTriggeredEffects(
       stackInstanceId: string;
       trigger?: string;
       excludeInherited?: boolean;
+      excludeKeywords?: Keyword[];
       inheritedOnly?: boolean;
       granterInstanceId?: string;
     }[];

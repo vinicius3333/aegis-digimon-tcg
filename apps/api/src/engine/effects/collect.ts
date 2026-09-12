@@ -1,4 +1,4 @@
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, type Seat, type Keyword } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import type { DiscardedStackSourceProof, EffectContext, TriggerInfo } from "./EffectContext.js";
@@ -169,6 +169,7 @@ export function collectConferredEffects(
     inheritedOnly?: boolean;
     /** Do not collect the stack card's inherited effects. */
     excludeInherited?: boolean;
+    excludeKeywords?: Keyword[];
     granterInstanceId?: string;
   }[],
   instanceById: (id: string) => CardSource | undefined,
@@ -187,11 +188,13 @@ export function collectConferredEffects(
     trigger,
     inheritedOnly,
     excludeInherited,
+    excludeKeywords,
     granterInstanceId,
   } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
+      if (effect.keywordEffect !== undefined && excludeKeywords?.includes(effect.keywordEffect) === true) continue;
       if (inheritedOnly === true && effect.isInherited !== true) continue;
       if (excludeInherited === true && effect.isInherited === true) continue;
       if (trigger !== undefined && effect.irTrigger !== trigger) continue;
