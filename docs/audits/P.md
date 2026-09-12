@@ -79,8 +79,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
   semantic P change, 249 synchronized records, and zero semantic or byte changes outside P.
   The public legal-stack/reset proof now passes and is delivered in `9b8a96b7f`.
 - Accepted restart checkpoint (2026-09-12): final fixture validation passed 47 files / 219 tests; reviewed watcher suites passed 7 files / 33 tests; repaired Memory Boost and attack regressions passed 11 files / 46 tests; P-008/P-046/P-048 plus catalog parity passed 4 files / 356 tests; audit layout passed 1 file / 4 tests. These are focused checkpoints, not collection closing gates. Tests remain serialized with a 2 GB heap. Shared/web typechecks passed; the API exceeded the deliberately imposed 2 GB cap and then passed independently with 4 GB. Latest measured system memory was 77% free.
-- Remaining second-lane review findings to verify and repair include P-149's monochrome
-  negative, P-157's black-Tamer negative, P-158's Mother D-Reaper stack cost scale, P-160/P-202
+- Remaining second-lane review findings to verify and repair include P-157's black-Tamer negative, P-158's Mother D-Reaper stack cost scale, P-160/P-202
   inherited Piercing battle, P-201 inherited end-of-opponent-turn suspension, P-203's real
   evolution/attack timings and P-204's accepted/declined Delay evolution.
 
@@ -1130,13 +1129,13 @@ git diff --check
 
 ### P-109 — Imperialdramon: Dragon Mode
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-109.ts) · [test](../../apps/api/src/cards/P/P-109.test.ts) · clause review (source removed; see History)<br>“resolves the same suspend/unsuspend sequence on When Digivolving”; “suspends then unsuspends a Digimon on play and may play a small card”; “fires its once-per-turn all-turns effect when it becomes suspended”
 
 - Local KB lookup (2026-09-12): Q4213, Q4214; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit public-cycle proof accepted (2026-09-12): Legal Blue level-5 evolution into P-109 pays 4 memory (10 to 6) and retains the original parent instance. Public attacks on the same permanent prove the first small-card play, same-turn denial after unsuspension, and a second play after the natural 0-to-1-to-0 turn cycle; exact played instances and completed attacks are asserted. Coordinator independently passed the two-card focused run: 2 files, 6 tests; Oxlint, Oxfmt, and diff check green. Collection closing gates remain pending.
 
 ### P-110 — Shadramon
 
@@ -1150,15 +1149,16 @@ git diff --check
 
 ### P-111 — Knightmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-111.ts) · [test](../../apps/api/src/cards/P/P-111.test.ts) · clause review (source removed; see History)<br>“gives exactly one opposing Digimon -3000 DP per allied Digimon”; “inherited effect plays one yellow or black level 3 when another Digimon attacks”; “also applies the -3000 DP and Blocker grant on When Digivolving”
 
 - Local KB lookup (2026-09-12): Q4215; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Reaudit public-cycle proof accepted (2026-09-12): Legal Yellow level-4 evolution into P-111 pays 4 memory (10 to 6), retains the original parent, and applies -3000 DP plus Blocker. Legal Yellow level-6 inherited host retains the same P-111 source through three public attacks, proving first play, same-turn denial, and renewal after the natural 0-to-1-to-0 turn cycle. Coordinator independently passed the two-card focused run: 2 files, 6 tests; Oxlint, Oxfmt, and diff check green. Collection closing gates remain pending.
 
 ### P-112 — Morphomon
 
@@ -1544,25 +1544,28 @@ git diff --check
 
 ### P-149 — Minomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-149.ts) · [test](../../apps/api/src/cards/P/P-149.test.ts) · clause review (source removed; see History)<br>“encodes the inherited once-per-turn hand-costed deletion”; “trashes a card to delete an opposing level-3 Digimon when the host has two colors”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Reaudit proof accepted (2026-09-12): a legal two-color Veemon retains its Purple Egg source. Public attacks trash identified hand cost and delete a Lv.3 opponent once, deny a same-turn repeat and renew after natural turns. A legal monochrome Purple host leaves both hand cost and opposing target untouched. The existing positive was extended instead of duplicated; neutral targets avoid unresolved Blocker windows. Coordinator independently passed three tests, lint and formatting; collection closing gates remain pending.
+
 ### P-150 — Exermon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-150.ts) · [test](../../apps/api/src/cards/P/P-150.test.ts) · clause review (source removed; see History)<br>“encodes both When Digivolving branches, including the exact-three overlap”; “encodes the inherited once-per-turn DP-relative suspension”; “suspends an opposing Digimon at the exact three-security boundary”; “does not suspend from the security-at-least-three clause with only two security”; “restricts an opposing Digimon from unsuspending when security is three or fewer”; “inherited reaction suspends an opposing Digimon when the host is publicly suspended”
 
 - Local KB lookup (2026-09-12): Q4265; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Reaudit public evolution and cycle proof accepted (2026-09-12): All three security-boundary evolution cases use legal Green level-3 Goblimon, pay printed cost 2 (10 to 8), retain its exact instance, and assert the played P-150 top instance. Legal Green level-5 inherited host uses three completed public attacks to prove the first suspension, same-turn denial after both bodies are unsuspended, and renewal after the natural 0-to-1-to-0 cycle. Coordinator independently passed 1 file, 6 tests; Oxlint, Oxfmt, and diff check green. Collection closing gates remain pending.
 
 ### P-151 — Digimon Liberator
 
