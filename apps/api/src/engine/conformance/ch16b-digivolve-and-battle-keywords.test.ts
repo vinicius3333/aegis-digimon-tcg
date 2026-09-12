@@ -844,6 +844,11 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     },
   );
   it.each(["EX3-030", "EX3-031"])("%s keeps two inherited Rush occurrences independent on one host", async (source) => {
+    cite(
+      "comprehensive-0193",
+      "Each physical source has its own use; used sources do not trigger again this turn and reset when the turn changes",
+      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
+    );
     const s = setup(
       {
         0: {
@@ -858,11 +863,33 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
                 { card: "EX3-035", as: "firstDragon" },
                 { card: "EX3-025", as: "secondDragon" },
                 { card: "BT1-009", as: "unrelatedSource" },
+                { card: "EX3-035", as: "repeatFirst" },
+                { card: "EX3-025", as: "repeatSecond" },
+                { card: "EX3-035", as: "resetFirst" },
+                { card: "EX3-025", as: "resetSecond" },
               ],
             },
           ],
-          hand: [{ card: "BT7-097", as: "option" }, "BT1-009"],
-          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          hand: [
+            { card: "BT7-097", as: "option" },
+            { card: "BT7-097", as: "repeatOption" },
+            { card: "BT7-097", as: "resetOption" },
+            "BT1-009",
+          ],
+          deck: [
+            "BT1-028",
+            "BT1-028",
+            "BT1-028",
+            "BT1-028",
+            "BT7-032",
+            "BT7-032",
+            "BT7-032",
+            "BT7-032",
+            "AD1-001",
+            "AD1-001",
+            "AD1-001",
+            "AD1-001",
+          ],
         },
         1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
@@ -956,9 +983,12 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     expect(observe(s.engine).hasKeyword(first, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("olderDragon"), "Rush")).toBe(false);
-    expect(s.perm("batchHost").stack.map((c) => c.instanceId)).toEqual([unrelatedId]);
+    expect(s.perm("batchHost").stack.map((c) => c.instanceId)).toEqual([
+      unrelatedId,
+      ...["repeatFirst", "repeatSecond", "resetFirst", "resetSecond"].map((alias) => s.inst(alias).instanceId),
+    ]);
     expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(10);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === source)).toHaveLength(
       2,
     );
@@ -972,12 +1002,95 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
     expect(first.isSuspended).toBe(false);
     expect(second.isSuspended).toBe(true);
-    advance(s.engine).endMainPhaseIfOpen(0);
+    async function playLaterBatch(optionAlias: string, recipientAliases: string[], expectedChoices: number) {
+      const nextOptionId = s.inst(optionAlias).instanceId;
+      const materialIds = recipientAliases.map((alias) => s.inst(alias).instanceId);
+      const choicesBefore = s.decisions.filter(
+        ({ req }) => req.kind === "chooseTargets" && req.sourceCardId === source,
+      ).length;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: nextOptionId })).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("batchHost").permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "selectCards", instanceIds: materialIds },
+        }),
+      ).toEqual({ ok: true });
+      const decisionIds: string[] = [];
+      for (let index = 0; index < expectedChoices; index += 1) {
+        await settle(
+          () =>
+            (s.state.pendingDecision?.kind === "chooseTargets" &&
+              !decisionIds.includes(s.state.pendingDecision.decisionId)) ||
+            s.state.players[0]!.trash.some((card) => card.instanceId === nextOptionId),
+        );
+        expect(s.state.pendingDecision?.kind).toBe("chooseTargets");
+        const decision = s.state.pendingDecision!;
+        decisionIds.push(decision.decisionId);
+        const choiceRequest = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+        expect(choiceRequest.sourceCardId).toBe(source);
+        const recipients = recipientAliases.map((alias) => s.perm(alias));
+        expect(new Set(choiceRequest.options?.candidateInstanceIds)).toEqual(
+          new Set(recipients.map((p) => p.permanentId)),
+        );
+        expect(choiceRequest.options?.candidateInstanceIds).toHaveLength(2);
+        expect(observe(s.engine).hasKeyword(recipients[0]!, "Rush")).toBe(index === 1);
+        expect(observe(s.engine).hasKeyword(recipients[1]!, "Rush")).toBe(false);
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [recipients[index]!.permanentId] },
+          }),
+        ).toEqual({ ok: true });
+      }
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((card) => card.instanceId === nextOptionId) ||
+          s.state.pendingDecision?.kind === "chooseTargets",
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === nextOptionId)).toBe(true);
+      expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === source)).toHaveLength(
+        choicesBefore + expectedChoices,
+      );
+      for (let index = 0; index < recipientAliases.length; index += 1) {
+        expect(s.perm(recipientAliases[index]!).topCard.instanceId).toBe(materialIds[index]);
+      }
+    }
+    expect(s.state.memory).toBe(3);
+    await playLaterBatch("repeatOption", ["repeatFirst", "repeatSecond"], 0);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(first, "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(false);
     expect(s.perm("sourceHost").stack.map((card) => card.instanceId)).toEqual(sourceIds);
     expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === second.permanentId)).toBe(second);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.deck).toHaveLength(8);
+    expect(observe(s.engine).hasKeyword(s.perm("repeatFirst"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("repeatSecond"), "Rush")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("sourceHost").stack.map((card) => card.instanceId)).toEqual(sourceIds);
+    await playLaterBatch("resetOption", ["resetFirst", "resetSecond"], 2);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.perm("batchHost").stack.map((card) => card.instanceId)).toEqual([unrelatedId]);
+    expect(s.perm("sourceHost").stack.map((card) => card.instanceId)).toEqual(sourceIds);
+    for (const alias of ["firstDragon", "secondDragon", "repeatFirst", "repeatSecond", "resetFirst", "resetSecond"]) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Rush")).toBe(false);
+    }
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
