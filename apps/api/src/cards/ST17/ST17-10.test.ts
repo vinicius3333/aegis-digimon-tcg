@@ -135,6 +135,71 @@ describe("ST17-10 Henry Wong", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("granted Rush permits the newly played host to attack and expires when its turn ends", async () => {
+    cite(
+      "comprehensive-0233",
+      "Rush enables same-turn attack; printed Henry limits this grant to the turn",
+      "6f597fcf757c2632ff18ed331c9d1fd671a194944ac62dfdc95564ba4305b7aa",
+    );
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST17-10", as: "henry" }],
+          hand: [
+            { card: "ST17-02", as: "host" },
+            { card: "ST17-08", as: "mega" },
+          ],
+          trash: [
+            { card: "ST17-05", as: "gargomon" },
+            { card: "ST17-07", as: "rapidmon" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const hostInstanceId = s.inst("host").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: hostInstanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === hostInstanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    const hostPermanentId = s.perm("host").permanentId;
+    const attack = () =>
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostPermanentId, target: { kind: "player" } });
+    expect(attack().ok).toBe(false);
+    const source = observe(s.engine).cardSource(s.perm("henry"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("ST17-10/"),
+    );
+    if (!effect) throw new Error("Missing Henry Rush declaration");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("henry").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Rush") && s.state.pendingDecision === undefined);
+    expect(s.perm("host").permanentId).toBe(hostPermanentId);
+    expect(s.perm("host").topCard.cardId).toBe("ST17-08");
+    expect(s.state.memory).toBe(3);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(true);
+    const paidStack = s.perm("host").stack.map((card) => card.instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+    expect(s.perm("host").permanentId).toBe(hostPermanentId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual(paidStack);
+  });
+
   it("places Henry, Gargomon, and Rapidmon under one Terriermon before the four-memory MegaGargomon digivolution", async () => {
     const s = setupEngine(
       {

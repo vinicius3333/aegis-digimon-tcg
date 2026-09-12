@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect } from "vitest";
 import type { PlayerState, Seat } from "@aegis/shared";
+import { advance } from "../testkit/advance.js";
+import { observe } from "../testkit/observe.js";
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import {
@@ -22,7 +24,7 @@ import "../../cards/index.js";
  *   - AD1-009: [On Play] <De-Digivolve 3> on an opponent Digimon.
  *   - BT10-078: gains <Retaliation> while a [Gammamon] digivolution card is stacked.
  *   - BT4-012: [Main] <Digi-Burst 2> (cost: trash 2 own digivolution cards).
- *   - AD1-002: printed <Rush>.
+ *   - BT4-038 and BT8-077: printed <Rush>, played and attacked through public intents.
  *   - BT10-097: [Main] <Delay> (activatable only after the card's first turn on the field).
  *   - BT11-082: printed <Decoy ([Bagra Army])>.
  *   - BT10-012: printed <Armor Purge>.
@@ -197,45 +199,64 @@ describe("§16-14 <Digi-Burst> (comprehensive-0232)", () => {
 });
 
 describe("§16-15 <Rush> (comprehensive-0233)", () => {
-  it("16-15-1: a printed-<Rush> Digimon may attack the same turn it entered the field", async () => {
-    cite("comprehensive-0233", "16-15-1 <Rush>: this Digimon may also attack the turn it was played");
-
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    s.state.turnCount = 1; // a real (>0) turn count, so the summoning-sickness guard is actually live
-    const rusher = digimon(0, 8000, "AD1-002"); // printed <Rush>
-    rusher.enterFieldTurnCount = s.state.turnCount; // entered THIS turn (summoning sickness would normally apply)
-    p0.battleArea.push(rusher);
-    await s.engine.recomputeContinuousEffects();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: rusher.permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => false, 50);
-
-    expect(rusher.isSuspended).toBe(true); // the attack declaration was accepted and suspended it
+  beforeEach(() => {
+    cite(
+      "comprehensive-0233",
+      "Rush permits attacks the turn played and is a persistent keyword",
+      "6f597fcf757c2632ff18ed331c9d1fd671a194944ac62dfdc95564ba4305b7aa",
+    );
   });
-
-  it("NEGATIVE CONTROL: without Rush, a Digimon that entered this turn can't declare an attack", () => {
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    s.state.turnCount = 1;
-    const freshie = digimon(0, 8000, NON_KEYWORD_CARD);
-    freshie.enterFieldTurnCount = s.state.turnCount;
-    p0.battleArea.push(freshie);
-
-    const result = s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: freshie.permanentId,
-      target: { kind: "player" },
-    });
-    expect(result).toEqual({ ok: false, reason: "illegal-target" });
-    expect(freshie.isSuspended).toBe(false);
-  });
+  it.each(["BT4-038", "BT8-077"])(
+    "%s publicly attacks the turn played while the neutral control cannot",
+    async (card) => {
+      const s = setup({
+        0: {
+          hand: [
+            { card, as: "rusher" },
+            { card: "BT1-009", as: "neutral" },
+            { card: "BT1-009", as: "reserve" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      });
+      s.state.memory = 10;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      for (const alias of ["rusher", "neutral"]) {
+        const instanceId = s.inst(alias).instanceId;
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
+        await settle(
+          () =>
+            s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId) &&
+            s.state.pendingDecision === undefined,
+        );
+      }
+      expect(s.state.memory).toBe(3);
+      const rusherId = s.perm("rusher").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("neutral").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      expect(s.perm("neutral").isSuspended).toBe(false);
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: rusherId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+      expect(s.perm("rusher").isSuspended).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm("rusher"), "Rush")).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm("neutral"), "Rush")).toBe(false);
+      expect(s.state.memory).toBe(3);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      expect(s.perm("rusher").permanentId).toBe(rusherId);
+      expect(observe(s.engine).hasKeyword(s.perm("rusher"), "Rush")).toBe(true);
+      expect(s.perm("rusher").stack).toHaveLength(0);
+    },
+  );
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
