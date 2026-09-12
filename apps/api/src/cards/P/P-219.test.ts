@@ -35,7 +35,10 @@ describe("P-219 Flame Inferno", () => {
           payCost: false,
           optional: true,
           abortOnDecline: true,
-          target: { count: 1, filter: { controller: "mine", nameOrTrait: [{ tokens: ["Creepymon"], match: "name" }] } },
+          target: {
+            count: 1,
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Creepymon"], match: "nameExact" }] },
+          },
         },
         { kind: "GainKeyword", keyword: { keyword: "Rush", raw: "＜Rush＞" }, target: { count: 1, sameTarget: true } },
         {

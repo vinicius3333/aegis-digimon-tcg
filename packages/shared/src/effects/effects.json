@@ -200813,7 +200813,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Creepymon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Creepymon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
