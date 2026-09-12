@@ -14,7 +14,7 @@ describe("P-092 Dracomon", () => {
             { card: "BT1-080", as: "unrelatedDigimon" },
             { card: "ST8-07", as: "wingdramon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -48,7 +48,7 @@ describe("P-092 Dracomon", () => {
             { card: "BT1-020", as: "groundramon" },
             { card: "ST8-07", as: "wingdramon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -75,7 +75,7 @@ describe("P-092 Dracomon", () => {
           { card: "BT1-020", as: "groundramon" },
           { card: "ST8-07", as: "wingdramon" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 10;

@@ -43,7 +43,7 @@ describe("P-099 Etemon", () => {
         0: {
           battleArea: [{ card: "BT2-057", as: "base" }],
           hand: [{ card: "P-099", as: "etemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [

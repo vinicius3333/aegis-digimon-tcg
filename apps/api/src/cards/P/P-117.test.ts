@@ -33,8 +33,8 @@ describe("P-117 Veemon", () => {
 
   it("draws through its inherited effect only when the host has two colors", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-017", as: "host", under: ["P-117"] }], deck: [{ card: "BT1-001", as: "drawn" }] },
-      1: { security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT16-017", as: "host", under: ["P-117"] }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      1: { security: ["BT1-009"] },
     });
     await s.ready();
     expect(

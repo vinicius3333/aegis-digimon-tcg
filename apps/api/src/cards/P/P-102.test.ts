@@ -46,7 +46,7 @@ describe("P-102 SkullGreymon", () => {
           battleArea: [{ card: "BT2-074", as: "base" }],
           hand: [{ card: "P-102", as: "skullgreymon" }],
           trash: [{ card: "BT2-069", as: "rookie" }],
-          deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         },
         1: {
           battleArea: [

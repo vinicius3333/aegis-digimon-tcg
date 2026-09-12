@@ -57,7 +57,7 @@ describe("P-098 Seadramon", () => {
             { card: "BT1-027", dp: 3000, suspended: true, as: "protected" },
           ],
           hand: [{ card: "P-098", as: "seadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-025", dp: 11000, as: "attacker" }] },
       },
@@ -101,9 +101,9 @@ describe("P-098 Seadramon", () => {
             { card: "BT1-029", as: "firstGabumon" },
             { card: "EX1-011", as: "secondGabumon" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-003", "BT1-004"] },
+        1: { security: ["BT1-028", "BT1-028"] },
       },
       { autoAcceptOptional: true, autoSelectCards: false },
     );
@@ -188,7 +188,7 @@ describe("P-098 Seadramon", () => {
         battleArea: [{ card: "BT1-038", as: "host", under: ["P-098"] }],
         hand: [{ card: "BT1-029", as: "manualGabumon" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.state.memory = 10;
 

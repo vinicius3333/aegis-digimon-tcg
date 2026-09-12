@@ -40,7 +40,7 @@ describe("P-111 Knightmon", () => {
           ],
           hand: [{ card: "BT1-045", as: "rookie" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

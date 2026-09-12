@@ -46,8 +46,8 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
               under: ["P-094", "BT11-061", "BT11-061", "BT11-061", "BT11-061"],
             },
           ],
-          security: ["BT1-001", "BT1-001"],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -55,7 +55,7 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
             { card: "BT1-010", as: "attacker2" },
             { card: "BT1-010", as: "attacker3" },
           ],
-          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -113,7 +113,7 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
       {
         0: {
           battleArea: [{ card: "BT11-111", as: "galacticmon", under: ["P-094", "BT11-061"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },
@@ -140,7 +140,7 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
       {
         0: {
           battleArea: [{ card: "BT11-111", as: "galacticmon", under: ["P-094", "BT11-061", "BT11-061"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },

@@ -6,7 +6,7 @@ describe("P-113 RustTyrannomon", () => {
   it("suspends every opposing Digimon at or below its DP when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX3-060", as: "base" }], hand: [{ card: "P-113", as: "rust" }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX3-060", as: "base" }], hand: [{ card: "P-113", as: "rust" }], deck: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-025", dp: 11000, as: "small" },
@@ -37,7 +37,7 @@ describe("P-113 RustTyrannomon", () => {
         1: {
           battleArea: [{ card: "BT1-024", as: "base" }],
           hand: [{ card: "P-113", as: "rust" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -81,7 +81,7 @@ describe("P-113 RustTyrannomon", () => {
           { card: "BT1-009", as: "targetOne", suspended: true },
           { card: "BT1-009", as: "targetTwo", suspended: true },
         ],
-        security: ["BT1-001", "BT1-001"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
     const targetOnePermanentId = s.perm("targetOne").permanentId;
@@ -121,7 +121,7 @@ describe("P-113 RustTyrannomon", () => {
             { card: "BT1-009", as: "victim", dp: 1000, suspended: true },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], security: ["BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
