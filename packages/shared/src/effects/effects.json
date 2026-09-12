@@ -199817,8 +199817,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199841,8 +199848,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
