@@ -15,13 +15,16 @@ The lobby's Beta battle mode checkbox selects the separate `aegis_beta` public
 queue and sends `betaBattleMode: true` from each seat. This room type is always
 registered, including in production; it permits preview cards such as EX13 and
 upcoming promos. Beta matches are unranked. Both seats must explicitly opt in.
-Normal, ranked, bot, private, and tournament rooms reject beta opt-in and retain
-their normal deck eligibility. Handler-owned beta settings cannot be overridden
-by client creation options.
+Normal, ranked, private, and tournament rooms reject beta opt-in and retain their
+normal deck eligibility. Bot matches use a separate `aegis_bot` room, or
+`aegis_beta_bot` when the player opts into preview cards; both bot room types
+remain outside ranked, tournament, and private queues. Handler-owned beta
+settings cannot be overridden by client creation options.
 
 Collection and deck-builder visibility is independent of battle eligibility:
 all deckable catalog entries remain visible, including preview cards. A deck
-containing beta-only cards needs the checkbox in Quick Match before launch.
+containing beta-only cards needs the checkbox in Quick Match or Practice vs AI
+before launch.
 
 ## Intents
 

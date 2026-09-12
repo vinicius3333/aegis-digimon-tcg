@@ -16,6 +16,9 @@ export const ROOM_TYPE = "aegis" as const;
 /** One-human room created directly for a match against the server bot. */
 export const ROOM_TYPE_BOT = "aegis_bot" as const;
 
+/** One-human room created directly for a match against the server bot using beta-only cards. */
+export const ROOM_TYPE_BETA_BOT = "aegis_beta_bot" as const;
+
 /** Public matchmaking queue whose result affects player statistics. */
 export const ROOM_TYPE_RANKED = "aegis_ranked" as const;
 

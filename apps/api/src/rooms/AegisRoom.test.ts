@@ -169,6 +169,20 @@ describe("AegisRoom ready-gated match start", () => {
     expect(broadcastedEvents(room).some((e) => e.kind === "matchStarted")).toBe(true);
   });
 
+  it("allows a beta bot room to validate future cards for the human seat", async () => {
+    const room = makeRoom({ botRoom: true, betaBattleRoom: true });
+    const human = fakeClient("session-beta-human");
+    const betaDeck = { mainDeck: [...RED_DECK.mainDeck], eggDeck: [...RED_DECK.eggDeck] };
+    betaDeck.mainDeck[0] = "EX13-007";
+    const options = { displayName: "Beta Human", deck: betaDeck, betaBattleMode: true };
+    expect(await room.onAuth(human, options)).toBe(true);
+    room.clients.push(human);
+    room.onJoin(human, options);
+    room.addBot();
+
+    expect(broadcastedEvents(room).some((event) => event.kind === "matchStarted")).toBe(true);
+  });
+
   it("addBot deals the bot the requested famous-deck preset", () => {
     const requested = ALL_FAMOUS_DECKS.find(isFamousDeckAvailable);
     expect(requested).toBeDefined();
