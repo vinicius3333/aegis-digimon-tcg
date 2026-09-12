@@ -53,14 +53,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   prints no inherited text at all. (BT24-014 carries a duplicated inherited copy; that is a
 //   generator artifact of a card whose catalog text differs, not a pattern to follow.)
 //
-// ＜Guard＞
-//   Byte-identical in shape to EX13-052, the other printed-＜Guard＞ card in this set (itself
-//   following EX12-056/EX12-072): the engine has no behavioural Guard hook —
-//   `combat/keywords.ts` only tokenizes the icon — so the keyword is executed as a
-//   `wouldLeavePlay` prevention with `leaveCause: "byOpponentEffect"`, protecting
-//   `controller: "mine"` + `excludeSelf` ("any of your OTHER Digimon"), `affectsAll: true`
-//   ("they don't leave" — one payment saves every matching permanent in the same leave event),
-//   and a `deleteOwn` cost on the source itself ("by deleting this Digimon").
+// ＜Guard＞ is granted by the Static keyword entry and executed by the shared
+// live per-holder reaction, including its optional self-payment.
 //
 // Option side [Main]
 //   Two processes in one effect list:
@@ -122,31 +116,6 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       actions: decodeReplacement,
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: {
-            filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-            // `runReplacement` reads only `target.filter`/`target.isSelf`; `affectsAll` already
-            // carries "they don't leave", so this count is declarative (EX13-052's note).
-            count: "all",
-          },
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-          cost: {
-            kind: "deleteOwn",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            raw: "by deleting this Digimon",
-          },
-          raw: "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)",
-        },
-      ],
     },
     {
       trigger: "Main",

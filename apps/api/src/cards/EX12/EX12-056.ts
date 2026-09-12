@@ -7,42 +7,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          target: {
-            filter: {
-              controller: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
-            },
-            // ＜Guard＞ protects EVERY other Digimon that would leave in the same event
-            // ("they don't leave"), which `affectsAll` already encodes; `runReplacement`
-            // reads only `target.filter`/`target.isSelf`, so this count is declarative.
-            count: "all",
-          },
-          sourceFilter: {
-            controller: "mine",
-            excludeSelf: true,
-            kind: ["Digimon"],
-          },
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          cost: {
-            kind: "deleteOwn",
-            target: {
-              filter: { isSelfRef: true },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by deleting this Digimon",
-          },
-          raw: "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)",
-        },
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Guard", raw: "＜Guard＞" }],
     },
     {
       trigger: "OnPlay",

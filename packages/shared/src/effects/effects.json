@@ -150726,26 +150726,7 @@
   },
   "EX12-056": {
     "effects": [
-      {
-        "trigger": "AllTurns",
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
-            "mode": "prevent",
-            "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": "all" },
-            "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
-            "leaveCause": "byOpponentEffect",
-            "affectsAll": true,
-            "cost": {
-              "kind": "deleteOwn",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "raw": "by deleting this Digimon"
-            },
-            "raw": "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
-          }
-        ]
-      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Guard", "raw": "＜Guard＞" }] },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -152355,26 +152336,17 @@
         "isSecurity": true,
         "actions": [
           {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
-            "mode": "prevent",
-            "leaveCause": "byOpponentEffect",
-            "affectsAll": true,
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
-            "cost": {
-              "kind": "deleteOwn",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["ME"], "match": "trait" }]
-                },
-                "count": 1
+            "kind": "Aura",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["ME"], "match": "trait" }]
               },
-              "raw": "by deleting 1 of your [ME] trait Digimon with ＜Guard＞"
+              "count": "all"
             },
-            "raw": "All of your [ME] trait Digimon gain ＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
+            "effect": { "kind": "keyword", "keyword": { "keyword": "Guard", "raw": "＜Guard＞" } },
+            "raw": "All of your [ME] trait Digimon gain ＜Guard＞"
           }
         ]
       },
@@ -230451,26 +230423,6 @@
       },
       {
         "trigger": "AllTurns",
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
-            "mode": "prevent",
-            "leaveCause": "byOpponentEffect",
-            "affectsAll": true,
-            "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": "all" },
-            "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
-            "cost": {
-              "kind": "deleteOwn",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "raw": "by deleting this Digimon"
-            },
-            "raw": "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
-          }
-        ]
-      },
-      {
-        "trigger": "AllTurns",
         "isInherited": true,
         "frequency": "OncePerTurn",
         "actions": [
@@ -231312,39 +231264,10 @@
             "raw": "All of your Digimon with [Mamemon] in their names gain ＜Guard＞"
           }
         ]
-      },
-      {
-        "trigger": "AllTurns",
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
-            "mode": "prevent",
-            "leaveCause": "byOpponentEffect",
-            "affectsAll": true,
-            "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": "all" },
-            "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
-            "cost": {
-              "kind": "deleteOwn",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Mamemon"], "match": "name" }]
-                },
-                "count": 1
-              },
-              "raw": "by deleting 1 of your Digimon with [Mamemon] in its name that has ＜Guard＞"
-            },
-            "raw": "All of your Digimon with [Mamemon] in their names gain ＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
-          }
-        ]
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Guard＞ — a granted holder other than PrinceMamemon cannot pay to save PrinceMamemon itself (leave-prevention Replacements are anchored per source permanent, so a pooled keyword grant has no per-holder scope)."
-    ],
+    "coverage": "full",
+    "residual": [],
     "assemblyRequirement": [
       {
         "reduceCost": 4,
@@ -231546,26 +231469,6 @@
               }
             ],
             "raw": "＜Decode ([Sistermon Blanc])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Sistermon Blanc] from its digivolution cards without paying the cost.)"
-          }
-        ]
-      },
-      {
-        "trigger": "AllTurns",
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
-            "mode": "prevent",
-            "leaveCause": "byOpponentEffect",
-            "affectsAll": true,
-            "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": "all" },
-            "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
-            "cost": {
-              "kind": "deleteOwn",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "raw": "by deleting this Digimon"
-            },
-            "raw": "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
           }
         ]
       },

@@ -41,6 +41,7 @@ import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from 
 import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController, type CombatTrigger } from "./combat/controller.js";
 import { detachLeaveReplacements, detachTraitTokens } from "./effects/detach.js";
+import { guardLeaveReplacements } from "./effects/guard.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
@@ -1393,8 +1394,8 @@ export class GameEngine {
     return consultLeavePrevention(
       {
         subTriggers: this.subTriggers,
-        keywordReplacements: (ids) =>
-          detachLeaveReplacements(ids, {
+        keywordReplacements: (ids) => [
+          ...detachLeaveReplacements(ids, {
             permanentById: (id) => this.access.permanentById(id),
             hasDetach: (id) => this.continuous.hasKeyword(id, "Detach"),
             traitTokens: (id) => {
@@ -1411,6 +1412,16 @@ export class GameEngine {
             definitionOf: (card) => definitionOf(card),
             trash: (paymentIds) => this.primitives.trash(paymentIds),
           }),
+          ...guardLeaveReplacements(
+            [...this.state.players].flatMap((player) => player.battleArea.map((permanent) => permanent.permanentId)),
+            {
+              idOffset: ids.length,
+              permanentById: (id) => this.access.permanentById(id),
+              isBattleAreaDigimon: (permanent) => this.access.isBattleAreaDigimon(permanent, this.continuous),
+              hasGuard: (id) => this.continuous.hasKeyword(id, "Guard"),
+            },
+          ),
+        ],
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {

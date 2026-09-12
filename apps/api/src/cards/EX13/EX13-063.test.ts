@@ -111,11 +111,7 @@ describe("EX13-063 PrinceMamemon", () => {
   });
 
   it("compiles the Assembly recipe, three reveal timings, the deletion and both keyword grants", () => {
-    // `partial`: the pooled ＜Guard＞ grant's per-holder scope is not expressible — see the
-    //     retained `it.fails` at the end of this file.
-    expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "partial" });
-    expect(compiled.residual).toHaveLength(1);
-    expect(compiled.residual![0]).toContain("＜Guard＞");
+    expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
     // The card prints an [Assembly] header but no [Digivolve] header, so the catalog EvoCost is
     // the only digivolution route.
     expect(compiled.digivolutionRequirement).toBeUndefined();
@@ -214,23 +210,10 @@ describe("EX13-063 PrinceMamemon", () => {
       expect((action as { includeLaterEntrants?: unknown }).includeLaterEntrants).toBeUndefined();
     }
 
-    // ＜Guard＞'s behaviour rides a leave-prevention `Replacement` (the engine has no Guard hook).
-    const guard = compiled.effects.find(
-      (effect) => effect.trigger === "AllTurns" && effect.actions[0]?.kind === "Replacement",
-    )!;
-    expect(guard.actions).toMatchObject([
-      {
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        mode: "prevent",
-        leaveCause: "byOpponentEffect",
-        affectsAll: true,
-        target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: "all" },
-        sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-        cost: { kind: "deleteOwn", target: { filter: mamemonNamed, count: 1 } },
-      },
-    ]);
-    expect(guard.frequency).toBeUndefined();
+    // Guard's per-holder payment is shared behavior, never a pooled card replacement.
+    expect(compiled.effects.some((effect) => effect.actions.some((action) => action.kind === "Replacement"))).toBe(
+      false,
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -816,6 +799,7 @@ describe("EX13-063 PrinceMamemon", () => {
   });
 
   it("＜Guard＞ saves every Digimon in one opponent-effect leave event for a single payment", async () => {
+    const preferred: string[] = [MAT_BIG];
     const s = setupEngine(
       {
         0: {
@@ -830,29 +814,16 @@ describe("EX13-063 PrinceMamemon", () => {
         },
         1: { deck: DECK, security: [SENTINEL] },
       },
-      { autoAcceptOptional: true, autoChooseOption: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoOrderTriggers: true, preferTriggerKeys: preferred },
     );
     await s.ready();
     const allyA = s.perm("allyA").permanentId;
     const allyB = s.perm("allyB").permanentId;
 
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    preferred.push(s.inst("payer").instanceId);
     const deletion = advance(s.engine).verb.deletePermanent([allyA, allyB], "byEffect");
 
-    // Pick the textless BigMamemon as the payment explicitly: both of the controller's
-    // [Mamemon]-named Digimon hold the granted ＜Guard＞, and deleting the grantor instead would
-    // drag in its own [On Deletion] clauses.
-    await settle(() => s.state.pendingDecision !== undefined);
-    const cost = s.state.pendingDecision!;
-    const candidates = (JSON.parse(cost.payloadJson) as { candidateInstanceIds?: string[] }).candidateInstanceIds ?? [];
-    expect([...candidates].sort()).toEqual([s.perm("payer").permanentId, s.perm("prince").permanentId].sort());
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: cost.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("payer").permanentId] },
-      }),
-    ).toEqual({ ok: true });
     expect(await deletion).toBe(0);
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
@@ -957,7 +928,7 @@ describe("EX13-063 PrinceMamemon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("prince").instanceId);
   });
 
-  it.fails("lets another Guard holder save PrinceMamemon from public Gaia Force", async () => {
+  it("lets another Guard holder save PrinceMamemon from public Gaia Force", async () => {
     const s = await publicGaia({ withPayer: true, accept: true });
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
       s.inst("prince").instanceId,
@@ -995,17 +966,8 @@ describe("EX13-063 PrinceMamemon", () => {
     },
   );
 
-  // RETAINED ENGINE SEAM — a pooled ＜Guard＞ grant has no per-holder scope.
-  // §16-45-1 scopes ＜Guard＞ to the holder's OTHER Digimon, so the BigMamemon that received the
-  // keyword here should be able to delete itself to keep PrinceMamemon in play. It cannot: a
-  // leave-prevention `Replacement` is registered once against the permanent carrying the IR
-  // (`apps/api/src/engine/effects/leavePrevention.ts` keys its subscriptions by source permanent)
-  // and `Filter.excludeSelf` is SOURCE-relative, so the single anchored subscription can either
-  // protect the anchor (letting it illegally save itself) or exclude it entirely — never "every
-  // holder protects everyone but itself". Expected: PrinceMamemon survives and BigMamemon is
-  // trashed. Actual: PrinceMamemon is deleted and BigMamemon is untouched. The fix is an engine
-  // ＜Guard＞ hook that subscribes once per keyword HOLDER; no card-side field expresses it.
-  it.fails("lets another granted ＜Guard＞ holder pay to save PrinceMamemon", async () => {
+  // Each granted holder can pay its own Guard to save the grantor.
+  it("lets another granted ＜Guard＞ holder pay to save PrinceMamemon", async () => {
     const s = setupEngine(
       {
         0: {

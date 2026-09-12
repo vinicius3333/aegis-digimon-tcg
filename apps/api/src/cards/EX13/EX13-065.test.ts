@@ -74,7 +74,7 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
 
   it("compiles every printed clause and nothing else", () => {
     expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.effects).toHaveLength(5);
+    expect(compiled.effects).toHaveLength(4);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
     // No printed inherited text: nothing may be marked inherited.
     expect(compiled.effects.some(({ isInherited }) => isInherited === true)).toBe(false);
@@ -124,26 +124,14 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(decode.actions[0]).not.toHaveProperty("mode");
     expect(decode.frequency).toBeUndefined();
 
-    // ＜Guard＞ — the EX13-052 / EX12-056 prevention shape.
-    expect(compiled.effects[3]).toMatchObject({
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          mode: "prevent",
-          leaveCause: "byOpponentEffect",
-          affectsAll: true,
-          target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: "all" },
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-          cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-        },
-      ],
-    });
+    // Printed Guard uses the shared holder hook; Decode remains its distinct replacement.
+    expect(
+      compiled.effects.filter((effect) => effect.actions.some((action) => action.kind === "Replacement")),
+    ).toHaveLength(1);
 
     // The Option side's [Main] body: the free play carries no `kind` ("card", not "Digimon
     // card") and no `abortOnDecline` (the "Then," process is independent, §15-6-2).
-    const main = compiled.effects[4]!;
+    const main = compiled.effects[3]!;
     expect(main.trigger).toBe("Main");
     expect(main.actions).toMatchObject([
       {
