@@ -632,6 +632,98 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+  it("P-098 offers only blue Rush recipients after a yellow effect play", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "sourceHost", under: ["P-098"] }, "BT1-087"],
+          hand: [
+            { card: "BT1-009", as: "red" },
+            { card: "BT1-028", as: "blue" },
+            { card: "BT7-032", as: "yellow" },
+            { card: "BT10-100", as: "option" },
+            "BT1-009",
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-028", as: "enemyBlue" }],
+          security: ["BT1-011", "BT1-011", "BT1-011"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    for (const alias of ["red", "blue"]) {
+      const instanceId = s.inst(alias).instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+    }
+    const blue = s.perm("blue");
+    expect(observe(s.engine).hasKeyword(blue, "Rush")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: blue.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.memory).toBe(6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const rushDecision = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === rushDecision.decisionId)!.req;
+    expect(request.sourceCardId).toBe("P-098");
+    expect(new Set(request.options?.candidateInstanceIds)).toEqual(
+      new Set([s.perm("sourceHost").permanentId, blue.permanentId]),
+    );
+    expect(request.options?.candidateInstanceIds).toHaveLength(2);
+    for (const alias of ["red", "yellow", "enemyBlue"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: rushDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(rushDecision.decisionId);
+      expect(observe(s.engine).hasKeyword(blue, "Rush")).toBe(false);
+    }
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: rushDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [blue.permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("option").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(observe(s.engine).hasKeyword(blue, "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("red"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("sourceHost"), "Rush")).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: blue.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+    expect(blue.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(blue, "Rush")).toBe(false);
+    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === blue.permanentId)).toBe(blue);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
