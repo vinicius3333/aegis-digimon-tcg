@@ -1,5 +1,13 @@
 import { Client, type Room } from "colyseus.js";
-import { GameState, ROOM_TYPE, ROOM_TYPE_BOT, ROOM_TYPE_PRIVATE, ROOM_TYPE_RANKED, type Intent } from "@aegis/shared";
+import {
+  GameState,
+  ROOM_TYPE,
+  ROOM_TYPE_BOT,
+  ROOM_TYPE_PRIVATE,
+  ROOM_TYPE_RANKED,
+  ROOM_TYPE_BETA,
+  type Intent,
+} from "@aegis/shared";
 import {
   deploymentEndpoint,
   loadCurrentDeploymentManifest,
@@ -29,6 +37,11 @@ interface RouterDependencies {
 
 const roomSlots = new WeakMap<AegisRoom, RoomSlot>();
 
+function publicRoomType(options: AegisJoinOptions): string {
+  if (options.betaBattleMode && options.ranked) throw new Error("Beta battles cannot be ranked");
+  return options.betaBattleMode ? ROOM_TYPE_BETA : options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE;
+}
+
 export function connectionSlot(room: AegisRoom): RoomSlot {
   return roomSlots.get(room) ?? "legacy";
 }
@@ -48,7 +61,7 @@ export class AegisConnectionRouter {
     retriedAfterDrain: boolean,
   ): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
-    const roomName = options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE;
+    const roomName = publicRoomType(options);
 
     for (const deployment of manifest.draining) {
       const slotOptions = await this.withRoomTicket(options, deployment.slot);
@@ -233,10 +246,7 @@ function rememberLegacy(room: AegisRoom): AegisRoom {
 export async function joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().joinOrCreate(options);
   const authenticatedOptions = await withLegacyRoomTicket(options);
-  const joined = await getLegacyClient().joinOrCreate<GameState>(
-    options.ranked ? ROOM_TYPE_RANKED : ROOM_TYPE,
-    authenticatedOptions,
-  );
+  const joined = await getLegacyClient().joinOrCreate<GameState>(publicRoomType(options), authenticatedOptions);
   return rememberLegacy(joined);
 }
 

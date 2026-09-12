@@ -3,7 +3,12 @@
    "Private Match" creates or joins a code-locked room. */
 
 import { useMemo, useState } from "react";
-import { bannedPairViolations, effectiveCopyLimit as banlistLimit, getCardDefinition } from "@aegis/shared";
+import {
+  bannedPairViolations,
+  effectiveCopyLimit as banlistLimit,
+  getCardDefinition,
+  isBetaOnlyCard,
+} from "@aegis/shared";
 import { Alert, Button, Eyebrow, Field, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
@@ -14,7 +19,7 @@ import { RankedStart } from "../account/RankedStart";
 import { DeckListCard } from "./DeckListCard";
 import "./lobby.css";
 
-export type StartMode = "casual" | "ranked" | "bot" | "private_host" | "private_guest";
+export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
 
 interface Mode {
   key: string;
@@ -72,6 +77,7 @@ export function Lobby({
   const { t } = useTranslation();
   const MODES = modesFor(t);
   const [mode, setMode] = useState("casual");
+  const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [privateSub, setPrivateSub] = useState<"create" | "join">("create");
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
@@ -92,12 +98,24 @@ export function Lobby({
     () => (active ? bannedPairViolations([...active.mainDeck, ...active.eggDeck]) : []),
     [active],
   );
+  const betaCards = useMemo(
+    () =>
+      active
+        ? [...new Set([...active.mainDeck, ...active.eggDeck])].filter((id) => {
+            const card = getCardDefinition(id);
+            return card !== undefined && isBetaOnlyCard(card);
+          })
+        : [],
+    [active],
+  );
+  const betaEnabled = mode === "casual" && betaBattleMode;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
     active.eggDeck.length <= 5 &&
     banViolations.length === 0 &&
-    pairViolations.length === 0;
+    pairViolations.length === 0 &&
+    (betaCards.length === 0 || betaEnabled);
 
   return (
     <main
@@ -345,6 +363,26 @@ export function Lobby({
         <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
 
         <div style={{ flex: 1 }}>
+          {mode === "casual" ? (
+            <div className="lobby-beta-option">
+              <label htmlFor="lobby-beta-battle">
+                <input
+                  id="lobby-beta-battle"
+                  type="checkbox"
+                  checked={betaBattleMode}
+                  onChange={(event) => setBetaBattleMode(event.target.checked)}
+                  aria-describedby="lobby-beta-hint"
+                />
+                {t("lobby.betaBattleMode")}
+              </label>
+              <p id="lobby-beta-hint">{t("lobby.betaBattleHint")}</p>
+            </div>
+          ) : null}
+          {betaCards.length > 0 && !betaEnabled ? (
+            <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
+              {t("lobby.betaRequiredHint")}
+            </Alert>
+          ) : null}
           {banViolations.length > 0 ? (
             <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
               {banViolations.map(([id, n]) => {
@@ -460,6 +498,12 @@ export function Lobby({
                     </Button>
                   </div>
                 </>
+              ) : betaEnabled ? (
+                <div className="lobby-launch">
+                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => onStart("beta")}>
+                    {t("lobby.enterBetaQueue")}
+                  </Button>
+                </div>
               ) : (
                 <RankedStart
                   disabled={!deckLegal}
