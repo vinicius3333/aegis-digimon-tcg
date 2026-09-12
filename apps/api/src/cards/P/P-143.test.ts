@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -57,7 +58,7 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
       {
         0: {
           battleArea: [
-            { card: "P-143", dp: 5000, as: "drimogemon", under: [{ card: "BT1-001", as: "stackCard", faceUp: false }] },
+            { card: "P-143", dp: 5000, as: "drimogemon", under: [{ card: "BT1-064", as: "stackCard", faceUp: false }] },
           ],
         },
       },
@@ -111,5 +112,36 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
     // P-143 stays in the battle area — guard requires it to be the owner's turn.
     expect(p0.breeding).toBeUndefined();
     expect(p0.battleArea.some((perm) => perm.permanentId === drimogemonId)).toBe(true);
+  });
+
+  it("resets after a natural owner turn and can move again from breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-143", as: "drimogemon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0] as PlayerState;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(p0.breeding?.permanentId).toBe(s.perm("drimogemon").permanentId);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Breeding" && p0.breeding !== undefined);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: p0.breeding!.permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Breeding" && p0.breeding !== undefined);
+    expect(p0.breeding?.permanentId).toBe(s.perm("drimogemon").permanentId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
