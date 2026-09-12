@@ -189,16 +189,21 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
 // Explicit false values are security boundaries: Colyseus merges handler options
 // over client-supplied create options, so clients cannot promote another room type
 // into bot mode by sending `{ botRoom: true }` themselves.
-gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false });
-gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true });
-gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true });
-gameServer.define(ROOM_TYPE_BETA, AegisRoom, { botRoom: false, betaBattleRoom: true });
+gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false });
+gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true, betaBattleRoom: false });
+gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true, betaBattleRoom: false });
+gameServer.define(ROOM_TYPE_BETA, AegisRoom, {
+  botRoom: false,
+  rankedRoom: false,
+  tournamentRoom: false,
+  betaBattleRoom: true,
+});
 // Filtered by BOTH tournament join keys: the legacy flow matches a room per bracket match, the
 // program flow one per Tournament Game, and neither may ever land in the other's room.
 gameServer
-  .define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true })
+  .define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true, betaBattleRoom: false })
   .filterBy(["tournamentMatchId", "tournamentGameId"]);
-gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true });
+gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: false });
 
 /**
  * The deadline worker runs in production by default and nowhere else by default, because a test or

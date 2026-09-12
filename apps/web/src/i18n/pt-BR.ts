@@ -34,6 +34,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "brand.subtitle": "JOGO DE CARTAS",
 
   "beta.tag": "Beta",
+  "lobby.betaBattleMode": "Modo de batalha beta",
+  "lobby.betaBattleHint":
+    "Jogue com cartas antecipadas, incluindo EX13 e novas promos. As batalhas beta usam uma fila separada, sem ranking.",
+  "lobby.betaRequiredTitle": "Este deck precisa do modo de batalha beta",
+  "lobby.betaRequiredHint":
+    "Selecione o modo de batalha beta em Partida rápida para jogar com estas cartas antecipadas.",
+  "lobby.enterBetaQueue": "Entrar na fila beta",
   "beta.message": "O Aegis ainda está em beta. Coisas podem quebrar e os dados podem ser reiniciados.",
   "beta.reportLink": "Relate um bug no Discord",
   "beta.dismiss": "Entendi",

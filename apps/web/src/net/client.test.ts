@@ -46,6 +46,29 @@ function router({
 }
 
 describe("room-scoped deployment affinity", () => {
+  it("routes an opted-in beta match to the production beta queue", async () => {
+    const betaRoom = room("beta-room");
+    const greenJoin = vi.fn(async () => betaRoom);
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ joinOrCreate: greenJoin }),
+    });
+    await expect(client.joinOrCreate({ ...OPTIONS, betaBattleMode: true })).resolves.toBe(betaRoom);
+    expect(greenJoin).toHaveBeenCalledWith("aegis_beta", expect.objectContaining({ betaBattleMode: true }));
+  });
+  it("rejects combining beta matchmaking with ranked play", async () => {
+    const greenJoin = vi.fn(async () => room("unexpected"));
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ joinOrCreate: greenJoin }),
+    });
+    await expect(client.joinOrCreate({ ...OPTIONS, betaBattleMode: true, ranked: true })).rejects.toThrow(
+      "cannot be ranked",
+    );
+    expect(greenJoin).not.toHaveBeenCalled();
+  });
   it("calls the bot endpoint without rebinding the browser fetch receiver", async () => {
     const botRoom = room("bot-room");
     const fetcher = vi.fn(function (this: unknown) {

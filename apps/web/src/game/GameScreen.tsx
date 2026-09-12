@@ -319,11 +319,14 @@ export function GameScreen({
   const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const matchConfig = useMemo(() => {
-    if (startMode === "casual" || startMode === "ranked") return undefined;
+    if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
     return { mode: startMode, roomCode };
   }, [startMode, roomCode]);
-  const roomOptions = useMemo(() => ({ ...joinOptions, ranked: startMode === "ranked" }), [joinOptions, startMode]);
+  const roomOptions = useMemo(
+    () => ({ ...joinOptions, ranked: startMode === "ranked", betaBattleMode: startMode === "beta" }),
+    [joinOptions, startMode],
+  );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {
     room,

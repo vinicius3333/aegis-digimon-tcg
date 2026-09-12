@@ -31,6 +31,12 @@ export const en = {
   "brand.subtitle": "CARD GAME",
 
   "beta.tag": "Beta",
+  "lobby.betaBattleMode": "Beta battle mode",
+  "lobby.betaBattleHint":
+    "Play with preview cards, including EX13 and upcoming promos. Beta battles use a separate, unranked queue.",
+  "lobby.betaRequiredTitle": "This deck needs beta battle mode",
+  "lobby.betaRequiredHint": "Select Beta battle mode in Quick Match to play with these preview cards.",
+  "lobby.enterBetaQueue": "Enter beta queue",
   "beta.message": "Aegis is still in beta. Things may break and data can be reset.",
   "beta.reportLink": "Report a bug on Discord",
   "beta.dismiss": "Got it",

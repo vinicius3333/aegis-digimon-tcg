@@ -8,7 +8,7 @@
 import { createServer, type Server as HttpServer } from "node:http";
 import { Server as ColyseusServer } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
-import { ROOM_TYPE, ROOM_TYPE_PRIVATE } from "@aegis/shared";
+import { ROOM_TYPE, ROOM_TYPE_PRIVATE, ROOM_TYPE_BETA } from "@aegis/shared";
 import { AegisRoom } from "@aegis-api/rooms/AegisRoom.js";
 // Side-effect import: registers every implemented card EffectModule, exactly as
 // apps/api/src/index.ts does at real server boot.
@@ -25,8 +25,14 @@ export async function startTestServer(): Promise<TestServer> {
   const gameServer = new ColyseusServer({
     transport: new WebSocketTransport({ server: httpServer }),
   });
-  gameServer.define(ROOM_TYPE, AegisRoom);
-  gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom);
+  gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false });
+  gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: false });
+  gameServer.define(ROOM_TYPE_BETA, AegisRoom, {
+    botRoom: false,
+    rankedRoom: false,
+    tournamentRoom: false,
+    betaBattleRoom: true,
+  });
 
   await gameServer.listen(0);
   const address = httpServer.address();
