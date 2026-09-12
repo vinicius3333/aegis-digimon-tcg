@@ -38,7 +38,7 @@ describe("P-066 Huckmon", () => {
   it("draws 1 when nothing is deleted, then still adds itself to hand", async () => {
     const s = setupEngine({
       0: {
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
         security: [{ card: "P-066", as: "huckmon" }],
       },
       1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },

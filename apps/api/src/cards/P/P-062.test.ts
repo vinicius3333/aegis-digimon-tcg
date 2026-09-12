@@ -14,7 +14,7 @@ describe("P-062 Hiro Amanokawa", () => {
           { card: "BT9-023", as: "attacker", under: ["P-059"] },
         ],
       },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
 
     expect(
@@ -50,7 +50,7 @@ describe("P-062 Hiro Amanokawa", () => {
             { card: "BT9-023", as: "attacker", under: ["P-059"] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );
@@ -76,7 +76,7 @@ describe("P-062 Hiro Amanokawa", () => {
             { card: "BT10-011", as: "attacker", under: ["BT9-023"] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );

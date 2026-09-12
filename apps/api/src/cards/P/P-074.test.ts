@@ -9,7 +9,7 @@ describe("P-074 Boutmon", () => {
         0: {
           battleArea: [{ card: "P-074", as: "boutmon" }],
           hand: [{ card: "BT10-042", as: "venusmon" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
       },
       { autoChooseOption: true, preferOptionIndex: 3 },
@@ -43,8 +43,8 @@ describe("P-074 Boutmon", () => {
         0: {
           battleArea: [{ card: "P-074", as: "boutmon" }],
           hand: [{ card: "BT10-042", as: "venusmon" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
+          deck: ["BT1-028"],
         },
       },
       { autoChooseOption: true, preferOptionIndex: 0 },
@@ -70,7 +70,7 @@ describe("P-074 Boutmon", () => {
       0: {
         battleArea: [{ card: "P-074", as: "boutmon" }],
         hand: [{ card: "BT2-041", as: "shineGreymon" }],
-        security: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-009", "BT1-009", "BT1-028"],
       },
     });
     s.state.memory = 1;

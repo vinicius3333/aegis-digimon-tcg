@@ -11,7 +11,7 @@ describe("P-075 Okuwamon", () => {
       0: {
         battleArea: [{ card: "P-075", as: "okuwamon" }],
         hand: [{ card: "BT1-083", as: "granKuwagamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: {
         battleArea: [

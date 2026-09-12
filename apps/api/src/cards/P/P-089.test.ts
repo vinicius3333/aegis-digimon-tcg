@@ -15,7 +15,7 @@ describe("P-089 Amphimon", () => {
             { card: "BT1-028", as: "blue-b" },
             { card: "BT1-009", as: "red-control" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -64,7 +64,7 @@ describe("P-089 Amphimon", () => {
             { card: "BT9-021", as: "jellymon-bt9" },
             { card: "BT9-025", as: "teslaJellymon" },
           ],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
         1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
       },

@@ -78,7 +78,7 @@ describe("P-064 Kiyoshiro Higashimitarai", () => {
             { card: "BT1-009", as: "attacker", under: ["BT9-025"] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-011"] },
       },
       { autoAcceptOptional: true },
     );

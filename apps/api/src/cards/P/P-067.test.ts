@@ -7,8 +7,8 @@ describe("P-067 Bulucomon", () => {
     const s = setupEngine({
       0: {
         deck: [
-          { card: "BT1-001", as: "first" },
-          { card: "BT1-002", as: "second" },
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-009", as: "second" },
         ],
         security: [{ card: "P-067", as: "bulucomon" }],
       },
@@ -32,7 +32,7 @@ describe("P-067 Bulucomon", () => {
   it("draws as many as possible from a one-card deck, then still adds itself to hand", async () => {
     const s = setupEngine({
       0: {
-        deck: [{ card: "BT1-001", as: "onlyDraw" }],
+        deck: [{ card: "BT1-009", as: "onlyDraw" }],
         security: [{ card: "P-067", as: "bulucomon" }],
       },
       1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
