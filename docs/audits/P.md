@@ -2061,8 +2061,8 @@ git diff --check
 
 ### P-193 — The Wicked God Emerges!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-193.ts) · [test](../../apps/api/src/cards/P/P-193.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and battle-area placement behind trashing a Composite or Wicked God card”; “delays a Wicked God play behind deleting your Millenniummon and activates Main from Security”; “draws two after paying the Composite/Wicked God hand cost and places itself”; “activates its Main effect when revealed in Security”; “activates Delay to delete Millenniummon and play a Wicked God from trash”
 
 - Local KB lookup (2026-09-12): Q4987; no errata entry; no restriction entry.
@@ -2071,6 +2071,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Reopened executable/public-window hold (2026-09-12): Printed Main placement is mandatory once its optional hand-trash processing cost is paid; the module marks placement itself optional. Delay names exact Millenniummon, while its cost filter uses substring matching. The only Delay proof calls fireGlobal(OnEndTurn), not a natural End window; public Main uses memory 20. Correct both IR scopes and reuse/rework the existing tests for legal paid Main, exact cost/disposition, natural reactive Delay and eligible refusal. Generic injected timing does not establish this printed clause. [Official printed source](https://digimoncard.com/cards/?category=503901&search=true).
+
+- Reaudit accepted (2026-09-12): Main placement is mandatory after the optional trait hand-trash cost is paid; Delay deletes exact Millenniummon. Public Main pays 3 memory. Natural End of All Turns proves the exact Option and Millenniummon reach trash and the selected Wicked God is freely played; the natural refusal retains both source and cost Digimon. Coordinator independently passed P193/P244: 2 files, 11 tests; focused lint/format passed. Colocated Security target coverage reuses the shared Security dispatch and ActivateMain mechanisms. This supersedes the placement, name and injected-Delay holds above.
 
 ### P-194 — Aegiomon
 
@@ -2604,8 +2606,8 @@ git diff --check
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-244.ts) · [test](../../apps/api/src/cards/P/P-244.test.ts) · clause review (source removed; see History)<br>“delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements”; “uses from hand, plays a qualifying Vemmon/Zenith, and places itself”; “plays EX11-066 Xeno from trash because its Rule also treats its name as Zenith”; “keeps P-244 in play when its Delay is declined during BT21-062's real Vemmon placement”; “accepts Delay and pays the qualifying digivolution with exactly 3 memory reduced”
 
 - Local KB lookup (2026-09-12): Q6930, Q6931, Q6932; no errata entry; no restriction entry.
@@ -2615,6 +2617,8 @@ git diff --check
 - Confirmed executable scope defects (2026-09-12): The [official collection list](https://world.digimoncard.com/cards/?category=522901&search=true) limits reactive Delay to Your Turn and effects placing exact Vemmon as digivolution cards. Current IR uses All Turns and matches any added card with Vemmon in its text. Main likewise names exact Vemmon/Zenith, while IR uses substring destinations. Reconcile these scopes and retain the separate text-based host/destination requirements; Q6931 explicitly excludes DigiXros placement, while Q6932 permits the specified When Digivolving source insertion. Real reactive activation and source/cost/entry-turn evidence remain pending.
 
 - Catalog reconciliation accepted (2026-09-12, commit `770ea3b1f`): [Official Japanese printed text](https://digimoncard.com/cards/?category=503901&search=true) and the official English collection list both specify Your Turn. The frozen catalog incorrectly says All Turns; only this single P244 effectText field is corrected, preserving canonical two-space serialization and all other card bytes. Shared build passed. The production IR still requires the three scope repairs above and behavioral delivery remains held.
+
+- Reaudit accepted (2026-09-12): Main matches exact Vemmon or Zenith, including Xeno’s Rule alias. Reactive Delay is YourTurn and requires exact Vemmon added by an effect. A public Vemmon Main effect after natural handoffs triggers acceptance/refusal. Accepted Delay trashes the exact Option and evolves BT21-062 into EX11-046 using the printed Galacticmon alternative (5 minus 3 = 2 memory), preserving permanent ID and the original source stack. BT21-062’s seeded Snatchmon source uses its legal printed alternative. Coordinator independently passed P193/P244: 2 files, 11 tests; focused lint/format passed. This supersedes the scope and public-Delay holds above.
 
 ### P-245 — Kakkinmon
 
