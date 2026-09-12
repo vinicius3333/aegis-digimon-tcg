@@ -618,25 +618,38 @@ describe("Succession committed consumer evolution", () => {
       const deletedId = s.inst("deleted").instanceId;
       const survivorId = s.inst("survivor").instanceId;
       preferred.push(hiddenId);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "digivolve",
-          permanentId: s.perm("base").permanentId,
-          instanceId: giromonId,
-        }),
-      ).toEqual({ ok: true });
-      for (const accept of [true, false]) {
-        await settle(() => s.state.pendingDecision?.kind === "optional");
-        const decision = s.state.pendingDecision!;
+      const placementEvents = await observe(s.engine).captureSubTriggers(async () => {
         expect(
           s.engine.applyIntent(0, {
-            type: "respondDecision",
-            decisionId: decision.decisionId,
-            response: { kind: "optional", accept },
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: giromonId,
           }),
         ).toEqual({ ok: true });
-        await settle();
-      }
+        for (const accept of [true, false]) {
+          await settle(() => s.state.pendingDecision?.kind === "optional");
+          const decision = s.state.pendingDecision!;
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: decision.decisionId,
+              response: { kind: "optional", accept },
+            }),
+          ).toEqual({ ok: true });
+          await settle();
+        }
+      });
+      expect(placementEvents.filter((entry) => entry.event === "onAddDigivolutionCards")).toEqual([
+        {
+          event: "onAddDigivolutionCards",
+          payload: expect.objectContaining({
+            subjectPermanentId: s.perm("base").permanentId,
+            addedDigivolutionCardInstanceIds: [hiddenId],
+            addedDigivolutionCardsPosition: "bottom",
+            byEffectSeat: 0,
+          }),
+        },
+      ]);
       expect(s.perm("base").topCard.instanceId).toBe(giromonId);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([hiddenId, baseId]);
       expect(s.inst("hidden").faceUp).toBe(false);

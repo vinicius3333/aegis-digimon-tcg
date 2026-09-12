@@ -1417,6 +1417,60 @@ describe("primitives: placeUnder / link", () => {
     expect(h.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it.each([true, false, undefined])(
+    "supplemental loose placement position agrees with physical stack: belowTop %s",
+    async (belowTop) => {
+      const h = harness({
+        board: {
+          0: {
+            battleArea: [{ card: DIGIMON, as: "dest", under: [{ card: OPTION, as: "existing" }] }],
+            hand: [{ card: DIGIMON, as: "placed" }],
+          },
+        },
+      });
+      const placedId = h.s.inst("placed").instanceId;
+      const oldId = h.s.inst("existing").instanceId;
+      await h.fx.placeUnder(h.s.perm("dest").permanentId, [placedId], { belowTop });
+      expect(h.s.perm("dest").stack.map((card) => card.instanceId)).toEqual(
+        belowTop ? [oldId, placedId] : [placedId, oldId],
+      );
+      expect(h.subTriggerFires).toHaveLength(1);
+      expect(h.subTriggerFires[0]!.payload).toMatchObject({
+        addedDigivolutionCardInstanceIds: [placedId],
+        addedDigivolutionCardsPosition: belowTop ? "top" : "bottom",
+      });
+    },
+  );
+
+  it.each([true, false, undefined])(
+    "supplemental batch relocation position agrees with physical stack: belowTop %s",
+    async (belowTop) => {
+      const h = harness({
+        board: {
+          0: {
+            battleArea: [
+              { card: DIGIMON, as: "dest", under: [{ card: OPTION, as: "existing" }] },
+              { card: DIGIMON, as: "source" },
+            ],
+          },
+        },
+      });
+      const placedId = h.s.inst("source").instanceId;
+      const oldId = h.s.inst("existing").instanceId;
+      const sourcePermanentId = h.s.perm("source").permanentId;
+      expect(
+        await h.fx.relocatePermanentsByEffect?.(h.s.perm("dest").permanentId, [sourcePermanentId], { belowTop }),
+      ).toEqual([sourcePermanentId]);
+      expect(h.s.perm("dest").stack.map((card) => card.instanceId)).toEqual(
+        belowTop === false ? [placedId, oldId] : [oldId, placedId],
+      );
+      expect(h.subTriggerFires).toHaveLength(1);
+      expect(h.subTriggerFires[0]!.payload).toMatchObject({
+        addedDigivolutionCardsPosition: belowTop === false ? "bottom" : "top",
+      });
+    },
+  );
+
   it("trashDigivolutionCards reveals a face-down stacked card in trash (BT26-094 Q7159)", async () => {
     const h = harness({
       board: {
@@ -1638,6 +1692,7 @@ describe("primitives: placeUnder / link", () => {
     });
     expect(h.subTriggerFires.find((entry) => entry.event === "onAddDigivolutionCards")?.payload).toMatchObject({
       addedDigivolutionCardInstanceIds: [sourceInstanceId],
+      addedDigivolutionCardsPosition: "top",
       byEffectSeat: 1,
     });
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);

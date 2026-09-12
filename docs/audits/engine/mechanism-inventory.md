@@ -346,3 +346,7 @@ BT11-088 public bottom placement/source-shedding evidence is owned by [BT11.md](
 ## Relocation addition identity checkpoint
 
 The source-shedding event contract is owned by [digivolution-card-placement.md](digivolution-card-placement.md). Two real public Bagramon entry events expose the incorrect identity list; single/batch stack/link arithmetic is explicitly supplemental. Position metadata, live recalculation, public batch and competing departures remain open.
+
+## Placement position checkpoint
+
+The next bounded placement-event position audit is owned by [digivolution-card-placement.md](digivolution-card-placement.md#position-checkpoint-contract-and-implementation). Seven public Bagramon/Giromon events expose inverted loose-card metadata or missing relocation metadata. Default/top/bottom adapter paths are explicit; downstream reactions, source turnover and other position producers remain open.

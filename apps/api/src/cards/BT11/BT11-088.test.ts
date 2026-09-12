@@ -300,6 +300,7 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     expect(additions[0]!.payload).toMatchObject({
       subjectPermanentId: s.perm("host").permanentId,
       addedDigivolutionCardInstanceIds: [sourceId],
+      addedDigivolutionCardsPosition: "bottom",
       byEffectSeat: 0,
     });
     const host = s.perm("host");

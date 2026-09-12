@@ -2,6 +2,8 @@
 
 ## Status
 
+Latest bounded position correction at baseline `fe7dcf218`: loose-card placement reported top/bottom backwards and individual/batch permanent relocation omitted the position. Event metadata now agrees with the physical insertion: `pushOnStack` is directly below the top card and `unshiftOnStack` is the bottom. Public Bagramon and Giromon events prove seven bottom-placement sequences; top/bottom/default arithmetic is supplemented by recording-port cases. Full placement/timing and downstream card certificates remain open.
+
 Bounded identity correction at baseline `0f8db98d0`, 2026-09-12. Source cards shed during permanent relocation must not be announced as cards added under the destination. Public Bagramon play/evolution witnesses the single relocation path; recording-port subsystem cases cover single and batch paths, with source-preserving controls. Complete placement, event and inherited-information certification remains open.
 
 ## Contract and sources
@@ -37,7 +39,7 @@ The public producer is BT11-088 only, On Play and When Digivolving; its earlier 
 
 Valid unchanged baseline: card/primitives focus **4 failed, 163 passed**. Two public stacked-source events and two supplemental shedding cases include trashed identities; unstacked and source-preserving controls pass. Corrected focus with Succession and seam guard: **4 files, 191 tests passed**.
 
-## Gates
+## Earlier identity delivery gates
 
 - `pnpm --filter @aegis/api exec vitest run`: final **5112 files, 42367 tests passed**, zero expected failures, **55.17 seconds**. Earlier green 53.20-second run precedes conditional-assertion lint cleanup and is superseded by the final gate.
 - `pnpm typecheck`: final shared/API/web passed.
@@ -49,9 +51,39 @@ Valid unchanged baseline: card/primitives focus **4 failed, 163 passed**. Two pu
 
 ## Open items
 
-Public batch and linked-source producers, replacement/departure ordering and failure, actual downstream triggered payloads, ownership exchange, departed source snapshots, ordered multi-source placement, position metadata and live continuous recalculation remain open. In particular, current wrappers do not supply placement position, and other placeUnder paths require an independent position audit; no position/event-timing certificate is implied by correct added identities. All normative exceptions and consumer parameter shapes must still be inventoried.
+Public batch and linked-source producers, replacement/departure ordering and failure, actual downstream triggered payloads, ownership exchange, departed source snapshots, ordered multi-source placement and live continuous recalculation remain open. The next position checkpoint below supplies individual/batch metadata and aligns loose-card metadata; other producer shapes and event-timing certificates still require independent proof. All normative exceptions and consumer parameter shapes must still be inventoried.
 
 ## History
 
 - `0f8db98d0`: Bagramon bottom/source-shedding parameters corrected; generic event identity was explicitly left open.
 - Current checkpoint: public production bus observations expose that identity gap and both wrappers are corrected without changing registration or serialized IR.
+
+## Position checkpoint: contract and implementation
+
+The existing reviewed §4-7 stack contract preserves relative order; the committed Bagramon/Giromon text explicitly places the selected card on the bottom. The named physical insertion functions and primitive defaults determine the public engine port's position semantics. Loose placement defaults to bottom (`belowTop` false/undefined), while permanent relocation defaults to directly below the top (`belowTop` true/undefined). No card's authored position or the physical movement itself changes; the event description now matches it. `placeUnder` reports true→top, false/undefined→bottom. Both relocation wrappers report false→bottom, true/undefined→top. This repairs the shared event interface without adding another card registration or serialized IR field.
+
+### Position obligation ledger
+
+| Obligation                                                         | Public proof                                                                                                                                                                                                                            | Supplemental proof                                                | Status                                |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------- |
+| Loose bottom event describes the actual bottom card                | Three Giromon legal evolution/place-from-hand/Bacchus evolution/attack sequences retain exact hidden stack, zones, controller, DP, memory and full pending resolution; scoped bus observation asserts bottom and actual hidden identity | Loose placement true/false/undefined with existing physical stack | verified for these producer shapes    |
+| Individual permanent bottom event describes its moved top card     | Four Bagramon play/evolution and stacked/unstacked-source sequences retain exact destination order, shed trash and original neutral zones/costs; scoped bus observation asserts bottom                                                  | Existing default individual relocation event asserts top          | verified for these producer shapes    |
+| Batch event uses actual top/bottom insertion and default           | No fresh legal real multi-source producer proof                                                                                                                                                                                         | Batch true/false/undefined with existing physical stack           | adapter verified; public shape queued |
+| Downstream placement-specific card reaction and competing ordering | Not demonstrated by producer event assertions alone                                                                                                                                                                                     | Existing Moonmon suite is historical regression only              | queued                                |
+
+### Position consumer coverage and baseline
+
+Public producer modules: BT11-088 (both entry timings) and BT26-055 (When Digivolving), different collections. BT22-006 is the sole directly authored position-filter consumer found in the current module search; it additionally requires its own top-card rotation by an effect, and its existing colocated tests are regression rather than new full-card proof. They contain older injected timing and fixture limitations and do not certify the present generic event audit. The dynamic producer/consumer denominator remains open.
+
+Initial accepted position baseline: three files **12 failed, 183 passed**, seven public producer events and five supplemental position cases. Default batch and individual assertions were then strengthened. A first default-test edit accidentally expected loose placement's default to be top; this assertion was corrected to the documented physical bottom before the final source-restored counterfactual. It is discarded as a rule failure. Corrected final focus with Moonmon/seam: **5 files, 202 tests passed**, 2.62 seconds.
+
+### Position gates
+
+- Final default-strengthened baseline restoration: all three old behaviors fail **14/196**, with 182 controls green. Reverting only loose position metadata fails **6/196** (190 controls green); omitting only individual relocation metadata fails **5/196** (191 controls green); omitting only batch metadata fails **3/196** (193 controls green). The exact fixed engine bytes are restored in `finally` before any broad gate.
+- Final restored command: `pnpm --filter @aegis/api exec vitest run src/cards/BT11/BT11-088.test.ts src/engine/conformance/keyword-succession-lifecycle.test.ts src/engine/effects/primitives.test.ts src/cards/BT22/BT22-006.test.ts src/engine/testkit/testkitSeam.guard.test.ts src/cards/audit-docs.test.ts`: **6 files, 206 tests passed**, 2.56 seconds.
+- Scoped Oxlint passes with no warnings. Current 66-set index and clean diff check pass. Independent read-only review found no blocker in the three metadata mappings. No authored card or serialized IR changed.
+- `pnpm --filter @aegis/api exec vitest run`: **5112 files, 42373 tests passed**, zero expected failures, **52.72 seconds**. `pnpm typecheck`: shared/API/web passed. Changed-file Oxfmt on all six files passed. `pnpm audit:index --check` remains current; `git diff --check` is clean.
+
+### Position open items
+
+Actual downstream reaction eligibility, multi-source snapshot/timing, copied placement effects and inherited source/controller turnover remain open. The event observation proves metadata and exact resolved producer state, not a downstream gameplay failure or complete keyword/collection certification. Remaining position metadata from deck/egg/reveal/mixed producers must be inspected against their physical insertion semantics.
