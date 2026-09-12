@@ -93,6 +93,8 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Final lower-range peer review accepted (2026-09-12): the independent Luna reader inspected all 124 P001–P124 modules, catalog rows, tests and KB references. Twelve exact-name defects were confirmed and repaired in atomic card/record commits; explicitly printed substring predicates were preserved. No card tests were added or changed for these repairs. Shared Q1033 legacy token identity was reproduced red and corrected; coordinator focused acceptance passed 13 files, 50 tests. Current recalculation is 247/249 at 10/10, with P207/P208 public-cycle holds remaining. The final upper-range independent review and closing collection gates remain pending.
 
+- Printed-source catalog reconciliation (2026-09-12): official English card list rarity metadata corrected 165 entries in `e80c2317f`; the canonical P146 Reload name and actual Security effect were corrected in `740d0fed3`. Direct official card images confirm nine further catalog corrections in `faa9bee51`: Attribute/Type swaps for P059/P061/P074/P076/P077, Red/Black P097, Ultimate P145, D-Reaper P158 and LIBERATOR P169. P158/P169 remain Tamers without a Digimon form/attribute. The same official HTML incorrectly lists P058–P061 DP, P066–P071 play costs and P132 Puppet type; printed images confirm the existing DP/cost/Bird Dragon values, which are retained. Extra types supplied by printed Rule text are retained. Source: [official English Promo list and linked printed card images](https://world.digimoncard.com/cards/?category=522901&search=true). Closing catalog, collection and delivery gates remain pending.
+
 ## Gates
 
 Current 2026-09-12 gate results on the new worktree at base `de4dda717`:
@@ -1379,6 +1381,11 @@ git diff --check
   proves the negative. A real Security attack plays Ken and a neutral Wormmon without cost.
   Spare legal hand cards and regular decks keep the intended Main phase observable.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-126 — Yolei Inoue
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1388,6 +1395,11 @@ git diff --check
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit proof accepted (2026-09-12): Four focused tests pass: both public On Play modes, actual Start of Main memory in the real turn loop, and real Security attack auto-play with the On Play choice fully resolved.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-127 — Kari Kamiya
 
@@ -1399,6 +1411,11 @@ git diff --check
 
 - Reaudit proof accepted (2026-09-12): Five focused tests pass: both public On Play modes, equal/behind security-count gates in real Start of Main, and real Security auto-play plus complete On Play resolution. Security fixtures are regular cards.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-128 — Cody Hida
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1409,6 +1426,11 @@ git diff --check
 
 - Reaudit proof accepted (2026-09-12): Four focused tests pass: both public On Play modes, actual Start of Main memory in the real turn loop, and real Security attack auto-play with the On Play choice fully resolved.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-129 — T.K. Takaishi
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1418,6 +1440,11 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4241; no errata entry; no restriction entry.
 
 - Reaudit proof accepted (2026-09-12): Five focused tests pass: both public On Play modes, equal/ahead security-count gates in real Start of Main, and real Security auto-play plus Patamon On Play resolution. Security resolution waits for a new securityChecked event, no pending decision, and idle attack state; security fixtures are regular cards.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-130 — Lui Ohwada
 
@@ -1445,6 +1472,11 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-133 — Shoto Kazama
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1455,6 +1487,11 @@ git diff --check
 
 
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): Public Avian digivolutions pay 2, preserve the original source instance, gain 1 and suspend Shoto only on the first trigger, deny the same-turn repeat after preparation, and regain after natural turns 0 → 1 → 0. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-134 — Shoemon
 
@@ -1478,6 +1515,11 @@ git diff --check
 
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): A legal Lv.5 inherited host attacks publicly: opposing DP is reduced by 2000 once, denies a second same-turn reduction and renews the reduction after natural turns. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-136 — Arisa Kinosaki
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1488,6 +1530,11 @@ git diff --check
 
 
 - Reaudit frequency proof accepted (2026-09-12, commit `3cca1969e`): Public Puppet digivolutions pay 3, retain the original source instance, gain 1 and suspend Arisa once, deny the second same-turn trigger and renew after natural turns. Coordinator independently passed all seven suites: 7 files, 33 tests; focused lint and formatting are green. Collection closeout gates remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-137 — Flamedramon
 
@@ -1512,8 +1559,8 @@ git diff --check
 
 ### P-139 — Leomon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-139.ts) · [test](../../apps/api/src/cards/P/P-139.test.ts) · clause review (source removed; see History)<br>“reduces an opponent's Digimon by 3000 DP on play”; “encodes zero-cost Leomon digivolution and inherited Recovery”; “applies -3000 DP on the live When Digivolving window”; “grants Blocker and Fortitude while Leomon/X Antibody is in its stack”; “recovers the top deck card when deleted”
 
 - Local KB lookup (2026-09-12): Q4246; no errata entry; no restriction entry.
@@ -1521,6 +1568,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Reaudit public evolution and legal-source proof accepted (2026-09-12): Public Leomon alternate evolution pays 0 (memory remains 10), asserts exact played top and original parent source, and applies -3000 DP. Inherited Recovery uses a legal Yellow/Green level-5 host over P-139 and recovers the deck top after deletion. Coordinator independently passed P-176/P-139/P-145: 3 files, 14 tests; both accepted evolution files pass Oxlint/Oxfmt and diff check. Collection closing gates remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
 ### P-140 — MegaKabuterimon
 
@@ -1570,8 +1619,8 @@ git diff --check
 
 ### P-144 — Gotsumon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-144.ts) · [test](../../apps/api/src/cards/P/P-144.test.ts) · clause review (source removed; see History)<br>“keeps the Your Turn attack restriction when only an X Antibody card is underneath”; “encodes Blocker, target-switch unsuspension, and inherited Blocker DP”; “applies the inherited +1000 DP to Blocker Digimon”; “prevents attacking when no Gotsumon card is in the digivolution stack”; “allows attacking when a Gotsumon card is in the digivolution stack”; “unsuspends a Blocker when an opponent-turn attack target switches”; “only resolves the target-switch reaction once per opponent turn”
 
 - Local KB lookup (2026-09-12): Q4259; no errata entry; no restriction entry.
@@ -1579,23 +1628,29 @@ git diff --check
 
 - Reaudit natural-cycle proof accepted (2026-09-12): Three real opponent attacks and public blocks cause target switches. An explicitly suspended watcher unsuspends on the first, stays suspended on the second same-turn switch and unsuspends again after a full natural owner/opponent cycle. Combat resolution is idle with no pending decision; deck/security are regular cards and the inherited host is legal. Coordinator independently passed both suites: 2 files, 13 tests; focused lint/format are green. Collection closing gates remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
 ### P-145 — Myotismon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-145.ts) · [test](../../apps/api/src/cards/P/P-145.test.ts) · clause review (source removed; see History)<br>“plays a level-6 Myotismon from trash when deleted with Myotismon in its stack”; “does not revive without Myotismon or X Antibody in its stack”; “deletes an opposing level 4 Digimon on play”; “encodes zero-cost Myotismon digivolution and conditional level-6 revival”; “revives with an X Antibody trait-only digivolution card”; “deletes an opposing level-4 Digimon on When Digivolving”
 
 - Local KB lookup (2026-09-12): Q4260; no errata entry; no restriction entry.
 
 - Reaudit public evolution and legal-source proof accepted (2026-09-12): Public Myotismon alternate evolution pays 0 (memory remains 10), asserts exact played top and original Myotismon source, and deletes an opposing level-4 Digimon. Negative revival uses a legal Purple level-4 source with neither Myotismon name nor X Antibody trait; positive Myotismon and Proto Form sources remain covered. Coordinator independently passed P-176/P-139/P-145: 3 files, 14 tests; both accepted evolution files pass Oxlint/Oxfmt and diff check. Collection closing gates remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
 ### P-146 — Recharge Plug-In Q
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 0/2 · behavior 0/2 · stack 2/2
+- Score: **6/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-146.ts) · [test](../../apps/api/src/cards/P/P-146.test.ts) · clause review (source removed; see History)<br>“waives its color requirement with a Tamer and places itself under a non-white Digimon”; “limits both inherited and Security replacement effects to battle deletion”; “gives an opposing Digimon Security Attack -1 from its Security effect”; “uses the Tamer waiver to place this yellow Option under a non-white Digimon”
 
 - Local KB lookup (2026-09-12): Q4261, Q4262; no errata entry; no restriction entry.
+
+- Official source/IR hold (2026-09-12): the official English list names Reload Plug-In Q and prints Security Attack −1 plus one inherited battle-deletion prevention. Catalog commit `740d0fed3` corrects only nameEn and the copied Security field; Shared build passes. The current inherited cost incorrectly selects Digimon/traits and Security or source zones, and an additional Security-stamped replacement is unprinted. A dedicated lane must prove the exact Option moves from this host’s sources to Security bottom, optional refusal/battle cause, public Main within the legal memory gauge and real Security execution. [Official list](https://world.digimoncard.com/cards/?category=522901&search=true).
 
 ### P-147 — Pal
 
@@ -1745,6 +1800,11 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-160 — Tyrannomon (X Antibody)
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1762,6 +1822,11 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-161.ts) · [test](../../apps/api/src/cards/P/P-161.test.ts) · clause review (source removed; see History)<br>“restricts an opponent Digimon or Tamer after being trashed from the battle area”; “encodes Main placement and Security level-5-or-lower deck bottoming”; “returns an opposing level-5-or-lower Digimon to deck bottom and adds itself to hand from security”; “runs Main by restricting an opposing Digimon from suspending before placing itself”; “applies the same suspend restriction when the Device is trashed from the battle area”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-162 — Coelamon
 
@@ -2002,6 +2067,12 @@ git diff --check
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Independently accepted repair (2026-09-12): public DoruGreymon alternate evolution pays 3 (10→7), retains the exact DoruGreymon and placed Kosuke sources, grants +3000 DP and unsuspends the SoC ally while preserving the suspended non-SoC control. Root focused validation: 3 files / 13 tests green; targeted Oxfmt, Oxlint and diff checks clean.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-185 — EmperorGreymon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2236,8 +2307,8 @@ git diff --check
 
 ### P-204 — Release of the Sealed Knight!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-204.ts) · [test](../../apps/api/src/cards/P/P-204.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and placement behind trashing an X Antibody or Chronicle card”; “executes reactive Delay during either player's player attack and allows the Chronicle evolution”; “activates its Main effect from Security”; “draws two after trashing an X Antibody card and places itself”; “executes Delay in its real player attack window”
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
@@ -2246,6 +2317,9 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Independently accepted repair (2026-09-12, commit `d78915dc2`): Intrinsic reactive Delay executes during either controller’s player attack, before Security checking. Actual Option trash, accepted/declined evolution, declined Delay retention, placement-turn and idle guards, and Digimon-target rejection are proved. Exact Grademon/Alphamon names retain the separate Chronicle alternatives; free evolution retains the permanent and original source IDs. Security activates the paid-cost-free Main effect and finishes the attack. The rejected post-attack Main proposal is superseded by the correct reactive implementation. Root 10 tests passed; independent read-only peer review passed. Root five-card focus passed 5 files / 35 tests. API typecheck, targeted Oxlint/Oxfmt and diff checks passed. Effects sync/check passed: 249 records, 13 semantic P changes in the current worktree against the base and zero semantic or byte changes outside P. Collection closing gates remain pending.
+
+
+- Final attack-completion proof hold (2026-09-12): the Digimon-target Delay negative must wait for an observable completed battle before asserting no offer; the existing immediate idle predicate may settle before attack dispatch. Public positive/decline and shared cost-gating proofs remain accepted.
 
 ### P-205 — Insane Synthetic Monster
 
@@ -2402,6 +2476,11 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-220 — Millenniummon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2479,6 +2558,11 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-228 — Unique Emblem: Frozen Crown
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2489,6 +2573,11 @@ git diff --check
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-229 — Unique Emblem: Narrative Ronde
 
@@ -2501,6 +2590,11 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-230 — Unique Emblem: Honeycomb Commander
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2511,6 +2605,11 @@ git diff --check
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-231 — Unique Emblem: Invincibly Invisible
 
@@ -2523,6 +2622,11 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
+
 ### P-232 — Unique Emblem: Melting Recital
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2533,6 +2637,11 @@ git diff --check
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
+
+
+- Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.
 
 ### P-233 — Eri Karan
 
@@ -2623,11 +2732,14 @@ git diff --check
 
 ### P-241 — Yujin Ozora
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-241.ts) · [test](../../apps/api/src/cards/P/P-241.test.ts) · clause review (source removed; see History)<br>“sets memory to three at the start of turn when memory is two or less”; “handles linking in one trigger: grants Appmon Vortex and DP, then permits App Fuse”; “grants the Leviathan trait by Rule and plays from Security”; “sets memory to exactly three at the start of a real turn from memory two”; “plays itself without cost from Security”; “reacts to a real link by suspending, granting Vortex, and adding 3000 DP”; “accepts the linked-trigger App Fuse and merges a legal hand target”
 
 - Local KB lookup (2026-09-12): Q6927; no errata entry; no restriction entry.
+
+
+- Final printed-clause/public-proof hold (2026-09-12): both Vortex and +3000 DP must affect the same selected Appmon after the suspend cost, with DP mandatory. Current independently selected optional DP is incorrect. Existing injected Start of Turn/Security cases require public flow; the App Fuse positive requires paid link cost and original permanent/source/link identity. Q6927 and shared abort-on-decline conformance govern the initial cost gate.
 
 ### P-242 — Rei Katsura
 
