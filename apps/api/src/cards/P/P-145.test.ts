@@ -83,8 +83,8 @@ describe("P-145 Myotismon (X Antibody)", () => {
                 kind: "selfDigivolutionStackHasTrait",
                 filter: {
                   or: [
-                    { nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }] },
-                    { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+                    { nameOrTrait: [{ tokens: ["Myotismon"], match: "nameExact" }] },
+                    { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
                   ],
                 },
               }),
