@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance, observe } from "../../engine/testkit/index.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./P-113.js";
 
 describe("P-113 RustTyrannomon", () => {
@@ -83,9 +84,9 @@ describe("P-113 RustTyrannomon", () => {
         0: {
           battleArea: [
             { card: "P-113", as: "rust" },
-            { card: "ST18-08", as: "attackerOne" },
-            { card: "ST18-08", as: "attackerTwo" },
-            { card: "ST18-08", as: "attackerThree" },
+            { card: "BT1-025", as: "attackerOne" },
+            { card: "BT1-025", as: "attackerTwo" },
+            { card: "BT1-025", as: "attackerThree" },
           ],
           hand: ["BT1-009"],
           deck: Array(20).fill("BT1-013"),
