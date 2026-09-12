@@ -5,7 +5,7 @@ import "./P-120.js";
 describe("P-120 Gatomon", () => {
   it("uses Barrier to trash its security and survive a losing security battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-120", as: "gatomon" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "P-120", as: "gatomon" }], security: ["BT1-009"] },
       1: { security: ["BT1-020"] },
     });
     const id = s.perm("gatomon").permanentId;

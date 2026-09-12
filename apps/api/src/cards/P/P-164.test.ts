@@ -62,7 +62,7 @@ describe("P-164 Shellmon", () => {
         0: {
           battleArea: [{ card: "P-164", as: "shellmon" }],
           hand: [{ card: "BT1-033", as: "aqua" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -80,7 +80,7 @@ describe("P-164 Shellmon", () => {
         0: {
           battleArea: [{ card: "P-164", as: "shellmon" }],
           hand: [{ card: "BT1-033", as: "aqua" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -98,7 +98,7 @@ describe("P-164 Shellmon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["P-164"] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -106,6 +106,6 @@ describe("P-164 Shellmon", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
     await settle();
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

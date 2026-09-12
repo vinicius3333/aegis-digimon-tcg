@@ -95,7 +95,7 @@ describe("P-165 ShoeShoemon", () => {
   it("plays from Security at end of a real battle", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "P-165", as: "shoe" }, "BT1-001"] },
+        0: { security: [{ card: "P-165", as: "shoe" }, "BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

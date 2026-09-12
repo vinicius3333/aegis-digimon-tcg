@@ -35,7 +35,7 @@ describe("P-148 Wanyamon", () => {
           { card: "BT26-035", as: "nsp", under: ["P-148"] },
           { card: "BT1-009", as: "plain", under: ["P-148"] },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }, { card: "BT1-002" }],
+        deck: [{ card: "BT1-009", as: "drawn" }, { card: "BT1-009" }],
       },
     });
     await s.ready();

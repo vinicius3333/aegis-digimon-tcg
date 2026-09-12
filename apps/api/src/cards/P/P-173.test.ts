@@ -68,7 +68,7 @@ describe("P-173 RustTyrannomon", () => {
             { card: "BT1-009", as: "opponentOne", suspended: true },
             { card: "BT1-009", as: "opponentTwo", suspended: true },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -103,7 +103,7 @@ describe("P-173 RustTyrannomon", () => {
         0: { battleArea: [{ card: "P-173", as: "rust" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -156,7 +156,7 @@ describe("P-173 RustTyrannomon", () => {
   it("acts as a real Blocker and redirects an opponent's player attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-173", as: "rust" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "P-173", as: "rust" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       // Deleting the attacker in the block battle offers rust's own optional

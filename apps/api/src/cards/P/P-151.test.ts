@@ -51,7 +51,7 @@ describe("P-151 Digimon Liberator", () => {
       {
         0: {
           security: [{ card: "P-151", as: "option" }],
-          deck: [{ card: "BT19-017", as: "liberator" }, { card: "BT1-001" }, { card: "BT1-002" }],
+          deck: [{ card: "BT19-017", as: "liberator" }, { card: "BT1-009" }, { card: "BT1-009" }],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -70,7 +70,7 @@ describe("P-151 Digimon Liberator", () => {
         0: {
           hand: [{ card: "P-151", as: "option" }],
           battleArea: [{ card: "BT19-017", as: "liberatorSource" }],
-          deck: [{ card: "BT19-017", as: "liberator" }, "BT1-001", "BT1-002"],
+          deck: [{ card: "BT19-017", as: "liberator" }, "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },

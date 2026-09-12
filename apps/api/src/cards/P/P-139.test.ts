@@ -63,13 +63,13 @@ describe("P-139 Leomon (X Antibody)", () => {
 
   it("recovers the top deck card when deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "source", under: ["P-139"] }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-064", as: "source", under: ["P-139"] }], deck: ["BT1-009"] },
     });
     await s.ready();
     const sourceId = s.perm("source").permanentId;
     expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
   });
 });

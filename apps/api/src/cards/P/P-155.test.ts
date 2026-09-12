@@ -72,7 +72,7 @@ describe("P-155 Pawn Device", () => {
 
   it("runs Main from hand, draws one card, and places this Option in the battle area", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "P-155", as: "pawn" }], deck: [{ card: "BT1-001", as: "drawn" }] } },
+      { 0: { hand: [{ card: "P-155", as: "pawn" }], deck: [{ card: "BT1-009", as: "drawn" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;

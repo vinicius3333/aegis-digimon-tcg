@@ -27,7 +27,7 @@ describe("P-157 Monimon", () => {
           { card: "BT1-009", as: "host", under: ["P-157"] },
           { card: "BT10-092", as: "tamer" },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     await s.ready();

@@ -102,7 +102,7 @@ describe("P-142 Falcomon", () => {
         0: {
           hand: [{ card: "P-142", as: "falcomon" }],
           battleArea: [{ card: "BT13-089", as: "ravemon" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: false }] },
       },

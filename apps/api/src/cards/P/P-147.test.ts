@@ -74,7 +74,7 @@ describe("P-147 Pal", () => {
         0: {
           battleArea: [{ card: "P-147", as: "pal" }],
           hand: [{ card: "P-150", as: "pulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -102,7 +102,7 @@ describe("P-147 Pal", () => {
           // BT16-043 would also gain memory; only the new P-150 may activate.
           battleArea: [{ card: "P-147", as: "pal", under: [{ card: "BT16-043", as: "oldPulse" }] }],
           hand: [{ card: "P-150", as: "newPulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: {
           battleArea: [
@@ -136,7 +136,7 @@ describe("P-147 Pal", () => {
         0: {
           battleArea: [{ card: "P-147", as: "pal" }],
           hand: [{ card: "P-150", as: "pulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -165,7 +165,7 @@ describe("P-147 Pal", () => {
             { card: "P-150", as: "firstPulse" },
             { card: "P-150", as: "secondPulse" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-009", "BT1-028", "BT1-028", "BT1-048"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
