@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { effectiveCopyLimit } from "@aegis/shared";
-import { copyDeckPreset, DECKS, FAMOUS_DECKS, filterDeckToKnownCards, parseDeckList, type DeckListing } from "./decks";
+import {
+  activeCollectionCards,
+  copyDeckPreset,
+  DECKS,
+  FAMOUS_DECKS,
+  filterDeckToKnownCards,
+  parseDeckList,
+  type DeckListing,
+} from "./decks";
 
 function copyLimitViolations(deck: DeckListing): string[] {
   const counts = new Map<string, number>();
@@ -13,6 +21,10 @@ function copyLimitViolations(deck: DeckListing): string[] {
 }
 
 describe("active card pool deck filtering", () => {
+  it("keeps EX13 and new promos visible in the collection and deck builder", () => {
+    const ids = activeCollectionCards().map(({ cardId }) => cardId);
+    expect(ids).toEqual(expect.arrayContaining(["EX13-001", "EX13-005", "P-245", "P-249"]));
+  });
   it("silently excludes inactive cards from imported lists", () => {
     const deck = parseDeckList("2 Agumon BT1-009\n2 Active later card BT21-005");
 

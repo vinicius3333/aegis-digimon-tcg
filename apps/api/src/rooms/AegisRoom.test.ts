@@ -34,7 +34,7 @@ function fakeClient(sessionId: string): Client {
 
 type BroadcastCall = [string, unknown, { afterNextPatch?: boolean } | undefined];
 
-function makeRoom(options: { botRoom?: boolean; seed?: number } = {}): AegisRoom {
+function makeRoom(options: { botRoom?: boolean; betaBattleRoom?: boolean; seed?: number } = {}): AegisRoom {
   const room = new AegisRoom();
   const broadcastCalls: BroadcastCall[] = [];
   room.broadcast = vi.fn((type: string, message: unknown, broadcastOptions?: { afterNextPatch?: boolean }) => {
@@ -77,6 +77,38 @@ function joinBothSeats(room: AegisRoom): [Client, Client] {
 
 describe("AegisRoom ready-gated match start", () => {
   afterEach(() => vi.useRealTimers());
+
+  it("requires explicit opt-in from both seats of a beta battle room", async () => {
+    const room = makeRoom({ betaBattleRoom: true });
+    const first = fakeClient("beta-first");
+    const betaDeck = { mainDeck: [...RED_DECK.mainDeck], eggDeck: [...RED_DECK.eggDeck] };
+    betaDeck.mainDeck[0] = "EX13-007";
+    const firstOptions = { displayName: "Beta first", deck: betaDeck, betaBattleMode: true };
+    expect(await room.onAuth(first, firstOptions)).toBe(true);
+    room.clients.push(first);
+    room.onJoin(first, firstOptions);
+    const second = fakeClient("beta-second");
+    expect(await room.onAuth(second, { displayName: "Beta second", deck: RED_DECK })).toBe(false);
+    const secondOptions = { displayName: "Beta second", deck: RED_DECK, betaBattleMode: true };
+    expect(await room.onAuth(second, secondOptions)).toBe(true);
+    room.clients.push(second);
+    room.onJoin(second, secondOptions);
+    intentSender(room)(first, { type: "ready" });
+    intentSender(room)(second, { type: "ready" });
+    const player = room.state.players[0]!;
+    expect([...player.deck, ...player.hand].some(({ cardId }) => cardId === "EX13-007")).toBe(true);
+  });
+
+  it("cannot opt a normal room into beta by a join payload", async () => {
+    const room = makeRoom();
+    expect(
+      await room.onAuth(fakeClient("beta-forged"), {
+        displayName: "Beta forged",
+        deck: RED_DECK,
+        betaBattleMode: true,
+      }),
+    ).toBe(false);
+  });
 
   it("rejects duplicate nicknames in the same room case-insensitively", async () => {
     const room = makeRoom();

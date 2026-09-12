@@ -428,3 +428,25 @@
     margin-inline: var(--ds-gutter-phone);
   }
 }
+.lobby-beta-option {
+  margin-bottom: 20px;
+}
+
+.lobby-beta-option label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  color: var(--ds-fg);
+  cursor: pointer;
+}
+
+.lobby-beta-option input {
+  accent-color: var(--ds-primary);
+}
+
+.lobby-beta-option p {
+  color: var(--ds-fg-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}

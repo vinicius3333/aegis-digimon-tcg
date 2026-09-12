@@ -9,6 +9,7 @@ import {
   DECISION_CHANNEL,
   GameState,
   ROOM_TYPE,
+  ROOM_TYPE_BETA,
   type AttackTarget,
   type DecisionRequest,
   type DecisionResponse,
@@ -35,7 +36,7 @@ export interface HeadlessOpponent {
 /** Joins the match as the second (headless) seat and returns raw intent senders. */
 export async function joinHeadlessOpponent(endpoint: string, options: AegisJoinOptions): Promise<HeadlessOpponent> {
   const client = new Client(endpoint);
-  const room = await client.joinOrCreate<GameState>(ROOM_TYPE, options);
+  const room = await client.joinOrCreate<GameState>(options.betaBattleMode ? ROOM_TYPE_BETA : ROOM_TYPE, options);
 
   return {
     room,

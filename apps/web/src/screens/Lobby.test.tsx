@@ -3,10 +3,60 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby } from "./Lobby";
+import { DECKS } from "../game/decks";
 
 afterEach(() => cleanup());
 
 describe("famous deck selection", () => {
+  it("launches beta matchmaking only after selecting the beta battle checkbox", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+    const checkbox = screen.getByRole("checkbox", { name: "Beta battle mode" });
+    expect((checkbox as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole("button", { name: "Enter beta queue" }));
+    expect(onStart).toHaveBeenCalledWith("beta");
+    fireEvent.click(checkbox);
+    expect(screen.queryByRole("button", { name: "Enter beta queue" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Enter queue" })).toBeTruthy();
+  });
+
+  it("requires the beta checkbox for an EX13 deck and keeps other modes unavailable", () => {
+    const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck[0] = "EX13-007";
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[deck]}
+          activeDeckId={deck.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    expect((screen.getByRole("button", { name: "Enter queue" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Beta battle mode" }));
+    expect((screen.getByRole("button", { name: "Enter beta queue" }) as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    expect((screen.getByRole("button", { name: "Create Room" }) as HTMLButtonElement).disabled).toBe(true);
+  });
   it("separates personal decks and groups available famous decks by collection", () => {
     render(
       <I18nProvider>
