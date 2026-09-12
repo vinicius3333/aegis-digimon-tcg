@@ -2,7 +2,7 @@ import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-247.js";
@@ -226,29 +226,51 @@ describe("P-247 Nyaromon", () => {
     expect(s.state.players[0]!.hand.map((held) => held.instanceId)).toContain(s.inst("cost").instanceId);
   });
 
-  it("fires at most once per turn even after the host unsuspends", async () => {
+  it("resets after a natural turn while retaining the exact egg source and host", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-067", as: "host", under: ["P-247"] }],
+          battleArea: [{ card: "BT2-067", as: "host", under: [{ card: "P-247", as: "source" }] }],
           hand: [
             { card: "BT2-075", as: "firstCost" },
             { card: "BT1-057", as: "secondCost" },
           ],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-010"),
         },
         1: {
           battleArea: [
             { card: "BT1-019", as: "firstTarget" },
             { card: "BT1-019", as: "secondTarget" },
           ],
-          security: ["BT1-010", "BT1-013"],
+          hand: [{ card: "BT1-009", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT1-010"),
+          security: Array.from({ length: 5 }, () => "BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    const firstId = s.perm("firstTarget").permanentId;
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.inst("source").instanceId;
+    const finishAttack = async (securityCount: number): Promise<void> => {
+      await settle(
+        () =>
+          s.events.filter((event) => event.kind === "securityChecked").length === securityCount &&
+          s.state.pendingDecision === undefined &&
+          !observe(s.engine).isAttacking(),
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+      expect(s.perm("host").permanentId).toBe(hostId);
+      expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+      expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    };
 
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -256,8 +278,11 @@ describe("P-247 Nyaromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    const firstId = s.perm("firstTarget").permanentId;
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
     await settle(() => !observe(s.engine).isAttacking());
+    await finishAttack(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstTarget").instanceId);
 
     // A real unsuspend restores attack eligibility (Comprehensive Rules §11-2-3), so the second
     // declaration is legal and the only thing that can stop the deletion is [Once Per Turn].
@@ -270,12 +295,54 @@ describe("P-247 Nyaromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await finishAttack(2);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("secondTarget").permanentId,
     ]);
+    expect(s.perm("secondTarget").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstCost").instanceId);
     expect(s.state.players[0]!.hand.map((held) => held.instanceId)).toContain(s.inst("secondCost").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("secondTarget").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.permanentId === s.perm("secondTarget").permanentId,
+        ),
+    );
+    await finishAttack(3);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstTarget").instanceId, s.inst("secondTarget").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((held) => held.instanceId)).not.toContain(s.inst("secondCost").instanceId);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("is reached through a legal breeding stack and still deletes from the battle area", async () => {
