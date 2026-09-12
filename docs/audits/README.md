@@ -130,7 +130,7 @@ build when it is stale.
 | P    | 249   | verified    | 2026-09-11  | [P.md](P.md)       |
 | RB1  | 33    | verified    | 2026-09-10  | [RB1.md](RB1.md)   |
 | ST1  | 16    | verified    | 2026-09-05  | [ST1.md](ST1.md)   |
-| ST2  | 16    | verified    | 2026-09-05  | [ST2.md](ST2.md)   |
+| ST2  | 16    | in-progress | 2026-09-05  | [ST2.md](ST2.md)   |
 | ST3  | 16    | verified    | 2026-09-05  | [ST3.md](ST3.md)   |
 | ST4  | 16    | verified    | 2026-09-05  | [ST4.md](ST4.md)   |
 | ST5  | 16    | verified    | 2026-09-05  | [ST5.md](ST5.md)   |

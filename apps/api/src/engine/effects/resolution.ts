@@ -136,6 +136,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           undefined,
           (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
           (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
+          env.battleOpponentOf,
         ),
         fx: env.fxForSource?.(collected.source) ?? env.fx,
         ask: env.ask,

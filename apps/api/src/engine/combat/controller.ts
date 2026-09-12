@@ -242,6 +242,8 @@ export interface CombatHooks {
   sweepEndOfAttack?: () => void;
   /** Expire battle durations after all Digimon-battle reactions, preserving attack durations. */
   sweepEndOfBattle?: () => Promise<void>;
+  /** Re-derive passive effects when the field-Digimon battle context opens or closes. */
+  recomputeBattleEffects?: () => Promise<void>;
   /**
    * The shared continuous-rule reader (ContinuousEffectLedger). When supplied, the
    * block window only offers Digimon with ＜Blocker＞ and no `block` restriction
@@ -341,6 +343,16 @@ export interface CombatHooks {
 }
 
 export class CombatController {
+  private readonly battles: { attacker: Permanent; defender: Permanent }[] = [];
+
+  /** Only the innermost active field battle contributes battle-conditional passive effects. */
+  battleOpponentOf(permanentId: string): Permanent | undefined {
+    const battle = this.battles.at(-1);
+    if (battle?.attacker.permanentId === permanentId) return battle.defender;
+    if (battle?.defender.permanentId === permanentId) return battle.attacker;
+    return undefined;
+  }
+
   private attackSequence = 0;
   private openWindow: OpenBlockWindow | undefined;
   private resolving = false;
@@ -1357,8 +1369,15 @@ export class CombatController {
   }
 
   private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
-    await this.resolveDigimonBattleResult(attacker, defender);
-    await this.hooks.sweepEndOfBattle?.();
+    this.battles.push({ attacker, defender });
+    try {
+      await this.hooks.recomputeBattleEffects?.();
+      await this.resolveDigimonBattleResult(attacker, defender);
+      await this.hooks.sweepEndOfBattle?.();
+    } finally {
+      this.battles.pop();
+      await this.hooks.recomputeBattleEffects?.();
+    }
   }
 
   private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {

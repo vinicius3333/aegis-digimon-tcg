@@ -148,6 +148,7 @@ export function createGameAccess(
     cardTraits: readonly string[],
   ) => { amount: number; controllerSeat?: Seat; optional?: boolean; oncePerTurnKey?: string } | undefined,
   effectiveNamesResolver?: (permanent: Permanent, printedName: string) => string[],
+  battleOpponentOf?: (permanentId: string) => Permanent | undefined,
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -162,6 +163,7 @@ export function createGameAccess(
     player,
     opponentOf: (seat: Seat): Seat => (seat === 0 ? 1 : 0),
     permanentById,
+    battleOpponentOf,
     definitionOf: (card: CardInstance): CardDefinition => requireCardDefinition(card.cardId),
     // Base 1 + Σ active <Link +N>. When no ledger resolver is supplied (guard-only
     linkMax: (permanent: Permanent): number => linkMax(permanent, { linkMaxDelta: linkMaxDelta ?? (() => 0) }),
@@ -404,6 +406,7 @@ export interface EffectEnvironment {
   /** Continuous rules including stack-effect conferrals. */
   continuous: ContinuousEffectLedger;
   hasKeyword?: (permanentId: string, keyword: string) => boolean;
+  battleOpponentOf?: (permanentId: string) => Permanent | undefined;
   digivolvedThisTurn?: (seat: Seat) => boolean;
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[];
   colorRequirementWaived?: (instanceId: string) => boolean;
@@ -465,6 +468,7 @@ export function gatherTriggeredEffects(
     undefined,
     (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
     (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
+    env.battleOpponentOf,
   );
   const lookup = createCardStateLookup(env.state);
 

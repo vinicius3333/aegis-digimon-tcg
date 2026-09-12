@@ -1019,6 +1019,7 @@ export class GameEngine {
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
       sweepEndOfBattle: () => this.sweepBattleDurations(),
+      recomputeBattleEffects: () => this.recomputeContinuousEffects(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -1314,6 +1315,7 @@ export class GameEngine {
           (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
         ),
       (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
+      (id) => this.combat.battleOpponentOf(id),
     );
     return this.gameAccess;
   }
@@ -5018,6 +5020,7 @@ export class GameEngine {
       colorRequirementAlternatives: (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       canDeclareAttack: (permanent) =>
         canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
+      battleOpponentOf: (id) => this.combat.battleOpponentOf(id),
       triggerInfo: trigger,
     };
   }

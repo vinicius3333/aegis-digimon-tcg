@@ -30,12 +30,12 @@ Separate ledger checks retain an attack-scoped Rush grant and a four-thousand-DP
 
 Removing the actual awaited EndBattle hook produced two failures in EX13-076: both supplemental and public fixtures observed the comparison grant incorrectly remaining active. Restoring the old EndBattle-or-EndAttack condition in both duration ledgers produced two failures: attack Rush vanished early and attack DP fell from four thousand to three thousand. Every temporary change was restored in a finally block.
 
-The restored implementation passed three focused files and 89 tests. Independent read-only review confirmed synchronous final cleanup resolves the earlier introduced await gap and found no additional blocker in the bounded controller/Alliance diff. Captured Piercing eligibility survives the battle sweep. The restored broader combat, EX4 and boundary/card selection passed 99 files and 1092 tests. Full default API regression passed 5107 files and 42251 tests, with four declared expected failures (42255 total), in 179.69 seconds. The opt-in Postgres lane was not run; no database behavior changed. EX13 sync against `ce68d82e0` synchronized sixty records and reported one semantic change, with zero out-of-set semantic or byte changes. The inspected persisted diff changes only EX13-076 coverage to full and removes the resolved residual. Shared, API and web typechecks passed. Final card/layout checks passed 21 tests across two files; scoped Oxlint, formatted changed files, current 66-set index and diff checks passed. Final EX13 sync check repeated sixty synchronized records, one semantic change and zero out-of-set changes. No temporary mutation remains. Commit/push delivery follows; wider obligations below remain open.
+The restored implementation passed three focused files and 89 tests. Independent read-only review confirmed synchronous final cleanup resolves the earlier introduced await gap and found no additional blocker in the bounded controller/Alliance diff. Captured Piercing eligibility survives the battle sweep. The restored broader combat, EX4 and boundary/card selection passed 99 files and 1092 tests. Full default API regression passed 5107 files and 42251 tests, with four declared expected failures (42255 total), in 179.69 seconds. The opt-in Postgres lane was not run; no database behavior changed. EX13 sync against `ce68d82e0` synchronized sixty records and reported one semantic change, with zero out-of-set semantic or byte changes. The inspected persisted diff changes only EX13-076 coverage to full and removes the resolved residual. Shared, API and web typechecks passed. Final card/layout checks passed 21 tests across two files; scoped Oxlint, formatted changed files, current 66-set index and diff checks passed. Final EX13 sync check repeated sixty synchronized records, one semantic change and zero out-of-set changes. No temporary mutation remains. Delivered in `d574f9144`; wider obligations below remain open.
 
 ## Remaining obligations
 
 - Map the complete normative battle/attack/Alliance obligations beyond these three pinned sections.
-- Prove security-battle-specific expiration through public attack resolution.
+- Expire battle-scoped grants after a security battle and before the following check; non-Digimon checks must not falsely start a battle.
 - Establish ownership and expiration semantics for nested or sequential battles and grants created during battle-end reactions.
 - Complete other Alliance/Piercing consumer shapes, duplicate instances, supporter changes/removal and nested effect-battle interactions; the printed ordinary-battle-to-security path below is proved.
 - Inventory every battle- and attack-duration consumer and cover every distinct executable shape.
@@ -71,12 +71,125 @@ effect battles or battle-duration expiration within security checks.
 
 ## Bounded persisted battle-duration inventory
 
-A recursive scan of committed effects.json duration fields found six
+At baseline `1873b797d`, a recursive scan of committed effects.json duration fields found six
 `untilEndOfBattle` occurrences across two cards: EX13-076's three shared
 play/evolution/attack clauses and ST2-01's three inherited attack,
 opponent-attack and block subscriptions. The direct-module ST2-01 behavior
 was inspected against the exact catalog text: Your Turn, plus 1000 DP when
-battling an opponent Digimon with no sources. This additional producer
-remains queued for public battle-to-security expiration and direct-battle
-trigger fidelity. This is a bounded persisted-field inventory, not the
+battling an opponent Digimon with no sources. This additional producer was queued for public battle-to-security
+expiration and direct-battle trigger fidelity; its correction and bounded
+proof are recorded below. This is a bounded persisted-field inventory, not the
 complete printed battle-duration or executable-encoding denominator.
+
+## ST2-01 continuous battle correction
+
+Baseline `1873b797d`. A valid public Marsmon play reproduced a missing
+Tsunomon bonus: quiet Elecmon is three thousand DP; Marsmon adds three
+thousand for the turn, but the generated battle against six-thousand-DP
+Gorillamon ties and deletes the host. The printed inherited battle bonus
+should instead make it seven thousand and preserve the host. Five existing
+card cases passed while the new public path failed. Earlier fixture
+corrections (intent field, printed DP/cost arithmetic and tie-verdict
+expectation) are not counterfactual evidence.
+
+ST2-01 now encodes a continuous inherited YourTurn modifier gated by the
+shared `selfBattlesOpponentMatching` condition. CombatController retains
+the innermost active field-battle participants, derives continuous effects
+before comparing, and pops the context in finally before deriving again.
+The additive GameAccess seam is propagated through collection and
+resolution contexts. This avoids inventing attack triggers for a passive
+battle condition. The context remains through battle/end-battle reactions
+and is absent in security checks. Nested context and participant-removing
+future conditions remain unproved.
+
+Eight card tests include public Marsmon no-source and one-source control
+and a legal seeded blue line ending in Gryphonmon with Piercing. Marsmon
+costs twelve minus five, leaving three from ten memory. After a winning
+direct battle, host DP returns to six thousand while Marsmon's turn buff
+remains. Against one source, the battle ties and exact host/egg and
+victim/source reach the proper owner trash. The Gryphonmon line wins
+ordinary battle at twelve thousand, then ties and is deleted against
+eleven-thousand-DP security after the conditional bonus disappears.
+Exact stack and final physical zones are asserted; public evolution
+through the whole line remains open.
+
+Restoring the old card module fails the no-source direct-battle survivor
+assertion while one-source control passes. Omitting the actual context pop
+fails post-direct-battle DP (seven instead of six thousand) and security
+verdict (attacker wrongly wins); one-source control passes. Both mutations
+were restored in finally. The restored card plus Alliance and EX13-076
+selection passed three files and 27 tests. The broader ST2/combat/IR
+registration/resolution/conformance/direct-Piercing selection passed 155
+files and 1378 tests. Final full-regression results are recorded below. Type and sync-check gates passed; final card/layout checks passed two files and twelve tests. Scoped lint, changed-file formatting, the current 66-set index, diff checks and independent read-only review passed.
+
+ST2's historical certification is reopened in its sole ledger; Tsunomon
+is capped below ten. No full card, collection or mechanism is certified.
+
+Current manual chunk `manual-0019` explicitly distinguishes a Security
+Digimon from a normal Digimon; its complete committed text was read and
+pinned as UTF-8 SHA-256 `78d175cb381f316a2e27cb4652ca7c7c8c48965fe578874c5e31afc18c3b3664`.
+The official starter-deck Q&A PDF was inspected and has no ST2-01 entry;
+that absence supplies no additional ruling. The old general-rules Q&A
+URL returned 404 on this attempt; cached search excerpts were not treated
+as normative proof.
+
+ST2 synchronization against `1873b797d` reported three semantic changes
+and sixteen synchronized records, with zero out-of-set semantic or byte
+changes. The persisted Tsunomon record now carries the actual continuous
+battle condition and modifier. Two pre-existing module/snapshot differences
+were also reconciled: ST2-08's inherited aura explicitly excludes breeding,
+and ST2-14's zero-source restriction/duration tokens now match its direct
+module. Both unchanged modules and complete catalog contracts were read;
+the full ST2 selection above includes their existing focused proofs. These
+are snapshot-alignment observations, not fresh whole-card certifications.
+After this synchronization, only EX13-076 retains three literal
+untilEndOfBattle fields; ST2-01 represents its battle rule continuously.
+
+A literal English catalog discovery over main, inherited and Security text
+found only ST2-01 containing “when battling” or “while battling”. It does
+not establish synonym, implicit condition, runtime-conferral or all-battle
+consumer coverage. Complete phase-zero and normative denominators remain
+open. The initial workspace typecheck exposed the required ModifyDP duration
+and matcher source argument; it was not a green gate. The first full API
+run completed with 5108 files and 42256 passing tests, four expected failures
+(42260 total), before those fixes. Both fixes were applied after its terminal
+result; final workspace typecheck passed shared, API and web, and the final API
+run passed 5108 files / 42256 tests, four declared expected failures
+(42260 total), in 180.30 seconds. The opt-in real Postgres lane was not
+executed; no database behavior changed.
+The explicit permanent duration is removed by continuous re-derivation
+when the battle context ends, rather than retained as a timed grant.
+
+## Persistent-effect source obligations
+
+The complete committed `comprehensive-0172` (§15-8-2, Persistent Effects)
+was read; UTF-8 text SHA-256
+`d4b49613685801d2adcd744aeb58471c0a393a33f9f697539d305a9d21e896c6`.
+This directly supports replacing Tsunomon's attack subscriptions with a
+condition-dependent passive modifier. Every numbered paragraph in this
+chunk is retained in the denominator below; the scoped statuses do not
+certify the whole persistent-effect mechanism.
+
+| Rule       | Obligation                                                    | Evidence or remaining requirement                                                                                          | Status             |
+| ---------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| 15-8-2-1   | A persistent effect applies without triggering                | Public Marsmon battle grants DP without declaring an attack for its host; old attack subscription fails                    | Verified ST2 shape |
+| 15-8-2-2   | Apply as soon as its activation condition is met              | Both public no-source field battles compare with the required bonus                                                        | Verified ST2 shape |
+| 15-8-2-3   | Stop as soon as its activation condition is no longer met     | Direct-battle DP returns to six thousand; Piercing security battle uses eleven thousand; retaining context makes both fail | Verified ST2 shape |
+| 15-8-2-4   | Multiple persistent effects overlap                           | Duplicate physical inherited copies and mixed producers must be tested; single-copy tests cannot prove stacking            | Queued             |
+| 15-8-2-5   | Later conflicting effects take priority except prohibitions   | Conflicting persistent effects and prohibition precedence require separate public proofs                                   | Queued             |
+| 15-8-2-6   | Persistent effects with processing conditions form a category | Category-specific consumers must be identified, including optional/mandatory processing                                    | Queued             |
+| 15-8-2-6-1 | Remain activated while processing conditions are met          | Tsunomon has no processing payment; applicable consumer proof required                                                     | Queued             |
+| 15-8-2-6-2 | Stop when processing conditions are no longer met             | Tsunomon activation-gate proof is insufficient for processing conditions                                                   | Queued             |
+
+The complete collection and normative scope in the main plan remains open;
+these eight paragraphs are one explicit source denominator within it.
+
+The final focused mechanism/collection selection repeated 155 files /
+1378 passing tests after the explicit duration, matcher-source and printed
+fixture corrections. The `src/cards/ST2` Vitest substring selector also
+includes ST20–ST23; this is a broader prefix regression, not an exact
+ST2-only count. The full default API run covers the complete current API
+test inventory. Final ST2 sync/check both reported sixteen synchronized
+records and three in-set semantic changes, with zero out-of-set semantic
+or byte changes. The two pre-existing snapshot alignments remain as
+described above. Scoped Oxlint is clean; no temporary mutation remains.

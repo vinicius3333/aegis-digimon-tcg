@@ -549,6 +549,8 @@ export interface GameAccess {
   player(seat: Seat): PlayerState;
   opponentOf(seat: Seat): Seat;
   permanentById(permanentId: string): Permanent | undefined;
+  /** The other participant of the active field-Digimon battle; absent outside that battle. */
+  battleOpponentOf?(permanentId: string): Permanent | undefined;
   /**
    * Only `cardId` is read, so a bare `{ cardId }` — a loose-card candidate, a recorded trigger
    * subject — is a legal argument without materializing a whole {@link CardInstance}.

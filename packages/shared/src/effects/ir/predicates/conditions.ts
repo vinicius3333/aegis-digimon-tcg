@@ -27,6 +27,7 @@ export interface Condition {
     | "isYourTurn"
     | "isOpponentsTurn"
     | "phaseIs"
+    | "selfBattlesOpponentMatching" // the live Digimon-battle context, excluding security checks
     | "duringAttack" // the current trigger payload carries an attacker
     | "attackTargetsPlayer"
     | "attackTargetMatchesFilter" // honors superlatives such as highest DP
