@@ -1,6 +1,16 @@
 {
   "releases": [
     {
+      "version": "1.2.1",
+      "date": "2026-09-12",
+      "changes": [
+        {
+          "type": "fixed",
+          "description": "allow preview cards in bot battles"
+        }
+      ]
+    },
+    {
       "version": "1.2.0",
       "date": "2026-09-12",
       "changes": [

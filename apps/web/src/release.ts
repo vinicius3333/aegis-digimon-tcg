@@ -1,6 +1,6 @@
 /* This file is generated from releases.json. */
 
-export const APP_VERSION = "1.2.0";
+export const APP_VERSION = "1.2.1";
 
 export interface ReleaseNote {
   version: string;
@@ -13,6 +13,13 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: "1.2.1",
+    date: "2026-09-12",
+    changes: [
+      { type: "fixed", description: "allow preview cards in bot battles" },
+    ],
+  },
   {
     version: "1.2.0",
     date: "2026-09-12",
