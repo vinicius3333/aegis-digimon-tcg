@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as P_246 } from "./P-246.js";
 import "../index.js";
@@ -477,26 +477,28 @@ describe("P-246 Motimon", () => {
     await turn;
   });
 
-  it("digivolves only once per turn, however many matching Digimon are deleted", async () => {
+  it("resets once-per-turn after a natural turn and keeps the exact egg source on the host", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT2-052", as: "host", under: [CARD_ID] },
+            { card: "BT2-052", as: "host", under: [{ card: CARD_ID, as: "source" }] },
             { card: "BT14-034", as: "firstSukamon" },
             { card: "BT14-034", as: "secondSukamon" },
+            { card: "BT14-034", as: "thirdSukamon" },
           ],
           hand: [
             { card: "BT13-065", as: "platinum" },
-            // A legal Lv.4-base destination for the SECOND trigger, so a missing per-turn
-            // budget would be observable rather than merely illegal.
             { card: "BT6-064", as: "mamemon" },
           ],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
         },
         1: {
+          hand: [{ card: "BT3-059", as: "opponentPlayable" }],
           battleArea: [{ card: "BT1-080", as: "wall", suspended: true }],
-          deck: ["BT1-012", "BT1-013", "BT1-014"],
+          deck: Array.from({ length: 20 }, () => "BT1-012"),
+          security: Array.from({ length: 5 }, () => "BT1-012"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -504,7 +506,9 @@ describe("P-246 Motimon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    const turn = s.engine.runOneTurn();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.inst("source").instanceId;
+    const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
 
     expect(
@@ -518,6 +522,11 @@ describe("P-246 Motimon", () => {
     await settle(() => s.perm("host").topCard.cardId === "BT13-065");
     await settle();
 
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId, s.inst("host").instanceId]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("firstSukamon").instanceId]);
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -526,14 +535,74 @@ describe("P-246 Motimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    await settle(() => false, 300);
+    await settle();
 
-    // Still PlatinumSukamon: the second deletion found the per-turn use spent.
+    // The second matching deletion is in the same turn: Once Per Turn suppresses the
+    // optional digivolve even though the Lv.4-base Mamemon remains a legal destination.
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("platinum").instanceId);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("mamemon").instanceId);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT14-034", "BT14-034"]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("firstSukamon").instanceId,
+      s.inst("secondSukamon").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
+    await advance(s.engine).waitForMainPhase(1);
+    const securityChecksBeforeOpponentAttack = s.events.filter((event) => event.kind === "securityChecked").length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("wall").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length > securityChecksBeforeOpponentAttack &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    const memoryBeforeThirdDeletion = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("thirdSukamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.perm("host").topCard.cardId === "BT6-064");
+    await settle();
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("mamemon").instanceId);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([
+      sourceId,
+      s.inst("host").instanceId,
+      s.inst("platinum").instanceId,
+    ]);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("mamemon").instanceId);
+    expect(s.state.memory).toBe(memoryBeforeThirdDeletion - 1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("firstSukamon").instanceId,
+        s.inst("secondSukamon").instanceId,
+        s.inst("thirdSukamon").instanceId,
+      ]),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 });
