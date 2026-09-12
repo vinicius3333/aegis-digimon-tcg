@@ -2121,7 +2121,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [card.instanceId],
-      addedDigivolutionCardsPosition: "top",
+      addedDigivolutionCardsPosition: "bottom",
       ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return card;

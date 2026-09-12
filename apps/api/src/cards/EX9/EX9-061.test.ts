@@ -59,7 +59,7 @@ describe("EX9-061", () => {
     [false, "BT10-062"],
     [true, "BT10-064"],
   ] as const)(
-    "does not pay when the cost is unavailable or the projected ceiling is insufficient (deck=%s, target=%s)",
+    "cannot pay an empty deck, but may pay even without an eligible deletion target (deck=%s, target=%s)",
     async (hasDeck, target) => {
       const s = setupEngine(
         {
@@ -79,8 +79,10 @@ describe("EX9-061", () => {
         }),
       ).toEqual({ ok: true });
       await settle();
-      expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-046", "EX9-058"]);
-      expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(hasDeck ? ["BT1-009"] : []);
+      expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(
+        hasDeck ? ["BT1-009", "BT1-046", "EX9-058"] : ["BT1-046", "EX9-058"],
+      );
+      expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual([]);
       expect(s.perm("target").topCard.cardId).toBe(target);
       expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
       expect(s.state.pendingDecision).toBeUndefined();
@@ -209,9 +211,11 @@ describe("EX9-061", () => {
     expect(
       compiled.effects?.find((entry) => entry.actions.some((action) => action.kind === "GainKeyword"))?.actions,
     ).toContainEqual(expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Training" } }));
-    const action = compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0];
-    expect(action).toMatchObject({
-      kind: "Delete",
+    const clause = compiled.effects?.find((entry) => entry.trigger === "WhenAttacking");
+    const action = clause?.actions[0];
+    expect(clause).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
       cost: {
         kind: "place",
         target: { filter: { controller: "mine" }, count: 1, from: ["deck"] },
@@ -219,14 +223,12 @@ describe("EX9-061", () => {
         position: "bottom",
         host: "self",
         faceDown: true,
+        optional: true,
       },
-      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-      optional: true,
-      abortOnDecline: true,
     });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
-      trigger: "WhenAttacking",
-      frequency: "OncePerTurn",
+    expect(action).toMatchObject({
+      kind: "Delete",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     });
     expect(action?.kind === "Delete" ? action.target.filter.levelComparison : undefined).toMatchObject({
       op: "lte",

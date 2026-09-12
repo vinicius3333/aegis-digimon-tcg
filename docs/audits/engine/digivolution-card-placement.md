@@ -2,6 +2,8 @@
 
 ## Status
 
+Next bounded deck-top payment correction at baseline `63f441978`: the shared cost primitive physically inserts the deck card on the bottom, but reports top. Public attacks by all three identified EX9 consumers expose this metadata gap, with refusal and empty-deck controls. The event now reports bottom; this is not a complete Training, paid-cost, card or collection certificate. Historical EX9 complete credit is reopened and the three consumers capped provisionally below ten.
+
 Latest bounded position correction at baseline `fe7dcf218`: loose-card placement reported top/bottom backwards and individual/batch permanent relocation omitted the position. Event metadata now agrees with the physical insertion: `pushOnStack` is directly below the top card and `unshiftOnStack` is the bottom. Public Bagramon and Giromon events prove seven bottom-placement sequences; top/bottom/default arithmetic is supplemented by recording-port cases. Full placement/timing and downstream card certificates remain open.
 
 Bounded identity correction at baseline `0f8db98d0`, 2026-09-12. Source cards shed during permanent relocation must not be announced as cards added under the destination. Public Bagramon play/evolution witnesses the single relocation path; recording-port subsystem cases cover single and batch paths, with source-preserving controls. Complete placement, event and inherited-information certification remains open.
@@ -87,3 +89,36 @@ Initial accepted position baseline: three files **12 failed, 183 passed**, seven
 ### Position open items
 
 Actual downstream reaction eligibility, multi-source snapshot/timing, copied placement effects and inherited source/controller turnover remain open. The event observation proves metadata and exact resolved producer state, not a downstream gameplay failure or complete keyword/collection certification. Remaining position metadata from deck/egg/reveal/mixed producers must be inspected against their physical insertion semantics.
+
+## Deck-top payment checkpoint
+
+### Contract and sources
+
+EX9-009 Greymon, EX9-025 Airdramon and EX9-061 Devimon place the actual top deck card face down as the attacking Digimon's bottom digivolution card. Their complete committed catalog records and direct modules were read, together with Airdramon Q4778 (one selected opposing target); local card queries expose no Greymon/Devimon Q&A. No fresh card-page read is claimed.
+
+Comprehensive rules §15-7-1–5 define optional processing conditions: refusal or unsuccessful payment skips the subsequent processing, but the player may choose the condition even when payment is impossible (§15-7-4), and may pay when the subsequent payload has no eligible target (§15-7-5). Full local chunks comprehensive-0169 and comprehensive-0170 were read; their existing source pins are owned by [activation-costs.md](activation-costs.md). Each new public case enforces the applicable pinned citation. The earlier expectation that an empty deck suppresses the optional choice was incorrect and is discarded, together with experiments treating that suppression as desired behavior.
+
+### Implementation and consumer trace
+
+The three When Attacking clauses now express their printed condition as optional whole-effect `effect.cost`, rather than an optional payload action with an action cost. Existing triggered-effect handling asks the optional choice before affordability and target checks; refusal or failed payment exits the whole clause. Successful payment proceeds even if the subsequent payload cannot select an opposing Digimon. Shared affordability checks remain intact; no interpreter eligibility implementation changes. Exclusive `registerIrCard` registration is preserved.
+
+The actual payment calls `placeUnderFromDeck`: take the actual deck top, turn it face down, insert with `unshiftOnStack`, then await the addition event. Its event position now reports bottom instead of top. EX9 sync/check against `63f441978` confirms 74 records, exactly three semantic changes and zero semantic or byte changes outside the collection; no complete dynamic consumer denominator is inferred from those records.
+
+### Public obligation ledger
+
+Eleven legal public security attacks use matching-color neutral level-3 sources, quiet deck/security cards and full effect/battle resolution. No costs, events or timing are injected. Scoped observation forwards the original production event unchanged.
+
+- Paid paths for all three providers assert actual deck/card identities, physical bottom insertion, source visibility, bottom event position, effect seat, controller, memory, final zones and cleared pending state. Greymon reaches 6000 DP; Airdramon reduces the opposing 3000-DP Digimon to 1000; Devimon deletes the opposing level-3.
+- Refusal paths for all three offer one choice and retain the original deck/stack, with no placement event or paid payload.
+- Empty-deck paths for all three offer one accepted choice but cannot pay: no placement event, movement or paid payload; the security battle fully resolves.
+- Airdramon and Devimon additionally offer and pay with no opposing Digimon. The actual hidden deck card still moves to the bottom and its event is emitted; the targetless payload changes no opposing field.
+
+### Counterfactuals and current gates
+
+The eleven public cases pass. Restoring only old deck event metadata fails five paid-event assertions with six controls passing. Restoring the three old card modules while retaining corrected metadata fails four cases with seven controls passing: all three empty-deck choices and Devimon's targetless choice/payment. Airdramon's older targetless path happens to pay already; its positive test establishes the desired behavior but is not claimed as a demonstrated historical defect. Exact corrected bytes are restored in `finally` before further validation.
+
+The three original colocated suites were updated to match §15-7-4/5 and the new whole-effect IR shape. Their prior zero-choice/no-target-payment expectations are superseded, not preserved as rules certificates. Before the two new targetless public cases, the restored four-file focus passed 41 tests. Final synchronized gates: public/three-consumer/Succession/primitives/layout focus **7 files, 235 tests passed**, 3.70 seconds; EX9 collection **78 files, 990 tests passed**, 11.33 seconds; full default API **5113 files, 42384 tests passed**, zero expected failures, 60.14 seconds. Workspace shared/API/web typecheck passed. Scoped Oxlint reports no warnings; changed-file Oxfmt, current 66-set index and clean diff check pass. Independent read-only review read the full processing-condition rules and found no blocker; its earlier zero-choice assessment is explicitly withdrawn.
+
+### Open obligations
+
+Training lifecycle, complete OPT/reset and copied-source identities, all scaling boundaries, expiry, source loss, replacements, egg/reveal/material producers, downstream position-filter reactions and the complete dynamic producer denominator remain open. Consumer caps and collection status belong to [EX9.md](../EX9.md); these bounded paths do not establish whole-card or whole-collection ten-point completion.

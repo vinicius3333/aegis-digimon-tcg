@@ -12,14 +12,13 @@ describe("EX9-009", () => {
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
       frequency: "OncePerTurn",
+      cost: { kind: "place", destination: "digivolutionStack", faceDown: true, optional: true },
       actions: [
         {
           kind: "ModifyDP",
           amount: 1000,
           duration: "untilOpponentTurnEnd",
           scaling: { unit: "targetFaceDownDigivolutionCards", per: 1, filter: { faceDown: true } },
-          optional: true,
-          cost: { kind: "place", destination: "digivolutionStack", faceDown: true },
         },
       ],
     });
@@ -91,11 +90,11 @@ describe("EX9-009", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    // An empty deck leaves no legal cost payment, so the optional gain is never
-    // offered as a decision at all; just drain and assert the no-op.
+    // CR15-7-4 permits choosing the processing condition even with an empty deck;
+    // failed payment leaves the payload unexecuted.
     await drainMicrotasks();
 
-    expect(s.decisions).toHaveLength(0);
+    expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);
     expect(source.stack).toHaveLength(0);
     expect(source.currentDP).toBe(before);
   });

@@ -350,3 +350,9 @@ The source-shedding event contract is owned by [digivolution-card-placement.md](
 ## Placement position checkpoint
 
 The next bounded placement-event position audit is owned by [digivolution-card-placement.md](digivolution-card-placement.md#position-checkpoint-contract-and-implementation). Seven public Bagramon/Giromon events expose inverted loose-card metadata or missing relocation metadata. Default/top/bottom adapter paths are explicit; downstream reactions, source turnover and other position producers remain open.
+
+## Deck-top cost placement checkpoint
+
+The shared deck-to-stack paid placement shape is owned by [digivolution-card-placement.md](digivolution-card-placement.md#deck-top-payment-checkpoint). All three identified persisted/authored EX9 providers now report the physical bottom position; nine public paid/refused/empty sequences retain their actual payload and zones. Historical EX9 completion is reopened; Training/OPT/reset/duration and the full live consumer denominator remain open.
+
+The EX9 deck-payment checkpoint also corrects three optional whole-effect processing conditions against §15-7-4/5. Empty-deck choices remain available; accepted impossible payment skips the payload, while targetless payloads do not prohibit payment. Eleven public cases and isolated metadata/module counterfactuals are owned by [digivolution-card-placement.md](digivolution-card-placement.md#deck-top-payment-checkpoint). EX9 sync/check changes exactly three records; final focused, collection, full API and workspace type gates pass, as recorded in the engine owner.
