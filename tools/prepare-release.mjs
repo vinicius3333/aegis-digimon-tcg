@@ -24,7 +24,7 @@ const latestTag = git(["tag", "--merged", "HEAD", "--sort=-v:refname"])
   .find((tag) => /^v\d+\.\d+\.\d+$/u.test(tag));
 
 if (!latestTag)
-  throw new Error("No production tag found. Tag the deployed v1.0.0 release before preparing the next release.");
+  throw new Error("No production tag found. Tag the verified deployed version before preparing the next release.");
 
 // Merge commits only describe how already-reviewed commits reached the release branch;
 // they are not additional user-facing changes and commonly use Git's non-Conventional
