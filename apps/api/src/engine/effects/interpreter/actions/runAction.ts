@@ -1,6 +1,7 @@
 // The per-kind dispatch for every IR action.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { describeAction, describeCost } from "../describe.js";
@@ -806,7 +807,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // a decline skip the cost too. The pay-then-ask block further down raises the payload prompt
     // once the cost is spent.
     if (!costUnpayable && action.payCostBeforeOptional !== true) {
-      const yes = await ctx.ask.optional(ctx, describeAction(action));
+      const chooser =
+        action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+      const yes = await chooser.optional(ctx, describeAction(action));
       if (!yes) {
         // `ifThisEffectDidNotAct` belongs to the immediately preceding action. A declined
         // optional action acted zero times, so clear any success receipt left by an earlier

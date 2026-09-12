@@ -138370,13 +138370,18 @@
         "trigger": "WhenDigivolving",
         "cost": {
           "kind": "trash",
+          "optional": true,
           "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
           "raw": "By trashing 1 card in your hand"
         },
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "chooser": "opponent",
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1
+            },
             "optional": true,
             "controller": "opponent",
             "allowCostWithoutTarget": true
@@ -138395,13 +138400,18 @@
         "trigger": "WhenAttacking",
         "cost": {
           "kind": "trash",
+          "optional": true,
           "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
           "raw": "By trashing 1 card in your hand"
         },
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "chooser": "opponent",
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1
+            },
             "optional": true,
             "controller": "opponent",
             "allowCostWithoutTarget": true
@@ -138427,7 +138437,11 @@
             "actions": [
               {
                 "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+                "target": {
+                  "chooser": "opponent",
+                  "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+                  "count": 1
+                },
                 "optional": true,
                 "controller": "opponent"
               },

@@ -351,7 +351,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             (timing === EffectTiming.BeforePayCost ? effectCondition(effect, ctx) : triggerCondition(effect, ctx)),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
-            canActivateEffect(ctx, effect, { collectsMandatoryTrigger: isMandatoryTrigger }),
+            canActivateEffect(ctx, effect, {
+              collectsMandatoryTrigger: isMandatoryTrigger,
+              collectsTriggeredEffect: timing !== EffectTiming.OnDeclaration && timing !== EffectTiming.None,
+            }),
           resolve: async (ctx) => {
             const outerEffectKey = ctx.activeEffectKey;
             ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);

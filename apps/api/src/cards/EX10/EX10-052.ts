@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       cost: {
         kind: "trash",
+        optional: true,
         target: {
           filter: {
             zone: "hand",
@@ -20,6 +21,7 @@ const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: {
+            chooser: "opponent",
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
@@ -47,6 +49,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       cost: {
         kind: "trash",
+        optional: true,
         target: {
           filter: {
             zone: "hand",
@@ -60,6 +63,7 @@ const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: {
+            chooser: "opponent",
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
@@ -100,6 +104,7 @@ const compiled: CompiledCard = {
             {
               kind: "Delete",
               target: {
+                chooser: "opponent",
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon", "Tamer"],
