@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -31,7 +30,7 @@ describe("P-145 Myotismon (X Antibody)", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "P-145", as: "host", under: ["BT1-009"] }],
+          battleArea: [{ card: "P-145", as: "host", under: ["BT10-074"] }],
           trash: [{ card: "BT15-080", as: "level6" }],
         },
       },
@@ -118,12 +117,30 @@ describe("P-145 Myotismon (X Antibody)", () => {
 
   it("deletes an opposing level-4 Digimon on When Digivolving", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-145", as: "source" }] },
+      0: {
+        battleArea: [{ card: "BT8-080", as: "base" }],
+        hand: [{ card: "P-145", as: "source" }],
+        deck: ["BT1-009"],
+        security: ["BT1-090"],
+      },
       1: { battleArea: [{ card: "BT1-033", as: "target" }] },
     });
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle();
+    const baseId = s.inst("base").instanceId;
+    const sourceId = s.inst("source").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: sourceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "P-145" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("base").topCard?.instanceId).toBe(sourceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
