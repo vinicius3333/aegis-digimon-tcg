@@ -9,7 +9,7 @@
     "build": "pnpm --filter @aegis/shared build && concurrently -n api,web -c green,magenta \"pnpm --filter @aegis/api build\" \"pnpm --filter @aegis/web build\"",
     "typecheck": "pnpm --filter @aegis/shared build && pnpm -r typecheck",
     "test": "pnpm -r --workspace-concurrency=1 test",
-    "test:tools": "node --test tools/*.test.mjs",
+    "test:tools": "node --test tools/*.test.mjs tools/kb/*.test.mjs",
     "effects:sync:set": "node tools/sync-effects-from-card-modules.mjs",
     "effects:check:set": "node tools/sync-effects-from-card-modules.mjs --check",
     "ci": "pnpm -r typecheck && pnpm test:tools && pnpm test",

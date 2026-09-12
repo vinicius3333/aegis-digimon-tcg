@@ -17,6 +17,7 @@ import { execFileSync } from "node:child_process";
 import { fetchBinary } from "./lib/http.mjs";
 import { writeJson, updateManifest } from "./lib/manifest.mjs";
 import { RAW_DIR, RULES_DIR, RULES_INDEX_PATH, SOURCES } from "./lib/paths.mjs";
+import { reconcileRuleChunks } from "./lib/reconcile-rule-chunks.mjs";
 
 const force = process.argv.includes("--force");
 const OCR_SWIFT = path.join(path.dirname(fileURLToPath(import.meta.url)), "lib/ocr.swift");
@@ -230,6 +231,10 @@ async function main() {
   fs.mkdirSync(RULES_DIR, { recursive: true });
 
   const allChunks = [];
+  const documents = [];
+  const previous = fs.existsSync(RULES_INDEX_PATH)
+    ? JSON.parse(fs.readFileSync(RULES_INDEX_PATH, "utf8"))
+    : { chunks: [], retiredIds: [] };
   for (const source of SOURCES.rulesPdfs) {
     const pdfPath = path.join(RAW_DIR, "pdf", `${source.id}.pdf`);
     const { cached } = await fetchBinary(source.url, { cacheFile: pdfPath, force });
@@ -239,11 +244,10 @@ async function main() {
       text = ocrImagePdf(pdfPath, source.id);
       via = "OCR";
       if (wordCount(text) === 0) {
-        log(`rules: ${source.id} — warn: no text layer and no OCR backend available; skipped`);
-        continue;
+        throw new Error(`rules: ${source.id} — no text layer and no OCR backend available`);
       }
     }
-    fs.writeFileSync(path.join(RULES_DIR, `${source.id}.md`), `# ${source.title}\n\n${text}\n`);
+    documents.push({ source, text });
 
     const chunks = chunkUnits(buildUnits(text), source);
     allChunks.push(...chunks);
@@ -251,7 +255,16 @@ async function main() {
   }
 
   if (allChunks.length === 0) throw new Error("no rule chunks produced — extraction may have failed");
-  writeJson(RULES_INDEX_PATH, { sources: SOURCES.rulesPdfs, chunks: allChunks });
+  const reconciled = reconcileRuleChunks({
+    previousChunks: previous.chunks,
+    retiredIds: previous.retiredIds,
+    chunks: allChunks,
+  });
+  // Validate every source and citation identity before replacing committed output.
+  for (const { source, text } of documents) {
+    fs.writeFileSync(path.join(RULES_DIR, `${source.id}.md`), `# ${source.title}\n\n${text}\n`);
+  }
+  writeJson(RULES_INDEX_PATH, { sources: SOURCES.rulesPdfs, ...reconciled });
   updateManifest("rules", {
     sources: SOURCES.rulesPdfs.map((s) => s.url),
     chunks: allChunks.length,
