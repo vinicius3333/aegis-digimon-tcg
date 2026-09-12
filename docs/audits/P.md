@@ -2371,9 +2371,9 @@ git diff --check
 
 ### P-222 — Rosemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
-- Evidence: [module](../../apps/api/src/cards/P/P-222.ts) · [test](../../apps/api/src/cards/P/P-222.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 4 only with a face-up Wind Guardians security card”; “may suspend any Digimon on play and digivolving”; “once per turn may delete an opponent's lowest DP Digimon when any of yours suspends”; “reduces the real play cost by 4 with a face-up Wind Guardians security card”; “suspends a Digimon on play and resolves the once-per-turn lowest-DP deletion”; “allows declining the optional suspension and leaves the opposing Digimon intact”; “does not reduce play cost with face-down security”; “does not reduce play cost with a face-up non-Wind Guardians security card”
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-222.ts) · [test](../../apps/api/src/cards/P/P-222.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 4 only with a face-up Wind Guardians security card”; “may suspend any Digimon on play and digivolving”; “once per turn may delete an opponent's lowest DP Digimon when either controller’s Digimon suspends”; “reduces the real play cost by 4 with a face-up Wind Guardians security card”; “suspends a Digimon on play and resolves the once-per-turn lowest-DP deletion”; “allows declining the optional suspension and leaves the opposing Digimon intact”; “does not reduce play cost with face-down security”; “does not reduce play cost with a face-up non-Wind Guardians security card”
 
 - Local KB lookup (2026-09-12): Q5771; no errata entry; no restriction entry.
 
@@ -2381,10 +2381,12 @@ git diff --check
 
 - Confirmed executable scope defect (2026-09-12): The printed suspension listener includes either controller Digimon. Its current source filter controllerDefault mine narrows to only the controller own field, so the natural opposite-controller event and correct any-controller filter remain pending.
 
+- Reaudit accepted (2026-09-12, commit `55c4f8489`): the listener now explicitly accepts either controller. Public paid play suspends an opponent Digimon and deletes the lowest-DP target; the same physical Rosemon suppresses its second eligible suspension and triggers again after natural Own/Opponent/Own handoffs. Existing face-up trait, face-down, wrong-trait and optional-refusal proofs are retained. Coordinator independently passed P222/P223: 2 files, 16 tests; focused lint/format passed. This supersedes the scope and frequency holds above.
+
 ### P-223 — Kuzuhamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-223.ts) · [test](../../apps/api/src/cards/P/P-223.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 4 with three or fewer security cards”; “uses one matching Onmyōjutsu or Plug-In Option from hand or trash”; “once per turn may play a Pipe Fox Token after a genuine Option use”; “uses a cost-6 Onmyōjutsu Option from hand without paying its cost”; “allows refusing the optional cost-6 Option use”
 
 - Local KB lookup (2026-09-12): Q5772, Q5773; no errata entry; no restriction entry.
@@ -2392,6 +2394,8 @@ git diff --check
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
 - Printed Rule reconciliation in progress (2026-09-12): The official collection includes the Sakuyamon alternate-name Rule, absent from the frozen catalog and executable module. Catalog commit `e2f665deb` appends only that Rule to canonical effectText, preserving all other card bytes; Shared build passes. Compiled Rule name semantics and independently accepted natural frequency/cost-reduction proof remain pending.
+
+- Reaudit accepted (2026-09-12, commits `e2f665deb`, `413f4da84`): the catalog and compiled Rule grant the Sakuyamon name; BeforePayCost applies the printed reduction (public play costs 7 with three Security cards). Actual free Onmyōjutsu use creates the first Pipe Fox; a second paid use by the same resident source is suppressed, and a third paid use after natural Own/Opponent/Own handoffs creates the next token. Exact used Options reach face-up Security. Existing refusal proof is retained. Coordinator independently passed P222/P223: 2 files, 16 tests; focused lint/format passed. This supersedes the Rule, cost and frequency holds above.
 
 ### P-224 — Kotone Amano
 
@@ -2581,20 +2585,22 @@ git diff --check
 
 ### P-243 — Digiseabass
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
-- Score: **8/10**
-- Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its real Security effect”
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its colocated Security target case”
 
 - Local KB lookup (2026-09-12): Q6929; no errata entry; no restriction entry.
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
-- Additional root proof hold (2026-09-12): The Delay proof only injects OnStartTurn immediately after playing the Option; it does not establish the actual Start of Your Turn activation window, entry-turn guard, return cost, exact source disposition or decline. Existing real Security proof remains valid. Natural-turn Delay acceptance/decline and paid source disposition require independently accepted repair. Historical 10/10 is superseded.
+- Additional root proof hold (2026-09-12): The Delay proof only injects OnStartTurn immediately after playing the Option; it does not establish the actual Start of Your Turn activation window, entry-turn guard, return cost, exact source disposition or decline. Existing colocated Security target proof is retained; real execution is reused from the shared mechanism suites. Natural-turn Delay acceptance/decline and paid source disposition require independently accepted repair. Historical 10/10 is superseded.
 
 - Confirmed executable timing defect (2026-09-12): Printed Delay activates at Start of Your Turn when the opponent has a Digimon. The current GainKeyword/permanent arming plus Main activation splits that window and persists a future ability the printed card does not grant. Use the intrinsic timed Delay registration and its existing source-trash/entry-turn mechanism. Q6929 also requires hand-trash acceptance before Main placement. Natural timed acceptance/refusal and the whole Main cost gate remain pending. [Official collection text](https://world.digimoncard.com/cards/?category=522901&search=true).
 
 - Additional processing-cost scope hold (2026-09-12): The return cost omits the trash zone; the interpreter default for an unzoned return selects field permanents. Printed cost returns a DM Digimon from trash to deck top. An explicit trash cost and natural Start draw receipt for that exact returned card remain pending.
+
+- Reaudit accepted (2026-09-12, commit `d36508765`): intrinsic StartOfYourTurn Delay enforces the opponent-Digimon condition, entry-turn guard and source trash. Its explicit trash-to-deck-top DM Digimon cost is followed by a natural Start draw receipt for that exact card; the selected low-cost DM Digimon enters battle. Main hand-trash is optional and aborts subsequent draws/placement when unpaid, as Q6929 requires. Existing acceptance/refusal/condition/guard cases are retained. Coordinator independently passed the card plus existing processing-cost and hand-trash mechanisms: 3 files, 32 tests; focused lint/format passed. Security target coverage uses the colocated injected case plus existing real Security execution in P125/P129, rather than claiming a public P243 Security attack. This supersedes the timing, return-cost and Main-processing holds above.
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
