@@ -136858,7 +136858,7 @@
   {
     "cardId": "P-146",
     "set": "P",
-    "nameEn": "Recharge Plug-In Q",
+    "nameEn": "Reload Plug-In Q",
     "colors": [
       "Yellow"
     ],
@@ -136879,7 +136879,7 @@
     ],
     "effectText": "While you have a Tamer, you may ignore this card's color requirements.\n[Security] 1 of your opponent's Digimon gains ＜Security Attack -1＞for the turn.\n[Main] Place this card as 1 of your non-white Digimon's bottom digivolution card.",
     "inheritedEffectText": "[All Turns] When this Digimon would be deleted by battle, by placing 1 [Reload Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack, prevent that deletion.",
-    "securityEffectText": "[All Turns] When this Digimon would be deleted by battle, by placing 1 [Recharge Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack, prevent that deletion.",
+    "securityEffectText": "[Security] 1 of your opponent's Digimon gains ＜Security Attack -1＞ for the turn.",
     "rarity": "SEC",
     "maxCountInDeck": 4,
     "imageId": "P-146"
