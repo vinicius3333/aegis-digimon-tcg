@@ -338,23 +338,12 @@ describe("EX10-048 Myotismon", () => {
   });
 
   /**
-   * RETAINED RED — engine seam, not a card defect.
-   *
-   * Q5131: deleting a Digimon with an [On Deletion] effect to pay this card's play-cost
-   * reduction makes that [On Deletion] and this card's [On Play] trigger SIMULTANEOUSLY, so
-   * the turn player picks the resolve order.
-   *
-   * Expected: an `orderTriggers` decision offering two keys — this card's OnPlay effect and
-   * EX10-047 Arukenimon's OnDeletion effect.
-   * Actual: no `orderTriggers` decision at all. The cost paid inside the `wouldBePlayed`
-   * replacement (`runReplacement`'s `activate` -> `payCost` for `kind: "deleteOwn"`, in
-   * apps/api/src/engine/effects/interpreter/actions/replacement.ts) deletes the Digimon
-   * OUTSIDE the play's trigger batch, so its [On Deletion] never joins the batch the
-   * `orderTriggers` decision is built from. Proof that the batching itself works: seeding a
-   * purple Tamer in the trash whose [All Turns] watcher reacts to the same play DOES produce
-   * the two-key decision — only the cost deletion is missing from it.
+   * Q5131 regression: deleting a Digimon with an [On Deletion] effect to pay this card's
+   * play-cost reduction makes that [On Deletion] and this card's [On Play] trigger
+   * SIMULTANEOUSLY, so the turn player picks the resolve order. The current engine parks the
+   * cost deletion in the play's trigger batch and exposes both effects through `orderTriggers`.
    */
-  it("Q5131: the cost deletion's [On Deletion] and this card's [On Play] are ordered by the turn player", async () => {
+  it("Q5131: the cost deletion's [On Deletion] and this card's [On Play] share the turn player's ordering window", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -393,7 +382,7 @@ describe("EX10-048 Myotismon", () => {
     expect(decision!.seat).toBe(0);
   });
 
-  it("the cost deletion resolves and the play still completes even though the ordering window is missing", async () => {
+  it("the cost deletion resolves and the play completes with the default trigger order", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -417,8 +406,8 @@ describe("EX10-048 Myotismon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
     await settle(() => false, 30);
 
-    // The observable half of Q5131 that DOES hold today: the cost card is deleted, the
-    // reduced cost is charged and this card's own [On Play] resolves.
+    // With the default harness ordering, the cost card is deleted, the reduced cost is charged,
+    // and this card's own [On Play] resolves.
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX10-047"]);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
