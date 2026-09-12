@@ -1983,6 +1983,8 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /** A public Main declaration has committed this resolution's leading processing condition. */
+  declaredProcessingCondition?: boolean;
   /** Internal marker for effects re-derived by the continuous-effect pass. */
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */

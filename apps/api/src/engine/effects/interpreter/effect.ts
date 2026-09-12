@@ -549,6 +549,9 @@ function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
 }
 
 export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> {
+  const declaredProcessingCondition = ctx.declaredProcessingCondition === true;
+  // Consume even if this resolution fizzles before any action can run.
+  ctx.declaredProcessingCondition = false;
   if (effect.condition && !evaluateCondition(ctx, effect.condition)) return;
   // Turn-condition gate for triggers that carry an explicit turnCondition field rather than
   // encoding the turn direction in the trigger name (e.g. whenTrashedFromBattleArea, BT19-095).
@@ -561,6 +564,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // A caller that already seeded `selections` is asking to be resolved ON ITS OWN context, because
   // it reads back what the actions write there (GameEngine.fireBeforePayCost and its
   // `playCostDelta`). Copying would strand every such write, so only an unseeded context is cloned.
+  // Nested effects receive their own choice; the declaration commits only this clause.
   const ctxWithSelections: EffectContext = ctx.selections ? ctx : { ...ctx, selections: new Map() };
   // Restrictions belong to this effect resolution only, so the inherited set is swapped for a clone
   // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
@@ -672,7 +676,11 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
       let abort: boolean;
       try {
-        abort = await runAction(ctxWithSelections, action);
+        const resolvingAction =
+          declaredProcessingCondition && actionIndex === 0 && action.kind === "CostGatedBlock"
+            ? { ...action, optional: false, cost: { ...action.cost, optional: false } }
+            : action;
+        abort = await runAction(ctxWithSelections, resolvingAction);
       } finally {
         ctxWithSelections.activeActionPath = outerActionPath;
         ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;

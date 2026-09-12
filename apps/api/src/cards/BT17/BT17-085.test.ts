@@ -200,15 +200,6 @@ describe("BT17-085 Rika Nonaka", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-    const activation = s.decisions.findLast(({ req }) => req.kind === "optional")!;
-    expect(
-      s.engine.applyIntent(activation.seat, {
-        type: "respondDecision",
-        decisionId: activation.req.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
     const evolution = s.decisions.findLast(({ req }) => req.kind === "optional")!;
     expect(
       s.engine.applyIntent(evolution.seat, {

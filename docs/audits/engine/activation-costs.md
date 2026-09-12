@@ -196,7 +196,7 @@ Public Main activation with only Renamon X Antibody as a placement host incorrec
 
 Arbitrary printed stack order, targetless declaration/payment policy, full conditional-return fidelity and complete equivalence-class proof are still open. This consumer correction does not certify general compound payment or BT17 collection completion.
 
-### Payable processing without subsequent content
+### Payable processing without subsequent content (checkpoint `a43772ed7`)
 
 Baseline `292739059`. Comprehensive version 4.2 §15-7-5 (`comprehensive-0170`, reviewed fingerprint `6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97`) permits performing optional processing conditions even when their subsequent content cannot execute. §15-8-4-4-1 (`comprehensive-0176`, reviewed fingerprint `f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182`) separately requires payable conditions before declaring an activation-type effect and mandatory payment afterward. These are separate obligations, not an exception that requires a legal subsequent payload.
 
@@ -215,11 +215,36 @@ BT14-090 provides the second collection and an Option-use boundary: with no WarG
 | Resident Main declaration requires payable conditions                            | §15-8-4-4-1 | Existing exact-host/material refusal proofs remain in the BT17-085 focused suite | Supporting proof; full shape inventory open                    |
 | Resident Main declared condition must be paid before optional subsequent content | §15-8-4-4-1 | BT17-085 first optional prompt sees empty stack before payment                   | Reproduced unresolved defect; `it.fails`, not verified         |
 
-The expected failure is intentional audit evidence, not a passing obligation or completion certificate. Its source fingerprint is checked in a hook outside the expected-failure body, so citation drift remains a real suite failure; cleanup completes any pending public optional refusal. A mandatory-payment fix must remove the marker, prove no post-declaration refund and preserve triggered/Option processing choices. Direct action costs, whole-effect costs, borrowed effects, nested optional costs, all 63 discovered modules and complete activation-type inventory remain open.
+At this checkpoint the expected failure was intentional audit evidence, not a passing obligation or completion certificate; the leading-block correction below removes that marker. Its source fingerprint is checked in a hook outside the expected-failure body, so citation drift remains a real suite failure; cleanup completes any pending public optional refusal. A mandatory-payment fix must remove the marker, prove no post-declaration refund and preserve triggered/Option processing choices. Direct action costs, whole-effect costs, borrowed effects, nested optional costs, all 63 discovered modules and complete activation-type inventory remain open.
 
 Closing gates: `pnpm --filter @aegis/api exec vitest run src/engine src/cards --maxWorkers=1 --no-file-parallelism` completed with 5045 passing files / 41302 passing tests and seven expected failures (41309 total). The final conformance run after the source-hook and Option-proof additions passed 31 files / 424 tests with one expected failure (425 total); final focused processing proofs passed three tests with that same unresolved expected failure. Full API typecheck, scoped Oxlint, Oxfmt for all five changed files, audit layout (4/4) and `git diff --check` passed. These are regression results, not proof of the seven unresolved contracts.
 
 Independent read-only review found no blocker in the bounded §15-7-5 repair and final Option acceptance/refusal proofs, confirming that condition/payability and exact destination gates remain. No complete mechanism, card or collection certification is claimed.
+
+### Mandatory payment of a declared leading block
+
+Baseline `a43772ed7`; reviewed version 4.2 §15-8-4-4-1 fingerprint `f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182`. A performable optional processing condition is necessary before declaring an activation-type effect; after declaration its processing is mandatory. Optional subsequent evolution/play remains optional.
+
+`applyActivateEffect` marks only a successfully validated public declaration. `runEffect` consumes the original context's declaration marker before condition/turn guards, retains that commitment for this resolution only, and clones a leading `CostGatedBlock` with mandatory outer payment. Compiled IR remains unchanged. Nested effects see no inherited declaration marker and inner optional payload actions keep their choices. Ordinary Option-use and triggered effects are not marked as public Main declarations.
+
+The former §15-8-4-4-1 expected-failure proof is now an ordinary passing test. Public BT17-085 declaration has all three paid physical cards under Renamon before the first optional evolution prompt; declining evolution leaves those cards paid, Renamon unevolved, Sakuyamon in hand and memory unchanged. Its focused card refusal proof now answers that single optional payload prompt instead of consenting again to condition payment. BT19-086 Q3151 independently proves Ryo is suspended and the four selected Device physical identities are already in trash before optional Cyberdramon play; refusal retains the paid state and Cyberdramon in hand. See the sole collection ledgers `docs/audits/BT17.md` and `docs/audits/BT19.md`; their historical scores do not certify current full fidelity.
+
+Review identified two one-shot-marker edges: an unseeded context originally cleared only its clone, and a condition/turn early return could bypass consumption. Both are corrected. `declaredProcessingScope.test.ts` resolves the real interpreter twice on the same unseeded context, verifying the first declared condition is paid once and the later uncommitted condition offers its own optional refusal with no extra payment. The second case begins with a condition-fizzled declared resolution and proves it cannot commit a later condition. Restoring clone-only consumption reproduced failure (optional choice called zero times instead of once); corrected focused public/mechanism proof passed four files / 31 tests.
+
+A first broad run caught the old BT19-086 test's assumption of two optional prompts (one failed; 41302 passed; six expected failures). It was replaced by the source-derived public pre-prompt payment/refusal proof, not an unconditional acceptance or weakened endpoint. Independent read-only review confirmed both scope issues are closed and found no remaining blocker in this bounded change.
+
+| Obligation / shape                                                                        | Current evidence                                                                           | Status                       |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------- |
+| Declared leading CostGatedBlock condition precedes optional subsequent content            | BT17-085 placement/evolution and BT19-086 suspension/Devices/play public proofs            | Verified for these consumers |
+| Subsequent refusal does not refund declared condition                                     | Both public refusal endpoints retain every payment instance/source state                   | Verified for these consumers |
+| Original or fizzled context cannot force a later condition                                | Two real-interpreter context-reuse cases and clone-leak red reproduction                   | Verified seam                |
+| Ordinary Option processing remains optional                                               | BT14-090 acceptance/refusal with unavailable evolution destination                         | Verified consumer boundary   |
+| Whole-effect cost, direct action cost, leading branches, later/nested optional conditions | Full shape inventory and public declaration/trigger/borrowed comparisons still required    | Open                         |
+| All activation-type effects and all discovered CostGatedBlock consumers                   | Collection regressions support compatibility; complete normative/parameter proof is absent | Open                         |
+
+Closing gates: the final full engine/cards run passed 5046 files / 41305 tests with six existing expected failures (41311 total). Focused public/context proofs passed four files / 31 tests. Full API typecheck and scoped Oxlint passed. Independent read-only review found no blocker. The six remaining expected failures and incomplete normative coverage prevent full certification.
+
+This removes the specific leading-block expected failure, not the remaining declaration-cost obligations or the full mechanism certification gate.
 
 ### Current primary-source check
 

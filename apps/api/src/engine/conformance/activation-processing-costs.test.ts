@@ -50,7 +50,7 @@ async function finishOptional(s: ReturnType<typeof rikaFixture>) {
 
 describe("declared optional processing conditions", () => {
   beforeEach(() => {
-    // Hook failures remain real failures even for the unresolved it.fails proof.
+    // Pin the declaration contract independently of payload choices.
     cite(
       "comprehensive-0176",
       "Activation-type optional processing conditions must be performable when declared and must be performed after declaration",
@@ -130,7 +130,7 @@ describe("declared optional processing conditions", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it.fails("15-8-4-4-1: declaring a payable condition commits its payment before optional evolution", async () => {
+  it("15-8-4-4-1: declaring a payable condition commits its payment before optional evolution", async () => {
     const s = rikaFixture(true, false);
     s.state.memory = 4;
     await s.ready();
@@ -145,8 +145,12 @@ describe("declared optional processing conditions", () => {
       expect(s.state.players[0]!.trash).toHaveLength(0);
       expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === rikaId)).toBe(false);
     } finally {
-      // Finish the public refusal even while the expected contract assertion is red.
+      // Complete the optional evolution refusal through the public intent.
       await finishOptional(s);
     }
+    expect(s.perm("renamon").stack).toHaveLength(3);
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT17-038");
+    expect(s.state.memory).toBe(4);
   });
 });
