@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 236/249 at 10/10; 13 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 237/249 at 10/10; 12 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -2642,13 +2642,13 @@ git diff --check
 
 ### P-250 — Ogremon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-250.ts) · [test](../../apps/api/src/cards/P/P-250.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-250` returns no entries)<br>“digivolves from the trash into itself, paying memory, when a Demon-trait Digimon exists at 5 or fewer cards in hand”; “does nothing at 6 or more cards in hand”; “reaches the printed cost-1 alternate route from a Demon Digimon named Ogremon, Fugamon or Hyogamon through the public digivolve intent, and refuses an illegal Lv.4 base”; “grants ＜Blocker＞ and ＜Retaliation＞ to one Demon/Shaman/Undead Digimon by trashing a card, never to a Flame-trait near-miss”; “shares one once-per-turn budget across on-play, when-digivolving and when-attacking”; “the granted keywords expire at the opponent's turn end”; “deletes an opponent Digimon with a play cost of 6 or less on deletion, and spares a play cost of 10”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+- Independently accepted repair (2026-09-12, commit `e635da8a6`): A real natural owner End window evolves the exact trash copy onto the same legal Purple level-3 Demon and records ordinary paid evolution memory -3 to -6. The shared three-timing frequency proof retains the physical P250 source and host through eligible same-turn suppression and a natural opponent/own reset, with exact hand costs, recipient keywords, Security checks and completed idle state. Inherited deletion records the exact source in trash and legal opposing play-cost target. Root 21 tests, focused style and API types pass. The suspected engine collection gap is rejected: trash was already collected; the failed proof sampled a transient gauge incorrectly. No engine changes are required.
 
 ## Mechanisms
 
