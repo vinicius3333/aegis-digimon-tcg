@@ -2,18 +2,74 @@ import { describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
+import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
 
 describe("bounded trigger ordering and pending source departure", () => {
+  it("offers simultaneous optional deletion triggers to the owning controllers in turn-player order", async () => {
+    cite("comprehensive-0164", "simultaneous effects activate one at a time, with the turn player resolving first");
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-040", as: "turnHolder", suspended: true }],
+          security: [{ card: "BT1-028", as: "turnSecurity" }],
+        },
+        1: {
+          battleArea: [{ card: "BT25-040", as: "opponentHolder", suspended: true }],
+          security: [{ card: "BT1-028", as: "opponentSecurity" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    // Equal-DP battle deletion is the public legal action that creates one simultaneous
+    // deletion event for both physical Ascension holders.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("turnHolder").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponentHolder").permanentId },
+      }),
+    ).toMatchObject({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const first = s.state.pendingDecision!;
+    expect(first.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: first.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toMatchObject({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const second = s.state.pendingDecision!;
+    expect(second.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: second.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toMatchObject({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("turnHolder").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("opponentHolder").instanceId,
+    );
+    const surrender = s.state.gameOver ? undefined : s.engine.applyIntent(0, { type: "surrender" });
+    expect(surrender === undefined || surrender.ok).toBe(true);
+    await loop;
+  });
+
   it("offers two real trash triggers together, then drops only the source that departed", async () => {
     cite(
       "comprehensive-0164",
       "simultaneous triggers are pending together and the player chooses their activation order",
     );
-    cite(
-      "comprehensive-0165",
-      "a pending effect whose source no longer meets its trigger conditions cannot activate",
-    );
+    cite("comprehensive-0165", "a pending effect whose source no longer meets its trigger conditions cannot activate");
 
     const s = setupEngine(
       {

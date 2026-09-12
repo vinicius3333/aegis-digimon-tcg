@@ -22,6 +22,13 @@ simultaneous trigger pools, turn-player precedence, derived triggering, replacem
 ordering, source movement between every zone, or all optional/refusal paths. No
 engine-wide or keyword-wide certification follows from this case.
 
+The same file also uses a legal equal-DP battle between two BT25-040 holders owned by
+opposing controllers. The battle creates one simultaneous deletion event; after the
+real turn loop reaches seat 0's Main Phase, seat 0 receives its `selectCards` processing
+decision first, followed by seat 1. Both refusals preserve the exact deleted instances
+in their owners' trash. This proves controller priority for this native Ascension
+provider shape without claiming a shared cross-controller ordering prompt.
+
 ## Future plan
 
 - Add public fixtures for opposing-controller simultaneous pools and explicit
@@ -29,6 +36,6 @@ engine-wide or keyword-wide certification follows from this case.
 - Add source-identity cases where a pending trigger's card becomes a different physical
   card or moves within the same battle-area host.
 - Add derived-trigger precedence and optional refusal cases while retaining exact
-  trigger source identities in each decision.
+- trigger source identities in each decision.
 - Reconcile every trigger consumer and provider/exception denominator before claiming
   mechanism completion.
