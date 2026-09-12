@@ -2291,7 +2291,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const movedCardIds =
       movedSource === undefined
         ? []
-        : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
+        : (opts?.shedOwnCards
+            ? [movedSource.topCard]
+            : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
+          )
             .filter((card): card is CardInstance => card !== undefined)
             .map((card) => card.instanceId);
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
@@ -2350,7 +2353,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       moved.push(sourcePermanentId);
     }
     for (const source of sources) {
-      const movedCardIds = [source!.topCard, ...source!.stack, ...source!.linked]
+      const movedCardIds = (
+        opts?.shedOwnCards ? [source!.topCard] : [source!.topCard, ...source!.stack, ...source!.linked]
+      )
         .filter((card): card is CardInstance => card !== undefined)
         .map((card) => card.instanceId);
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {

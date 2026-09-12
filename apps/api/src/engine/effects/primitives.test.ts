@@ -1572,6 +1572,54 @@ describe("primitives: placeUnder / link", () => {
     expect(moved?.faceUp).toBe(true);
   });
 
+  it.each([
+    { batch: false, shed: true },
+    { batch: false, shed: false },
+    { batch: true, shed: true },
+    { batch: true, shed: false },
+  ])(
+    "supplemental relocation payload reports attached identities only: batch $batch, shedding $shed",
+    async ({ batch, shed }) => {
+      const h = harness({
+        turnSeat: 0,
+        board: {
+          1: {
+            battleArea: [
+              { card: DIGIMON, as: "dest", under: [{ card: OPTION, as: "existing" }] },
+              {
+                card: DIGIMON,
+                as: "source",
+                under: [{ card: OPTION, as: "under" }],
+                linked: [{ card: TAMER, as: "link" }],
+              },
+            ],
+          },
+        },
+      });
+      const destId = h.s.perm("dest").permanentId;
+      const sourceId = h.s.perm("source").permanentId;
+      const topId = h.s.inst("source").instanceId;
+      const attachmentIds = [h.s.inst("under").instanceId, h.s.inst("link").instanceId];
+      const opts = { belowTop: true, shedOwnCards: shed };
+      const result = batch
+        ? await h.fx.relocatePermanentsByEffect?.(destId, [sourceId], opts)
+        : await h.fx.relocatePermanentByEffect?.(destId, sourceId, opts);
+      expect(result).toEqual(batch ? [sourceId] : true);
+      expect(h.subTriggerFires).toHaveLength(1);
+      expect(h.subTriggerFires[0]!.payload).toMatchObject({
+        subjectPermanentId: destId,
+        addedDigivolutionCardInstanceIds: shed ? [topId] : [topId, ...attachmentIds],
+      });
+      expect(h.s.perm("dest").stack.map((card) => card.instanceId)).toEqual([
+        h.s.inst("existing").instanceId,
+        topId,
+        ...(shed ? [] : attachmentIds),
+      ]);
+      expect(h.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(shed ? attachmentIds : []);
+      expect(h.state.players[0]!.trash).toHaveLength(0);
+    },
+  );
+
   it("relocatePermanentByEffect awaits the destination's add-digivolution window", async () => {
     const h = harness({
       turnSeat: 0,

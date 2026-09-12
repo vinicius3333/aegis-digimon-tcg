@@ -342,3 +342,7 @@ The copied and inherited live-source face-down boundary is owned by [stack-card-
 ## Bottom relocation parameter checkpoint
 
 BT11-088 public bottom placement/source-shedding evidence is owned by [BT11.md](../BT11.md#bt11-088--bagramon). Both entry timings now pass the existing relocation parameters required by printed text and Q2113; BT11 historical complete status is reopened. Shared relocation identity/event payloads, inherited treated-as-Digimon hosts, immunity and simultaneous departure remain separate open obligations.
+
+## Relocation addition identity checkpoint
+
+The source-shedding event contract is owned by [digivolution-card-placement.md](digivolution-card-placement.md). Two real public Bagramon entry events expose the incorrect identity list; single/batch stack/link arithmetic is explicitly supplemental. Position metadata, live recalculation, public batch and competing departures remain open.

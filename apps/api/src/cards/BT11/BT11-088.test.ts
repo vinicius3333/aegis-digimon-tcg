@@ -12,6 +12,8 @@ import {
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
 import { compiled } from "./BT11-088.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import { assertNoLoudGap, setupEngine, settle as settleEngine } from "../../engine/testkit/harness.js";
 
 // A3 for BT11-088 (Bagramon — Purple Lv.6 Digimon).
@@ -234,6 +236,16 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     { mode: "digivolve", stacked: true },
     { mode: "digivolve", stacked: false },
   ])("$mode places only the source top card at the bottom; source stacked $stacked", async ({ mode, stacked }) => {
+    cite(
+      "comprehensive-0292",
+      "4-7-7: the moved permanent becomes a stacked card",
+      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+    );
+    cite(
+      "comprehensive-0293",
+      "4-7-8: own sources are trashed simultaneously, not added under the destination",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
+    );
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -278,9 +290,18 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
       mode === "play"
         ? { type: "playCard" as const, instanceId: bagramonId }
         : { type: "digivolve" as const, instanceId: bagramonId, permanentId: s.perm("base").permanentId };
-    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
-    await settleEngine(() => s.state.players[1]!.battleArea.length === 1);
-    await settleEngine();
+    const busEvents = await observe(s.engine).captureSubTriggers(async () => {
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+      await settleEngine(() => s.state.players[1]!.battleArea.length === 1);
+      await settleEngine();
+    });
+    const additions = busEvents.filter((entry) => entry.event === "onAddDigivolutionCards");
+    expect(additions).toHaveLength(1);
+    expect(additions[0]!.payload).toMatchObject({
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [sourceId],
+      byEffectSeat: 0,
+    });
     const host = s.perm("host");
     expect(host.stack.map((card) => card.instanceId)).toEqual([sourceId, ...hostStack]);
     expect(host.stack[0]!.faceUp).toBe(true);

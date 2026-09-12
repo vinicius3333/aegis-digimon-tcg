@@ -1,7 +1,7 @@
 import { getCardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../effects/CardSource.js";
 import type { GameEngine } from "../GameEngine.js";
-import type { Restriction, SubTriggerEventName } from "../effects/EffectContext.js";
+import type { Restriction, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
 import { attackedWithDigimonInCurrentOrPreviousTurn } from "../turnActivity.js";
 import { effectiveColors, effectiveNames } from "../effects/continuous.js";
@@ -34,6 +34,32 @@ function isActivatableEffectObservation(value: unknown): value is ActivatableEff
 export function observe(engine: GameEngine) {
   const internals = internalsOf(engine);
   return {
+    /** Record actual production bus calls while preserving their dispatch and restoring the observer. */
+    async captureSubTriggers(
+      run: () => Promise<void>,
+    ): Promise<{ event: SubTriggerEventName; payload: TriggerInfo }[]> {
+      const events: { event: SubTriggerEventName; payload: TriggerInfo }[] = [];
+      const original = internals.fireSubTrigger;
+      internals.fireSubTrigger = async function observedSubTrigger(event, payload = {}) {
+        events.push({
+          event,
+          payload: {
+            ...payload,
+            ...(payload.addedDigivolutionCardInstanceIds !== undefined
+              ? { addedDigivolutionCardInstanceIds: [...payload.addedDigivolutionCardInstanceIds] }
+              : {}),
+          },
+        });
+        await original.call(engine, event, payload);
+      };
+      try {
+        await run();
+        return events;
+      } finally {
+        internals.fireSubTrigger = original;
+      }
+    },
+
     /**
      * The engine's own `CardSource` for a card — what a card module's `effectsForTiming`
      * receives in production. Pass a permanent to read its top card's source.
