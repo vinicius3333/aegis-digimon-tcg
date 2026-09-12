@@ -61,6 +61,8 @@ export async function consultLeavePrevention(
     isBounce?: boolean;
     /** DigiXros/material declarations are player actions, not an effect owned by the player. */
     playerAction?: boolean;
+    /** DigiXros material relocation is a player action that bypasses "other than DigiXros" clauses. */
+    isDigiXros?: boolean;
     /**
      * Run only the "instead" (side-effect) replacements and offer no prevention. Used after a
      * keyword prevention (＜Barrier＞) already stopped the leave: preventing it does not cancel
@@ -90,6 +92,7 @@ export async function consultLeavePrevention(
     const eligible: { repl: ReplacementSubscription; ctx: EffectContext; activationKey: string }[] = [];
     for (const repl of replacements) {
       if (repl.mode !== "instead" && repl.mode !== "prevent") continue;
+      if (opts.isDigiXros === true && repl.exceptDigiXros === true) continue;
       if (opts.insteadOnly === true && repl.mode !== "instead") continue;
       const activationKey = replacementActivationKey(repl);
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;

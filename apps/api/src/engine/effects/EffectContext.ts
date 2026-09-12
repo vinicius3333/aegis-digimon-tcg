@@ -1763,6 +1763,8 @@ export interface ReplacementInstallBase {
    * (EX6-044) allow a deletion through while still voiding a move.
    */
   causeAllows?: (cause: RemovalCause, resolvingSeat: Seat | undefined, isBounce: boolean) => boolean;
+  /** Skip this replacement for the player-action material relocation in DigiXros. */
+  exceptDigiXros?: boolean;
   expiresOnTurnEndOf?: Seat;
   description: string;
 }
