@@ -12,7 +12,7 @@ evidence_commit: a8136a499
 ## Status
 
 Historical evidence scored all 249 committed P cards at 10/10. The 2026-09-12 independent
-reaudit has identified missing behavioral proofs; affected rows below are provisionally 9/10.
+reaudit has identified missing behavioral proofs; affected rows below are provisionally below 10/10. Fixture holds also supersede historical scores until repaired evidence is independently accepted.
 The original 243 were
 recalculated on 2026-09-05 on branch `audit-promo-lm-rb-20260905` from base `7209adb89` and
 verified again after that branch was integrated with main `18156ecee`; P-245 through P-250 (6 new
@@ -377,6 +377,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): Q4138, Q4139, Q4140; errata entry present; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-030 — Lobomon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -408,6 +410,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-033.ts) · [test](../../apps/api/src/cards/P/P-033.test.ts) · clause review (source removed; see History)<br>“gives Piercing to all own black Digimon at 13000 DP or more”; “grants Security Attack +1 while inherited by a 13000 DP black Digimon”; “stops extra checks when the first security card de-digivolves its host below 13000 DP (Q4147)”
 
 - Local KB lookup (2026-09-12): Q4145, Q4146, Q4147; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-034 — DemiDevimon
 
@@ -653,6 +657,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-063 — Ruli Tsukiyono
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -661,6 +667,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; errata entry present; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-064 — Kiyoshiro Higashimitarai
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -668,6 +676,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-064.ts) · [test](../../apps/api/src/cards/P/P-064.test.ts) · clause review (source removed; see History)<br>“suspends to give Jamming to an attacker with Jellymon in its sources”; “does not grant Jamming when Kiyoshiro is already suspended”; “does not treat TeslaJellymon as the exact Jellymon source”; “plays itself from security”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-065 — Gammamon
 
@@ -685,6 +695,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): Q4170, Q4845; no errata entry; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-067 — Bulucomon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -693,6 +705,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-068 — Herissmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -700,6 +714,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-068.ts) · [test](../../apps/api/src/cards/P/P-068.test.ts) · clause review (source removed; see History)<br>“gives an opposing Digimon Security Attack -1 for the turn and adds itself to hand”; “reduces the attacking Digimon's remaining security checks immediately”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-069 — Pulsemon
 
@@ -751,6 +767,8 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-075 — Okuwamon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -758,6 +776,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-075.ts) · [test](../../apps/api/src/cards/P/P-075.test.ts) · clause review (source removed; see History)<br>“grants each current opponent Digimon one independent lose-memory watcher after evolving into Insectoid”; “does not grant the watcher merely because Okuwamon is sitting on the field”; “grants Piercing to an Insectoid host through its inherited effect”; “does not grant inherited Piercing to a non-Insectoid host”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-076 — Deltamon
 
@@ -767,6 +787,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-077 — Wizardmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -774,6 +796,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-077.ts) · [test](../../apps/api/src/cards/P/P-077.test.ts) · clause review (source removed; see History)<br>“gains 1 memory only when directly trashed from the deck”; “places a revealed purple card from hand on top of the deck when inherited”
 
 - Local KB lookup (2026-09-12): Q4177; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-078 — Espimon
 
@@ -855,6 +879,8 @@ git diff --check
 
 - Local KB lookup (2026-09-12): Q4179; no errata entry; no restriction entry.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-088 — Siriusmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -862,6 +888,8 @@ git diff --check
 - Evidence: [module](../../apps/api/src/cards/P/P-088.ts) · [test](../../apps/api/src/cards/P/P-088.test.ts) · clause review (source removed; see History)<br>“places a Gammamon from hand at stack bottom to gain +2000 DP for the turn”; “deletes only 1 low-DP Digimon while below 12000 DP”; “Q4180: deletes 2 low-DP Digimon when it has 12000 DP or more”
 
 - Local KB lookup (2026-09-12): Q4180; no errata entry; no restriction entry.
+
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
 ### P-089 — Amphimon
 
@@ -873,6 +901,8 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
 ### P-090 — Diarbbitmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -882,6 +912,8 @@ git diff --check
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-091 — Saberdramon
 
@@ -893,11 +925,13 @@ git diff --check
 
 ### P-092 — Dracomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-092.ts) · [test](../../apps/api/src/cards/P/P-092.test.ts) · clause review (source removed; see History)<br>“digivolves itself directly into Wingdramon for 3 by ignoring level requirements”; “inherited effect digivolves a legal level 4 host into Wingdramon for free”; “Q4182 does not offer inherited Wingdramon evolution from an illegal level 3 host”
 
 - Local KB lookup (2026-09-12): Q4182; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-093 — Bastemon
 
@@ -909,10 +943,12 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-094 — Destromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-094.ts) · [test](../../apps/api/src/cards/P/P-094.test.ts) · clause review (source removed; see History)<br>“deletes the single eligible opponent Digimon (play cost within budget)”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -925,13 +961,17 @@ git diff --check
   files and the two package suites. Initial wrong-seat Security fixtures were corrected and the
   real turn loop now begins before the first attack. No engine or IR behavior change was needed.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-095 — Pause Plug-In P
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-095.ts) · [test](../../apps/api/src/cards/P/P-095.test.ts) · clause review (source removed; see History)<br>“requires a color source without a Tamer, but any off-color Tamer waives that requirement”; “binds both Main clauses to exactly the chosen Digimon”; “keeps the chosen permanent's When Digivolving suppressed after it evolves”; “applies only the Security DP loss for the turn, then adds itself to hand”
 
 - Local KB lookup (2026-09-12): Q5751, Q5752, Q5753, Q5754, Q5755; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-096 — Prism Garrett
 
@@ -959,37 +999,47 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-099 — Etemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-099.ts) · [test](../../apps/api/src/cards/P/P-099.test.ts) · clause review (source removed; see History)<br>“De-Digivolves exactly 1 card on play and promotes the next source”; “De-Digivolves exactly 1 card after digivolving”; “inherited On Deletion plays only an eligible cost-3 yellow or black Digimon from hand”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-100 — Kuwagamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-100.ts) · [test](../../apps/api/src/cards/P/P-100.test.ts) · clause review (source removed; see History)<br>“lets the UI choose an opponent Digimon or Tamer and restricts only that permanent”; “opens the opponent Digimon-or-Tamer restriction from When Digivolving”; “grants its inherited host +2000 DP only during its controller's turn”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-101 — Raremon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-101.ts) · [test](../../apps/api/src/cards/P/P-101.test.ts) · clause review (source removed; see History)<br>“Q4186 always carries the Cyborg trait in its card definition”; “trashes exactly 1 hand card on play, then draws 2”; “trashes 1 hand card and draws 2 after digivolving”; “inherited When Attacking pays the hand-trash cost before deleting a level 3”
 
 - Local KB lookup (2026-09-12): Q4186; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-102 — SkullGreymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-102.ts) · [test](../../apps/api/src/cards/P/P-102.test.ts) · clause review (source removed; see History)<br>“Q4187 may delete itself as cost, delete 2 small enemies, then play a rookie on deletion”; “Q4187 also permits self-deletion after digivolving and resolves the full chain”; “inherited On Deletion plays exactly 1 eligible red or purple level 3 from trash”
 
 - Local KB lookup (2026-09-12): Q4187; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-103 — Offense Training
 
@@ -1061,11 +1111,13 @@ git diff --check
 
 ### P-110 — Shadramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-110.ts) · [test](../../apps/api/src/cards/P/P-110.test.ts) · clause review (source removed; see History)<br>“plays exactly one Veemon or Wormmon from trash suspended when digivolving”; “plays an eligible Veemon or Wormmon from hand through the inherited On Deletion effect”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-111 — Knightmon
 
@@ -1076,6 +1128,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4215; no errata entry; no restriction entry.
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-112 — Morphomon
 
@@ -1097,6 +1151,8 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-114 — Diaboromon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -1109,11 +1165,13 @@ git diff --check
 
 ### P-115 — SkullKnightmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-115.ts) · [test](../../apps/api/src/cards/P/P-115.test.ts) · clause review (source removed; see History)<br>“grants Security Attack +1 to a level-5 Bagra Army/Twilight host on your turn”; “plays an errata-eligible Amano Tamer and Saves itself under that Tamer”
 
 - Local KB lookup (2026-09-12): Q4223; errata entry present; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-116 — DIGIMON CON 2023
 
@@ -1133,6 +1191,8 @@ git diff --check
 
 - Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-118 — Wormmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1151,11 +1211,13 @@ git diff --check
 
 ### P-120 — Gatomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-120.ts) · [test](../../apps/api/src/cards/P/P-120.test.ts) · clause review (source removed; see History)<br>“uses Barrier to trash its security and survive a losing security battle”; “applies inherited -2000 DP to an opponent's security Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-121 — Armadillomon
 
@@ -1167,11 +1229,13 @@ git diff --check
 
 ### P-122 — Patamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-122.ts) · [test](../../apps/api/src/cards/P/P-122.test.ts) · clause review (source removed; see History)<br>“adds a yellow/black security card, recovers one, and keeps the stack size”; “does not recover when no eligible security card exists”; “takes a multicolor card containing %s”; “does not take a %s security card”; “inherited effect lowers only opposing Security Digimon and changes a real security battle”
 
 - Local KB lookup (2026-09-12): Q4235, Q4848; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-123 — Ukkomon
 
@@ -1338,11 +1402,13 @@ git diff --check
 
 ### P-139 — Leomon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-139.ts) · [test](../../apps/api/src/cards/P/P-139.test.ts) · clause review (source removed; see History)<br>“reduces an opponent's Digimon by 3000 DP on play”; “encodes zero-cost Leomon digivolution and inherited Recovery”; “applies -3000 DP on the live When Digivolving window”; “grants Blocker and Fortitude while Leomon/X Antibody is in its stack”; “recovers the top deck card when deleted”
 
 - Local KB lookup (2026-09-12): Q4246; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-140 — MegaKabuterimon
 
@@ -1353,6 +1419,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4247, Q4248; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-141 — MameTyramon
 
@@ -1366,11 +1434,13 @@ git diff --check
 
 ### P-142 — Falcomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-142.ts) · [test](../../apps/api/src/cards/P/P-142.test.ts) · clause review (source removed; see History)<br>“trashes an opponent hand card when its inherited host is deleted outside battle”; “does not trash a card when the inherited host is deleted in battle”; “encodes the On Play suspension and Ravemon attack option”; “encodes zero-cost Pinamon digivolution and inherited non-battle deletion hand trash”; “suspends an opposing level-6-or-lower Digimon on play”; “publicly performs the optional Ravemon attack and places Falcomon underneath it”
 
 - Local KB lookup (2026-09-12): Q4249; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-143 — Drimogemon
 
@@ -1418,6 +1488,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-148 — Wanyamon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -1427,6 +1499,8 @@ git diff --check
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-149 — Minomon
 
@@ -1450,11 +1524,13 @@ git diff --check
 
 ### P-151 — Digimon Liberator
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-151.ts) · [test](../../apps/api/src/cards/P/P-151.test.ts) · clause review (source removed; see History)<br>“waives color with a Liberator trait card and reveals/adds then independently plays”; “keeps the Security effect as an activation of the Main effect”; “activates Main from security and plays a qualifying Liberator Digimon”; “runs Main from hand: adds a revealed Liberator card and may play it”
 
 - Local KB lookup (2026-09-12): Q4266; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-152 — Shoutmon + Dorulu Cannon
 
@@ -1482,11 +1558,13 @@ git diff --check
 
 ### P-155 — Pawn Device
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-155.ts) · [test](../../apps/api/src/cards/P/P-155.test.ts) · clause review (source removed; see History)<br>“encodes Main Draw 1 followed by placing itself in the battle area”; “encodes Delay's non-red Option trash cost and Security deletion/hand return”; “deletes an opposing Digimon at the 11000-DP security boundary and returns itself”; “runs Main from hand, draws one card, and places this Option in the battle area”; “uses Delay by trashing a non-red Option and gains exactly one memory”
 
 - Local KB lookup (2026-09-12): Q4269; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-156 — Future Potential!
 
@@ -1498,11 +1576,13 @@ git diff --check
 
 ### P-157 — Monimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-157.ts) · [test](../../apps/api/src/cards/P/P-157.test.ts) · clause review (source removed; see History)<br>“encodes inherited On Deletion Draw 1 conditional on a black Tamer”; “draws when the inherited host is deleted while a black Tamer is present”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-158 — Jeri (Fake)
 
@@ -1514,11 +1594,13 @@ git diff --check
 
 ### P-159 — Rook Device
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-159.ts) · [test](../../apps/api/src/cards/P/P-159.test.ts) · clause review (source removed; see History)<br>“encodes the effect-trash trigger and Main grants with shared target”; “encodes color waiver and Security De-Digivolve 2 with hand return”; “de-digivolves two cards from an opposing Digimon and returns itself from security”; “runs Main by granting Reboot, Blocker, and +2000 DP before placing itself”; “reacts when this Device is trashed by an effect, buffing a Digimon for the turn window”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-160 — Tyrannomon (X Antibody)
 
@@ -1562,13 +1644,17 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-165 — ShoeShoemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-165.ts) · [test](../../apps/api/src/cards/P/P-165.test.ts) · clause review (source removed; see History)<br>“encodes Security end-of-battle play and On Play/When Digivolving Familiar Token creation”; “uses the Familiar Token's own deletion effect and encodes inherited Barrier”; “plays exactly one Familiar Token from On Play”; “plays the token from When Digivolving and its deletion reduces an opposing Digimon by 3000”; “plays from Security at end of a real battle”; “deletes its Familiar Token at the real opponent-turn boundary”
 
 - Local KB lookup (2026-09-12): Q4275, Q5756, Q5757; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-166 — Galemon
 
@@ -1580,19 +1666,23 @@ git diff --check
 
 ### P-167 — Landramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-167.ts) · [test](../../apps/api/src/cards/P/P-167.test.ts) · clause review (source removed; see History)<br>“encodes Mineral/Rock discard cost and reveal placement choices at both timings”; “encodes inherited De-Digivolve 1 after a qualifying digivolution card discard”; “pays with a Mineral digivolution card and adds a revealed Mineral card”; “publicly triggers the inherited De-Digivolve after an effect trashes a Mineral stack card”; “does not react when an effect trashes a different stack card”; “does not react when P-167 leaves its stack without effect attribution”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-168 — Yao Qinglan
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-168.ts) · [test](../../apps/api/src/cards/P/P-168.test.ts) · clause review (source removed; see History)<br>“gains memory at start of main only when the opponent has a Digimon”; “suspends to evolve the exact Aqua or Sea Animal trigger subject without bypassing requirements”; “gains one memory at the start of main when the opponent has a Digimon”; “reacts to an effect placing a digivolution card, then pays the reduced Aqua evolution cost”; “plays itself for free from Security”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-169 — Close
 
@@ -1636,6 +1726,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-174 — Boltmon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -1664,19 +1756,23 @@ git diff --check
 
 ### P-177 — Gigimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-177.ts) · [test](../../apps/api/src/cards/P/P-177.test.ts) · clause review (source removed; see History)<br>“encodes its optional inherited On Deletion return of a named Growlmon or Gallantmon”; “returns a named Growlmon from trash when its inherited host is deleted”; “keeps a simultaneous Growlmon inherited trigger pending after returning that card”; “cancels a top-card inherited trigger when P-177 returns that deleted top card”; “runs BT21-064 inherited memory when its top host remains in trash”
 
 - Local KB lookup (2026-09-12): Q5758, Q5759; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-178 — Sagittarimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-178.ts) · [test](../../apps/api/src/cards/P/P-178.test.ts) · clause review (source removed; see History)<br>“encodes Veemon Armor digivolution and Armor Purge”; “reduces an opponent by 3000 DP on digivolution and deletes an opponent at 4000 DP or less when attacking”; “exposes Armor Purge on the live permanent”; “applies the -3000 digivolution modifier and deletes only targets at the 4000 boundary”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-179 — Justimon: Critical Arm
 
@@ -1690,11 +1786,13 @@ git diff --check
 
 ### P-180 — Bind Red Trigger
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-180.ts) · [test](../../apps/api/src/cards/P/P-180.test.ts) · clause review (source removed; see History)<br>“deletes the highest-DP opposing Digimon from its Security effect”; “deletes an opponent Digimon at 7000 DP or less when this card is trashed from a stack”; “deletes a qualifying opponent through the real stack-trash event”; “waives its color requirement while you have a Three Musketeers Digimon”; “trashes the opponent's top security card and places itself under a Three Musketeers Digimon”; “deletes the opponent's highest-DP Digimon in Security”; “trashes the opponent's top security and places itself under a Three Musketeers Digimon”; “uses the card without a matching color while a Three Musketeers Digimon is present”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-181 — Royal Base
 
@@ -1705,6 +1803,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4850, Q4851, Q4852, Q4853, Q4854; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-182 — WarGreymon
 
@@ -1723,6 +1823,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4627, Q4628; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-184 — Dorugoramon
 
@@ -1744,11 +1846,13 @@ git diff --check
 
 ### P-186 — Gallantmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-186.ts) · [test](../../apps/api/src/cards/P/P-186.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 2 per five total trash cards when a 13000+ DP Digimon exists”; “encodes Rush, Blocker, and ruling-correct deletion followed by conditional Recovery”; “reduces the real play cost by 2 for each five cards in both trashes”; “deletes an opposing Digimon at exactly 13000 DP on play”; “recovers one card when its play effect deletes no qualifying Digimon”; “also deletes a boundary target and recovers when digivolving”
 
 - Local KB lookup (2026-09-12): Q4629, Q4630; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-187 — Mastemon
 
@@ -1760,6 +1864,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-188 — DemiVeemon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -1769,6 +1875,8 @@ git diff --check
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-189 — Dimetromon
 
@@ -1780,13 +1888,17 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-190 — Tweetmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-190.ts) · [test](../../apps/api/src/cards/P/P-190.test.ts) · clause review (source removed; see History)<br>“encodes Appmon evolution and Link requirements”; “keeps its printed linked-only Draw 1 watcher”; “draws on play”; “draws the top card when played”; “does not draw when a different card is linked to this host”; “draws when P-190 itself is linked from hand to an Appmon host”; “rejects linking P-190 to a non-Appmon host”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-191 — Apollomon
 
@@ -1808,19 +1920,23 @@ git diff --check
 
 ### P-193 — The Wicked God Emerges!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-193.ts) · [test](../../apps/api/src/cards/P/P-193.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and battle-area placement behind trashing a Composite or Wicked God card”; “delays a Wicked God play behind deleting your Millenniummon and activates Main from Security”; “draws two after paying the Composite/Wicked God hand cost and places itself”; “activates its Main effect when revealed in Security”; “activates Delay to delete Millenniummon and play a Wicked God from trash”
 
 - Local KB lookup (2026-09-12): Q4987; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-194 — Aegiomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-194.ts) · [test](../../apps/api/src/cards/P/P-194.test.ts) · clause review (source removed; see History)<br>“requires a level 3 TS Digimon for evolution”; “has Blocker and Barrier, with inherited Barrier preserved”; “exposes Blocker and Barrier on the live Aegiomon”; “passes inherited Barrier through a real evolution stack”; “uses inherited Barrier to survive a battle deletion after the stack evolves”
 
 - Local KB lookup (2026-09-12): Q5576, Q5585, Q5670; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-195 — Inori Misono
 
@@ -1839,6 +1955,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q5760; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-197 — Patamon
 
@@ -1859,6 +1977,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q5762; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-199 — Dan Yuki
 
@@ -1886,6 +2006,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-202 — Tyrannomon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -1908,19 +2030,23 @@ git diff --check
 
 ### P-204 — Release of the Sealed Knight!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-204.ts) · [test](../../apps/api/src/cards/P/P-204.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and placement behind trashing an X Antibody or Chronicle card”; “grants Delay when either player's Digimon attacks and allows the Chronicle evolution”; “activates its Main effect from Security”; “draws two after trashing an X Antibody card and places itself”; “gains Delay when a Digimon makes a real attack”
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-205 — Insane Synthetic Monster
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-205.ts) · [test](../../apps/api/src/cards/P/P-205.test.ts) · clause review (source removed; see History)<br>“waives its color requirement only while you have a DM Digimon or Tamer”; “draws, trashes two, and places itself for Main and Security”; “deletes your low-cost Digimon and plays a named card from your trash with cost reduced by 3”; “draws two, trashes two cards, and places itself from Main”; “draws, trashes, and places itself from Security”; “activates Delay to delete a low-cost Digimon and play Millenniummon from trash”
 
 - Local KB lookup (2026-09-12): Q5200, Q5397; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-206 — Digital Gate Open
 
@@ -1940,6 +2066,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-208 — Merukimon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
@@ -1949,6 +2077,8 @@ git diff --check
 - Local KB lookup (2026-09-12): Q5400; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-209 — Titamon
 
@@ -1978,19 +2108,23 @@ git diff --check
 
 ### P-212 — Asuna Shiroki
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-212.ts) · [test](../../apps/api/src/cards/P/P-212.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of your main phase when the opponent has a Digimon”; “draws, trashes from hand, and deletes a level 3 opponent Digimon only for a matching trashed card”; “plays itself without paying the cost in security”; “draws, trashes a matching TS card, and deletes an opposing level-3 Digimon”; “gains memory at the start of main phase when the opponent has a Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-213 — Aegiochusmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-213.ts) · [test](../../apps/api/src/cards/P/P-213.test.ts) · clause review (source removed; see History)<br>“has Raid, Decode, and the Aegiomon digivolution requirement”; “gains Rush and 3000 DP at three or fewer security, then may attack”; “grants Rush and +3000 DP at three security, but not at four”; “still permits the optional attack when the three-security bonus condition is false”
 
 - Local KB lookup (2026-09-12): Q5763; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-214 — Betamon (X Antibody)
 
@@ -2050,11 +2184,13 @@ git diff --check
 
 ### P-221 — Chaosmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-221.ts) · [test](../../apps/api/src/cards/P/P-221.test.ts) · clause review (source removed; see History)<br>“naturally DNA digivolves from Yellow and Purple Lv.6 materials and records DNA immunity”; “reduces an opposing Digimon by exactly 10000 DP on When Digivolving”; “reduces an opposing Digimon by exactly 10000 DP when attacking”; “can choose an immune opposing Digimon, but its DP is not changed (Q5766)”; “has Security Attack +1 and the printed Partition requirement”; “grants DNA-only immunity to itself until the opponent's turn ends”; “gives one opposing Digimon -10000 DP on digivolution and when attacking”; “grants Security Attack +1 to a resident Chaosmon”
 
 - Local KB lookup (2026-09-12): Q5765, Q5766, Q5767, Q5768, Q5769, Q5770; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-222 — Rosemon
 
@@ -2086,59 +2222,73 @@ git diff --check
 
 ### P-225 — DigiLab
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-225.ts) · [test](../../apps/api/src/cards/P/P-225.test.ts) · clause review (source removed; see History)<br>“waives color requirements while you have a CS Digimon or Tamer”; “draws 1 and places itself in the battle area”; “delays a top-stack CS placement cost into 2 memory”; “places itself in the battle area from security”; “draws one and places itself in the battle area through Main”; “places itself in the battle area through Security”
 
 - Local KB lookup (2026-09-12): Q5774; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-227 — Unique Emblem: Primal Impact
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-227.ts) · [test](../../apps/api/src/cards/P/P-227.test.ts) · clause review (source removed; see History)<br>“reveals three, adds the two printed categories, and places itself”; “models the printed reactive Delay bullet”; “adds a Tyrannomon and LIBERATOR from the reveal and places itself”; “runs the printed Main reveal when this Option is checked in Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”; “does not activate for a wrong Tamer or when Delay is declined”; “does not activate when the emblem entered play this turn”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-228 — Unique Emblem: Frozen Crown
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-228.ts) · [test](../../apps/api/src/cards/P/P-228.test.ts) · clause review (source removed; see History)<br>“reveals three, adds Ice-Snow and LIBERATOR cards, and places itself”; “models the printed reactive Delay bullet”; “adds an Ice-Snow and LIBERATOR from the reveal and places itself”; “runs its reveal effect when checked from Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-229 — Unique Emblem: Narrative Ronde
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-229.ts) · [test](../../apps/api/src/cards/P/P-229.test.ts) · clause review (source removed; see History)<br>“reveals three, adds Puppet and LIBERATOR cards, and places itself”; “models the printed reactive Delay bullet”; “adds a Puppet and LIBERATOR from the reveal and places itself”; “runs its Puppet/LIBERATOR reveal when checked from Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-230 — Unique Emblem: Honeycomb Commander
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-230.ts) · [test](../../apps/api/src/cards/P/P-230.test.ts) · clause review (source removed; see History)<br>“reveals three, adds Royal Base text and LIBERATOR cards, and places itself”; “models the printed reactive Delay bullet”; “adds a card with Royal Base in its text and a LIBERATOR, then places itself”; “runs its Royal Base/LIBERATOR reveal when checked from Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”
 
 - Local KB lookup (2026-09-12): Q5964; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-231 — Unique Emblem: Invincibly Invisible
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-231.ts) · [test](../../apps/api/src/cards/P/P-231.test.ts) · clause review (source removed; see History)<br>“reveals three, adds Cyborg or Machine and LIBERATOR cards, and places itself”; “models the printed reactive Delay bullet”; “adds a Cyborg and LIBERATOR from the reveal and places itself”; “runs its Cyborg/LIBERATOR reveal when checked from Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-232 — Unique Emblem: Melting Recital
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-232.ts) · [test](../../apps/api/src/cards/P/P-232.test.ts) · clause review (source removed; see History)<br>“reveals three, adds an eligible Digimon and LIBERATOR card, and places itself”; “models the printed reactive Delay bullet”; “adds an Evil/Dark Dragon Digimon and LIBERATOR, then places itself”; “runs its Evil/Dark Dragon/LIBERATOR reveal when checked from Security”; “reacts to its named Tamer and digivolves at a cost reduced by three”; “digivolves from trash through the reactive Delay and trashes the emblem source”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-233 — Eri Karan
 
@@ -2150,27 +2300,33 @@ git diff --check
 
 ### P-234 — Yujin Ozora
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-234.ts) · [test](../../apps/api/src/cards/P/P-234.test.ts) · clause review (source removed; see History)<br>“reveals four cards and adds one supported trait”; “links from hand after a link card is trashed, with the suspend cost and reduction”; “plays without cost from Security”; “reveals four cards and adds one System/Life/Transmutation-family card on play”; “plays itself from Security”; “links a matching hand card after a Digimon's link card is trashed”
 
 - Local KB lookup (2026-09-12): Q6522; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-235 — Digital Accident Tactics Squad
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-235.ts) · [test](../../apps/api/src/cards/P/P-235.test.ts) · clause review (source removed; see History)<br>“requires a DATA SQUAD trait card and reveals three cards”; “gains two memory through Delay”; “places itself in the battle area from Security”; “adds a DATA SQUAD card from the top three and places itself”; “places itself after resolving its Security reveal”; “activates its armed Delay through the real effect intent and gains two memory”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-236 — Glowing Dawn
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-236.ts) · [test](../../apps/api/src/cards/P/P-236.test.ts) · clause review (source removed; see History)<br>“requires Glowing Dawn and reveals three cards before placement”; “gains two memory through Delay”; “places itself in the battle area from Security”; “adds a Glowing Dawn card from the top three and places itself”; “places itself after resolving its Security reveal”; “activates its armed Delay through the real effect intent and gains two memory”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-237 — Unique Emblem: Machina's Ascension
 
@@ -2182,11 +2338,13 @@ git diff --check
 
 ### P-238 — Destruction Cannon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-238.ts) · [test](../../apps/api/src/cards/P/P-238.test.ts) · clause review (source removed; see History)<br>“requires CS, deletes an opposing level 6 or lower Digimon, and places itself”; “permanently grants Delay after a CS Digimon attacks”; “deletes and places itself from Security”; “deletes an opposing level-6-or-lower Digimon and places itself”; “deletes an opposing Digimon and places itself when its Security effect resolves”; “grants Delay after a CS Digimon makes a real attack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-239 — DemiDevimon
 
@@ -2206,6 +2364,8 @@ git diff --check
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
+
 ### P-241 — Yujin Ozora
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
@@ -2224,11 +2384,13 @@ git diff --check
 
 ### P-243 — Digiseabass
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its real Security effect”
 
 - Local KB lookup (2026-09-12): Q6929; no errata entry; no restriction entry.
+
+- Current reaudit fixture hold (2026-09-12): normal deck or Security fixtures contain Digi-Eggs. Existing assertions require correction to legal regular-card fixtures and independent focused validation before current 10/10 acceptance.
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
