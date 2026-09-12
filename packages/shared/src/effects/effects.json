@@ -202382,12 +202382,11 @@
                     "kind": ["Digimon"],
                     "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
                   },
-                  "count": 1
+                  "count": 1,
+                  "sameTarget": true
                 },
                 "amount": 3000,
-                "duration": "forTheTurn",
-                "optional": true,
-                "abortOnDecline": true
+                "duration": "forTheTurn"
               },
               {
                 "kind": "AppFuse",
