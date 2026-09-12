@@ -191455,7 +191455,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
