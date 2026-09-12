@@ -103,7 +103,7 @@ build when it is stale.
 | BT14 | 102   | in-progress | 2026-09-10  | [BT14.md](BT14.md) |
 | BT15 | 102   | in-progress | 2026-09-10  | [BT15.md](BT15.md) |
 | BT16 | 102   | verified    | 2026-09-10  | [BT16.md](BT16.md) |
-| BT17 | 102   | verified    | 2026-09-09  | [BT17.md](BT17.md) |
+| BT17 | 102   | in-progress | 2026-09-09  | [BT17.md](BT17.md) |
 | BT18 | 102   | verified    | 2026-09-10  | [BT18.md](BT18.md) |
 | BT19 | 102   | verified    | 2026-09-09  | [BT19.md](BT19.md) |
 | BT20 | 102   | verified    | 2026-09-10  | [BT20.md](BT20.md) |

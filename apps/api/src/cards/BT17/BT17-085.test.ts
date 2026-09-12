@@ -1,10 +1,11 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-085.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import "./index.js";
 
 const RIKA = "BT17-085";
@@ -17,6 +18,46 @@ function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
 }
 
 describe("BT17-085 Rika Nonaka", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0034",
+      "Bracket-only Renamon, Kyubimon and Taomon references require exact names",
+      "c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2",
+    );
+  });
+  it("refuses Renamon X Antibody as the sole placement host before removing the Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIKA, as: "rika" },
+            { card: "EX8-031", as: "nearHost" },
+          ],
+          trash: [
+            { card: "BT17-032", as: "kyubimon" },
+            { card: "BT17-035", as: "taomon" },
+          ],
+          hand: [{ card: "BT17-038", as: "destination" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const rikaId = s.perm("rika").topCard.instanceId;
+    const materials = [s.inst("kyubimon").instanceId, s.inst("taomon").instanceId];
+    const destinationId = s.inst("destination").instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: rikaId, effectKey: mainEffectKey(s) }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === rikaId)).toBe(true);
+    expect(s.perm("nearHost").stack).toHaveLength(0);
+    expect(s.perm("nearHost").topCard.cardId).toBe("EX8-031");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(materials);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(destinationId);
+    expect(s.state.memory).toBe(4);
+  });
   it("matches the immutable catalog identity and all printed clauses", () => {
     expect(getCardDefinition(RIKA)).toMatchObject({
       nameEn: "Rika Nonaka",
@@ -91,6 +132,8 @@ describe("BT17-085 Rika Nonaka", () => {
           battleArea: [
             { card: RIKA, as: "rika" },
             { card: "BT17-031", as: "renamon" },
+            { card: "BT17-031", as: "otherRenamon" },
+            { card: "EX8-031", as: "nearHost" },
           ],
           hand: [{ card: "BT17-038", as: "sakuyamon" }],
           trash: [
@@ -119,6 +162,15 @@ describe("BT17-085 Rika Nonaka", () => {
       expect.arrayContaining([RIKA, "BT17-032", "BT17-035"]),
     );
     expect(s.state.memory).toBe(0);
+    expect(s.perm("nearHost").topCard.cardId).toBe("EX8-031");
+    expect(s.perm("nearHost").stack).toHaveLength(0);
+    expect(s.perm("otherRenamon").topCard.cardId).toBe("BT17-031");
+    expect(s.perm("otherRenamon").stack).toHaveLength(0);
+    const hostChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === RIKA);
+    expect(hostChoice?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("renamon").permanentId,
+      s.perm("otherRenamon").permanentId,
+    ]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });

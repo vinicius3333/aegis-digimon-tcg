@@ -164,7 +164,7 @@ Expanded tests include a duplicate exact Greymon choice, a near-named Agumon hos
 
 BT14 IR synchronization against `e65036cc1`: 102 records synchronized, one semantic card change, zero semantic or byte changes outside BT14. Expanded regression: 175 files / 1815 tests passed across BT14, the chapter 2 and chapter 15 timing conformance files, and engine effects. API typecheck and scoped Oxlint passed. Audit layout tests passed 4/4; generated index and diff checks passed. No whole-card or whole-set completion is claimed.
 
-Inspection of all 20 compound occurrences also found bracket-only substring filters in BT15-091, BT17-085, BT25-096, EX3-035, and ST17-10. BT15-091 and EX3-035 exact-name boundaries are corrected and reproduced below; BT17-085, BT25-096 and ST17-10 still need source-specific correction and public boundary proof. BT16-090, BT26-098, and EX13-071 already encode their relevant exact names. This classification is static inspection, not behavioral certification. General overlap and arbitrary ordering of stack placements remain unproved; EX3-035's specific ordered return is publicly reproduced below.
+Inspection of all 20 compound occurrences also found bracket-only substring filters in BT15-091, BT17-085, BT25-096, EX3-035, and ST17-10. BT15-091 and EX3-035 exact-name boundaries and BT17-085's host boundaries are corrected and reproduced below; BT25-096 and ST17-10 still need source-specific correction and public boundary proof. BT16-090, BT26-098, and EX13-071 already encode their relevant exact names. This classification is static inspection, not behavioral certification. General overlap and arbitrary ordering of stack placements remain unproved; EX3-035's specific ordered return is publicly reproduced below.
 
 ### BT15-091 payment and name boundaries
 
@@ -174,7 +174,7 @@ Public Option/Security actions reproduced six failures with four existing cases 
 
 `pnpm effects:sync:set -- --set BT15 --base 63632cf6a` synchronized 102 records with one semantic card change and zero semantic or byte changes outside BT15. A regression launched before synchronization completed correctly caught stale persisted IR (one sync test failed; 1911 tests passed); no assertions were weakened. After synchronization and the explicit temporal-order assertion, `pnpm --filter @aegis/api exec vitest run src/cards/BT15 src/cards/BT14/BT14-090.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/effects --maxWorkers=1 --no-file-parallelism` passed 175 files / 1912 tests. Full API typecheck, scoped Oxlint and audit layout (4/4) passed. Read-only independent review found no semantic or fixture blocker.
 
-This proves these consumer boundaries, not all compound payment policy or BT15 collection fidelity. BT17-085, BT25-096 and ST17-10 exact-name consumers, general candidate overlap, arbitrary stack ordering, targetless Option payment and cost-bearing evolution remain open. EX3-035's specific ordered-return boundaries are reproduced below.
+This proves these consumer boundaries, not all compound payment policy or BT15 collection fidelity. BT25-096 and ST17-10 exact-name consumers, general candidate overlap, arbitrary stack ordering, targetless Option payment and cost-bearing evolution remain open. BT17-085's host boundaries and EX3-035's specific ordered-return boundaries are reproduced below.
 
 ### EX3-035 exact-name return and player order
 
@@ -185,6 +185,16 @@ A public attack with only Magnadramon X Antibody as the first named payment repr
 `pnpm effects:sync:set -- --set EX3 --base 2e0811eea` synchronized 74 records with one semantic card change and zero semantic or byte changes outside EX3. `pnpm --filter @aegis/api exec vitest run src/cards/EX3 src/cards/BT14/BT14-090.test.ts src/cards/BT15/BT15-091.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch15-02-timing-and-resolution.test.ts src/engine/effects --maxWorkers=1 --no-file-parallelism` passed 149 files / 2057 tests. Full API typecheck and scoped Oxlint passed. Audit layout passed 4/4. All six changed files passed Oxfmt; `git diff --check` was clean. Independent read-only review found no semantic, fixture, visibility or order blocker.
 
 This proves EX3-035's particular ordered return with disjoint exact-name candidates, not general compound payment uniqueness or all return consumers. No artificial near-named Azulongmon or Megidramon definitions were introduced; current catalog has no distinct near-named variants. Historical EX3 completion has been reopened; a collection rerun alone does not restore full certification.
+
+### BT17-085 exact-name placement host
+
+Baseline `40904ef30`; catalog bracket-only Renamon, Kyubimon and Taomon; reviewed `comprehensive-0034` fingerprint `c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2`; [official Q2867/Q2868](https://world.digimoncard.com/rule/?card_no=BT17-085), checked 2026-09-12. Four filters now use exact names while the existing exact Sakuyamon destination stays unchanged.
+
+Public Main activation with only Renamon X Antibody as a placement host incorrectly succeeded; a mixed-host positive incorrectly offered X as a host. After correcting the fixture to force a real choice between two exact hosts, restoring the old module reproduced two failures / seven passes and restoring the corrected module passed nine tests. Refusal retains the Tamer, both material instances, destination, memory and no decision; the mixed-host positive chooses between only the two exact hosts and keeps all placements/evolution on the selected one. All focused tests pin the reviewed fingerprint. No artificial Kyubimon/Taomon aliases were fabricated; the current catalog has no distinct near-named variants. The sole card ledger is `docs/audits/BT17.md` and its historical completion claim is reopened.
+
+`pnpm effects:sync:set -- --set BT17 --base 40904ef30` synchronized 102 records with one semantic card change and zero semantic or byte changes outside BT17. `pnpm --filter @aegis/api exec vitest run src/cards/BT17 src/cards/BT14/BT14-090.test.ts src/cards/BT15/BT15-091.test.ts src/cards/EX3/EX3-035.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch15-02-timing-and-resolution.test.ts src/engine/effects --maxWorkers=1 --no-file-parallelism` passed 184 files / 2417 tests. Full API typecheck and scoped Oxlint passed. Independent read-only review found no semantic, fixture or bounded-claim blocker.
+
+Arbitrary printed stack order, targetless declaration/payment policy, full conditional-return fidelity and complete equivalence-class proof are still open. This consumer correction does not certify general compound payment or BT17 collection completion.
 
 ### Current primary-source check
 
