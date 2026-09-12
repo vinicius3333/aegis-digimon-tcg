@@ -8,6 +8,7 @@ import "../../cards/index.js";
 
 describe("Ascension through public battle deletion", () => {
   it.each([
+    { card: "BT25-034", base: "BT1-052", ascends: true },
     { card: "BT25-040", base: "BT1-052", ascends: true },
     { card: "BT26-029", base: "BT1-052", ascends: true },
     { card: "BT1-052", base: "BT1-045", ascends: false },
@@ -151,10 +152,12 @@ describe("Ascension through public battle deletion", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-030", as: "pumpkinmon" },
             { card: "BT24-019", as: "iliad", suspended: true },
           ],
-          hand: [{ card: "BT1-009", as: "cost" }],
+          hand: [
+            { card: "BT26-030", as: "pumpkinmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-011"] },
       },
@@ -163,8 +166,14 @@ describe("Ascension through public battle deletion", () => {
     preferred.push(s.perm("iliad").permanentId);
     const grantedId = s.perm("iliad").topCard.instanceId;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("pumpkinmon"));
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
     expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
 
     s.state.turnSeat = 1;
     expect(
@@ -180,4 +189,5 @@ describe("Ascension through public battle deletion", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     assertNoLoudGap(s);
   });
+
 });
