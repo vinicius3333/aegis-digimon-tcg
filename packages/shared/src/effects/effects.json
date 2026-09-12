@@ -201486,7 +201486,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Mirai Kinosaki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Mirai Kinosaki"], "match": "nameExact" }]
             },
             "actions": [
               {
