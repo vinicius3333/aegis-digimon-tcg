@@ -194310,7 +194310,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["trash"],
@@ -194326,7 +194329,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
