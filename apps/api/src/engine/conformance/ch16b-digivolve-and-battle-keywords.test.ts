@@ -843,6 +843,95 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
       await loop;
     },
   );
+  it.each(["EX3-030", "EX3-031"])("%s binds Rush only to the Dragon in a public mixed play", async (source) => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-033", as: "sourceHost", under: [source] },
+            { card: "BT1-053", as: "olderDragon" },
+            "BT1-086",
+            {
+              card: "BT1-084",
+              as: "batchHost",
+              under: [
+                { card: "BT1-009", as: "unrelatedPlay" },
+                { card: "EX3-025", as: "secondDragon" },
+                { card: "EX3-035", as: "retainedDragon" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT7-097", as: "option" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoOrderTriggers: true, autoOrderCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const optionId = s.inst("option").instanceId;
+    const firstId = s.inst("unrelatedPlay").instanceId;
+    const secondId = s.inst("secondDragon").instanceId;
+    const unrelatedId = s.inst("retainedDragon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const hostDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("batchHost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const materialsDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: materialsDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [firstId, secondId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((c) => c.instanceId === optionId) ||
+        s.state.pendingDecision?.kind === "chooseTargets",
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === optionId)).toBe(true);
+    const first = s.perm("unrelatedPlay");
+    const second = s.perm("secondDragon");
+    expect(observe(s.engine).hasKeyword(first, "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("olderDragon"), "Rush")).toBe(false);
+    expect(s.perm("batchHost").stack.map((c) => c.instanceId)).toEqual([unrelatedId]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === source)).toHaveLength(
+      0,
+    );
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: first.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: second.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+    expect(first.isSuspended).toBe(false);
+    expect(second.isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(false);
+    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === second.permanentId)).toBe(second);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
