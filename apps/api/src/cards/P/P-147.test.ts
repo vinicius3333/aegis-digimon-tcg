@@ -164,14 +164,33 @@ describe("P-147 Pal", () => {
           hand: [
             { card: "P-150", as: "firstPulse" },
             { card: "P-150", as: "secondPulse" },
+            { card: "P-150", as: "thirdPulse" },
           ],
-          security: ["BT1-009", "BT1-009", "BT1-028", "BT1-028", "BT1-048"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: [
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const attack = () =>
       s.engine.applyIntent(0, {
         type: "attack" as const,
@@ -185,5 +204,14 @@ describe("P-147 Pal", () => {
     await settle();
     expect(s.perm("pal").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondPulse").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("pal").stack).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
