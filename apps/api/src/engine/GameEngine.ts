@@ -2418,12 +2418,14 @@ export class GameEngine {
    * redirect's `PermanentCondition`).
    */
   private digisorptionSuspendCandidates(seat: Seat, excludeRedirectorInstanceId?: string): Permanent[] {
-    const own = this.access.player(seat).battleArea.filter((p) => this.access.isBattleAreaDigimon(p) && !p.isSuspended);
+    const canSuspend = (permanent: Permanent): boolean =>
+      this.access.isBattleAreaDigimon(permanent) &&
+      !permanent.isSuspended &&
+      !this.continuous.hasRestriction(permanent.permanentId, "beSuspended");
+    const own = this.access.player(seat).battleArea.filter(canSuspend);
     if (this.digisorptionRedirector(seat, excludeRedirectorInstanceId) === undefined) return own;
     const opponentSeat = this.access.opponentOf(seat);
-    const opponent = this.access
-      .player(opponentSeat)
-      .battleArea.filter((p) => this.access.isBattleAreaDigimon(p) && !p.isSuspended);
+    const opponent = this.access.player(opponentSeat).battleArea.filter(canSuspend);
     return [...own, ...opponent];
   }
 
@@ -2471,16 +2473,15 @@ export class GameEngine {
     const target = chosen.length >= 1 ? byInstanceId.get(chosen[0]!) : undefined;
     if (target === undefined) return 0;
 
-    // Redirect once-per-turn: when the chosen Digimon is an opponent's, the BT3-056 redirect was
-    // used — record its use so it can't redirect a second ＜Digisorption＞ this turn (documented behavior
-    // isOverMaxCountPerTurn on the WhenDigisorption effect).
-    if (target.controllerSeat !== seat) {
-      const redirector = this.digisorptionRedirector(seat, into.instanceId);
-      if (redirector === undefined) return 0;
-      this.tracker.register(redirector.sourceInstanceId, redirector.effectKey);
-    }
+    const redirector = target.controllerSeat !== seat ? this.digisorptionRedirector(seat, into.instanceId) : undefined;
+    if (target.controllerSeat !== seat && redirector === undefined) return 0;
+    // Commit usage only after an actual transition, before its triggered reactions.
+    // A prohibited or stale payment grants neither the discount nor a spent redirect.
+    const suspended = await this.primitives.suspend([target.permanentId], { byEffectSeat: seat, deferTriggers: true });
+    if (!suspended.includes(target.permanentId)) return 0;
+    if (redirector !== undefined) this.tracker.register(redirector.sourceInstanceId, redirector.effectKey);
+    await this.primitives.fireSuspensionTriggers?.(suspended, { byEffectSeat: seat });
 
-    await this.primitives.suspend([target.permanentId], { byEffectSeat: seat });
     return amount;
   }
 

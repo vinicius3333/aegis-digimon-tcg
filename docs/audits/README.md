@@ -89,7 +89,7 @@ build when it is stale.
 | AD1  | 25    | verified    | 2026-09-10  | [AD1.md](AD1.md)   |
 | BT1  | 115   | verified    | 2026-09-10  | [BT1.md](BT1.md)   |
 | BT2  | 112   | verified    | 2026-09-10  | [BT2.md](BT2.md)   |
-| BT3  | 112   | verified    | 2026-09-10  | [BT3.md](BT3.md)   |
+| BT3  | 112   | incomplete  | 2026-09-10  | [BT3.md](BT3.md)   |
 | BT4  | 115   | verified    | 2026-09-10  | [BT4.md](BT4.md)   |
 | BT5  | 112   | verified    | 2026-09-10  | [BT5.md](BT5.md)   |
 | BT6  | 112   | verified    | 2026-09-10  | [BT6.md](BT6.md)   |

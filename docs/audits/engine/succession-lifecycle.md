@@ -2,7 +2,15 @@
 
 ## Status
 
-Latest bounded correction at baseline `ee85c20e7`: public BT3-056 → BT26-032
+Latest bounded correction at baseline `edbf770b9`: native and copied
+Digisorption granted a three-memory discount when source-free BT19-101 could
+not be suspended. Both legal public cases fail on the baseline. Payment
+candidates now exclude suspension restrictions; the actual primitive must
+return the paid permanent before either discount or usage is committed. Usage
+is committed before deferred suspension reactions run. Full certification
+remains open, and BT3-056 joins the provisional below-ten caps.
+
+Earlier bounded correction at baseline `ee85c20e7`: public BT3-056 → BT26-032
 formation exposes a copied persistent Digisorption redirect. The old cost query
 ignored it, charging five instead of two on the following evolution. The query
 now reads active stack-effect conferrals and retains lender/granter-qualified
@@ -222,6 +230,45 @@ Exact closing commands: `pnpm --filter @aegis/api test`, `pnpm typecheck`,
 `pnpm exec oxlint apps/api/src/engine/GameEngine.ts apps/api/src/engine/conformance/keyword-succession-lifecycle.test.ts`,
 changed-file Oxfmt, `pnpm audit:index`, and `git diff --check`.
 No optional Postgres or GUI certification is claimed.
+
+## Actual suspension payment checkpoint
+
+`keyword-succession-lifecycle.test.ts` now has 18 cases. Two new public cases
+use source-free BT19-101's printed prohibition in native and formed-copy
+contexts. Baseline: 2 red / 12 green; corrected payment charges five, leaves the
+opposing target unsuspended and resolves without a loud gap. The printed
+prohibition is implemented in its existing IR; no card module or persisted IR
+was changed for this correction.
+
+Two further public cases suspend an ordinary opposing Digimon, triggering
+BT25-059 Ceresmon's All Turns reaction. With four suspended Digimon, the chosen
+BT6-063 is reduced to zero DP and deleted. The payment target remains suspended,
+the watcher remains unsuspended, and the evolution costs two. In the copied
+case, the legal BT3-056 → BT26-032 formation first costs two. Exact surviving
+field/trash identities and settled decisions distinguish successful payment
+from a skipped reaction. An initial invalid harness preference assertion was
+corrected to manually choose the payment and prefer only the reaction target;
+that discarded fixture failure is not an engine defect.
+
+Two **supplemental** cases use the named one-shot `advance.failNextSuspension`
+affordance to return no paid IDs. This is fault injection, not a real in-game
+replacement/prevention producer. The first evolution pays five and leaves the
+target unsuspended; the second pays two and suspends it. Intermediate memory
+assertions prevent the equal final total from hiding prematurely consumed
+redirect usage. The primitive is restored in a finally block.
+
+Focused conformance plus the testkit seam guard passes 2 files / 19 tests before
+final formatting. The final formatted source passes the full API: 5112 files / 42351 tests,
+zero expected failures, in 54.33 seconds. Workspace shared/API/web typecheck
+passes. Removing only the successful-transition guard fails 2 / 18 with
+16 controls green; removing only reaction dispatch also fails 2 / 18 with
+16 controls green. Both exact mutations are byte-restored. Independent
+read-only review found no blocker. The previous 42345-test gate belongs to
+the earlier correction. Final scoped lint, format, layout, 66-set index and
+diff checks are recorded at delivery.
+Multiple-provider choice, real failed-transition replacement producers,
+source-kind-qualified immunity, source/granter loss and next-turn reset remain
+open. These six cases do not certify all Digisorption or Succession shapes.
 
 ## Open items
 

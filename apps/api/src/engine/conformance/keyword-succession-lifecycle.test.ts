@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { observe } from "../testkit/observe.js";
+import { advance } from "../testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
@@ -144,7 +145,7 @@ describe("Succession committed consumer evolution", () => {
     assertNoLoudGap(s);
   });
 
-  it.each(["copied", "printed", "absent", "refused"] as const)(
+  it.each(["copied", "printed", "absent", "refused", "blockedCopied", "blockedPrinted"] as const)(
     "public Digisorption payment with %s redirect",
     async (mode) => {
       cite(
@@ -172,7 +173,11 @@ describe("Succession committed consumer evolution", () => {
             deck: [NEUTRAL, "BT1-028", "BT1-028"],
             security: [NEUTRAL],
           },
-          1: { battleArea: [{ card: NEUTRAL, as: "payment" }], deck: [NEUTRAL], security: ["BT1-028"] },
+          1: {
+            battleArea: [{ card: mode.startsWith("blocked") ? "BT19-101" : NEUTRAL, as: "payment" }],
+            deck: [NEUTRAL],
+            security: ["BT1-028"],
+          },
         },
         options,
       );
@@ -183,7 +188,7 @@ describe("Succession committed consumer evolution", () => {
       const evolutionId = s.inst("evolution").instanceId;
       const successionId = s.inst("succession").instanceId;
       const paymentId = s.inst("payment").instanceId;
-      const copied = mode === "copied" || mode === "refused";
+      const copied = mode === "copied" || mode === "refused" || mode === "blockedCopied";
       const formationResult = copied
         ? s.engine.applyIntent(0, {
             type: "digivolve",
@@ -300,6 +305,168 @@ describe("Succession committed consumer evolution", () => {
     expect(s.state.players[0]!.hand).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it.each([false, true])("supplemental failed suspension preserves redirect usage, copied %s", async (copied) => {
+    const options = {
+      autoDeclineOptional: true,
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      autoChooseOption: true,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-056", as: "host", suspended: true },
+            { card: "BT1-077", as: "firstBase", suspended: true },
+            { card: "BT1-077", as: "secondBase", suspended: true },
+          ],
+          hand: [
+            { card: "BT26-032", as: "succession" },
+            { card: "BT2-050", as: "firstEvolution" },
+            { card: "BT2-050", as: "secondEvolution" },
+          ],
+          deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-028"],
+          security: ["BT1-028"],
+        },
+        1: { battleArea: [{ card: NEUTRAL, as: "payment" }], deck: [NEUTRAL], security: ["BT1-028"] },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const formation = copied
+      ? s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("succession").instanceId,
+          useAlternateCost: true,
+        })
+      : undefined;
+    expect(formation).toEqual(copied ? { ok: true } : undefined);
+    if (copied) await settle(() => s.perm("host").topCard.cardId === "BT26-032");
+    await settle();
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    // The fault is injected at the existing primitive seam, not attributed to a real card.
+    const restore = advance(s.engine).failNextSuspension();
+    try {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("firstBase").permanentId,
+          instanceId: s.inst("firstEvolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("firstBase").topCard.cardId === "BT2-050");
+      await settle();
+      expect(s.state.memory).toBe(copied ? 3 : 5);
+      expect(s.perm("payment").isSuspended).toBe(false);
+    } finally {
+      restore();
+    }
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondBase").topCard.cardId === "BT2-050");
+    await settle();
+    expect(s.state.memory).toBe(copied ? 1 : 3);
+    expect(s.perm("payment").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it.each([false, true])("public paid suspension resolves Ceresmon's reaction, copied %s", async (copied) => {
+    const preferred: string[] = [];
+    const options = {
+      autoDeclineOptional: true,
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      preferInstanceIds: preferred,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-056", as: "host", suspended: true },
+            { card: "BT1-077", as: "base", suspended: true },
+            { card: "BT25-059", as: "watcher" },
+          ],
+          hand: [
+            { card: "BT26-032", as: "succession" },
+            { card: "BT2-050", as: "evolution" },
+          ],
+          deck: [NEUTRAL, "BT1-028", "BT1-028"],
+          security: [NEUTRAL],
+        },
+        1: {
+          battleArea: [
+            { card: NEUTRAL, as: "payment" },
+            { card: "BT6-063", as: "reactionTarget", suspended: true },
+          ],
+          deck: [NEUTRAL],
+          security: ["BT1-028"],
+        },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const reactionId = s.inst("reactionTarget").instanceId;
+    const paymentId = s.inst("payment").instanceId;
+    preferred.push(reactionId);
+    const formation = copied
+      ? s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("succession").instanceId,
+          useAlternateCost: true,
+        })
+      : undefined;
+    expect(formation).toEqual(copied ? { ok: true } : undefined);
+    if (copied) await settle(() => s.perm("host").topCard.cardId === "BT26-032");
+    await settle();
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    options.autoSelectCards = false;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const paymentDecision = s.state.pendingDecision!;
+    const paymentCandidates = s.decisions.at(-1)!.req.options?.candidateInstanceIds;
+    expect(paymentCandidates).toContain(paymentId);
+    expect(paymentCandidates).not.toContain(reactionId);
+    options.autoSelectCards = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: paymentDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [paymentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT2-050");
+    await settle();
+    expect(s.state.memory).toBe(copied ? 6 : 8);
+    expect(s.perm("payment").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([paymentId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([reactionId]);
+    expect(s.perm("watcher").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
