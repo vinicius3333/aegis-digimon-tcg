@@ -195355,7 +195355,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Patamon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Patamon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195367,7 +195370,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Angemon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["Angemon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
