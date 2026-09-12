@@ -84,6 +84,9 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
   evolution/attack timings and P-204's accepted/declined Delay evolution.
 
 
+- Accepted restart checkpoint (2026-09-12): Memory Boost player attack target typing corrected in `7f4c13bbc`; root focused validation of P035–P040 plus P171 passed 7 files / 28 tests. Full `pnpm typecheck` then passed shared, API and web with serialized workspace execution and a 4 GB heap. System memory was 72% free. P171 public hooks accepted in `95260b584`; current accepted tally is 212/249 at 10/10, with 37 proof holds. These are checkpoints; closing collection gates remain pending.
+- P179 source reconciliation (2026-09-12): the [official Japanese card list](https://digimoncard.com/cards/index.php?notes=%E3%83%86%E3%82%A4%E3%83%9E%E3%83%BC%E3%83%90%E3%83%88%E3%83%AB%E3%83%91%E3%83%83%E3%82%AF27%E5%84%AA%E5%8B%9D&search=true) and [official English printed text](https://world.digimoncard.com/cards/?card_no=P-179&search=true) both require trashing the controller's own battle-area Option. Japanese Q4849 describes placed Options without specifying an opponent; the English Q4849 question erroneously says opponent. The English card list explicitly gives Japanese text priority. Current IR incorrectly targets an opponent Option; repair and public shared-once cycle are pending. Catalog text already agrees with the winning printed source.
+
 ## Gates
 
 Current 2026-09-12 gate results on the new worktree at base `de4dda717`:
@@ -1783,14 +1786,13 @@ git diff --check
 
 ### P-171 — Pukumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-171.ts) · [test](../../apps/api/src/cards/P/P-171.test.ts) · clause review (source removed; see History)<br>“reduces its play cost by 4 only with face-up Deep Savers in security”; “has Blocker, trashes the top 2 sources from every opposing Digimon, then deletes an empty one”; “performs the same all-stacks source trash and empty-stack deletion when digivolving”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
-
+- Independently accepted public-action repair (2026-09-12, 95260b584): public play resolves all opposing source trash before empty-stack deletion; public Blue level-5 evolution pays 3 memory (10→7), retains the exact original base source, and resolves the printed When Digivolving deletion using legal opposing source chains. Root focused validation: P035–P040 plus P171, 7 files / 28 tests green; Oxfmt, Oxlint and git diff --check clean.
 ### P-172 — Magnadramon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
