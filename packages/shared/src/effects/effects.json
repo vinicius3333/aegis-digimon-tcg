@@ -199873,7 +199873,7 @@
                   "filter": {
                     "controller": "mine",
                     "levelComparison": { "op": "lte", "value": 4 },
-                    "nameOrTrait": [{ "tokens": ["Demon"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Demon", "Titan"], "match": "trait" }]
                   },
                   "count": 1
                 },

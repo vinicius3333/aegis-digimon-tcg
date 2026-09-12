@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   [On Play][When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's
 //     Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.
 //   [All Turns][Once Per Turn] When your hand is trashed from, you may play 1 level 4 or lower
-//     [Demon] card from your trash without paying the cost.
+//     [Demon] or [Titan] card from your trash without paying the cost.
 //
 // KB Q5401: if the "by" condition (trash 1 card from hand) is not performed, the rest does not activate.
 // Encoding: Trash is the cost (optional to engage the whole effect; abortOnDecline prevents the
@@ -112,7 +112,7 @@ const compiled: CompiledCard = {
     },
     {
       // [All Turns][Once Per Turn] When your hand is trashed from (cards from hand are trashed),
-      // you may play 1 level 4 or lower [Demon] card from trash without paying the cost.
+      // you may play 1 level 4 or lower [Demon] or [Titan] card from trash without paying the cost.
       trigger: "AllTurns",
       actions: [
         {
@@ -133,7 +133,7 @@ const compiled: CompiledCard = {
                   },
                   nameOrTrait: [
                     {
-                      tokens: ["Demon"],
+                      tokens: ["Demon", "Titan"],
                       match: "trait",
                     },
                   ],
