@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-149.js";
 
 describe("P-149 Minomon", () => {
@@ -33,18 +35,31 @@ describe("P-149 Minomon", () => {
     );
   });
 
-  it("trashes a card to delete an opposing level-3 Digimon when the host has two colors", async () => {
+  it("re-arms the inherited deletion on the next natural owner turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "P-152", as: "host", under: ["P-149"] }],
-          hand: [{ card: "ST1-16", as: "cost" }],
+          battleArea: [{ card: "BT16-017", as: "host", under: ["P-149"] }],
+          hand: [{ card: "ST1-16", as: "costOne" }, { card: "ST1-16", as: "costTwo" }, "BT1-009"],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "level3" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-009", as: "second" },
+          ],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -52,8 +67,68 @@ describe("P-149 Minomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("costOne").instanceId);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("costTwo").instanceId);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("costTwo").instanceId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not pay or delete when the host has only one color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-071", as: "host", under: ["P-149"] }],
+          hand: [{ card: "ST1-16", as: "cost" }, "BT1-009"],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("cost").instanceId);
   });
 });
