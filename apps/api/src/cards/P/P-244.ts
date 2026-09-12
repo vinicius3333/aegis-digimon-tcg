@@ -1,6 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const vemmonExact = [{ tokens: ["Vemmon"], match: "nameExact" as const }];
 const vemmonText = [{ tokens: ["Vemmon"], match: "text" as const }];
 
 export const compiled: CompiledCard = {
@@ -12,7 +13,7 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Vemmon", "Zenith"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Vemmon", "Zenith"], match: "nameExact" }] },
             count: 1,
           },
           from: ["hand", "trash"],
@@ -24,14 +25,14 @@ export const compiled: CompiledCard = {
     },
     {
       effectKey: "P-244/delay-digivolve",
-      trigger: "AllTurns",
+      trigger: "YourTurn",
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          addedDigivolutionCardFilter: { nameOrTrait: vemmonText },
+          sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
+          addedDigivolutionCardFilter: { nameOrTrait: vemmonExact },
           actions: [
             {
               kind: "Digivolve",
