@@ -76,7 +76,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Arisa Kinosaki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

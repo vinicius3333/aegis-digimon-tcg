@@ -195659,7 +195659,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "nameExact" }]
               },
               "raw": "you have [Arisa Kinosaki]"
             }
