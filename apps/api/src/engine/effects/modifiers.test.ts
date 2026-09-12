@@ -257,6 +257,8 @@ describe("ModifierLedger sweep by duration boundary", () => {
     const permanent = s.perm("p1");
     const ledger = new ModifierLedger();
     ledger.addDpModifier(s.state, permanent.permanentId, 1000, EffectDuration.UntilEndAttack);
+    ledger.sweep(s.state, "endBattle", 0);
+    expect(permanent.currentDP).toBe(4000);
     ledger.sweep(s.state, "endAttack", 0);
     expect(permanent.currentDP).toBe(3000);
   });

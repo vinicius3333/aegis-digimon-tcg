@@ -498,7 +498,7 @@ function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSea
     case EffectDuration.UntilEachTurnEnd:
       return boundary === "eachTurnEnd" || boundary === "ownerTurnEnd" || boundary === "opponentTurnEnd";
     case EffectDuration.UntilEndAttack:
-      return boundary === "endAttack" || boundary === "endBattle";
+      return boundary === "endAttack";
     case EffectDuration.UntilEndBattle:
       return boundary === "endBattle";
     case EffectDuration.UntilOwnerActivePhase:

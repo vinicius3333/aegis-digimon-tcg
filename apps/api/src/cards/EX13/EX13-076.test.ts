@@ -82,11 +82,8 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
   });
 
   it("compiles every printed clause into the committed IR", () => {
-    // `partial`: the ＜Iceclad＞ grant that implements "in this battle" outlives the battle —
-    // see the retained `it.fails` at the end of this file.
-    expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "partial" });
-    expect(compiled.residual).toHaveLength(1);
-    expect(compiled.residual![0]).toContain("sweepCombatDurations");
+    expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full" });
+    expect(compiled.residual).toEqual([]);
     expect(compiled.effects.some(({ isInherited }) => isInherited)).toBe(false);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
 
@@ -703,20 +700,7 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.perm("paladin").isSuspended).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // RETAINED RED — "Compare the number of digivolution cards instead of DP in this battle."
-  // ---------------------------------------------------------------------------
-
-  // The ＜Iceclad＞ grant that implements the printed sentence is installed for the narrowest real
-  // `EffectDurationRef`, `untilEndOfBattle` -> `EffectDuration.UntilEndBattle`. Nothing sweeps that
-  // boundary after a DIRECT battle: `GameEngine.sweepCombatDurations()` (GameEngine.ts:1705) is the
-  // only caller of `continuous.sweep(state, "endBattle", ...)`, and it runs solely from
-  // `CombatController.cleanup()` (combat/controller.ts:1836) at the END OF AN ATTACK. A `Battle`
-  // action goes through `forceBattle` -> `resolveBattle`, which never reaches `cleanup()`, so the
-  // count-comparison grant survives the single battle it is printed for and would also apply to a
-  // later battle in the same turn. Expected: no ＜Iceclad＞ on the host once the battle is over.
-  // Actual: the grant is still live. Needs an engine lane to sweep `endBattle` per battle.
-  it.fails("drops the count-comparison grant once the battle it was printed for is over", async () => {
+  it("drops the count-comparison grant once the battle it was printed for is over", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }], deck: DECK, security: [FILLER_B] },
@@ -735,5 +719,67 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     await settle();
 
     expect(observe(s.engine).hasKeyword(s.perm("paladin"), "IceClad")).toBe(false);
+  });
+  it("ends the source-count grant after public evolution before the next security battle", async () => {
+    const stronger = "BT12-112";
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ROYAL_LV6, as: "base" }],
+          hand: [{ card: cardId, as: "paladin" }, FILLER_A],
+          deck: [FILLER_A, FILLER_C],
+          security: [FILLER_C],
+        },
+        1: {
+          battleArea: [{ card: stronger, as: "victim", under: [{ card: FILLER_C, as: "returnedSource" }] }],
+          deck: [{ card: FILLER_A, as: "deckTop" }],
+          security: [{ card: stronger, as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const baseId = s.inst("base").instanceId;
+    const paladinId = s.inst("paladin").instanceId;
+    const victimId = s.inst("victim").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: paladinId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === victimId) && s.state.pendingDecision === undefined,
+    );
+    const paladin = s.perm("paladin");
+    expect(paladin.currentDP).toBe(16000);
+    expect(paladin.stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("deckTop").instanceId,
+      s.inst("returnedSource").instanceId,
+    ]);
+    expect(observe(s.engine).hasKeyword(paladin, "IceClad")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: paladin.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual([baseId, paladinId].sort());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [victimId, s.inst("security").instanceId].sort(),
+    );
+    expect(s.state.memory).toBe(5);
+    assertNoLoudGap(s);
   });
 });

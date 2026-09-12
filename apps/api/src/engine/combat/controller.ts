@@ -240,6 +240,8 @@ export interface CombatHooks {
    * combat unit tests (which pass a minimal hooks object) need no change.
    */
   sweepEndOfAttack?: () => void;
+  /** Expire battle durations after all Digimon-battle reactions, preserving attack durations. */
+  sweepEndOfBattle?: () => Promise<void>;
   /**
    * The shared continuous-rule reader (ContinuousEffectLedger). When supplied, the
    * block window only offers Digimon with ＜Blocker＞ and no `block` restriction
@@ -252,8 +254,8 @@ export interface CombatHooks {
   /** Number of independent Alliance instances currently active on the attacker. */
   allianceCount?: (permanentId: string) => number;
   /**
-   * Add a battle-scoped DP modifier (UntilEndBattle). Used by ＜Alliance＞ (§16-24) to
-   * boost the attacking Digimon's DP for the current battle. The modifier is cleaned
+   * Add an attack-scoped DP modifier (UntilEndAttack). Used by ＜Alliance＞ (§16-24) to
+   * boost the attacking Digimon's DP for the current attack. The modifier is cleaned
    * up by `sweepEndOfAttack`. Optional so combat unit tests (minimal hooks) keep the
    * base behavior.
    */
@@ -1355,6 +1357,11 @@ export class CombatController {
   }
 
   private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+    await this.resolveDigimonBattleResult(attacker, defender);
+    await this.hooks.sweepEndOfBattle?.();
+  }
+
+  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
     const continuous = this.hooks.continuous;
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,

@@ -95,8 +95,8 @@ const mayChooseBattleTarget: Action = {
 // EITHER battler carries the keyword, so granting it to this Digimon for the battle is the printed
 // sentence rather than an approximation. Granted BEFORE the strip and the battle so the metric is
 // already in place when `forceBattle` compares.
-// `untilEndOfBattle` is the narrowest real `EffectDurationRef` for "in this battle" — see the
-// retained residual: nothing sweeps the `endBattle` boundary after a direct (non-attack) battle.
+// `untilEndOfBattle` is swept after the generated battle and its reactions, independently
+// of any enclosing attack; subsequent battles no longer inherit this comparison rule.
 const compareDigivolutionCards: Action = {
   kind: "GainKeyword",
   target: self,
@@ -212,10 +212,8 @@ export const compiled: CompiledCard = {
       ],
     },
   ],
-  coverage: "partial",
-  residual: [
-    "Compare the number of digivolution cards instead of DP in this battle. — the ＜Iceclad＞ grant is installed for `untilEndOfBattle`, but EffectDuration.UntilEndBattle is only swept by GameEngine.sweepCombatDurations (GameEngine.ts:1705), which runs solely from CombatController.cleanup() at the END OF AN ATTACK. A direct (non-attack) battle never crosses that boundary, so the count-comparison grant survives the single battle it is printed for and leaks into any later battle in the same turn.",
-  ],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 6, traits: ["Free", "Royal Knight"], cost: 5, isAlternate: true }],
   assemblyRequirement: [
     {

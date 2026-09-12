@@ -232487,10 +232487,8 @@
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "Compare the number of digivolution cards instead of DP in this battle. — the ＜Iceclad＞ grant is installed for `untilEndOfBattle`, but EffectDuration.UntilEndBattle is only swept by GameEngine.sweepCombatDurations (GameEngine.ts:1705), which runs solely from CombatController.cleanup() at the END OF AN ATTACK. A direct (non-attack) battle never crosses that boundary, so the count-comparison grant survives the single battle it is printed for and leaks into any later battle in the same turn."
-    ],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [{ "level": 6, "traits": ["Free", "Royal Knight"], "cost": 5, "isAlternate": true }],
     "assemblyRequirement": [
       {

@@ -1011,13 +1011,14 @@ export class GameEngine {
           return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes("Piercing");
         })(),
       addDpModifier: (permanentId, delta) =>
-        this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndBattle),
+        this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndAttack),
       addSecurityAttack: (permanentId) =>
         this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
+      sweepEndOfBattle: () => this.sweepBattleDurations(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -1752,15 +1753,20 @@ export class GameEngine {
     }
   }
 
-  /**
-   * Expire attack/battle-scoped durations at the end of an attack and re-derive the
-   * continuous tier (the combat analogue of {@link sweepDurations}). `endBattle`
-   * subsumes `endAttack`, so one sweep at each boundary suffices; the sweep is
-   * owner-agnostic (the seat argument is unused for these durations).
-   */
-  private async sweepCombatDurations(): Promise<void> {
+  /** Expire battle grants after its reactions, independently of the enclosing attack. */
+  private async sweepBattleDurations(): Promise<void> {
     this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
     this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+    this.recomputeExpiredAffectationRecipients();
+    await this.recomputeContinuousEffects();
+  }
+
+  /** Expire attack grants, including unused battle grants when no battle occurred. */
+  private async sweepCombatDurations(): Promise<void> {
+    for (const boundary of ["endBattle", "endAttack"] as const) {
+      this.modifiers.sweep(this.state, boundary, this.state.turnSeat);
+      this.continuous.sweep(this.state, boundary, this.state.turnSeat);
+    }
     this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
   }
