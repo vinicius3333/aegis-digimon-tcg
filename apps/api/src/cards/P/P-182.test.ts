@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-182.js";
 
@@ -53,30 +51,51 @@ describe("P-182 WarGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("wargrey"), "Blocker")).toBe(true);
   });
 
-  it("deletes only an opposing Digimon at or below its DP and counts distinct allied colors", async () => {
+  it("publicly digivolves from catalog MetalGreymon, pays 3, and deletes at the DP boundary", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "P-182", dp: 10000, as: "wargrey" },
+            { card: "BT1-021", as: "base" },
             { card: "P-016", as: "purple" },
             { card: "BT1-063", as: "yellow" },
           ],
+          hand: [{ card: "P-182", as: "wargrey" }, "BT1-013"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", dp: 10000, as: "equal" },
-            { card: "BT1-009", dp: 11000, as: "over" },
+            { card: "BT1-009", dp: 15000, as: "equal" },
+            { card: "BT1-009", dp: 16000, as: "over" },
           ],
+          hand: ["BT1-013"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const originalSourceId = s.perm("base").topCard.instanceId;
+    const equalId = s.perm("equal").permanentId;
+    const overId = s.perm("over").permanentId;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wargrey"));
-    await settle();
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("equal").instanceId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("over").instanceId)).toBe(true);
-    expect(s.perm("wargrey").currentDP).toBe(13000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wargrey").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === equalId));
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([originalSourceId]);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("wargrey").instanceId);
+    expect(s.perm("base").currentDP).toBe(15000);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === overId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
   });
 });

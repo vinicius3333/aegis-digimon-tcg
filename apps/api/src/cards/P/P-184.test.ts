@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-184.js";
 
@@ -45,23 +43,44 @@ describe("P-184 Dorugoramon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("doru"), "SecurityAttack")).toBe(1);
   });
 
-  it("boosts DP and unsuspends every allied SoC Digimon when Kosuke is in its stack", async () => {
+  it("publicly digivolves from catalog DoruGreymon, pays 3, and resolves the Kosuke SoC branch", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "P-184", as: "doru", under: ["BT16-087"] },
+            { card: "BT16-061", as: "base", under: [{ card: "BT16-087", as: "kosuke" }] },
             { card: "BT14-071", suspended: true, as: "soc" },
+            { card: "BT1-009", suspended: true, as: "nonSoc" },
           ],
+          hand: [{ card: "P-184", as: "doru" }, "BT1-013"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
-        1: { battleArea: ["BT1-009"] },
+        1: { battleArea: ["BT1-009"], hand: ["BT1-013"], deck: Array.from({ length: 20 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const originalSourceId = s.perm("base").topCard.instanceId;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("doru"));
-    await settle();
-    expect(s.perm("doru").currentDP).toBe(15000);
-    expect(s.perm("soc").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("doru").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-184" && !s.perm("soc").isSuspended);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("kosuke").instanceId,
+      originalSourceId,
+    ]);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("doru").instanceId);
+    expect(s.perm("base").currentDP).toBe(15000);
+    expect(s.perm("nonSoc").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
   });
 });

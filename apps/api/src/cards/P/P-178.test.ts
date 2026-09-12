@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-178.js";
 
@@ -41,36 +39,57 @@ describe("P-178 Sagittarimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("sagitta"), "Armor Purge")).toBe(true);
   });
 
-  it("applies the -3000 digivolution modifier and deletes only targets at the 4000 boundary", async () => {
+  it("publicly digivolves from catalog Veemon, pays 2, and resolves both attack boundaries", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-178", as: "sagitta" }] },
+        0: {
+          battleArea: [{ card: "BT11-023", as: "base" }],
+          hand: [{ card: "P-178", as: "sagitta" }, "BT1-013"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-013", "BT1-014"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", dp: 7000, as: "four" },
             { card: "BT1-009", dp: 8000, as: "five" },
           ],
-          // Non-empty security so the player-directed attack below runs a real
-          // security check instead of instantly winning against an empty stack.
-          security: ["BT1-009"],
+          hand: ["BT1-013"],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const originalSourceId = s.perm("base").topCard.instanceId;
+    const fourId = s.perm("four").permanentId;
+    const fiveId = s.perm("five").permanentId;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("sagitta"));
-    await settle();
-    expect([s.perm("four").currentDP, s.perm("five").currentDP]).toContain(4000);
-    expect([s.perm("four").currentDP, s.perm("five").currentDP]).toContain(8000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sagitta").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-178" && s.perm("four").currentDP === 4000);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([originalSourceId]);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("sagitta").instanceId);
+    expect(s.perm("base").currentDP).toBe(6000);
+    expect(s.perm("five").currentDP).toBe(8000);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("sagitta").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(8000);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === fourId));
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === fiveId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    assertNoLoudGap(s);
   });
 });
