@@ -147,3 +147,19 @@ Each occurrence below retains its IR path. Component summaries omit filters and 
 | `EX13-071` | `effects[2].actions[0].cost` | `trashBottomFaceDownUnderTamer`, `place`, `place` | `orderReturnedCards=false` |
 
 `canPayCost(compound)` checks each component independently; general payment executes components sequentially. The ordered-return branch collects selections before moving cards but does not currently exclude earlier selections from later candidates. Candidate overlap is a hypothesis to reproduce with an actual printed consumer, not a proven defect.
+
+## Exact-name payment boundary, 2026-09-12
+
+BT14-090 uses bracket-only references to Greymon, MetalGreymon, Agumon, and WarGreymon. `comprehensive-0034` §2-3-1-2 requires exact names, while §2-3-1-3 permits substring matches only for explicit “in its name” wording. Reviewed source hash: `c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2`. Q2466 separates payment from optional evolution.
+
+A public Option-play reproduction with only MetalGreymon in trash consumed it as the Greymon component and then failed the second component. After repairing a transient fixture lookup of the resolving Option, the focused reproduction had 2 failed / 5 passed: the payment choice improperly included MetalGreymon, and the missing-Greymon case removed MetalGreymon from trash. Seven bracket-only filters now use `nameExact`; Tai Kamiya's explicit “in its name” filter remains substring matching. The first corrected focused run passed 7/7.
+
+Expanded tests include a duplicate exact Greymon choice, a near-named Agumon host, exact WarGreymon together with X Antibody in hand, and Security refusal of near-named Agumon. The original Q2466 decline-after-payment and same-host proofs remain. The initially added targetless-destination no-payment expectation was removed following independent review: it would have asserted unresolved Main Option payment policy, not merely exact-name matching. CostGatedBlock's targetless payload gating for already played Options remains an explicit open obligation under §15-7-5.
+
+BT14 IR synchronization against `e65036cc1`: 102 records synchronized, one semantic card change, zero semantic or byte changes outside BT14. Expanded regression: 175 files / 1815 tests passed across BT14, the chapter 2 and chapter 15 timing conformance files, and engine effects. API typecheck and scoped Oxlint passed. Audit layout tests passed 4/4; generated index and diff checks passed. No whole-card or whole-set completion is claimed.
+
+Inspection of all 20 compound occurrences also found bracket-only substring filters in BT15-091, BT17-085, BT25-096, EX3-035, and ST17-10. Each needs a source-specific correction and public boundary proof. BT16-090, BT26-098, and EX13-071 already encode their relevant exact names. This classification is static inspection, not behavioral certification. General overlap, ordered returns, and “in any order” stack placement remain unproved.
+
+### Current primary-source check
+
+On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.

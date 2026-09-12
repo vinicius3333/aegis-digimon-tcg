@@ -30033,7 +30033,7 @@
                     "filter": {
                       "zone": "trash",
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Greymon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -30042,7 +30042,7 @@
                   "underFilter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
                   },
                   "destination": "digivolutionStack",
                   "position": "bottom",
@@ -30055,7 +30055,7 @@
                     "filter": {
                       "zone": "trash",
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["MetalGreymon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["MetalGreymon"], "match": "nameExact" }]
                     },
                     "count": 1,
                     "from": ["trash"]
@@ -30063,7 +30063,7 @@
                   "underFilter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
                   },
                   "destination": "digivolutionStack",
                   "position": "bottom",
@@ -30078,12 +30078,15 @@
                   "filter": {
                     "controllerDefault": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
                   },
                   "count": 1,
                   "fromSelectionRef": "bt14090Agumon"
                 },
-                "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["WarGreymon"], "match": "name" }] },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["WarGreymon"], "match": "nameExact" }]
+                },
                 "payCost": false,
                 "from": ["hand"],
                 "ignoreRequirements": true,
@@ -30101,7 +30104,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand", "trash"],
