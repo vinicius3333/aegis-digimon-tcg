@@ -147,6 +147,43 @@ export async function runPlaceUnder(
   action: Extract<Action, { kind: "PlaceUnder" }>,
 ): Promise<void> {
   const self = ctx.source.permanent();
+  if (action.groupedEggAndPermanents === true) {
+    if (self === undefined) return;
+    const egg = ctx.game.player(ctx.source.ownerSeat).eggDeck?.[0];
+    const permanentIds = await resolvePermanentTargets(ctx, action.target);
+    const candidates = [
+      ...(egg === undefined ? [] : [{ instanceId: egg.instanceId, kind: "egg" as const }]),
+      ...permanentIds.map((permanentId) => ({
+        instanceId: ctx.game.permanentById(permanentId)!.topCard.instanceId,
+        kind: "permanent" as const,
+        permanentId,
+      })),
+    ];
+    if (candidates.length === 0) return;
+    let orderedIds = candidates.map((candidate) => candidate.instanceId);
+    if (orderedIds.length > 1 && ctx.ask.orderCards !== undefined) {
+      orderedIds = await ctx.ask.orderCards(ctx, {
+        candidates: orderedIds,
+        visibleCards: candidates.map((candidate) => ({
+          instanceId: candidate.instanceId,
+          cardId:
+            candidate.kind === "egg" ? egg!.cardId : ctx.game.permanentById(candidate.permanentId!)!.topCard.cardId,
+        })),
+        destination: "stackBottom",
+      });
+    }
+    const byId = new Map(candidates.map((candidate) => [candidate.instanceId, candidate]));
+    for (const instanceId of [...orderedIds].reverse()) {
+      const candidate = byId.get(instanceId);
+      if (candidate?.kind === "egg") await ctx.fx.placeUnderFromEggDeck(self.permanentId, ctx.source.ownerSeat);
+      else if (candidate?.kind === "permanent")
+        await relocateByEffect(ctx, self.permanentId, candidate.permanentId, {
+          belowTop: false,
+          shedOwnCards: true,
+        });
+    }
+    return;
+  }
   if (action.mixedSources !== undefined) {
     const destination = action.destination;
     if (destination === undefined) return;

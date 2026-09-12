@@ -101,35 +101,18 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          fromEggDeck: true,
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-        },
-        {
-          kind: "PlaceUnder",
+          groupedEggAndPermanents: true,
           targetIsPermanent: true,
           target: {
             filter: {
               controller: "mine",
               zone: "battleArea",
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Royal Knight"],
-                  match: "trait",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
             },
             count: "all",
           },
-          underFilter: {
-            isSelfRef: true,
-          },
+          underFilter: { isSelfRef: true },
           position: "bottom",
         },
       ],

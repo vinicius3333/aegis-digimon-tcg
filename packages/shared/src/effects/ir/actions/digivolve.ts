@@ -138,6 +138,8 @@ export interface PlaceUnderAction extends ActionBase {
    * the source permanent / `underFilter` still selects the host. Distinct from `targetIsPermanent`.
    */
   fromEggDeck?: boolean;
+  /** Group the top Digi-Egg card with target permanents into one ordered placement (BT13-007/Q2264). */
+  groupedEggAndPermanents?: boolean;
   /** Place `player.deck[0]` with no prompt (ST23-13, ST23-14). Distinct from `fromEggDeck`. */
   fromDeckTop?: boolean;
   /**
