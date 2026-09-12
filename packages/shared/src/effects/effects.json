@@ -193483,7 +193483,7 @@
             "upTo": true,
             "scaling": {
               "per": 1,
-              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }] },
               "unit": "digivolutionCards",
               "budgetAdd": 1
             }
@@ -193500,7 +193500,7 @@
             "upTo": true,
             "scaling": {
               "per": 1,
-              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }] },
               "unit": "digivolutionCards",
               "budgetAdd": 1
             }
@@ -193525,7 +193525,7 @@
                       "zone": "digivolutionCards",
                       "controller": "mine",
                       "sameHost": true,
-                      "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }],
+                      "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }],
                       "hostFilter": {
                         "controller": "mine",
                         "kind": ["Digimon"],
