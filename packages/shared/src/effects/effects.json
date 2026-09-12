@@ -195287,7 +195287,7 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Armadillomon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Armadillomon"], "match": "nameExact" }]
                     },
                     "count": 1
                   },
@@ -195302,7 +195302,7 @@
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Ankylomon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Ankylomon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
