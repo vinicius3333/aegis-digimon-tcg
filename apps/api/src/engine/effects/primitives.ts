@@ -2068,7 +2068,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { belowTop?: boolean; faceUp?: boolean },
   ): Promise<CardInstance[]> => {
     const permanent = access.permanentById(targetPermanentId);
-    if (permanent === undefined) return [];
+    if (permanent?.topCard === undefined) return [];
+    // Validate the complete physical batch before moving anything. A duplicate can
+    // otherwise remove the first card again from the destination stack itself.
+    if (
+      new Set(instanceIds).size !== instanceIds.length ||
+      instanceIds.some((id) => peekLooseInstance(state, id) === undefined)
+    )
+      return [];
     const placed: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       const instance = removeLooseInstance(state, instanceId);

@@ -1595,6 +1595,33 @@ describe("primitives: placeUnder / link", () => {
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);
   });
 
+  it.each(["missing", "duplicate"])(
+    "rejects a %s loose placement batch before moving any material",
+    async (invalid) => {
+      const h = harness({
+        turnSeat: 0,
+        board: {
+          0: {
+            battleArea: [battleDigimon("dest", 5000)],
+            hand: [{ card: OPTION, as: "material" }],
+          },
+        },
+      });
+      const materialId = h.s.inst("material").instanceId;
+      const originalHand = h.state.players[0]!.hand.slice();
+      expect(
+        await h.fx.placeUnder(h.s.perm("dest").permanentId, [
+          materialId,
+          invalid === "duplicate" ? materialId : "missing",
+        ]),
+      ).toEqual([]);
+      expect(h.state.players[0]!.hand).toEqual(originalHand);
+      expect(h.s.perm("dest").stack).toHaveLength(0);
+      expect(h.events).toHaveLength(0);
+      expect(h.subTriggerFires).toHaveLength(0);
+    },
+  );
+
   it("preflights every multi-source move before touching the destination", async () => {
     const h = harness({
       turnSeat: 0,

@@ -278,6 +278,16 @@ Baseline `c1ad19382`; sole consumer evidence in `docs/audits/ST17.md`. Public ex
 
 Compound payment currently orders only all-return bottom-deck costs; other components execute sequentially. Existing order API supports `stackBottom`. The required shared seam must collect all physical payment identities and one destination host before movement, validate a full distinct permutation, preserve pre-existing sources, and commit paid order once. Manual public permutation/refusal/incomplete-proof on ST17-10 and BT17-085 remains required before removing the marker or claiming this obligation verified.
 
+### Complete loose-placement batch preflight
+
+Baseline `0eb36089c`. Preparing atomic mixed permanent/loose ordering exposed a lower mutation-seam defect: `placeUnder` moved the first valid material when a later material was missing, and a duplicate physical id could be removed again from the just-mutated destination stack. Real-primitives tests reproduced both (two failures / 146 passes). These are malformed/stale batch identity boundaries, not a normative permission to partially pay processing.
+
+The primitive now requires a live destination top, distinct physical ids and an existing loose location for every requested material before the first removal. Read-only `peekLooseInstance` shares checked-card, resolving-Option, hand/security/deck/trash, battle and breeding stack/link locations with removal. There is no asynchronous interleave between preflight and moves; recomputation and placement reactions still occur only after the batch. The unchanged tests now pass 148 cases and require original hand, empty destination stack, empty result, no events and no placement reaction for both invalid batches.
+
+Closing gates: full engine/cards regression passed 5046 files / 41314 tests with seven expected failures (41321 total): six existing EX13 markers and the explicit ST17-10 ordering gap. Full API typecheck, scoped Oxlint, changed-file Oxfmt, audit layout (4/4) and diff checks passed. Independent read-only review found no batch-location, interleave or duplicate-identity blocker.
+
+This repairs loose-batch identity/atomicity as a prerequisite; arbitrary mixed permanent/loose ordering remains unresolved in ST17-10's explicit expected failure. No manual ordering, whole-card, complete cost-shape or collection certification is claimed.
+
 ### Current primary-source check
 
 On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.
