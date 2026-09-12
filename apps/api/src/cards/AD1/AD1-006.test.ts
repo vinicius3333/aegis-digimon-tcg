@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { digiXrosRequirementFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, digiXrosRequirementFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-006 Shoutmon X7", () => {
@@ -85,7 +87,7 @@ describe("AD1-006 Shoutmon X7", () => {
   it("allows level-6 Xros Heart and Blue Flare digivolution routes for cost 2", async () => {
     for (const baseCardId of ["BT10-015", "BT19-026"]) {
       const s = setupEngine({
-        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-006", as: "x7" }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-006", as: "x7" }], deck: ["BT1-009"] },
       });
       s.state.memory = 2;
 
@@ -112,7 +114,7 @@ describe("AD1-006 Shoutmon X7", () => {
             { card: "BT1-010", dp: 13000, as: "eligible" },
             { card: "BT1-010", dp: 14000, as: "tooLarge" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -135,6 +137,105 @@ describe("AD1-006 Shoutmon X7", () => {
     expect(s.perm("x7").isSuspended).toBe(false);
   });
 
+  it("shares its attack use same turn and resets on the next real turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-006", as: "x7" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 12000, as: "first" },
+            { card: "BT1-010", dp: 12000, as: "second" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    for (const seat of [0, 1] as const) {
+      for (let n = 0; n < 10; n += 1) {
+        s.give(seat, Zone.Deck, "BT1-009");
+        s.give(seat, Zone.Security, "BT1-009");
+      }
+      s.give(seat, Zone.Hand, "BT1-010");
+    }
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const x7Id = s.perm("x7").permanentId;
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: x7Id, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId || p.permanentId === secondId)).toBe(
+      true,
+    );
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: x7Id, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: x7Id, target: { kind: "player" } })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not invoke the leave replacement when X7 is consumed as DigiXros material", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-006", as: "x7", under: [{ card: "BT10-049", as: "eligible" }] },
+            { card: "BT10-008", as: "payment" },
+            { card: "BT10-087", as: "tamer" },
+          ],
+          hand: [{ card: "BT12-112", as: "x4" }, "BT1-010", "BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 20;
+    const x7Id = s.perm("x7").permanentId;
+    const x7InstanceId = s.perm("x7").topCard!.instanceId;
+    const eligibleInstanceId = s.inst("eligible").instanceId;
+    preferred.push(s.inst("payment").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("x4").instanceId,
+        digiXros: { materialInstanceIds: [x7InstanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-112"));
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === eligibleInstanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === eligibleInstanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT12-112")?.stack.some(
+        (card) => card.instanceId === s.inst("payment").instanceId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT12-112")?.stack.some(
+        (card) => card.instanceId === x7InstanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === x7Id)).toBe(false);
+  });
+
   it("with no Tamer, may play a qualifying source card and rejects non-matching sources, per Q6059/Q6063", async () => {
     const s = setupEngine(
       {
@@ -147,7 +248,7 @@ describe("AD1-006 Shoutmon X7", () => {
               as: "x7",
               under: [
                 { card: "BT10-009", as: "xrosHeart" },
-                { card: "BT1-001", as: "invalid" },
+                { card: "BT1-009", as: "invalid" },
               ],
             },
           ],

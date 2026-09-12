@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
@@ -102,13 +101,13 @@ describe("AD1-017 Dynasmon", () => {
   it("reacts only when its own security is removed", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "attacker", dp: 6000 },
             { card: "AD1-001", as: "other", dp: 7000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -132,27 +131,58 @@ describe("AD1-017 Dynasmon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-017", as: "dynasmon" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-012"],
         },
         1: {
           battleArea: [
-            { card: "BT1-010", as: "first", dp: 5000 },
-            { card: "BT1-010", as: "second", dp: 6000 },
+            { card: "BT1-010", as: "first", dp: 5_000 },
+            { card: "BT1-010", as: "second", dp: 6_000 },
+            { card: "BT1-010", as: "third", dp: 7_000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
+    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    for (const [index, attacker] of ["first", "second"].entries()) {
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.security.length === 2 - index);
+    }
+
+    // Both removals happened during seat 1's same turn: only the first may delete.
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    // Seat 1's next turn resets the All Turns once-per-turn identity.
+    await advance(s.engine).waitForMainPhase(1);
+    const remainingAttacker = s.state.players[1]!.battleArea.find((permanent) => !permanent.isSuspended)!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: remainingAttacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("applies Security Attack -1 and -3000 DP to selected opposing Digimon", async () => {
@@ -162,17 +192,26 @@ describe("AD1-017 Dynasmon", () => {
         0: { security: [{ card: "AD1-017", as: "security-dynasmon" }] },
         1: {
           battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 20_000 },
             { card: "BT1-010", as: "target", dp: 8000 },
             { card: "BT1-010", as: "other-target", dp: 8000 },
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("target").topCard.instanceId);
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security-dynasmon"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
+    await settle(() => s.perm("target").currentDP === 5000);
 
-    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
     expect(s.perm("target").currentDP).toBe(5000);
     expect(observe(s.engine).keywordAmount(s.perm("other-target"), "SecurityAttack")).toBe(0);

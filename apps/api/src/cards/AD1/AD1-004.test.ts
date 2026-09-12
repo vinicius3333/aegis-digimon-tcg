@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -30,7 +30,7 @@ describe("AD1-004 WarGreymon", () => {
         0: {
           battleArea: [{ card: baseCardId, as: "base" }],
           hand: [{ card: "AD1-004", as: "wargreymon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 3;
@@ -100,7 +100,7 @@ describe("AD1-004 WarGreymon", () => {
             { card: "BT1-010", as: "attacker" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -114,7 +114,7 @@ describe("AD1-004 WarGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-004", dp: 12000, as: "wargreymon" }] },
-        1: { battleArea: [{ card: "BT1-010", dp: 6000, as: "raidTarget" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", dp: 6000, as: "raidTarget" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -142,7 +142,7 @@ describe("AD1-004 WarGreymon", () => {
             { card: "BT1-010", dp: 7000, as: "eligible" },
             { card: "BT1-010", dp: 8000, as: "tooLarge" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -166,7 +166,7 @@ describe("AD1-004 WarGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-011", dp: 8000, as: "attacker", under: ["AD1-004"] }] },
-        1: { battleArea: [{ card: "BT1-010", dp: 3000, as: "wouldBeEligible" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", dp: 3000, as: "wouldBeEligible" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -185,6 +185,77 @@ describe("AD1-004 WarGreymon", () => {
         (permanent) => permanent.permanentId === s.perm("wouldBeEligible").permanentId,
       ),
     ).toBe(true);
+  });
+
+  it("shares the inherited Once Per Turn use across reattacks and resets next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-084",
+              dp: 20000,
+              as: "omnimon",
+              under: [
+                { card: "BT1-043", as: "sourceA" },
+                { card: "BT1-043", as: "sourceB" },
+                { card: "AD1-004", as: "source004" },
+              ],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 3000, as: "first" },
+            { card: "BT1-010", dp: 1000, as: "second" },
+            { card: "BT1-010", dp: 30000, as: "decoy" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("sourceA").instanceId, s.inst("sourceB").instanceId);
+    await s.ready();
+    for (const seat of [0, 1] as const) {
+      for (let n = 0; n < 10; n += 1) {
+        s.give(seat, Zone.Deck, "BT1-009");
+        s.give(seat, Zone.Security, "BT1-009");
+      }
+      s.give(seat, Zone.Hand, "BT1-010");
+    }
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const hostId = s.perm("omnimon").permanentId;
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(true);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("rejects play when memory is below the printed cost", () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-024 Imperialdramon: Fighter Mode", () => {
@@ -60,7 +61,7 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "AD1-024", as: "fighter" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }], security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
@@ -107,7 +108,7 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
             { card: "BT1-010", as: "low", dp: 5000 },
             { card: "BT1-010", as: "high", dp: 6000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -133,6 +134,83 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("high").permanentId);
+  });
+
+  it("resets the shared lowest-DP return on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-024", as: "fighter" }],
+          hand: ["BT1-009", "BT1-010"],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first-low", dp: 5000 },
+            { card: "BT1-010", as: "first-high", dp: 6000 },
+          ],
+          security: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+          ],
+          hand: ["BT1-011"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fighter").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("first-high").permanentId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    const nextLow = s.putOnBoard(1, { card: "BT1-010", as: "next-low", dp: 4000 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fighter").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === nextLow.permanentId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("first-high").permanentId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses both alternate evolution routes and publishes its two keywords", async () => {

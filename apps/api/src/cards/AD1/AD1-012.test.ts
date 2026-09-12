@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -56,7 +56,7 @@ describe("AD1-012 CresGarurumon", () => {
             { card: "BT1-010", as: "lowest" },
             { card: "AD1-001", as: "higher" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -81,40 +81,65 @@ describe("AD1-012 CresGarurumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "AD1-012", as: "cres" },
-            { card: "AD1-001", as: "greymon", suspended: true },
-          ],
+          battleArea: [{ card: "BT1-038", as: "base" }],
+          hand: [{ card: "AD1-012", as: "cres" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first" },
-            { card: "AD1-001", as: "second" },
+            { card: "BT1-010", as: "second" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cres"));
+    s.state.memory = 12;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cres").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "AD1-012");
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("cres").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("redirects an opposing attack even when the optional DNA digivolution is unavailable", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-012", as: "cres", dp: 12000 }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "AD1-012", as: "cres", dp: 12000 }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 6000 }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -146,7 +171,7 @@ describe("AD1-012 CresGarurumon", () => {
             { card: "AD1-009", as: "blitz", dp: 12000 },
           ],
           hand: [{ card: "EX4-060", as: "alter-s" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
       },

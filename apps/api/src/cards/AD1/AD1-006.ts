@@ -115,6 +115,7 @@ const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           optional: true,
+          exceptDigiXros: true,
           raw: "When this Digimon would leave the battle area other than by DigiXros, you may place cards under a Tamer and play 1 such card.",
           sourceFilter: {
             isSelfRef: true,

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -17,9 +16,25 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
   const compiled = registeredCompiledCards.get("AD1-021");
 
   it("plays from security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "AD1-021", as: "securityMarcus", faceUp: true }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "AD1-021", as: "securityMarcus" }] },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 20000 }] },
+    });
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMarcus"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("securityMarcus").instanceId,
+      ),
+    );
 
     expect(
       s.state.players[0]!.battleArea.some(
@@ -41,7 +56,18 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
             { card: "BT12-042", as: "rize" },
           ],
           hand: [{ card: "AD1-016", as: "shine" }],
-          deck: ["BT1-001"],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -51,12 +77,15 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
     await settle(() => s.perm("rize").topCard.cardId === "AD1-016");
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.memory).toBe(2);
   });
 
   it("turns only the chosen Marcus into a restricted 6000 DP Rush Digimon, then attacks once", async () => {
     const preferInstanceIds: string[] = [];
+    const snapshots: Array<{ attackerId?: string; dp: number; rush: boolean; restricted: boolean }> = [];
+    let engineRef: ReturnType<typeof setupEngine>["engine"] | undefined;
+    let stateRef: ReturnType<typeof setupEngine>["state"] | undefined;
     const s = setupEngine(
       {
         0: {
@@ -64,36 +93,104 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
             { card: "AD1-021", as: "marcus" },
             { card: "BT12-034", as: "agumon" },
           ],
+          hand: ["BT1-009", "BT1-010"],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: {
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+          ],
+          hand: ["BT1-013"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds,
+        onEvent: (event) => {
+          if (event.kind === "attackDeclared" && engineRef !== undefined) {
+            const marcus = stateRef?.players[0]!.battleArea.find((p) => p.topCard?.cardId === "AD1-021");
+            if (marcus !== undefined)
+              snapshots.push({
+                attackerId: event.attackerPermanentId,
+                dp: marcus.currentDP,
+                rush: observe(engineRef).hasKeyword(marcus, "Rush"),
+                restricted: observe(engineRef).isRestricted(marcus, "digivolve"),
+              });
+          }
+        },
+      },
     );
+    engineRef = s.engine;
+    stateRef = s.state;
     preferInstanceIds.push(s.perm("marcus").topCard!.instanceId);
+    const marcusPermanentId = s.perm("marcus").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
-    await settle();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
 
     const view = observe(s.engine);
-    expect(s.perm("marcus").currentDP).toBe(6000);
-    expect(view.hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
-    expect(view.isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(s.perm("marcus").currentDP).not.toBe(6000);
+    expect(view.hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
+    expect(view.isRestricted(s.perm("marcus"), "digivolve")).toBe(false);
     expect(view.hasKeyword(s.perm("agumon"), "Rush")).toBe(false);
     expect(view.isRestricted(s.perm("agumon"), "digivolve")).toBe(false);
-    expect(view.hasAttackedThisTurn(s.perm("marcus"))).toBe(true);
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(2);
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.every((snapshot) => snapshot.dp === 6000 && snapshot.rush && snapshot.restricted)).toBe(true);
+    expect(snapshots.every((snapshot) => snapshot.attackerId === marcusPermanentId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not offer the trailing attack without the yellow Agumon/Greymon gate", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "AD1-021", as: "marcus" }] }, 1: { security: ["BT1-001"] } },
+      {
+        0: {
+          battleArea: [{ card: "AD1-021", as: "marcus" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010"],
+          hand: ["BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
-    await settle();
+    await advance(s.engine).runTurn(0);
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("binds every Marcus grant to one selection and declares exactly one optional attack", () => {
@@ -126,7 +223,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
             { card: "BT12-042", as: "base" },
           ],
           hand: [{ card: "BT1-010", as: "notGreymon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -134,7 +231,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
     await settle();
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notGreymon").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.perm("base").topCard.cardId).toBe("BT12-042");
   });
 });

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { Zone, EffectTiming, appFusionCostFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, appFusionCostFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
@@ -37,42 +38,132 @@ describe("AD1-005 Gaiamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("links legal cards from hand and its stack, rejects a no-Link card, and shares once-per-turn use", async () => {
+  it("links legal cards from hand and its stack, shares the once-per-turn window, and resets next turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-005", dp: 12000, as: "gaiamon", under: [{ card: "BT21-041", as: "stackLink" }] }],
+          battleArea: [{ card: "BT1-020", as: "base", under: [{ card: "BT21-041", as: "stackLink" }] }],
           hand: [
+            { card: "AD1-005", as: "gaiamon-hand" },
             { card: "BT21-047", as: "handLink" },
             { card: "BT21-005", as: "invalidNoLink" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            { card: "BT1-009", as: "laterDraw" },
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
           ],
         },
         1: {
           battleArea: [{ card: "BT1-010", dp: 12000, as: "firstTarget" }],
-          security: ["BT1-001", "BT1-001"],
+          hand: ["BT1-010"],
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.ready();
-    const gaiamon = s.perm("gaiamon");
+    s.state.memory = 10;
+    const basePermanentId = s.perm("base").permanentId;
+    const stackLinkId = s.inst("stackLink").instanceId;
+    const handLinkId = s.inst("handLink").instanceId;
+    const invalidNoLinkId = s.inst("invalidNoLink").instanceId;
+    const firstTargetId = s.perm("firstTarget").permanentId;
+
+    // Enter Main through the production turn loop, then use the normal digivolve intent.
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstTurn = s.state.turnCount;
+    const deckBeforeEvolution = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: basePermanentId,
+        instanceId: s.inst("gaiamon-hand").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "AD1-005" && s.state.players[1]!.battleArea.length === 0);
+    await settle();
+
+    const gaiamon = s.perm("base");
+    expect(s.state.memory).toBe(6);
+    expect(gaiamon.stack.map((card) => card.cardId)).toEqual(["BT1-020"]);
+    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([stackLinkId, handLinkId]));
+    expect(gaiamon.linked).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(deckBeforeEvolution - 1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === invalidNoLinkId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstTargetId)).toBe(false);
+
+    const lateLink = s.give(0, Zone.Hand, { card: "BT21-043", as: "lateLink" });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.turnCount).toBe(firstTurn);
+    expect(gaiamon.linked).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => gaiamon.linked.length === 2 && s.state.players[1]!.battleArea.length === 0);
-    await settle();
-
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.turnCount).toBe(firstTurn + 2);
     expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]),
+      expect.arrayContaining([handLinkId, lateLink.instanceId]),
     );
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);
-
-    const lateLink = s.give(0, Zone.Hand, { card: "P-190", as: "lateLink" });
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, gaiamon);
-
     expect(gaiamon.linked).toHaveLength(2);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === stackLinkId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("can Blast Digivolve from hand for zero memory when its red level-5 route is legal", async () => {

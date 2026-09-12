@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
 /**
@@ -91,7 +92,16 @@ if (start === -1 || end === -1 || end < start) {
 }
 
 const body = rows.length === 0 ? "No audit documents yet." : table;
-const updated = `${readme.slice(0, start + startMarker.length)}\n\n${body}\n\n${readme.slice(end)}`;
+const unformatted = `${readme.slice(0, start + startMarker.length)}\n\n${body}\n\n${readme.slice(end)}`;
+const formatted = spawnSync(
+  process.platform === "win32" ? "pnpm.cmd" : "pnpm",
+  ["exec", "oxfmt", `--stdin-filepath=${readmePath}`, "--threads=1"],
+  { cwd: root, encoding: "utf8", input: unformatted, timeout: 30_000 },
+);
+if (formatted.error || formatted.status !== 0) {
+  throw new Error(`Could not format audit index: ${formatted.error?.message ?? formatted.stderr ?? formatted.stdout}`);
+}
+const updated = formatted.stdout;
 
 if (updated === readme) {
   console.log(`Status index is current (${rows.length} sets).`);

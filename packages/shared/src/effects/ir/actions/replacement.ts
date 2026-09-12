@@ -85,6 +85,8 @@ export interface ReplacementAction extends ActionBase {
    * matching leave, per `event`.
    */
   exceptDeletion?: boolean;
+  /** For leave-prevention effects, do not apply while a field material is being DigiXros-relocated. */
+  exceptDigiXros?: boolean;
   /**
    * ＜Digisorption＞ redirect (BT3-056): with mode "reduceCost", the suspend cost is paid from the
    * OPPONENT's Digimon instead of the controller's.

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -66,35 +65,71 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   it("gains 2 memory at four Hybrid sources even when it places nothing (Q6100)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-020", as: "tamer", under: ["BT12-009", "BT12-012", "BT12-024", "BT12-025"] }] },
+        0: {
+          battleArea: [{ card: "AD1-020", as: "tamer", under: ["BT12-009", "BT12-012", "BT12-024", "BT12-025"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("makes its qualifying Hybrid host attack with Security Attack +1 at end of turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"] }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+          ],
+          hand: ["BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).runTurn(0);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.security).toHaveLength(8);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.security).toHaveLength(6);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("makes its qualifying Ten Warriors host attack with Security Attack +1 at end of turn", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-032", as: "host", under: ["AD1-020"] }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -108,7 +143,7 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-010", as: "host", under: ["AD1-020"] }] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -122,40 +157,70 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   it("does not leave Security Attack +1 active when a qualifying host cannot attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"], suspended: true }] },
-        1: { security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"], suspended: true }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010"],
+          hand: ["BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-    await settle();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("allows declining the optional attack without granting the attack-only keyword", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"] }] },
-        1: { security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010"],
+          hand: ["BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-    await settle();
+    await advance(s.engine).runTurn(0);
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "AD1-020", as: "tamer", faceUp: true }] } },
+      {
+        0: { security: [{ card: "AD1-020", as: "tamer" }] },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 20000 }] },
+      },
       { autoDeclineOptional: true },
     );
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-020"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-020")).toBe(true);
   });
 });
