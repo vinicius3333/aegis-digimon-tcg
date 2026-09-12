@@ -190512,7 +190512,7 @@
   "P-004": {
     "effects": [
       {
-        "trigger": "AllTurns",
+        "trigger": "YourTurn",
         "isInherited": true,
         "actions": [
           {
@@ -190528,7 +190528,8 @@
             ],
             "raw": "[Inherited] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory."
           }
-        ]
+        ],
+        "frequency": "OncePerTurn"
       }
     ],
     "coverage": "full",
