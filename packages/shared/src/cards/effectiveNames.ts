@@ -100,3 +100,38 @@ export function effectiveSubstringOnlyNames(def: CardDefinition): string[] {
 export function effectiveStaticNames(def: CardDefinition): string[] {
   return dedupe([...effectiveExactNames(def), ...effectiveSubstringOnlyNames(def)]);
 }
+
+// English-name exceptions in the official Language Standardization reference list.
+// This table excludes the specified substring gate, never the card's full identity.
+// https://world.digimoncard.com/rule/pdf/lang-standardization-01.pdf
+const EXCLUDED_NAME_TOKENS: Record<string, readonly string[]> = {
+  pagumon: ["agumon"],
+  demiveemon: ["vee", "veemon"],
+  kendogarurumon: ["garurumon"],
+  burninggreymon: ["greymon"],
+  dorugreymon: ["greymon"],
+  dexdorugreymon: ["greymon"],
+  indramon: ["dramon"],
+  beelstarmon: ["starmon"],
+  "beelstarmon x antibody": ["starmon"],
+  blimpmon: ["impmon"],
+  masterblimpmon: ["impmon"],
+};
+
+function normalizeSubstringName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+/** Match an English name token while respecting standardized name exclusions. */
+export function nameIncludesToken(name: string, token: string): boolean {
+  const normalizedName = normalizeSubstringName(name);
+  const normalizedToken = normalizeSubstringName(token);
+  return (
+    normalizedToken.length > 0 &&
+    !EXCLUDED_NAME_TOKENS[normalizedName]?.includes(normalizedToken) &&
+    normalizedName.includes(normalizedToken)
+  );
+}

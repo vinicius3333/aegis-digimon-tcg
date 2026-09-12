@@ -187,3 +187,20 @@ describe("eligibleDigiXrosCandidateIds", () => {
     expect(eligibleDigiXrosCandidateIds(requirement!, candidates, [])).toEqual(new Set(["BT19-087"]));
   });
 });
+
+it("applies standardized names to DigiXros candidates while retaining exact identity", () => {
+  const candidates = [requireCardDefinition("BT7-011"), requireCardDefinition("P-010")].map((definition) => ({
+    instanceId: definition.cardId,
+    definition,
+  }));
+  const substring: DigiXrosRequirement = {
+    count: 1,
+    materials: [{ nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] }],
+  };
+  const exact: DigiXrosRequirement = {
+    count: 1,
+    materials: [{ nameOrTrait: [{ tokens: ["BurningGreymon"], match: "nameExact" }] }],
+  };
+  expect([...eligibleDigiXrosCandidateIds(substring, candidates, [])]).toEqual(["P-010"]);
+  expect([...eligibleDigiXrosCandidateIds(exact, candidates, [])]).toEqual(["BT7-011"]);
+});

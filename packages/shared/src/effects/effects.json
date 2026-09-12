@@ -226546,8 +226546,8 @@
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": ["[Rule] Name: Not treated as including [Vee]."]
+    "coverage": "full",
+    "residual": []
   },
   "EX13-003": {
     "effects": [

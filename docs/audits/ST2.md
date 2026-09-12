@@ -136,6 +136,7 @@ Serial mechanism tests passed for the shared risks: ST1 wargreymon-historical-de
 
 ### ST2-01 — Tsunomon
 
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 1/2.
 - Current score: capped at 8/10, provisional. The direct-battle defect is corrected in the working implementation, but public evolution-line and remaining peer/stack proof remain pending. The full default API gate is green; this does not certify the whole card.
 - Contract: exact catalog inherited text, Your Turn, plus 1000 DP while battling an opponent field Digimon with zero sources. No main or Security effect is printed.
 - Sources: local card query found no rulings; comprehensive §14 battle procedure and current manual security-type distinction were read. Complete source identities and boundary obligations are in [the engine duration ledger](engine/battle-duration-boundaries.md).

@@ -2,6 +2,7 @@ import {
   digiXrosSlotMatches,
   effectiveExactNames,
   effectiveStaticNames,
+  nameIncludesToken,
   isPrintedKeywordToken,
   textPrintsKeyword,
   type CardDefinition,
@@ -54,7 +55,7 @@ function matchesNameOrTrait(definition: CardDefinition, ref: DigiXrosNameOrTrait
   return ref.tokens.some((token) => {
     const rawToken = token.toLocaleLowerCase();
     const nameToken = normalizeName(token);
-    if (ref.match === "name") return names.some((name) => name.includes(nameToken));
+    if (ref.match === "name") return names.some((name) => nameIncludesToken(name, nameToken));
     if (ref.match === "nameExact") return exactNames.some((name) => name === nameToken);
     if (ref.match === "trait") return traits.some((trait) => trait === normalizeTrait(rawToken));
     if (ref.match === "traitContains") return traits.some((trait) => trait.includes(normalizeTrait(rawToken)));
@@ -63,7 +64,7 @@ function matchesNameOrTrait(definition: CardDefinition, ref: DigiXrosNameOrTrait
     // printed text only; anything else is the full name/trait/text union.
     if (isPrintedKeywordToken(rawToken)) return textPrintsKeyword(text, rawToken);
     return (
-      names.some((name) => name.includes(nameToken)) ||
+      names.some((name) => nameIncludesToken(name, nameToken)) ||
       traits.some((trait) => trait.includes(normalizeTrait(rawToken))) ||
       text.includes(rawToken)
     );

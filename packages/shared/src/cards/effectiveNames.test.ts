@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { effectiveStaticNames } from "./effectiveNames.js";
-import { getCardDefinition } from "./registry.js";
+import { effectiveStaticNames, nameIncludesToken } from "./effectiveNames.js";
+import { allCards, getCardDefinition } from "./registry.js";
 
 describe("effectiveStaticNames", () => {
   it("includes Crossroad Witch's printed Shuu Yulin identity (Q5674)", () => {
@@ -28,5 +28,40 @@ describe("effectiveStaticNames", () => {
     const parenthesised = getCardDefinition("BT15-060");
     expect(parenthesised).toBeDefined();
     expect(effectiveStaticNames(parenthesised!)).toEqual([parenthesised!.nameEn]);
+  });
+});
+
+describe("standardized English name substrings", () => {
+  const exclusions = [
+    ["Pagumon", "Agumon"],
+    ["DemiVeemon", "Vee"],
+    ["DemiVeemon", "Veemon"],
+    ["KendoGarurumon", "Garurumon"],
+    ["BurningGreymon", "Greymon"],
+    ["DoruGreymon", "Greymon"],
+    ["DexDoruGreymon", "Greymon"],
+    ["Indramon", "Dramon"],
+    ["BeelStarmon", "Starmon"],
+    ["BeelStarmon (X Antibody)", "Starmon"],
+    ["Blimpmon", "Impmon"],
+    ["MasterBlimpmon", "Impmon"],
+  ];
+  it.each(exclusions)("excludes %s from the %s gate for every committed printing", (name, token) => {
+    const printings = allCards().filter((card) => card.nameEn === name);
+    expect(printings.length).toBeGreaterThan(0);
+    expect(printings.map((card) => nameIncludesToken(card.nameEn, token))).toEqual(printings.map(() => false));
+    expect(printings.map((card) => nameIncludesToken(card.nameEn, card.nameEn))).toEqual(printings.map(() => true));
+  });
+  it.each(["Agumon", "Vee", "Veemon", "Garurumon", "Greymon", "Dramon", "Starmon", "Impmon"])(
+    "retains ordinary matching for %s",
+    (token) => {
+      expect(nameIncludesToken(token, token)).toBe(true);
+      expect(nameIncludesToken(`Mega${token}`, token)).toBe(true);
+    },
+  );
+  it("normalizes case and punctuation without dropping full identity", () => {
+    expect(nameIncludesToken("BEELSTARMON (X ANTIBODY)", "STARmon")).toBe(false);
+    expect(nameIncludesToken("Beelstarmon X Antibody", "BeelStarmon (X Antibody)")).toBe(true);
+    expect(nameIncludesToken("DemiVeemon", " ")).toBe(false);
   });
 });

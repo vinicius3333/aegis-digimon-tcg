@@ -261,6 +261,6 @@ Final security-boundary delivery: shared/API/web typechecks, 163-file / 1250-tes
 mechanism regression, nine final proof/layout tests, scoped Oxlint, six-file
 Oxfmt, current 66-set index, clean diff checks and independent read-only review
 passed. The unchanged-input full API confirmation above is green with the four
-known EX13 expected failures (002, 020, 043, 063). No Postgres lane was run;
+known EX13 expected failures at that checkpoint (002, 020, 043, 063). EX13-002 was subsequently resolved by the bounded [name-standardization.md](name-standardization.md) proof; the other three remain open. No Postgres lane was run;
 no database behavior changed. No temporary mutation or snapshot change remains.
 Complete engine/keyword certification is still open.

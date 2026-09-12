@@ -4,10 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // DemiVeemon (Digi-Egg).
 //
 // [Rule] Name: Not treated as including [Vee].
-//   Not modelled: the engine has no per-card name-exclusion seam. `matchNameOrTrait`
-//   (apps/api/src/engine/effects/interpreter/matching/definition.ts) resolves a
-//   `match: "name"` ref by plain substring against the effective names, so
-//   "DemiVeemon" still answers a "[Vee] in its name" ref. Kept in `residual`.
+//   Executed by shared nameIncludesToken's standardized English name exclusions.
 //
 // [Your Turn] [Once Per Turn] inherited: when any of your blue Tamers are played, the
 // host Digimon with [Veedramon] in its name may unsuspend. "[Veedramon] in its name" is
@@ -51,8 +48,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "partial",
-  residual: ["[Rule] Name: Not treated as including [Vee]."],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX13-002", compiled);

@@ -7,6 +7,7 @@ import {
   digivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
+  nameIncludesToken,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
   dnaDigivolutionRequirementsFor,
@@ -653,7 +654,7 @@ function altRequirementMatches(
   // card "treated as having [X] in its name" (EX4-030 Kuzuhamon, Q2868) never satisfies an exact
   // [X] route — mirrors matchGatedRequirement in apps/api/src/engine/cards/cardData.ts.
   const baseNames = effectiveStaticNames(baseDef);
-  if (req.names && req.names.length > 0 && !req.names.some((n) => baseNames.some((name) => name.includes(n))))
+  if (req.names && req.names.length > 0 && !req.names.some((n) => baseNames.some((name) => nameIncludesToken(name, n))))
     return false;
   const baseExactNames = effectiveExactNames(baseDef);
   if (req.namesExact && req.namesExact.length > 0 && !req.namesExact.some((n) => baseExactNames.includes(n)))
