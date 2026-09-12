@@ -70,6 +70,60 @@ describe("P-201 Phascomon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
   });
 
+  it("suspends an opposing Digimon once at each natural opponent-turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-074", as: "host", under: ["P-201"] }],
+          hand: [
+            { card: "ST1-16", as: "cost1" },
+            { card: "ST1-16", as: "cost2" },
+          ],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim1" },
+            { card: "BT1-009", as: "victim2" },
+          ],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.perm("host").stack.find((card) => card.cardId === "P-201")!.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("victim1").isSuspended);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost1").instanceId)).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.perm("victim1").isSuspended &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost2").instanceId),
+    );
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost2").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("repeats the reveal-and-trash effect when deleted", async () => {
     const s = setupEngine(
       {
