@@ -303,25 +303,69 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     await turn;
   });
   it.each([
-    { source: "BT10-008", destination: "BT19-012", receivesRush: true, memory: 2 },
-    { source: "BT19-008", destination: "BT19-012", receivesRush: true, memory: 2 },
-    { source: "BT10-008", destination: "AD1-001", receivesRush: false, memory: 4 },
-    { source: "BT19-008", destination: "AD1-001", receivesRush: false, memory: 4 },
+    {
+      source: "BT10-008",
+      destination: "BT19-012",
+      receivesRush: true,
+      memory: 2,
+      security: "BT1-011",
+      stripSources: false,
+    },
+    {
+      source: "BT19-008",
+      destination: "BT19-012",
+      receivesRush: true,
+      memory: 2,
+      security: "BT1-011",
+      stripSources: false,
+    },
+    {
+      source: "BT10-008",
+      destination: "AD1-001",
+      receivesRush: false,
+      memory: 4,
+      security: "BT1-011",
+      stripSources: false,
+    },
+    {
+      source: "BT19-008",
+      destination: "AD1-001",
+      receivesRush: false,
+      memory: 4,
+      security: "BT1-011",
+      stripSources: false,
+    },
+    {
+      source: "BT10-008",
+      destination: "BT19-012",
+      receivesRush: true,
+      memory: 2,
+      security: "BT1-101",
+      stripSources: true,
+    },
+    {
+      source: "BT19-008",
+      destination: "BT19-012",
+      receivesRush: true,
+      memory: 2,
+      security: "BT1-101",
+      stripSources: true,
+    },
   ])(
-    "$source inherited Rush matches the publicly evolved $destination host",
-    async ({ source, destination, receivesRush, memory }) => {
+    "$source inherited Rush matches $destination and resolves $security security",
+    async ({ source, destination, receivesRush, memory, security, stripSources }) => {
       const s = setup(
         {
           0: {
             hand: [{ card: source, as: "base" }, { card: destination, as: "evolver" }, "BT1-009"],
             deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           },
-          1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+          1: { security: [security, security, security], deck: ["BT1-009", "BT1-009", "BT1-009"] },
         },
         { autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
       );
       s.state.memory = 10;
-      const turn = s.engine.runOneTurn();
+      const loop = s.engine.startTurnLoop();
       await advance(s.engine).waitForMainPhase(0);
       const baseInstanceId = s.inst("base").instanceId;
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: baseInstanceId })).toEqual({ ok: true });
@@ -359,9 +403,27 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
       expect(host.isSuspended).toBe(receivesRush);
       expect(s.state.players[1]!.security).toHaveLength(receivesRush ? 2 : 3);
       expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId)).toBe(host);
+      expect(host.topCard.instanceId).toBe(evolverInstanceId);
+      expect(host.enterFieldTurnCount).toBe(enteredTurn);
+      expect(host.stack.map((c) => c.instanceId)).toEqual(stripSources ? [] : [baseInstanceId]);
+      expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(receivesRush && !stripSources);
+      expect(s.state.players[0]!.trash.some((c) => c.instanceId === baseInstanceId)).toBe(stripSources);
+      expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT1-101")).toBe(stripSources);
       expect(s.state.memory).toBe(memory);
       advance(s.engine).endMainPhaseIfOpen(0);
-      await turn;
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.state.turnSeat).toBe(1);
+      expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(false);
+      expect(host.enterFieldTurnCount).toBe(enteredTurn);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.state.turnSeat).toBe(0);
+      expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(receivesRush && !stripSources);
+      expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === permanentId)).toBe(host);
+      expect(host.enterFieldTurnCount).toBe(enteredTurn);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     },
   );
 });
