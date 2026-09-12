@@ -198721,16 +198721,7 @@
           {
             "kind": "DeleteByDPBudget",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000,
-            "budgetBonus": {
-              "per": 1,
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }]
-              },
-              "unit": "cards"
-            }
+            "baseBudget": 7000
           }
         ]
       },
@@ -198755,16 +198746,7 @@
           {
             "kind": "DeleteByDPBudget",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000,
-            "budgetBonus": {
-              "per": 1,
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }]
-              },
-              "unit": "cards"
-            }
+            "baseBudget": 7000
           }
         ]
       },
@@ -198774,7 +198756,11 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "zone": "hand",
+              "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "nameExact" }]
+            },
             "payCost": true,
             "optional": true
           },
@@ -198802,7 +198788,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Light Fang", "Night Claw"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Light Fang", "Night Claw"], "cost": 3, "isAlternate": true }]
   },
   "P-192": {
     "effects": [
