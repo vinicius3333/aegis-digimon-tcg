@@ -103,10 +103,16 @@ describe("ST17-10 Henry Wong", () => {
       {
         0: {
           battleArea: [
+            { card: "BT1-009", as: "neutral" },
             { card: "ST17-02", as: "terriermon" },
+            { card: "ST17-02", as: "otherHost" },
+            { card: "BT5-046", as: "nearHost" },
             { card: "ST17-10", as: "henry" },
           ],
-          trash: [{ card: "ST17-05" }, { card: "ST17-07" }],
+          trash: [
+            { card: "ST17-05", as: "gargomon" },
+            { card: "ST17-07", as: "rapidmon" },
+          ],
           hand: [{ card: "ST17-08", as: "mega" }],
         },
       },
@@ -128,6 +134,26 @@ describe("ST17-10 Henry Wong", () => {
 
     expect(s.perm("terriermon").topCard.cardId).toBe("ST17-08");
     expect(s.perm("terriermon").stack).toHaveLength(4);
-    expect(observe(s.engine).hasKeyword(s.perm("terriermon"), "Rush")).toBe(true);
+    await settle(
+      () => s.state.pendingDecision === undefined && observe(s.engine).hasKeyword(s.perm("terriermon"), "Rush"),
+    );
+    expect(s.perm("terriermon").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("henry").instanceId,
+        s.inst("gargomon").instanceId,
+        s.inst("rapidmon").instanceId,
+      ]),
+    );
+    expect(s.state.memory).toBe(6);
+    for (const alias of ["neutral", "otherHost", "nearHost"]) {
+      expect(s.perm(alias).stack).toHaveLength(0);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Rush")).toBe(false);
+    }
+    const hostChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "ST17-10");
+    expect(hostChoice?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("terriermon").permanentId,
+      s.perm("otherHost").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
