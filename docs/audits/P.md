@@ -16,7 +16,9 @@ new Orca child worktree based on `de4dda717d8c9e0c2420796cb387f68b1379b863`.
 Independent Luna clause reviews covered the whole collection; focused coordinator proofs and
 the final combined collection/mechanism gate passed. Latest acceptance supersedes historical
 proof holds retained inside card entries. Raw implementations and tests are atomically committed.
-The original workspace was not used for these changes.
+The original workspace was not used for these changes. Delivery is the pushed
+`promo-full-reaudit` branch and [draft PR #4742](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4742),
+which targets main and is mergeable.
 
 Catalog, direct module and ledger reconciliation each yields 249 cards: P001–P250 excluding
 absent P226; P251 is absent too. Every production module uses exactly one `registerIrCard`
@@ -56,7 +58,8 @@ Closing verification on 2026-09-12, with a global test lock, one worker and a 2 
   `pnpm exec oxfmt --check` (520 files); `git diff --check` passed.
 - Catalog-aware TypeScript fixture scan found no Digi-Egg literals or constant references in
   normal hand/deck/Security fixtures. Legitimate breeding and inherited source fixtures are retained.
-- Generated audit index and layout are checked after this final recalculation.
+- `pnpm audit:index --check` passed for 66 sets after final recalculation; the closing
+  combined run independently passed the audit-layout guard.
 
 The first full closing run exposed auxiliary registered-card effects absent from focused tests.
 The existing affected tests now load production registration and account for actual costs,
