@@ -257,6 +257,46 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
       expect(s.perm("rusher").stack).toHaveLength(0);
     },
   );
+  it("loses printed Rush after public digivolution without resetting its fresh-play restriction", async () => {
+    const s = setup({
+      0: {
+        hand: [{ card: "BT8-077", as: "base" }, { card: "BT8-078", as: "evolver" }, "BT1-009"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const baseInstanceId = s.inst("base").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: baseInstanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === baseInstanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    const host = s.perm("base");
+    const permanentId = host.permanentId;
+    const enteredTurn = host.enterFieldTurnCount;
+    expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(true);
+    const evolverInstanceId = s.inst("evolver").instanceId;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: evolverInstanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => host.topCard.instanceId === evolverInstanceId && s.state.pendingDecision === undefined);
+    expect(host.permanentId).toBe(permanentId);
+    expect(host.enterFieldTurnCount).toBe(enteredTurn);
+    expect(host.stack.map((c) => c.instanceId)).toEqual([baseInstanceId]);
+    expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(host.isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
