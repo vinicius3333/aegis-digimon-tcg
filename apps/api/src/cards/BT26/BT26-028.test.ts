@@ -298,7 +298,7 @@ describe("BT26-028 Medicmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("tsBase"), "cannotActivateWhenDigivolving"));
 
-    const loop = s.engine.startTurnLoop();
+    s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);

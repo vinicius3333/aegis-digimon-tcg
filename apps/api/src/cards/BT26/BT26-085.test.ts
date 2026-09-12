@@ -136,7 +136,7 @@ describe("BT26-085 compiled behavior", () => {
 
   it("installs the opponent DP immunity restriction on play", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT26-085", as: "giantSlayer" }] } });
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantSlayer").instanceId })).toEqual({
@@ -150,7 +150,7 @@ describe("BT26-085 compiled behavior", () => {
 
   it("blocks opponent DP reduction and stack trash while allowing its controller's effects", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT26-085", as: "giantSlayer" }] } });
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giantSlayer").instanceId })).toEqual({

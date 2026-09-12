@@ -182,11 +182,11 @@ describe("BT26-002 Budmon", () => {
           },
         ],
         deck: ["BT1-012"],
-        security: 5,
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
       1: {
         deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-        security: 5,
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         battleArea: [
           { card: "BT26-090", as: "opponentTamer", under: [{ card: "BT1-010", as: "oppUnder" }] },
           { card: "BT26-090", as: "borrowedTamer", under: [{ card: "BT1-011", as: "turnUnder" }] },

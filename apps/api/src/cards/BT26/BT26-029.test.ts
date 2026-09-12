@@ -145,7 +145,7 @@ describe("BT26-029 compiled fidelity", () => {
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("protected").currentDP).toBe(9000);
 
-    const loop = s.engine.startTurnLoop();
+    s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -245,7 +245,7 @@ describe("BT26-029 compiled fidelity", () => {
       },
       { autoSelectCards: true },
     );
-    const loop = s.engine.startTurnLoop();
+    s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);

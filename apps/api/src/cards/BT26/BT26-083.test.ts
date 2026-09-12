@@ -145,7 +145,7 @@ describe("BT26-083 compiled fidelity", () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
     });
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 14;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
@@ -262,7 +262,7 @@ describe("BT26-083 compiled fidelity", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("hysteric"), "Execute")).toBe(true);
-    const loop = s.engine.startTurnLoop();
+    void s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-015"));

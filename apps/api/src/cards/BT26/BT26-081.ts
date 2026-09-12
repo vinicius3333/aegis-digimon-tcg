@@ -1,7 +1,6 @@
-import type { Action, CompiledCard, Filter, Target } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const iliad: Filter = {
   controller: "mine",
   zone: "battleArea",

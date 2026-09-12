@@ -1,7 +1,6 @@
-import type { Action, CardEffect, CompiledCard, Filter, Target } from "@aegis/shared";
+import type { Action, CardEffect, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const ver3: Filter = {
   controller: "mine",
   zone: "trash",

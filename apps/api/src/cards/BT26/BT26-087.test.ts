@@ -163,7 +163,7 @@ describe("BT26-087 Toya Kuga", () => {
       },
       { autoDeclineOptional: true },
     );
-    const onPlayLoop = onPlay.engine.startTurnLoop();
+    onPlay.engine.startTurnLoop();
     await advance(onPlay.engine).waitForMainPhase(0);
     expect(onPlay.engine.applyIntent(0, { type: "playCard", instanceId: onPlay.inst("toya").instanceId })).toEqual({
       ok: true,

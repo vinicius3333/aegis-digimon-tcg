@@ -210,7 +210,10 @@ describe("BT26-080 compiled behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-077", as: "base" }, { card: "BT1-009", as: "ownCost" }],
+          battleArea: [
+            { card: "BT25-077", as: "base" },
+            { card: "BT1-009", as: "ownCost" },
+          ],
           hand: [{ card: "BT26-080", as: "source" }],
         },
         1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
