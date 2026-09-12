@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              levels: [3, 4],
+              levelComparison: { op: "lte", value: 4 },
               kind: ["Digimon"],
               controller: "opponent",
             },
@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              levels: [3, 4],
+              levelComparison: { op: "lte", value: 4 },
               kind: ["Digimon"],
               controller: "opponent",
             },
