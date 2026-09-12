@@ -110,7 +110,7 @@ describe("P-189 Dimetromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-076", as: "host", under: [{ card: "P-189", as: "source" }] },
+            { card: "BT1-020", as: "host", under: [{ card: "P-189", as: "source" }] },
             { card: "BT1-009", as: "redAnchor" },
           ],
           hand: [
