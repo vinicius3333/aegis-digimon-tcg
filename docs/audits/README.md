@@ -111,7 +111,7 @@ build when it is stale.
 | BT22 | 102   | verified    | 2026-09-07  | [BT22.md](BT22.md) |
 | BT23 | 102   | verified    | 2026-09-10  | [BT23.md](BT23.md) |
 | BT24 | 102   | verified    | 2026-09-08  | [BT24.md](BT24.md) |
-| BT25 | 104   | verified    | 2026-09-06  | [BT25.md](BT25.md) |
+| BT25 | 104   | in-progress | 2026-09-06  | [BT25.md](BT25.md) |
 | BT26 | 104   | in-progress | 2026-09-12  | [BT26.md](BT26.md) |
 | EX1  | 73    | verified    | 2026-09-10  | [EX1.md](EX1.md)   |
 | EX2  | 74    | verified    | 2026-09-10  | [EX2.md](EX2.md)   |

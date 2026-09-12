@@ -107237,7 +107237,10 @@
                 {
                   "kind": "place",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gaogamon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Gaogamon"], "match": "nameExact" }]
+                    },
                     "from": ["trash"],
                     "count": 1
                   },
@@ -107248,7 +107251,7 @@
                       "controller": "mine",
                       "zone": "battleArea",
                       "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }]
                     },
                     "count": 1
                   },
@@ -107259,7 +107262,7 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["MachGaogamon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["MachGaogamon"], "match": "nameExact" }]
                     },
                     "from": ["trash"],
                     "count": 1
@@ -107280,12 +107283,12 @@
                     "controller": "mine",
                     "zone": "battleArea",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }]
                   },
                   "count": 1,
                   "fromSelectionRef": "gaomonHost"
                 },
-                "into": { "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "name" }] },
+                "into": { "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "nameExact" }] },
                 "from": ["hand"],
                 "payCost": false,
                 "ignoreRequirements": true,
@@ -107302,9 +107305,9 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "name" }] },
+              "filter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }] },
               "orFilters": [
-                { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "name" }] }
+                { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "nameExact" }] }
               ],
               "count": 1,
               "upTo": true

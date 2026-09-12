@@ -246,6 +246,12 @@ Closing gates: the final full engine/cards run passed 5046 files / 41305 tests w
 
 This removes the specific leading-block expected failure, not the remaining declaration-cost obligations or the full mechanism certification gate.
 
+### BT25-096 exact-name processing materials
+
+Baseline `eb8b41743`; reviewed `comprehensive-0034` fingerprint `c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2`; catalog and official English BT25 card list/Q6456 checked 2026-09-12. Two public Option-use cases reproduced BlackGaogamon or BlackMachGaogamon paying as bracket-only Gaogamon/MachGaogamon and evolving Gaomon into MirageGaogamon (two failures / five passes). Six bracket-only filters now use `nameExact`. Corrected focused tests pass seven cases, pin the source fingerprint and verify both payment identities remain in trash, no host sources/evolution, MirageGaogamon retained in hand, used Option in trash, five memory paid and no pending decision. Full evidence lives in `docs/audits/BT25.md`; historical BT25 certification is reopened.
+
+BT25 scoped synchronization produced 104 records, one semantic card change and zero semantic/byte changes outside BT25. Comparative collection/effects/chapter-2 regression passed 183 files / 2559 tests. Independent read-only review found no blocker in this bounded consumer change. Destination/Security mixed candidates, arbitrary placement order and full-card recertification remain open; ST17-10 still needs its separate source-specific correction/proof. No complete mechanism or collection certification is claimed.
+
 ### Current primary-source check
 
 On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.
