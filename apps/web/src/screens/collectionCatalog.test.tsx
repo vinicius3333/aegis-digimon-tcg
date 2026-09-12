@@ -47,6 +47,7 @@ describe("rendered catalog visibility", () => {
     const image = screen.getByAltText("Guilmon");
     fireEvent.error(image);
     fireEvent.error(screen.getByAltText("Guilmon"));
+    fireEvent.error(screen.getByAltText("Guilmon"));
     expect(screen.getByText("Guilmon")).toBeTruthy();
     expect(screen.getByText("EX13-007")).toBeTruthy();
   });
