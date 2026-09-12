@@ -5675,6 +5675,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return false;
   };
 
+  const flipSecurityFaceDown = (seat: Seat, instanceId: string): boolean => {
+    const card = player(seat).security.find((candidate) => candidate.instanceId === instanceId);
+    if (card === undefined || !card.faceUp) return false;
+    card.faceUp = false;
+    engine.emit({ kind: "cardsMoved", instanceIds: [instanceId], from: Zone.Security, to: Zone.Security });
+    return true;
+  };
+
   // --- combat ----------------------------------------------------------------
 
   /**
@@ -6084,6 +6092,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     recoverToSecurity,
     flipTopSecurity,
     flipSecurityFaceUp,
+    flipSecurityFaceDown,
     forceAttack,
     isAttackResolving,
     redirectAttack,

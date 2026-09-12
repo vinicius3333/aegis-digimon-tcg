@@ -731,6 +731,7 @@ function makeContext(opts: {
   playInstancesResult?: Permanent[];
   selectCardsAnswer?: (o: { candidates: string[]; max: number }) => string[];
   chooseOptionAnswer?: number;
+  orderCardsAnswer?: (o: { candidates: string[] }) => string[];
   trigger?: EffectContext["trigger"];
   /**
    * Wire `ctx.ask.opponent` (undefined by default, matching most fixtures — see
@@ -983,6 +984,13 @@ function makeContext(opts: {
       rec.calls.push({ verb: "flipSecurityFaceUp", args: a });
       return true;
     },
+    flipSecurityFaceDown: (...a) => {
+      rec.calls.push({ verb: "flipSecurityFaceDown", args: a });
+      const security = players[a[0] as Seat]?.security as Array<{ instanceId: string; faceUp: boolean }> | undefined;
+      const card = security?.find((candidate) => candidate.instanceId === (a[1] as string));
+      if (card !== undefined) card.faceUp = false;
+      return true;
+    },
     forceAttack: async (...a) => {
       rec.calls.push({ verb: "forceAttack", args: a });
     },
@@ -1046,6 +1054,10 @@ function makeContext(opts: {
     chooseOption: async (_ctx, choices) => {
       rec.calls.push({ verb: "chooseOption", args: [choices] });
       return opts.chooseOptionAnswer ?? 0;
+    },
+    orderCards: async (_ctx, o) => {
+      rec.calls.push({ verb: "orderCards", args: [o] });
+      return opts.orderCardsAnswer ? opts.orderCardsAnswer(o) : o.candidates;
     },
   };
   if (opts.opponentSelectCardsAnswer || opts.opponentChooseTargetsAnswer) {
@@ -3932,6 +3944,83 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(added).toHaveLength(1);
     expect(added[0]!.args[0]).toBe(0); // the controller's security
     expect(added[0]!.args[1]).toEqual(["H1"]); // the chosen hand instance
+  });
+
+  it("asks the activating player to order multiple top security placements", async () => {
+    const first = makeFakePermanent({
+      permanentId: "P-FIRST",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "FIRST", cardId: "L3-FIRST", ownerSeat: 1, faceUp: true } as never,
+    });
+    const second = makeFakePermanent({
+      permanentId: "P-SECOND",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "SECOND", cardId: "L3-SECOND", ownerSeat: 1, faceUp: true } as never,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ cardId: "Z-ORDER-SEC" }),
+      recorder,
+      opponentBattleArea: [first, second],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon], level: 3 }),
+      orderCardsAnswer: ({ candidates }) => [...candidates].reverse(),
+    });
+    const module = irCardModule("Z-ORDER-SEC", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "opponent",
+              source: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } },
+                count: "all",
+              },
+              toTop: true,
+            },
+          ],
+        },
+      ],
+    });
+    for (const effect of module.effectsForTiming(EffectTiming.OnPlay, ctx.source)) await effect.resolve(ctx);
+    expect(recorder.calls.find((call) => call.verb === "orderCards")?.args[0]).toMatchObject({
+      candidates: ["FIRST", "SECOND"],
+    });
+    expect(recorder.calls.find((call) => call.verb === "addSecurity")?.args[1]).toEqual(["FIRST", "SECOND"]);
+  });
+
+  it("restores a revealed security card in place at the requested bottom without flipping another face-up card", async () => {
+    const otherFaceUp = { instanceId: "OTHER-UP", cardId: "OTHER", ownerSeat: 0, faceUp: true } as never;
+    const revealed = { instanceId: "REVEALED", cardId: "REVEALED-CARD", ownerSeat: 0, faceUp: true } as never;
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ cardId: "Z-REVEAL-RESTORE" }),
+      recorder,
+      ownSecurity: [revealed, otherFaceUp],
+      revealed: [{ instanceId: "REVEALED", cardId: "REVEALED-CARD" }],
+    });
+    const module = irCardModule("Z-REVEAL-RESTORE", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [{ kind: "SecurityManipulation", op: "addBottom", controller: "mine", source: "revealed" }],
+        },
+      ],
+    });
+
+    for (const effect of module.effectsForTiming(EffectTiming.OnPlay, ctx.source)) await effect.resolve(ctx);
+
+    expect(ctx.game.player(0).security.map((card) => card.instanceId)).toEqual(["OTHER-UP", "REVEALED"]);
+    expect(ctx.game.player(0).security[0]!.faceUp).toBe(true);
+    expect(ctx.game.player(0).security[1]!.faceUp).toBe(false);
+    expect(recorder.calls.filter((call) => call.verb === "addSecurity")).toHaveLength(0);
+    expect(recorder.calls).toContainEqual({ verb: "flipSecurityFaceDown", args: [0, "REVEALED"] });
   });
 
   it("placeAsSecurity fromDigivolutionTop adds the selected permanent's top stack card", async () => {
