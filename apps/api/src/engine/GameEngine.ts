@@ -2365,24 +2365,50 @@ export class GameEngine {
   private static readonly DIGISORPTION_REDIRECT_KEY = "digisorption-redirect";
 
   /**
-   * An UNUSED ＜Digisorption＞-redirector permanent (BT3-056) on `seat`'s battle area this turn, or
+   * An UNUSED printed or conferred ＜Digisorption＞ redirect ability on `seat`'s battle area this turn, or
    * undefined. The redirect's [Your Turn][Once Per Turn] gate requires the
    * redirector to be a battle-area Digimon on its controller's turn and within its per-turn limit.
    * KB Q4703: a card cannot redirect its OWN digivolve-into suspend, so the redirector must be a
    * SEPARATE permanent already in play (the card being digivolved into is still in hand here).
    */
-  private digisorptionRedirector(seat: Seat, excludeInstanceId?: string): Permanent | undefined {
+  private digisorptionRedirector(
+    seat: Seat,
+    excludeInstanceId?: string,
+  ): { sourceInstanceId: string; effectKey: string } | undefined {
     if (this.state.turnSeat !== seat) return undefined;
-    return this.access
-      .player(seat)
-      .battleArea.find(
-        (p) =>
-          this.access.isBattleAreaDigimon(p) &&
-          p.topCard !== undefined &&
-          p.topCard.instanceId !== excludeInstanceId &&
-          isDigisorptionRedirector(p.topCard.cardId) &&
-          this.tracker.count(p.topCard.instanceId, GameEngine.DIGISORPTION_REDIRECT_KEY) < 1,
-      );
+    for (const permanent of this.access.player(seat).battleArea) {
+      if (!this.access.isBattleAreaDigimon(permanent) || permanent.topCard.instanceId === excludeInstanceId) continue;
+      const nativeKey = GameEngine.DIGISORPTION_REDIRECT_KEY;
+      if (
+        isDigisorptionRedirector(permanent.topCard.cardId) &&
+        this.tracker.count(permanent.topCard.instanceId, nativeKey) < 1
+      ) {
+        return { sourceInstanceId: permanent.topCard.instanceId, effectKey: nativeKey };
+      }
+      // A copied persistent ability belongs to the live host, but its once-per-turn
+      // identity retains both the physical lender and the source of the conferral.
+      for (const conferral of this.continuous.listStackEffectConferrals()) {
+        if (
+          conferral.targetPermanentId !== permanent.permanentId ||
+          conferral.inheritedOnly === true ||
+          (conferral.trigger !== undefined && conferral.trigger !== "YourTurn")
+        )
+          continue;
+        const lender = permanent.stack.find((card) => card.instanceId === conferral.stackInstanceId);
+        if (
+          lender === undefined ||
+          !lender.faceUp ||
+          lender.instanceId === excludeInstanceId ||
+          !isDigisorptionRedirector(lender.cardId)
+        )
+          continue;
+        const effectKey = `${nativeKey}/conferral/${conferral.granterInstanceId ?? permanent.topCard.instanceId}`;
+        if (this.tracker.count(lender.instanceId, effectKey) < 1) {
+          return { sourceInstanceId: lender.instanceId, effectKey };
+        }
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -2450,9 +2476,8 @@ export class GameEngine {
     // isOverMaxCountPerTurn on the WhenDigisorption effect).
     if (target.controllerSeat !== seat) {
       const redirector = this.digisorptionRedirector(seat, into.instanceId);
-      if (redirector?.topCard !== undefined) {
-        this.tracker.register(redirector.topCard.instanceId, GameEngine.DIGISORPTION_REDIRECT_KEY);
-      }
+      if (redirector === undefined) return 0;
+      this.tracker.register(redirector.sourceInstanceId, redirector.effectKey);
     }
 
     await this.primitives.suspend([target.permanentId], { byEffectSeat: seat });

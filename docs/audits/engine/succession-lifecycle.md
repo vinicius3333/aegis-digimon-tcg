@@ -2,6 +2,13 @@
 
 ## Status
 
+Latest bounded correction at baseline `ee85c20e7`: public BT3-056 → BT26-032
+formation exposes a copied persistent Digisorption redirect. The old cost query
+ignored it, charging five instead of two on the following evolution. The query
+now reads active stack-effect conferrals and retains lender/granter-qualified
+usage identity. Six additional public proofs cover acceptance, native/absent/
+refused controls and a second same-turn payment. Full certification remains open.
+
 Bounded correction at baseline `ba432186d`: the canonical keyword union omitted
 Succession; BT26-080 and BT26-103 incorrectly exposed their Digimon-side marker
 as UseReq. Both now expose Succession. BT26-032/060 no longer need a type cast.
@@ -42,7 +49,8 @@ the existing registration module and continuous keyword reader.
 uses matches.slice(-1). conferStackEffects records the actual matching instance
 and granter. GameEngine rebuilds continuous conferrals; collectConferredEffects
 handles triggered and static copies; the borrowed-effect reader also sees them.
-No shared resolution semantics are changed by this checkpoint. No second
+The ee85c20e7 marker checkpoint changes no shared resolution semantics;
+the copied-cost correction below changes discovery and payment usage accounting. No second
 registration, keyword executor or runner is introduced.
 
 The current authored actions and generic conferral model do not explicitly
@@ -86,9 +94,9 @@ by this printed-name inventory. BT26-032/080 are themselves potential named
 lenders carrying Succession; recursive exclusion cannot be marked not-applicable.
 BT3-056 supplies a distinct pay-time redirect consumer shape: its persistent
 Your Turn ability permits opposing suspension for Digisorption, with Q4703
-excluding the card still in hand. The current redirector query reads only top-card
-registry identities; whether a copied BT3-056 ability reaches that query needs
-a public reproduction, rather than credit from its generic conferral record.
+excluding the card still in hand. At `ee85c20e7`, the redirector query read only top-card registry identities.
+The public reproduction and correction below supersede that queued obligation
+only for this source/host and single-instance same-turn payment shape.
 
 The public evolution cases start at an established legal base, not a reproduced
 initial egg-to-mega line. The attack pair starts at the legal final evolution
@@ -103,6 +111,8 @@ await the actual end of attack. Neither inferred temporal behavior nor a GUI
 certificate is awarded from these tests.
 
 ## Gates
+
+### Marker checkpoint (ee85c20e7)
 
 `keyword-succession-lifecycle.test.ts` contains six ordinary public cases.
 The first valid four-case baseline fails only BT26-080/103's missing Succession
@@ -143,6 +153,75 @@ the corrected deck and retain exactly 2 red / 4 green and 4 red / 2 green; all
 mutations are byte-restored. Scoped Oxlint, changed-file Oxfmt (12 files),
 the current 66-set index and git diff --check pass. Delivery uses the existing
 audit/engine-mechanisms-20260912 branch; no collection completion is claimed.
+
+## Copied Digisorption redirect correction
+
+Full reviewed §16-10 is pinned as `comprehensive-0228` with fingerprint
+`4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375`.
+It requires actual optional suspension for the mandatory discount, permits
+suspending the evolving base and allows multiple keyword instances to overlap.
+The multiple-instance obligation is not proved by this single-amount path.
+BT3-056's full catalog and Q4703 require the persistent redirect already on the
+battle area; the card still in hand cannot supply its own redirect.
+
+Public setup begins with an established suspended BT3-056 and a quiet suspended
+Green level-5 Okuwamon (BT1-077), so no own Digimon can pay. Public alternate
+evolution into BT26-032 costs two (memory 10→8), physically retains BT3-056 and
+finishes its own optional effects with refusal. A subsequent public normal
+BT3-056 evolution over Okuwamon must pay two by suspending the opposing quiet
+Monodramon, ending at six memory. The original baseline instead ends at three:
+**1 failed / 9 passed** across the then-ten-case suite. This is a direct paid
+memory assertion, not a pending-decision timeout or synthetic timing.
+
+`GameEngine.digisorptionRedirector` preserves the existing native registry path,
+then checks active conferrals attached to a live battle-area Digimon. A copied
+candidate must have a present, face-up physical stack lender registered as a
+redirector; inherited-only and other trigger-limited copies cannot lend its
+Your Turn ability. Native identity is unchanged. Copy usage is tracked by lender
+instance and the grant source's suffix. `payDigisorption` rechecks the ability
+before paying an opposing target and records that exact identity.
+
+No card registration, authored IR or persisted effect record changes. Persisted
+BT3-056 retains YourTurn/OncePerTurn GrantStatic digisorptionRedirect, and
+BT26-032 retains its Static topmost Ceresmon effects grant, both inspected against
+the direct modules. Existing GrantStatic actions and the side registry remain
+the owning mechanisms; there
+is no second behavior registration or keyword runner.
+
+| Additional obligation                                    | Public observable proof                                                                                                                   | Consumers                    | Status            |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------- |
+| Copied persistent redirect reaches real cost payment     | Two legal public evolutions: 10→8→6, opposing suspension, exact old/new stacks and settled zones                                          | BT26-032 with BT3-056 lender | verified, bounded |
+| Native, absent and refused behavior stays distinct       | Native 10→8; absent 10→5; copied refusal 10→8→3, no opposing suspension for either negative                                               | BT3-056 and neutral host     | verified, bounded |
+| Same-turn use is consumed for the copied occurrence      | Public formation, then two Argomon BT2-050 evolutions; copied 8−2−5=1, native 10−2−5=3; first opposing target suspended, second unchanged | BT26-032 / BT3-056 / BT2-050 | verified, bounded |
+| Actual source/granter changes and real next-turn reset   | Initial/formed stack only                                                                                                                 | Full distinct copy shapes    | queued            |
+| Multiple redirectors and prevention of actual suspension | No multi-source choice or prevented-cost producer here                                                                                    | Native and copied forms      | queued            |
+
+The Argomon recipient is deliberately a non-redirector: a newly evolved Ceresmon
+would supply an additional unused native ability and obscure the frequency test.
+All pools respect individual four-copy limits; quiet decks and security contain
+no eggs. Partial staged states and final source lines are not initial deck or
+whole evolution-line certificates.
+
+Disabling only copied discovery fails **2 / 12** with ten controls green. Skipping
+only copied usage accounting fails **1 / 12**, eleven controls green, at the
+second payment's final memory. Both exact source mutations are restored.
+Restored focused conformance/native/host/layout command passes **4 files / 30
+tests**. Independent read-only review found no blocker; it preserves multiple
+redirectors, prevented suspension, reset and physical-identity changes as open.
+Final full API after the assertion-style cleanup passes **5112 files / 42345
+tests**, zero expected failures, in 60.46 seconds; workspace shared/API/web
+typecheck passes. The earlier 60.25-second full run predates that cleanup and is
+superseded. Final no-copy and no-copy-accounting reruns retain exactly 2 red /
+10 green and 1 red / 11 green after the strengthened native/absent controls;
+all mutations are byte-restored. Final focused conformance/native/host/layout
+passes 4 files / 30 tests. Scoped Oxlint has no warnings, five-file Oxfmt,
+66-set index, layout and diff checks pass before atomic branch delivery.
+
+Exact closing commands: `pnpm --filter @aegis/api test`, `pnpm typecheck`,
+`pnpm --filter @aegis/api exec vitest run src/engine/conformance/keyword-succession-lifecycle.test.ts src/cards/BT3/BT3-056.test.ts src/cards/BT26/BT26-032.test.ts src/cards/audit-docs.test.ts`,
+`pnpm exec oxlint apps/api/src/engine/GameEngine.ts apps/api/src/engine/conformance/keyword-succession-lifecycle.test.ts`,
+changed-file Oxfmt, `pnpm audit:index`, and `git diff --check`.
+No optional Postgres or GUI certification is claimed.
 
 ## Open items
 

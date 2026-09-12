@@ -967,6 +967,15 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 
 ### BT3-056 — Ceresmon
 
+2026-09-12 bounded native/copy comparison at `ee85c20e7`: public Green level-5
+Okuwamon evolution into Ceresmon proves native opposing suspension with cost
+five minus three; two Argomon evolutions use its printed redirect only once.
+The peer BT26-032 public formation exposed a missing copied-ability lookup,
+corrected in the shared cost query. Native behavior was green at the failing
+copied baseline. See [succession-lifecycle.md](engine/succession-lifecycle.md).
+This supplements the historical ledger without newly certifying full card,
+collection, source-loss, reset or prevented-suspension behavior.
+
 Score: 10/10. Digisorption cost paths and redirect source/controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 

@@ -143,4 +143,164 @@ describe("Succession committed consumer evolution", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
+
+  it.each(["copied", "printed", "absent", "refused"] as const)(
+    "public Digisorption payment with %s redirect",
+    async (mode) => {
+      cite(
+        "comprehensive-0228",
+        "16-10: optional suspension pays the immediate evolution discount",
+        "4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375",
+      );
+      const options = {
+        autoDeclineOptional: true,
+        autoAcceptOptional: false,
+        autoSelectCards: true,
+        autoChooseOption: true,
+      };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: mode === "absent" ? NEUTRAL : "BT3-056", as: "redirector", suspended: true },
+              { card: "BT1-077", as: "base", suspended: true },
+            ],
+            hand: [
+              { card: "BT26-032", as: "succession" },
+              { card: "BT3-056", as: "evolution" },
+            ],
+            deck: [NEUTRAL, "BT1-028", "BT1-028"],
+            security: [NEUTRAL],
+          },
+          1: { battleArea: [{ card: NEUTRAL, as: "payment" }], deck: [NEUTRAL], security: ["BT1-028"] },
+        },
+        options,
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const originalRedirectorId = s.inst("redirector").instanceId;
+      const baseId = s.inst("base").instanceId;
+      const evolutionId = s.inst("evolution").instanceId;
+      const successionId = s.inst("succession").instanceId;
+      const paymentId = s.inst("payment").instanceId;
+      const copied = mode === "copied" || mode === "refused";
+      const formationResult = copied
+        ? s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("redirector").permanentId,
+            instanceId: successionId,
+            useAlternateCost: true,
+          })
+        : undefined;
+      expect(formationResult).toEqual(copied ? { ok: true } : undefined);
+      if (copied) await settle(() => s.perm("redirector").topCard.instanceId === successionId);
+      await settle();
+      expect(s.state.memory).toBe(copied ? 8 : 10);
+      expect(s.perm("redirector").stack.map((card) => card.instanceId)).toEqual(copied ? [originalRedirectorId] : []);
+      options.autoDeclineOptional = mode === "refused";
+      options.autoAcceptOptional = mode !== "refused";
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: evolutionId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === evolutionId);
+      await settle();
+      const paidRedirect = mode === "copied" || mode === "printed";
+      expect(s.state.memory).toBe((copied ? 8 : 10) - (paidRedirect ? 2 : 5));
+      expect(s.perm("payment").isSuspended).toBe(paidRedirect);
+      expect(s.perm("payment").topCard.instanceId).toBe(paymentId);
+      expect(s.perm("payment").controllerSeat).toBe(1);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+      expect(s.perm("base").currentDP).toBe(12000);
+      expect(s.perm("base").isSuspended).toBe(true);
+      expect(s.perm("redirector").isSuspended).toBe(true);
+      expect(s.state.players[0]!.deck).toHaveLength(copied ? 1 : 2);
+      expect(s.state.players[0]!.hand).toHaveLength(2);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[1]!.trash).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
+
+  it.each([true, false])("redirect is used only once after two public evolutions, copied %s", async (copied) => {
+    const options = {
+      autoDeclineOptional: true,
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      autoChooseOption: true,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-056", as: "host", suspended: true },
+            { card: "BT1-077", as: "firstBase", suspended: true },
+            { card: "BT1-077", as: "secondBase", suspended: true },
+          ],
+          hand: [
+            { card: "BT26-032", as: "succession" },
+            { card: "BT2-050", as: "firstEvolution" },
+            { card: "BT2-050", as: "secondEvolution" },
+          ],
+          deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-028"],
+          security: ["BT1-028"],
+        },
+        1: {
+          battleArea: [
+            { card: NEUTRAL, as: "firstPayment" },
+            { card: NEUTRAL, as: "secondPayment" },
+          ],
+          deck: [NEUTRAL],
+          security: ["BT1-028"],
+        },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostSourceId = s.inst("host").instanceId;
+    const baseIds = [s.inst("firstBase").instanceId, s.inst("secondBase").instanceId];
+    const formationResult = copied
+      ? s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("succession").instanceId,
+          useAlternateCost: true,
+        })
+      : undefined;
+    expect(formationResult).toEqual(copied ? { ok: true } : undefined);
+    if (copied) await settle(() => s.perm("host").topCard.cardId === "BT26-032");
+    await settle();
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    for (const [index, label] of ["first", "second"].entries()) {
+      const evolutionId = s.inst(`${label}Evolution`).instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(`${label}Base`).permanentId,
+          instanceId: evolutionId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(`${label}Base`).topCard.instanceId === evolutionId);
+      await settle();
+      expect(s.perm(`${label}Base`).stack.map((card) => card.instanceId)).toEqual([baseIds[index]]);
+    }
+    expect(s.state.memory).toBe(copied ? 1 : 3);
+    expect(s.perm("firstPayment").isSuspended).toBe(true);
+    expect(s.perm("secondPayment").isSuspended).toBe(false);
+    expect(s.perm("host").topCard.instanceId).toBe(copied ? s.inst("succession").instanceId : hostSourceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual(copied ? [hostSourceId] : []);
+    expect(s.state.players[0]!.deck).toHaveLength(copied ? 1 : 2);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
 });
