@@ -210,10 +210,6 @@ export async function runPlaceUnder(
         const def = ctx.game.definitionOf({ cardId: top.cardId } as never);
         if (!filter.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return;
       }
-      // The placement is "you may" — offer it; the controller may decline (Q4857).
-      if (action.optional === true && !(await ctx.ask.optional(ctx, "Place as top digivolution card?"))) {
-        return;
-      }
       await ctx.fx.placeAsTopFromEggDeck(self.permanentId, ctx.source.ownerSeat);
       return;
     }

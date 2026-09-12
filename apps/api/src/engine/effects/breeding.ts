@@ -165,6 +165,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [egg.instanceId],
+      addedDigivolutionCardsPosition: "top",
       byEffectSeat: seat,
     });
     return egg;

@@ -142,3 +142,23 @@ Valid baseline: **2 failed, 13 passed**, both paid placement visibility assertio
 ### Open obligations
 
 Joint reveal/egg/Royal Knight ordering under Q2264 is not established by separate authored actions and remains open. Top-placement Mother Eater metadata, explicit top insertion, downstream event reaction, visible inherited-source consequences, cross-controller/face-state overrides, all collection clauses and a complete normative/producer denominator remain open. No whole-card ten-point or collection-completion claim is supported by these four public turns. Collection status and current consumer caps belong to [BT13.md](../BT13.md) and [EX6.md](../EX6.md).
+
+## Mother Eater top-placement checkpoint
+
+### Contract and sources
+
+BT22-007's committed catalog record and direct IR module were read in full. The local card query provides Q4856 (the looked-at card need only be revealed when placed), Q4857 (a declined/nonmatching card returns to the Digi-Egg deck face down), Q4858 (an empty Digi-Egg deck does not prevent the later 10-card-stack clause), Q4859 (play as many as possible up to three), and Q4860 (all three must be played when three are available). Comprehensive-0292 §4-7-5 was also read and cited for the face-up source default. No eligibility rule was inferred from the empty-deck case beyond the printed Q4858 permission.
+
+### Public proof and bounded repair
+
+The new `mother-eater-placement.test.ts` drives four complete production turns with `advance.runTurn`: accepted Mother Eater top placement, refusal, nonmatching egg top, and an empty egg deck with ten sources and three Mother Eaters. Neutral BT1-001/BT1-028/BT1-009 fixtures keep unrelated effects quiet. The paid path asserts the actual top stack order, face-up source, egg-deck movement, and `onAddDigivolutionCards` event; negative paths assert face-down retention and no addition; the empty path asserts all three Mother Eaters are played.
+
+The shared seam had two independent gaps: `placeAsTopFromEggDeck` moved the correct card but omitted `addedDigivolutionCardsPosition: "top"`, and `runPlaceUnder` asked an inner optional question after `runAction` had already asked the action-level optional. The bounded repair adds the event position and leaves optional ownership with `runAction`. Empty-deck eligibility is intentionally unchanged: its full turn currently records two optionals (the generic no-op placement confirmation and the later play clause), while the accepted/refused/mismatch placement cases record one.
+
+### Baseline and gates
+
+Before the repair, the focused file reproduced two defects: accepted placement lacked the top event metadata and exposed a duplicated optional prompt. The corrected focused command passes **1 file, 4 tests**. The postpatch Mother regression passes **1 file, 4 tests**; the full API passes **5,115 files / 42,398 tests**, and workspace typecheck passes for shared, web, and API. No card registration or serialized IR changed. No whole-card or collection certification is claimed.
+
+### Open obligations
+
+Whether the generic optional placement confirmation should be suppressed when the egg deck is empty remains a separate eligibility question and is not changed here. Downstream placement consumers, copied-source visibility, ordering with other start-of-main effects, the complete Mother Eater clause matrix, whole-card ten-point scoring, and collection certification remain open.
