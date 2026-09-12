@@ -285,9 +285,13 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 });
 
-describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0154)", () => {
+describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0318)", () => {
   it("13-1-8-3-2: with no Security Digimon (a non-Digimon check), the flow proceeds straight to the next step without a battle", async () => {
-    cite("comprehensive-0154", "13-1-8-3-2 if a Security Digimon isn't present, proceed to the next step");
+    cite(
+      "comprehensive-0318",
+      "13-1-8-3-2 if a Security Digimon isn't present, proceed to the next step",
+      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
+    );
 
     const card = makeSecurityCard(1, 0, "OPTION-X");
     const h = harness([card], { isDigimon: () => false });
@@ -299,8 +303,9 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0154)", () => {
 
   it("13-1-8-4: a revealed card is trashed unless an effect already relocated it to an area", async () => {
     cite(
-      "comprehensive-0154",
+      "comprehensive-0318",
       "13-1-8-4 a card revealed from a security check is placed in the trash unless it belongs to an area",
+      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
     );
 
     const stays = makeSecurityCard(1, 0, "OPTION-X");
@@ -323,7 +328,11 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0154)", () => {
   });
 
   it("13-1-8-5: if the checking Digimon can perform another security check, it does — the Strike loop continues", async () => {
-    cite("comprehensive-0154", "13-1-8-5 if the card performing the security check can perform another, it does");
+    cite(
+      "comprehensive-0318",
+      "13-1-8-5 if the card performing the security check can perform another, it does",
+      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
+    );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1), makeSecurityCard(1, 2)];
     const h = harness(cards, { strikeFor: () => 3 });

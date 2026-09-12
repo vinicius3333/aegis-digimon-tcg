@@ -450,18 +450,13 @@ describe("§2-10 Overflow (comprehensive-0049)", () => {
   });
 });
 
-describe("§2-11 Arts Digivolve (comprehensive-0050)", () => {
+describe("§4-6-2 DUAL Option declaration (comprehensive-0289)", () => {
   it('a DUAL card is playable as its Option side (an explicit useAs: "option"), applying its printed Option effect', async () => {
     cite(
-      "comprehensive-0050",
-      "Arts Digivolve (§4-19-1) is a rule on DUAL cards — 'instead of the trashing from the " +
-        "pending processing after using an Option card, one of your cards on the field may " +
-        "digivolve into that DUAL card without paying the cost.' Its precondition, playing a DUAL " +
-        "card AS its Option side, is reachable: playCard.ts's playModeOf() honors an explicit " +
-        "`useAs: \"option\"` on the intent (CR §4-5-2 'a player declares' which side); the default " +
-        "(no `useAs`) still resolves to the Digimon side, matching §4-5-2's own default framing. " +
-        "See ch04-basic-terminology.test.ts §4-19 for Arts Digivolve's own overwrite-processing " +
-        "coverage (the free digivolve that replaces the resulting pending trash).",
+      "comprehensive-0289",
+      "4-6-2: explicitly declaring a DUAL card's Option side uses its Option information. " +
+        "This proves the Option-use prerequisite; Arts Digivolve's overwrite is exercised in chapter 4.",
+      "8bfca712096726b5b79fea37f0425faa4e100ffa2acfaca76e8231e9498e51c8",
     );
 
     const s = setup();

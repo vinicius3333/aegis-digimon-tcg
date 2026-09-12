@@ -28,7 +28,9 @@ export const SOURCES = {
   rulesPdfs: [
     { id: "comprehensive", url: `${BASE_URL}/rule/pdf/general_rule.pdf`, title: "Comprehensive Rules" },
     { id: "manual", url: `${BASE_URL}/rule/pdf/manual.pdf`, title: "Official Rule Manual" },
-    { id: "glossary", url: `${BASE_URL}/rule/pdf/glossary.pdf`, title: "Glossary" },
+    // Removed from the official downloads page; both the original and dated
+    // URL returned 404 on 2026-09-12. Preserve historical citations explicitly.
+    { id: "glossary", url: `${BASE_URL}/rule/pdf/glossary.pdf`, title: "Glossary", archived: true },
   ],
 };
 

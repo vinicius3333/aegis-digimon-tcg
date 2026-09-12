@@ -122,7 +122,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
 
     const s = setup();
     const p0 = s.state.players[0]!;
-    p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-21 color-requirement source (Red)
+    p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-22 color-requirement source (Red)
     const card = instance("BT1-090", 0, false);
     p0.hand.push(card);
     s.state.memory = 10;
@@ -161,7 +161,7 @@ describe("§9-1-6 Using Cards (comprehensive-0138)", () => {
 
     const s = setup();
     const p0 = s.state.players[0]!;
-    p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-21 color-requirement source (Red)
+    p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-22 color-requirement source (Red)
     const card = instance("BT1-091", 0, false); // playCost 3
     p0.hand.push(card);
     s.state.memory = -10; // maxAffordable(0) = 0 < 3

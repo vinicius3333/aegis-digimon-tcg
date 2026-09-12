@@ -118,7 +118,7 @@ describe("§3-1-3 Area Rules (comprehensive-0056)", () => {
   });
 });
 
-// §3-1-3-6..3-1-3-9 Area Rules, cont'd (comprehensive-0057): 3-1-3-6/3-1-3-7 (ordering +
+// §3-1-3-6..3-1-3-9 Area Rules, cont'd (comprehensive-0280): 3-1-3-6/3-1-3-7 (ordering +
 // reveal-before-placement for a batch move into a PRIVATE area) and 3-1-3-8/3-1-3-9
 // (default-to-owner's-area, Digi-Egg-deck placement order) are all properties of a SPECIFIC
 // multi-card effect's resolution order, not of the areas themselves — the area schema (proven
@@ -126,7 +126,7 @@ describe("§3-1-3 Area Rules (comprehensive-0056)", () => {
 // these sub-rules behaviorally requires driving a real multi-card-move effect end-to-end and
 // asserting the reveal/order sequence, which is chapter 15 "Effect Rules" scaffolding (specific
 // compiled-IR move actions in effects/interpreter.ts), out of this chapter's area/schema scope.
-// comprehensive-0057 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
+// comprehensive-0280 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
 // this deferral. The not-testable entry that used to sit here was removed: the meta-test
 // rejects an id that is both cited and not-testable, which is how the staleness surfaced.
 
@@ -167,7 +167,11 @@ describe("§3-3 Digi-Egg Deck (comprehensive-0059)", () => {
 
 describe("§3-4 Field (comprehensive-0060)", () => {
   it("3-4-2/3-4-3: the field is public, and a card entering it is placed UNSUSPENDED", async () => {
-    cite("comprehensive-0060", "3-4-2 the field is public; 3-4-3 cards enter unsuspended");
+    cite(
+      "comprehensive-0060",
+      "3-4-2 the field is public; 3-4-3 cards enter unsuspended",
+      "093bed0b47c2f911dafd1a38b59725fd0383107ab737ab490195dfbd30917b30",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -192,9 +196,13 @@ describe("§3-4 Field (comprehensive-0060)", () => {
   });
 });
 
-describe("§3-4-5 Breeding Area (comprehensive-0061, 0062)", () => {
-  it("3-4-5-2/3-4-5-5: only 1 card fits in breeding, and a breeding permanent can't be chosen as a target", () => {
-    cite("comprehensive-0061", "3-4-5-2 only 1 card in the breeding area; 3-4-5-5 can't be chosen");
+describe("§3-4-7 Breeding Area (comprehensive-0281, 0282)", () => {
+  it("3-4-7-2/3-4-7-5: only 1 card fits in breeding, and a breeding permanent can't be chosen as a target", () => {
+    cite(
+      "comprehensive-0281",
+      "3-4-7-2 only 1 card in the breeding area; 3-4-7-5 can't be chosen",
+      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -213,8 +221,12 @@ describe("§3-4-5 Breeding Area (comprehensive-0061, 0062)", () => {
     expect(p0.breeding).toBeDefined(); // the single breeding slot instance itself
   });
 
-  it("3-4-5-4: a card's [Main] ability can't be activated while it's in the breeding area", () => {
-    cite("comprehensive-0062", "3-4-5-4 effects on cards in breeding areas can't trigger or activate");
+  it("3-4-7-4: a card's [Main] ability can't be activated while it's in the breeding area", () => {
+    cite(
+      "comprehensive-0281",
+      "3-4-7-4 effects on cards in breeding areas can't trigger or activate",
+      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+    );
 
     const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;
@@ -238,11 +250,11 @@ describe("§3-4-5 Breeding Area (comprehensive-0061, 0062)", () => {
   });
 });
 
-describe("§3-4-5-6 breeding-area trigger conditions (comprehensive-0061)", () => {
+describe("§3-4-7-6 breeding-area trigger conditions (comprehensive-0281)", () => {
   // The rulebook's own example, card for card: EX11-066 Xeno is a battle-area Tamer whose
   // "[All Turns] When your Digimon are played or digivolve ... by suspending this Tamer ..."
   // clause is exactly the "[Your Turn] When your Digimon digivolves, by suspending this Tamer,
-  // <Draw 1>" shape §3-4-5-6 says a breeding-area digivolution must not trigger.
+  // <Draw 1>" shape §3-4-7-6 says a breeding-area digivolution must not trigger.
   const XENO = "EX11-066";
   const VEMMON = "BT11-061"; // Lv.3 [Vemmon], digivolves from a black Lv.2 Digi-Egg
   const BLACK_EGG = "BT11-005";
@@ -263,8 +275,12 @@ describe("§3-4-5-6 breeding-area trigger conditions (comprehensive-0061)", () =
       { autoAcceptOptional: true },
     );
 
-  it("3-4-5-6: a breeding-area digivolution doesn't meet a battle-area Tamer's trigger condition", async () => {
-    cite("comprehensive-0061", "3-4-5-6 trigger conditions can't be met by cards in breeding areas");
+  it("3-4-7-6: a breeding-area digivolution doesn't meet a battle-area Tamer's trigger condition", async () => {
+    cite(
+      "comprehensive-0281",
+      "3-4-7-6 trigger conditions can't be met by cards in breeding areas",
+      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+    );
 
     const s = setupXeno("breeding");
     await s.ready();
@@ -303,9 +319,13 @@ describe("§3-4-5-6 breeding-area trigger conditions (comprehensive-0061)", () =
   });
 });
 
-describe("§3-4-6 Battle Area (comprehensive-0063)", () => {
-  it("3-4-6-2: any number of cards can be placed in the battle area", () => {
-    cite("comprehensive-0063", "3-4-6-2 any number of cards can be placed in the battle area");
+describe("§3-4-8 Battle Area (comprehensive-0283)", () => {
+  it("3-4-8-2: any number of cards can be placed in the battle area", () => {
+    cite(
+      "comprehensive-0283",
+      "3-4-8-2 any number of cards can be placed in the battle area",
+      "646a47059cf78aea39a404ec29ee2a0155a23f350b7508c61d35d45d33e38b7d",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;

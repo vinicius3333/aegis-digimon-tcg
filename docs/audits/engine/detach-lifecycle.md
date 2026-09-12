@@ -19,8 +19,12 @@ is version 4.2. Its header reports 2026-08-18; the version changelog reports
 effects by an optional payment from the specified linked cards. Q6964 establishes
 the battle case and removal of linked Piercing before the opponent is deleted;
 it does not limit Detach to battle. Section 15-7-4 remains relevant to impossible
-payment choices. The committed comprehensive KB identifies itself as version 4.0 (2026-04-01) and lacks section 16-46; no citation identifier was
-invented. A reviewed source refresh remains an audit obligation.
+payment choices. The baseline comprehensive KB was version 4.0 (2026-04-01) and
+lacked section 16-46. The current scoped import contains reviewed version 4.2
+section 16-46 as `comprehensive-0323`, pinned in every lifecycle fixture with
+`58b545c8005fcef5c0c20be0fae48f94034c24c1d66eaa211b23f1791069ffff`.
+Reviewed source-refresh regression and delivery gates are green; see
+`kb-citation-integrity.md`.
 
 ## Implementation trace
 

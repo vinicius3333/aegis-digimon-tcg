@@ -1,4 +1,4 @@
-import { markNotTestable, type NonEmptyString } from "./_kb.js";
+import { loadRuleIndex, markNotTestable, type NonEmptyString } from "./_kb.js";
 
 /**
  * The manifest of KB chunks that carry no normative rule content, and so are
@@ -81,4 +81,11 @@ export const NOT_TESTABLE: readonly NotTestableEntry[] = [
 
 for (const { id, reason } of NOT_TESTABLE) {
   markNotTestable(id, reason);
+}
+
+// The corrected chunker gives the non-normative revision appendix its own title.
+for (const chunk of loadRuleIndex().chunks) {
+  if (chunk.source === "comprehensive" && chunk.title === "Update History" && chunk.section === null) {
+    markNotTestable(chunk.id, "Revision-history appendix, not current normative rule content.");
+  }
 }

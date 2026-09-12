@@ -440,13 +440,13 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
       "comprehensive-0169",
       '15-7-1 optional processing conditions include text such as "by X, Y" — the ' +
         "player chooses whether to execute the conditions, then the payload runs",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
     cite(
       "comprehensive-0170",
       "15-7-4/15-7-5 a player can choose to execute optional processing conditions " +
         "regardless of whether the content after them can be executed",
-      "238f003c6cbc645a023fd73c17dc447cec13647fb9e839d788b827998c3428e4",
+      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -514,7 +514,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     cite(
       "comprehensive-0169",
       "Refusal of by-X processing gates every following action",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
     const s = setup(
       {
@@ -541,7 +541,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "15-7-2 if the content of the optional processing conditions isn't executed, the " +
         "processing after the conditions can't be executed",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(
@@ -568,7 +568,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     cite(
       "comprehensive-0169",
       "Processing payment precedes the opponent-owned payload",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
     const s = setup(
       {
@@ -607,7 +607,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     cite(
       "comprehensive-0169",
       '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then performed',
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(
@@ -635,7 +635,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "15-7-2 the optional processing condition is executed before the processing after it; " +
         "a declined optional inside that processing does not undo it",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
     );
 
     const s = setup(

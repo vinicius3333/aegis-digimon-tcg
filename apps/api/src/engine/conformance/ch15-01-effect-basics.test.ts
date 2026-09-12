@@ -240,7 +240,7 @@ describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
     const target = digimon(0, 5000, "AD1-001");
     p0.battleArea.push(target);
     // A Tamer (not a Digimon) so it isn't a second candidate for the "1 of your Digimon" target below.
-    p0.battleArea.push(digimon(0, 0, "BT10-092")); // §4-21 color-requirement source (Black Tamer)
+    p0.battleArea.push(digimon(0, 0, "BT10-092")); // §4-22 color-requirement source (Black Tamer)
     const breathOfGods = instance("BT3-105", 0, false); // real: "1 of your Digimon gains <Reboot> ..."
     p0.hand.push(breathOfGods);
     s.state.memory = requireCardDefinition("BT3-105").playCost;

@@ -72,11 +72,10 @@ export function getChunk(id: string): RuleChunk {
   if (!chunk) {
     throw new Error(
       `Unknown KB chunk id "${id}" — not present in data/kb/rules-index.json. ` +
-        `Chunk ids are positional (assigned by chunk order at scrape time, see ` +
-        `tools/kb/index-rules.mjs), so a KB re-scrape can renumber them and invalidate this ` +
-        `citation. Run \`node tools/kb/query.mjs rules "<topic>"\` to find the current id for ` +
-        `the rule you meant to cite, and see this directory's README for the citation-drift ` +
-        `mitigation.`,
+        `The rule importer preserves matched identities and retires removed chunks. ` +
+        `Review the source and this citation's obligation before choosing a replacement. ` +
+        `Run \`node tools/kb/query.mjs rules "<topic>"\` to inspect candidate rules; ` +
+        `do not replace IDs or reviewed fingerprints without checking their content.`,
     );
   }
   return chunk;

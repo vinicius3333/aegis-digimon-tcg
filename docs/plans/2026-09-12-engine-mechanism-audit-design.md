@@ -215,3 +215,11 @@ whole-collection 10/10 and pushed-branch requirements still apply.
 ## 2026-09-12 execution checkpoint
 
 The plan remains active at full scope. Citation fingerprints and optional-clause refusal have reviewed public proof. Canonical keyword and compound-cost discovery is recorded in the engine ledgers, but complete normative reconciliation remains open. BT14-090 exact bracket matching was repaired following a partial-payment reproduction. The latest official manual exposed Detach's broader departure contract; its shared correction now has opponent deletion/return/security and existing battle proofs. BT14 and BT26 certification statuses were reopened where these findings contradicted inherited completion claims. All unresolved ledger rows, remaining phases, cross-consumer proofs and final closeout gates still require completion.
+
+The comprehensive KB is now locally refreshed to version 4.2 with preserved or
+explicitly retired citation identities, distinct revision history and reviewed
+topic mappings. Existing conformance and affected collection regressions are
+green; this does not certify newly added/changed normative clauses. Illustrated
+manual OCR reconciliation remains open, and the unavailable old glossary is
+explicitly archived. Normative cost-declaration and immediate-overwrite clauses
+previously excluded for missing implementation/fixtures have been reopened.

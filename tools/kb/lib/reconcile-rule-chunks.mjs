@@ -5,7 +5,17 @@ export function reconcileRuleChunks({ previousChunks = [], chunks, retiredIds = 
   const previousByKey = new Map();
   const freshByKey = new Map();
   const freshSignatures = new Set();
-  const keyOf = (chunk) => JSON.stringify([chunk.source, chunk.section, chunk.title]);
+  const keyOf = (chunk) => {
+    let title = chunk.title;
+    if (chunk.source === "comprehensive") {
+      // Reviewed PDF artifacts: TOC page numbers and four headings with a
+      // footer glued to their name. These are not semantic rule identities.
+      if (/\.{3,}/.test(title)) title = `TOC: ${title.replace(/\s*\.{3,}.*$/, "").trim()}`;
+      else
+        title = title.replace(/^(Digivolution Requirements|Activation|Keyword Effects|Pending Processing)\d+$/, "$1");
+    }
+    return JSON.stringify([chunk.source, chunk.section, title]);
+  };
   for (const chunk of previousChunks) {
     if (reserved.has(chunk.id)) throw new Error(`Duplicate or retired rule ID: ${chunk.id}`);
     reserved.add(chunk.id);

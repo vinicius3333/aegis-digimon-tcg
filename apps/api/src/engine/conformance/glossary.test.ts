@@ -430,7 +430,7 @@ describe("glossary-0011 (Option Card Properties)", () => {
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
-    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
+    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-22 color-requirement source (Blue)
     p0.deck.push(instance("AD1-001", 0, false)); // a card for the option's own Draw 1 to hit
     const option = instance("BT1-097", 0, false);
     p0.hand.push(option);
@@ -490,7 +490,7 @@ describe("glossary-0013 (Actions, part 2 — DNA Digivolution / Color Requiremen
         "Requirements ('a Digimon or Tamer in your battle area or breeding area matching the " +
         "Option's color') is behaviorally verified as a DIVERGENCE (the gate reads only the " +
         "6-card `optionColorRequirements` field, never an ordinary Option's `colors`) under " +
-        "ch04-basic-terminology.test.ts's comprehensive-0091. Both mechanics are the SAME " +
+        "ch04-basic-terminology.test.ts's comprehensive-0308. Both mechanics are the SAME " +
         "engine code this glossary chunk's own wording describes, not a distinct implementation " +
         "to re-verify — repeating either scenario here would test the identical code path a " +
         "second time under a new id, not new coverage.",

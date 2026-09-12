@@ -77,9 +77,13 @@ describe("§4-1 Memory (comprehensive-0068)", () => {
   });
 });
 
-describe("§4-2 Digimon (comprehensive-0069)", () => {
-  it("4-2-1: a Digi-Egg card or Digimon card placed on the field is treated as a Digimon", () => {
-    cite("comprehensive-0069", "4-2-1 Digi-Egg and Digimon cards on the field are treated as Digimon");
+describe("§4-3 Digimon (comprehensive-0286)", () => {
+  it("4-3-1: a Digi-Egg card or Digimon card placed on the field is treated as a Digimon", () => {
+    cite(
+      "comprehensive-0286",
+      "4-3-1 Digi-Egg and Digimon cards on the field are treated as Digimon",
+      "b9d4184692703e8321574c7f7ac503d13fcb021742a50e7dbe517f5790e0efdd",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -104,14 +108,15 @@ describe("§4-2 Digimon (comprehensive-0069)", () => {
 
   it("NOW MET: a Digimon with a Link card should get the printed link DP bonus added to its DP", async () => {
     cite(
-      "comprehensive-0069",
-      "DIVERGENCE: §4-2-4 'A Digimon gets the link DP value on its link card.' " +
+      "comprehensive-0286",
+      "DIVERGENCE: §4-3-4 'A Digimon gets the link DP value on its link card.' " +
         "CardDefinition.linkDp is extracted and populated for real link cards (e.g. BT21-009, " +
         "linkDp: 2000), but it is referenced NOWHERE in the DP-computation path: " +
         "ModifierLedger.baseDpOf (effects/modifiers.ts) reads only the active base-DP override " +
         "or the permanent's printed baseDP, and recomputeDP sums that with the active DP-delta " +
         "modifiers — neither term ever inspects `permanent.linked` or any linked card's " +
         "linkDp. A linked card changes nothing about currentDP.",
+      "b9d4184692703e8321574c7f7ac503d13fcb021742a50e7dbe517f5790e0efdd",
     );
 
     // ST22-08 prints "[Link] Lv.3 or higher", which the Lv.4 host satisfies. A link card
@@ -134,14 +139,18 @@ describe("§4-2 Digimon (comprehensive-0069)", () => {
       s.engine as unknown as { primitives: { link(id: string, ids: string[]): Promise<unknown> } }
     ).primitives.link(host.permanentId, [loose.instanceId]);
 
-    // EXPECTED (per §4-2-4): host.currentDP should now include the link card's +2000 DP.
+    // EXPECTED (per §4-3-4): host.currentDP should now include the link card's +2000 DP.
     expect(host.currentDP).toBe(5000 + def.linkDp!);
   });
 });
 
-describe("§4-3 Tamers (comprehensive-0070)", () => {
-  it("4-3-1: a Tamer card placed on the field is treated as a Tamer, not a Digimon", () => {
-    cite("comprehensive-0070", "4-3-1 Tamer cards placed on the field are treated as Tamers");
+describe("§4-4 Tamers (comprehensive-0287)", () => {
+  it("4-4-1: a Tamer card placed on the field is treated as a Tamer, not a Digimon", () => {
+    cite(
+      "comprehensive-0287",
+      "4-4-1 Tamer cards placed on the field are treated as Tamers",
+      "352a7f907957d40a80f1b7bcd6c127d864491f9d766b653e8f0fbdb26a1462b7",
+    );
 
     const tamerDef = requireCardDefinition("BT12-092"); // a real [Marcus Damon] Tamer, used elsewhere in this suite
     expect(tamerDef.kinds).toContain("Tamer");
@@ -155,9 +164,13 @@ describe("§4-3 Tamers (comprehensive-0070)", () => {
   });
 });
 
-describe("§4-4 Security Digimon (comprehensive-0071)", () => {
-  it("4-4-1: a Digimon card flipped from the security stack becomes face-up and is treated as a Digimon", () => {
-    cite("comprehensive-0071", "4-4-1 a Digimon card flipped from security on a check is a Security Digimon");
+describe("§4-5 Security Digimon (comprehensive-0288)", () => {
+  it("4-5-1: a Digimon card flipped from the security stack becomes face-up and is treated as a Digimon", () => {
+    cite(
+      "comprehensive-0288",
+      "4-5-1 a Digimon card flipped from security on a check is a Security Digimon",
+      "1b833da32821bdde25176b710f3bcd2ae53858c90c171ca38cbfe9ad40f96c17",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -179,16 +192,17 @@ describe("§4-4 Security Digimon (comprehensive-0071)", () => {
   });
 });
 
-describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
+describe("§4-6 DUAL Cards (comprehensive-0289)", () => {
   it("playing a DUAL card lets the player declare which side (Digimon or Option) it's used as", async () => {
     cite(
-      "comprehensive-0072",
-      "§4-5-2 'A player declares whether they will use either the Digimon information or " +
+      "comprehensive-0289",
+      "§4-6-2 'A player declares whether they will use either the Digimon information or " +
         "Option information on a DUAL card, then it can be used.' playCard.ts's playModeOf() " +
         'honors an explicit `useAs: "option"` on the intent (falling back to the permanent ' +
         "side otherwise), and the Option side's [Main] effect is now compiled into the IR " +
         "(runtime effect records reads card.optionEffect) — BT25-043 (isDualCard:true, " +
         "printed Option effect '-8000 DP') actually resolves the Option side end to end.",
+      "8bfca712096726b5b79fea37f0425faa4e100ffa2acfaca76e8231e9498e51c8",
     );
 
     const s = setup({
@@ -218,7 +232,7 @@ describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
     const dualCard = s.inst("dualCard");
     s.state.memory = def.playCost;
 
-    // EXPECTED (per §4-5-2): a player-declared "use as Option" choice exists on the intent.
+    // EXPECTED (per §4-6-2): a player-declared "use as Option" choice exists on the intent.
     const result = s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: dualCard.instanceId,
@@ -278,9 +292,13 @@ describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
   });
 });
 
-describe("§4-5-5 Digimon Information (comprehensive-0073)", () => {
-  it("4-5-5-1/4-5-5-2: a DUAL card's Digimon information (dp/level/evoCosts) is populated and referenceable as a Digimon", () => {
-    cite("comprehensive-0073", "4-5-5-1/2 the Digimon information on a DUAL card, referenceable as a Digimon card");
+describe("§4-6-5 Digimon Information (comprehensive-0290)", () => {
+  it("4-6-5-1/4-6-5-2: a DUAL card's Digimon information (dp/level/evoCosts) is populated and referenceable as a Digimon", () => {
+    cite(
+      "comprehensive-0290",
+      "4-6-5-1/2 the Digimon information on a DUAL card, referenceable as a Digimon card",
+      "82f194c1d6551f9276e8116693207f8d4cba3f914ddfa0d2ce83a05b630d6c79",
+    );
 
     const def = requireCardDefinition("BT25-043");
     expect(def.kinds).toContain("Digimon");
@@ -290,9 +308,13 @@ describe("§4-5-5 Digimon Information (comprehensive-0073)", () => {
   });
 });
 
-describe("§4-5-6 Option Information (comprehensive-0074)", () => {
-  it("4-5-6-1/4-5-6-2: a DUAL card's Option information is a DISTINCT field from its Digimon effect text", () => {
-    cite("comprehensive-0074", "4-5-6-1/2 the Option information (lower text) is separate, referenceable as an Option");
+describe("§4-6-6 Option Information (comprehensive-0291)", () => {
+  it("4-6-6-1/4-6-6-2: a DUAL card's Option information is a DISTINCT field from its Digimon effect text", () => {
+    cite(
+      "comprehensive-0291",
+      "4-6-6-1/2 the Option information (lower text) is separate, referenceable as an Option",
+      "0744b01e97ecfa2a50f4c286a9dbaca45ba37c83733734eb3d433c7582afe4e2",
+    );
 
     const def = requireCardDefinition("BT25-043");
     expect(def.kinds).toContain("Option");
@@ -302,11 +324,12 @@ describe("§4-5-6 Option Information (comprehensive-0074)", () => {
   });
 });
 
-describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
-  it("4-6-1/4-6-2: a permanent's stack is empty for a single (un-digivolved) card, and gains entries only once digivolved", async () => {
+describe("§4-7 Stacked Cards (comprehensive-0292)", () => {
+  it("4-7-1/4-7-2: a permanent's stack is empty for a single (un-digivolved) card, and gains entries only once digivolved", async () => {
     cite(
-      "comprehensive-0075",
-      "4-6-1 stacked cards = all cards in a stack of 1+; 4-6-2 a lone card isn't 'stacked cards'",
+      "comprehensive-0292",
+      "4-7-1 stacked cards = all cards in a stack of 1+; 4-7-2 a lone card isn't 'stacked cards'",
+      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
     );
 
     const s = setup({
@@ -328,7 +351,7 @@ describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
     expect(base.stack[0]!.cardId).toBe("AD1-001");
   });
 
-  it("4-6-3: the stacking order can't be changed by moving the permanent — the array identity/order is stable across other mutations", () => {
+  it("4-7-3: the stacking order can't be changed by moving the permanent — the array identity/order is stable across other mutations", () => {
     const s = setup({
       0: {
         battleArea: [
@@ -354,11 +377,12 @@ describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
   });
 });
 
-describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
-  it("4-6-8: deleting a permanent trashes its stacked (digivolution) cards at the same time", () => {
+describe("§4-7-8 Stacked Cards, cont'd (comprehensive-0293)", () => {
+  it("4-7-8: deleting a permanent trashes its stacked (digivolution) cards at the same time", () => {
     cite(
-      "comprehensive-0076",
-      "4-6-8 when a card with stacked cards is removed from the field, those cards are trashed too",
+      "comprehensive-0293",
+      "4-7-8 when a card with stacked cards is removed from the field, those cards are trashed too",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
     );
 
     const state = new GameState();
@@ -390,10 +414,11 @@ describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
     expect(p0.battleArea.length).toBe(0);
   });
 
-  it("4-15-1: deleting a battle-area Digimon trashes its Digi-Egg digivolution card", () => {
+  it("4-16-1: deleting a battle-area Digimon trashes its Digi-Egg digivolution card", () => {
     cite(
-      "comprehensive-0076",
-      "4-15-1 deletion trashes the card; 3-1-3-9 redirects Digi-Egg cards only when placing them in private areas",
+      "comprehensive-0293",
+      "4-16-1 deletion trashes the card; 3-1-3-9 redirects Digi-Egg cards only when placing them in private areas",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
     );
 
     const s = setup({
@@ -408,8 +433,12 @@ describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
     expect(s.state.players[0]!.eggDeck.some(({ instanceId }) => instanceId === eggId)).toBe(false);
   });
 
-  it("4-6-10: a face-down digivolution card is hidden from the opponent, but its own controller may see it", () => {
-    cite("comprehensive-0076", "4-6-10 a face-down card under another card is hidden, but its owner may look at it");
+  it("4-7-10: a face-down digivolution card is hidden from the opponent, but its own controller may see it", () => {
+    cite(
+      "comprehensive-0293",
+      "4-7-10 a face-down card under another card is hidden, but its owner may look at it",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
+    );
 
     const state = new GameState();
     for (const seat of [0, 1] as Seat[]) {
@@ -451,9 +480,13 @@ describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
   });
 });
 
-describe("§4-7 Digivolution Cards (comprehensive-0077)", () => {
-  it("4-7-1: a digivolution card is a card placed under a Digimon (the demoted former top card after a digivolve)", async () => {
-    cite("comprehensive-0077", "4-7-1 a digivolution card refers to a card placed under a Digimon");
+describe("§4-8 Digivolution Cards (comprehensive-0294)", () => {
+  it("4-8-1: a digivolution card is a card placed under a Digimon (the demoted former top card after a digivolve)", async () => {
+    cite(
+      "comprehensive-0294",
+      "4-8-1 a digivolution card refers to a card placed under a Digimon",
+      "cb67437cb7de2311f8fdcb41f318f528ba1c690b7a02f4fbe5cde5c7d62ba323",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "base" }], hand: [{ card: "AD1-002", as: "digivolveCard" }] },
@@ -471,9 +504,13 @@ describe("§4-7 Digivolution Cards (comprehensive-0077)", () => {
   });
 });
 
-describe("§4-8 Link cards (comprehensive-0078)", () => {
-  it("4-8-2/4-8-4: a link card is a SEPARATE array from the digivolution stack, and is not itself an on-field permanent", () => {
-    cite("comprehensive-0078", "4-8-2 a link card isn't a stacked card; 4-8-4 a link card isn't a card on the field");
+describe("§4-9 Link cards (comprehensive-0295)", () => {
+  it("4-9-2/4-9-4: a link card is a SEPARATE array from the digivolution stack, and is not itself an on-field permanent", () => {
+    cite(
+      "comprehensive-0295",
+      "4-9-2 a link card isn't a stacked card; 4-9-4 a link card isn't a card on the field",
+      "820827384152e08da4b986401d457d8022bad16a759b3d13ebc9f54505aa14c9",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "host", linked: [{ card: "BT21-009", as: "linkCard" }] }] },
@@ -489,8 +526,12 @@ describe("§4-8 Link cards (comprehensive-0078)", () => {
     expect(p0.battleArea.some((p) => p.topCard?.instanceId === linkCard.instanceId)).toBe(false);
   });
 
-  it("4-8-5: linking to a Digimon already at its link limit (1) trashes the existing link card", () => {
-    cite("comprehensive-0078", "4-8-5 1 card can have a max of 1 link card; linking again trashes the old one");
+  it("4-9-5: linking to a Digimon already at its link limit (1) trashes the existing link card", () => {
+    cite(
+      "comprehensive-0295",
+      "4-9-5 1 card can have a max of 1 link card; linking again trashes the old one",
+      "820827384152e08da4b986401d457d8022bad16a759b3d13ebc9f54505aa14c9",
+    );
 
     // GameEngine enforces a per-permanent link cap (linkMaxOf) and trims excess linked cards —
     // proven structurally: `permanent.linked` accepts pushes without a built-in cap of its own
@@ -504,9 +545,13 @@ describe("§4-8 Link cards (comprehensive-0078)", () => {
   });
 });
 
-describe("§4-9 Linked Cards (comprehensive-0079)", () => {
-  it("4-9-1: a linked card is any card that HAS a link card — the predicate is exactly linked.length > 0", () => {
-    cite("comprehensive-0079", "4-9-1 a linked card is a card that has a link card");
+describe("§4-10 Linked Cards (comprehensive-0296)", () => {
+  it("4-10-1: a linked card is any card that HAS a link card — the predicate is exactly linked.length > 0", () => {
+    cite(
+      "comprehensive-0296",
+      "4-10-1 a linked card is a card that has a link card",
+      "3fe381dc92d11488f6c4f2fb3a5b5196f65f837aed25bb8b4e64da542f6f2860",
+    );
 
     const s = setup({
       0: {
@@ -524,11 +569,12 @@ describe("§4-9 Linked Cards (comprehensive-0079)", () => {
   });
 });
 
-describe("§4-10 Players (comprehensive-0080)", () => {
-  it("4-10-2/4-10-3: 'owner' is the card's controlling player, and 'opponent' is always the other seat", () => {
+describe("§4-11 Players (comprehensive-0297)", () => {
+  it("4-11-2/4-11-3: 'owner' is the card's controlling player, and 'opponent' is always the other seat", () => {
     cite(
-      "comprehensive-0080",
-      "4-10-2 owner = the player currently using the card; 4-10-3 opponent = the other player",
+      "comprehensive-0297",
+      "4-11-2 owner = the player currently using the card; 4-11-3 opponent = the other player",
+      "85af3ccc5a67376062b9989cb2fbae650905a2a330565e00d2cd6f57f67e0e35",
     );
 
     const state = new GameState();
@@ -549,9 +595,13 @@ describe("§4-10 Players (comprehensive-0080)", () => {
   });
 });
 
-describe("§4-11 Turn Player and Non-Turn Player (comprehensive-0081)", () => {
-  it("4-11-1: state.turnSeat identifies the turn player; the other seat is the non-turn player", () => {
-    cite("comprehensive-0081", "4-11-1 the turn player performs the current turn; the other is the non-turn player");
+describe("§4-12 Turn Player and Non-Turn Player (comprehensive-0298)", () => {
+  it("4-12-1: state.turnSeat identifies the turn player; the other seat is the non-turn player", () => {
+    cite(
+      "comprehensive-0298",
+      "4-12-1 the turn player performs the current turn; the other is the non-turn player",
+      "8d8846bf877ecdc10b1175af54b576bec0759ca3eb54c27f77a60b02dc735ae6",
+    );
 
     const { state } = bareState();
     state.turnSeat = 0;
@@ -565,9 +615,13 @@ describe("§4-11 Turn Player and Non-Turn Player (comprehensive-0081)", () => {
   });
 });
 
-describe("§4-12 Card Orientation (comprehensive-0082)", () => {
-  it("4-12-1: a card's orientation (isSuspended) starts unsuspended, and suspend()/unsuspend() flip it", () => {
-    cite("comprehensive-0082", "4-12-1-1/4-12-1-2 unsuspended (vertical) vs suspended (horizontal) orientation");
+describe("§4-13 Card Orientation (comprehensive-0299)", () => {
+  it("4-13-1: a card's orientation (isSuspended) starts unsuspended, and suspend()/unsuspend() flip it", () => {
+    cite(
+      "comprehensive-0299",
+      "4-13-1-1/4-13-1-2 unsuspended (vertical) vs suspended (horizontal) orientation",
+      "437466e8fb1d452287814ed5b6f555f826eb86b3f4044280151deb642530b3cb",
+    );
 
     const s = setup({ 0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "perm" }] } });
     const perm = s.perm("perm");
@@ -581,11 +635,12 @@ describe("§4-12 Card Orientation (comprehensive-0082)", () => {
   });
 });
 
-describe("§4-13 Draw (comprehensive-0083)", () => {
-  it("4-13-1/4-13-2: drawing moves a card from a player's OWN deck to their OWN hand", () => {
+describe("§4-14 Draw (comprehensive-0300)", () => {
+  it("4-14-1/4-14-2: drawing moves a card from a player's OWN deck to their OWN hand", () => {
     cite(
-      "comprehensive-0083",
-      "4-13-1 drawing moves cards from deck to hand; 4-13-2 unless stated, from your own deck",
+      "comprehensive-0300",
+      "4-14-1 drawing moves cards from deck to hand; 4-14-2 unless stated, from your own deck",
+      "2a79c066411187a4fdef06fdc68395208a267693828bf980798779895270e249",
     );
 
     const s = setup({
@@ -609,9 +664,13 @@ describe("§4-13 Draw (comprehensive-0083)", () => {
   });
 });
 
-describe("§4-14 Deletion (comprehensive-0084)", () => {
-  it("4-14-1: deletion processing always trashes the card — there is no other destination", () => {
-    cite("comprehensive-0084", "4-14-1 deletion processing trashes the card");
+describe("§4-15 Deletion (comprehensive-0301)", () => {
+  it("4-15-1: deletion processing always trashes the card — there is no other destination", () => {
+    cite(
+      "comprehensive-0301",
+      "4-15-1 deletion processing trashes the card",
+      "f78d3a1f7955911d69d51c4c3d905226fd20aef85577ae601e09c5038f998677",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -636,9 +695,13 @@ describe("§4-14 Deletion (comprehensive-0084)", () => {
   });
 });
 
-describe("§4-15 Trashing Cards (comprehensive-0085)", () => {
-  it("4-15-1/4-15-3: trashing places a card in the trash directly — it is NOT deletion processing and doesn't remove a permanent", () => {
-    cite("comprehensive-0085", "4-15-1 trashing = placing in the trash; 4-15-3 trashing isn't considered deletion");
+describe("§4-16 Trashing Cards (comprehensive-0302)", () => {
+  it("4-16-1/4-16-3: trashing places a card in the trash directly — it is NOT deletion processing and doesn't remove a permanent", () => {
+    cite(
+      "comprehensive-0302",
+      "4-16-1 trashing = placing in the trash; 4-16-3 trashing isn't considered deletion",
+      "3bd48d52bebf24495c38e7ad8e9766a4952eeb52ddab2ec95af44511824605e7",
+    );
 
     const s = setup({ 0: { hand: [{ card: "AD1-001", as: "handCard" }] } });
     const p0 = s.state.players[0]!;
@@ -656,9 +719,13 @@ describe("§4-15 Trashing Cards (comprehensive-0085)", () => {
   });
 });
 
-describe("§4-16 Moving (comprehensive-0086)", () => {
-  it("4-16-1/4-16-3: moving from breeding to battle keeps the card's orientation (isSuspended) as-is", () => {
-    cite("comprehensive-0086", "4-16-1 moving = breeding<->battle area; 4-16-3 a moved card keeps its orientation");
+describe("§4-17 Moving (comprehensive-0303)", () => {
+  it("4-17-1/4-17-3: moving from breeding to battle keeps the card's orientation (isSuspended) as-is", () => {
+    cite(
+      "comprehensive-0303",
+      "4-17-1 moving = breeding<->battle area; 4-17-3 a moved card keeps its orientation",
+      "569a8a2df3c32d0b5fa92db51ea89c35259f066b512bbb97bd5c10b7c38b6ac2",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -671,7 +738,7 @@ describe("§4-16 Moving (comprehensive-0086)", () => {
     perm.controllerSeat = 0;
     const top = new CardInstance();
     top.instanceId = "move-top";
-    top.cardId = "AD1-001"; // a real Digimon WITH DP (>0) — required by §4-16-2
+    top.cardId = "AD1-001"; // a real Digimon WITH DP (>0) — required by §4-17-2
     top.ownerSeat = 0;
     top.faceUp = true;
     perm.topCard = top;
@@ -700,8 +767,12 @@ describe("§4-16 Moving (comprehensive-0086)", () => {
     });
   });
 
-  it("4-16-2: only a Digimon WITH DP can be moved from breeding — a freshly hatched Lv.2 Digi-Egg (DP 0) can't", () => {
-    cite("comprehensive-0086", "4-16-2 only a Digimon with DP can be moved");
+  it("4-17-2: only a Digimon WITH DP can be moved from breeding — a freshly hatched Lv.2 Digi-Egg (DP 0) can't", () => {
+    cite(
+      "comprehensive-0303",
+      "4-17-2 only a Digimon with DP can be moved",
+      "569a8a2df3c32d0b5fa92db51ea89c35259f066b512bbb97bd5c10b7c38b6ac2",
+    );
 
     const eggDef = requireCardDefinition("BT1-001"); // a real Lv.2 Digi-Egg, DP 0
     expect(eggDef.dp).toBe(0);
@@ -751,11 +822,12 @@ describe("§4-16 Moving (comprehensive-0086)", () => {
   });
 });
 
-describe("§4-17 Hatching a Digi-Egg (comprehensive-0087)", () => {
-  it("4-17-2/4-17-3: hatching is rejected with an empty egg deck, and rejected when breeding is already occupied", () => {
+describe("§4-18 Hatching a Digi-Egg (comprehensive-0304)", () => {
+  it("4-18-2/4-18-3: hatching is rejected with an empty egg deck, and rejected when breeding is already occupied", () => {
     cite(
-      "comprehensive-0087",
-      "4-17-2 can't hatch with an empty Digi-Egg deck; 4-17-3 can't hatch into an occupied breeding area",
+      "comprehensive-0304",
+      "4-18-2 can't hatch with an empty Digi-Egg deck; 4-18-3 can't hatch into an occupied breeding area",
+      "0c4ef872a33725f6bbf14459331805e38bbd64997bd49928c9251bfbf322b053",
     );
 
     const { state, p0 } = bareState();
@@ -772,7 +844,7 @@ describe("§4-17 Hatching a Digi-Egg (comprehensive-0087)", () => {
     expect(validateHatchEgg(state, 0)).toEqual({ ok: false, reason: "breeding-occupied" });
   });
 
-  it("4-17-1: a legal hatch flips the top Digi-Egg face-up into the (empty) breeding area", () => {
+  it("4-18-1: a legal hatch flips the top Digi-Egg face-up into the (empty) breeding area", () => {
     const { state, p0 } = bareState();
     state.phase = Phase.Breeding;
     const egg = instance("BT1-001", 0, false);
@@ -798,11 +870,12 @@ describe("§4-17 Hatching a Digi-Egg (comprehensive-0087)", () => {
   });
 });
 
-describe("§4-18 Overflow (comprehensive-0088)", () => {
-  it("4-18-1: an <Overflow> ACE card leaving the field costs its OWNER its printed overflow amount", () => {
+describe("§4-19 Overflow (comprehensive-0305)", () => {
+  it("4-19-1: an <Overflow> ACE card leaving the field costs its OWNER its printed overflow amount", () => {
     cite(
-      "comprehensive-0088",
-      "4-18-1 <Overflow>: a card leaving the field/stack moves the memory marker by its printed value",
+      "comprehensive-0305",
+      "4-19-1 <Overflow>: a card leaving the field/stack moves the memory marker by its printed value",
+      "2f32291585a5380638fec6af9449fedcff44a31fefd46327597e510ab1822d9c",
     );
 
     const def = requireCardDefinition("AD1-005");
@@ -819,10 +892,11 @@ describe("§4-18 Overflow (comprehensive-0088)", () => {
     expect(state.memory).toBe(-def.overflowMemory!); // a LOSS for the owner, regardless of whose turn it is
   });
 
-  it("4-18-5-1/4-18-5-2: simultaneous Overflow is charged turn-player-first, then the non-turn player — order changes the clamped result", () => {
+  it("4-19-5-1/4-19-5-2: simultaneous Overflow is charged turn-player-first, then the non-turn player — order changes the clamped result", () => {
     cite(
-      "comprehensive-0088",
-      "4-18-5 simultaneous <Overflow> instances: turn player's first, then the non-turn player's",
+      "comprehensive-0305",
+      "4-19-5 simultaneous <Overflow> instances: turn player's first, then the non-turn player's",
+      "2f32291585a5380638fec6af9449fedcff44a31fefd46327597e510ab1822d9c",
     );
 
     const { state } = bareState();
@@ -850,20 +924,21 @@ describe("§4-18 Overflow (comprehensive-0088)", () => {
   });
 });
 
-describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
-  it("4-19-1/4-19-2: after using a DUAL card's Option side, a Digimon may digivolve into it for free INSTEAD OF the pending trash", async () => {
+describe("§4-20 Arts Digivolve (comprehensive-0306)", () => {
+  it("4-20-1/4-20-2: after using a DUAL card's Option side, a Digimon may digivolve into it for free INSTEAD OF the pending trash", async () => {
     cite(
-      "comprehensive-0089",
-      "§4-19-1 'Arts Digivolve is a rule on DUAL cards. Instead of the trashing from the pending " +
+      "comprehensive-0306",
+      "§4-20-1 'Arts Digivolve is a rule on DUAL cards. Instead of the trashing from the pending " +
         "processing after using an Option card, one of your cards on the field may digivolve into " +
-        "that DUAL card without paying the cost.' §4-19-2 'Arts Digivolve is overwrite processing " +
+        "that DUAL card without paying the cost.' §4-20-2 'Arts Digivolve is overwrite processing " +
         "that replaces the trashing of an Option card from the pending processing.' The precondition " +
-        "this chunk was previously marked unreachable for (the Option-use branch, comprehensive-0072) " +
+        "this chunk was previously marked unreachable for (the Option-use branch, comprehensive-0289) " +
         'is now reachable: playCard.ts\'s playModeOf() honors an explicit `useAs: "option"`, and ' +
         "GameEngine.resolveArtsDigivolve offers the free digivolve (via the SAME cost-free " +
         "`digivolveFromInstance` primitive other 'digivolve without paying the cost' effects use) " +
         "BEFORE the trash step in playCard.ts's finally block, sourcing the DUAL card straight out " +
         "of the resolvingOption slot it's still sitting in.",
+      "456421c7f7d0b1c0de09a88be354a2eb07efa850e1d9b45ee199908f2aa0ae2c",
     );
 
     const def = requireCardDefinition("BT25-043");
@@ -958,9 +1033,13 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
   });
 });
 
-describe("§4-20 Tokens (comprehensive-0090)", () => {
-  it("4-20-1: a played token is a real permanent carrying full card information (name, DP, color)", async () => {
-    cite("comprehensive-0090", "4-20-1 tokens are non-game cards played by effects, as if they have card information");
+describe("§4-21 Tokens (comprehensive-0307)", () => {
+  it("4-21-1: a played token is a real permanent carrying full card information (name, DP, color)", async () => {
+    cite(
+      "comprehensive-0307",
+      "4-21-1 tokens are non-game cards played by effects, as if they have card information",
+      "5f761cdb3a0612b986977c07e545e9d788aabe4b90cdbe11139310a040b1a5dd",
+    );
 
     const s = setup();
     s.state.memory = 20; // affordable ceiling for the token's own play cost
@@ -980,14 +1059,15 @@ describe("§4-20 Tokens (comprehensive-0090)", () => {
 
   it("NOW MET: a token removed from the field should be removed from the game, not placed in the trash", async () => {
     cite(
-      "comprehensive-0090",
-      "DIVERGENCE: §4-20-5 'When a token is removed from the field, it is removed from the " +
+      "comprehensive-0307",
+      "DIVERGENCE: §4-21-5 'When a token is removed from the field, it is removed from the " +
         "game instead of being placed in a different area.' The deletion seam " +
         "(GameStateAccess.moveDeletedPermanentCardsToTrash, state/access.ts) unconditionally " +
         "calls `insertCard(this.player(card.ownerSeat), Zone.Trash, card)` for every card a " +
         "deleted permanent carries — it never checks CardDefinition.isToken to divert a token " +
         "out of the game instead. `isToken` is consulted elsewhere (targeting filters, " +
         "continuous-effect exemptions) but nowhere in the deletion/trash path.",
+      "5f761cdb3a0612b986977c07e545e9d788aabe4b90cdbe11139310a040b1a5dd",
     );
 
     const s = setup();
@@ -1005,16 +1085,17 @@ describe("§4-20 Tokens (comprehensive-0090)", () => {
     const access = new GameStateAccess(s.state);
     access.deletePermanent(permanent!.permanentId);
 
-    // EXPECTED (per §4-20-5): the token is gone entirely — NOT sitting in the trash.
+    // EXPECTED (per §4-21-5): the token is gone entirely — NOT sitting in the trash.
     expect(p0.trash.some((c) => c.instanceId === tokenInstanceId)).toBe(false);
   });
 });
 
-describe("§4-21 Color Requirements (comprehensive-0091)", () => {
-  it("4-21-2 (structural): the color-requirement gate is real and driven by CardDefinition.optionColorRequirements", () => {
+describe("§4-22 Color Requirements (comprehensive-0308)", () => {
+  it("4-22-2 (structural): the color-requirement gate is real and driven by CardDefinition.optionColorRequirements", () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+      "comprehensive-0308",
+      "4-22-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     // BT25-043 is one of only 6 cards in the whole corpus with `optionColorRequirements`
@@ -1024,15 +1105,16 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(gated.optionColorRequirements).toEqual(["Yellow"]);
   });
 
-  it("4-21-2: an ordinary Option card's color requirement (from its printed `colors`) is enforced when no matching color is on the field", () => {
+  it("4-22-2: an ordinary Option card's color requirement (from its printed `colors`) is enforced when no matching color is on the field", () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2 'To meet color requirements, you must have a Digimon or Tamer on your field " +
+      "comprehensive-0308",
+      "4-22-2 'To meet color requirements, you must have a Digimon or Tamer on your field " +
         "that's the same color as the Option card you want to use.' GameEngine." +
         "printedColorRequirementMet (GameEngine.ts) falls back to `definition.colors` when a " +
         "card carries no `optionColorRequirements` (populated only for the 6 DUAL cards whose " +
         "Option side differs from their own printed colors) — so an ordinary mono-color Option " +
         "like BT1-097 ('Boring Storm', printed color Blue) is now gated by its own `colors`.",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup(
@@ -1055,10 +1137,11 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(result).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  it("4-21-2: an Option permanent in the battle area is not a Digimon/Tamer color source", () => {
+  it("4-22-2: an Option permanent in the battle area is not a Digimon/Tamer color source", () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2 requires a Digimon or Tamer of the required color; an Option in the battle area does not qualify",
+      "comprehensive-0308",
+      "4-22-2 requires a Digimon or Tamer of the required color; an Option in the battle area does not qualify",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
     const s = setup({
       0: {
@@ -1077,11 +1160,12 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  it("4-21-2 (positive control): the same mono-color Option plays once a matching-color source is on the field", async () => {
+  it("4-22-2 (positive control): the same mono-color Option plays once a matching-color source is on the field", async () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2 'you must have a Digimon or Tamer on your field that's the same color as the " +
+      "comprehensive-0308",
+      "4-22-2 'you must have a Digimon or Tamer on your field that's the same color as the " +
         "Option card you want to use' — met once a same-color source is present.",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup(
@@ -1104,11 +1188,12 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(p0.trash.some((c) => c.instanceId === blueOption.instanceId)).toBe(true);
   });
 
-  it("4-21-3: a multicolor Option needs EVERY listed color represented, not just one", () => {
+  it("4-22-3: a multicolor Option needs EVERY listed color represented, not just one", () => {
     cite(
-      "comprehensive-0091",
-      "4-21-3 'An Option card with multiple colors can't be used unless the color " +
+      "comprehensive-0308",
+      "4-22-3 'An Option card with multiple colors can't be used unless the color " +
         "requirements are met for all of its colors.'",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup(
@@ -1130,10 +1215,11 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(result).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
-  it("4-21-4: a single multicolor Digimon/Tamer can meet the requirement for more than 1 color at once", async () => {
+  it("4-22-4: a single multicolor Digimon/Tamer can meet the requirement for more than 1 color at once", async () => {
     cite(
-      "comprehensive-0091",
-      "4-21-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for multiple colors.'",
+      "comprehensive-0308",
+      "4-22-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for multiple colors.'",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup(
@@ -1157,13 +1243,14 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(p0.trash.some((c) => c.instanceId === purpleYellowOption.instanceId)).toBe(true);
   });
 
-  it("4-21-2 waiver seam: a color-waiver static on a HAND-resident card now fires (was silently inert)", async () => {
+  it("4-22-2 waiver seam: a color-waiver static on a HAND-resident card now fires (was silently inert)", async () => {
     cite(
-      "comprehensive-0091",
-      "4-21-2's color-requirement gate is the thing a color-requirement WAIVER (e.g. §16-42 " +
+      "comprehensive-0308",
+      "4-22-2's color-requirement gate is the thing a color-requirement WAIVER (e.g. §16-42 " +
         "＜Use Req.＞ and the pre-existing 'while you have [X] in play, ignore this card's color " +
         "requirements' idiom) exists to bypass — proven here against EX2-072 (Blue Card), a card " +
         "already on master carrying exactly that Static+WaiveColorRequirement+youHave shape.",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     // BUG THIS FIXES: `GameEngine.recomputeContinuousEffects` re-derives EffectTiming.None
@@ -1202,14 +1289,15 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     expect(p0.trash.some((c) => c.instanceId === withTamer.instanceId)).toBe(true);
   });
 
-  it("4-21-2 waiver seam is BOUNDED: an ordinary on-field-only Static effect (not a pure color waiver) still requires on-field presence", async () => {
+  it("4-22-2 waiver seam is BOUNDED: an ordinary on-field-only Static effect (not a pure color waiver) still requires on-field presence", async () => {
     cite(
-      "comprehensive-0091",
+      "comprehensive-0308",
       "The `colorWaiverStatic` routing (interpreter.ts `isColorWaiverStatic`) only fires for " +
         "Static/Rule effects whose actions are ALL WaiveColorRequirement — this must not loosen " +
         "the on-field guard for any other Static effect. Proven here against a real card's " +
         "unrelated Static grant: EX12-072's '[All Turns] All of your [ME] trait Digimon gain " +
         "<Guard>' keeps requiring EX12-072 itself to be on the battle area.",
+      "d04f3de5e6898bcddad4aa78be5a66d6e797d81283f96af3fab5c2eb42a9ff23",
     );
 
     const s = setup(
@@ -1237,9 +1325,13 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
   });
 });
 
-describe('§4-22 Cards "With XX in Their Texts" (comprehensive-0092)', () => {
-  it("4-22-1: a keyword filter matches only a card whose printed text carries that keyword icon/term", () => {
-    cite("comprehensive-0092", '4-22-1 "with XX in its text" = the printed information carries that term/icon');
+describe('§4-23 Cards "With XX in Their Texts" (comprehensive-0309)', () => {
+  it("4-23-1: a keyword filter matches only a card whose printed text carries that keyword icon/term", () => {
+    cite(
+      "comprehensive-0309",
+      '4-23-1 "with XX in its text" = the printed information carries that term/icon',
+      "0859bb80f1a5ac2fbbb3ab88ac32b79888359bf8ae48f88450f29df061739e96",
+    );
 
     const withSave = requireCardDefinition("BT10-020"); // real: "[On Deletion] ＜Save＞ ..."
     const withoutSave = requireCardDefinition("AD1-001");
@@ -1248,9 +1340,13 @@ describe('§4-22 Cards "With XX in Their Texts" (comprehensive-0092)', () => {
   });
 });
 
-describe('§4-23 "XX/YY" (comprehensive-0093)', () => {
-  it('4-23-1: "XX/YY" means "XX OR YY" — a kind filter listing both kinds matches EITHER', () => {
-    cite("comprehensive-0093", '4-23-1 "XX/YY" means "XX or YY" — either one meets the requirement');
+describe('§4-24 "XX/YY" (comprehensive-0310)', () => {
+  it('4-24-1: "XX/YY" means "XX OR YY" — a kind filter listing both kinds matches EITHER', () => {
+    cite(
+      "comprehensive-0310",
+      '4-24-1 "XX/YY" means "XX or YY" — either one meets the requirement',
+      "3817f829a8267a6c6893c6abf1c433fda940c3a6d1fe0cda2d885b35325c1ac8",
+    );
 
     const digimonDef = requireCardDefinition("AD1-001");
     const tamerDef = requireCardDefinition("BT12-092");
@@ -1262,28 +1358,32 @@ describe('§4-23 "XX/YY" (comprehensive-0093)', () => {
   });
 });
 
-// §4-24 "With different XX" Cards (comprehensive-0094): the engine DOES implement the
+// §4-25 "With different XX" Cards (comprehensive-0311): the engine DOES implement the
 // counting-mode concept (`Filter.distinctNames`, interpreter.ts — "3 or more [Hero] Tamers with
 // different names", BT21-010), but it is consumed only by the unexported `permanentCount`
 // Condition evaluator, reachable only by driving one specific compiled card's full effect
 // resolution end-to-end. That is chapter 15 "Effect Rules" scaffolding (the same class of
-// dependency ch03's comprehensive-0057 defers for the identical reason), out of this chapter's
+// dependency ch03's comprehensive-0280 defers for the identical reason), out of this chapter's
 // terminology-definition scope.
-// comprehensive-0094 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
+// comprehensive-0311 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
 // this deferral. The not-testable entry that used to sit here was removed: the meta-test
 // rejects an id that is both cited and not-testable, which is how the staleness surfaced.
 
-// §4-25 "With/have X cards" (comprehensive-0095): the engine implements this as the
+// §4-26 "With/have X cards" (comprehensive-0312): the engine implements this as the
 // `selfDigivolutionCountAtLeast` Condition kind (documented against real card BT22-007, "10 or
-// more digivolution cards", KB Q4858), but — like comprehensive-0094 — it's reachable only via
+// more digivolution cards", KB Q4858), but — like comprehensive-0311 — it's reachable only via
 // the unexported Condition evaluator inside a specific compiled card's [On Play]/[Main] gate.
-// comprehensive-0095 is now covered behaviourally in ch15-04-continuous-and-static.test.ts, which picked up
+// comprehensive-0312 is now covered behaviourally in ch15-04-continuous-and-static.test.ts, which picked up
 // this deferral. The not-testable entry that used to sit here was removed: the meta-test
 // rejects an id that is both cited and not-testable, which is how the staleness surfaced.
 
-describe('§4-26 "Each" or "Every" (comprehensive-0096)', () => {
-  it('4-26-1/4-26-2: "for each X" scales an effect\'s count by how many matching things exist at activation', async () => {
-    cite("comprehensive-0096", '4-26-1/2 "each"/"every" references a count of something, scaling the effect');
+describe('§4-27 "Each" or "Every" (comprehensive-0313)', () => {
+  it('4-27-1/4-27-2: "for each X" scales an effect\'s count by how many matching things exist at activation', async () => {
+    cite(
+      "comprehensive-0313",
+      '4-27-1/2 "each"/"every" references a count of something, scaling the effect',
+      "be6897195b71fe6354c5aab20bef95db744564ba77e88918326efb77e62eec31",
+    );
 
     const s = setup(
       {
@@ -1319,11 +1419,12 @@ describe('§4-26 "Each" or "Every" (comprehensive-0096)', () => {
   });
 });
 
-describe('§4-26-5 "Each" or "Every", cont\'d (comprehensive-0097)', () => {
-  it("4-26-5: a single trigger fires exactly once even though its 'each' text references a count of multiple things", async () => {
+describe('§4-27-5 "Each" or "Every", cont\'d (comprehensive-0314)', () => {
+  it("4-27-5: a single trigger fires exactly once even though its 'each' text references a count of multiple things", async () => {
     cite(
-      "comprehensive-0097",
-      "4-26-5 a triggering from 1 trigger condition triggers only once, but 'each'/'every' text can reference the count",
+      "comprehensive-0314",
+      "4-27-5 a triggering from 1 trigger condition triggers only once, but 'each'/'every' text can reference the count",
+      "99f5cd852e4d1975b04cada395e9bc66bf16b5983473d2b70910d8b9b4a3e157",
     );
 
     const s = setup(
@@ -1353,7 +1454,7 @@ describe('§4-26-5 "Each" or "Every", cont\'d (comprehensive-0097)', () => {
     expect(p0.hand.length).toBe(handBeforePlay + 3); // the count actually landed — not just "some draws happened"
 
     // Exactly ONE On Play activation happened (a single `cardPlayed`/On Play window), yet the
-    // resulting draws (proven above at comprehensive-0096) reflect the count of BOTH opponent
+    // resulting draws (proven above at comprehensive-0313) reflect the count of BOTH opponent
     // Digimon — the single trigger's own text carried "each" and referenced the count.
     const cardPlayedEvents = s.events
       .slice(onPlayEventsBefore)
@@ -1362,11 +1463,11 @@ describe('§4-26-5 "Each" or "Every", cont\'d (comprehensive-0097)', () => {
   });
 });
 
-// §4-27 "Option Card in the Battle Area" (comprehensive-0098): the distinction ("an Option card
+// §4-28 "Option Card in the Battle Area" (comprehensive-0315): the distinction ("an Option card
 // placed in the battle area BY AN EFFECT" vs. any other Option-shaped permanent) is a targeting
 // predicate carried on the compiled IR (`placedInBattleAreaByEffect`, ir.ts), consumed only
 // inside the unexported permanent-filter evaluator during a specific card's live target
-// resolution — the same class of chapter-15-scope dependency as comprehensive-0094/0095 above.
-// comprehensive-0098 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
+// resolution — the same class of chapter-15-scope dependency as comprehensive-0311/0312 above.
+// comprehensive-0315 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
 // this deferral. The not-testable entry that used to sit here was removed: the meta-test
 // rejects an id that is both cited and not-testable, which is how the staleness surfaced.

@@ -15,7 +15,7 @@ import { UseTracker } from "../effects/kernel.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
@@ -132,7 +132,7 @@ describe("§18-1 Pending Processing (comprehensive-0267)", () => {
 
       const h = fullTurnHarness(0);
       const p0 = h.state.players[0] as PlayerState;
-      p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-21 color-requirement source (Red)
+      p0.battleArea.push(digimon(0, 3000, "BT1-009")); // §4-22 color-requirement source (Red)
       const option = card("BT1-090", 0, true);
       p0.hand.push(option);
 
@@ -215,21 +215,6 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
     expect(p0.hand.some((c) => c.instanceId === metalInTrash.instanceId)).toBe(true);
   });
 });
-
-// §18-2-4 Overwrite processing for immediate-type effects can't be interrupted — NOT TESTABLE.
-markNotTestable(
-  "comprehensive-0269",
-  "18-2-4's own worked example ('when a digivolution card would be trashed from ANOTHER of " +
-    "your Digimon, you may trash one from THIS Digimon instead, and it can't be interrupted') " +
-    "has no matching real card in the corpus (searched effectText for the redirect-trash-from- " +
-    "a-different-Digimon shape; no hit). More fundamentally, this engine has no 'immediate-type " +
-    "effect' concept distinct from a normal triggered/replacement effect (EffectTiming, " +
-    "packages/shared/src/schema/enums.ts, carries no such variant), so there is no runtime seam " +
-    "to assert 'can't be interrupted' against — no decision/priority window is ever modeled as " +
-    "opening between an overwrite's trigger and its resolution for ANY effect, immediate or " +
-    "not, so this clause's specific claim (interruption is possible for OTHER effect kinds but " +
-    "not this one) cannot be distinguished behaviorally from ordinary effect atomicity.",
-);
 
 /**
  * Minimal resolver fakes for the §18-3 infinite-loop tests. `resolveTiming` reads only
@@ -424,15 +409,3 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
     expect(loopOffersAfterStop).toBe(0);
   });
 });
-
-// Update History (comprehensive-0271, 0272): a version-by-version changelog of what earlier
-// rulebook revisions changed (e.g. "Updated 4-25. Updated 8-2. ..."). Non-normative by
-// construction — it documents the document's own edit history, not current game rules.
-markNotTestable(
-  "comprehensive-0271",
-  "Update History changelog entry (rulebook revision log), not current rule content.",
-);
-markNotTestable(
-  "comprehensive-0272",
-  "Update History changelog entry (rulebook revision log), not current rule content.",
-);

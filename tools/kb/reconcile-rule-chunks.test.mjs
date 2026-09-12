@@ -6,6 +6,24 @@ function chunk(id, section, text, source = "comprehensive") {
   return { id, source, section, title: "Rules", text };
 }
 
+test("reviewed PDF heading and TOC page artifacts do not retire their citations", () => {
+  const previousChunks = [
+    { ...chunk("comprehensive-0003", "3", "old TOC"), title: "Game Areas.....5" },
+    { ...chunk("comprehensive-0162", "15-4-1", "old activation"), title: "Activation24" },
+  ];
+  const chunks = [
+    { ...chunk("temporary", "3", "new TOC"), title: "Game Areas.....6" },
+    { ...chunk("temporary", "15-4-1", "new activation"), title: "Activation" },
+    { ...chunk("temporary", "3", "actual rules"), title: "Game Areas" },
+  ];
+  const result = reconcileRuleChunks({ previousChunks, chunks });
+  assert.deepEqual(
+    result.chunks.map(({ id }) => id),
+    ["comprehensive-0003", "comprehensive-0162", "comprehensive-0163"],
+  );
+  assert.deepEqual(result.retiredIds, []);
+});
+
 test("duplicate extracted content fails with or without prior chunks, including shared object references", () => {
   const existing = chunk("comprehensive-0000", "1", "same");
   for (const previousChunks of [[], [existing]]) {

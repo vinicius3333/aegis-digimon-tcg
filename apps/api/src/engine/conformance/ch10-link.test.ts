@@ -464,7 +464,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
     cite(
       "comprehensive-0141",
       "DIVERGENCE: §10-1-2-1 'If a card already has stacked cards, the new card is plugged in " +
-        "at the bottom' (the same bottom-insertion convention Comprehensive Rules §4-3-2 states " +
+        "at the bottom' (the same bottom-insertion convention Comprehensive Rules §4-4-2 states " +
         "for placing a new card under a Tamer that already has stacked cards) reads as applying " +
         "to a Digimon that already holds a link card and receives a second one. The `link` " +
         "primitive (effects/primitives.ts) always `permanent.linked.push(instance)` — a flat " +
@@ -497,8 +497,8 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
 });
 
 /**
- * §4-8-5 / §17-1-3-2-5 — the link limit is enforced AFTER the fact, not by refusing the
- * link. §4-8-5 (comprehensive-0078): "1 card can have a maximum of 1 link card. When
+ * §4-9-5 / §17-1-3-2-5 — the link limit is enforced AFTER the fact, not by refusing the
+ * link. §4-9-5 (comprehensive-0295): "1 card can have a maximum of 1 link card. When
  * linking to a Digimon that has already reached the link limit, the same number of the
  * existing link cards are trashed at the same time as the newly linked cards." §17-1-3-2-5
  * (comprehensive-0265): "Link cards for a Digimon that has exceeded the link limit (only
@@ -507,13 +507,14 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
  * excess. Both engine entry points must agree: the player-facing `linkCard` verb
  * (actions/link.ts) and a card effect's `Link` IR action (`runLink`, interpreter.ts).
  */
-describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and the excess is trashed after, not refused at declaration", () => {
+describe("§4-9-5 / §17-1-3-2-5 Link limit — a link at the limit lands and the excess is trashed after, not refused at declaration", () => {
   it("the player-facing linkCard verb and a card effect's Link action converge on the SAME outcome at the boundary", async () => {
     cite(
-      "comprehensive-0078",
-      "4-8-5: 'When linking to a Digimon that has already reached the link limit, the same " +
+      "comprehensive-0295",
+      "4-9-5: 'When linking to a Digimon that has already reached the link limit, the same " +
         "number of the existing link cards are trashed at the same time as the newly linked " +
         "cards' — the link is allowed, not refused.",
+      "820827384152e08da4b986401d457d8022bad16a759b3d13ebc9f54505aa14c9",
     );
     cite(
       "comprehensive-0265",
@@ -591,10 +592,11 @@ describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
 
   it("<Link +1> raises the limit for BOTH paths — 2 cards land and stay (no trim) once headroom covers them", async () => {
     cite(
-      "comprehensive-0078",
-      "4-8-5's limit is 'a maximum of 1 link card' as the BASE — a ＜Link +N＞ grant raises the " +
+      "comprehensive-0295",
+      "4-9-5's limit is 'a maximum of 1 link card' as the BASE — a ＜Link +N＞ grant raises the " +
         "effective per-Digimon limit the sweep enforces against (GameEngine.linkMaxOf), so 2 " +
         "landed link cards are legal once the grant covers them and the sweep leaves both.",
+      "820827384152e08da4b986401d457d8022bad16a759b3d13ebc9f54505aa14c9",
     );
 
     // Path 1: linkCard verb onto a host with a <Link +1> grant already active (limit 2).

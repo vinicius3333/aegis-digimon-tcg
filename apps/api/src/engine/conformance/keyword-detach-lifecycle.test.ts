@@ -1,12 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 // Current primary source: Comprehensive Rules v4.2, §16-46 (header updated 2026-08-18; changelog 2026-08-07).
 // https://world.digimoncard.com/rule/pdf/general_rule.pdf
-// The committed KB lacks this section; do not fabricate a cite() identifier.
 describe("Detach departure lifecycle", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0323",
+      "16-46: non-owner departure, specified linked payment and mandatory prevention after payment",
+      "58b545c8005fcef5c0c20be0fae48f94034c24c1d66eaa211b23f1791069ffff",
+    );
+  });
   it.each(["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"])(
     "%s may trash a specified link to prevent deletion by the opponent's Option",
     async (card) => {
@@ -172,7 +178,7 @@ describe("Detach departure lifecycle", () => {
       cite(
         "comprehensive-0170",
         "15-7-4: impossible Detach payment still offers a processing choice",
-        "238f003c6cbc645a023fd73c17dc447cec13647fb9e839d788b827998c3428e4",
+        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
       );
       const s = setupEngine(
         {

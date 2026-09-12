@@ -21,12 +21,18 @@ to the correct player. This does not certify all activation-cost shapes.
 - `comprehensive-0169`: §15-7-1 successful processing conditions unlock the
   payload; §15-7-2 refusal/failure skips the whole payload; §15-7-3 compound
   conditions cannot be paid only in part.
-- Reviewed text SHA-256: `e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e`.
+- Reviewed version 4.2 text SHA-256: `255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b`.
 - `comprehensive-0170`: §15-7-4 choice even when payment is impossible;
   §15-7-5 payment even when no payload target exists.
-- Reviewed text SHA-256: `238f003c6cbc645a023fd73c17dc447cec13647fb9e839d788b827998c3428e4`.
-- The local §15-7-3 example contains the suspicious text “126 [Machinedramon]”.
-  Verify source extraction before using this example's numeric value.
+- Reviewed version 4.2 text SHA-256: `6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97`.
+- The baseline version 4.0 extraction read “126 [Machinedramon]”; reviewed version
+  4.2 correctly reads one card, with a trailing page marker. §15-7-5 now renders
+  `- 5000 DP`. These reviewed extraction differences do not change the tested
+  processing contract; history and current source pins are recorded in
+  `kb-citation-integrity.md`.
+- New §4-2 Cost/alternate costs and revised §1-3-11 declaration conditions remain
+  behavioral audit obligations. Missing DigiXros/Assembly scenarios must not be
+  classified as non-normative merely to reduce the residual.
 
 ## Implementation trace
 

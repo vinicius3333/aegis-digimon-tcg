@@ -87,6 +87,7 @@ describe("§8-1-2 Digivolution Rules (comprehensive-0125)", () => {
       "comprehensive-0125",
       "8-1-2-3 a digivolved Digimon is a single Digimon with its digivolution cards " +
         "included; 8-1-2-4 it carries over its orientation (suspended state) from before",
+      "4cdd2dda108de613160aa4c381701f2f6da2861655f93b6dab87d5ab87c827c9",
     );
 
     const s = setup();
@@ -120,6 +121,7 @@ describe("§8-1-2 Digivolution Rules (comprehensive-0125)", () => {
       "comprehensive-0125",
       "8-1-2-6 1 digivolution can only be performed on 1 Digimon; you can't perform " +
         "separate digivolutions on multiple cards at the same time",
+      "4cdd2dda108de613160aa4c381701f2f6da2861655f93b6dab87d5ab87c827c9",
     );
 
     const s = setup();
@@ -153,6 +155,7 @@ describe("§8-1-2 Digivolution Rules (comprehensive-0125)", () => {
       "comprehensive-0125",
       "8-1-2-7 if a card can no longer be digivolved after reveal, it's returned " +
         "unchanged; memory doesn't move when it fails on cost",
+      "4cdd2dda108de613160aa4c381701f2f6da2861655f93b6dab87d5ab87c827c9",
     );
 
     const s = setup();
@@ -176,12 +179,12 @@ describe("§8-1-2 Digivolution Rules (comprehensive-0125)", () => {
   });
 });
 
-describe("§8-1-2-8 Digivolution Rules (comprehensive-0126)", () => {
-  it("8-1-2-8: the base permanent's own permanentId is preserved — digivolving is not removal from the field", async () => {
+describe("§3-4-5 identity and §8-1-2-8 draw during digivolution", () => {
+  it("3-4-5: the base permanent's own permanentId is preserved — digivolving is not removal from the field", async () => {
     cite(
-      "comprehensive-0126",
-      "8-1-2-8 a card that becomes a digivolution card isn't removed from the field; " +
-        "it becomes part of the digivolved Digimon's information",
+      "comprehensive-0060",
+      "3-4-5: stacking a digivolution changes the Digimon without creating a newly placed Digimon",
+      "093bed0b47c2f911dafd1a38b59725fd0383107ab737ab490195dfbd30917b30",
     );
 
     const s = setup();
@@ -206,11 +209,12 @@ describe("§8-1-2-8 Digivolution Rules (comprehensive-0126)", () => {
     expect(found.permanentId).toBe(permanentIdBefore); // SAME permanent, not a new one
   });
 
-  it("8-1-2-10: digivolution still succeeds with an empty deck (no draw, no crash)", async () => {
+  it("8-1-2-8: digivolution still succeeds with an empty deck (no draw, no crash)", async () => {
     cite(
-      "comprehensive-0126",
-      "8-1-2-10 digivolution is possible even when a draw isn't possible; the digivolve " +
+      "comprehensive-0125",
+      "8-1-2-8 digivolution is possible even when a draw isn't possible; the digivolve " +
         "processes without drawing a card",
+      "4cdd2dda108de613160aa4c381701f2f6da2861655f93b6dab87d5ab87c827c9",
     );
 
     const s = setup(); // seatPlayer stages an empty deck (see testkit/harness.ts)
@@ -426,9 +430,10 @@ describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
         "Digimon per its burst digivolve requirements, by returning a specified Tamer",
     );
     cite(
-      "comprehensive-0133",
+      "comprehensive-0317",
       "8-3-3-4 the player places the Digimon for the burst digivolve on top of the chosen " +
         "card, draws 1 card, and the burst digivolve process is resolved",
+      "38f2c9d64a342dbc8887bff9eeaf687cdac32e9708b1e506c307fef86994a48b",
     );
 
     const { s, base, burstCard } = layBurstScenario();

@@ -17,12 +17,12 @@ import "../../cards/index.js";
  *
  * Also picks up 3 chunks THREE earlier lanes explicitly deferred to this chapter as
  * "chapter 15 Effect Rules scaffolding" (ch03/ch04's own comments name them):
- *   - comprehensive-0057 (ch03 §3-1-3-6..9): batch-move reveal/ordering into a private area.
- *   - comprehensive-0094 (ch04 §4-24): the "with different names" counting mode
+ *   - comprehensive-0280 (ch03 §3-1-3-6..9): batch-move reveal/ordering into a private area.
+ *   - comprehensive-0311 (ch04 §4-25): the "with different names" counting mode
  *     (Filter.distinctNames), real card BT21-010.
- *   - comprehensive-0098 (ch04 §4-27): "Option card in the battle area placed there BY
+ *   - comprehensive-0315 (ch04 §4-28): "Option card in the battle area placed there BY
  *     AN EFFECT" (Filter.placedInBattleAreaByEffect), real card BT23-055.
- * comprehensive-0095 (ch04 §4-25, selfDigivolutionCountAtLeast / BT22-007) is picked up
+ * comprehensive-0312 (ch04 §4-26, selfDigivolutionCountAtLeast / BT22-007) is picked up
  * in ch15-04-continuous-and-static.test.ts instead, alongside that file's other
  * {Breeding}-timed real-card work.
  *
@@ -76,7 +76,7 @@ describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
     // fixture below: "their Digimon with X" restricts every match, not one chosen card).
     const st214 = instance("ST2-14", 0, false);
     p0.hand.push(st214);
-    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
+    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-22 color-requirement source (Blue)
     const targetA = digimon(1, 5000, "AD1-001");
     const targetB = digimon(1, 5000, "AD1-001");
     p1.battleArea.push(targetA, targetB);
@@ -158,7 +158,7 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
     const p1 = s.state.players[1]!;
     const bt1100 = instance("BT1-100", 0, false);
     p0.hand.push(bt1100);
-    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
+    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-22 color-requirement source (Blue)
     const targetA = digimon(1, 5000, "AD1-001"); // no digivolution cards
     const targetB = digimon(1, 5000, "AD1-001"); // no digivolution cards
     p1.battleArea.push(targetA, targetB);
@@ -207,8 +207,8 @@ markNotTestable(
     "to `ctx.fx.endAttack()`, so the mechanism is real — only the combat harness to drive it " +
     "end-to-end is missing from this lane.",
 );
-describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203)", () => {
-  it("15-15-3-1/15-15-3-2 (+ ch03 comprehensive-0057's batch-move ordering): revealing doesn't change the deck's count; only the FINAL placement does", async () => {
+describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203)", () => {
+  it("15-15-3-1/15-15-3-2 (+ ch03 comprehensive-0280's batch-move ordering): revealing doesn't change the deck's count; only the FINAL placement does", async () => {
     cite(
       "comprehensive-0201",
       "15-15-3-1/2 a card being revealed doesn't change the count of cards in its " +
@@ -216,11 +216,12 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
         "increases or decreases it",
     );
     cite(
-      "comprehensive-0057",
+      "comprehensive-0280",
       "ch03 §3-1-3-6/7 batch-move ordering + reveal-before-placement for a multi-card " +
         "effect resolving into hand/deck — driven end-to-end here via BT14-042's real " +
         "reveal-add-return sequence (picked up from ch03/ch04, deferred as chapter 15 " +
         "scaffolding)",
+      "ddd47059a5f980a62105a3bfb5c54589f3c48ac33d143373a895654877f07156",
     );
 
     // The reveal-add asks which revealed card to take, and the remainder asks for an order.
@@ -270,9 +271,10 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
         "that caused the action chooses the order they're placed",
     );
     cite(
-      "comprehensive-0203",
+      "comprehensive-0320",
       "15-15-3-9-2 if a player isn't specified in text, only the player who activated " +
         "the effect searches/looks at the cards",
+      "430c9d032ee35c0b543e459e54d96ac19ca34b4a09942533fe9eb452f1d1f664",
     );
 
     // BT14-042's own filter is `controllerDefault: "mine"` (no player specified in the
@@ -377,14 +379,15 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
   });
 });
 
-describe('§4-24 "With Different Names" (comprehensive-0094, picked up from ch04)', () => {
+describe('§4-25 "With Different Names" (comprehensive-0311, picked up from ch04)', () => {
   it("BT21-010's own condition reads permanentCount+distinctNames against a real filter — 3 SAME-named [Hero] Tamers do NOT satisfy 'different names'", () => {
     cite(
-      "comprehensive-0094",
-      "ch04 §4-24 'with different XX' counting mode (Filter.distinctNames, real card " +
+      "comprehensive-0311",
+      "ch04 §4-25 'with different XX' counting mode (Filter.distinctNames, real card " +
         "BT21-010, KB-documented) — driven here end-to-end via the exported " +
         "`permanentMatchesFilter` (interpreter.ts), the same evaluator the deferred-to-" +
         "chapter-15 permanentCount Condition consults internally.",
+      "653018400b31c26a4998384c2007e1f4086145eda7f484b0c0d87e6622340e81",
     );
 
     const s = setup();
@@ -405,15 +408,16 @@ describe('§4-24 "With Different Names" (comprehensive-0094, picked up from ch04
   });
 });
 
-describe('§4-27 "Option Card in the Battle Area" (comprehensive-0098, picked up from ch04)', () => {
+describe('§4-28 "Option Card in the Battle Area" (comprehensive-0315, picked up from ch04)', () => {
   it("BT23-055's placedInBattleAreaByEffect filter matches an on-field Option permanent and rejects a Digimon permanent", () => {
     cite(
-      "comprehensive-0098",
-      "ch04 §4-27 'Option card in the battle area' predicate (Filter." +
+      "comprehensive-0315",
+      "ch04 §4-28 'Option card in the battle area' predicate (Filter." +
         "placedInBattleAreaByEffect, real card BT23-055) — driven here directly against the " +
         "EXPORTED `permanentMatchesFilter` (interpreter.ts), which is NOT unexported as ch04's " +
         "note assumed; only the CONSUMING Condition evaluator (inside a live card's target " +
         "resolution) is unexported, not the filter matcher itself.",
+      "d98267584f5a56b5b528e7c5a2e42ecbb91428928eb47147c3ee4c08f6b1a114",
     );
 
     const s = setup();

@@ -85,9 +85,9 @@ markNotTestable(
   "manual-0047",
   "'With XX in its text' (name/trait/effect/inherited-effect/Link/Rule/digivolution/DigiXros/DNA " +
     "text matching; an icon like ＜Material Save＞ can't be referenced by a ＜Save＞-in-text " +
-    "filter because the icon differs) restates comprehensive-0092, already tested at " +
-    "ch04-basic-terminology.test.ts §4-22. '\"XX or YY\" means either XX or YY' restates " +
-    "comprehensive-0093, already tested at ch04 §4-23. 'Returning Revealed Cards to the Deck' " +
+    "filter because the icon differs) restates comprehensive-0309, already tested at " +
+    "ch04-basic-terminology.test.ts §4-23. '\"XX or YY\" means either XX or YY' restates " +
+    "comprehensive-0310, already tested at ch04 §4-24. 'Returning Revealed Cards to the Deck' " +
     "(the revealing player chooses the return order) restates comprehensive-0201/0202/0203, " +
     "already tested at ch15-03-targeting-and-selection.test.ts §15-15-3.",
 );
@@ -168,16 +168,16 @@ markNotTestable(
     'only 1)\' and \'performing a "by" condition counts toward [X Per Turn] even if the "then" ' +
     "processing can't happen' restate comprehensive-0168/0169/0170 (ch15-02 §15-6/§15-7) and " +
     'comprehensive-0193 ([X Per Turn], ch15-04 §15-14-1), already tested. \'"With different XX" ' +
-    "means each XX in the combination differs' restates comprehensive-0094, already tested at " +
-    "ch15-03-targeting-and-selection.test.ts (picked up from ch04, §4-24).",
+    "means each XX in the combination differs' restates comprehensive-0311, already tested at " +
+    "ch15-03-targeting-and-selection.test.ts (picked up from ch04, §4-25).",
 );
 
 markNotTestable(
   "manual-0055",
   "'\"With different XX\", cont'd' (2 cards with colors red and blue both differing counts as a " +
-    '"with different colors" combination) restates comprehensive-0094/0095, already tested at ' +
+    '"with different colors" combination) restates comprehensive-0311/0312, already tested at ' +
     "ch15-03-targeting-and-selection.test.ts / ch15-04-continuous-and-static.test.ts (picked up " +
-    "from ch04, §4-24/§4-25). 'Effect Timings' / 'Effect Icons' is a bare section-heading " +
+    "from ch04, §4-25/§4-26). 'Effect Timings' / 'Effect Icons' is a bare section-heading " +
     "transition into the icon glossary covered by manual-0056 onward.",
 );
 
@@ -305,7 +305,7 @@ for (const [id, keywords] of [
     "#25 Reboot (comprehensive-0229, ch16b §16-11), Ascension (comprehensive-0262, ch16c §16-43, " +
       "unimplemented), #26 De-Digivolve/Use Req. (comprehensive-0261, ch16c §16-42, unimplemented), " +
       "Decoy (comprehensive-0236, ch16b §16-18, DIVERGENCE), #28 Collision (comprehensive-0249, " +
-      "ch16c §16-30), Overflow (comprehensive-0088, ch04 §4-18), Fragment (comprehensive-0256, " +
+      "ch16c §16-30), Overflow (comprehensive-0305, ch04 §4-19), Fragment (comprehensive-0256, " +
       "ch16c §16-37, unimplemented), DNA Digivolve (comprehensive-0127..0130, ch08 §8-2), DigiXros " +
       "(comprehensive-0117/0118, ch07 §7-2), Retaliation (comprehensive-0231, ch16b §16-13, " +
       "documented ENGINE BUG), Scapegoat (comprehensive-0251, ch16c §16-32, unimplemented), " +
@@ -315,8 +315,8 @@ for (const [id, keywords] of [
     "manual-0066",
     "#33 Digi-Burst (comprehensive-0232, ch16b §16-14), #7 Assembly (comprehensive-0119..0122, " +
       "ch07, not-testable — no engine subsystem, see manual-0034..0036 above), #34 Blast Digivolve " +
-      "(comprehensive-0245, ch16c §16-26, unimplemented), #8 Arts Digivolve (comprehensive-0089/" +
-      "0050, ch04 §4-19 / ch02 §2-11, unreachable DIVERGENCE), Blast DNA Digivolve " +
+      "(comprehensive-0245, ch16c §16-26, unimplemented), #8 Arts Digivolve (comprehensive-0306/" +
+      "0050, ch04 §4-20 / ch02 §2-11, unreachable DIVERGENCE), Blast DNA Digivolve " +
       "(comprehensive-0250, ch16c §16-31, unimplemented), Mind Link (comprehensive-0247, ch16c " +
       "§16-28), #37 Link+X (comprehensive-0259, ch16c §16-40)",
   ],
