@@ -198519,8 +198519,9 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
-        "actions": [],
-        "keywords": [{ "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1 (Deck)＞" }]
+        "actions": [
+          { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -198532,8 +198533,14 @@
             "amount": 1,
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
               "target": {
-                "filter": { "controller": "any", "excludeSelf": true, "kind": ["Digimon", "Tamer"] },
+                "filter": {
+                  "controller": "any",
+                  "excludeSelf": true,
+                  "kind": ["Digimon", "Tamer"],
+                  "zone": "battleArea"
+                },
                 "count": 1
               },
               "destination": "security",
