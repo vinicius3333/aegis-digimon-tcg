@@ -37,6 +37,46 @@ The restored implementation passed three focused files and 89 tests. Independent
 - Map the complete normative battle/attack/Alliance obligations beyond these three pinned sections.
 - Prove security-battle-specific expiration through public attack resolution.
 - Establish ownership and expiration semantics for nested or sequential battles and grants created during battle-end reactions.
-- Execute public Alliance and Piercing interactions across an intermediate battle and subsequent security checks.
+- Complete other Alliance/Piercing consumer shapes, duplicate instances, supporter changes/removal and nested effect-battle interactions; the printed ordinary-battle-to-security path below is proved.
 - Inventory every battle- and attack-duration consumer and cover every distinct executable shape.
 - Complete mechanism-wide gates and consumer evidence; historical collection scores do not certify this targeted correction.
+
+## Public Alliance and Piercing duration proof
+
+`combat/attackDuration.test.ts` uses printed AD1-009 BlitzGreymon (12000
+DP, Alliance and Piercing), neutral BT10-064 Gogmamon (8000 DP), and three
+physical BT12-112 Superior Mode cards (17000 DP): a suspended field target
+and two security cards. Public attack and Alliance response suspend the
+exact ally without changing memory. The 20000-DP attacker wins ordinary
+battle and both Piercing security battles; all three opposing physical
+cards reach opponent trash and both owner permanents remain. After attack
+cleanup the attacker has 12000 DP and Security Attack one. The refusal
+control leaves the ally unsuspended, loses the ordinary battle, and makes
+no security check; exact attacker trash and retained opponent cards are
+asserted. Seeded entries isolate combat; fresh-play behavior is not proved.
+
+Changing the actual GameEngine Alliance DP registration back to
+UntilEndBattle makes the paid case fail with one security check instead of
+two because it loses the first security battle; the refusal case still
+passes. The mutation was restored in finally. Both restored public cases
+pass, and the bounded combat/direct-Piercing/advanced-keyword suite passes
+21 files and 314 tests. Independent read-only review found no blocker in
+card counts, quiet clauses, public sequencing or duration endpoints.
+Final proof/layout checks passed two files and six tests after unconditional assertion cleanup; API typecheck, scoped Oxlint, changed-file Oxfmt, current 66-set index and diff checks passed. Opponent trash IDs are compared as a sorted physical-ID array, preventing duplicate IDs from being hidden by a set. The last full default API regression remains the preceding 5107-file result above; this delivery adds tests and ledger evidence without changing engine behavior, and does not rerun that broad gate.
+
+This closes a public ordinary-battle-to-Piercing-check interaction for
+printed Alliance. It does not prove supporter changes/removal, duplicate
+Alliance instances, granted/inherited/continuous consumer shapes, nested
+effect battles or battle-duration expiration within security checks.
+
+## Bounded persisted battle-duration inventory
+
+A recursive scan of committed effects.json duration fields found six
+`untilEndOfBattle` occurrences across two cards: EX13-076's three shared
+play/evolution/attack clauses and ST2-01's three inherited attack,
+opponent-attack and block subscriptions. The direct-module ST2-01 behavior
+was inspected against the exact catalog text: Your Turn, plus 1000 DP when
+battling an opponent Digimon with no sources. This additional producer
+remains queued for public battle-to-security expiration and direct-battle
+trigger fidelity. This is a bounded persisted-field inventory, not the
+complete printed battle-duration or executable-encoding denominator.
