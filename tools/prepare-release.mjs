@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import {
   bumpVersion,
   cardChangesForPaths,
+  changeForCommit,
   parseConventionalCommit,
   renderChangelog,
   renderWebReleaseData,
@@ -54,8 +55,9 @@ const version = bumpVersion(rootPackage.version, bump);
 const changedPaths = git(["diff", "--name-only", `${latestTag}..HEAD`])
   .split("\n")
   .filter(Boolean);
-const changes = cardChangesForPaths(changedPaths);
-if (!changes.length) throw new Error("No changed cards were found for the changelog.");
+const cardChanges = cardChangesForPaths(changedPaths);
+const changes = cardChanges.length ? cardChanges : commits.map(changeForCommit).filter(Boolean);
+if (!changes.length) throw new Error("No player-facing changes were found for the changelog.");
 const releases = JSON.parse(read("releases.json")).releases;
 const release = { version, date: new Date().toISOString().slice(0, 10), changes };
 const updatedReleases = [release, ...releases];

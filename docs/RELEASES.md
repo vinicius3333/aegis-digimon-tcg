@@ -31,8 +31,14 @@ themselves. The CI checks each PR commit against this format.
 5. Once the approved release is deployed to production, create the matching
    immutable Git tag, for example `v1.1.0`.
 
-The first deployed baseline must be tagged `v1.0.0` before the next release PR.
+The deployed baseline must have a matching version tag before the next release
+PR. After a repository history consolidation, tag the verified current production
+revision with its actual deployed version; do not invent a tag for an older version.
 `releases.json` is the source of truth; do not hand-edit its generated outputs.
+
+Card releases list the unique changed card IDs. A release without card-module
+changes uses the existing Conventional Commit change descriptions instead, so
+features such as beta battle selection can follow the same release workflow.
 
 ## Localized release notes
 
