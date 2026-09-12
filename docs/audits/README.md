@@ -108,7 +108,7 @@ build when it is stale.
 | BT19 | 102   | in-progress | 2026-09-09  | [BT19.md](BT19.md) |
 | BT20 | 102   | verified    | 2026-09-10  | [BT20.md](BT20.md) |
 | BT21 | 102   | verified    | 2026-09-06  | [BT21.md](BT21.md) |
-| BT22 | 102   | verified    | 2026-09-07  | [BT22.md](BT22.md) |
+| BT22 | 102   | incomplete  | 2026-09-07  | [BT22.md](BT22.md) |
 | BT23 | 102   | verified    | 2026-09-10  | [BT23.md](BT23.md) |
 | BT24 | 102   | verified    | 2026-09-08  | [BT24.md](BT24.md) |
 | BT25 | 104   | in-progress | 2026-09-06  | [BT25.md](BT25.md) |

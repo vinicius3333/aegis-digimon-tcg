@@ -565,4 +565,123 @@ describe("Succession committed consumer evolution", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
+
+  it.each(["BT26-080", "BT22-010", NEUTRAL])(
+    "public Giromon placement hides $0 from Succession",
+    async (hiddenCard) => {
+      cite(
+        "comprehensive-0293",
+        "4-7-9/10: a face-down stacked card has no referenceable card information",
+        "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
+      );
+      const preferred: string[] = [];
+      const options = {
+        autoDeclineOptional: false,
+        autoAcceptOptional: false,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT3-067", as: "base" }],
+            hand: [
+              { card: "BT26-055", as: "giromon" },
+              { card: hiddenCard, as: "hidden" },
+              { card: "BT26-080", as: "evolution" },
+            ],
+            deck: ["BT1-028", "BT1-028", "BT1-028"],
+            security: [NEUTRAL],
+          },
+          1: {
+            battleArea: [
+              { card: NEUTRAL, as: "deleted", suspended: true },
+              { card: NEUTRAL, as: "survivor", suspended: true },
+            ],
+            deck: [NEUTRAL],
+            security: [
+              { card: "BT1-028", as: "firstSecurity" },
+              { card: "BT1-028", as: "secondSecurity" },
+              { card: "BT1-028", as: "remainingSecurity" },
+            ],
+          },
+        },
+        options,
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const baseId = s.inst("base").instanceId;
+      const giromonId = s.inst("giromon").instanceId;
+      const hiddenId = s.inst("hidden").instanceId;
+      const evolutionId = s.inst("evolution").instanceId;
+      const deletedId = s.inst("deleted").instanceId;
+      const survivorId = s.inst("survivor").instanceId;
+      preferred.push(hiddenId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: giromonId,
+        }),
+      ).toEqual({ ok: true });
+      for (const accept of [true, false]) {
+        await settle(() => s.state.pendingDecision?.kind === "optional");
+        const decision = s.state.pendingDecision!;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: { kind: "optional", accept },
+          }),
+        ).toEqual({ ok: true });
+        await settle();
+      }
+      expect(s.perm("base").topCard.instanceId).toBe(giromonId);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([hiddenId, baseId]);
+      expect(s.inst("hidden").faceUp).toBe(false);
+      expect(s.state.memory).toBe(7);
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: evolutionId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === evolutionId);
+      await settle();
+      expect(s.state.memory).toBe(2);
+      preferred.splice(0, preferred.length, deletedId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("base").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([survivorId]);
+      expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+        s.inst("remainingSecurity").instanceId,
+      ]);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
+        [deletedId, s.inst("firstSecurity").instanceId, s.inst("secondSecurity").instanceId].sort(),
+      );
+      expect(s.perm("base").topCard.instanceId).toBe(evolutionId);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([hiddenId, baseId, giromonId]);
+      expect(s.inst("hidden").faceUp).toBe(false);
+      expect(s.perm("base").currentDP).toBe(13000);
+      expect(s.perm("base").isSuspended).toBe(true);
+      expect(s.perm("base").controllerSeat).toBe(0);
+      expect(s.state.memory).toBe(2);
+      expect(s.state.players[0]!.hand).toHaveLength(2);
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+      assertNoLoudGap(s);
+    },
+  );
 });

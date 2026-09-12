@@ -2,6 +2,8 @@
 
 ## Status
 
+The next bounded face-down source correction at `3f014c5d7` is owned by [stack-card-information.md](stack-card-information.md). Public Giromon placement exposes the hidden copied Bacchusmon and inherited Meramon leaks; neither remaining source changes nor all hidden information are certified.
+
 Latest bounded correction at baseline `810868b64`: a real Bagramon placement
 buries BT26-080 under another BT26-080. The copied Succession ability previously
 created another conferral and an extra When Attacking deletion: three neutral

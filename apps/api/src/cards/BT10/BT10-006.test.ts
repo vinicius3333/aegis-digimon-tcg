@@ -33,7 +33,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
             dp: 3000,
             as: "host",
             // BT10-006 sits as a digivolution card under the host â€” the inherited effect source.
-            under: [{ card: "BT10-006", as: "digiCard", faceUp: false }],
+            under: [{ card: "BT10-006", as: "digiCard", faceUp: true }],
           },
         ],
         deck: ["BT1-009", "BT1-009", "BT1-009"],
@@ -61,7 +61,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
             card: "BT1-009",
             dp: 3000,
             as: "host",
-            under: [{ card: "BT10-006", as: "digiCard", faceUp: false }],
+            under: [{ card: "BT10-006", as: "digiCard", faceUp: true }],
           },
         ],
         deck: ["BT1-009", "BT1-009", "BT1-009"],

@@ -334,3 +334,7 @@ Public path, counterfactual, consumer-shape and unresolved normative evidence be
 to [succession-lifecycle.md](succession-lifecycle.md). Full keyword certification,
 including nested-source shapes beyond the demonstrated Bacchusmon exclusion,
 source/face changes and reset, remains open.
+
+## Hidden stack source checkpoint
+
+The copied and inherited live-source face-down boundary is owned by [stack-card-information.md](stack-card-information.md). Three public Giromon placement/evolution/attack sequences distinguish two baseline failures from a neutral hidden control. This adds a bounded contract, not certification of all hidden information; highest visible matching, snapshots, visibility changes, native scans and dynamic references remain open. BT22 historical completion is reopened.

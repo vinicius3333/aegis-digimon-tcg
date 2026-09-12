@@ -35,7 +35,7 @@ describe("BT8-079 SkullSatamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT10-074", as: "host" }] } });
     s.state.turnSeat = 0;
     const host = s.perm("host");
-    host.stack.push(instance("BT8-079", 0, false));
+    host.stack.push(instance("BT8-079", 0, true));
     s.state.memory = 0;
     await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
       addedToHand: {

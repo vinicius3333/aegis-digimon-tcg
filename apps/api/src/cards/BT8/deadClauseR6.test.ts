@@ -49,7 +49,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     // it is a digivolution-stack card under a later Digimon, per placementGuard's isInherited
     // rule — kernel.ts's passesPlacementGuard requires isTop === false). Bury it under a host.
     const host = digimon(0, 5000, "AD1-001");
-    host.stack.push(instance("BT8-006", 0, false));
+    host.stack.push(instance("BT8-006", 0, true));
     p0.battleArea.push(host);
 
     for (let i = 0; i < 5; i++) p0.deck.push(instance("AD1-001", 0, false));
@@ -84,7 +84,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     // which would itself prevent defender's deletion and produce a false-positive security trash
     // via a completely different mechanism. Keeping the watcher passive isolates onDeletionOf.
     const watcherHost = digimon(0, 3000, "BT20-080"); // Fenriloogamon top card
-    watcherHost.stack.push(instance("BT20-080", 0, false)); // the inherited-effect-bearing copy
+    watcherHost.stack.push(instance("BT20-080", 0, true)); // the inherited-effect-bearing copy
     p0.battleArea.push(watcherHost);
     const attacker = digimon(0, 9000, "BT1-009"); // vanilla attacker — defender really dies
     attacker.enterFieldTurnCount = -1;
