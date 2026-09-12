@@ -75,8 +75,6 @@ export function detachLeaveReplacements(
   return permanentIds.flatMap((id, index) => {
     const permanent = deps.permanentById(id);
     if (permanent?.topCard === undefined || permanent.inBreeding || !deps.hasDetach(id)) return [];
-    const candidates = detachableLinkedCards(permanent, deps.traitTokens(id), deps.definitionOf);
-    if (candidates.length === 0) return [];
     return [
       {
         id: -(index + 1),
@@ -93,11 +91,16 @@ export function detachLeaveReplacements(
           if (live === undefined || !deps.hasDetach(id)) return false;
           const traits = deps.traitTokens(id);
           const eligible = detachableLinkedCards(live, traits, deps.definitionOf);
-          if (eligible.length === 0) return false;
           const askCtx = {
             ...ctx,
             activeEffectText: `＜Detach${traits.length > 0 ? " (" + traits.map((trait) => "[" + trait + "] trait").join("/") + ")" : ""}＞`,
           };
+          if (eligible.length === 0) {
+            // CR 15-7-4: an impossible optional processing condition still offers a
+            // choice. No card selection or prevention follows an unpayable choice.
+            await askCtx.ask.optional(askCtx, "Use Detach?");
+            return false;
+          }
           const selected = await askCtx.ask.selectCards(askCtx, {
             candidates: eligible.map((card) => card.instanceId),
             min: 0,

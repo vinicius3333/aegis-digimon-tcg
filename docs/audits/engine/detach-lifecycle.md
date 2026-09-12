@@ -30,6 +30,9 @@ reactions through `LeavePreventionHost.keywordReplacements`. The shared consult
 orders them with authored reactions and applies the same activation reentry guard.
 `detachLeaveReplacements` asks the threatened source's controller for zero or one
 eligible link, revalidates the selected link, then uses the existing trash primitive.
+When no eligible link exists, the reaction still offers the optional processing
+choice required by §15-7-4. Acceptance cannot pay the cost and does not prevent
+departure; refusal also leaves the departure intact. No empty card selector is opened.
 The paid link loses its effects before deletion and Piercing snapshots settle.
 The separate combat-only window and hooks were removed, preventing duplicate
 battle prompts. Card modules retain exclusive compiled IR registration.
@@ -41,24 +44,24 @@ printed consumer tests.
 
 ## Obligation ledger
 
-| Obligation                                                          | Public proof                                                                     | Status |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ |
-| Opponent effect deletion may be prevented                           | Gaia Force against every printed Detach holder                                   | green  |
-| Hand departure may be prevented                                     | ST2-16 public Option play                                                        | green  |
-| Deck departure may be prevented                                     | BT2-102 public Option play                                                       | green  |
-| Security departure may be prevented                                 | BT10-101 at zero own security                                                    | green  |
-| Owner's deletion cost is not prevented                              | ST6-15; sole eligible sacrifice, purple source in breeding                       | green  |
-| Controller may refuse; opponent cannot answer                       | manual seat-addressed response; both target and link go to trash                 | green  |
-| Ineligible linked trait cannot pay                                  | BT21-009 link under Mailmon; original deletion proceeds                          | green  |
-| Battle tie saves only the paying holder and removes linked Piercing | existing Q6964 public attack test                                                | green  |
-| Both tied holders may pay separately                                | existing public attack with one eligible link each                               | green  |
-| Payment request identifies source, chooser and trait                | manual refusal request asserts seat, sourceCardId and options.effectText         | green  |
-| Choice when no payment is possible                                  | reconcile §15-7-4 with immediate-effect collection; no-link choice proof missing | open   |
-| Multiple eligible links and distinct traits                         | exact-selection and multi-parameter fixtures                                     | open   |
-| Granted/inherited parameter fidelity and expiry                     | live provenance implemented; public comparative/stack proof missing              | open   |
-| Competing replacements and reentry                                  | shared seam used; Detach-specific ordering proof missing                         | open   |
-| DP rule deletion and security battles                               | direct lifecycle proofs missing                                                  | open   |
-| Nested link-trash reactions and overflow                            | primitive reused; Detach-specific receipts unproved                              | open   |
+| Obligation                                                          | Public proof                                                                           | Status |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------ |
+| Opponent effect deletion may be prevented                           | Gaia Force against every printed Detach holder                                         | green  |
+| Hand departure may be prevented                                     | ST2-16 public Option play                                                              | green  |
+| Deck departure may be prevented                                     | BT2-102 public Option play                                                             | green  |
+| Security departure may be prevented                                 | BT10-101 at zero own security                                                          | green  |
+| Owner's deletion cost is not prevented                              | ST6-15; sole eligible sacrifice, purple source in breeding                             | green  |
+| Controller may refuse; opponent cannot answer                       | manual seat-addressed response; both target and link go to trash                       | green  |
+| Ineligible linked trait cannot pay                                  | BT21-009 link under Mailmon; original deletion proceeds                                | green  |
+| Battle tie saves only the paying holder and removes linked Piercing | existing Q6964 public attack test                                                      | green  |
+| Both tied holders may pay separately                                | existing public attack with one eligible link each                                     | green  |
+| Payment request identifies source, chooser and trait                | manual refusal request asserts seat, sourceCardId and options.effectText               | green  |
+| Choice when no payment is possible                                  | accepted/refused no-link and wrong-trait cases; chooser, text and final trash verified | green  |
+| Multiple eligible links and distinct traits                         | exact-selection and multi-parameter fixtures                                           | open   |
+| Granted/inherited parameter fidelity and expiry                     | live provenance implemented; public comparative/stack proof missing                    | open   |
+| Competing replacements and reentry                                  | shared seam used; Detach-specific ordering proof missing                               | open   |
+| DP rule deletion and security battles                               | direct lifecycle proofs missing                                                        | open   |
+| Nested link-trash reactions and overflow                            | primitive reused; Detach-specific receipts unproved                                    | open   |
 
 ## Consumers
 
@@ -86,8 +89,24 @@ all open obligations above.
 - Final provenance assertions first read the wrong request field; effectText is
   in options. Corrected focused lifecycle scope: 13/13 passed.
 - Independent review found no blocker in demonstrated printed departures, while
-  retaining the explicit parameter, impossible-payment and timing obligations.
+  retaining the explicit parameter and timing obligations.
 - Final API typecheck passed after correcting the provenance assertion field. Scoped Oxlint passed without warnings; Oxfmt checks, audit layout (4/4), generated index and diff checks passed.
+
+### Impossible-payment follow-up
+
+- Public red proof on the prior implementation: 2 failed / 13 passed; no processing
+  choice was recorded for either an empty link pool or a wrong-trait link.
+- The first affected BT26 regression stopped on the new acknowledgments in four
+  battle fixtures: 4 failed / 958 passed. Those fixtures now decline only the
+  newly available optional acknowledgments; payable card selection and manual
+  refusal remain independently exercised.
+- Corrected broad regression: 246 files / 3051 tests passed across conformance,
+  combat, effects, engine cards, BT26 and audit layout. API typecheck passed.
+- Strengthened accepted/refused cases assert defending seat, source, Detach trait
+  text and both host/link final trash: 3 files / 43 tests passed, including both
+  affected battle suites.
+- Independent review found no blocker in retaining an unpayable reaction and
+  returning false after its processing choice. Parameter and ordering rows remain open.
 
 Commands use `--pool=forks --maxWorkers=1 --no-file-parallelism`.
 No persisted card IR changed in this engine correction.
