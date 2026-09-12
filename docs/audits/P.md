@@ -1608,11 +1608,13 @@ git diff --check
 
 ### P-152 — Shoutmon + Dorulu Cannon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-152.ts) · [test](../../apps/api/src/cards/P/P-152.test.ts) · clause review (source removed; see History)<br>“encodes the attack DP reduction and Xros Heart placement cost”; “encodes both zero-cost named digivolution paths, Rule names, and DigiXros materials”; “reduces an opposing Digimon by 2000, then deletes it at the post-reduction boundary”
 
 - Local KB lookup (2026-09-12): Q4267; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): Its only attack proof injects OnUseAttack. Public attack completion, exact Xros Heart source placement cost, target boundary and paid public named evolution/DigiXros source identity remain unproved. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 ### P-153 — MagnaGarurumon
 
@@ -1636,13 +1638,15 @@ git diff --check
 
 ### P-155 — Pawn Device
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-155.ts) · [test](../../apps/api/src/cards/P/P-155.test.ts) · clause review (source removed; see History)<br>“encodes Main Draw 1 followed by placing itself in the battle area”; “encodes Delay's non-red Option trash cost and Security deletion/hand return”; “deletes an opposing Digimon at the 11000-DP security boundary and returns itself”; “runs Main from hand, draws one card, and places this Option in the battle area”; “uses Delay by trashing a non-red Option and gains exactly one memory”
 
 - Local KB lookup (2026-09-12): Q4269; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Additional root proof hold (2026-09-12): Security deletion and self return are proved only by injected SecuritySkill timing, without an actual opponent attack reveal or attack completion. Public Security boundary, exact Option return and retained noneligible target proof remain pending. Existing public Main/Delay proofs are reused; legal initial memory and exact consumed Option identity must be verified. Historical 10/10 is superseded.
 
 ### P-156 — Future Potential!
 
@@ -1703,11 +1707,13 @@ git diff --check
 
 ### P-162 — Coelamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-162.ts) · [test](../../apps/api/src/cards/P/P-162.test.ts) · clause review (source removed; see History)<br>“protects one DS Digimon from DP reduction and opponent De-Digivolve effects”; “encodes inherited Blocker and DS level-3 digivolution”; “protects a DS Digimon when Coelamon is played”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): The colocated protection proof only injects OnPlay. Existing cross-card references are reviewed for reuse, but do not replace legal public Coelamon evolution, attributable DP/De-Digivolve protection and inherited Blocker evidence. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 ### P-163 — Dokugumon
 
@@ -1938,13 +1944,15 @@ git diff --check
 - Independently accepted repair (2026-09-12): public DoruGreymon alternate evolution pays 3 (10→7), retains the exact DoruGreymon and placed Kosuke sources, grants +3000 DP and unsuspends the SoC ally while preserving the suspended non-SoC control. Root focused validation: 3 files / 13 tests green; targeted Oxfmt, Oxlint and diff checks clean.
 ### P-185 — EmperorGreymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-185.ts) · [test](../../apps/api/src/cards/P/P-185.test.ts) · clause review (source removed; see History)<br>“requires a Takuya Kanbara Tamer with five Hybrid cards under it”; “encodes Blocker, DP-relative deletion, color scaling, and end-of-turn unsuspend”; “exposes Blocker on the live EmperorGreymon”; “legally digivolves from Takuya with five Hybrid cards under the Tamer”; “deletes at its DP boundary, scales its DP by allied colors, and unsuspends at turn end”
 
 - Local KB lookup (2026-09-12): Q6917, Q6918, Q6919, Q6920, Q6921, Q6922; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Confirmed scope defect (2026-09-12): [official printed text](https://world.digimoncard.com/cards/?card_no=P-185&search=true) counts colors in this Digimon's digivolution cards. Existing IR omits the digivolution-card zone and counts allied battle-area colors instead. Its injected timing test asserts the incorrect scope. Correct source-stack scaling, attributable public evolution and natural end-turn evidence remain pending.
 
 ### P-186 — Gallantmon
 
@@ -2055,11 +2063,13 @@ git diff --check
 
 ### P-195 — Inori Misono
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-195.ts) · [test](../../apps/api/src/cards/P/P-195.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of the main phase when the opponent has a Digimon”; “offers Elecmon play or free Aegiomon digivolution on play”; “plays itself for free from Security”; “gains one memory at start of main when the opponent has a Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): Its only behavioral proof injects Start of Main. Natural memory-gain boundary, both OnPlay modal choices with actual public play/evolution costs and original source IDs, and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 ### P-196 — Gomamon
 
@@ -2108,11 +2118,13 @@ git diff --check
 
 ### P-200 — Kanan Yuki
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-200.ts) · [test](../../apps/api/src/cards/P/P-200.test.ts) · clause review (source removed; see History)<br>“suspends one opponent Digimon at four or less memory”; “reduces your TS Digimon digivolution by 1 by suspending this Tamer”; “plays itself for free from Security”; “suspends an opposing Digimon at the four-memory boundary”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): Its only behavioral proof injects Start of Main. Natural four/five-memory boundary and public TS evolution discount with exact suspended Tamer cost, source identity and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 ### P-201 — Phascomon
 
@@ -2149,8 +2161,8 @@ git diff --check
 
 ### P-204 — Release of the Sealed Knight!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-204.ts) · [test](../../apps/api/src/cards/P/P-204.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and placement behind trashing an X Antibody or Chronicle card”; “grants Delay when either player's Digimon attacks and allows the Chronicle evolution”; “activates its Main effect from Security”; “draws two after trashing an X Antibody card and places itself”; “gains Delay when a Digimon makes a real attack”
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
@@ -2159,6 +2171,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
 - Current additional reaudit proof hold (2026-09-12): The real attack test only observes Delay keyword acquisition. Accepted and declined Delay Chronicle evolution, option consumption/retention, and retained evolution sources remain unproved. Historical 10/10 is superseded pending independently accepted repair.
+
+- Confirmed executable/window gap (2026-09-12): [printed text](https://world.digimoncard.com/cards/?card_no=P-204&search=true) offers reactive Delay when a Digimon attacks a player. Existing keyword-grant proof has no executable evolution; a proposed Main activation after the attack passes tests but violates the printed window and is rejected. Correct intrinsic reactive Delay, both controllers, actual trash cost, accept/decline, and attack-target scope remain pending.
 
 ### P-205 — Insane Synthetic Monster
 
@@ -2207,29 +2221,35 @@ git diff --check
 
 ### P-209 — Titamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 1/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **7/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-209.ts) · [test](../../apps/api/src/cards/P/P-209.test.ts) · clause review (source removed; see History)<br>“has the alternate Demon or TS digivolution requirement and Alliance”; “gates both on-play effects behind trashing a card, then suspends and restricts an opponent's Digimon or Tamer”; “once per turn may play a level 4 or lower Demon from trash when your hand is trashed”; “exposes Alliance on the live Titamon”; “trashes the required hand card, suspends an opponent, and prevents unsuspending it”; “plays a level-4 Demon from trash when an effect actually trashes a hand card”
 
 - Local KB lookup (2026-09-12): Q5401, Q5579, Q5582, Q5602, Q5606, Q5631, Q5634, Q7089, Q7090; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Confirmed catalog/IR omission (2026-09-12): [official Japanese printed text](https://digimoncard.com/cards/?card_no=P-209&search=true) and [English listing](https://world.digimoncard.com/cards/?card_no=P-209&search=true) allow level-4-or-lower Demon **or Titan** cards from trash. Catalog and executable IR omit Titan. Q5401 on the official pages confirms the hand-trash cost gates the continuation; the frozen local KB has no entry. Catalog/IR reconciliation, actual public play/evolution and same-source natural watcher-cycle proof remain pending. Independent suspend and restriction targets are correctly permitted by the printed text.
+
 ### P-210 — Hiroko Sagisaka
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-210.ts) · [test](../../apps/api/src/cards/P/P-210.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of your main phase when the opponent has a Digimon”; “may return a TS Digimon from your trash on play”; “plays itself without paying the cost in security”; “gains exactly 1 memory at the start of the main phase with an opposing Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- Additional root proof hold (2026-09-12): Its only behavioral proof injects Start of Main. Natural memory gain, public OnPlay TS trash return acceptance/decline with exact instance and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
+
 ### P-211 — Monica Simmons
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-211.ts) · [test](../../apps/api/src/cards/P/P-211.test.ts) · clause review (source removed; see History)<br>“gains memory at the start of your main phase when the opponent has a Digimon”; “restricts one opposing Digimon from attacking players until the opponent's turn ends”; “plays itself without paying the cost in security”; “restricts an opposing Digimon from attacking players on play”; “gains exactly 1 memory at the start of the main phase with an opposing Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): Both behavioral proofs inject OnPlay or Start of Main. Natural memory gain, actual public play attack-player restriction, expiry and real Security self-play require accepted proof. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
 
 ### P-212 — Asuna Shiroki
 
@@ -2532,8 +2552,8 @@ git diff --check
 
 ### P-243 — Digiseabass
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-243.ts) · [test](../../apps/api/src/cards/P/P-243.test.ts) · clause review (source removed; see History)<br>“requires DM and trashes a hand card to draw two and place itself”; “arms Delay only when the opponent has a Digimon and returns a DM Digimon before playing”; “plays a qualifying DM card from hand or trash through Security”; “trashes a hand card, draws two, and places itself”; “uses its Delay at the start of turn to return and play a low-cost DM Digimon”; “plays a qualifying low-cost DM card from trash through its real Security effect”
 
 - Local KB lookup (2026-09-12): Q6929; no errata entry; no restriction entry.
@@ -2541,13 +2561,17 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Additional root proof hold (2026-09-12): The Delay proof only injects OnStartTurn immediately after playing the Option; it does not establish the actual Start of Your Turn activation window, entry-turn guard, return cost, exact source disposition or decline. Existing real Security proof remains valid. Natural-turn Delay acceptance/decline and paid source disposition require independently accepted repair. Historical 10/10 is superseded.
+
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-244.ts) · [test](../../apps/api/src/cards/P/P-244.test.ts) · clause review (source removed; see History)<br>“delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements”; “uses from hand, plays a qualifying Vemmon/Zenith, and places itself”; “plays EX11-066 Xeno from trash because its Rule also treats its name as Zenith”; “keeps P-244 in play when its Delay is declined during BT21-062's real Vemmon placement”; “accepts Delay and pays the qualifying digivolution with exactly 3 memory reduced”
 
 - Local KB lookup (2026-09-12): Q6930, Q6931, Q6932; no errata entry; no restriction entry.
+
+- Additional root proof hold (2026-09-12): Both Delay proofs manually increment turnCount, give the evolution card after readiness and inject WhenDigivolving. They do not establish a real qualifying Vemmon-placement event or legal activation window. Actual public event acceptance/decline, exact Option cost, evolution payment and original source identity require independently accepted repair. Historical 10/10 is superseded.
 
 ### P-245 — Kakkinmon
 
