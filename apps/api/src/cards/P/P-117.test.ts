@@ -4,6 +4,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT16/BT16-018.js";
+import "../index.js";
 import "./P-117.js";
 
 describe("P-117 Veemon", () => {
@@ -75,6 +76,8 @@ describe("P-117 Veemon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
+    const memoryBeforeThird = s.state.memory;
+    expect(memoryBeforeThird).toBe(4);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -86,7 +89,8 @@ describe("P-117 Veemon", () => {
       () =>
         s.perm("veemon").topCard.instanceId === s.inst("thirdFree").instanceId && s.state.pendingDecision === undefined,
     );
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 4, to: 3, reason: "digivolve" });
     expect(s.perm("veemon").stack.some((card) => card.instanceId === s.inst("veemon").instanceId)).toBe(true);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
