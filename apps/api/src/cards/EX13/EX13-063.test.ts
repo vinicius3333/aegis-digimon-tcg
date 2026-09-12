@@ -47,6 +47,48 @@ const RED_LV5 = "BT1-020"; // Groundramon, inert — the illegal-source negative
 
 const DECK = [SENTINEL, SENTINEL, SENTINEL];
 
+async function publicGaia({ withPayer, accept }: { withPayer: boolean; accept: boolean }) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: cardId, as: "prince" }, ...(withPayer ? [{ card: MAT_BIG, as: "payer" }] : [])],
+        deck: [
+          { card: NON_MATCH, as: "one" },
+          { card: NON_MATCH, as: "two" },
+          { card: NON_MATCH, as: "three" },
+        ],
+        security: [SENTINEL],
+      },
+      1: {
+        battleArea: [{ card: SENTINEL, as: "redSource" }],
+        hand: [{ card: "ST1-16", as: "gaia" }],
+        deck: [SENTINEL, SENTINEL],
+        security: [SENTINEL],
+      },
+    },
+    {
+      autoAcceptOptional: accept,
+      autoDeclineOptional: !accept,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      autoOrderTriggers: true,
+      preferInstanceIds: preferred,
+    },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  await s.ready();
+  preferred.push(s.inst("prince").instanceId);
+  const gaiaId = s.inst("gaia").instanceId;
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === gaiaId));
+  expect(s.state.memory).toBe(2);
+  expect(s.state.pendingDecision).toBeUndefined();
+  assertNoLoudGap(s);
+  return s;
+}
+
 describe("EX13-063 PrinceMamemon", () => {
   it("matches the catalog printed text, stats and evolution cost", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
@@ -914,6 +956,44 @@ describe("EX13-063 PrinceMamemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("prince").instanceId);
   });
+
+  it.fails("lets another Guard holder save PrinceMamemon from public Gaia Force", async () => {
+    const s = await publicGaia({ withPayer: true, accept: true });
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("prince").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("payer").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("one").instanceId,
+      s.inst("two").instanceId,
+      s.inst("three").instanceId,
+    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("redSource").instanceId,
+    ]);
+  });
+
+  it.each([false, true])(
+    "does not self-save or force a declined Guard payment, with another holder: %s",
+    async (withPayer) => {
+      const s = await publicGaia({ withPayer, accept: !withPayer });
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(
+        withPayer ? [s.inst("payer").instanceId] : [],
+      );
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+        [
+          s.inst("prince").instanceId,
+          s.inst("one").instanceId,
+          s.inst("two").instanceId,
+          s.inst("three").instanceId,
+        ].sort(),
+      );
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
+        [s.inst("gaia").instanceId, s.inst("redSource").instanceId].sort(),
+      );
+    },
+  );
 
   // RETAINED ENGINE SEAM — a pooled ＜Guard＞ grant has no per-holder scope.
   // §16-45-1 scopes ＜Guard＞ to the holder's OTHER Digimon, so the BigMamemon that received the
