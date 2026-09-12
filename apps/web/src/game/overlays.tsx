@@ -3,6 +3,7 @@
    choices to the typed intent callbacks GameScreen passes. The security check has
    its own centre-stage scene in ./SecurityClashView. */
 
+import { decisionSelectionMin } from "./decisionPresentation";
 import { useState, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -1264,7 +1265,7 @@ export function DecisionOverlay({
 }) {
   const { t } = useTranslation();
   const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
-  const min = request.options?.min ?? 1;
+  const min = decisionSelectionMin(request);
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
   const isOptional = request.kind === "optional";

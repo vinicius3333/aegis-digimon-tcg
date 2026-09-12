@@ -167,7 +167,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   const [inbox, setInbox] = useState<BatchInbox>(emptyBatchInbox);
   const [decision, setDecision] = useState<DecisionRequest>();
   const confirmedDecisionIdRef = useRef<string | undefined>(undefined);
-  const answeredDecisionIdsRef = useRef(new Set<string>());
+  const answeredDecisionsRef = useRef(new Map<string, DecisionRequest>());
   const [error, setError] = useState<string>();
   const [sessionId, setSessionId] = useState<string>();
   const [roomCode, setRoomCode] = useState("");
@@ -183,12 +183,13 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     if (disabled) return;
     let cancelled = false;
     confirmedDecisionIdRef.current = undefined;
-    answeredDecisionIdsRef.current.clear();
+    answeredDecisionsRef.current.clear();
     setDecision(undefined);
 
     // Register all room handlers. Called on the initial join and again on each
     // reconnected Room instance (client.reconnect returns a fresh Room).
     const bindRoom = (room: AegisRoom) => {
+      answeredDecisionsRef.current.clear();
       roomRef.current = room;
       roomSlotRef.current = connectionSlot(room);
       setSessionId(room.sessionId);
@@ -228,12 +229,23 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         setSnapshots((previous) => recordSnapshot(previous, next));
       });
       room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
+        if (event.kind === "actionRejected" && event.decisionId) {
+          const rejected = answeredDecisionsRef.current.get(event.decisionId);
+          answeredDecisionsRef.current.delete(event.decisionId);
+          if (rejected && stateRef.current?.pendingDecision?.decisionId === rejected.decisionId) {
+            setDecision((current) => {
+              if (current && current.decisionId !== rejected.decisionId) return current;
+              confirmedDecisionIdRef.current = rejected.decisionId;
+              return rejected;
+            });
+          }
+        }
         // `batchClosed` is a stream boundary and narrates nothing, so it stays out of the log.
         if (event.kind !== "batchClosed") setEvents((prev) => [...prev.slice(-99), event]);
         setInbox((prev) => receiveServerEvent(prev, event));
       });
       room.onMessage<DecisionRequest>(DECISION_CHANNEL, (req) => {
-        if (answeredDecisionIdsRef.current.has(req.decisionId)) return;
+        if (answeredDecisionsRef.current.has(req.decisionId)) return;
         confirmedDecisionIdRef.current =
           stateRef.current?.pendingDecision?.decisionId === req.decisionId ? req.decisionId : undefined;
         setDecision(req);
@@ -349,8 +361,8 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   }, [disabled, optionsKey]);
 
   const acknowledgeDecision = useCallback((decisionId: string) => {
-    answeredDecisionIdsRef.current.add(decisionId);
     setDecision((current) => {
+      if (current?.decisionId === decisionId) answeredDecisionsRef.current.set(decisionId, current);
       const acknowledged = acknowledgeDecisionResponse({
         current: { decision: current, confirmedDecisionId: confirmedDecisionIdRef.current },
         decisionId,

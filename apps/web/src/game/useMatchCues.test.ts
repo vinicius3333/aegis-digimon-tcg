@@ -2278,3 +2278,15 @@ describe("the presented revision", () => {
     expect(result.current.presentedStateVersion).toBeUndefined();
   });
 });
+
+it("presents every security check in a single server batch in order", async () => {
+  const { result, rerender } = renderCues();
+  await advance(0);
+  rerender([ATTACK, REVEAL, CHECK, SECOND_REVEAL, SECOND_CHECK]);
+  await advance(SECURITY_BREAK_TOTAL_MS);
+  expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+  await advance(CLASH_TOTAL_MS + SECURITY_BREAK_TOTAL_MS);
+  expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+  await advance(CLASH_TOTAL_MS);
+  expect(result.current.securityClash).toBeNull();
+});

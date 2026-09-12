@@ -107,3 +107,10 @@ export function fieldSlots(permanents: readonly Permanent[]): string[][] {
     return top === undefined ? under : [top, ...under];
   });
 }
+
+/** Mirror the server's shortage rule using the offered candidates, including hidden ones. */
+export function decisionSelectionMin(decision: DecisionRequest | undefined): number {
+  const min = decision?.options?.min ?? 1;
+  if (decision?.kind !== "selectCards" && decision?.kind !== "chooseTargets") return min;
+  return Math.min(min, new Set(decision.options?.candidateInstanceIds ?? []).size);
+}

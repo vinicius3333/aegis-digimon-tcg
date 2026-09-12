@@ -162,6 +162,7 @@ import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
   decisionPresentation,
+  decisionSelectionMin,
   fieldSlots,
   sourcePermanentIdOf,
   triggerClauseSummary,
@@ -1898,7 +1899,7 @@ export function GameScreen({
       return [...keep, instanceId];
     });
   };
-  const decisionMin = viewerDecision?.options?.min ?? 1;
+  const decisionMin = decisionSelectionMin(viewerDecision);
   const decisionMax = viewerDecision?.options?.max ?? 1;
   // What the resolving effect will do to each target the viewer has picked. The
   // fate is the server's own projection (`options.targetFate`); a prompt that

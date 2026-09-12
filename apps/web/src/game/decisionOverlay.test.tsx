@@ -1541,7 +1541,8 @@ describe("EX3-042 Toropiamon decisions", () => {
 
     expect(screen.getByText(inheritedEffect)).toBeTruthy();
     expect(screen.queryByText(/If this Digimon is suspended/)).toBeNull();
-    expect(screen.getByRole("button", { name: "Confirm targets" }).hasAttribute("disabled")).toBe(true);
+    // No candidates: the server accepts the empty shortage selection.
+    expect(screen.getByRole("button", { name: "Confirm targets" }).hasAttribute("disabled")).toBe(false);
   });
 });
 
@@ -3216,4 +3217,27 @@ describe("card links in prompts", () => {
     expect(screen.getByText("Trash Greymon to draw 1 card?")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   });
+});
+
+it("allows selecting all available candidates when fewer than min exist", () => {
+  const onRespond = vi.fn<(response: DecisionResponse) => void>();
+  render(
+    <I18nProvider>
+      <DecisionOverlay
+        request={{
+          decisionId: "shortage",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Select 2",
+          options: { candidateInstanceIds: ["only"], min: 2, max: 2 },
+        }}
+        candidates={[{ instanceId: "only", cardId: "BT1-010" }]}
+        picks={["only"]}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+        onRespond={onRespond}
+      />
+    </I18nProvider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: translator("en")("overlay.confirmTargets") }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["only"] });
 });

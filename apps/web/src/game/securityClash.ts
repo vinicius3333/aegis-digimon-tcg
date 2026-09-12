@@ -402,3 +402,24 @@ export function orderSecurityClashFighters(
   const attacker = { role: "attacker", fighter: scene.attacker } as const;
   return scene.attacker.side === "opp" ? [attacker, revealed] : [revealed, attacker];
 }
+
+/** Keep each reveal and its consequences together without discarding earlier checks. */
+export function securityCheckSegments(events: readonly ServerEvent[]): readonly (readonly ServerEvent[])[] {
+  const segments: (readonly ServerEvent[])[] = [];
+  let start = 0;
+  let revealed = false;
+  let checked = false;
+  for (let index = 0; index < events.length; index += 1) {
+    const kind = events[index]!.kind;
+    if ((kind === "securityRevealed" && (revealed || checked)) || (kind === "securityChecked" && checked)) {
+      segments.push(events.slice(start, index));
+      start = index;
+      revealed = false;
+      checked = false;
+    }
+    if (kind === "securityRevealed") revealed = true;
+    if (kind === "securityChecked") checked = true;
+  }
+  segments.push(events.slice(start));
+  return segments;
+}

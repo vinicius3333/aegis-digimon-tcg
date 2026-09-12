@@ -224,7 +224,13 @@ export type ServerEvent =
       seat?: Seat;
     }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
-  | { kind: "actionRejected"; intent: string; reason: string } // sent to the offending client only
+  | {
+      kind: "actionRejected";
+      intent: string;
+      reason: string;
+      /** Correlates a refused answer with the decision the client optimistically closed. */
+      decisionId?: string;
+    } // sent to the offending client only
   | {
       kind: "gameOver";
       // A discriminated `result` — rather than a bare `winnerSeat: Seat` with a

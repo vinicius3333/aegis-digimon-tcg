@@ -60,6 +60,7 @@ import {
   buildSecurityDockScene,
   buildSecurityRevealScene,
   securityDestructionsFromEvents,
+  securityCheckSegments,
   settleSecurityClashScene,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TIMINGS,
@@ -565,6 +566,7 @@ export function useMatchCues({
   // attacker, so it is remembered from the attack that opened the check.
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const securityClashKeyRef = useRef(0);
+  const queuedSecurityKeyRef = useRef<number | null>(null);
   // The attack still open on the board, so the battle that closes it can be staged
   // even when its declaration and its resolution arrive in the same batch.
   const openAttackRef = useRef<OpenAttack | null>(null);
@@ -817,16 +819,22 @@ export function useMatchCues({
     stateVersion: number,
     fresh: readonly ServerEvent[],
     replayingHistory: boolean,
+    continuingBatch = false,
   ) {
+    const segments = securityCheckSegments(fresh);
+    if (segments.length > 1) {
+      for (const [index, segment] of segments.entries()) {
+        presentBatch(batchId, stateVersion, segment, replayingHistory, continuingBatch || index > 0);
+      }
+      return;
+    }
     lastBatchIdRef.current = batchId;
     // Everything enqueued from here belongs to this batch, and the board it is narrated
     // over is the board this batch produced.
-    if (!replayingHistory) progress.present(batchId, stateVersion);
+    if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
     const refusal = [...fresh].reverse().find((event) => event.kind === "actionRejected");
-    // A batch can carry a whole check (reveal then close), only its opening, or only its
-    // close — a decision inside a [Security] effect is what splits the two apart. Only the
-    // last of each is staged: a batch holding several checks plays the newest, which is
-    // what the centre-stage track's `replace` does to the ones before it anyway.
+    // Each segment carries one check, its opening, or its close. A decision inside a
+    // [Security] effect can still split that check across server batches.
     const revealIndex = lastIndexOfKind(fresh, "securityRevealed");
     const checkIndex = lastIndexOfKind(fresh, "securityChecked");
     const securityReveal = revealIndex >= 0 ? fresh[revealIndex] : undefined;
@@ -1273,8 +1281,11 @@ export function useMatchCues({
       seat: Seat,
       { docking = false }: { docking?: boolean } = {},
     ) {
-      // Whatever the check this one replaces had not said yet is said now, before it goes.
-      flushHeldNotices();
+      // Only an unfinished check may be replaced. Completed checks still owed to the
+      // viewer stay on the serial track, even when their events arrived in one render.
+      const replace = revealOnStageRef.current !== null || queuedSecurityKeyRef.current === null;
+      if (revealOnStageRef.current !== null) flushHeldNotices();
+      queuedSecurityKeyRef.current = key;
       // A dock belongs to the check that opened it. Its hold no longer shares a track with
       // the reveal, so a newer check has to retire it by hand rather than by replacement.
       const stale = securityDockRef.current;
@@ -1285,7 +1296,10 @@ export function useMatchCues({
       // The board drops the checked card as soon as its patch lands; the shield keeps the
       // figure that still counts it until the reveal has actually put the card on screen.
       holdSecurityCard(key, seat, securityCountOf(seat));
-      enqueue(shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat })));
+      enqueue(shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }), { replace }));
+      void queue.idle().then(() => {
+        if (queuedSecurityKeyRef.current === key) queuedSecurityKeyRef.current = null;
+      });
       // Everything the check will present is held back from here until the reveal has
       // been seen. Cleared by the presentation step, and by the queue going idle in
       // case a newer cue took the centre of the screen before the scene got there.
@@ -1434,14 +1448,19 @@ export function useMatchCues({
       key: number,
       own?: { notices: readonly MatchNotice[]; panels: readonly SidePanel[] },
     ) {
-      // The clock on each notice starts here rather than when the server named it.
+      // Reserve this check's notices now so a later check cannot read or flush them.
+      const notices = own?.notices ?? heldNoticesRef.current;
+      const panels = own?.panels ?? heldPanelsRef.current;
+      if (!own) {
+        heldNoticesRef.current = [];
+        heldPanelsRef.current = [];
+      }
       enqueue({
         id: `security-notices-${key}`,
         track: CENTER_STAGE_TRACK,
         skippable: false,
         run() {
-          if (own) openHeld(own.notices, own.panels);
-          else flushHeldNotices();
+          openHeld(notices, panels);
         },
       });
     }

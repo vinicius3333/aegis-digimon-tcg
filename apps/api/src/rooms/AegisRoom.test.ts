@@ -4,6 +4,8 @@ import { ArraySchema, Encoder } from "@colyseus/schema";
 import {
   ALL_FAMOUS_DECKS,
   CombatWindow,
+  PendingDecision,
+  type DecisionRequest,
   DECISION_CHANNEL,
   EVENT_CHANNEL,
   isFamousDeckAvailable,
@@ -11,6 +13,7 @@ import {
   type ServerEvent,
 } from "@aegis/shared";
 import { AegisRoom } from "./AegisRoom.js";
+import type { DecisionManager } from "../engine/decisions/index.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
 
@@ -356,6 +359,40 @@ describe("AegisRoom sequenced event batches", () => {
     expect(close!.batch).toBe(rejection!.batch);
   });
 
+  it("correlates a refused decision answer and keeps it open for a valid retry", async () => {
+    const room = makeRoom();
+    const [a, b] = joinBothSeats(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
+    const manager = (room as unknown as { engine: { decisions: DecisionManager } }).engine.decisions;
+    const resolution = manager.request({
+      seat: 0,
+      kind: "selectCards",
+      promptText: "Select 1",
+      options: { candidateInstanceIds: ["only"], min: 1, max: 1 },
+    });
+    const decisionId = room.state.pendingDecision!.decisionId;
+    const handleIntent = (
+      room as unknown as {
+        handleIntent: (
+          client: Client,
+          intent: { type: string; decisionId: string; response: { kind: "selectCards"; instanceIds: string[] } },
+        ) => void;
+      }
+    ).handleIntent.bind(room);
+    vi.mocked(a.send).mockClear();
+    vi.mocked(b.send).mockClear();
+    handleIntent(a, { type: "respondDecision", decisionId, response: { kind: "selectCards", instanceIds: [] } });
+    expect(a.send).toHaveBeenCalledWith(
+      EVENT_CHANNEL,
+      expect.objectContaining({ kind: "actionRejected", intent: "respondDecision", decisionId }),
+    );
+    expect(b.send).not.toHaveBeenCalled();
+    expect(room.state.pendingDecision?.decisionId).toBe(decisionId);
+    handleIntent(a, { type: "respondDecision", decisionId, response: { kind: "selectCards", instanceIds: ["only"] } });
+    await expect(resolution).resolves.toEqual({ kind: "selectCards", instanceIds: ["only"] });
+    expect(room.state.pendingDecision).toBeUndefined();
+  });
+
   it("stamps a decision with the revision the board will be at when it is asked", () => {
     const room = makeRoom();
     const [a] = joinBothSeats(room);
@@ -394,6 +431,34 @@ describe("AegisRoom combat windows", () => {
     window.eligiblePermanentIds = new ArraySchema<string>("blocker");
     room.state.combatWindow = window;
   }
+
+  it("re-sends the complete pending decision only to its deciding seat", () => {
+    const room = makeRoom();
+    const [a, b] = joinBothSeats(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
+    const request: DecisionRequest = {
+      decisionId: "dec-reconnect",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next effect",
+      sourceCardId: "BT1-010",
+      options: { triggerKeys: ["first", "second"], triggerCardIds: ["BT1-010", "BT1-011"] },
+    };
+    const pending = new PendingDecision();
+    Object.assign(pending, { ...request, payloadJson: JSON.stringify(request.options) });
+    room.state.pendingDecision = pending;
+    (room as unknown as { requestDecision: (seat: number, req: DecisionRequest) => void }).requestDecision(0, request);
+    vi.mocked(a.send).mockClear();
+    vi.mocked(b.send).mockClear();
+    room.state.stateVersion = 7;
+    const resend = (
+      room as unknown as { resendOpenPrompts: (client: Client, seat: number) => void }
+    ).resendOpenPrompts.bind(room);
+    resend(a, 0);
+    resend(b, 1);
+    expect(a.send).toHaveBeenCalledWith(DECISION_CHANNEL, { ...request, stateVersion: 7 });
+    expect(b.send).not.toHaveBeenCalled();
+  });
 
   it("re-sends the open combat window to a seat that reconnects into it", () => {
     const room = makeRoom();

@@ -193,6 +193,8 @@ export class AegisRoom extends Room<GameState> {
   private currentBatch: OpenBatch | undefined;
   /** How many nested engine entries are inside the open batch; only the outermost closes it. */
   private batchDepth = 0;
+  /** Full channel request retained while its mirrored decision can be resumed. */
+  private pendingDecisionRequest: DecisionRequest | undefined;
 
   /** Seam: the tournament series module this room reports to. Tests substitute their own. */
   protected series(): SeriesStore {
@@ -988,7 +990,10 @@ export class AegisRoom extends Room<GameState> {
    */
   private resendOpenPrompts(client: Client, seat: Seat): void {
     const pending = this.state.pendingDecision;
-    if (pending && pending.seat === seat) client.send(DECISION_CHANNEL, pending);
+    const request = this.pendingDecisionRequest;
+    if (pending && pending.seat === seat && request?.decisionId === pending.decisionId) {
+      client.send(DECISION_CHANNEL, { ...request, stateVersion: this.state.stateVersion });
+    }
     const window = this.state.combatWindow;
     if (!window || window.seat !== seat) return;
     const event = combatWindowEvent(window);
@@ -1018,6 +1023,12 @@ export class AegisRoom extends Room<GameState> {
   private handleIntent(client: Client, intent: Intent): void {
     const seat = this.seatByClient.get(client.sessionId);
     if (seat === undefined) return;
+    const decisionId =
+      intent.type === "respondDecision"
+        ? intent.decisionId
+        : intent.type === "mulligan"
+          ? this.state.pendingDecision?.decisionId
+          : undefined;
     const result = this.withBatch(() => this.engine.applyIntent(seat, intent));
     if (!result.ok) {
       // A refusal is the offending client's alone, so it travels in its own batch rather
@@ -1026,7 +1037,12 @@ export class AegisRoom extends Room<GameState> {
         () =>
           client.send(
             EVENT_CHANNEL,
-            this.stamp({ kind: "actionRejected", intent: intent.type, reason: result.reason }),
+            this.stamp({
+              kind: "actionRejected",
+              intent: intent.type,
+              reason: result.reason,
+              ...(decisionId ? { decisionId } : {}),
+            }),
           ),
         client,
       );
@@ -1044,6 +1060,7 @@ export class AegisRoom extends Room<GameState> {
   }
 
   private requestDecision(seat: Seat, req: DecisionRequest): void {
+    this.pendingDecisionRequest = req;
     const bot = this.bots[seat];
     if (bot !== undefined) {
       console.log(`[AegisRoom] requestDecision seat=${seat} kind=${req.kind} → bot`);
