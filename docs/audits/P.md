@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 232/249 at 10/10; 17 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 233/249 at 10/10; 16 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -1971,8 +1971,8 @@ git diff --check
 
 ### P-187 — Mastemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-187.ts) · [test](../../apps/api/src/cards/P/P-187.test.ts) · clause review (source removed; see History)<br>“recovers independently of DNA and conditionally places any other Digimon or Tamer for DNA”; “shares one once-per-turn top-security cost across digivolving and attacking”; “performs Recovery +1 when its digivolution effect resolves”; “trashes its top security and plays a qualifying Digimon when attacking”
 
 - Local KB lookup (2026-09-12): Q4631, Q4632; no errata entry; no restriction entry.
@@ -1981,6 +1981,8 @@ git diff --check
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Confirmed executable placement hold (2026-09-12): Recovery keyword metadata does not execute the printed deck recovery. The permanent security-placement processing-cost branch ignores choice and always places on top. A proposed action rewrite passes tests but transfers an opponent card to the controller’s Security and loses the optional processing cost, violating CR 3-1-3-8 (unqualified destinations follow the card owner). That proposal and its incorrect destination assertions are rejected. Restore owner Security and optional cost gating, repair top/bottom choice at the existing engine seam, and independently verify both destination owners plus eligible refusal.
 
 ### P-188 — DemiVeemon
 
@@ -2006,7 +2008,9 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
-- Independently accepted repair (2026-09-12, commit `496dc1a1a`): Actual opposing attack finishes one Security check, plays the exact eligible LIBERATOR from trash without spending memory, retains the non-LIBERATOR hand card and sends the original checked Dimetromon to trash. The same legal Green level-5 host and physical inherited source gain memory on the first attack, not the eligible second attack, then again after a natural own→opponent→own cycle; all three Security checks finish without pending decisions. Root final 5 tests passed and independent read-only peer review passed. Root independently passed the three-card focus including P211 (3 files / 15 tests); P211 is still held because its attack denial initially tested the wrong turn. Targeted Oxlint/Oxfmt and diff checks are green. Collection closing gates remain pending.
+- Independently accepted repair (2026-09-12, commit `496dc1a1a`): Actual opposing attack finishes one Security check, plays the exact eligible LIBERATOR from trash without spending memory, retains the non-LIBERATOR hand card and sends the original checked Dimetromon to trash. The same host and physical inherited source (host legality corrected in `de30d6e44`) gain memory on the first attack, not the eligible second attack, then again after a natural own→opponent→own cycle; all three Security checks finish without pending decisions. Root final 5 tests passed and independent read-only peer review passed. Root independently passed the three-card focus including P211 (3 files / 15 tests); P211 is still held because its attack denial initially tested the wrong turn. Targeted Oxlint/Oxfmt and diff checks are green. Collection closing gates remain pending.
+
+- Legal-stack repair accepted (2026-09-12, commit `de30d6e44`): Neutral Red level-5 Groundramon replaces the incompatible Green host over Red Dimetromon. The exact inherited source/permanent, first/second/next-turn memory outcomes and three completed Security checks are preserved. Root final 5 tests passed within the four-file / 33-test checkpoint; targeted Oxlint/Oxfmt and diff checks passed. The earlier Green-host legality claim is superseded.
 
 ### P-190 — Tweetmon
 
@@ -2021,13 +2025,17 @@ git diff --check
 
 ### P-191 — Apollomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-191.ts) · [test](../../apps/api/src/cards/P/P-191.test.ts) · clause review (source removed; see History)<br>“encodes Light Fang/Night Claw evolution and Blast Digivolve”; “uses a 7000 DP deletion budget plus one per Olympos XII Digimon at both timings”; “keeps the DNA-then-attack sequence and inherited once-per-turn attack”; “reduces an opposing Digimon by 4000 DP on play”; “applies the same budget effect when digivolving and resolves both end-turn attack windows”
 
 - Local KB lookup (2026-09-12): Q4980, Q4981, Q4982, Q4983, Q4984, Q4985, Q4986; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Confirmed printed-rule defects (2026-09-12): [Official Japanese printed text](https://digimoncard.com/cards/?category=503901&search=true) and the English collection list both require Light Fang/Night Claw alternate evolution cost 3, while catalog and IR say 4. The DP deletion budget is fixed at 7000; IR incorrectly adds an Olympos XII count bonus to that budget at both timings. Only the preceding single-target DP reduction scales with the allied count. End-turn DNA destination must also match exact GraceNovamon in hand. Paid public alternate evolution, fixed-budget boundary and natural End/Counter/source-disposition evidence remain pending. ACE display suffixes follow the catalog’s existing separate isAce/overflow metadata convention.
+
+- Catalog reconciliation accepted (2026-09-12, commit `2c7005bbd`): Only the P191 alternate header in effectText changes from cost 4 to cost 3; ordinary Red/Yellow level-5 evolution costs remain 4. Canonical catalog serialization and all other card bytes are preserved. Shared build passed. Fixed-budget, exact DNA destination and public/natural behavior repairs remain pending.
 
 ### P-192 — Bakemon
 
@@ -2582,13 +2590,13 @@ git diff --check
 
 ### P-245 — Kakkinmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
-- Evidence: [module](../../apps/api/src/cards/P/P-245.ts) · [test](../../apps/api/src/cards/P/P-245.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-245` returns no entries)<br>“draws once per turn at the end of all turns by suspending a black ＜Blocker＞”; “pays only with a black ＜Blocker＞, never a black non-Blocker or a purple Blocker”; “cannot pay with an already-suspended Blocker”; “draws at exactly seven cards in hand and does nothing at eight”; “declines the optional cost without suspending or drawing”; “fires once per turn across two end-of-turn windows”; “keeps the inherited clause after a real breeding digivolution”
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
+- Evidence: [module](../../apps/api/src/cards/P/P-245.ts) · [test](../../apps/api/src/cards/P/P-245.test.ts) · printed text unambiguous, no rulings needed (announced for Official Store Tournament 2026 Vol.4, street date 2026-10-01; `node tools/kb/query.mjs card P-245` returns no entries)<br>“draws once per turn at the end of all turns by suspending a black ＜Blocker＞”; “pays only with a black ＜Blocker＞, never a black non-Blocker or a purple Blocker”; “cannot pay with an already-suspended Blocker”; “draws at exactly seven cards in hand and does nothing at eight”; “declines the optional cost without suspending or drawing”; “retains the same egg source across natural own, opponent and next-own End windows”; “keeps inherited text inactive in breeding, then draws after public hatch, evolution and move”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+- Independently accepted repair (2026-09-12, commit `f471ef48f`): The exact egg remains under a legal Black level-3 Psychemon through natural owner, opponent and next-owner End turns, with the exact draw cards and Black Blocker suspension asserted. Public hand reduction restores the eligible seven-card boundary. Public hatch and zero-cost breeding evolution retain egg identity; inherited text remains inactive in breeding and activates only after a real move, with separate evolution/natural/inherited draw IDs. Root 11 tests passed within the four-file / 33-test checkpoint; independent read-only peer review and targeted style/diff checks passed. Generic Q3528/opponent-frequency suites (2 files / 3 tests, independently green) are reused for once-per-turn identity at the single End window. Closing collection gates remain pending.
 
 ### P-246 — Motimon
 
