@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assemblyRequirementFor, digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectDuration } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -239,7 +239,7 @@ describe("BT26-047 TyrantKabuterimon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(defender.topCard.instanceId);
   });
 
-  it("may suspend an opponent Digimon as its cost, then offers immune targets without affecting them (Q7042, Q7044-Q7045)", async () => {
+  it("may suspend an opponent Digimon as its cost, then buffs all suspended matching Digimon (Q7042, Q7044-Q7045)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -276,19 +276,10 @@ describe("BT26-047 TyrantKabuterimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("costDigimon").isSuspended);
-    if (s.state.pendingDecision?.kind === "chooseTargets") {
-      const targetDecision = s.state.pendingDecision;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: targetDecision.decisionId,
-          response: { kind: "chooseTargets", instanceIds: [s.perm("tyrant").permanentId] },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision === undefined);
-    }
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-047"));
     expect(s.perm("costDigimon").isSuspended).toBe(true);
     expect(s.perm("tyrant").currentDP).toBe(13000);
+    expect(s.perm("otherImmune").currentDP).toBe(11000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option")).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
