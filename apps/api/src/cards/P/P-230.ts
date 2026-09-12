@@ -81,7 +81,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Winr"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

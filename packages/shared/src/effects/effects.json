@@ -201553,7 +201553,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Winr"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Winr"], "match": "nameExact" }]
             },
             "actions": [
               {
