@@ -515,7 +515,6 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "Refusal of by-X processing gates every following action",
       "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
-      "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
     );
     const s = setup(
       {
@@ -607,7 +606,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
   it("15-7-1: a payable clause cost is paid exactly once and the whole clause then resolves", async () => {
     cite(
       "comprehensive-0169",
-      '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then ' + "performed",
+      '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then performed',
       "e7f66fe8948ecd52b83fd319497a156cdf654fe68c59dff6ea5f4c3acd59587e",
     );
 
