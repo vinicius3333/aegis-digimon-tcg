@@ -172,9 +172,9 @@ git diff --check
 - Local KB lookup (2026-09-12): Q4113; no errata entry; no restriction entry.
 
 
-- Confirmed IR correction in progress: committed catalog specifies `[Your Turn][Once Per Turn]`. The historical module used `AllTurns` with no frequency. Both the owner-turn gate and once-per-turn budget must be implemented and proven, including a real next-turn reset.
+- Historical defect (fixed in `9b8a96b7f`): committed catalog specifies `[Your Turn][Once Per Turn]`. The historical module used `AllTurns` with no frequency. The accepted correction below implements both gates and proves the real next-turn reset.
 
-- Reaudit correction accepted (2026-09-12, commit `9b8a96b7f`): inherited trigger corrected from All Turns to Your Turn and given Once Per Turn; persisted IR synchronized with zero changes outside P. Six focused tests pass. Public P-004 → BT1-036 digivolution pays 2 and retains Gomamon; P-003 plays pay 4 and trash identified sources from a legal Lv.5 stack, gaining once, denying the second same-turn gain, and regaining after natural turns. Legal primitive fixtures retain bounce/by-opponent/opponent-turn negatives. Coordinator independently passed P-004/P-114: 2 files, 9 tests; P-114 acceptance remains pending its separate review.
+- Reaudit correction accepted (2026-09-12, commit `9b8a96b7f`): inherited trigger corrected from All Turns to Your Turn and given Once Per Turn; persisted IR synchronized with zero changes outside P. Six focused tests pass. Public P-004 → BT1-036 digivolution pays 2 and retains Gomamon; P-003 plays pay 4 and trash identified sources from a legal Lv.5 stack, gaining once, denying the second same-turn gain, and regaining after natural turns. Legal primitive fixtures retain bounce/by-opponent/opponent-turn negatives. Coordinator independently passed P-004/P-114: 2 files, 9 tests; At that checkpoint P-114 was pending; its subsequent accepted proof appears in the P-114 row.
 
 ### P-005 — Patamon
 
@@ -918,27 +918,29 @@ git diff --check
 
 ### P-089 — Amphimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-089.ts) · [test](../../apps/api/src/cards/P/P-089.test.ts) · clause review (source removed; see History)<br>“scales source trashing from the blue cards actually trashed, then restricts a source-less target”; “Q4181: returns exactly 3 Jellymon-text cards to end an opponent's attack”
 
 - Local KB lookup (2026-09-12): Q4181; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
+- Reaudit frequency proof accepted (2026-09-12): Public digivolution pays 3 and retains its base. The first opponent attack returns three identified Jellymon-text trash cards in order and ends; a second same-turn attack leaves the remaining three in trash and checks security; after natural opponent → owner → opponent turns, the third attack returns the remaining identities and ends before an empty-security win. Coordinator independently passed both suites: 2 files, 4 tests; lint/format are green. Collection closing gates remain pending.
+
 ### P-090 — Diarbbitmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-090.ts) · [test](../../apps/api/src/cards/P/P-090.test.ts) · clause review (source removed; see History)<br>“requires the UI to choose exactly 2 opponent Digimon to suspend when digivolving”; “unsuspends an ally after another Digimon wins a battle while Angoramon is in its stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Reaudit frequency proof accepted (2026-09-12, commit `fdd177876`): Public cost-3 digivolution retains the original source. Three real battles unsuspend an explicitly prepared recipient on the first, deny the same-turn repeat and renew after natural turns. Opponent target suspension is prepared after its actual Active phase; all battles fully settle. Coordinator independently passed both suites: 2 files, 6 tests; lint/format/diff checks are green. Collection closing gates remain pending.
 
 ### P-091 — Saberdramon
 
@@ -960,15 +962,16 @@ git diff --check
 
 ### P-093 — Bastemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-093.ts) · [test](../../apps/api/src/cards/P/P-093.test.ts) · clause review (source removed; see History)<br>“suspends exactly 1 opponent Digimon when Bastemon itself attacks”; “does not trigger when a different allied Digimon becomes suspended”; “reduces only the first digivolution cost of its inherited host each turn”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Reaudit frequency proof accepted (2026-09-12): a legal Lv.6 host retains the same Bastemon source through actual De-Digivolve preparation. Three public cost-4 Examon evolutions cost 3, 4 on the same turn, and 3 after natural turns 0 → 1 → 0. Coordinator independently passed all three tests, lint and formatting; collection closing gates remain pending.
 
 ### P-094 — Destromon
 
@@ -1016,15 +1019,16 @@ git diff --check
 
 ### P-098 — Seadramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-098.ts) · [test](../../apps/api/src/cards/P/P-098.test.ts) · clause review (source removed; see History)<br>“protects exactly the chosen blue Digimon from battle deletion through the opponent's turn”; “applies the same battle protection from its When Digivolving timing”; “Q4184 grants Rush when Nokia plays a Digimon by an effect, only once per turn”; “Q4184 does not react to an ordinary hand play”
 
 - Local KB lookup (2026-09-12): Q4184, Q4185; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Reaudit frequency proof accepted (2026-09-12, commit `fdd177876`): Public cost-3 T.K. plays resolve Patamon On Play and actually effect-play the identified Digimon. A retained Seadramon source grants Rush to the first Blue recipient, denies the second same-turn grant to a fresh preferred recipient, expires Rush across real turns and grants it again to that recipient on the next owner turn. Exact memory is 10 → 7 → 4, then incoming 3 → 0. Coordinator independently passed both suites: 2 files, 6 tests; lint/format/diff checks are green. Collection closing gates remain pending.
 
 ### P-099 — Etemon
 
@@ -1476,23 +1480,25 @@ git diff --check
 
 ### P-143 — Drimogemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-143.ts) · [test](../../apps/api/src/cards/P/P-143.test.ts) · clause review (source removed; see History)<br>“moves Drimogemon from the battle area to the empty breeding area on end of turn”; “preserves digivolution cards when moving to breeding (KB Q4251)”; “does NOT move when the breeding area is already occupied”; “does NOT move when it is not the owner's turn”
 
 - Local KB lookup (2026-09-12): Q3835, Q4250, Q4251, Q4252, Q4253, Q4254, Q4255, Q4256, Q4257, Q4258; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Reaudit natural-cycle proof accepted (2026-09-12): The same Drimogemon moves into breeding at real owner End of Turn, is publicly raised during the next real owner Breeding phase and moves back at the following End of Turn. Moving into breeding removes it from the active battle-area watcher; the natural-cycle proof complements the compiled frequency guard and existing empty-breeding/optional unit cases. Coordinator independently passed both suites: 2 files, 13 tests; focused lint/format are green. Collection closing gates remain pending.
 
 ### P-144 — Gotsumon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-144.ts) · [test](../../apps/api/src/cards/P/P-144.test.ts) · clause review (source removed; see History)<br>“keeps the Your Turn attack restriction when only an X Antibody card is underneath”; “encodes Blocker, target-switch unsuspension, and inherited Blocker DP”; “applies the inherited +1000 DP to Blocker Digimon”; “prevents attacking when no Gotsumon card is in the digivolution stack”; “allows attacking when a Gotsumon card is in the digivolution stack”; “unsuspends a Blocker when an opponent-turn attack target switches”; “only resolves the target-switch reaction once per opponent turn”
 
 - Local KB lookup (2026-09-12): Q4259; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Reaudit natural-cycle proof accepted (2026-09-12): Three real opponent attacks and public blocks cause target switches. An explicitly suspended watcher unsuspends on the first, stays suspended on the second same-turn switch and unsuspends again after a full natural owner/opponent cycle. Combat resolution is idle with no pending decision; deck/security are regular cards and the inherited host is legal. Coordinator independently passed both suites: 2 files, 13 tests; focused lint/format are green. Collection closing gates remain pending.
 
 ### P-145 — Myotismon (X Antibody)
 
@@ -1525,15 +1531,16 @@ git diff --check
 
 ### P-148 — Wanyamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-148.ts) · [test](../../apps/api/src/cards/P/P-148.test.ts) · clause review (source removed; see History)<br>“encodes the inherited once-per-turn conditional Draw 1”; “draws once when an NSp Digimon attacks, but not for a non-NSp host”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Reaudit frequency proof accepted (2026-09-12): The existing behavior test now resolves four public attacks: NSp draws effect marker A, a separate non-NSp host does not draw marker B, the same NSp source denies a repeated same-turn draw, and after natural turns the ordinary draw takes B before the renewed effect draws C. Regular Tamer security avoids a premature battle deletion; no duplicate positive test was retained. Coordinator independently passed both suites: 2 files, 4 tests; lint/format are green. Collection closing gates remain pending.
 
 ### P-149 — Minomon
 
