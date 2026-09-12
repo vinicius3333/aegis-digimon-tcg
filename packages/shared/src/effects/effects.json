@@ -229865,6 +229865,12 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 4,
+                  "allowMultiColor": true,
+                  "reduceCostByScaling": {
+                    "per": 1,
+                    "filter": { "controllerDefault": "any", "kind": ["Digimon"], "suspended": true },
+                    "unit": "cards"
+                  },
                   "optional": true,
                   "raw": "You may use 1 [Mammal], [Beast], [Beastkin] or [Royal Knight] trait card from your hand with the cost reduced by 4"
                 }
@@ -229919,6 +229925,12 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 4,
+                  "allowMultiColor": true,
+                  "reduceCostByScaling": {
+                    "per": 1,
+                    "filter": { "controllerDefault": "any", "kind": ["Digimon"], "suspended": true },
+                    "unit": "cards"
+                  },
                   "optional": true,
                   "raw": "You may use 1 [Mammal], [Beast], [Beastkin] or [Royal Knight] trait card from your hand with the cost reduced by 4"
                 }
@@ -229950,8 +229962,8 @@
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": ["For each suspended Digimon, further reduce it by 1. (Option-use branch only)"],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [{ "namesExact": ["Leopardmon: Leopard Mode"], "cost": 1, "isAlternate": true }],
     "assemblyRequirement": [
       {
