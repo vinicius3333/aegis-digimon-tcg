@@ -122,7 +122,7 @@ build when it is stale.
 | EX7 | 74 | verified | 2026-09-09 | [EX7.md](EX7.md) |
 | EX8 | 74 | verified | 2026-09-10 | [EX8.md](EX8.md) |
 | EX9 | 74 | verified | 2026-09-09 | [EX9.md](EX9.md) |
-| EX10 | 74 | verified | 2026-09-08 | [EX10.md](EX10.md) |
+| EX10 | 74 | verified | 2026-09-12 | [EX10.md](EX10.md) |
 | EX11 | 74 | verified | 2026-09-09 | [EX11.md](EX11.md) |
 | EX12 | 77 | verified | 2026-09-08 | [EX12.md](EX12.md) |
 | EX13 | 60 | incomplete | 2026-09-11 | [EX13.md](EX13.md) |
