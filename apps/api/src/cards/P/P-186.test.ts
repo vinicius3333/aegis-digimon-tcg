@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-186.js";
@@ -37,7 +35,7 @@ describe("P-186 Gallantmon", () => {
             kind: "Delete",
             target: {
               count: 1,
-              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 13000 } },
+              filter: { controller: "any", kind: ["Digimon"], dp: { op: "gte", value: 13000 } },
             },
           },
           {
@@ -80,11 +78,11 @@ describe("P-186 engine behavior", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it("deletes an opposing Digimon at exactly 13000 DP on play", async () => {
+  it.each([13000, 14000])("deletes a Digimon at %i DP on play", async (dp) => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "P-186", as: "gallantmon" }], security: 5 },
-        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 13000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp }] },
       },
       { autoSelectCards: true },
     );
@@ -102,7 +100,7 @@ describe("P-186 engine behavior", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-048"], deck: ["BT1-067"] },
-        1: { battleArea: [{ card: "BT1-009", dp: 14000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -113,17 +111,73 @@ describe("P-186 engine behavior", () => {
     });
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("victim").instanceId)).toBe(
+      true,
+    );
   });
 
-  it("also deletes a boundary target and recovers when digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "P-186", as: "gallantmon" }], security: ["BT1-009"], deck: ["BT1-067"] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 13000 }] },
-    });
+  it("deletes an own qualifying Digimon when no opposing target exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-017", as: "warGrowlmon" },
+            { card: "BT1-009", as: "ownTarget", dp: 13000 },
+          ],
+          hand: [{ card: "P-186", as: "gallantmon" }],
+          security: ["BT1-009"],
+          deck: ["BT1-067"],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gallantmon"));
-    await settle();
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("warGrowlmon").permanentId,
+        instanceId: s.inst("gallantmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("warGrowlmon").topCard.instanceId === s.inst("gallantmon").instanceId);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("ownTarget").instanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("warGrowlmon").stack.map((card) => card.instanceId)).toEqual([s.inst("warGrowlmon").instanceId]);
+  });
+
+  it.each([
+    { label: "normal cost 4", useAlternateCost: false, expectedMemory: 6 },
+    { label: "alternate cost 3", useAlternateCost: true, expectedMemory: 7 },
+  ])("uses the WarGrowlmon route with the printed $label", async ({ useAlternateCost, expectedMemory }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-017", as: "host" }],
+          hand: [{ card: "P-186", as: "gallantmon" }],
+          security: ["BT1-009"],
+          deck: ["BT1-067", "BT1-009"],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const baseInstanceId = s.inst("host").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("gallantmon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true } : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("gallantmon").instanceId);
+    expect(s.state.memory).toBe(expectedMemory);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([baseInstanceId]);
   });
 });

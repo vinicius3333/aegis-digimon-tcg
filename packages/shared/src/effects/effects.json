@@ -196618,11 +196618,13 @@
               "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }]
             },
             "leaveCause": "byOpponentEffect",
+            "affectsAll": true,
             "actions": [],
             "cost": {
               "kind": "place",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "triggerSource",
@@ -196964,7 +196966,7 @@
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Tyrannomon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "a card with [Tyrannomon] in its name or [X Antibody] is in this Digimon's digivolution cards"
@@ -198470,7 +198472,7 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 13000 } },
+              "filter": { "controller": "any", "kind": ["Digimon"], "dp": { "op": "gte", "value": 13000 } },
               "count": 1
             }
           },
@@ -198490,7 +198492,7 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 13000 } },
+              "filter": { "controller": "any", "kind": ["Digimon"], "dp": { "op": "gte", "value": 13000 } },
               "count": 1
             }
           },

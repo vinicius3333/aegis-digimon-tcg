@@ -1,16 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// P-186 Gallantmon
-//
-// PRINTED TEXT (cards.json): "Delete 1 Digimon with 13000 DP or more."
-// KB OVERRIDE: Q4629/Q4630 both frame scenarios with "a Digimon with 13000 DP or less"
-// and confirm you MUST target it for deletion — proving the delete threshold is ≤13000 DP,
-// not ≥13000. The printed "or more" is a misprint; Q&A rulings are binding.
-// The IR's dp: { op: "lte", value: 13000 } is INTENTIONALLY correct against KB.
-// The play-cost-reduction condition (gte: 13000) remains faithful to the printed text —
-// the Q&As do not address it and the printed condition "if there is a Digimon with 13000
-// DP or more" is thematically consistent as a separate clause.
+// P-186 Gallantmon — the Japanese printed text and Q4629/Q4630 establish “13000 DP or more.”
+// The English Q&A translation says “or less”; Japanese source wording takes priority.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -80,10 +72,10 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             filter: {
-              controller: "opponent",
+              controller: "any",
               kind: ["Digimon"],
               dp: {
-                op: "lte",
+                op: "gte",
                 value: 13000,
               },
             },
@@ -110,10 +102,10 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             filter: {
-              controller: "opponent",
+              controller: "any",
               kind: ["Digimon"],
               dp: {
-                op: "lte",
+                op: "gte",
                 value: 13000,
               },
             },
