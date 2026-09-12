@@ -89,7 +89,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 
 - Accepted checkpoint (2026-09-12): `4e11180ea` delivers independently reviewed P153/P179/P214 printed-rule corrections; `0adb11998` proves P158 public Main and Security. Current recalculation: 223/249 at 10/10, 25 at 9/10 and P154 at 8/10. Full shared/API/web typecheck passed after these IR fixes; collection guard, catalog parity and audit layout passed 3 files / 353 tests. Effects sync/check report 249 records, four semantic P changes against the worktree base and zero semantic or byte changes outside P. Closing collection gates remain pending.
 
-- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 239/249 at 10/10; 10 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
+- Accepted checkpoint (2026-09-12): P185/P195/P203/P204/P213 repairs are independently tested and atomically committed with their synced records. Current tally is 241/249 at 10/10; 8 cards still hold proof or IR findings. API types and focused style passed; sync/check contains 249 records and no outside-set changes. The full collection remains incomplete.
 
 ## Gates
 
@@ -1644,8 +1644,8 @@ git diff --check
 
 ### P-155 — Pawn Device
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-155.ts) · [test](../../apps/api/src/cards/P/P-155.test.ts) · clause review (source removed; see History)<br>“encodes Main Draw 1 followed by placing itself in the battle area”; “encodes Delay's non-red Option trash cost and Security deletion/hand return”; “deletes an opposing Digimon at the 11000-DP security boundary and returns itself”; “runs Main from hand, draws one card, and places this Option in the battle area”; “uses Delay by trashing a non-red Option and gains exactly one memory”
 
 - Local KB lookup (2026-09-12): Q4269; no errata entry; no restriction entry.
@@ -1653,6 +1653,8 @@ git diff --check
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
 - Additional root proof hold (2026-09-12): Security deletion and self return are proved only by injected SecuritySkill timing, without an actual opponent attack reveal or attack completion. Public Security boundary, exact Option return and retained noneligible target proof remain pending. Existing public Main/Delay proofs are reused; legal initial memory and exact consumed Option identity must be verified. Historical 10/10 is superseded.
+
+- Independently accepted repair (2026-09-12, commit `7dc473ea6`): Pawn Device color waiver uses the exact printed name. Public Main pays 2, draws and places the original Option. The same physical Option is unavailable on entry turn and activates at the next natural own Main, trashing the exact non-red field Option plus itself and gaining 1 memory. Actual opponent attacks prove the Security 11000/12000 deletion boundary and exact checked-card hand return. Root P155/P162/P243 batch passes 3 files, 20 tests; API types and focused style pass. Only the accepted P155 synced record accompanies its atomic card commit.
 
 ### P-156 — Future Potential!
 
@@ -1713,13 +1715,15 @@ git diff --check
 
 ### P-162 — Coelamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-162.ts) · [test](../../apps/api/src/cards/P/P-162.test.ts) · clause review (source removed; see History)<br>“protects one DS Digimon from DP reduction and opponent De-Digivolve effects”; “encodes inherited Blocker and DS level-3 digivolution”; “protects a DS Digimon when Coelamon is played”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Additional root proof hold (2026-09-12): The colocated protection proof only injects OnPlay. Existing cross-card references are reviewed for reuse, but do not replace legal public Coelamon evolution, attributable DP/De-Digivolve protection and inherited Blocker evidence. Reuse meaningful existing tests and generic mechanisms; injected printed timing alone does not earn full behavioral credit. Historical 10/10 is superseded.
+
+- Independently accepted repair (2026-09-12, commit `ef31072cd`): Public play pays 4 and selects one DS recipient. Opponent Options actually target that protected recipient first, with exact Option IDs in trash, unchanged DP/stack and paid memory; subsequent uses change the unprotected control. Natural opponent Tamer funding keeps both attempts legal. Public DS alternate evolution pays 2 and retains the exact source/permanent; inherited Blocker is observed under a legal DS evolution chain. Protection expires at the natural opponent turn end. The original correct module is preserved. Root P155/P162/P243 batch passes 3 files, 20 tests; API types and focused style pass.
 
 ### P-163 — Dokugumon
 
@@ -2367,23 +2371,27 @@ git diff --check
 
 ### P-222 — Rosemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-222.ts) · [test](../../apps/api/src/cards/P/P-222.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 4 only with a face-up Wind Guardians security card”; “may suspend any Digimon on play and digivolving”; “once per turn may delete an opponent's lowest DP Digimon when any of yours suspends”; “reduces the real play cost by 4 with a face-up Wind Guardians security card”; “suspends a Digimon on play and resolves the once-per-turn lowest-DP deletion”; “allows declining the optional suspension and leaves the opposing Digimon intact”; “does not reduce play cost with face-down security”; “does not reduce play cost with a face-up non-Wind Guardians security card”
 
 - Local KB lookup (2026-09-12): Q5771; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
+- Confirmed executable scope defect (2026-09-12): The printed suspension listener includes either controller Digimon. Its current source filter controllerDefault mine narrows to only the controller own field, so the natural opposite-controller event and correct any-controller filter remain pending.
+
 ### P-223 — Kuzuhamon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 1/2 · behavior 1/2 · stack 2/2
+- Score: **8/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-223.ts) · [test](../../apps/api/src/cards/P/P-223.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 4 with three or fewer security cards”; “uses one matching Onmyōjutsu or Plug-In Option from hand or trash”; “once per turn may play a Pipe Fox Token after a genuine Option use”; “uses a cost-6 Onmyōjutsu Option from hand without paying its cost”; “allows refusing the optional cost-6 Option use”
 
 - Local KB lookup (2026-09-12): Q5772, Q5773; no errata entry; no restriction entry.
 
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
+
+- Printed Rule reconciliation in progress (2026-09-12): The official collection includes the Sakuyamon alternate-name Rule, absent from the frozen catalog and executable module. Catalog commit `e2f665deb` appends only that Rule to canonical effectText, preserving all other card bytes; Shared build passes. Compiled Rule name semantics and independently accepted natural frequency/cost-reduction proof remain pending.
 
 ### P-224 — Kotone Amano
 
@@ -2585,6 +2593,8 @@ git diff --check
 - Additional root proof hold (2026-09-12): The Delay proof only injects OnStartTurn immediately after playing the Option; it does not establish the actual Start of Your Turn activation window, entry-turn guard, return cost, exact source disposition or decline. Existing real Security proof remains valid. Natural-turn Delay acceptance/decline and paid source disposition require independently accepted repair. Historical 10/10 is superseded.
 
 - Confirmed executable timing defect (2026-09-12): Printed Delay activates at Start of Your Turn when the opponent has a Digimon. The current GainKeyword/permanent arming plus Main activation splits that window and persists a future ability the printed card does not grant. Use the intrinsic timed Delay registration and its existing source-trash/entry-turn mechanism. Q6929 also requires hand-trash acceptance before Main placement. Natural timed acceptance/refusal and the whole Main cost gate remain pending. [Official collection text](https://world.digimoncard.com/cards/?category=522901&search=true).
+
+- Additional processing-cost scope hold (2026-09-12): The return cost omits the trash zone; the interpreter default for an unzoned return selects field permanents. Printed cost returns a DM Digimon from trash to deck top. An explicit trash cost and natural Start draw receipt for that exact returned card remain pending.
 
 ### P-244 — Unique Emblem: Ragnarok Attainer
 
