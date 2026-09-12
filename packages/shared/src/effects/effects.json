@@ -192289,7 +192289,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "raw": "you have a [Kiyoshiro Higashimitarai] in play"
             }
