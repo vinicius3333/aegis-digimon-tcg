@@ -194566,7 +194566,10 @@
                   "raise": 2,
                   "per": 1,
                   "unit": "cards",
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
+                  },
                   "raw": "For each of your [Diaboromon], add 2 to this effect's play cost maximum."
                 },
                 "optional": true
