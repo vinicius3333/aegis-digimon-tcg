@@ -196543,8 +196543,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Shoutmon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true },
-      { "names": ["Dorulumon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true }
+      { "namesExact": ["Shoutmon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true },
+      { "namesExact": ["Dorulumon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true }
     ],
     "digiXrosRequirement": [
       { "materials": [{ "names": ["Shoutmon"] }], "count": 1 },
