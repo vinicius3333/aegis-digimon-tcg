@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-240.js";
+import "../index.js";
 
 describe("P-240 Arcturusmon", () => {
   it("matches the printed Purple/Black level-6 catalog identity", () => {
@@ -282,7 +283,7 @@ describe("P-240 engine behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-111", as: "host", under: [{ card: "P-240", as: "arcturusmon" }] }],
+          battleArea: [{ card: "BT1-084", as: "host", under: [{ card: "P-240", as: "arcturusmon" }] }],
           hand: [{ card: "BT1-009", as: "ownerPlayable" }],
           deck: Array.from({ length: 20 }, () => "BT1-009"),
           security: Array.from({ length: 5 }, () => "BT1-009"),
