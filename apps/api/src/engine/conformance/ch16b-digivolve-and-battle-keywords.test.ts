@@ -429,84 +429,143 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
   it.each([
     { source: "BT11-054", host: "BT1-080" },
     { source: "BT16-075", host: "BT3-089" },
-  ])("$source inherited trigger distinguishes ordinary and effect plays", async ({ source, host }) => {
-    const preferInstanceIds: string[] = [];
-    const s = setup(
-      {
-        0: {
-          battleArea: [{ card: host, as: "sourceHost", under: [source] }, "BT1-087"],
-          hand: [
-            { card: "BT7-032", as: "ordinary" },
-            { card: "BT7-032", as: "effectPlayed" },
-            { card: "BT10-100", as: "option" },
-            "BT1-009",
-          ],
-          deck: ["BT1-009", "BT1-009", "BT1-009"],
+  ])(
+    "$source inherited trigger distinguishes plays, enforces frequency and resets next turn",
+    async ({ source, host }) => {
+      const preferInstanceIds: string[] = [];
+      const s = setup(
+        {
+          0: {
+            battleArea: [{ card: host, as: "sourceHost", under: [source] }, "BT1-087"],
+            hand: [
+              { card: "BT7-032", as: "ordinary" },
+              { card: "BT7-032", as: "effectPlayed" },
+              { card: "BT10-100", as: "option" },
+              { card: "BT7-032", as: "blockedRepeat" },
+              { card: "BT10-100", as: "repeatOption" },
+              { card: "BT7-032", as: "afterReset" },
+              { card: "BT10-100", as: "resetOption" },
+              "BT1-009",
+            ],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
         },
-        1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
-      },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        autoOrderTriggers: true,
-        autoOrderCards: true,
-        preferInstanceIds,
-      },
-    );
-    const effectPlayedId = s.inst("effectPlayed").instanceId;
-    preferInstanceIds.push(effectPlayedId);
-    s.state.memory = 10;
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    const ordinaryId = s.inst("ordinary").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: ordinaryId })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === ordinaryId) &&
-        s.state.pendingDecision === undefined,
-    );
-    const ordinary = s.perm("ordinary");
-    expect(observe(s.engine).hasKeyword(ordinary, "Rush")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("sourceHost"), "Rush")).toBe(false);
-    expect(s.state.memory).toBe(7);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: ordinary.permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
-    const optionId = s.inst("option").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId) &&
-        s.state.pendingDecision === undefined,
-    );
-    const recipient = s.perm("effectPlayed");
-    const recipientId = recipient.permanentId;
-    expect(recipient.topCard.instanceId).toBe(effectPlayedId);
-    expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(ordinary, "Rush")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("sourceHost"), "Rush")).toBe(false);
-    expect(s.state.memory).toBe(4);
-    expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
-    expect(recipient.isSuspended).toBe(true);
-    expect(ordinary.isSuspended).toBe(false);
-    expect(s.state.memory).toBe(4);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await advance(s.engine).waitForMainPhase(1);
-    expect(s.state.turnSeat).toBe(1);
-    expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(false);
-    expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === recipientId)).toBe(recipient);
-    expect(recipient.topCard.instanceId).toBe(effectPlayedId);
-    expect(s.perm("sourceHost").stack).toHaveLength(1);
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoOrderTriggers: true,
+          autoOrderCards: true,
+          preferInstanceIds,
+        },
+      );
+      const effectPlayedId = s.inst("effectPlayed").instanceId;
+      preferInstanceIds.push(effectPlayedId);
+      s.state.memory = 10;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      const ordinaryId = s.inst("ordinary").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: ordinaryId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === ordinaryId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const ordinary = s.perm("ordinary");
+      expect(observe(s.engine).hasKeyword(ordinary, "Rush")).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm("sourceHost"), "Rush")).toBe(false);
+      expect(s.state.memory).toBe(7);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: ordinary.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      const optionId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const recipient = s.perm("effectPlayed");
+      const recipientId = recipient.permanentId;
+      expect(recipient.topCard.instanceId).toBe(effectPlayedId);
+      expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(true);
+      expect(observe(s.engine).hasKeyword(ordinary, "Rush")).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm("sourceHost"), "Rush")).toBe(false);
+      expect(s.state.memory).toBe(4);
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+      expect(recipient.isSuspended).toBe(true);
+      expect(ordinary.isSuspended).toBe(false);
+      expect(s.state.memory).toBe(4);
+      const blockedRepeatId = s.inst("blockedRepeat").instanceId;
+      preferInstanceIds.splice(0, preferInstanceIds.length, blockedRepeatId);
+      const repeatOptionId = s.inst("repeatOption").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: repeatOptionId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === repeatOptionId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const blockedRepeat = s.perm("blockedRepeat");
+      expect(blockedRepeat.topCard.instanceId).toBe(blockedRepeatId);
+      expect(observe(s.engine).hasKeyword(blockedRepeat, "Rush")).toBe(false);
+      expect(s.state.memory).toBe(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: blockedRepeat.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: false, reason: "illegal-target" });
+      expect(blockedRepeat.isSuspended).toBe(false);
+      expect(s.state.players[1]!.security).toHaveLength(2);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.state.turnSeat).toBe(1);
+      expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(false);
+      expect(s.state.players[0]!.battleArea.find((p) => p.permanentId === recipientId)).toBe(recipient);
+      expect(recipient.topCard.instanceId).toBe(effectPlayedId);
+      expect(s.perm("sourceHost").stack).toHaveLength(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.state.turnSeat).toBe(0);
+      expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(false);
+      const afterResetId = s.inst("afterReset").instanceId;
+      preferInstanceIds.splice(0, preferInstanceIds.length, afterResetId);
+      const resetOptionId = s.inst("resetOption").instanceId;
+      expect(s.state.memory).toBe(3);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: resetOptionId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === resetOptionId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const afterReset = s.perm("afterReset");
+      expect(afterReset.topCard.instanceId).toBe(afterResetId);
+      expect(observe(s.engine).hasKeyword(afterReset, "Rush")).toBe(true);
+      expect(observe(s.engine).hasKeyword(recipient, "Rush")).toBe(false);
+      expect(observe(s.engine).hasKeyword(blockedRepeat, "Rush")).toBe(false);
+      expect(s.state.memory).toBe(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: afterReset.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+      expect(afterReset.isSuspended).toBe(true);
+      expect(s.state.memory).toBe(0);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
