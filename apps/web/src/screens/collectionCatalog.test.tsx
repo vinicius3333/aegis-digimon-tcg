@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
+import { CardFull } from "../design/cards";
 import { Collection } from "./Collection";
 import { DeckBuilder } from "./DeckBuilder";
 
@@ -37,6 +38,19 @@ function renderDeckBuilder() {
 }
 
 describe("rendered catalog visibility", () => {
+  it("keeps card identity visible when an external art provider is unavailable", () => {
+    render(
+      <I18nProvider>
+        <CardFull cardId="EX13-007" width={132} />
+      </I18nProvider>,
+    );
+    const image = screen.getByAltText("Guilmon");
+    fireEvent.error(image);
+    fireEvent.error(screen.getByAltText("Guilmon"));
+    expect(screen.getByText("Guilmon")).toBeTruthy();
+    expect(screen.getByText("EX13-007")).toBeTruthy();
+  });
+
   it("shows EX13 and the P-245 through P-250 promo wave in Collection search", async () => {
     renderCollection();
     const search = screen.getByRole("textbox", { name: "Search cards…" });
