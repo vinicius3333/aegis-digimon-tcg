@@ -195691,7 +195691,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoemon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoemon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
