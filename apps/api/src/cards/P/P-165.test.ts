@@ -73,18 +73,26 @@ describe("P-165 ShoeShoemon", () => {
       {
         0: {
           battleArea: [
-            { card: "P-165", as: "shoe" },
-            { card: "BT1-009", as: "host", under: ["P-165"] },
+            { card: "BT1-045", as: "host" },
+            { card: "BT1-057", as: "barrierHost", under: ["P-165"] },
           ],
+          hand: [{ card: "P-165", as: "shoe" }],
         },
         1: { battleArea: [{ card: "BT1-025", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
+    const shoeId = s.inst("shoe").instanceId;
+    const baseSourceId = s.perm("host").topCard.instanceId;
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shoe"));
-    await settle();
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("host").permanentId, instanceId: shoeId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === shoeId && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("host").stack.some((card) => card.instanceId === baseSourceId)).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("barrierHost"), "Barrier")).toBe(true);
     const token = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "TOKEN-Familiar-Token");
     expect(token).toBeDefined();
     await advance(s.engine).verb.deletePermanent([token!.permanentId], "byEffect");
