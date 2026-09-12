@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "Main",
@@ -77,6 +78,7 @@ const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           leaveCause: "byBattle",
+          mode: "prevent",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -85,19 +87,19 @@ const compiled: CompiledCard = {
               kind: "Prevent",
               cost: {
                 kind: "place",
+                destination: "security",
+                position: "bottom",
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon"],
-                    nameOrTrait: [
-                      {
-                        tokens: ["Reload Plug-In Q"],
-                        match: "trait",
-                      },
-                    ],
+                    kind: ["Option"],
+                    zone: "digivolutionCards",
+                    sameHost: true,
+                    hostFilter: { isSelfRef: true },
+                    nameOrTrait: [{ tokens: ["Reload Plug-In Q"], match: "nameExact" }],
                   },
                   count: 1,
-                  from: ["security", "digivolutionCards"],
+                  from: ["digivolutionCards"],
                 },
                 raw: "by placing 1 [Reload Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack",
               },
@@ -108,45 +110,6 @@ const compiled: CompiledCard = {
         },
       ],
       isInherited: true,
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldBeDeleted",
-          leaveCause: "byBattle",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Prevent",
-              cost: {
-                kind: "place",
-                target: {
-                  filter: {
-                    controller: "mine",
-                    kind: ["Digimon"],
-                    nameOrTrait: [
-                      {
-                        tokens: ["Recharge Plug-In Q"],
-                        match: "name",
-                      },
-                    ],
-                  },
-                  count: 1,
-                  from: ["security", "digivolutionCards"],
-                },
-                raw: "by placing 1 [Recharge Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack",
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
-          ],
-        },
-      ],
-      isSecurity: true,
     },
   ],
   coverage: "full",
