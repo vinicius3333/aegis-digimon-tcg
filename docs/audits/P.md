@@ -1176,13 +1176,13 @@ git diff --check
 
 ### P-112 — Morphomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-112.ts) · [test](../../apps/api/src/cards/P/P-112.test.ts) · clause review (source removed; see History)<br>“uses its inherited effect when another Eosmon is played to digivolve from hand”; “may place itself under an Eosmon and play the revealed Menoa Bellucci”; “reveals three and adds both Eosmon and Menoa Bellucci when both are present”; “adds the one matching card when only one of Eosmon or Menoa is revealed”
 
 - Local KB lookup (2026-09-12): Q4216, Q4217, Q4218; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+- Reaudit public evolution cycle accepted (2026-09-12): Legal Green level-4 Kuwagamon/P-112 host responds to real Eosmon attack-triggered White level-4 plays. First evolution to White level 5 pays 0 (printed 3 reduced by 3), second same-turn play cannot evolve to level 6, and the natural 0-to-1-to-0 cycle renews the level-6 reduction (incoming 3 to 1, printed 5 reduced by 3). Exact original Kuwagamon and P-112 instances remain in the final level-6 stack. Coordinator independently passed P-112/P-117: 2 files, 6 tests; P-112 Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
 
 ### P-113 — RustTyrannomon
 
@@ -1227,15 +1227,16 @@ git diff --check
 
 ### P-117 — Veemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-117.ts) · [test](../../apps/api/src/cards/P/P-117.test.ts) · clause review (source removed; see History)<br>“reduces a Your Turn digivolution into a Free Digimon by 1 when a Tamer is present”; “draws through its inherited effect only when the host has two colors”
 
 - Local KB lookup (2026-09-12): Q4600, Q4704; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Reaudit top-discount cycle accepted (2026-09-12): The printed Once Per Turn belongs to the top Free-trait evolution discount, not inherited Draw. Legal alternate-name Veemon evolution into BT16-018 costs 1 (10 to 9); De-Digivolve preparation restores the same P-117 instance, and a second same-turn evolution pays full 2 (9 to 7). After the natural 0-to-1-to-0 cycle, the third costs 1 (incoming 3 to 2). Every evolution asserts the exact top and retained source. A legal two-color inherited host draws on both accepted same-turn attacks, then after the next natural turn; distinct instances separate effect and normal draws. Coordinator independently passed the final 1 file, 2 tests; Oxlint/Oxfmt and diff check green. A prior coordinator brief incorrectly assigned Once to inherited Draw and was corrected against catalog text; no production change was needed. Collection closing gates remain pending.
 
 ### P-118 — Wormmon
 
@@ -1711,8 +1712,8 @@ git diff --check
 
 ### P-164 — Shellmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-164.ts) · [test](../../apps/api/src/cards/P/P-164.test.ts) · clause review (source removed; see History)<br>“encodes On Play and When Digivolving draw with the hand placement cost”; “encodes Aquatic Rule trait and inherited once-per-turn End of Attack draw”; “draws after placing a level-5-or-lower Aqua card from hand under a Digimon”; “fires the same placement-and-draw effect on When Digivolving and grants Aquatic”; “draws one card from the inherited End of Attack effect”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1720,6 +1721,8 @@ git diff --check
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Reaudit public placement and inherited cycle accepted (2026-09-12): Public play pays 4 (10 to 6), places the exact eligible Aqua hand card under an allied Digimon, and draws. Legal Blue level-3 evolution pays 2 (10 to 8), retains the exact original source beneath the played top, places Aqua, draws, and has the Aquatic rule trait. Legal Blue level-5 inherited host uses three completed attacks to prove first effect draw, same-turn denial after unsuspension, distinct normal draw during the natural 0-to-1-to-0 cycle, and renewed effect draw; the exact original P-164 source remains. Coordinator independently passed the final 1 file, 5 tests; Oxlint/Oxfmt and diff check green. Collection closing gates remain pending.
 
 ### P-165 — ShoeShoemon
 
@@ -1797,8 +1800,8 @@ git diff --check
 
 ### P-173 — RustTyrannomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-173.ts) · [test](../../apps/api/src/cards/P/P-173.test.ts) · clause review (source removed; see History)<br>“requires a level 5 Tyrannomon for its alternate digivolution”; “encodes Collision, Piercing, Blocker, and De-Digivolve 4”; “exposes Collision on the live permanent”; “de-digivolves four opposing cards when it digivolves”; “unsuspends once when opposing Digimon are deleted in battle”; “uses Piercing to check security after deleting a Digimon in a permanent battle”; “does not unsuspend when the opponent deletes your other Digimon”; “acts as a real Blocker and redirects an opponent's player attack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
@@ -1806,6 +1809,8 @@ git diff --check
 - Current reaudit delivery hold (2026-09-12): declared once-per-turn behavior requires independently accepted same-turn and real next-turn reset evidence; current colocated proofs do not yet establish that complete cycle. Existing cross-card evidence will be reused if it proves this contract.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Reaudit public evolution and battle cycle accepted (2026-09-12): A legal level-5 Tyrannomon-name parent explicitly selects the printed alternate cost 4 (10 to 6), retaining its original instance beneath the exact P-173 top. De-Digivolve 4 strips a legal Red level-3-through-6 chain beneath Omnimon, leaving Monodramon and no remaining sources. Three completed public permanent battles prove first unsuspension, same-turn denial, and renewal after the natural 0-to-1-to-0 cycle on the same P-173 permanent. Existing Piercing, Blocker, and opposing-deletion negative remain green. Coordinator independently passed 1 file, 8 tests; Oxlint/Oxfmt and diff check green. Ordinary and alternate cost paths require distinct public intent selection; no production correction was needed. Collection closing gates remain pending.
 
 ### P-174 — Boltmon
 
