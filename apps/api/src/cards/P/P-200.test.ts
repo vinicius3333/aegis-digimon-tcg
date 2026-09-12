@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./P-200.js";
 
 describe("P-200 Kanan Yuki", () => {
@@ -132,7 +133,7 @@ describe("P-200 Kanan Yuki", () => {
         0: {
           battleArea: [
             { card: "P-200", as: "kanan" },
-            { card: "P-197", as: "parent" },
+            { card: "BT1-045", as: "parent" },
           ],
           hand: [
             { card: "P-194", as: "aegiomon" },
@@ -179,7 +180,7 @@ describe("P-200 Kanan Yuki", () => {
         0: {
           battleArea: [
             { card: "P-200", as: "kanan" },
-            { card: "P-197", as: "parent" },
+            { card: "BT1-045", as: "parent" },
           ],
           hand: [
             { card: "BT1-051", as: "ordinary" },
