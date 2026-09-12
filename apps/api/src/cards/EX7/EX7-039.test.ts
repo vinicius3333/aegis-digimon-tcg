@@ -216,7 +216,7 @@ describe("EX7-039 Jazamon", () => {
   it("grants Machine Dragon and inherited +2000 DP only during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", dp: 5000, under: ["EX7-039"] }],
+        battleArea: [{ card: "BT10-062", as: "host", dp: 5000, under: ["EX7-039"] }],
         hand: ["BT1-011"],
         deck: ["BT1-012", "BT1-013"],
       },

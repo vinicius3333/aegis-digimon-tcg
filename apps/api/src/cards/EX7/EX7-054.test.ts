@@ -132,7 +132,7 @@ describe("EX7-054", () => {
       {
         0: {
           battleArea: [
-            { card: "EX7-042", as: "host", under: ["EX7-054"] },
+            { card: "BT10-079", as: "host", under: ["EX7-054"] },
             { card: "BT8-039", as: "cost", under: ["BT8-046"] },
           ],
           security: ["BT1-009"],
@@ -161,7 +161,7 @@ describe("EX7-054", () => {
       {
         0: {
           battleArea: [
-            { card: "EX7-042", as: "host", under: ["EX7-054"] },
+            { card: "BT10-079", as: "host", under: ["EX7-054"] },
             { card: "EX7-038", as: "cost" },
           ],
           security: ["BT1-009"],
@@ -189,7 +189,7 @@ describe("EX7-054", () => {
       {
         0: {
           battleArea: [
-            { card: "EX7-042", as: "host", under: ["EX7-054"] },
+            { card: "BT10-079", as: "host", under: ["EX7-054"] },
             { card: "EX7-038", as: "firstCost" },
             { card: "EX7-040", as: "secondCost" },
           ],

@@ -152,7 +152,7 @@ describe("EX7-010 Deputymon", () => {
 
   it("applies inherited +2000 DP to its host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-010"] }] },
+      0: { battleArea: [{ card: "BT1-024", dp: 3000, as: "host", under: ["EX7-010"] }] },
     });
     await s.ready();
 

@@ -244,7 +244,7 @@ describe("EX7-012 Lavogaritamon", () => {
 
   it("uses inherited Security Attack +1 in a public attack and checks two security cards", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-014", dp: 9000, as: "attacker", under: ["EX7-012"] }] },
+      0: { battleArea: [{ card: "BT1-025", dp: 9000, as: "attacker", under: ["EX7-012"] }] },
       1: { security: ["BT1-014", "BT1-014"] },
     });
     await s.ready();

@@ -252,7 +252,7 @@ describe("EX7-021 CrysPaledramon", () => {
 
   it("grants Piercing and Security Attack +1 on your turn only while the opponent has no stacked Digimon", async () => {
     const positive = setupEngine({
-      0: { battleArea: [{ card: "BT11-026", as: "host", under: ["EX7-021"] }], deck: ["BT1-028"] },
+      0: { battleArea: [{ card: "BT18-028", as: "host", under: ["EX7-021"] }], deck: ["BT1-028"] },
       1: {
         battleArea: [{ card: "BT1-009", as: "bare" }],
         security: ["BT1-028", "BT1-028", "BT1-028"],
@@ -276,7 +276,7 @@ describe("EX7-021 CrysPaledramon", () => {
     await stopLoop(positive, loop);
 
     const negative = setupEngine({
-      0: { battleArea: [{ card: "BT11-026", as: "host", under: ["EX7-021"] }] },
+      0: { battleArea: [{ card: "BT18-028", as: "host", under: ["EX7-021"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-028"] }] },
     });
     await negative.ready();
@@ -288,7 +288,7 @@ describe("EX7-021 CrysPaledramon", () => {
     let securityChecks = 0;
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-026", as: "host", under: ["EX7-021"] }], deck: ["BT1-028"] },
+        0: { battleArea: [{ card: "BT18-028", as: "host", under: ["EX7-021"] }], deck: ["BT1-028"] },
         1: {
           battleArea: [{ card: "BT1-014", as: "defender", dp: 3000, suspended: true, under: ["BT1-028"] }],
           security: ["BT1-028", "BT1-028", "BT1-028"],

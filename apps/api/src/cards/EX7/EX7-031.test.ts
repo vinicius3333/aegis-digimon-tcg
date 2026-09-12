@@ -145,7 +145,7 @@ describe("EX7-031 Pteromon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", dp: 7000, under: ["EX7-031"] },
+          { card: "BT1-071", as: "host", dp: 7000, under: ["EX7-031"] },
           { card: "BT1-009", as: "other", dp: 7000 },
         ],
       },
@@ -181,7 +181,7 @@ describe("EX7-031 Pteromon", () => {
 
   it("does not gain memory when its host loses battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 3000, under: ["EX7-031"] }] },
+      0: { battleArea: [{ card: "BT1-071", as: "host", dp: 3000, under: ["EX7-031"] }] },
       1: { battleArea: [{ card: "BT1-010", as: "defender", dp: 7000, suspended: true }] },
     });
     s.state.memory = 2;

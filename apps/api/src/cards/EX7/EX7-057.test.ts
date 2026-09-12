@@ -167,7 +167,7 @@ describe("EX7-057 Loudmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "EX7-055", as: "host", under: ["EX7-057"] },
+          { card: "BT7-077", as: "host", under: ["EX7-057"] },
           { card: "BT1-015", as: "nonmatch" },
         ],
         hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
@@ -191,7 +191,7 @@ describe("EX7-057 Loudmon", () => {
   it("does not grant the inherited extra check at five hand cards", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX7-055", as: "host", under: ["EX7-057"] }],
+        battleArea: [{ card: "BT7-077", as: "host", under: ["EX7-057"] }],
         hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
       1: { security: ["BT1-009", "BT1-010", "BT1-011"] },

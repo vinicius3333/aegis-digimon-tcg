@@ -127,8 +127,8 @@ describe("EX7-046", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX7-042", as: "host", under: ["EX7-046"], dp: 15000 }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          battleArea: [{ card: "EX7-049", as: "host", under: ["EX7-046"] }],
+          security: ["BT1-014", "BT1-015", "BT1-016"],
           deck: ["BT1-011", "BT1-012", "BT1-013"],
         },
         1: {
