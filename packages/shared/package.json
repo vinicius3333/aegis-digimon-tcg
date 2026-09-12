@@ -1,6 +1,6 @@
 {
   "name": "@aegis/shared",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Aegis contract layer: shared TS types, card-data types, Colyseus state schema, and the client/server protocol.",
   "type": "module",

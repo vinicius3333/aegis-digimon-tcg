@@ -53,9 +53,33 @@ describe("famous deck selection", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "Beta battle mode" }));
     expect((screen.getByRole("button", { name: "Enter beta queue" }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
     expect((screen.getByRole("button", { name: "Create Room" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("offers beta opt-in for bot battles and forwards it with the selected bot deck", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    const checkbox = screen.getByRole("checkbox", { name: "Beta battle mode" });
+    expect((checkbox as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
   });
   it("separates personal decks and groups available famous decks by collection", () => {
     render(

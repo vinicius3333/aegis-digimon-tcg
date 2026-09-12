@@ -2,6 +2,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
+import { Client } from "colyseus.js";
+import { ROOM_TYPE_BETA_BOT } from "@aegis/shared";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 
@@ -46,6 +48,14 @@ describe("rendered beta battle against a real room", () => {
       timeout: 10_000,
     });
     expect(beta.room.state.players).toHaveLength(2);
+    const betaBotClient = new Client(server.endpoint);
+    const betaBotRoom = await betaBotClient.create(ROOM_TYPE_BETA_BOT, {
+      displayName: "Beta bot human",
+      deck: { mainDeck, eggDeck: RED_DECK.eggDeck },
+      betaBattleMode: true,
+    });
+    await vi.waitFor(() => expect(betaBotRoom.state.players).toHaveLength(1));
+    await betaBotRoom.leave();
     await normal.leave();
     await beta.leave();
   });

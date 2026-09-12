@@ -117,6 +117,19 @@ describe("room-scoped deployment affinity", () => {
     expect(connectionSlot(botRoom)).toBe("green");
   });
 
+  it("creates beta bot matches in a beta-isolated room", async () => {
+    const botRoom = room("beta-bot-room");
+    const greenCreate = vi.fn(async () => botRoom);
+    const client = router({
+      manifest: { version: 1, active: { slot: "green", revision: "new" }, draining: [] },
+      blue: clientPort(),
+      green: clientPort({ create: greenCreate }),
+    });
+
+    await expect(client.createBot({ ...OPTIONS, betaBattleMode: true })).resolves.toBe(botRoom);
+    expect(greenCreate).toHaveBeenCalledWith("aegis_beta_bot", expect.objectContaining({ betaBattleMode: true }));
+  });
+
   it("refreshes the manifest when the active slot starts draining while creating a bot room", async () => {
     const manifests: DeploymentManifest[] = [
       { version: 1, active: { slot: "blue", revision: "old" }, draining: [] },
