@@ -66,9 +66,8 @@ const returnTenSuchCards: Cost = {
 
 // "play up to 2 Digimon cards ... and up to 6 total play cost ... without paying the costs".
 // `count: 2` + `upTo: true` is the printed card-count cap; `payCost: false` the free play.
-// `totalPlayCostBudget` declares the printed AGGREGATE cap. See the residual note below: the
-// loose-card selector (`pickLoose`) does not yet read that field, so only the per-card ceiling
-// above is enforced today.
+// `totalPlayCostBudget` declares the printed AGGREGATE cap. The loose-card selector
+// forwards it to the decision API, which enforces the sum independently of the per-card ceiling.
 const playFree = (playCostMaximum: number, cost?: Cost): Action => ({
   kind: "PlayWithoutCost",
   target: {
@@ -157,19 +156,8 @@ export const compiled: CompiledCard = {
     playClause("WhenDigivolving"),
     { trigger: "AllTurns", actions: [securityAttackDebuff, dpDebuff] },
   ],
-  coverage: "partial",
-  // RETAINED ENGINE SEAM — the AGGREGATE play-cost cap.
-  // `Target.totalPlayCostBudget` already exists in the IR and
-  // `decisionApi.selectCards`/`selectPermanents` already accept `maxTotalPlayCost`, but the
-  // loose-card selector the free play routes through —
-  // `pickLoose` (apps/api/src/engine/effects/interpreter/targeting/loose.ts:502) — never reads
-  // the field and never passes it to `selectCards`. Only
-  // `resolveTotalPlayCostBudgetTargets` (targeting/permanents.ts:305) honors it, and that path is
-  // battle-area permanents, not hand/trash cards. Expected: two cost-4 ChuuChuumon cannot both
-  // be played under a maximum of 6. Actual: both are played. The per-card `playCostLte` ceiling
-  // IS enforced, so each branch still refuses any single card above its own maximum, and the
-  // printed "+6" raise is therefore observable through that ceiling.
-  residual: ["[On Play] [When Digivolving] ... and up to 6 total play cost (the across-cards sum)"],
+  coverage: "full",
+  residual: [],
   // "[Digivolve] Lv.5 w/[Sukamon]/[Etemon] in name: Cost 4" — a SUBSTRING name gate (`names`)
   // plus the printed level, identical to BT13-076's header for the same card name. It is wider
   // than either catalog EvoCost (Yellow Lv.5 / Black Lv.5 for 5): a Lv.5 KingSukamon of any

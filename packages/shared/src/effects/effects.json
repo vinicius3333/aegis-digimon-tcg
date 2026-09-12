@@ -229280,8 +229280,8 @@
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": ["[On Play] [When Digivolving] ... and up to 6 total play cost (the across-cards sum)"],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [{ "level": 5, "names": ["Sukamon", "Etemon"], "cost": 4, "isAlternate": true }]
   },
   "EX13-036": {
