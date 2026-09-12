@@ -78,6 +78,7 @@ a global serialized test runner: only one Vitest process at a time, one worker, 
 - P-004 IR now declares Your Turn and Once Per Turn. Synchronization and check report one
   semantic P change, 249 synchronized records, and zero semantic or byte changes outside P.
   The public legal-stack/reset proof now passes and is delivered in `9b8a96b7f`.
+- Accepted restart checkpoint (2026-09-12): final fixture validation passed 47 files / 219 tests; reviewed watcher suites passed 7 files / 33 tests; repaired Memory Boost and attack regressions passed 11 files / 46 tests; P-008/P-046/P-048 plus catalog parity passed 4 files / 356 tests; audit layout passed 1 file / 4 tests. These are focused checkpoints, not collection closing gates. Tests remain serialized with a 2 GB heap. Shared/web typechecks passed; the API exceeded the deliberately imposed 2 GB cap and then passed independently with 4 GB. Latest measured system memory was 77% free.
 - Remaining second-lane review findings to verify and repair include P-149's monochrome
   negative, P-157's black-Tamer negative, P-158's Mother D-Reaper stack cost scale, P-160/P-202
   inherited Piercing battle, P-201 inherited end-of-opponent-turn suspension, P-203's real
@@ -201,13 +202,14 @@ git diff --check
 
 ### P-008 — WereGarurumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-008.ts) · [test](../../apps/api/src/cards/P/P-008.test.ts) · clause review (source removed; see History)<br>“unsuspends with exact Garurumon and grants inherited Security Attack +1 at 8 cards”; “does not unsuspend with Garurumon (X Antibody)”
 
 - Local KB lookup (2026-09-12): Q4114; no errata entry; restriction entry: restricted.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
+
+- Reaudit frequency proof accepted (2026-09-12): Real attacks unsuspend once, deny the second same-turn activation and renew after natural turns. The inherited Security Attack threshold is asserted at eight cards and denied at seven after a real hand-to-deck primitive movement. Coordinator independently passed three WereGarurumon tests and four Boutmon tests; focused lint and formatting are green. Collection closing gates remain pending.
 
 ### P-009 — Agumon
 
@@ -529,13 +531,12 @@ git diff --check
 
 ### P-046 — Wizardmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-046.ts) · [test](../../apps/api/src/cards/P/P-046.test.ts) · clause review (source removed; see History)<br>“gains 1 memory after the first Option used each turn, but not the second”; “Q5519: does not trigger when a Delay effect activates without using an Option card”; “Q5519: does not trigger when an Option's Security effect activates”
 
 - Local KB lookup (2026-09-12): Q4162, Q5519; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit frequency proof accepted (2026-09-12): Public cost-1 Option plays trigger inherited memory once, deny the same-turn repeat and renew after natural turns; exact memory reflects the play cost and gain. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
@@ -549,25 +550,23 @@ git diff --check
 
 ### P-048 — UlforceVeedramon Zero
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-048.ts) · [test](../../apps/api/src/cards/P/P-048.test.ts) · clause review (source removed; see History)<br>“unsuspends the Digimon after paying 3 non-DigiEgg from trash cost”; “does not unsuspend when trash has fewer than 3 non-DigiEgg cards”; “may decline to return the 3 cards and leaves both permanents suspended”; “gains memory once when an AeroVeedramon Zero stack returns 3 cards while attacking”
 
 - Local KB lookup (2026-09-12): Q4166, Q4167, Q4168; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit frequency proof accepted (2026-09-12): Public cost-4 digivolution retains the original Lv.5 source, returns trash and unsuspends own Digimon/Tamer, finishing at 1 from 4. An actual trash-return action cycle denies the same-turn repeat and renews after natural turns; the natural-reset action proof complements the public digivolution trigger proof. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
 ### P-049 — Phoenixmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-049.ts) · [test](../../apps/api/src/cards/P/P-049.test.ts) · clause review (source removed; see History)<br>“gains Security Attack +1 for the turn when a Tamer is in play”; “does not gain Security Attack without a Tamer”; “trashes the opponent's top security card when this Digimon is blocked”; “trashes security only once per turn even if it is blocked twice”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit frequency proof accepted (2026-09-12): Three real blocked attacks trash distinct security cards only on the first attack and after natural turns; the second same-turn attack is denied. The final battle fully settles with combatResolved, idle attack and no pending decision. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
@@ -589,13 +588,12 @@ git diff --check
 
 ### P-052 — Vikemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-052.ts) · [test](../../apps/api/src/cards/P/P-052.test.ts) · clause review (source removed; see History)<br>“restricts up to 3 opponent Digimon with no digivolution cards and excludes stacked Digimon”; “allows the UI decision to choose only 1 of 3 eligible Digimon for the up-to-3 restriction”; “restriction remains after the affected Digimon gains a digivolution card (Q4169)”; “returns only an opponent Digimon with no digivolution cards when attacking”; “returns an opponent Digimon only once per turn across two attacks”
 
 - Local KB lookup (2026-09-12): Q4169; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit frequency proof accepted (2026-09-12): Three real attacks return identified no-source opposing Digimon only on the first attack and after natural turns. The second same-turn attack leaves its opponent in the battle area; final Security and attack resolution fully settle. Coordinator independently passed P-008/P-046/P-048 and catalog parity (4 files, 356 tests), plus Memory Boost and attack regression (11 files, 46 tests). Focused lint/format are green; collection closing gates remain pending.
 
@@ -785,15 +783,16 @@ git diff --check
 
 ### P-074 — Boutmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-074.ts) · [test](../../apps/api/src/cards/P/P-074.test.ts) · clause review (source removed; see History)<br>“trashes a chosen 3 security to make an otherwise unaffordable Shaman digivolution cost 1”; “may choose zero security and pay the full Shaman digivolution cost”; “does not offer the security reduction for a non-Shaman/non-Wizard evolution”; “unsuspends its host once per turn only at exactly 3 security”
 
 - Local KB lookup (2026-09-12): Q4176; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Existing same-turn frequency proof lacks a real next-turn reset assertion. Historical 10/10 is superseded until this proof is reproducible.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
+- Reaudit frequency proof accepted (2026-09-12): A legal Yellow Lv.6 host over Boutmon unsuspends on a real attack at exactly three security, denies the second same-turn activation and renews on a real battle after natural turns. The final battle waits for body deletion, host unsuspension, no pending decision and idle attack. Coordinator independently passed three WereGarurumon tests and four Boutmon tests; focused lint and formatting are green. Collection closing gates remain pending.
 
 ### P-075 — Okuwamon
 
@@ -1181,13 +1180,14 @@ git diff --check
 
 ### P-114 — Diaboromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
-- Score: **9/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
+- Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-114.ts) · [test](../../apps/api/src/cards/P/P-114.test.ts) · clause review (source removed; see History)<br>“plays a Diaboromon Token when digivolving and counts the token for deletion scaling”; “plays a Diaboromon Token from the When Attacking effect”
 
 - Local KB lookup (2026-09-12): Q4220, Q4221, Q4222; no errata entry; no restriction entry.
 
-- Current reaudit proof gap (2026-09-12): Effect-play deletion trigger, Diaboromon cost-budget scaling and frequency lack behavioral proof. Historical 10/10 is superseded until this proof is reproducible.
+
+- Reaudit proof accepted (2026-09-12): public cost-3 digivolution retains the exact Lv.5 source and creates a token. A preferred cost-8 opponent is excluded at the first printed limit of 7 while an eligible cost-2 opponent is deleted; a second same-turn token play cannot delete, and a real next-turn attack creates another token and deletes the preferred cost-8 opponent at the increased limit. Coordinator independently passed all three tests, lint and formatting. Collection closeout gates remain pending.
 
 ### P-115 — SkullKnightmon
 
