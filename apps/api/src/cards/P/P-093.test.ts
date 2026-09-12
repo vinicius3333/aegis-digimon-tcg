@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-093.js";
 
 describe("P-093 Bastemon", () => {
@@ -85,39 +86,70 @@ describe("P-093 Bastemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-075", as: "host", under: ["P-093"] }],
+          battleArea: [{ card: "BT1-080", as: "host", under: ["P-093"] }],
           hand: [
-            { card: "BT1-080", as: "level6" },
-            { card: "BT4-090", as: "level7" },
+            { card: "BT13-059", as: "firstExamon" },
+            { card: "BT13-059", as: "secondExamon" },
+            { card: "BT13-059", as: "thirdExamon" },
           ],
-          deck: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const sourceId = s.perm("host").stack[0]!.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("level6").instanceId,
+        instanceId: s.inst("firstExamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard?.instanceId === s.inst("level6").instanceId);
-    expect(s.state.memory).toBe(9);
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("firstExamon").instanceId);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+
+    await (
+      s.engine as unknown as { primitives: { deDigivolve: (id: string, n: number) => Promise<void> } }
+    ).primitives.deDigivolve(s.perm("host").permanentId, 1);
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-080");
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("level7").instanceId,
+        instanceId: s.inst("secondExamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard?.instanceId === s.inst("level7").instanceId);
-
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("secondExamon").instanceId);
     expect(s.state.memory).toBe(3);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await (
+      s.engine as unknown as { primitives: { deDigivolve: (id: string, n: number) => Promise<void> } }
+    ).primitives.deDigivolve(s.perm("host").permanentId, 1);
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-080");
+    const memoryBeforeResetTrigger = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("thirdExamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("thirdExamon").instanceId);
+    expect(s.state.memory).toBe(memoryBeforeResetTrigger - 3);
     assertNoLoudGap(s);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
