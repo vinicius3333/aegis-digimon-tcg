@@ -148,11 +148,13 @@ git diff --check
 
 ### P-002 — Biyomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-002.ts) · [test](../../apps/api/src/cards/P/P-002.test.ts) · clause review (source removed; see History)<br>“draws when its host deletes an opposing Digimon in battle and survives”; “does not draw when its host loses the battle”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-003 — Gabumon
 
@@ -212,11 +214,13 @@ git diff --check
 
 ### P-009 — Agumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-009.ts) · [test](../../apps/api/src/cards/P/P-009.test.ts) · clause review (source removed; see History)<br>“gives +2000 DP only to a Greymon-family host during its owner's turn”
 
 - Local KB lookup (2026-09-12): Q4075; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-010 — Greymon
 
@@ -324,19 +328,23 @@ git diff --check
 
 ### P-023 — Patamon's Confession
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-023.ts) · [test](../../apps/api/src/cards/P/P-023.test.ts) · clause review (source removed; see History)<br>“requires T.K. Takaishi, then places the Patamon to security and trashes its stack”; “can be used with T.K. but no Patamon and resolves without changing security (Q4132)”; “can be used without T.K. when another yellow source meets the color rule, but does nothing”; “offers each Patamon permanent, preserves inherited provenance, and bottoms only the chosen top”; “adds itself to its owner's hand after a real security check”
 
 - Local KB lookup (2026-09-12): Q4132; no errata entry; no restriction entry.
 
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
+
 ### P-024 — Tai's Growing Up!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-024.ts) · [test](../../apps/api/src/cards/P/P-024.test.ts) · clause review (source removed; see History)<br>“bottoms exact Agumon, trashes that stack, and draws 3 with exact Tai Kamiya”; “rejects Tai (V-Tamer) and Agumon Expert as exact-name substitutes”; “does not draw when exact Tai is present but no exact Agumon can be bottom-decked”; “allows declining the single optional effect without moving Agumon or drawing”; “adds itself to its owner's hand after a real security check”
 
 - Local KB lookup (2026-09-12): Q4133, Q4134; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-025 — GranKuwagamon
 
@@ -416,11 +424,13 @@ git diff --check
 
 ### P-034 — DemiDevimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-034.ts) · [test](../../apps/api/src/cards/P/P-034.test.ts) · clause review (source removed; see History)<br>“counts itself after deletion as the seventh Devimon and offers DanDevimon (Q4148)”; “lets the player decline the single optional play”; “does not prompt when its deletion leaves only six Devimon cards in trash”
 
 - Local KB lookup (2026-09-12): Q4148; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-035 — Red Memory Boost!
 
@@ -694,13 +704,15 @@ git diff --check
 
 ### P-064 — Kiyoshiro Higashimitarai
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-064.ts) · [test](../../apps/api/src/cards/P/P-064.test.ts) · clause review (source removed; see History)<br>“suspends to give Jamming to an attacker with Jellymon in its sources”; “does not grant Jamming when Kiyoshiro is already suspended”; “does not treat TeslaJellymon as the exact Jellymon source”; “plays itself from security”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-065 — Gammamon
 
@@ -951,13 +963,15 @@ git diff --check
 
 ### P-092 — Dracomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-092.ts) · [test](../../apps/api/src/cards/P/P-092.test.ts) · clause review (source removed; see History)<br>“digivolves itself directly into Wingdramon for 3 by ignoring level requirements”; “inherited effect digivolves a legal level 4 host into Wingdramon for free”; “Q4182 does not offer inherited Wingdramon evolution from an illegal level 3 host”
 
 - Local KB lookup (2026-09-12): Q4182; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed this third fixture batch: 15 files, 46 tests. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-093 — Bastemon
 
@@ -1356,11 +1370,13 @@ git diff --check
 
 ### P-131 — Pteromon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-131.ts) · [test](../../apps/api/src/cards/P/P-131.test.ts) · clause review (source removed; see History)<br>“suspends one opposing Digimon on play”; “gives its inherited host +2000 DP on your turn”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-132 — Galemon
 
@@ -1437,13 +1453,15 @@ git diff --check
 
 ### P-139 — Leomon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-139.ts) · [test](../../apps/api/src/cards/P/P-139.test.ts) · clause review (source removed; see History)<br>“reduces an opponent's Digimon by 3000 DP on play”; “encodes zero-cost Leomon digivolution and inherited Recovery”; “applies -3000 DP on the live When Digivolving window”; “grants Blocker and Fortitude while Leomon/X Antibody is in its stack”; “recovers the top deck card when deleted”
 
 - Local KB lookup (2026-09-12): Q4246; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-140 — MegaKabuterimon
 
@@ -1470,13 +1488,15 @@ git diff --check
 
 ### P-142 — Falcomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-142.ts) · [test](../../apps/api/src/cards/P/P-142.test.ts) · clause review (source removed; see History)<br>“trashes an opponent hand card when its inherited host is deleted outside battle”; “does not trash a card when the inherited host is deleted in battle”; “encodes the On Play suspension and Ravemon attack option”; “encodes zero-cost Pinamon digivolution and inherited non-battle deletion hand trash”; “suspends an opposing level-6-or-lower Digimon on play”; “publicly performs the optional Ravemon attack and places Falcomon underneath it”
 
 - Local KB lookup (2026-09-12): Q4249; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; establish catalog-legal sources while preserving the tested positive/negative condition. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-143 — Drimogemon
 
@@ -1502,11 +1522,13 @@ git diff --check
 
 ### P-145 — Myotismon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-145.ts) · [test](../../apps/api/src/cards/P/P-145.test.ts) · clause review (source removed; see History)<br>“plays a level-6 Myotismon from trash when deleted with Myotismon in its stack”; “does not revive without Myotismon or X Antibody in its stack”; “deletes an opposing level 4 Digimon on play”; “encodes zero-cost Myotismon digivolution and conditional level-6 revival”; “revives with an X Antibody trait-only digivolution card”; “deletes an opposing level-4 Digimon on When Digivolving”
 
 - Local KB lookup (2026-09-12): Q4260; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-146 — Recharge Plug-In Q
 
@@ -1587,11 +1609,13 @@ git diff --check
 
 ### P-153 — MagnaGarurumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-153.ts) · [test](../../apps/api/src/cards/P/P-153.test.ts) · clause review (source removed; see History)<br>“returns exactly one opposing level-3/4/5 Digimon when digivolving”; “encodes Armor Purge and a singular level 3/4/5 return”; “encodes End of Attack top-security payment and the Digimon/Tamer unsuspend choice”; “places its top digivolution card on security and unsuspends itself at End of Attack”
 
 - Local KB lookup (2026-09-12): Q1661, Q5135; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-154 — Maildramon
 
@@ -1621,21 +1645,25 @@ git diff --check
 
 ### P-157 — Monimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-157.ts) · [test](../../apps/api/src/cards/P/P-157.test.ts) · clause review (source removed; see History)<br>“encodes inherited On Deletion Draw 1 conditional on a black Tamer”; “draws when the inherited host is deleted while a black Tamer is present”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
 
+- Current additional reaudit proof hold (2026-09-12): Only the positive black-Tamer deletion draw is behavioral; its inherited host is Red level 3 over a Black Digi-Egg. Verify a legal host and the missing no-black-Tamer condition. Historical 10/10 is superseded pending independently accepted repair.
+
 ### P-158 — Jeri (Fake)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-158.ts) · [test](../../apps/api/src/cards/P/P-158.test.ts) · clause review (source removed; see History)<br>“adds the selected D-Reaper card to hand and bottoms the other revealed cards”; “registers Main return-and-play and Security self-play timings”; “plays itself from security without paying its memory cost”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The Main self-return and Mother D-Reaper source-count play-cost ceiling are only encoded-shape assertions; Security is only an injected timing. Public Main scaling/boundary and real Security resolution remain unproved. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-159 — Rook Device
 
@@ -1649,11 +1677,13 @@ git diff --check
 
 ### P-160 — Tyrannomon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-160.ts) · [test](../../apps/api/src/cards/P/P-160.test.ts) · clause review (source removed; see History)<br>“requires non-X-Antibody Tyrannomon for zero-cost digivolution”; “checks Tyrannomon name or X Antibody trait in the stack for its attack digivolution”; “exposes Raid on the played Tyrannomon X Antibody”; “digivolves into a higher-level Dinosaur from hand when the X Antibody stack condition is met”
 
 - Local KB lookup (2026-09-12): Q4273, Q4274; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The attack evolution is only injected OnUseAttack with no public attack cost/source proof; card-specific inherited Piercing battle attribution remains unverified. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-161 — Bishop Device
 
@@ -1693,13 +1723,15 @@ git diff --check
 
 ### P-165 — ShoeShoemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-165.ts) · [test](../../apps/api/src/cards/P/P-165.test.ts) · clause review (source removed; see History)<br>“encodes Security end-of-battle play and On Play/When Digivolving Familiar Token creation”; “uses the Familiar Token's own deletion effect and encodes inherited Barrier”; “plays exactly one Familiar Token from On Play”; “plays the token from When Digivolving and its deletion reduces an opposing Digimon by 3000”; “plays from Security at end of a real battle”; “deletes its Familiar Token at the real opponent-turn boundary”
 
 - Local KB lookup (2026-09-12): Q4275, Q5756, Q5757; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards. Coordinator independently passed this fourth batch with the six Memory Boosts and package regression: 22 files, 103 tests. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-166 — Galemon
 
@@ -1747,11 +1779,13 @@ git diff --check
 
 ### P-171 — Pukumon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-171.ts) · [test](../../apps/api/src/cards/P/P-171.test.ts) · clause review (source removed; see History)<br>“reduces its play cost by 4 only with face-up Deep Savers in security”; “has Blocker, trashes the top 2 sources from every opposing Digimon, then deletes an empty one”; “performs the same all-stacks source trash and empty-stack deletion when digivolving”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-172 — Magnadramon
 
@@ -1775,11 +1809,13 @@ git diff --check
 
 ### P-174 — Boltmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-174.ts) · [test](../../apps/api/src/cards/P/P-174.test.ts) · clause review (source removed; see History)<br>“reduces its play cost by 4 only with face-up Nightmare Soldiers in security”; “does not reduce its cost for a different face-up security card”; “has Blocker and de-digivolves before deleting the resulting level 4 Digimon”; “runs the same de-digivolve-then-delete sequence on deletion”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-175 — Hina Kurihara
 
@@ -1812,14 +1848,16 @@ git diff --check
 
 ### P-178 — Sagittarimon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-178.ts) · [test](../../apps/api/src/cards/P/P-178.test.ts) · clause review (source removed; see History)<br>“encodes Veemon Armor digivolution and Armor Purge”; “reduces an opponent by 3000 DP on digivolution and deletes an opponent at 4000 DP or less when attacking”; “exposes Armor Purge on the live permanent”; “applies the -3000 digivolution modifier and deletes only targets at the 4000 boundary”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-179 — Justimon: Critical Arm
 
@@ -1857,11 +1895,13 @@ git diff --check
 
 ### P-182 — WarGreymon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-182.ts) · [test](../../apps/api/src/cards/P/P-182.test.ts) · clause review (source removed; see History)<br>“encodes MetalGreymon and ADVENTURE alternate digivolution requirements”; “encodes Security Attack +1, Blocker, and DP-relative deletion”; “adds 1000 DP per color among your Digimon and Tamers”; “exposes Security Attack +1 and Blocker on the live WarGreymon”; “deletes only an opposing Digimon at or below its DP and counts distinct allied colors”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-183 — Gaiomon
 
@@ -1878,11 +1918,13 @@ git diff --check
 
 ### P-184 — Dorugoramon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-184.ts) · [test](../../apps/api/src/cards/P/P-184.test.ts) · clause review (source removed; see History)<br>“encodes DoruGreymon and SoC alternate digivolution requirements”; “encodes Collision, Security Attack +1, and the conditional SoC unsuspend”; “exposes Collision and Security Attack +1 on the live Dorugoramon”; “boosts DP and unsuspends every allied SoC Digimon when Kosuke is in its stack”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-185 — EmperorGreymon
 
@@ -1896,14 +1938,16 @@ git diff --check
 
 ### P-186 — Gallantmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-186.ts) · [test](../../apps/api/src/cards/P/P-186.test.ts) · clause review (source removed; see History)<br>“reduces play cost by 2 per five total trash cards when a 13000+ DP Digimon exists”; “encodes Rush, Blocker, and ruling-correct deletion followed by conditional Recovery”; “reduces the real play cost by 2 for each five cards in both trashes”; “deletes an opposing Digimon at exactly 13000 DP on play”; “recovers one card when its play effect deletes no qualifying Digimon”; “also deletes a boundary target and recovers when digivolving”
 
 - Local KB lookup (2026-09-12): Q4629, Q4630; no errata entry; no restriction entry.
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-187 — Mastemon
 
@@ -1967,13 +2011,15 @@ git diff --check
 
 ### P-192 — Bakemon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-192.ts) · [test](../../apps/api/src/cards/P/P-192.test.ts) · clause review (source removed; see History)<br>“trashes one hand card to delete an opponent level 4 or lower Digimon on play and digivolution”; “has inherited Retaliation”; “exposes inherited Retaliation on a real evolution stack”; “trashes a hand card and deletes an opposing Digimon when digivolving”; “trashes a hand card and deletes an opposing level-4-or-lower Digimon”
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-193 — The Wicked God Emerges!
 
@@ -2092,14 +2138,16 @@ git diff --check
 
 ### P-204 — Release of the Sealed Knight!
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-204.ts) · [test](../../apps/api/src/cards/P/P-204.test.ts) · clause review (source removed; see History)<br>“gates Draw 2 and placement behind trashing an X Antibody or Chronicle card”; “grants Delay when either player's Digimon attacks and allows the Chronicle evolution”; “activates its Main effect from Security”; “draws two after trashing an X Antibody card and places itself”; “gains Delay when a Digimon makes a real attack”
 
 - Local KB lookup (2026-09-12): Q5199; no errata entry; no restriction entry.
 
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
+
+- Current additional reaudit proof hold (2026-09-12): The real attack test only observes Delay keyword acquisition. Accepted and declined Delay Chronicle evolution, option consumption/retention, and retained evolution sources remain unproved. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-205 — Insane Synthetic Monster
 
@@ -2185,8 +2233,8 @@ git diff --check
 
 ### P-213 — Aegiochusmon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-213.ts) · [test](../../apps/api/src/cards/P/P-213.test.ts) · clause review (source removed; see History)<br>“has Raid, Decode, and the Aegiomon digivolution requirement”; “gains Rush and 3000 DP at three or fewer security, then may attack”; “grants Rush and +3000 DP at three security, but not at four”; “still permits the optional attack when the three-security bonus condition is false”
 
 - Local KB lookup (2026-09-12): Q5763; no errata entry; no restriction entry.
@@ -2194,13 +2242,17 @@ git diff --check
 
 - Reaudit fixture repair accepted (2026-09-12, commit `8cc989541`): regular cards replace normal hand/deck/Security Digi-Egg fillers, preserving the existing assertions. Coordinator independently passed the final fixture batch: 47 files, 219 tests; lint and formatting are green. Other listed proof holds remain pending.
 
+- Current additional reaudit proof hold (2026-09-12): The colocated When Digivolving behavioral proof only injects timing with advance.fire; no public digivolve intent is present in that file. A printed-clause review must establish attributable public evolution with paid cost and retained source before this hold is cleared. Historical 10/10 is superseded pending independently accepted repair.
+
 ### P-214 — Betamon (X Antibody)
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
-- Score: **10/10**
+- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 2/2
+- Score: **9/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-214.ts) · [test](../../apps/api/src/cards/P/P-214.test.ts) · clause review (source removed; see History)<br>“returns the opponent Digimon (level <= chosen Seadramon's level) to the deck”; “encodes Decode as a non-battle leave replacement with exact source names”; “plays a Betamon from its digivolution cards when it leaves play”; “does not play a non-matching card when Decode leaves play”
 
 - Local KB lookup (2026-09-12): Q5960, Q5961; no errata entry; no restriction entry.
+
+- Current additional reaudit proof hold (2026-09-12): A tested source fixture uses an unjustified same-level or cross-color stack; replace it with catalog-legal sources while preserving the tested positive/negative condition. P-214 alternate Betamon evolution is legitimate; its separate Red Digi-Egg under Blue Betamon fixture is the source hold. Historical 10/10 is superseded pending independently accepted repair.
 
 ### P-215 — Icemon
 
