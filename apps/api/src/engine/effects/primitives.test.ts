@@ -1282,6 +1282,46 @@ describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
 });
 
 describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
+  it.each([
+    { label: "paid", payCost: true, expectedMemory: 7 },
+    { label: "free", payCost: false, expectedMemory: 10 },
+  ])("accepts the RB1-009 Gammamon-text stack gate on the $label path", async ({ payCost, expectedMemory }) => {
+    const h = harness({
+      memory: 10,
+      board: {
+        0: {
+          battleArea: [{ card: "RB1-005", as: "base", under: ["RB1-008"] }],
+          hand: [{ card: "RB1-009", as: "evolving" }],
+        },
+      },
+    });
+    const base = h.s.perm("base");
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, { payCost });
+
+    expect(result).toBeDefined();
+    expect(h.state.memory).toBe(expectedMemory);
+    expect(base.stack.map((card) => card.cardId)).toEqual(["RB1-008", "RB1-005"]);
+  });
+
+  it.each([true, false])("rejects the RB1-009 stack gate without Gammamon text (payCost=%s)", async (payCost) => {
+    const h = harness({
+      memory: 10,
+      board: {
+        0: {
+          battleArea: [{ card: "RB1-005", as: "base", under: ["RB1-011"] }],
+          hand: [{ card: "RB1-009", as: "evolving" }],
+        },
+      },
+    });
+    const base = h.s.perm("base");
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, { payCost });
+
+    expect(result).toBeUndefined();
+    expect(h.state.memory).toBe(10);
+    expect(h.state.players[0]!.hand).toHaveLength(1);
+    expect(base.topCard.cardId).toBe("RB1-005");
+  });
+
   it("stacks a loose hand card onto a target permanent, prior top sliding under", async () => {
     const h = harness({
       board: {
