@@ -219,3 +219,83 @@ security fields. Counts are distinct card IDs per exact marker.
 ## History
 
 - 2026-09-12: initial inventory from the working catalog; no completion credit awarded.
+
+## Canonical structured keyword inventory
+
+This inventories the 45 canonical union entries against every recursively located `keyword` object in committed IR. Declaration counts refer to `effects[*].keywords[*]`; other counts include action/grant and reference objects and must be traced to distinguish grants from requests. Printed-only and non-keyword-object grant representations remain separate obligations. Shape counts ignore `raw` prose but retain amounts and trait parameters. No behavioral score follows from these counts.
+
+| Canonical keyword    | Declaration cards | Other structured reference cards | Distinct structured shapes |
+| -------------------- | ----------------: | -------------------------------: | -------------------------: |
+| `Blocker`            |               304 |                              161 |                          2 |
+| `Piercing`           |               102 |                               84 |                          2 |
+| `Rush`               |                37 |                               68 |                          2 |
+| `Raid`               |                74 |                               20 |                          1 |
+| `Reboot`             |                92 |                               51 |                          2 |
+| `Jamming`            |                71 |                               42 |                          2 |
+| `Retaliation`        |                63 |                               30 |                          1 |
+| `Barrier`            |                61 |                                7 |                          1 |
+| `Evade`              |                22 |                                5 |                          1 |
+| `Save`               |                47 |                                0 |                          1 |
+| `Delay`              |               132 |                               11 |                          1 |
+| `Alliance`           |                59 |                               37 |                          1 |
+| `Fortitude`          |                28 |                                2 |                          1 |
+| `Blitz`              |                14 |                               12 |                          2 |
+| `Collision`          |                26 |                               17 |                          1 |
+| `Vortex`             |                15 |                                3 |                          1 |
+| `Decoy`              |                 9 |                                3 |                          2 |
+| `Scapegoat`          |                12 |                                5 |                          1 |
+| `Execute`            |                 8 |                                7 |                          2 |
+| `Progress`           |                 9 |                                1 |                          1 |
+| `IceClad`            |                12 |                                1 |                          1 |
+| `Training`           |                19 |                                2 |                          1 |
+| `Armor Purge`        |                46 |                                0 |                          1 |
+| `Mind Link`          |                 6 |                                0 |                          1 |
+| `Ascension`          |                 4 |                                2 |                          1 |
+| `BlastDigivolve`     |                75 |                                0 |                          1 |
+| `BlastDNADigivolve`  |                 7 |                                0 |                          1 |
+| `Draw`               |                 2 |                                0 |                          1 |
+| `SecurityAttack`     |                97 |                              221 |                          7 |
+| `DeDigivolve`        |                 0 |                                0 |                          0 |
+| `Recovery`           |                11 |                               13 |                          1 |
+| `DigiBurst`          |                27 |                                1 |                          5 |
+| `Digisorption`       |                10 |                                0 |                          2 |
+| `MaterialSave`       |                12 |                                1 |                          4 |
+| `DigiXrosSubstitute` |                 0 |                                1 |                          1 |
+| `Link`               |                 9 |                                2 |                          3 |
+| `LinkMax`            |                 0 |                                1 |                          1 |
+| `Fragment`           |                11 |                                0 |                          2 |
+| `Partition`          |                13 |                                0 |                          1 |
+| `Decode`             |                28 |                                0 |                          1 |
+| `Overclock`          |                11 |                                0 |                          2 |
+| `UseReq`             |                 2 |                                0 |                          1 |
+| `Engage`             |                 5 |                                0 |                          1 |
+| `Guard`              |                 3 |                                1 |                          1 |
+| `Detach`             |                 7 |                                0 |                          1 |
+
+Structured keyword names outside the canonical union: `EndOfAttack`, `OnDeletion`, `Succession`, `Unblockable`.
+
+### Parameterized structured shapes
+
+- `Blocker`: `{"keyword":"Blocker","kind":"selfHasKeyword"}`; `{"keyword":"Blocker"}`.
+- `Piercing`: `{"keyword":"Piercing","kind":"selfHasKeyword"}`; `{"keyword":"Piercing"}`.
+- `Rush`: `{"keyword":"Rush","kind":"SetBaseDP","restriction":"digivolve","value":12000}`; `{"keyword":"Rush"}`.
+- `Reboot`: `{"keyword":"Reboot","kind":"selfHasKeyword"}`; `{"keyword":"Reboot"}`.
+- `Jamming`: `{"keyword":"Jamming","kind":"selfHasKeyword"}`; `{"keyword":"Jamming"}`.
+- `Blitz`: `{"keyword":"Blitz","kind":"selfHasKeyword"}`; `{"keyword":"Blitz"}`.
+- `Decoy`: `{"colors":["Red","Black"],"keyword":"Decoy"}`; `{"keyword":"Decoy"}`.
+- `Execute`: `{"keyword":"Execute","kind":"triggerAttackBy"}`; `{"keyword":"Execute"}`.
+- `SecurityAttack`: `{"amount":-1,"keyword":"SecurityAttack"}`; `{"amount":-2,"keyword":"SecurityAttack"}`; `{"amount":-3,"keyword":"SecurityAttack"}`; `{"amount":1,"keyword":"SecurityAttack"}`; `{"amount":2,"keyword":"SecurityAttack"}`; `{"amount":3,"keyword":"SecurityAttack"}`; `{"keyword":"SecurityAttack"}`.
+- `DigiBurst`: `{"amount":1,"keyword":"DigiBurst"}`; `{"amount":2,"keyword":"DigiBurst"}`; `{"amount":3,"keyword":"DigiBurst"}`; `{"amount":4,"keyword":"DigiBurst"}`; `{"keyword":"DigiBurst","kind":"selfHasKeyword"}`.
+- `Digisorption`: `{"amount":-2,"keyword":"Digisorption"}`; `{"amount":-3,"keyword":"Digisorption"}`.
+- `MaterialSave`: `{"amount":1,"keyword":"MaterialSave"}`; `{"amount":2,"keyword":"MaterialSave"}`; `{"amount":3,"keyword":"MaterialSave"}`; `{"amount":4,"keyword":"MaterialSave"}`.
+- `Link`: `{"amount":1,"keyword":"Link"}`; `{"amount":2,"keyword":"Link"}`; `{"amount":6,"keyword":"Link"}`.
+- `Fragment`: `{"amount":2,"keyword":"Fragment"}`; `{"amount":3,"keyword":"Fragment"}`.
+- `Overclock`: `{"keyword":"Overclock","qualifier":"Puppet"}`; `{"keyword":"Overclock"}`.
+
+The `Detach` union comment is stale: seven BT26 cards declare it in committed IR, confirmed against BT26-010’s direct module. The current official manual defines Detach and Succession; neither should remain an invented or source-free provisional mechanic. Zero structured declarations also cannot prove absence of runtime behavior, because printed matching or another action representation may implement the keyword.
+
+## Latest manual alignment
+
+The [official manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf), version 4.2 updated 2026-08-18, adds normative Detach (§16-46) and Succession (§16-47) definitions. The canonical union includes Detach but excludes Succession even though committed IR contains a structured Succession reference. This is an inventory mismatch requiring inspection and correction, not proof of missing runtime behavior.
+
+Detach has a concrete runtime scope mismatch: `engine/effects/detach.ts` documents a combat-only deletion reaction and explicitly says effect deletion never calls its seam. Current §16-46 covers departure other than the owner’s effects, requiring a matching linked-card payment. Investigate opponent deletion/return/deck/security departure and own-effect exclusions through public intents, then fix the shared replacement seam. Existing Q6964 battle proof covers one case and cannot limit the general keyword contract. This obligation takes priority in the replacement/keyword audit.
