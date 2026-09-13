@@ -2270,7 +2270,9 @@ export function GameScreen({
 
       {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} onClose={() => setZoomCardId(null)} /> : null}
 
-      {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
+      {bugReportOpen ? (
+        <BugReportDialog signedIn={signedIn} matchLogId={state.matchLogId} onClose={() => setBugReportOpen(false)} />
+      ) : null}
 
       {state.gameOver ? (
         <GameOverOverlay

@@ -471,11 +471,12 @@ describe("reporting one game's result", () => {
     });
     await accounts.pool.query("UPDATE tournament_games SET room_id='room-elsewhere' WHERE id=$1", [gameId]);
 
-    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const logged = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     await reportGameOver(room, won(0));
     expect(logged).toHaveBeenCalledWith(expect.stringContaining("REJECTED"));
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(gameId));
     expect(logged).toHaveBeenCalledWith(expect.stringContaining("room_mismatch"));
+    expect(JSON.parse(String(logged.mock.calls[0]![0])).matchId).toBe(room.state.matchLogId);
     logged.mockRestore();
   });
 

@@ -38,3 +38,6 @@ aegis-accounts.sqlite*
 ui-review/
 
 # Generated card-audit reports
+
+# Local structured application logs
+apps/api/logs/
