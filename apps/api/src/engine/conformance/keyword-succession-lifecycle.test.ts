@@ -77,6 +77,162 @@ describe("Succession committed consumer evolution", () => {
     assertNoLoudGap(s);
   });
 
+  it.each([
+    {
+      card: "BT26-032",
+      lower: "BT25-059",
+      upper: "BT3-056",
+      securityAttack: 0,
+      piercing: false,
+      engage: false,
+    },
+    {
+      card: "BT26-080",
+      lower: "BT25-077",
+      upper: "BT26-080",
+      securityAttack: 2,
+      piercing: false,
+      engage: false,
+    },
+    {
+      card: "BT26-060",
+      lower: "BT26-016",
+      upper: "BT26-016",
+      securityAttack: 1,
+      piercing: false,
+      engage: true,
+    },
+    {
+      card: "BT26-103",
+      lower: "BT24-101",
+      upper: "BT26-033",
+      securityAttack: 0,
+      piercing: true,
+      engage: true,
+      engageAfter: false,
+    },
+  ])("publicly removes the current $upper provider and exposes the lower $lower source for $card", async (scenario) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: scenario.card,
+              as: "host",
+              under: [
+                { card: scenario.lower, as: "lowerProvider" },
+                { card: scenario.upper, as: "upperProvider" },
+                { card: NEUTRAL, as: "nonMatchingFiller" },
+              ],
+            },
+          ],
+        },
+        1: { hand: [{ card: "BT24-022", as: "removal" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const lowerId = s.inst("lowerProvider").instanceId;
+    const upperId = s.inst("upperProvider").instanceId;
+    const fillerId = s.inst("nonMatchingFiller").instanceId;
+    const removalId = s.inst("removal").instanceId;
+    const hostId = s.perm("host").permanentId;
+
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(scenario.securityAttack);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(scenario.piercing);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Engage")).toBe(scenario.engage);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: removalId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([lowerId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([upperId, fillerId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(lowerId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(removalId);
+    expect(s.state.memory).toBe(4);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-022")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(
+      scenario.card === "BT26-080" ? 1 : scenario.securityAttack,
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(scenario.piercing);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Engage")).toBe(
+      "engageAfter" in scenario ? scenario.engageAfter : scenario.engage,
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("publicly removes BT3-056, then the exposed BT25-059 reaction fires on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-032",
+              as: "host",
+              under: [
+                { card: "BT25-059", as: "lowerProvider" },
+                { card: "BT3-056", as: "upperProvider" },
+                { card: NEUTRAL, as: "nonMatchingFiller" },
+              ],
+            },
+          ],
+          deck: [NEUTRAL, NEUTRAL, "BT1-010", "BT1-010", "BT1-010"],
+          security: [NEUTRAL],
+        },
+        1: {
+          hand: [{ card: "BT24-022", as: "removal" }],
+          battleArea: [{ card: "BT1-082", as: "reactionTarget" }],
+          deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-010", "BT1-010", "BT1-010"],
+          security: [NEUTRAL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("reactionTarget").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("reactionTarget").currentDP).toBe(11000);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.length === 1 && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const playerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("lowerProvider").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("reactionTarget").currentDP).toBe(5000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await playerTurn;
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it.each([true, false])("public Chronomon attack resolves the gained effect, acceptance %s", async (accept) => {
     const preferred: string[] = [];
     const s = setupEngine(
