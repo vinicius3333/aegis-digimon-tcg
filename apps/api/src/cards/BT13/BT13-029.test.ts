@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-029.js";
+import "../ST2/ST2-16.js";
 import "./BT13-030.js";
 
 describe("BT13-029 MachGaogamon", () => {
@@ -81,9 +82,9 @@ describe("BT13-029 MachGaogamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("unsuspends its host when an effect adds a card to the opponent's hand", async () => {
+  it("supplemental dispatch filters the controller and suppresses repeated additions of a card to the opponent's hand", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", as: "host", suspended: true, under: ["BT13-029"] }] },
+      0: { battleArea: [{ card: "ST2-10", as: "host", suspended: true, under: ["BT13-029"] }] },
     });
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 0 });
@@ -97,32 +98,91 @@ describe("BT13-029 MachGaogamon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
   });
 
-  it("naturally unsuspends when a played blue Tamer causes an effect return to the opponent's hand", async () => {
+  it("unsuspends its legal host for public effect returns once per turn and resets", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-015", as: "host", suspended: true, under: ["BT13-029"] },
-            { card: "BT13-030", as: "ulforce" },
+          battleArea: [{ card: "ST2-10", as: "host", under: [{ card: "BT13-029", as: "source" }] }],
+          hand: [
+            { card: "ST2-16", as: "firstOption" },
+            { card: "ST2-16", as: "secondOption" },
+            { card: "ST2-16", as: "thirdOption" },
           ],
-          hand: [{ card: "BT13-097", as: "blueTamer" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "firstTarget" },
+            { card: "BT1-015", as: "secondTarget" },
+          ],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
+    const firstId = s.inst("firstTarget").instanceId;
+    const secondId = s.inst("secondTarget").instanceId;
+    const sourceId = s.inst("source").instanceId;
+    const firstOptionId = s.inst("firstOption").instanceId;
+    const secondOptionId = s.inst("secondOption").instanceId;
+    const thirdOptionId = s.inst("thirdOption").instanceId;
     s.state.memory = 10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(
-      () =>
-        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId) &&
-        !s.perm("host").isSuspended,
-    );
-
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: firstOptionId })).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended && s.state.players[1]!.hand.some((c) => c.instanceId === firstId));
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondOptionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((c) => c.instanceId === secondId));
+    await turn;
+    expect(s.state.memory).toBe(-4);
+    expect(s.perm("host").isSuspended).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: firstId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === firstId));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: thirdOptionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((c) => c.instanceId === firstId));
+    await nextTurn;
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toContain(sourceId);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([firstOptionId, secondOptionId, thirdOptionId]),
+    );
   });
 });

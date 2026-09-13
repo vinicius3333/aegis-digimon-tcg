@@ -178,7 +178,7 @@ describe("BT13-028 Thetismon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-028"] }],
+          battleArea: [{ card: "ST2-10", as: "host", under: ["BT13-028"] }],
           deck: ["BT1-010"],
           trash: [
             { card: "EX12-023", as: "first" },
@@ -223,21 +223,62 @@ describe("BT13-028 Thetismon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-028"], suspended: true }],
+          battleArea: [{ card: "ST2-10", as: "host", under: [{ card: "BT13-028", as: "source" }] }],
+          hand: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
           trash: Array.from({ length: 6 }, () => "BT13-028"),
         },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(3);
 
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 });
