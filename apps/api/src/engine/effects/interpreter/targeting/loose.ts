@@ -774,19 +774,10 @@ export async function pickLoose(
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
   const min = target.upTo ? Math.min(target.minimum ?? 0, candidates.length) : Math.min(want, candidates.length);
-  // CR 15-10-2-1 requires X targets or as many as possible; when different-color
-  // matching makes only a smaller subset feasible, that feasible cardinality is the
-  // fixed-count minimum. A forged response below it still aborts the action.
-  const minimumDistinctColors = requireDifferentColors
-    ? Math.min(
-        want,
-        filterToDistinctColors(
-          candidates,
-          (candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors ?? [],
-        ).length,
-      )
-    : min;
-  const selectionMin = target.upTo ? min : minimumDistinctColors;
+  // CR 15-10-2-1 requires the printed X for a fixed-count target. Different-color
+  // feasibility validates the completed selection; it cannot silently turn an exact
+  // two-card payment into a one-card payment. Only an up-to target may use its lower min.
+  const selectionMin = min;
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {

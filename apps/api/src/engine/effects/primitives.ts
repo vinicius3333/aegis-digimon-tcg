@@ -2354,7 +2354,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const prevented = await engine.consultLeavePrevention?.([sourcePermanentId], cause, resolvingSeat, {
         isBounce: true,
       });
-      if (prevented?.has(sourcePermanentId)) return false;
+      if (prevented?.has(sourcePermanentId)) {
+        const destinationAfterPrevention =
+          access.permanentById(destPermanentId) ??
+          state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+        if (destinationAfterPrevention?.stack.some((card) => card.instanceId === selectedTopInstanceId)) return true;
+        return false;
+      }
     }
 
     const sourceAfterConsult =
@@ -2363,6 +2369,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const destinationAfterConsult =
       access.permanentById(destPermanentId) ??
       state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    // A leave-prevention replacement may pay this relocation recursively while the outer
+    // effect is consulting replacements. In that case the source permanent is intentionally
+    // gone, but its selected physical top card is already under the destination. Preserve the
+    // successful payment result instead of allowing the outer consultation to undo protection.
+    if (
+      sourceAfterConsult === undefined &&
+      destinationAfterConsult?.stack.some((card) => card.instanceId === selectedTopInstanceId)
+    )
+      return true;
     if (
       sourceAfterConsult?.topCard === undefined ||
       sourceAfterConsult?.topCard?.instanceId !== selectedTopInstanceId ||

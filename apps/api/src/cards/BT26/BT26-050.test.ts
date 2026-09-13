@@ -320,6 +320,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT26-050");
+    const burstInstance = s.perm("base").topCard.instanceId;
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(yoshino);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
@@ -327,7 +328,9 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(priorTop);
+    // §8-3-2-1 trashes the Burst top and promotes the former top.
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(burstInstance);
+    expect(s.perm("base").topCard.instanceId).toBe(priorTop);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
