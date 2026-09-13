@@ -10,6 +10,8 @@ export const en = {
   "common.save": "Save",
   "common.import": "Import",
   "common.export": "Export",
+  "game.debugId": "Match ID",
+  "game.debugCopyFailed": "Copy failed; select the ID to copy.",
   "common.copy": "Copy",
   "common.copied": "Copied!",
   "common.edit": "Edit",
