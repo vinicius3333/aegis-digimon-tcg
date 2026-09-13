@@ -109,7 +109,9 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         }
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, scaledTarget);
+      // Restrictions are continuous state. An immune permanent is still a legal chosen target;
+      // preserve it so the restriction becomes effective when that immunity ends (Q831/Q2120).
+      const ids = await resolvePermanentTargets(ctx, scaledTarget, { preserveUnaffectableSelection: true });
       // Target-scoped prohibition (BT10-042): affected Digimon can't attack THIS source,
       // but may still attack the player or a different Digimon. A plain `attack`
       // restriction would incorrectly suppress the entire declaration.

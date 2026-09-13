@@ -23,6 +23,9 @@ import {
   payCost,
   wouldBePlayedSelfReducersFor,
 } from "./interpreter.js";
+import { runRemovalAction } from "./interpreter/actions/removal.js";
+import { CardInstance } from "@aegis/shared";
+import type { ActionScope } from "./interpreter/dispatch.js";
 import { canPayCost } from "./interpreter/costs.js";
 import { countMatching, scaleFactor } from "./interpreter/scaling.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
@@ -65,6 +68,164 @@ describe("breeding references in effect counts", () => {
     expect(countMatching(ctx, { controller: "any", kind: ["Digimon"] })).toBe(1);
     expect(countMatching(ctx, { controller: "mine", zone: "breeding", kind: ["Digimon"] })).toBe(1);
     expect(countMatching(ctx, { controller: "any", zone: ["battleArea", "breeding"], kind: ["Digimon"] })).toBe(3);
+  });
+});
+
+describe("lastDeletedMatchesFilter", () => {
+  function card(instanceId: string, cardId: string, ownerSeat: Seat): CardInstance {
+    const value = new CardInstance();
+    value.instanceId = instanceId;
+    value.cardId = cardId;
+    value.ownerSeat = ownerSeat;
+    return value;
+  }
+
+  function deletionGateContext() {
+    const ownTerriermon = card("own-terrier", "ST17-02", 0);
+    const opponentTerriermon = card("opponent-terrier", "ST17-02", 1);
+    const unrelated = card("unrelated", "BT1-009", 0);
+    const definitions: Record<string, CardDefinition> = {
+      "ST17-02": makeFakeDefinition({
+        cardId: "ST17-02",
+        nameEn: "Terriermon",
+        kinds: [CardKind.Digimon],
+      }),
+      "BT1-009": makeFakeDefinition({ cardId: "BT1-009", nameEn: "Agumon", kinds: [CardKind.Digimon] }),
+    };
+    const ctx = makeContext({
+      source: makeSource({ ownerSeat: 0 }),
+      recorder: { calls: [] },
+      definitionOf: (cardId) => definitions[cardId]!,
+    });
+    return { ctx, ownTerriermon, opponentTerriermon, unrelated };
+  }
+
+  it("accepts an actually deleted own matching Digimon", () => {
+    const { ctx, ownTerriermon } = deletionGateContext();
+    ctx.lastDeletedPermanentSnapshots = [{ permanentId: "own", controllerSeat: 0, topCard: ownTerriermon }];
+
+    expect(
+      evaluateCondition(ctx, {
+        kind: "lastDeletedMatchesFilter",
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }] },
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects an opponent matching Digimon and an unrelated own deletion", () => {
+    const { ctx, opponentTerriermon, unrelated } = deletionGateContext();
+    ctx.lastDeletedPermanentSnapshots = [
+      { permanentId: "opponent", controllerSeat: 1, topCard: opponentTerriermon },
+      { permanentId: "unrelated", controllerSeat: 0, topCard: unrelated },
+    ];
+
+    expect(
+      evaluateCondition(ctx, {
+        kind: "lastDeletedMatchesFilter",
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }] },
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects a prevented deletion because the actual-deletion receipt is empty", () => {
+    const { ctx } = deletionGateContext();
+    ctx.lastDeletedPermanentSnapshots = [];
+
+    expect(
+      evaluateCondition(ctx, {
+        kind: "lastDeletedMatchesFilter",
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }] },
+      }),
+    ).toBe(false);
+  });
+
+  it("records only actual own deletions and clears the receipt after opponent or prevented deletion", async () => {
+    const own = makeFakePermanent({
+      permanentId: "own",
+      controllerSeat: 0,
+      topCard: card("own-card", "ST17-02", 0),
+    });
+    const opponent = makeFakePermanent({
+      permanentId: "opponent",
+      controllerSeat: 1,
+      topCard: card("opponent-card", "ST17-02", 1),
+    });
+    const ownBattleArea = [own];
+    const opponentBattleArea = [opponent];
+    const ctx = makeContext({
+      source: makeSource({ ownerSeat: 0 }),
+      recorder: { calls: [] },
+      ownBattleArea,
+      opponentBattleArea,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({
+          cardId,
+          nameEn: cardId === "ST17-02" ? "Terriermon" : "Agumon",
+          kinds: [CardKind.Digimon],
+        }),
+    });
+    let preventDeletion = false;
+    ctx.fx.deletePermanent = async (ids) => {
+      if (preventDeletion) return 0;
+      for (const id of ids) {
+        const index = ownBattleArea.findIndex((permanent) => permanent.permanentId === id);
+        if (index >= 0) ownBattleArea.splice(index, 1);
+        const opponentIndex = opponentBattleArea.findIndex((permanent) => permanent.permanentId === id);
+        if (opponentIndex >= 0) opponentBattleArea.splice(opponentIndex, 1);
+      }
+      return ids.length;
+    };
+    const ownDelete = {
+      kind: "Delete" as const,
+      target: {
+        filter: {
+          controller: "mine" as const,
+          kind: ["Digimon" as const],
+          nameOrTrait: [{ tokens: ["Terriermon"], match: "name" as const }],
+        },
+        count: 1 as const,
+      },
+    };
+    const opponentDelete = {
+      ...ownDelete,
+      target: { ...ownDelete.target, filter: { ...ownDelete.target.filter, controller: "opponent" as const } },
+    };
+    const scope: ActionScope = { scale: undefined, deferredCostSuspensions: [] };
+
+    await runRemovalAction(ctx, ownDelete, scope);
+    expect(ctx.lastDeletedPermanentSnapshots).toHaveLength(1);
+    expect(
+      evaluateCondition(ctx, {
+        kind: "lastDeletedMatchesFilter",
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }] },
+      }),
+    ).toBe(true);
+
+    await runRemovalAction(ctx, opponentDelete, scope);
+    expect(ctx.lastDeletedPermanentSnapshots).toMatchObject([
+      { permanentId: "opponent", controllerSeat: 1, topCard: { cardId: "ST17-02" } },
+    ]);
+    expect(
+      evaluateCondition(ctx, {
+        kind: "lastDeletedMatchesFilter",
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }] },
+      }),
+    ).toBe(false);
+
+    const replacement = makeFakePermanent({
+      permanentId: "replacement",
+      controllerSeat: 0,
+      topCard: card("replacement-card", "ST17-02", 0),
+    });
+    ownBattleArea.push(replacement);
+    preventDeletion = true;
+    await runRemovalAction(ctx, ownDelete, scope);
+    expect(ctx.lastDeletedPermanentSnapshots).toEqual([]);
+    preventDeletion = false;
+    await runRemovalAction(ctx, ownDelete, scope);
+    expect(ctx.lastDeletedPermanentSnapshots).toHaveLength(1);
+    await runRemovalAction(ctx, ownDelete, scope);
+    expect(ctx.lastDeletedPermanentSnapshots).toEqual([]);
   });
 });
 

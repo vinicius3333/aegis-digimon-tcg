@@ -2164,6 +2164,8 @@ export interface EffectContext {
   lastDeletedByThisEffectIds?: string[];
   /** All permanents actually deleted across every Delete action in this effect resolution. */
   deletedThisEffectIds?: string[];
+  /** Snapshot of the most recent actually deleted permanents for typed follow-up conditions. */
+  lastDeletedPermanentSnapshots?: Array<{ permanentId: string; controllerSeat: Seat; topCard: CardInstance }>;
   /** Seat-relative memory gained by the immediately preceding GainMemory action. */
   lastMemoryGainAmount?: number;
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
