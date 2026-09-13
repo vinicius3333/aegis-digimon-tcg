@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-009.js";
+import "../BT6/BT6-082.js";
 
 describe("BT13-009 Huckmon", () => {
   it("keeps the BaoHuckmon destination exact while Sistermon remains a name family", () => {
@@ -75,18 +77,26 @@ describe("BT13-009 Huckmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-013")).toBe(true);
   });
 
-  it("gains memory only once per turn from its inherited effect when allied Sistermon are played", async () => {
+  it("gains memory once per own turn from allied Sistermon plays and resets on the next own turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-009"] }],
+        battleArea: [{ card: "BT1-015", as: "host", under: [{ card: "BT13-009", as: "source" }] }],
         hand: [
           { card: "BT6-082", as: "first" },
           { card: "BT6-082", as: "second" },
+          { card: "BT6-082", as: "third" },
         ],
+        deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
       },
+      1: { hand: ["BT1-010"], deck: ["BT1-010", "BT1-010", "BT1-010"] },
     });
     s.state.memory = 10;
     await s.ready();
+
+    const sourceId = s.inst("source").instanceId;
+    s.state.turnSeat = 0;
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
@@ -99,6 +109,25 @@ describe("BT13-009 Huckmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     await settle();
     expect(s.state.memory).toBe(5);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 4);
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(sourceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("does not trigger for a Digimon without Sistermon in its name", async () => {
