@@ -27,9 +27,18 @@ describe("BT13-023 Jellymon", () => {
 
   it("trashes the bottom card of an opponent's evolution stack through the inherited attack trigger", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-023"] }] },
+      0: { battleArea: [{ card: "BT1-033", as: "host", under: ["BT13-023"] }] },
       1: {
-        battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }],
+        battleArea: [
+          {
+            card: "BT1-015",
+            as: "target",
+            under: [
+              { card: "BT1-001", as: "bottomEgg" },
+              { card: "BT1-010", as: "remaining" },
+            ],
+          },
+        ],
         security: [{ card: "BT1-010" }],
       },
     });
@@ -43,7 +52,7 @@ describe("BT13-023 Jellymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT13-023"]);
   });
 

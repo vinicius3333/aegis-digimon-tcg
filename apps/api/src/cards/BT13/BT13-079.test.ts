@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-079.js";
+import "../BT2/BT2-073.js";
 
 describe("BT13-079 Falcomon", () => {
   it("grants Retaliation to one purple Digimon until the opponent's turn ends", () => {
@@ -30,7 +31,7 @@ describe("BT13-079 Falcomon", () => {
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
+      { 0: { battleArea: [{ card: "BT2-073", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -41,7 +42,7 @@ describe("BT13-079 Falcomon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 
-  it("grants Retaliation to a real own purple Digimon on play", async () => {
+  it("[Supplemental] grants Retaliation to a real own purple Digimon on play", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -86,7 +87,7 @@ describe("BT13-079 Falcomon", () => {
 
   it("does not trash from hand when the inherited host is deleted in battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
+      { 0: { battleArea: [{ card: "BT2-073", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
