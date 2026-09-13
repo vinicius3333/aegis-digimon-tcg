@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -118,6 +117,9 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(9);
     const fieldMarcusId = s.perm("fieldMarcus").permanentId;
     expect(
       s.engine.applyIntent(0, {
@@ -147,9 +149,12 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
 
     const priorTopId = s.perm("shine").stack.at(-1)?.instanceId;
     expect(priorTopId).toBeDefined();
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.perm("shine").stack.some((card) => card.instanceId === priorTopId)).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTopId)).toBe(true);
+    expect(s.state.memory).toBe(9);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("shine").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("burst").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
   it("may decline to play Marcus Damon after a normal digivolution", async () => {

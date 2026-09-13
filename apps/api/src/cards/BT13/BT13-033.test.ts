@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,7 +47,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     });
   });
 
-  it("Burst Digivolves for 0 by returning its controller's Thomas and trashes the prior top at turn end", async () => {
+  it("Burst Digivolves for 0 by returning its controller's Thomas and trashes its Burst top at turn end", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -61,6 +60,10 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     });
     s.state.memory = 3;
     const priorTopId = s.perm("base").topCard.instanceId;
+    const burstTopId = s.inst("burst").instanceId;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -75,9 +78,12 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-097")).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.perm("base").stack.some(({ instanceId }) => instanceId === priorTopId)).toBe(false);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === priorTopId)).toBe(true);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(priorTopId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("base").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
   it("cannot pay Burst Digivolve with an opponent's Thomas (Q2284)", () => {

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-089.js";
@@ -107,7 +106,7 @@ describe("BT13-089 BT13-089", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-079")).toBe(true);
   });
 
-  it("[Supplemental] does not arm the delayed effect while Ravemon: Burst Mode is the end-of-turn top card (Q2335)", async () => {
+  it("does not arm Ravemon's delayed effect when Burst Mode is top at the end-turn trigger (Q2335)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -116,32 +115,51 @@ describe("BT13-089 BT13-089", () => {
             { card: "BT13-102", as: "keenantamer" },
           ],
           hand: [{ card: "BT13-092", as: "burst" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
         },
-        1: { hand: ["BT1-009"] },
+        1: {
+          hand: ["BT1-009", "BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const ravemonId = s.perm("base").topCard.instanceId;
+    const hostId = s.perm("base").permanentId;
+    const burstId = s.inst("burst").instanceId;
+    s.state.memory = 3;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("burst").instanceId,
+        permanentId: hostId,
+        instanceId: burstId,
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT13-092");
-    s.state.turnSeat = 0;
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle(() => s.perm("base").stack.length === 0);
-    expect(s.perm("base").topCard?.cardId).toBe("BT13-092");
-    expect(s.perm("base").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-089");
+    await settle(() => s.perm("base").topCard?.instanceId === burstId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(ravemonId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("keenantamer").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("base").topCard.instanceId).toBe(ravemonId);
+    expect(s.perm("base").permanentId).toBe(hostId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(ravemonId);
 
     s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.perm("base").topCard?.cardId).toBe("BT13-092");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-089");
+    expect(s.perm("base").permanentId).toBe(hostId);
+    expect(s.perm("base").topCard.instanceId).toBe(ravemonId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(ravemonId);
   });
 });
