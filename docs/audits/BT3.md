@@ -1,27 +1,39 @@
 ---
 set: BT3
 cards: 112
-status: incomplete
-verified_at: 2026-09-10
-catalog_commit: unknown
-evidence_commit: eabe99351
+status: verified
+verified_at: 2026-09-13
+catalog_commit: b88aeb69f22995641622ab4388086ff771b23dc0
+evidence_commit: e6f33361a5f33e649053cf96ecae3e2c34265fc3
 ---
 
 # BT3 audit
 
 ## Status
 
-2026-09-12: the historical collection certificate is reopened. Native BT3-056
-granted a Digisorption discount despite an impossible suspension payment. Its
-current score is capped at 8/10 pending complete lifecycle/category evidence;
-the historical 112/112 ten-point claim below is superseded. See
-[succession-lifecycle.md](engine/succession-lifecycle.md).
-
-All 112 BT3 production modules are audited and the 2026-09-10 re-audit closed its delivery gates: 1120/1120, 112/112 cards at 10/10. The exact BT3 collection passed 123 files and 371 tests, the bounded mechanism manifest passed 9 files and 101 tests, `pnpm typecheck` passed shared, web, and API, and effects sync, lint, format, and `git diff --check` were clean. The 2026-09-10 re-audit (`docs/audits/BT3-REAUDIT-LEDGER.md` and `docs/audits/BT3-reaudit/`) is the winning source; the 2026-09-02 static pass and the archival range reports under `internal-docs/audits/BT3/` are superseded, and their clause evidence is kept below only for the cards that got no fresh report. The important caveat is the shape of the evidence: only five BT3 cards (BT3-001, BT3-006, BT3-009, BT3-011, BT3-012) received a new per-card report in the re-audit. The other 107 were accepted individually by the coordinator from catalog and IR review reconciled against the already-green focused baseline, not from new lifecycle proof. That is recorded under Open items. No source recorded a catalog commit, only the blob `efbecc002fb9000789123e2f91f201466e1e5b0a`, so `catalog_commit` is `unknown`.
+2026-09-13: **112/112 cards at 10/10, 1120/1120**. Three Luna lanes independently rechecked the exact catalog, local KB, direct compiled IR and existing focused/peer/stack assertions. No production implementation defect remains identified. Ten once-per-turn cards needed explicit public next-own-turn proof; only those focused tests were strengthened, plus seven existing formatting failures. All 112 modules already had zero `ts-nocheck` and exclusive `registerIrCard` registration, so no production migration was required. The former native BT3-056 cap is resolved by successful/prohibited payment and reaction conformance plus same-instance reset and independent native-source usage. The final relevant gate passed 134 files / 508 tests, workspace typecheck and effect/style checks passed, and Luna autoreview is clean. Evidence commit `e6f33361a5f33e649053cf96ecae3e2c34265fc3` is pushed on `audit-BT3-20260913-incomplete`; [PR #4762](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4762) delivers the audit. Historical certificates are superseded by this current evidence.
 
 ## Gates
 
-### 2026-09-10 re-audit closeout (winning source)
+Closeout: all 112 current scores recalculate to 1120/1120. Test evidence is atomic commit `e6f33361a5f33e649053cf96ecae3e2c34265fc3`; the branch is pushed and PR #4762 is open. Final review command: `/Users/viniciusluiz/.agents/skills/autoreview/scripts/autoreview --mode local --engine codex --model gpt-5.6-luna --no-web-search --prompt <BT3 proof context>` exited 0 with no accepted/actionable findings. A previous reviewer suspected a suspended attacker; `TurnStateMachine.activePhase` naturally unsuspends the same host before Main, now explicitly asserted and focused-green. No production or shared engine changes were required.
+
+### 2026-09-13 complete re-audit and delivery
+
+Branch `audit-BT3-20260913-incomplete`, fresh worktree from `origin/main`, baseline `b88aeb69f22995641622ab4388086ff771b23dc0`. Independently resumed with three Luna lanes and centralized single-worker tests. Historical scores below are superseded by the recalculated current rows.
+
+- `pnpm install --frozen-lockfile --ignore-scripts` and `pnpm --filter @aegis/shared build`: passed; no dependency manifest changes.
+- `pnpm --filter @aegis/api exec vitest run src/cards/BT3/ --maxWorkers=1 --no-file-parallelism`: 123 files / 371 tests passed.
+- Inventory: 112 production modules, 112 focused tests, exactly one `registerIrCard` per module; zero `ts-nocheck` and zero `registerCard`.
+- Resource checkpoint: `pnpm typecheck` passed shared and web, but API was deliberately terminated with SIGTERM (exit 143); the broad conformance/combat/effects/cards run was likewise terminated before a result. Neither run is green evidence. System-wide free memory reached 18% and disk free space 867 MiB due concurrent worktrees; no further heavy gate was launched at that checkpoint.
+- Initial `pnpm exec oxfmt --check apps/api/src/cards/BT3` found seven pre-existing test formatting failures; normalized; the final collection formatting check passed.
+- Review found missing explicit once-per-turn boundaries in BT3-002, BT3-003, BT3-005, BT3-027, BT3-029, BT3-050, BT3-056, BT3-088, BT3-091 and BT3-111. These now have passing public turn-cycle proof, including native Ceresmon independent source usage. The closing review, atomic evidence commit and initial branch push subsequently passed.
+- `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/BT3/ src/engine/conformance/keyword-succession-lifecycle.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/cards/securityActivateCluster.test.ts src/engine/effects/subtriggers.test.ts src/engine/revealAddCostBudget.test.ts src/engine/effects/continuous.test.ts src/engine/attackTriggerOrdering.test.ts src/engine/cards/ex7HandAddWatcher.test.ts src/engine/effects/interpreter/registration/module.test.ts src/engine/effects/endOfAttackScope.test.ts src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`: **134 files / 508 tests passed**. The exact BT3 directory contributes all 123 collection files (112 focused plus 11 range/stack suites); the additional 11 files are nine bounded mechanisms, native/copy Digisorption lifecycle conformance and audit layout. No skipped or expected-failure tests in BT3.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm typecheck`: shared, web and API passed on the final harness source; the final rerun also passed. The last explicit natural-unsuspend assertion passed its focused file (four tests). A bounded 2048 MiB attempt exited 134 with heap exhaustion; this was resource failure, not a type diagnostic.
+- `pnpm effects:sync:set -- --set BT3 --base b88aeb69f22995641622ab4388086ff771b23dc0` and matching `pnpm effects:check:set`: passed, 112 records already synchronized, zero semantic changes and zero semantic/byte changes outside BT3.
+- `pnpm exec oxlint apps/api/src/cards/BT3`, `pnpm exec oxfmt --check apps/api/src/cards/BT3`, `git diff --check`: passed.
+- Broad diagnostic: 318 files, 315 passed; 2786 tests, 2783 passed. One new BT3-056 fixture failed because a local poll silently stopped before the third evolution completed; shared `settle` replaces it and the final 134-file run is green. The other two failures are BT14-090 assertions in `activation-processing-costs.test.ts` (accepting Option use with no evolution destination) and `activation-cost-compound-assignment.test.ts` (distinct physical trash placement). Both reproduced unchanged in `git archive b88aeb69f22995641622ab4388086ff771b23dc0`, using unchanged linked dependencies and catalog/effects; pristine run: two files, 18 passed / two failed tests. No engine or BT14 files changed. This broad diagnostic is not a green gate.
+
+### 2026-09-10 re-audit closeout (historical, superseded)
 
 From `docs/audits/BT3-reaudit/RUN.md`. All Vitest commands used `--maxWorkers=1 --no-file-parallelism` after a standalone process poll and a `memory_pressure` gate at 50% or higher. Cumulative base `483169d6e778ac4eae0bb7bb779095db29e90200` (BT2 completion).
 
@@ -50,8 +62,12 @@ From `docs/audits/BT3-STATIC-AUDIT.md`. All commands used one fork, disabled fil
 
 ### BT3-001 — Poromon
 
-Score: 10/10. Legal public red lifecycle; inherited 1000-DP deletion and peer boundary green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-001.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-001.test.ts` contains “inherited When Attacking deletes exactly one opposing Digimon with 1000 DP or less”; “does nothing when the opponent has no Digimon with 1000 DP or less”; “proves a legal red hatch, evolution, move, attack, and 1000-DP boundary”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Legal public red lifecycle; inherited 1000-DP deletion and peer boundary green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `internal-docs/audits/BT3/BT3-001.md` (2026-09-10):
 
@@ -60,12 +76,16 @@ Re-audit evidence, merged from `internal-docs/audits/BT3/BT3-001.md` (2026-09-10
 - Behavior: existing tests cover multiple legal targets and the no-target branch. The strengthened public-flow test hatches BT3-001, evolves through BT3-007 into BT1-016, cycles turns, moves from breeding, and attacks.
 - Isolation: the public flow deletes the natural 1000-DP opponent while preserving a natural 2000-DP opponent and an allied 1000-DP peer.
 - Focused result: 3/3 passed with one worker and file parallelism disabled.
-- Score: 8/10 pending collection delivery gates.
+- Historical provisional score: 8/10 before the earlier delivery gates.
 
 ### BT3-002 — DemiVeemon
 
-Score: 10/10. Jamming predicate and once-per-turn inherited draw proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-002.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-002.test.ts` contains “draws 1 when its host with Jamming attacks”; “does not draw when its host lacks Jamming”; “draws only once when the Jamming host attacks twice in one turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Jamming predicate and once-per-turn inherited draw proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -74,12 +94,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-002.test.ts:9-46` covers a legal blue Jamming host (`BT3-021`) and a legal blue non-Jamming host (`BT3-022`); `:48-81` attacks the same Jamming host twice and asserts only the first card is drawn. The proof uses `observe(s.engine).isAttacking()` for the production observer seam.
 - **Peer/stack proof:** Both hosts are legal blue level-3 evolutions from a blue level-2 Digi-Egg. `conditions.ts:173-177` reads the host’s live keyword set, and `continuous.ts:1062-1067` supplies printed and granted keywords. EX2-013 is the same Jamming-gated inherited-trigger peer.
 - **Correction/finding:** Replaced the prior off-color red hosts with BT3-021/BT3-022, added the repeated-attack Once Per Turn proof, and corrected the observer helper reference from a nonexistent `GameEngine.isAttacking()` method to `observe(s.engine).isAttacking()`.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-003 — Upamon
 
-Score: 10/10. Security-count boundary and once-per-turn draw proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-003.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-003.test.ts` contains “draws 1 when attacking with 3 or fewer security cards”; “does not draw when attacking with 4 security cards”; “draws only once when the qualifying host attacks twice in one turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security-count boundary and once-per-turn draw proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -88,12 +112,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-003.test.ts:8-28` proves a three-security positive; `:30-51` proves four security does not draw; `:53-86` repeats a qualifying attack in one turn and asserts only one card is drawn.
 - **Peer/stack proof:** The host was corrected to yellow BT3-032, a legal yellow level-3 evolution from the yellow BT3-003 Digi-Egg. `conditions.ts:270-290` reads live security-zone size. BT1-006 is the thresholded inherited Draw peer.
 - **Correction/finding:** Replaced the prior off-color blue host with BT3-032, added repeated Once Per Turn coverage, and preserved the exact boundary at three versus four security cards.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-004 — Minomon
 
-Score: 10/10. Digimon-attack positive and player-attack negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-004.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-004.test.ts` contains “gives its host +1000 DP when it attacks an opposing Digimon”; “Q1047 does not grant +1000 DP when a declared player attack is blocked”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Digimon-attack positive and player-attack negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -102,12 +130,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-004.test.ts:8-25` proves the opponent-Digimon target grants exactly +1000 DP; `:27-52` reproduces Q1047 with a player declaration and Blocker response and asserts no bonus and no security loss. `conditions.ts:59-68` proves the original target is retained before redirection.
 - **Peer/stack proof:** The host was corrected to green BT3-045, a legal green level-3 evolution from BT3-004. The target/blocker setup matches the inherited attack-target peer patterns in BT1-001 and BT1-007.
 - **Correction/finding:** Replaced the prior off-color RagnaLoardmon host with BT3-045. No IR defect was found; the Q1047 boundary is now directly represented in the focused proof.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-005 — Kakkinmon
 
-Score: 10/10. Level-7 boundary and once-per-turn memory proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-005.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-005.test.ts` contains “gains 1 memory when its level 7 host attacks”; “does not gain memory when its host is below level 7”; “gains memory only once when its level 7 host attacks twice in one turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Level-7 boundary and once-per-turn memory proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -116,24 +148,32 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-005.test.ts:8-33` proves a level-7 gain; `:35-59` proves a level-6 non-gain; `:61-96` repeats the level-7 attack and asserts memory remains one after the second attack.
 - **Peer/stack proof:** Both positive tests use a legal black chain: BT3-005 black Digi-Egg → BT3-059 black level 3 → BT3-064 black level 4 → BT3-068 black level 5 → BT3-075 black level 6 → BT9-111 black level 7. The level-6 negative stops at BT3-075. This avoids relying on RagnaLoardmon’s unrelated printed Security Attack keyword.
 - **Correction/finding:** Replaced the former incomplete/off-color direct stacks with complete legal black chains, selected a neutral level-7 host, and added repeated Once Per Turn proof. No executable defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-006 — DemiMeramon
 
-Score: 10/10. Inherited draw/trash and top-card non-inherited isolation green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-006.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-006.test.ts` contains “draws 1 then trashes 1 when its host is deleted”; “does not activate from the top-card position”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited draw/trash and top-card non-inherited isolation green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `internal-docs/audits/BT3/BT3-006.md` (2026-09-10):
 
 - Catalog/IR: purple level-2 Digi-Egg; inherited On Deletion Draw 1 then trash 1; complete IR through exclusive `registerIrCard`.
 - Behavior: the host-deletion test proves draw/trash zone changes; the added top-card negative proves inherited-only placement.
 - Focused result: 2/2 passed in the combined single-worker run.
-- Score: 8/10 pending delivery gates.
+- Historical provisional score (superseded): 8/10 pending delivery gates.
 
 ### BT3-007 — Agumon
 
-Score: 10/10. Vanilla play and legal red Digi-Egg evolution proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-007.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-007.test.ts` contains “plays with its catalogued 4000 DP and has no effect resolution”; “digivolves from a red level 2 Digi-Egg for 1 memory”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla play and legal red Digi-Egg evolution proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -142,12 +182,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-007.test.ts:6-17` proves play cost and 4000 DP with no effect-resolution event; `:19-41` proves evolution from a red BT3-001 Digi-Egg for one memory, standard evolution draw, and resulting 4000 DP.
 - **Peer/stack proof:** The evolution probe uses the legal red BT3-001 → BT3-007 route and follows the standard digivolution draw seam used by the engine’s evolution tests. No traits or inherited effects need registration.
 - **Correction/finding:** Added an explicit empty IR module and direct test import, alongside the legal evolution/draw proof.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-008 — Zubamon
 
-Score: 10/10. Reveal categories, duplicates, Option exclusion, and evolution negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-008.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-008.test.ts` contains “adds RagnaLoardmon and a revealed Legend-Arms Digimon to hand”; “adds only one card when the five-card reveal contains only RagnaLoardmon targets”; “does not count a Legend-Arms Option toward the Digimon slot”; “can add two revealed RagnaLoardmon cards when both satisfy the two categories”; “does not activate On Play when Zubamon digivolves from its legal red level 2 route”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reveal categories, duplicates, Option exclusion, and evolution negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -156,22 +200,30 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-008.test.ts:8-32` proves one card in each slot; `:34-51` proves only one card when only RagnaLoardmon is revealed; `:53-76` proves an `Option` with Legend-Arms does not fill the Digimon slot; `:78-101` proves one RagnaLoardmon can fill both slots; `:103-130` proves On Play does not fire when Zubamon is digivolved.
 - **Peer/stack proof:** Q1048–Q1050 are all represented. `reveal.ts:199-217` filters each slot against the full reveal while tracking taken instances; `:274-320` bounds each slot; `:508-587` returns unselected cards to the chosen deck disposition. Q1050’s overlap behavior is exercised by two RagnaLoardmon instances. EX6-065 supplies the explicit Legend-Arms Option kind-boundary case.
 - **Correction/finding:** Added the Option kind-boundary proof and a legal red Digi-Egg evolution timing proof. No executable defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-009 — Hawkmon
 
-Score: 10/10. Focused baseline green; legal vanilla evolution and stack proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-009.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-009.test.ts` contains “plays with its catalogued 4000 DP and no effect resolution”; “digivolves from a red level 2 Digi-Egg for 0 memory”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused baseline green; legal vanilla evolution and stack proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `docs/audits/BT3-reaudit/BT3-009.md` (2026-09-10):
 
 - Catalog and KB confirm the effect-free red level-3 card; full empty compiled IR registers exclusively through `registerIrCard`.
-- Focused proof covers printed play cost/DP and a legal red level-2 evolution with resulting stack and draw. Coordinator baseline passed; delivery gates pending.
+- Focused proof covers printed play cost/DP and a legal red level-2 evolution with resulting stack and draw. Historical coordinator baseline passed; delivery gates were pending in that earlier report.
 
 ### BT3-010 — ZubaEagermon
 
-Score: 10/10. Baseline focused green; inherited Security Attack +1 activation and isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-010.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-010.test.ts` contains “gives Security Attack +1 to its level 7 host on its turn”; “does not grant Security Attack +1 to a level 6 host”; “does not grant the inherited effect during the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline focused green; inherited Security Attack +1 activation and isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -180,22 +232,30 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-001-010.md` (2026-09-
 - **Behavioral proof:** `BT3-010.test.ts:8-24` proves one Security Attack grant on a level-7 host during the owner’s turn; `:26-40` proves no grant at level 6; `:42-57` proves no grant during the opponent’s turn.
 - **Peer/stack proof:** The positive and opponent-turn tests use a legal red chain BT3-001 → BT3-009 → BT3-010 → BT3-013 → BT3-016 → BT6-018. The level-6 negative stops at BT3-016. BT1-017 supplies the continuous Security Attack peer pattern. BT6-018 has no printed Security Attack, so the observed amount isolates BT3-010’s inherited grant.
 - **Correction/finding:** Replaced the former off-color/incomplete stacks with legal red chains and used a neutral level-7 host to avoid conflating the inherited grant with RagnaLoardmon’s own Security Attack. No executable defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-011 — Greymon
 
-Score: 10/10. Focused baseline green; Security battle ordering and zone proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-011.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-011.test.ts` contains “is played without cost after its security battle”; “is still played after winning its Security Digimon battle”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused baseline green; Security battle ordering and zone proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `docs/audits/BT3-reaudit/BT3-011.md` (2026-09-10):
 
 - Catalog and KB Q1051–Q1053 align with the compiled end-of-security-battle free-play effect; exclusive `registerIrCard`.
-- Focused proof covers both losing and winning security battles, end-of-battle ordering, trash-to-battle transition, and zero memory cost. Coordinator baseline passed; delivery gates pending.
+- Focused proof covers both losing and winning security battles, end-of-battle ordering, trash-to-battle transition, and zero memory cost. Historical coordinator baseline passed; delivery gates were pending in that earlier report.
 
 ### BT3-012 — Aquilamon
 
-Score: 10/10. Legal public red lifecycle and natural 2000/3000-DP boundary green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-012.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-012.test.ts` contains “selects exactly one opposing Digimon with 2000 DP or less”; “uses its inherited effect after a legal public red lifecycle”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Legal public red lifecycle and natural 2000/3000-DP boundary green. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Re-audit evidence, merged from `internal-docs/audits/BT3/BT3-012.md` (2026-09-10):
 
@@ -203,12 +263,16 @@ Re-audit evidence, merged from `internal-docs/audits/BT3/BT3-012.md` (2026-09-10
 - Behavior: existing target-selection coverage now uses a natural above-boundary peer. The added public test hatches and legally evolves BT3-001 → BT3-009 → BT3-012 → BT3-015, cycles turns, moves from breeding, and attacks.
 - Isolation: natural 2000-DP BT1-010 is deleted and natural 3000-DP BT1-009 survives.
 - Focused result: 2/2 passed in the combined single-worker run.
-- Score: 8/10 pending delivery gates.
+- Historical provisional score (superseded): 8/10 pending delivery gates.
 
 ### BT3-013 — Duramon
 
-Score: 10/10. Baseline focused green; inherited Security Attack +1 activation and isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-013.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-013.test.ts` contains “gives Security Attack +1 to its level 7 host on its turn”; “does not grant Security Attack +1 to a level 6 host or during the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline focused green; inherited Security Attack +1 activation and isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -216,8 +280,12 @@ Direct IR `BT3-013.ts:8-44` is full and inherited: a self Aura grants Security A
 
 ### BT3-014 — Silphymon
 
-Score: 10/10. Baseline focused green; both digivolution-source clauses and boundary peers proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-014.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-014.test.ts` contains “is treated as both Red (printed) and Yellow during its owner's turn”; “negative control (Q1055): on the opponent's turn the yellow grant lapses”; “Q1055 does not grant yellow while Silphymon is in breeding”; “sets exactly one opposing level 4 or lower Digimon's original DP to 1000 for the turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline focused green; both digivolution-source clauses and boundary peers proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -227,8 +295,12 @@ The generated snapshot at `effects.json:102153-102187` disagrees on the color gr
 
 ### BT3-015 — MetalGreymon
 
-Score: 10/10. Baseline focused green; Piercing and optional Virus recovery branches isolated. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-015.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-015.test.ts` contains “returns a level 7 Virus Digimon from trash and has Piercing”; “may decline the optional trash-to-hand return”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline focused green; Piercing and optional Virus recovery branches isolated. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -236,8 +308,12 @@ Direct IR `BT3-015.ts:8-50` declares Piercing and an optional When Digivolving R
 
 ### BT3-016 — Durandamon
 
-Score: 10/10. Baseline focused green; inherited Piercing activation and peer isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-016.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-016.test.ts` contains “grants Piercing to its host”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline focused green; inherited Piercing activation and peer isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -245,8 +321,12 @@ Direct IR `BT3-016.ts:8-26` is full, inherited, and contains only Piercing. Its 
 
 ### BT3-017 — Valkyrimon
 
-Score: 10/10. Baseline green; both triggers and 4000-DP boundary isolated. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-017.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-017.test.ts` contains “deletes an opposing Digimon at the 4000 DP limit when digivolving”; “deletes an opposing Digimon at the 4000 DP limit when attacking”; “does not delete a Digimon above 4000 DP”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; both triggers and 4000-DP boundary isolated. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -254,8 +334,12 @@ Direct IR `BT3-017.ts:8-53` carries separate When Digivolving and When Attacking
 
 ### BT3-018 — BlitzGreymon
 
-Score: 10/10. Baseline green; de-digivolve and Piercing clauses proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-018.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-018.test.ts` contains “De-Digivolves an opponent by 2 and has Piercing”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; de-digivolve and Piercing clauses proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -263,8 +347,12 @@ Direct IR `BT3-018.ts:8-41` declares Piercing and De-Digivolve 2 against one opp
 
 ### BT3-019 — RagnaLoardmon
 
-Score: 10/10. Baseline green; optional Legend-Arms placement branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-019.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-019.test.ts` contains “places a Legend-Arms card under itself, gains 3 memory, and has its keywords”; “does not gain memory when the optional placement is declined”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; optional Legend-Arms placement branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -274,8 +362,12 @@ The generated snapshot at `effects.json:102274-102311` instead models Reboot as 
 
 ### BT3-020 — Patamon
 
-Score: 10/10. Baseline green; vanilla play/stat behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-020.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-020.test.ts` contains “plays with its catalogued 4000 DP and has no effect resolution”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; vanilla play/stat behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-011-020.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -283,8 +375,12 @@ The catalog establishes a blue level 3, 4000-DP vanilla Rookie with play cost 3 
 
 ### BT3-021 — Veemon
 
-Score: 10/10. Baseline green; Jamming battle and source-card isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-021.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-021.test.ts` contains “has Jamming”; “survives a losing battle against a Security Digimon”; “is deleted in a losing battle against an opposing Digimon”; “does not confer Jamming when Veemon is a digivolution card”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; Jamming battle and source-card isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -306,8 +402,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-022 — Penguinmon
 
-Score: 10/10. Baseline green; vanilla play and legal evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-022.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-022.test.ts` contains “plays as a 5000 DP vanilla Digimon without effect activation”; “digivolves from a legal Blue level 2 source without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; vanilla play and legal evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -328,8 +428,12 @@ coverage: "full", residual: [] }`.
 
 ### BT3-023 — Angemon
 
-Score: 10/10. Baseline green; bottom-source removal and no-source negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-023.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-023.test.ts` contains “trashes the bottom digivolution card of an opposing Digimon when attacking”; “does not alter an opposing Digimon with no digivolution cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; bottom-source removal and no-source negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -353,8 +457,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-024 — Airdramon
 
-Score: 10/10. Baseline green; Security battle outcomes and timing proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-024.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-024.test.ts` contains “is played without cost after winning its security battle”; “is played even when it loses the security battle against a stronger attacker (Q1062)”; “plays before the next security check when the attacker has Security Attack +1 (Q1063)”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; Security battle outcomes and timing proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -383,8 +491,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-025 — ExVeemon
 
-Score: 10/10. Baseline green; own/opponent and level boundary isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-025.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-025.test.ts` contains “unsuspends one of your level 4 or lower Digimon”; “does not unsuspend an opposing Digimon or a level 5 Digimon”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; own/opponent and level boundary isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -408,8 +520,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-026 — MagnaAngemon
 
-Score: 10/10. Baseline green; bottom-source removal and no-source negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-026.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-026.test.ts` contains “trashes the bottom digivolution card of an opposing Digimon when attacking”; “does not trash anything when the opposing Digimon has no digivolution cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; bottom-source removal and no-source negative proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -431,8 +547,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-027 — Paildramon
 
-Score: 10/10. Baseline green; Jamming, name predicate, and once-per-turn proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-027.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-027.test.ts` contains “has Jamming and unsuspends its Imperialdramon host when attacking”; “does not unsuspend a non-Imperialdramon host”; “does not trigger its inherited effect a second time in the same turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; Jamming, name predicate, and once-per-turn proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -457,8 +577,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-028 — Bastemon
 
-Score: 10/10. Baseline green; vanilla play and legal blue evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-028.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-028.test.ts` contains “plays as an 8000 DP vanilla Digimon without effect activation”; “digivolves from a legal Blue level 4 source without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; vanilla play and legal blue evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -478,8 +602,12 @@ coverage: "full", residual: [] }`.
 
 ### BT3-029 — Goldramon
 
-Score: 10/10. Baseline green; another-Digimon trigger and once-per-turn proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-029.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-029.test.ts` contains “unsuspends once when another own Digimon is played”; “respects its once-per-turn limit”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; another-Digimon trigger and once-per-turn proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -504,8 +632,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-030 — Leopardmon
 
-Score: 10/10. Baseline green; optional stack play and level-scoped Jamming proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-030.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-030.test.ts` contains “matches official metadata and registers fully covered IR”; “offers eligible cards across own digivolution stacks and plays the chosen card for free”; “allows declining the optional When Digivolving effect (Q1064)”; “removes granted Jamming when its recipient digivolves above level 4 (Q1066)”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; optional stack play and level-scoped Jamming proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -536,8 +668,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-021-030.md` (2026-09-
 
 ### BT3-031 — Imperialdramon: Dragon Mode
 
-Score: 10/10. Baseline green; cost predicate, breeding exclusion, Jamming, and unsuspend proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-031.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-031.test.ts` contains “reduces its cost and unsuspends all Digimon with Jamming”; “pays the full cost over a level 5 that is neither Paildramon nor Dinobeemon”; “Q1067 pays the full cost over Paildramon in the breeding area”; “has Jamming”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; cost predicate, breeding exclusion, Jamming, and unsuspend proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -547,8 +683,12 @@ The generated snapshot at `effects.json:102482-102528` is a different older comp
 
 ### BT3-032 — Armadillomon
 
-Score: 10/10. Baseline green; vanilla play/stat behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-032.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-032.test.ts` contains “plays as a 4000 DP vanilla Digimon without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Baseline green; vanilla play/stat behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -556,8 +696,12 @@ The catalog defines a yellow level 3 vanilla Rookie with 4000 DP, play cost 3, a
 
 ### BT3-033 — Salamon
 
-Score: 10/10. Focused inherited DP reduction and target-count isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-033.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-033.test.ts` contains “gives 1 opposing Digimon -1000 DP for the turn when its host attacks”; “only reduces one opposing Digimon”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused inherited DP reduction and target-count isolation. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -565,8 +709,12 @@ Direct IR `BT3-033.ts:8-33` is full and inherited: one opposing Digimon receives
 
 ### BT3-034 — Lopmon
 
-Score: 10/10. Focused optional accept/decline security flow and rulings. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-034.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-034.test.ts` contains “may add the top security card to hand, then draws 1”; “leaves security and deck unchanged when the optional move is declined”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused optional accept/decline security flow and rulings. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -574,8 +722,12 @@ The hand-fixed direct IR `BT3-034.ts:6-24` uses `SecurityManipulation` `lookAndM
 
 ### BT3-035 — Gatomon
 
-Score: 10/10. Focused inherited attack DP reduction. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-035.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-035.test.ts` contains “gives 1 opposing Digimon -1000 DP for the turn when its host attacks”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused inherited attack DP reduction. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -583,8 +735,12 @@ Direct IR `BT3-035.ts:8-33` exactly mirrors BT3-033: inherited When Attacking, o
 
 ### BT3-036 — Ankylomon
 
-Score: 10/10. Focused Security play across winning/losing battle outcomes. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-036.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-036.test.ts` contains “is played without cost after battling as a security Digimon”; “is still played after winning its Security Digimon battle”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Focused Security play across winning/losing battle outcomes. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -594,8 +750,12 @@ Focused proof in `BT3-036.test.ts:5-55` now checks the losing battle, asserts pl
 
 ### BT3-037 — Turuiemon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-037.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-037.test.ts` contains “plays as a 6000 DP vanilla Digimon without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -603,8 +763,12 @@ The catalog defines a yellow level 4 vanilla Champion with 6000 DP, play cost 6,
 
 ### BT3-038 — Antylamon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-038.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-038.test.ts` contains “plays as an 8000 DP vanilla Digimon without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -617,8 +781,12 @@ identified. The range-local suppressions were removed from the owned modules.
 
 ### BT3-039 — Angewomon
 
-Score: 10/10. Both clauses and security-count boundary proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-039.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-039.test.ts` contains “gives Security Attack -2 to an opponent”; “plays a yellow level 3 from hand when its host attacks at 3 security”; “does not play the inherited card above 3 security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Both clauses and security-count boundary proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -626,8 +794,12 @@ Direct IR `BT3-039.ts:8-65` applies Security Attack -2 to one opposing Digimon u
 
 ### BT3-040 — Shakkoumon
 
-Score: 10/10. Turn color, breeding exclusion, and source-less peer filter proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-040.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-040.test.ts` contains “is also treated as blue during its owner's turn”; “Q1076 does not grant blue while Shakkoumon is in breeding”; “gives Security Attack -1 only to opposing Digimon without digivolution cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Turn color, breeding exclusion, and source-less peer filter proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-031-040.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -637,8 +809,12 @@ The generated snapshot at `effects.json:102642-102672` incorrectly models Blue a
 
 ### BT3-041 — Cherubimon
 
-Score: 10/10. Security threshold and yellow-trash source behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-041.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-041.test.ts` contains “places a yellow Digimon from trash face down on top of security when attacking at 3 security”; “does not recover from trash when you have more than 3 security cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security threshold and yellow-trash source behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -669,8 +845,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-042 — ClavisAngemon
 
-Score: 10/10. Security threshold and opponent DP modification proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-042.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-042.test.ts` contains “gives 1 opposing Digimon -6000 DP for the turn when attacking at 3 security”; “does not reduce DP when you have more than 3 security cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security threshold and opponent DP modification proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -693,8 +873,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-043 — Kentaurosmon
 
-Score: 10/10. Both clauses, five-target cap, and controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-043.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-043.test.ts` contains “gives Security Attack -2 to up to five opponents”; “limits the effect to five opposing Digimon and excludes its controller”; “gives an opposing Digimon -11000 DP on deletion”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Both clauses, five-target cap, and controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -722,8 +906,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-044 — Aruraumon
 
-Score: 10/10. Vanilla play and legal evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-044.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-044.test.ts` contains “plays as a 5000 DP vanilla Digimon without effect activation”; “digivolves from a legal Green level 2 source without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla play and legal evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -744,8 +932,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-045 — Kunemon
 
-Score: 10/10. Vanilla play and legal green-source proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-045.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-045.test.ts` contains “plays as a 4000 DP vanilla Digimon without effect activation”; “digivolves from a legal Green level 2 source without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla play and legal green-source proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -766,8 +958,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-046 — Terriermon
 
-Score: 10/10. Opponent memory restriction and Tamer/owner exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-046.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-046.test.ts` contains “prevents the opponent from gaining memory through a security Option effect”; “blocks opposing non-Tamer effect memory while allowing Tamer and own effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Opponent memory restriction and Tamer/owner exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -790,8 +986,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-047 — Wormmon
 
-Score: 10/10. Reveal level filters and no-eligible boundary proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-047.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-047.test.ts` contains “reveals 3 on deletion, adds a level 4 Digimon, and bottoms the rest”; “also adds an eligible level 5 Digimon”; “adds nothing when the revealed cards are outside the level 4-5 boundary”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reveal level filters and no-eligible boundary proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -819,8 +1019,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-048 — Gargomon
 
-Score: 10/10. Suspended-opponent scaling and turn/source isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-048.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-048.test.ts` contains “gives its host +1000 DP for each suspended opposing Digimon during its turn”; “does not grant the inherited bonus on the opponent's turn”; “does not grant the inherited bonus when Gargomon is the top card”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Suspended-opponent scaling and turn/source isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -843,8 +1047,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-049 — Flymon
 
-Score: 10/10. Security play timing and battle-outcome branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-049.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-049.test.ts` contains “is played without cost after losing its security battle (Q1083)”; “is played without cost after winning its security battle”; “becomes a normal Digimon before the next security check (Q1082/Q1084)”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security play timing and battle-outcome branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -873,8 +1081,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-050 — Stingmon
 
-Score: 10/10. Surviving battle deletion and once-per-turn isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-050.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-050.test.ts` contains “gains 1 memory when its host deletes an opposing Digimon in battle”; “does not gain memory when the host deletes an opposing Digimon but does not survive”; “gains memory only once across two surviving deletions in one turn”; “resets its once-per-turn gain on the next own turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Surviving battle deletion and once-per-turn isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -903,8 +1115,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-041-050.md` (2026-09-
 
 ### BT3-051 — Dokugumon
 
-Score: 10/10. Reveal category and duplicate-card boundaries proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-051.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-051.test.ts` contains “adds one level 5 and one level 6 Digimon, then trashes the rest”; “adds whichever eligible level is revealed when the other is absent”; “can add two BT17-068 copies because each revealed copy counts as level 5 and level 6”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reveal category and duplicate-card boundaries proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -913,12 +1129,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-051.test.ts:7-31` covers one level-5 and one level-6 card plus trash; `:34-58` covers Q1085's only-level-5 case; `:60-87` now covers Q2827's two BT17-068 copies and remainder trash.
 - **Peer/stack proof:** BT3-062 is the same two-slot RevealAdd mechanism. `reveal.ts:202-217` evaluates each slot against the full reveal and `:274-301` excludes instances taken by earlier slots. The new `treatedAsLevels` path is exercised by two copies of the catalogued level-5 BT17-068.
 - **Correction/finding:** Corrected the shared revealed-level matcher so an additive temporary level does not erase the printed level; added the Q2827 proof. The direct Dokugumon module already had the catalog-faithful Digimon filter and trash disposition.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-052 — Rapidmon
 
-Score: 10/10. Suspended-opponent scaling and turn restriction proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-052.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-052.test.ts` contains “gives its host +1000 DP for each suspended opposing Digimon during its turn”; “does not apply the inherited bonus during the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Suspended-opponent scaling and turn restriction proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -927,12 +1147,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-052.test.ts:6-22` now uses two suspended Digimon, one ready Digimon, and a suspended Tamer; the result is exactly +2000, proving the Digimon-kind boundary. `:24-34` proves no bonus during the opponent's turn.
 - **Peer/stack proof:** The host is a legal green chain `BT2-044` (green level 4) → `BT3-052` (inherited level 5) → `BT3-057` (green level 6). BT3-048 and BT13-004 provide the same inherited suspended-Digimon scaling shape; `conditions.ts:218-230` and `scaling.ts:152-205` supply the live count and multiplier.
 - **Correction/finding:** Replaced the prior same-level illegal host stack with a legal host and added a suspended-Tamer exclusion. No direct IR defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-053 — JewelBeemon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-053.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-053.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -941,12 +1165,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-053.test.ts:5-9` confirms no effect mutation and now places JewelBeemon over a green `BT2-044` level-4 source.
 - **Peer/stack proof:** The `BT2-044` → `BT3-053` stack follows rules §4-7 and the harness's bottom-most-first `under` convention. BT3-052 and BT3-054 are adjacent green level-5 peers and provide the relevant no-effect/effect boundary.
 - **Correction/finding:** Added a realistic legal green evolution source and an explicit empty direct module/import for the vanilla proof.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-054 — Blossomon
 
-Score: 10/10. Digisorption accept/decline and cost reduction proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-054.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-054.test.ts` contains “may suspend an own Digimon to reduce its digivolution cost by 3”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Digisorption accept/decline and cost reduction proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -955,12 +1183,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-054.test.ts:6-35` performs a real digivolution from `BT2-044`, suspends an own Digimon, keeps memory at 3 after a cost-3 reduction, and proves an opposing Digimon is not a legal payer. The Ceresmon/Blossomon gauntlet at `ceresmon-blossomon-digisorption-deck.test.ts:1-89` covers redirect interaction and opponent-target exclusion.
 - **Peer/stack proof:** BT2-045 and BT5-058 cover the same interactive Digisorption payment/decline shape; `replacement.ts:342-390` and `digisorptionDigivolve.ts:1-40` provide the shared reduction path. The current banlist's one-copy restriction is separately recorded and is outside card-effect IR.
 - **Correction/finding:** Added an opponent Digimon to the focused fixture to prove the `controller: mine`, `kind: Digimon` payer boundary. The module is faithful; decklist validation must continue to enforce the separate one-copy banlist rule.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-055 — Dinobeemon
 
-Score: 10/10. Piercing and Jamming keywords proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-055.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-055.test.ts` contains “has Piercing and Jamming”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Piercing and Jamming keywords proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -969,9 +1201,13 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-055.test.ts:7-16` observes both Piercing and Jamming on a legal green evolution stack.
 - **Peer/stack proof:** The test uses `BT2-044` green level 4 → BT3-055; the alternate blue route remains present in catalog evidence. BT2-057's Jamming tests and BT3-015's Piercing record are the same keyword mechanisms; glossary `:268-284` and comprehensive `:2836-2876` define their persistent/trigger behavior.
 - **Correction/finding:** Replaced the isolated top-card fixture with a legal green level-4 source stack. No executable defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-056 — Ceresmon
+
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-056.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-056.test.ts` contains “matches official metadata and publishes typed redirect metadata”; “declining the ＜Digisorption＞ suspend pays the full digivolve cost (5)”; “accepting + suspending your OWN Digimon reduces the cost by 3 (5 - 3 = 2)”; “with a BT3-056 already in play, the redirect suspends the OPPONENT's Digimon instead”; “resets native redirect usage on the next own turn”; “tracks two native redirectors independently during one turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
 
 Current score: **8/10, provisional cap**. At baseline `edbf770b9`, a public
 evolution with an unsuspendable, source-free BT19-101 opposing target wrongly
@@ -991,8 +1227,8 @@ copied baseline. See [succession-lifecycle.md](engine/succession-lifecycle.md).
 This supplements the historical ledger without newly certifying full card,
 collection, source-loss, reset or prevented-suspension behavior.
 
-Score: 10/10. Digisorption cost paths and redirect source/controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Historical 2026-09-10 score (superseded): 10/10. Digisorption cost paths and redirect source/controller isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1001,12 +1237,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-056.test.ts:137-238` covers official metadata, the decline/full-cost path, own-Digimon payment, and a separate in-play Ceresmon redirecting to the opponent. The focused test also compares the registered direct record with the shared record. The gauntlet at `ceresmon-blossomon-digisorption-deck.test.ts:1-89` exercises the legal stack and confirms the redirect does not invent Piercing.
 - **Peer/stack proof:** BT2-045/BT5-058 cover ordinary Digisorption, while `digisorptionDigivolve.ts:1-40` and registration keywords `:334-387` provide the shared redirect and once-per-turn seams. `BT3-056.test.ts:132-135` documents the dual blue/green `AD1-011` level-5 base, and the gauntlet uses a green `BT2-044` source.
 - **Correction/finding:** Corrected the focused test's stale prose from “Tyranomon” to “Ceresmon”; no executable defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-057 — MegaGargomon
 
-Score: 10/10. Suspension restriction and Security Attack condition proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-057.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-057.test.ts` contains “suspends an opponent, prevents it from unsuspending, and gains Security Attack +1”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Suspension restriction and Security Attack condition proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1015,12 +1255,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-057.test.ts:7-26` proves the selected opponent becomes suspended and restricted, the MegaGargomon host is not restricted, and Security Attack +1 is granted. `:28-37` drives the opponent active-phase unsuspend, confirms the lock holds during that phase, then confirms `ownerActivePhaseEnd` clears it.
 - **Peer/stack proof:** `targeting/permanents.ts:373-375` and `actions/board.ts:71-83` establish same-target binding. EX7-035 and EX9-038 use the same suspend-then-same-target restriction shape; BT2-049 and BT13-053 supply unsuspend-prevention duration peers. `GameEngine.ts:1284-1324` now sweeps `ownerActivePhase` and `nextUntap` after active-phase unsuspends, matching `duration.ts:27-31` and `continuous.ts:471-475`.
 - **Correction/finding:** Corrected the proven target-reference defect (the generated/direct record had restricted MegaGargomon rather than the suspended opponent), corrected the duration from opponent-turn end to next opponent unsuspend phase, and wired the existing phase boundary sweep so the duration actually expires after that phase.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-058 — BanchoStingmon
 
-Score: 10/10. 12000-DP and attack-target boundaries plus Piercing proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-058.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-058.test.ts` contains “gets +7000 DP and Security Attack +2 when attacking a 12000 DP Digimon”; “does not gain the attack bonus below the 12000 DP threshold”; “does not apply the opponent-Digimon clause to a player attack”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. 12000-DP and attack-target boundaries plus Piercing proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1029,12 +1273,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-058.test.ts:7-31` proves the exact 12000 boundary positive with +7000 and Security Attack +2 plus Piercing. `:34-53` proves 11999 does not qualify. `:55-77` proves a player attack does not satisfy the opponent-Digimon target clause even when a 12000-DP opponent Digimon is present.
 - **Peer/stack proof:** The host now uses the legal green chain `BT2-044` → `BT3-053` → `BT3-058`, isolating BanchoStingmon from other inherited effects. `conditions.ts:59-68` preserves the declared target before blocker changes; BT3-004, BT6-004, and ST4-04 provide same attack-target-conditioned effect patterns. Piercing behavior is defined by comprehensive rules §16-7 and corroborated by BT3-015/BT2-057 peers.
 - **Correction/finding:** Strengthened the focused proof with the exact threshold, player-target exclusion, and legal evolution stack. No direct IR defect was found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-059 — Commandramon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-059.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-059.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1043,12 +1291,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-059.test.ts:5-12` confirms no effect mutation while placing Commandramon over a black BT3-005 Digi-Egg.
 - **Peer/stack proof:** BT3-005 is a black level-2 Digi-Egg, making the `BT3-005` → `BT3-059` stack legal under rules §4-7. The adjacent vanilla BT3-060 proof uses the same boundary.
 - **Correction/finding:** Added a realistic legal black Digi-Egg source and an explicit empty direct module/import for the vanilla proof.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-060 — Psychemon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-060.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-060.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1057,12 +1309,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-051-060.md` (2026-09-
 - **Behavioral proof:** `BT3-060.test.ts:5-12` confirms no effect mutation while placing Psychemon over a black BT3-005 Digi-Egg.
 - **Peer/stack proof:** The `BT3-005` → `BT3-060` stack is color- and level-legal under rules §4-7 and mirrors the Commandramon vanilla proof.
 - **Correction/finding:** Added a realistic legal black Digi-Egg source and an explicit empty direct module/import for the vanilla proof.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-061 — Chuumon
 
-Score: 10/10. Opponent memory restriction and exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-061.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-061.test.ts` contains “prevents the opponent from gaining memory through a security Option effect”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Opponent memory restriction and exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1075,8 +1331,12 @@ The range-local suppressions were removed.
 
 ### BT3-062 — Ludomon
 
-Score: 10/10. Reveal dual-filter selection proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-062.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-062.test.ts` contains “adds RagnaLoardmon and a revealed Legend-Arms Digimon to hand”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reveal dual-filter selection proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1113,8 +1373,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-063 — Sukamon
 
-Score: 10/10. On-deletion reveal/play and remainder placement proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-063.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-063.test.ts` contains “reveals 3 on deletion, plays a Chuumon, and bottoms the rest”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. On-deletion reveal/play and remainder placement proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1145,8 +1409,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-064 — TiaLudomon
 
-Score: 10/10. Level-7 inherited attack and de-digivolve result proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-064.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-064.test.ts` contains “De-Digivolves 1 opposing Digimon when its level 7 host attacks”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Level-7 inherited attack and de-digivolve result proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1183,8 +1451,12 @@ The implementation defect is corrected; no unresolved rules ambiguity remains.
 
 ### BT3-065 — Gururumon
 
-Score: 10/10. Security play behavior and rulings proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-065.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-065.test.ts` contains “is played without cost after battling as a security Digimon”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security play behavior and rulings proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1218,8 +1490,12 @@ The timing defect is corrected; no unresolved implementation ambiguity remains.
 
 ### BT3-066 — Clockmon
 
-Score: 10/10. Inherited opponent-turn DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-066.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-066.test.ts` contains “gives its host +1000 DP during the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited opponent-turn DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1246,8 +1522,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-067 — Tankmon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-067.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-067.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1275,8 +1555,12 @@ behavior defect. Execution of the focused test remains deferred.
 
 ### BT3-068 — Giromon
 
-Score: 10/10. Inherited opponent-turn DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-068.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-068.test.ts` contains “gives its host +1000 DP during the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited opponent-turn DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1302,8 +1586,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-069 — RaijiLudomon
 
-Score: 10/10. Level-7 predicate and de-digivolve behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-069.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-069.test.ts` contains “De-Digivolves 1 opposing Digimon when its level 7 host attacks”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Level-7 predicate and de-digivolve behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1334,8 +1622,12 @@ is deferred without creating a rules or executable-behavior ambiguity.
 
 ### BT3-070 — Etemon
 
-Score: 10/10. Blocker and on-deletion reveal/play behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-070.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-070.test.ts` contains “has Blocker and plays a revealed level 6 Etemon on deletion”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Blocker and on-deletion reveal/play behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-061-070.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1367,8 +1659,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-071 — MetalMamemon
 
-Score: 10/10. Reboot and level-7 Virus retrieval predicate proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-071.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-071.test.ts` contains “has Reboot”; “returns exactly one level 7 Virus Digimon from trash on legal evolution”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reboot and level-7 Virus retrieval predicate proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1403,8 +1699,12 @@ as collection-complete.
 
 ### BT3-072 — BryweLudramon
 
-Score: 10/10. Native/inherited Blocker and legal source proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-072.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-072.test.ts` contains “grants Blocker to its host”; “grants inherited Blocker through a legal black level 5 evolution”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Native/inherited Blocker and legal source proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1424,8 +1724,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-073 — CresGarurumon
 
-Score: 10/10. Reveal scaling/filter boundaries and Reboot proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-073.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-073.test.ts` contains “reveals per opposing Digimon and plays an eligible card”; “remains suspended after attacking despite having Reboot”; “scales the reveal and plays a black level 5 while rejecting a level 6”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reveal scaling/filter boundaries and Reboot proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1461,8 +1765,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-074 — MetalEtemon
 
-Score: 10/10. Turn-specific unblockable and DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-074.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-074.test.ts` contains “can't be blocked on its turn and gets +2000 DP on the opponent's turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Turn-specific unblockable and DP modifier proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1484,8 +1792,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-075 — Craniamon
 
-Score: 10/10. Blocker detection and opponent-effect deletion protection proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-075.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-075.test.ts` contains “protects own Blocker Digimon from an opponent's deletion effect”; “protects a Blocker inherited from a stack but not a non-Blocker”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Blocker detection and opponent-effect deletion protection proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1511,8 +1823,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-076 — Candlemon
 
-Score: 10/10. Vanilla and legal purple evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-076.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-076.test.ts` contains “has no card effects”; “digivolves from a legal Purple Digi-Egg without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla and legal purple evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1533,8 +1849,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-077 — Gazimon
 
-Score: 10/10. Opponent memory restriction and exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-077.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-077.test.ts` contains “prevents the opponent from gaining memory through a security Option effect”; “blocks opposing Digimon and Option gains but allows Tamer and own effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Opponent memory restriction and exceptions proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1556,8 +1876,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-078 — Shamanmon
 
-Score: 10/10. Vanilla and legal purple evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-078.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-078.test.ts` contains “has no card effects”; “digivolves from a legal Purple Digi-Egg without effect activation”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla and legal purple evolution proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1578,8 +1902,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-079 — Tsukaimon
 
-Score: 10/10. Inherited deletion memory and top-card isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-079.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-079.test.ts` contains “gains 1 memory when its host is deleted”; “does not gain memory while Tsukaimon is the top card”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited deletion memory and top-card isolation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1599,8 +1927,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-080 — Saberdramon
 
-Score: 10/10. Inherited Retaliation host behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-080.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-080.test.ts` contains “grants Retaliation to its host”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited Retaliation host behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1623,8 +1955,12 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-071-080.md` (2026-09-
 
 ### BT3-081 — Devidramon
 
-Score: 10/10. Inherited deletion memory behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-081.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-081.test.ts` contains “gains 1 memory when its host is deleted”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Inherited deletion memory behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1633,12 +1969,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-081.test.ts:6-17` places Devidramon under a legal purple level-5 Arukenimon host and deletes the host, asserting the inherited memory gain.
 - **Peer/stack proof:** The BT3-086 level-5 host over BT3-081 level-4 is catalog-legal; `builders.ts:171-197` keeps On Deletion collection valid after the stack moves to trash. BT3-006 is the same inherited On Deletion resource pattern, while the comprehensive inherited-effect sections establish host ownership.
 - **Correction/finding:** No executable defect found. The focused test already provides a legal stack and isolates the inherited effect.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-082 — BlackGatomon
 
-Score: 10/10. Security play timing and battle branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-082.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-082.test.ts` contains “records the delayed exact-card Security play in direct runtime IR”; “is played without cost after battling as a security Digimon”; “is still played after winning its Security Digimon battle”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Security play timing and battle branches proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1647,12 +1987,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-082.test.ts` asserts the delayed direct runtime IR, proves play occurs after `securityChecked` when BlackGatomon loses its Security battle, and proves a weaker attacker is deleted when BlackGatomon wins before it is played.
 - **Peer/stack proof:** The exact-card SubTrigger and security lifecycle are shared with the corrected BT3-011/024/036/049/065 implementations. Q1100/Q1101 align with the end-of-battle event ordering and both battle outcomes.
 - **Correction/finding:** Corrected the direct module from immediate Security self-play to the exact-card end-of-battle watcher and strengthened the ordering/battle proof. The aggregate snapshot must be reconciled by a later generation gate.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-083 — Meramon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-083.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-083.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1661,12 +2005,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-083.test.ts:4-10` places Meramon over BT3-076, a catalog-compatible purple level-3 source, and verifies no effect mutation.
 - **Peer/stack proof:** The BT3-076 → BT3-083 stack observes the catalog's color/level route. Adjacent BT3-081/BT3-082/BT3-084 cards show the boundary between inherited/effectful and vanilla records; `cards.json:51925-51946` contains no effect text.
 - **Correction/finding:** Added the typed empty direct registration and strengthened the no-effect proof with a legal purple evolution stack.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-084 — Raremon
 
-Score: 10/10. On-play Option reveal and remainder handling proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-084.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-084.test.ts` contains “adds one revealed Option to hand and trashes the remaining cards”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. On-play Option reveal and remainder handling proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1675,12 +2023,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-084.test.ts:6-30` supplies one Option and two Digimon, plays Raremon, asserts the Option enters hand, both remaining cards enter trash, and the deck is empty.
 - **Peer/stack proof:** BT3-062 and BT3-051 demonstrate the same RevealAdd slot/taken-card accounting; `reveal.ts:202-220` tracks taken cards and `:511-518` executes the trash remainder. The Option kind boundary is enforced by `definition.ts:90-97`.
 - **Correction/finding:** The direct module already contains the proven hand fix (`rest: "trash"`) from the committed baseline; no new direct change was needed. The generated snapshot reconciliation is deferred because `effects.json` is shared aggregate runtime data, not the authoring source (`docs/ARCHITECTURE.md:48-51`).
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-085 — SkullMeramon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-085.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-085.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1689,12 +2041,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-085.test.ts:4-10` places SkullMeramon over purple level-4 BT3-084 and asserts its DP remains the base DP after continuous recomputation.
 - **Peer/stack proof:** BT3-084 → BT3-085 is a legal purple evolution stack, and BT3-084's On Play text is not inherited, so the fixture does not introduce an unrelated trigger. Adjacent vanilla/effect boundaries are represented by BT3-083/BT3-084.
 - **Correction/finding:** Added the typed empty direct registration and strengthened the no-effect proof with a legal evolution stack.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-086 — Arukenimon
 
-Score: 10/10. Optional payment, named play, and self-deletion proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-086.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-086.test.ts` contains “may pay 3 memory to play MaloMyotismon from hand, then deletes itself”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Optional payment, named play, and self-deletion proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1703,12 +2059,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-086.test.ts:6-50` uses a legal BT3-083 (purple level 4) → Arukenimon stack, accepts the optional activation, asserts the free MaloMyotismon play, self-deletion, and memory reduction to three. `runAction.ts:276-294` and `:451-513` show that decline/unpayable cost aborts the dependent Delete; the paired Mummymon decline test covers the same gate.
 - **Peer/stack proof:** BT3-087 is the same mechanism with trash as the source zone; BT3-092 and `malomyotismon-historical-deck.test.ts:8-89` prove the related MaloMyotismon deletion/memory interaction. `definition.ts:90-97` enforces the Digimon-kind boundary and `play.ts:303-386` enforces `from: ["hand"]`.
 - **Correction/finding:** No executable defect found. Added a legal purple level-4 stack to the focused fixture while keeping the neutral BT3-083 source free of unrelated inherited effects.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-087 — Mummymon
 
-Score: 10/10. Accept/decline, trash origin, and resulting zones proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-087.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-087.test.ts` contains “may pay 3 memory to play MaloMyotismon from trash, then deletes itself”; “declining the single activation keeps Mummymon in play and does not pay memory”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Accept/decline, trash origin, and resulting zones proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1717,12 +2077,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-087.test.ts:6-37` uses a legal BT3-083 → Mummymon stack, accepts the optional activation, asserts the trash MaloMyotismon is played and Mummymon is deleted, and confirms memory three. `:39-78` declines the single activation and asserts Mummymon remains, MaloMyotismon remains in trash, and no memory is paid.
 - **Peer/stack proof:** BT3-086 provides the hand-source peer and `malomyotismon-historical-deck.test.ts:52-89` exercises the broader pair. `play.ts:303-386` resolves explicit trash source zones; `runAction.ts:451-513` confirms the abort-on-decline semantics demanded by Q1108.
 - **Correction/finding:** No executable defect found. Added legal purple level-4 stacks to both acceptance and decline fixtures to isolate the Mummymon effect.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-088 — LadyDevimon
 
-Score: 10/10. Draw/trash and inherited Option-use deletion proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-088.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-088.test.ts` contains “draws two then trashes two cards”; “deletes an opposing level 3 when its host uses an Option”; “allows the inherited Option-use deletion once per turn and resets on the next own turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Draw/trash and inherited Option-use deletion proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1731,12 +2095,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-088.test.ts:6-30` evolves a legal purple level-4 BT10-074 into LadyDevimon and verifies draw-then-trash. `:31-49` puts LadyDevimon under a legal BT3-092 host, uses the real BT3-109 Option [Main], and asserts an opposing level-3 target is deleted. The test therefore observes the Option-use seam rather than merely firing an arbitrary event.
 - **Peer/stack proof:** `effect.ts:384-402` carries Your Turn and Once Per Turn to the watcher; `subTrigger.ts:143-166` anchors inherited sources to their host; `primitives.ts:2466-2471` and `:2473-2524` establish that only genuine Option use fires the event. BT3-096, BT17-032, and BT19-040 are same-event peers; Q1111 is consistent with their use-only lifecycle.
 - **Correction/finding:** No executable defect found. The legal level-4 → level-5 evolution and host-stack fixture already isolate the inherited boundary.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-089 — Boltmon
 
-Score: 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-089.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-089.test.ts` contains “has no card effects”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Vanilla catalog/stat/no-effect proof. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1745,12 +2113,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-089.test.ts:4-10` places Boltmon over BT3-085, a catalog-compatible purple level-5 source, and verifies no continuous effect changes its base DP.
 - **Peer/stack proof:** BT3-085 → BT3-089 is a legal purple evolution stack. Adjacent BT3-088 and BT3-090 provide effectful level-5/level-6 peers while Boltmon's catalog record has no effect text.
 - **Correction/finding:** Added the typed empty direct registration and strengthened the no-effect proof with a legal evolution stack.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-090 — Mastemon
 
-Score: 10/10. Both-security trash and filtered free play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-090.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-090.test.ts` contains “trashes both top security cards and plays a low-level card from trash”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Both-security trash and filtered free play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1759,12 +2131,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-081-090.md` (2026-09-
 - **Behavioral proof:** `BT3-090.test.ts:6-33` evolves legal purple level-5 BT10-012 into Mastemon, asserts both players' security stacks are emptied, and verifies purple level-4 Vilemon is played from trash. Existing interpreter regression `interpreter.test.ts:4017-4020` statically asserts `bothPlayers: true`.
 - **Peer/stack proof:** `security.ts:74-86` loops both players' security stacks, while `:143-207` trashes from the top. `definition.ts:108-142` implements the union color and level ceiling; `play.ts:303-386` resolves the explicit trash source. BT3-093/BT3-096 and other security/revival peers provide the zone and free-play boundaries.
 - **Correction/finding:** Strengthened the focused proof to assert both security stacks are actually trashed; no direct IR defect found.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-091 — Lilithmon
 
-Score: 10/10. Trash threshold, Option return, and once-per-turn memory proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-091.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-091.test.ts` contains “returns up to two purple Options with ten cards in trash”; “gains 2 memory after using an Option once per turn”; “refunds only the first Option each turn and resets on the next own turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Trash threshold, Option return, and once-per-turn memory proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1803,8 +2179,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-092 — MaloMyotismon
 
-Score: 10/10. Piercing and other-Digimon deletion memory behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-092.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-092.test.ts` contains “records one memory gain per matching deletion trigger”; “has Piercing and gains 1 memory for each other Digimon deleted”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Piercing and other-Digimon deletion memory behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1853,8 +2233,12 @@ alter the card's executable effect.
 
 ### BT3-093 — Davis Motomiya
 
-Score: 10/10. Memory boundary, reveal colors/order, decline and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-093.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-093.test.ts` contains “matches official metadata and publishes separate typed triggers”; “sets memory to 3 at the start of the turn”; “playing Davis Motomiya adds 1 blue Digimon and 1 green Digimon from the top 3 to hand”; “keeps all three revealed identities visible through both color choices”; “lets the UI decline both colors and order every revealed card on the deck bottom”; “plays itself from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Memory boundary, reveal colors/order, decline and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1891,8 +2275,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-094 — Ken Ichijoji
 
-Score: 10/10. Start memory, battle-win optionality, suspend/gain behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-094.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-094.test.ts` contains “sets memory to 3 at turn start and may suspend to gain memory after a blue battle win”; “plays itself from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Start memory, battle-win optionality, suspend/gain behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1927,8 +2315,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-095 — Joe Kido
 
-Score: 10/10. Blocker start-turn predicate and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-095.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-095.test.ts` contains “gains exactly 1 memory at turn start while own Blockers are in play”; “plays itself from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Blocker start-turn predicate and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1958,8 +2350,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-096 — Mimi Tachikawa
 
-Score: 10/10. Multi-copy, suspended suppression, later Option, and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-096.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-096.test.ts` contains “matches official metadata and publishes the typed Option-use watcher”; “may suspend when an Option is used to gain 1 memory”; “offers each of 2 Mimis exactly once for a single Option use after recomputes”; “cannot gain memory again from already suspended copies on a later Option”; “plays itself from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Multi-copy, suspended suppression, later Option, and Security play proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -1991,8 +2387,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-097 — A Delicate Plan
 
-Score: 10/10. Main attack protection and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-097.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-097.test.ts` contains “prevents checked Option cards from activating their Security effects”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Main attack protection and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2027,8 +2427,12 @@ generated snapshot synchronization is deferred.
 
 ### BT3-098 — Plasma Stake
 
-Score: 10/10. 13000-DP threshold and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-098.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-098.test.ts` contains “deletes an opposing Digimon at 13000 DP or more”; “does not delete an opposing Digimon below 13000 DP”; “activates its Main deletion effect from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. 13000-DP threshold and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2058,8 +2462,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-099 — We Have to Stop Fighting!
 
-Score: 10/10. Both-player battle protection and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-099.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-099.test.ts` contains “matches official metadata and publishes battle-only protection for both players”; “prevents battle deletion for both players' Digimon this turn”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Both-player battle protection and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2093,8 +2501,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-100 — Death Parade Blaster
 
-Score: 10/10. Source-trash boundaries, suspension condition, and Security path proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-100.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-100.test.ts` contains “trashes two bottom sources and suspends the now-sourceless Digimon with green present”; “can trash only one of two available bottom sources”; “activates its full Main effect from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Source-trash boundaries, suspension condition, and Security path proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-091-100.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2136,8 +2548,12 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-101 — Bifrost
 
-Score: 10/10. Both penalties, duration, and Security path proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-101.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-101.test.ts` contains “reduces DP and Security Attack until the end of the opponent's next turn”; “applies both penalties for the turn from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Both penalties, duration, and Security path proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2153,8 +2569,12 @@ Status: no implementation correction was needed. The score remains provisional s
 
 ### BT3-102 — Code Cracking
 
-Score: 10/10. Accept, decline/recovery, and empty-security fallback proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-102.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-102.test.ts` contains “lets the opponent trash their top security card”; “recovers 1 when the opponent declines to trash security”; “recovers 1 when the opponent has no security to trash”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Accept, decline/recovery, and empty-security fallback proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2170,8 +2590,12 @@ Peer/stack proof: the shared security primitive handles opponent-facing optional
 
 ### BT3-103 — Hidden Potential Discovered!
 
-Score: 10/10. Evolution reduction and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-103.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-103.test.ts` contains “suspends a Digimon to reduce the next green digivolution cost by 5”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Evolution reduction and Security return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2187,8 +2611,12 @@ Peer/stack proof: BT3-056 (`BT3-056.ts:7-22`) and EX2-064 (`EX2-064.ts:5-45`) es
 
 ### BT3-104 — Positron Laser
 
-Score: 10/10. Target restrictions, blue condition, return, and Security behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-104.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-104.test.ts` contains “prevents attacks and blocks, then returns a suspended stack with blue present”; “applies the Security attack restriction and return clause”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Target restrictions, blue condition, return, and Security behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2204,8 +2632,12 @@ Peer/stack proof: `BT3-100.ts` demonstrates the adjacent blue/green battlefield 
 
 ### BT3-105 — Breath of the Gods
 
-Score: 10/10. Reboot, protection clauses, and Security behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-105.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-105.test.ts` contains “grants Reboot and protection from DP reduction and returns”; “prevents the opponent's Digimon from attacking players from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Reboot, protection clauses, and Security behavior proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2221,8 +2653,12 @@ Peer/stack proof: `P-220.ts:4-33` is a legal peer with both Reboot and Blocker s
 
 ### BT3-106 — Beast Cyclone
 
-Score: 10/10. Blocker/Reboot OR recipients and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-106.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-106.test.ts` contains “gives Security Attack +1 to all Digimon with Blocker or Reboot”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Blocker/Reboot OR recipients and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2236,8 +2672,12 @@ Peer/stack proof: P-220 is a legal static peer carrying both Blocker and Reboot 
 
 ### BT3-107 — Looking Back on the Good Times
 
-Score: 10/10. De-digivolve/delete ordering and cost boundaries proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-107.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-107.test.ts` contains “Q1145: de-digivolves a cost-5 target, then deletes it after its cost becomes 4 or less”; “Q1146: deletes a cost-4-or-less level 3 even when De-Digivolve can't remove a source”; “does not delete a selected Digimon whose post-De-Digivolve cost remains above 4”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. De-digivolve/delete ordering and cost boundaries proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2253,8 +2693,12 @@ Peer/stack proof: `BT19-089.ts` supplies the same-target pattern; De-Digivolve p
 
 ### BT3-108 — Dark Despair
 
-Score: 10/10. Retaliation grant and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-108.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-108.test.ts` contains “grants Retaliation until the end of the opponent's next turn”; “adds itself to its owner's hand from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Retaliation grant and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2268,8 +2712,12 @@ Peer/stack proof: comprehensive Retaliation rules (`comprehensive.md:2944-2951`)
 
 ### BT3-109 — Back for Revenge!
 
-Score: 10/10. Replay, On Play suppression, and stack handling proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-109.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-109.test.ts` contains “matches official metadata and registers fully covered IR”; “replays the deleted Digimon without activating its On Play effect”; “follows a later digivolution and leaves its sources in trash (Q1147/Q2730)”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Replay, On Play suppression, and stack handling proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2283,8 +2731,12 @@ Peer/stack proof: the watcher anchor and live top-card replay path provide the l
 
 ### BT3-110 — Necrophobia
 
-Score: 10/10. Purple level-5 trash play and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-110.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-110.test.ts` contains “plays a purple level 5 from trash without activating its On Play effect”; “activates its full Main effect from security”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Purple level-5 trash play and Security activation proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-101-110.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2300,8 +2752,12 @@ Peer/stack proof: the shared play primitive handles from-trash placement, no-cos
 
 ### BT3-111 — Imperialdramon: Dragon Mode
 
-Score: 10/10. Named cost sources, breeding rejection, Piercing, and unsuspend proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-111.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-111.test.ts` contains “publishes the named-source reducer, Piercing, and once-per-turn trigger in IR”; “reduces its cost over Paildramon and unsuspends after deleting in battle”; “reduces its cost over Dinobeemon in a legal green level-4 stack”; “does not apply the hand reduction to a breeding-area source”; “unsuspends once per turn after battle deletion and resets on the next own turn”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Named cost sources, breeding rejection, Piercing, and unsuspend proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-111-112.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2310,12 +2766,16 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-111-112.md` (2026-09-
 - **Behavioral proof:** `BT3-111.test.ts:8-44` statically asserts the exact runtime-registered named-source reducer, nested amount, Piercing keyword, source-self watcher, and Once Per Turn frequency. `:46-96` digivolves Paildramon into Dragon Mode, proves the 2-memory reduction and Piercing security check, then proves the source unsuspends after deleting an opposing Digimon in battle. `:98-134` uses the legal green stack BT3-050 Stingmon → BT3-055 Dinobeemon → BT3-111 and proves the reduced cost is 3 rather than 5 while preserving `[BT3-055, BT3-050]` underneath. `:136-158` uses Dinobeemon in the breeding area and proves the full 5-memory cost is paid with no Q1150 reduction.
 - **Peer/stack proof:** `reducers.ts:320-415` is the shared verified reducer path and `digivolve.ts:600-710` is the breeding-area guard. BT11-059 supplies the named-source/self-reduction and battle-deletion Once Per Turn peer; BT6-010 and BT15-047 supply the Piercing and unsuspend patterns. The exact-name boundary is represented in direct IR and the static test, while the green Stingmon → Dinobeemon → Dragon Mode stack is catalog-legal.
 - **Correction/finding:** No executable defect was found. The dispatch strengthened static IR proof and added legal Dinobeemon and breeding-area cases; the direct module already satisfied the catalog/rules behavior and retains only `registerIrCard`.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ### BT3-112 — Omnimon Alter-S
 
-Score: 10/10. Global de-digivolve/delete and optional unblockable source return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
-Static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
+Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-112.test.ts`.
+
+2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-112.test.ts` contains “matches official metadata and publishes both effects without ghost actions”; “De-Digivolves all opponents then deletes those with 5000 DP or less”; “may return a level 6 source to hand to become unblockable for the turn”; “does not pay with a level 6 card under another own Digimon”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.
+
+Historical 2026-09-10 score (superseded): 10/10. Global de-digivolve/delete and optional unblockable source return proved. Source: `docs/audits/BT3-REAUDIT-LEDGER.md`, 2026-09-10.
+Historical static pass score: 10/10 (`docs/audits/BT3-STATIC-AUDIT.md`, 2026-09-02).
 
 Clause evidence, merged from `internal-docs/audits/BT3/BT3-111-112.md` (2026-09-02, static-only pass; where its score differs the 2026-09-10 ledger above wins):
 
@@ -2324,23 +2784,139 @@ Clause evidence, merged from `internal-docs/audits/BT3/BT3-111-112.md` (2026-09-
 - **Behavioral proof:** `BT3-112.test.ts:8-52` statically asserts the card metadata, both red/black level-6 evolution costs, and the runtime-registered IR's full coverage, action ordering, live DP threshold, optional restriction, and exact hosted-source filter. `:54-84` evolves a legal black L6 BT3-074 base into Alter-S, places legal green Quartzmon stacks on both opposing targets, and asserts De-Digivolve promotes BT17-050 Parasitemon (4,000 DP) into deletion while BT3-057 MegaGargomon (11,000 DP) survives after promotion. `:86-114` attacks with Alter-S over BT3-074, accepts the optional cost, returns that level-6 source, and asserts the turn restriction. `:116-141` is the negative cross-stack proof: an attacker with no source cannot pay using a level-6 card under a separate own Alter-S stack, so it remains blockable and the unrelated stack remains intact.
 - **Peer/stack proof:** `BT1-084.ts:27-41` is the direct hosted-source peer and uses `hostFilter: { isSelfRef: true }`; its focused tests prove the same level-6 source and optional action. `BT16-062` and BT11-108 establish De-Digivolve-then-delete sequencing. `BT3-074` proves the `cantBeBlocked` restriction boundary. The Alter-S attack fixture uses the catalog-legal black L6 BT3-074 → white L7 BT3-112 route; the opposing Quartzmon → Parasitemon and Quartzmon → MegaGargomon stacks are legal green L6 paths and provide both sides of the 5,000-DP threshold. The negative fixture explicitly separates the source host to prove the trait/host boundary.
 - **Correction/finding:** The direct module had a proven source-scope defect: without a host filter, the return cost could select a qualifying level-6 card under any own Digimon. Added `hostFilter: { isSelfRef: true }` in `BT3-112.ts` and expanded `BT3-112.test.ts` to assert the IR and reject cross-stack payment. The generated snapshot remains stale only for this newly explicit host scope; it is documented for later reconciliation rather than edited outside the direct authoring path.
-- **Score:** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
+- **Historical rubric (superseded):** 2/2 + 2/2 + 2/2 + 2/2 + 0/2 = **8/10 provisional**.
 
 ## Mechanisms
+
+2026-09-13: no engine files changed. The baseline successful-suspension guard, reaction dispatch and once-per-turn identity in `GameEngine.payDigisorption` are exercised through `keyword-succession-lifecycle.test.ts`; the nine bounded mechanism suites passed with the entire collection. BT3-056 native redirect is now proved for refused/paid suspension, Q4703, same-turn exhaustion of two established Ceresmon, next-own-turn reset, prohibited payment and suspension reactions. Broader copied-Succession source/granter categories remain owned by the cross-set engine audit and are not asserted as closed here.
+
+Historical mechanism notes:
 
 No `*-MECHANISM.md` file was ever written for BT3, and the re-audit changed no engine seam. Two card-level corrections are worth keeping. BT3-001's first lifecycle test expected a decision for a single legal target and was red because the engine resolves a mandatory singleton automatically; the corrected observable assertion proves the evolved stack retains BT3-001 and deletes only the natural 1000-DP opponent, with no production change. BT3-012 replaced a numeric DP override with natural cards and now proves a legal BT3-001 → BT3-009 → BT3-012 → BT3-015 public lifecycle in which the exact 2000-DP target is deleted while the natural 3000-DP peer survives.
 
 ## Knowledge base index
 
-`docs/audits/BT3-reaudit/KB-INDEX.md` (2026-09-10) was never filled in. It carries only its starting instruction: populate each card's local Q&A identifiers from `node tools/kb/query.mjs card <CARD-ID>` during review, and record the absence of a card-specific ruling only after that query. The Q&A references that were recorded survive in the card sections above; there is no aggregated index for BT3.
+Requeried all 112 cards on 2026-09-13 with `node tools/kb/query.mjs card <CARD-ID>` against the committed local KB at baseline `b88aeb69f22995641622ab4388086ff771b23dc0`. Absence below means the command returned no card-specific Q&A; comprehensive rules still apply.
+
+- `BT3-001`: no card-specific Q&A returned.
+- `BT3-002`: no card-specific Q&A returned.
+- `BT3-003`: no card-specific Q&A returned.
+- `BT3-004`: Q1047.
+- `BT3-005`: no card-specific Q&A returned.
+- `BT3-006`: no card-specific Q&A returned.
+- `BT3-007`: no card-specific Q&A returned.
+- `BT3-008`: Q1048, Q1049, Q1050.
+- `BT3-009`: no card-specific Q&A returned.
+- `BT3-010`: no card-specific Q&A returned.
+- `BT3-011`: Q1051, Q1052, Q1053.
+- `BT3-012`: no card-specific Q&A returned.
+- `BT3-013`: no card-specific Q&A returned.
+- `BT3-014`: Q1054, Q1055, Q1056, Q1057.
+- `BT3-015`: no card-specific Q&A returned.
+- `BT3-016`: no card-specific Q&A returned.
+- `BT3-017`: no card-specific Q&A returned.
+- `BT3-018`: no card-specific Q&A returned.
+- `BT3-019`: Q1058, Q1059, Q1060.
+- `BT3-020`: no card-specific Q&A returned.
+- `BT3-021`: no card-specific Q&A returned.
+- `BT3-022`: no card-specific Q&A returned.
+- `BT3-023`: no card-specific Q&A returned.
+- `BT3-024`: Q1061, Q1062, Q1063.
+- `BT3-025`: no card-specific Q&A returned.
+- `BT3-026`: no card-specific Q&A returned.
+- `BT3-027`: no card-specific Q&A returned.
+- `BT3-028`: no card-specific Q&A returned.
+- `BT3-029`: no card-specific Q&A returned.
+- `BT3-030`: Q1064, Q1065, Q1066.
+- `BT3-031`: Q1067.
+- `BT3-032`: no card-specific Q&A returned.
+- `BT3-033`: no card-specific Q&A returned.
+- `BT3-034`: Q1068, Q1069, Q1070, Q1071.
+- `BT3-035`: no card-specific Q&A returned.
+- `BT3-036`: Q1072, Q1073, Q1074.
+- `BT3-037`: no card-specific Q&A returned.
+- `BT3-038`: no card-specific Q&A returned.
+- `BT3-039`: no card-specific Q&A returned.
+- `BT3-040`: Q1075, Q1076, Q1077, Q1772, Q1780.
+- `BT3-041`: Q1078.
+- `BT3-042`: Q1079.
+- `BT3-043`: no card-specific Q&A returned.
+- `BT3-044`: no card-specific Q&A returned.
+- `BT3-045`: no card-specific Q&A returned.
+- `BT3-046`: Q1080, Q1081.
+- `BT3-047`: no card-specific Q&A returned.
+- `BT3-048`: no card-specific Q&A returned.
+- `BT3-049`: Q1082, Q1083, Q1084.
+- `BT3-050`: no card-specific Q&A returned.
+- `BT3-051`: Q1085, Q2827.
+- `BT3-052`: no card-specific Q&A returned.
+- `BT3-053`: no card-specific Q&A returned.
+- `BT3-054`: no card-specific Q&A returned; Banlist: RESTRICTED to 1 copy (since 2023-06-01).
+- `BT3-055`: no card-specific Q&A returned.
+- `BT3-056`: Q4703.
+- `BT3-057`: Q1086.
+- `BT3-058`: no card-specific Q&A returned.
+- `BT3-059`: no card-specific Q&A returned.
+- `BT3-060`: no card-specific Q&A returned.
+- `BT3-061`: Q1087, Q1088.
+- `BT3-062`: Q1089, Q1090, Q1091.
+- `BT3-063`: no card-specific Q&A returned.
+- `BT3-064`: no card-specific Q&A returned.
+- `BT3-065`: Q1092, Q1093, Q1094.
+- `BT3-066`: no card-specific Q&A returned.
+- `BT3-067`: no card-specific Q&A returned.
+- `BT3-068`: no card-specific Q&A returned.
+- `BT3-069`: no card-specific Q&A returned.
+- `BT3-070`: no card-specific Q&A returned.
+- `BT3-071`: no card-specific Q&A returned.
+- `BT3-072`: no card-specific Q&A returned.
+- `BT3-073`: Q1095.
+- `BT3-074`: no card-specific Q&A returned.
+- `BT3-075`: Q1096.
+- `BT3-076`: no card-specific Q&A returned.
+- `BT3-077`: Q1097, Q1098.
+- `BT3-078`: no card-specific Q&A returned.
+- `BT3-079`: no card-specific Q&A returned.
+- `BT3-080`: no card-specific Q&A returned.
+- `BT3-081`: no card-specific Q&A returned.
+- `BT3-082`: Q1099, Q1100, Q1101.
+- `BT3-083`: no card-specific Q&A returned.
+- `BT3-084`: no card-specific Q&A returned.
+- `BT3-085`: no card-specific Q&A returned.
+- `BT3-086`: Q1102, Q1104, Q1105.
+- `BT3-087`: Q1106, Q1108, Q1109.
+- `BT3-088`: Q1110, Q1111.
+- `BT3-089`: no card-specific Q&A returned.
+- `BT3-090`: Q1112, Q1113, Q1114, Q1115, Q1116.
+- `BT3-091`: Q1117, Q5449.
+- `BT3-092`: Q1105, Q1109, Q1118, Q1119, Q1120, Q1121, Q1122; Banlist: RESTRICTED to 1 copy (since 2026-04-04).
+- `BT3-093`: Q1123, Q4704.
+- `BT3-094`: Q1124, Q1125.
+- `BT3-095`: Q1126.
+- `BT3-096`: Q1127, Q1128, Q4136.
+- `BT3-097`: Q1131.
+- `BT3-098`: no card-specific Q&A returned.
+- `BT3-099`: Q1132, Q1133.
+- `BT3-100`: Q1134.
+- `BT3-101`: no card-specific Q&A returned.
+- `BT3-102`: Q1135, Q1136.
+- `BT3-103`: Q1137, Q1138, Q1139, Q1140, Q1285, Q1302, Q1313, Q4276; Banlist: RESTRICTED to 1 copy (since 2021-04-01).
+- `BT3-104`: Q1141.
+- `BT3-105`: Q1142.
+- `BT3-106`: Q1143, Q1144.
+- `BT3-107`: Q1145, Q1146.
+- `BT3-108`: no card-specific Q&A returned.
+- `BT3-109`: Q1147, Q1148, Q1149, Q2730, Q2761.
+- `BT3-110`: no card-specific Q&A returned.
+- `BT3-111`: Q1150.
+- `BT3-112`: no card-specific Q&A returned.
 
 ## Open items
 
-- Evidence depth. Only BT3-001, BT3-006, BT3-009, BT3-011, and BT3-012 received a new per-card report in the re-audit. The remaining 107 rows were accepted individually by the coordinator from catalog and IR review reconciled against the already-green focused baseline. `docs/audits/BT3-reaudit/RUN.md` states the reasoning explicitly: "generic absence of a full end-to-end lifecycle was not treated as a defect where the implemented mechanism and its material boundaries were already reproducibly exercised". Public lifecycle hardening for those cards is desirable and outstanding.
-- No aggregated knowledge-base index. `docs/audits/BT3-reaudit/KB-INDEX.md` was left at its instruction text.
-- Status contradiction between passes. `docs/audits/BT3-AUDIT.md` (2026-09-02) says "static card-by-card pass complete; execution gates deferred" while `docs/audits/BT3-STATIC-AUDIT.md` of the same date says "complete — 112/112 cards verified at 10/10". Both are superseded by the 2026-09-10 re-audit.
-- Clause evidence for 107 cards is dated 2026-09-02 and static-only, and its per-card rows read "provisional 8/10". The 2026-09-10 ledger rows of 10/10 win; the older scores are kept in place only as clause detail.
-- Catalog identity is a blob hash in every source, not a commit. `catalog_commit` stays `unknown` until a run records one.
+- No BT3 card remains below 10/10; no unresolved collection-specific implementation, native once-per-turn or rules ambiguity was identified. Existing sufficient tests were retained.
+- Two unrelated BT14-090 conformance failures exist on the pristine baseline, with exact names and commands under Gates; the broad diagnostic is not claimed green. This audit changes no engine or BT14 implementation.
+- Cross-set copied-Succession categories remain in the engine audit; this collection certificate covers the printed native BT3 contracts and the proved relevant mechanisms.
+- Historical static-only evidence, stale-snapshot statements and contradictory scores are preserved as history, superseded by the current direct-module review, focused/mechanism/collection proof, scoped effects byte check, complete 112-card KB index and pinned catalog/evidence commits.
 
 ## History
 

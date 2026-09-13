@@ -47,7 +47,7 @@ describe("BT22-079 Eater (Species Form)", () => {
         0: {
           breeding: { card: "BT1-009", under: ["BT22-079"] },
           hand: [{ card: "BT22-079", as: "eater" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true },
@@ -57,7 +57,7 @@ describe("BT22-079 Eater (Species Form)", () => {
     await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: eaterId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(s.decisions).toHaveLength(1);
     expect(s.decisions[0]?.req).toMatchObject({ kind: "optional", sourceCardId: "BT22-079" });
     expect(s.state.memory).toBe(1);

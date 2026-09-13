@@ -352,7 +352,7 @@ describe("BT22-007 battle-area clauses", () => {
         0: {
           breeding: { card: "BT22-079", under: ["BT22-007"], as: "motherHost" },
           battleArea: [{ card: "BT22-079", as: "defender", suspended: true }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
         1: { battleArea: [{ card: "AD1-004", as: "attacker" }] },
       },

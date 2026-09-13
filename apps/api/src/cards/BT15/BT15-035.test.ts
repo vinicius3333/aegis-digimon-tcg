@@ -107,7 +107,7 @@ describe("BT15-035", () => {
         },
         1: {
           battleArea: [{ card: "BT15-029", as: "target" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },

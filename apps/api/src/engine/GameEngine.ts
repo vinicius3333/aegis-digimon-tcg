@@ -29,6 +29,7 @@ import {
   digiXrosRequirementFor,
   assemblyRequirementFor,
   appFusionCostFor,
+  nameIncludesToken,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -675,6 +676,10 @@ export class GameEngine {
 
   private async flushDeferredTimingWindows(): Promise<void> {
     if (this.flushingDeferredTimingWindows) return;
+    // Deferred windows belong between effect bodies. A nested entry seam can reach this
+    // helper while its enclosing card body is still resolving; keep that queue parked until
+    // the genuine between-effects boundary.
+    if (this.effectResolutionDepth > 0) return;
     this.flushingDeferredTimingWindows = true;
     try {
       while (this.deferredTimingWindows.length > 0) {
@@ -818,6 +823,7 @@ export class GameEngine {
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
   private readonly securityDp = new SecurityDpLedger();
+  private battleScopeSequence = 0;
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
   private readonly deletionMaxDp = new DeletionMaxDpLedger();
   /** Continuous DP-based-deletion BUDGET bonuses (BT19-011's inherited modifier; rebuilt each continuous recompute). */
@@ -1019,7 +1025,9 @@ export class GameEngine {
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
-      sweepEndOfBattle: () => this.sweepBattleDurations(),
+      beginBattleScope: () => this.beginBattleScope(),
+      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
+      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
       recomputeBattleEffects: () => this.recomputeContinuousEffects(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
@@ -1156,6 +1164,18 @@ export class GameEngine {
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
+      processRulesBeforeWhenDigivolving: async () => {
+        await this.recomputeContinuousEffects();
+        if (this.ruleProcessing || this.ruleTriggerPool !== undefined) {
+          // A trash replacement is entered from the active rule pass. Run only the DP
+          // movement processes: the outer pass owns the pooled reactions and its latch.
+          await this.trashNoDpPermanents();
+          await this.deleteZeroDpDigimon();
+        } else {
+          const pool = await this.collectRuleProcessMovements();
+          if (!this.state.gameOver) await this.flushRuleTriggerPool(pool);
+        }
+      },
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         // A selected security card can still be face down in its origin zone.
         // Locate only this instance; do not expose hidden security to timing scans.
@@ -1768,12 +1788,26 @@ export class GameEngine {
     }
   }
 
+  /** Open an identity token for one battle, so nested battles do not sweep parent grants. */
+  private beginBattleScope(): number {
+    const scopeId = ++this.battleScopeSequence;
+    this.modifiers.beginBattleScope(scopeId);
+    this.continuous.beginBattleScope(scopeId);
+    return scopeId;
+  }
+
+  private endBattleScope(scopeId: number): void {
+    this.modifiers.endBattleScope(scopeId);
+    this.continuous.endBattleScope(scopeId);
+  }
+
   /** Expire battle grants after its reactions, independently of the enclosing attack. */
-  private async sweepBattleDurations(): Promise<void> {
-    this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
-    this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+  private async sweepBattleDurations(scopeId?: number): Promise<void> {
+    this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
+    this.continuous.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
     this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
+    if (scopeId !== undefined) this.endBattleScope(scopeId);
   }
 
   /** Expire attack grants, including unused battle grants when no battle occurred. */
@@ -2311,7 +2345,7 @@ export class GameEngine {
    * name-substring OR trait). */
   private static baseGrantTargetMatches(target: BaseGrantedDigivolve["target"], evolving: CardDefinition): boolean {
     if (target.namesExact && target.namesExact.some((n) => evolving.nameEn === n)) return true;
-    if (target.names && target.names.some((n) => evolving.nameEn.includes(n))) return true;
+    if (target.names && target.names.some((n) => nameIncludesToken(evolving.nameEn, n))) return true;
     if (target.traits && target.traits.some((t) => cardHasTrait(evolving, t))) return true;
     return false;
   }
@@ -2600,6 +2634,8 @@ export class GameEngine {
       return;
     }
     const wasOutermostWindow = this.beginResolvingWindow();
+    const excludedNestedPending =
+      this.effectResolutionDepth === 0 ? new Set(this.pendingNestedTimingEffects) : undefined;
     try {
       await this.recomputeContinuousEffects();
       // A phase-boundary event has one fixed set of card sources: a Tamer played by an
@@ -2659,7 +2695,10 @@ export class GameEngine {
             runTiming(
               timing,
               this.effectEnvironment(trigger),
-              this.resolutionDeps(listWindowCandidates, { outermost: wasOutermostWindow }),
+              this.resolutionDeps(listWindowCandidates, {
+                outermost: wasOutermostWindow,
+                excludeNestedPending: excludedNestedPending,
+              }),
             ),
           );
           if (wasOutermostWindow) {
@@ -4250,6 +4289,8 @@ export class GameEngine {
       return;
     }
     const wasOutermostWindow = this.beginResolvingWindow();
+    const excludedNestedPending =
+      this.effectResolutionDepth === 0 ? new Set(this.pendingNestedTimingEffects) : undefined;
     try {
       await this.recomputeContinuousEffects();
       await this.withPendingPoolDrain(wasOutermostWindow, () =>
@@ -4259,6 +4300,7 @@ export class GameEngine {
           this.resolutionDeps(() => this.instancesById([sourceInstanceId]), {
             outermost: wasOutermostWindow,
             extraPending,
+            excludeNestedPending: excludedNestedPending,
           }),
         ),
       );
@@ -5143,21 +5185,33 @@ export class GameEngine {
    */
   private resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
-    opts: { outermost?: boolean; extraPending?: readonly CollectedEffect[] } = {},
+    opts: {
+      outermost?: boolean;
+      extraPending?: readonly CollectedEffect[];
+      excludeNestedPending?: ReadonlySet<CollectedEffect>;
+    } = {},
   ): ResolutionDeps {
+    const excludeNestedPending = opts.excludeNestedPending;
     return {
-      // Only the outermost loop settles the deferred queues between effects: at a nested one
-      // the effect that parked them is still running its body (see ResolutionEnv.betweenEffects).
-      // The pending watchers belong to the windows the event opened, not to a window a
-      // resolving effect opens from inside its own body: a nested (cut-in) resolution must not
-      // reach into the pool and resolve a sibling trigger mid-body. Both are the same test —
-      // only the outermost loop runs with no card body on the stack.
+      // The outermost loop settles deferred queues between effects. A nested resolver normally
+      // cannot reach into the enclosing pool while its card body is still running; a settlement
+      // window that starts at effect depth zero may opt into only entries added after its opening
+      // snapshot, leaving the parent's older pending group to the outermost resolver.
       ...(opts.outermost === true
         ? {
             betweenEffects: () => this.settleBetweenEffects(),
             collectPending: () => [...this.pendingWindowCollected(), ...(opts.extraPending ?? [])],
           }
-        : { collectPending: () => this.parkedEntryCollected() }),
+        : {
+            collectPending: () => [
+              ...(excludeNestedPending === undefined
+                ? []
+                : this.pendingNestedTimingEffects.filter(
+                    (pending) => !excludeNestedPending.has(pending) && this.nestedTriggerSourceStillResident(pending),
+                  )),
+              ...this.parkedEntryCollected(),
+            ],
+          }),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
       ruleProcess: () =>
@@ -5910,7 +5964,9 @@ export class GameEngine {
     // a one-shot stale value left from an earlier window.
     await this.recomputeContinuousEffects();
     const deps: SecurityCheckDeps = {
-      sweepEndOfBattle: () => this.sweepBattleDurations(),
+      beginBattleScope: () => this.beginBattleScope(),
+      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
+      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       // Strike = the number of security cards checked: base 1 plus every ＜Security
       // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these
@@ -6321,7 +6377,7 @@ export class GameEngine {
     mode: PlayMode,
     alsoColors: readonly CardColor[] = [],
   ): boolean {
-    const required = definition.optionColorRequirements ?? (mode === "option" ? (definition.colors ?? []) : []);
+    const required = mode === "option" ? (definition.optionColorRequirements ?? (definition.colors ?? [])) : [];
     if (required.length === 0) return true;
     const player = this.state.players[seat];
     if (player === undefined) return false;

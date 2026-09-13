@@ -125,9 +125,9 @@ describe("BT17-069 Fenriloogamon", () => {
           battleArea: [{ card: "BT16-061", under: ["BT14-087"], as: "base" }],
           hand: [{ card: "BT17-069", as: "fenriloogamon" }],
           trash: [{ card: "BT14-081", as: "playedFenriloogamon" }],
-          deck: ["BT1-001", "BT1-011"],
+          deck: ["BT1-011", "BT1-012"],
         },
-        1: { deck: ["BT1-001", "BT1-011"] },
+        1: { deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

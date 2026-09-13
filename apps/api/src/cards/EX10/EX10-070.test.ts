@@ -359,6 +359,47 @@ describe("EX10-070 God Grade Unleashed", () => {
     await loop;
   });
 
+  it("activates once when Detach trashes a link during an opponent effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "source" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX10-070", as: "delay" },
+            { card: "BT26-019", as: "holder", linked: [{ card: "BT26-010", as: "paymentLink" }] },
+          ],
+          trash: [{ card: "BT24-053", as: "material" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.perm("holder").linked.some(({ instanceId }) => instanceId === s.inst("material").instanceId) &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("delay").instanceId),
+    );
+
+    expect(s.perm("holder").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("material").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("paymentLink").instanceId, s.inst("delay").instanceId]),
+    );
+    expect(s.perm("holder").linked).toHaveLength(1);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("declining the ＜Delay＞ leaves the Option on the field and links nothing", async () => {
     const s = setupEngine(delayBoard(), { autoSelectCards: true, autoChooseOption: true });
     await s.ready();

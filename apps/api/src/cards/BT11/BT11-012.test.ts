@@ -1,4 +1,4 @@
-import { EffectTiming, digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
+import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -101,20 +101,44 @@ describe("BT11-012 Shoutmon X3", () => {
   });
 
   it("may delete itself at start of turn to gain 1 memory (Q2057)", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-012", as: "x3" }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-012", as: "x3" },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: Array.from({ length: 8 }, () => "BT1-013"),
+          security: ["BT1-013", "BT1-013"],
+        },
+        1: { deck: Array.from({ length: 8 }, () => "BT1-013"), security: ["BT1-013", "BT1-013"] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 0;
-
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("x3"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-012")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("may refuse the start-of-turn deletion cost (Q2057)", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-012", as: "x3" }] } }, { autoAcceptOptional: false });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-012", as: "x3" }],
+          deck: Array.from({ length: 8 }, () => "BT1-013"),
+          security: ["BT1-013", "BT1-013"],
+        },
+        1: { deck: Array.from({ length: 8 }, () => "BT1-013"), security: ["BT1-013", "BT1-013"] },
+      },
+      { autoAcceptOptional: false },
+    );
     s.state.memory = 0;
-
-    const resolution = advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("x3"));
+    const turn = s.engine.runOneTurn();
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
     const prompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(
@@ -124,10 +148,12 @@ describe("BT11-012 Shoutmon X3", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("Material Save places exactly 2 specified sources under one Tamer", async () => {

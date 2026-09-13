@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { makeInstance as instance, setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT11-089.js";
+import "./BT11-016.js";
 
 // A3 for BT11-089 (Akiho Rindou) — its [On Play] effect reveals the top 4 cards of the
 // deck and is supposed to add 1 red Digimon with [Vaccine] in its traits among them to
@@ -65,31 +66,93 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
     expect(p0.deck.some((c) => c.cardId === "AD1-004")).toBe(false);
   });
 
-  it("suspends itself to give Rush to the eligible red Digimon played by an effect", async () => {
+  it("suspends itself to give Rush to the first eligible effect play each turn", async () => {
     const s = setup(
       {
         0: {
           battleArea: [
             { card: "BT11-089", as: "akiho" },
-            { card: "BT1-017", as: "played-bird" },
-            { card: "BT11-008", as: "other-beast" },
+            { card: "BT1-013", as: "spare" },
+            { card: "BT11-016", as: "phoenix1" },
+            { card: "BT11-016", as: "phoenix2" },
+            { card: "BT11-016", as: "phoenix3" },
           ],
+          hand: [
+            { card: "BT1-012", as: "biyomon1" },
+            { card: "BT1-012", as: "biyomon2" },
+            { card: "BT1-012", as: "biyomon3" },
+          ],
+          deck: Array.from({ length: 8 }, () => "BT1-013"),
+          security: Array.from({ length: 4 }, () => "BT1-013"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "titan", dp: 13000, suspended: true }],
+          deck: Array.from({ length: 8 }, () => "BT1-013"),
+          security: Array.from({ length: 4 }, () => "BT1-013"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    const payload = { subjectPermanentId: s.perm("played-bird").permanentId };
+    const titanId = s.perm("titan").permanentId;
+    const phoenixIds = [s.perm("phoenix1").permanentId, s.perm("phoenix2").permanentId, s.perm("phoenix3").permanentId];
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", payload);
-    expect(s.perm("akiho").isSuspended).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("played-bird"), "Rush")).toBe(false);
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
-
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    for (const [index, phoenixId] of phoenixIds.slice(0, 2).entries()) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: phoenixId,
+          target: { kind: "permanent", permanentId: titanId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === phoenixId));
+      const biyomonInstanceId = s.inst(index === 0 ? "biyomon1" : "biyomon2").instanceId;
+      await settle(
+        () =>
+          !observe(s.engine).isAttacking() &&
+          s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === biyomonInstanceId),
+      );
+    }
     expect(s.perm("akiho").isSuspended).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("played-bird"), "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("other-beast"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("biyomon1"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("biyomon2"), "Rush")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: titanId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("akiho").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: phoenixIds[2]!,
+        target: { kind: "permanent", permanentId: titanId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === phoenixIds[2]));
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-012"),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("biyomon3"), "Rush")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not react to a red Sea Animal genuinely played by an effect", async () => {

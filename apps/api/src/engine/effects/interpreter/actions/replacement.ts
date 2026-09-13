@@ -216,6 +216,18 @@ export async function runReplacement(
   // optional activation leave a stale amount behind for a later play.
   const amountChoices = mode === "reduceCost" && action.amountChoices?.length ? action.amountChoices : undefined;
   const preventCost = action.cost ?? nestedPrevent?.cost;
+  const withReplacementSource = async <T>(subCtx: EffectContext, body: () => Promise<T>): Promise<T> => {
+    subCtx.fx.enterEffectResolution?.(
+      subCtx.source.ownerSeat,
+      [...(subCtx.source.definition.kinds ?? [])],
+      subCtx.source.permanent()?.permanentId,
+    );
+    try {
+      return await body();
+    } finally {
+      subCtx.fx.leaveEffectResolution?.();
+    }
+  };
   // A "prevent" leave/delete reaction: install a protects-predicate (which permanents it
   // guards) + a preventCheck (prompt + pay the cost; true => the removal is prevented). The
   // engine's leave-prevention consult runs these when a permanent would be deleted/leave.
@@ -637,7 +649,8 @@ export async function runReplacement(
           },
         }
       : {}),
-    apply: async (subCtx) => {
+    apply: (subCtx) =>
+      withReplacementSource(subCtx, async () => {
       const tracksDigiXrosExpansion = (action.actions ?? []).some(
         (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
       );
@@ -718,7 +731,7 @@ export async function runReplacement(
         );
       }
       return true;
-    },
+      }),
   });
 }
 

@@ -158,4 +158,99 @@ describe("BT11-016 Phoenixmon", () => {
       actions: [{ kind: "ReactivateEffect", fromTrigger: "OnDeletion", count: 1, optional: true }],
     });
   });
+
+  it("reactivates On Deletion after public security removal, once per turn and again next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-016", as: "phoenixmon" },
+            { card: "BT1-013", as: "secondAttacker" },
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          hand: [
+            { card: "BT11-007", as: "firstAvian" },
+            { card: "BT11-007", as: "secondAvian" },
+          ],
+        },
+        1: {
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenixmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT11-007"));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT11-007")).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT11-007")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT11-007")).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
 });

@@ -1,0 +1,336 @@
+import { assemblyRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX13-077.js";
+import "../BT1/BT1-101.js";
+
+const CARD_ID = "EX13-077";
+
+describe("EX13-077 Omnimon: Merciful Mode", () => {
+  it("matches the newly revealed catalog identity and requirements", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      cardId: CARD_ID,
+      nameEn: "Omnimon: Merciful Mode",
+      colors: ["White"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 16,
+      dp: 16_000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Warrior", "ADVENTURE"],
+      evoCosts: [{ color: "All", level: 6, memoryCost: 6 }],
+    });
+    expect(digivolutionRequirementsFor(CARD_ID)).toEqual(compiled.digivolutionRequirement);
+    expect(assemblyRequirementFor(CARD_ID)).toEqual(compiled.assemblyRequirement);
+  });
+
+  it("compiles the two timing bodies, color-scaled modal, Assembly, and explicit residual", () => {
+    expect(runtimeCompiledCard(CARD_ID)).toMatchObject({ coverage: "full" });
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Omnimon"], cost: 2, isAlternate: true }]);
+    expect(compiled.assemblyRequirement).toEqual([
+      {
+        reduceCost: 8,
+        materials: [
+          {
+            count: 6,
+            kinds: ["Digimon"],
+            nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+            differentColors: true,
+          },
+        ],
+      },
+    ]);
+    const timed = compiled.effects.filter(({ trigger }) => ["OnPlay", "WhenDigivolving"].includes(trigger));
+    expect(timed).toHaveLength(2);
+    for (const effect of timed) {
+      expect(effect.actions[0]).toMatchObject({ kind: "Attack", withoutSuspending: true, optional: true });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Modal",
+        choose: 1,
+        chooseScaling: { per: 2, unit: "colors", filter: { controller: "mine", kind: ["Digimon", "Tamer"] } },
+      });
+    }
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          grant: "hasAllDigivolutionColors",
+        },
+      ],
+    });
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", scaling: { per: 1, unit: "colors" } }],
+    });
+  });
+
+  it("accepts six ADVENTURE Assembly materials with distinct colors and rejects a repeated-color set", async () => {
+    const materials = ["AD1-001", "AD1-010", "AD1-014", "AD1-025", "ST20-05", "ST20-07"];
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "paladin" }],
+        trash: materials.map((card, index) => ({ card, as: `m${index}` })),
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-090"],
+      },
+      1: {
+        hand: [{ card: "BT1-101", as: "crusher" }],
+        battleArea: [{ card: "BT1-028", as: "blueSource" }],
+        deck: ["BT1-009"],
+        security: ["BT1-090"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("paladin").instanceId,
+        assembly: { materialInstanceIds: materials.map((_card, index) => s.inst(`m${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    expect(s.state.memory).toBe(2);
+
+    const invalid = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "invalidPaladin" }],
+        trash: ["AD1-001", "AD1-004", "AD1-009", "BT21-057", "P-182", "ST20-02"].map((card, index) => ({
+          card,
+          as: `r${index}`,
+        })),
+      },
+      1: {},
+    });
+    invalid.state.memory = 10;
+    await invalid.ready();
+    const invalidMaterials = ["r0", "r1", "r2", "r3", "r4", "r5"].map((alias) => invalid.inst(alias).instanceId);
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: invalid.inst("invalidPaladin").instanceId,
+        assembly: { materialInstanceIds: invalidMaterials },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(invalid.state.memory).toBe(10);
+    expect(invalid.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
+    expect(invalid.state.players[0]!.trash).toHaveLength(6);
+  });
+
+  it("derives effective colors from its live stack and updates the color-scaled DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "merciful",
+              under: [
+                { card: "AD1-001", as: "redSource" },
+                { card: "AD1-010", as: "blueSource" },
+              ],
+            },
+            { card: "AD1-001", as: "redAlly" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-090"],
+        },
+        1: {
+          hand: [{ card: "BT1-101", as: "crusher" }],
+          battleArea: [{ card: "BT1-028", as: "blueSource" }],
+          deck: ["BT1-009"],
+          security: ["BT1-090"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const merciful = s.perm("merciful");
+
+    expect(s.engine.effectiveColorsOf(merciful)).toEqual(expect.arrayContaining(["White", "Red", "Blue"]));
+    expect(merciful.currentDP).toBe(19_000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crusher").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => merciful.stack.length === 0);
+
+    expect(s.engine.effectiveColorsOf(merciful)).toEqual(["White"]);
+    expect(merciful.currentDP).toBe(18_000);
+  });
+
+  it("scales the modal from zero through two activations and may repeat Recovery", async () => {
+    const make = (allies: string[], trashCount: number) =>
+      setupEngine(
+        {
+          0: {
+            hand: [{ card: CARD_ID, as: "merciful" }],
+            battleArea: allies.map((card, index) => ({ card, as: `ally${index}` })),
+            deck: [
+              { card: "BT1-012", as: "deck0" },
+              { card: "BT1-013", as: "deck1" },
+              { card: "BT1-014", as: "deck2" },
+            ],
+            security: [{ card: "BT1-090", as: "security" }],
+          },
+          1: {
+            trash: Array.from({ length: trashCount }, (_, index) => ({ card: "BT1-009", as: `opTrash${index}` })),
+            deck: [{ card: "BT1-010", as: "opDeck" }],
+            security: ["BT1-011"],
+          },
+        },
+        { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+      );
+
+    const oneColor = make([], 5);
+    oneColor.state.memory = 10;
+    await oneColor.ready();
+    expect(
+      oneColor.engine.applyIntent(0, { type: "playCard", instanceId: oneColor.inst("merciful").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => oneColor.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    expect(oneColor.state.players[1]!.trash).toHaveLength(5);
+    expect(oneColor.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-090"]);
+
+    const twoColors = make(["AD1-001"], 5);
+    twoColors.state.memory = 10;
+    await twoColors.ready();
+    const twoReturned = twoColors.state.players[1]!.trash.map(({ instanceId }) => instanceId);
+    expect(
+      twoColors.engine.applyIntent(0, { type: "playCard", instanceId: twoColors.inst("merciful").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => twoColors.state.players[1]!.trash.length === 0);
+    expect(twoColors.state.players[1]!.trash).toHaveLength(0);
+    expect(twoColors.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      twoColors.inst("opDeck").instanceId,
+      ...twoReturned,
+    ]);
+    expect(twoColors.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      twoColors.inst("deck0").instanceId,
+      twoColors.inst("security").instanceId,
+    ]);
+
+    const fourColors = make(["AD1-001", "AD1-010", "ST20-07"], 10);
+    fourColors.state.memory = 10;
+    await fourColors.ready();
+    const fourReturned = fourColors.state.players[1]!.trash.map(({ instanceId }) => instanceId);
+    expect(
+      fourColors.engine.applyIntent(0, { type: "playCard", instanceId: fourColors.inst("merciful").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => fourColors.state.players[1]!.trash.length === 0);
+    expect(fourColors.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      fourColors.inst("opDeck").instanceId,
+      ...fourReturned,
+    ]);
+    expect(fourColors.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      fourColors.inst("deck1").instanceId,
+      fourColors.inst("deck0").instanceId,
+      fourColors.inst("security").instanceId,
+    ]);
+    expect(fourColors.perm("merciful").isSuspended).toBe(false);
+  });
+
+  it("does not offer Recovery when only four opposing trash cards can be returned", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [{ card: "AD1-001", as: "redAlly" }],
+          deck: ["BT1-012"],
+          security: ["BT1-090"],
+        },
+        1: { trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"], deck: ["BT1-013"], security: ["BT1-014"] },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    const trashBefore = s.state.players[1]!.trash.map(({ instanceId }) => instanceId);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(trashBefore);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-090"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
+  });
+
+  it("publicly resolves the optional non-suspending attack and modal Battle branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [{ card: "AD1-020", as: "colorTamer" }],
+          deck: ["BT1-012"],
+          security: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentDigimon" }],
+          deck: ["BT1-013"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.perm("merciful").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("uses the normal Omnimon alternate evolution and resolves When Digivolving Recovery", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-025", as: "omnimon", under: [{ card: "ST20-07", as: "greenSource" }] }],
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          deck: [
+            { card: "BT1-016", as: "digivolveDraw" },
+            { card: "BT1-012", as: "recoveryCard" },
+          ],
+          security: [{ card: "BT1-090", as: "safeSecurity" }],
+        },
+        1: {
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: [{ card: "BT1-014", as: "opDeck" }],
+          security: ["BT1-015"],
+        },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("omnimon").instanceId;
+    const underId = s.inst("greenSource").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("merciful").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("omnimon").topCard.cardId === CARD_ID);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("omnimon").stack.map(({ instanceId }) => instanceId)).toEqual([underId, sourceId]);
+    expect(s.perm("omnimon").topCard.instanceId).toBe(s.inst("merciful").instanceId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("recoveryCard").instanceId,
+      s.inst("safeSecurity").instanceId,
+    ]);
+  });
+});

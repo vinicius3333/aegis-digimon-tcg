@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-032.js";
@@ -47,7 +48,7 @@ describe("BT15-032", () => {
         0: {
           battleArea: [{ card: "BT15-029", as: "base" }],
           hand: [{ card: "BT15-032", as: "plesiomonX" }],
-          deck: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -55,7 +56,8 @@ describe("BT15-032", () => {
             { card: "BT15-029", as: "secondEqual", under: ["BT15-024"] },
             { card: "BT15-029", as: "tooMany", under: ["BT15-023", "BT15-024"] },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
+          deck: ["BT1-009", "BT1-010", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -73,6 +75,8 @@ describe("BT15-032", () => {
     await settle(() =>
       s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("firstEqual").instanceId),
     );
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
 
     expect(
       s.engine.applyIntent(0, {
@@ -89,13 +93,36 @@ describe("BT15-032", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("tooMany").permanentId,
     );
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("base").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("secondEqual").instanceId),
+    );
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondEqual").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("on the opponent's turn gains exactly 2 memory for an equal-source attacker when Plesiomon is underneath", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT14-029", as: "plesiomon" }] }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
       },
       1: {
         battleArea: [{ card: "BT15-029", as: "attacker", under: ["BT15-023"] }],
@@ -121,7 +148,7 @@ describe("BT15-032", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT15-005", as: "xAntibody" }] }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
       },
       1: {
         battleArea: [{ card: "BT15-029", as: "attacker", under: ["BT15-023"] }],
@@ -145,7 +172,7 @@ describe("BT15-032", () => {
 
   it("does not gain memory without the required source or from an attacker with more sources", async () => {
     const withoutRequiredSource = setupEngine({
-      0: { battleArea: [{ card: "BT15-032", as: "watcher" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT15-032", as: "watcher" }], security: ["BT1-010"] },
       1: { battleArea: [{ card: "BT15-029", as: "attacker" }] },
     });
     withoutRequiredSource.state.turnSeat = 1;
@@ -163,7 +190,7 @@ describe("BT15-032", () => {
     const tooManySources = setupEngine({
       0: {
         battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT14-029", as: "plesiomon" }] }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
       },
       1: { battleArea: [{ card: "BT15-029", as: "attacker", under: ["BT15-023", "BT15-024"] }] },
     });

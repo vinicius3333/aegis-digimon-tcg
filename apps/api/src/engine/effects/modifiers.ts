@@ -262,6 +262,44 @@ export class ModifierLedger {
   private pierceGrants: PierceGrant[] = [];
   private evoCostAdjustments: EvoCostAdjustment[] = [];
   private playCostAdjustments: PlayCostAdjustment[] = [];
+  private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
+
+  beginBattleScope(scopeId: number): void {
+    const parent = [...this.battleScopes.keys()].at(-1);
+    this.battleScopes.set(scopeId, { parent, entries: new Set(this.allEntries()) });
+  }
+
+  endBattleScope(scopeId: number): void {
+    this.battleScopes.delete(scopeId);
+  }
+
+  private allEntries(): object[] {
+    return [
+      ...this.dpModifiers,
+      ...this.playerDpModifiers,
+      ...this.baseDpOverrides,
+      ...this.minDpFloors,
+      ...this.pierceGrants,
+      ...this.evoCostAdjustments,
+      ...this.playCostAdjustments,
+    ];
+  }
+
+  private expiresAt(
+    entry: object,
+    duration: EffectDuration,
+    boundary: DurationBoundary,
+    ownerSeat: Seat,
+    sweepSeat: Seat,
+    battleScopeId?: number,
+  ): boolean {
+    if (!clearsAt(duration, boundary, ownerSeat, sweepSeat)) return false;
+    if (boundary !== "endBattle" || battleScopeId === undefined) return true;
+    const scope = this.battleScopes.get(battleScopeId);
+    // The outermost battle owns all pre-existing battle grants. A nested battle owns only
+    // grants registered after its entry snapshot; parent grants survive its boundary.
+    return scope?.parent === undefined || !scope.entries.has(entry);
+  }
   private baseDpOverrideSeq = 0;
   private evoCostSeq = 0;
   private playCostSeq = 0;
@@ -817,9 +855,10 @@ export class ModifierLedger {
    * Expire all modifiers whose duration clears at `boundary` and recompute the DP of
    * every permanent that lost a modifier. `sweepSeat` is the seat the boundary is
    * relative to (whose turn ended / whose active phase began). Mirrors the source
-   * the engine duration-list clearing at each timing window.
+   * the engine duration-list clearing at each timing window. A battle scope limits an
+   * end-battle sweep to entries owned by that nested battle; turn and attack sweeps omit it.
    */
-  sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat): void {
+  sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat, battleScopeId?: number): void {
     const touched = new Set<string>();
 
     this.playerDpModifiers = this.playerDpModifiers.filter((modifier) => {
@@ -830,7 +869,7 @@ export class ModifierLedger {
         }
         return true;
       }
-      const expires = clearsAt(modifier.duration, boundary, ownerSeat, sweepSeat);
+      const expires = this.expiresAt(modifier, modifier.duration, boundary, ownerSeat, sweepSeat, battleScopeId);
       if (expires) {
         for (const permanent of state.players[modifier.seat]!.battleArea) touched.add(permanent.permanentId);
       }
@@ -843,28 +882,28 @@ export class ModifierLedger {
         if (boundary === "opponentTurnEnd" && ownerSeat !== sweepSeat) m.skipsCurrentOpponentTurnEnd = false;
         return true;
       }
-      const expires = clearsAt(m.duration, boundary, ownerSeat, sweepSeat);
+      const expires = this.expiresAt(m, m.duration, boundary, ownerSeat, sweepSeat, battleScopeId);
       if (expires) touched.add(m.permanentId);
       return !expires;
     });
 
     this.baseDpOverrides = this.baseDpOverrides.filter((o) => {
       const ownerSeat = ownerSeatOfPermanent(state, o.permanentId);
-      const expires = clearsAt(o.duration, boundary, ownerSeat, sweepSeat);
+      const expires = this.expiresAt(o, o.duration, boundary, ownerSeat, sweepSeat, battleScopeId);
       if (expires) touched.add(o.permanentId);
       return !expires;
     });
 
     this.minDpFloors = this.minDpFloors.filter((f) => {
       const ownerSeat = ownerSeatOfPermanent(state, f.permanentId);
-      const expires = clearsAt(f.duration, boundary, ownerSeat, sweepSeat);
+      const expires = this.expiresAt(f, f.duration, boundary, ownerSeat, sweepSeat, battleScopeId);
       if (expires) touched.add(f.permanentId);
       return !expires;
     });
 
     this.pierceGrants = this.pierceGrants.filter((g) => {
       const ownerSeat = ownerSeatOfPermanent(state, g.permanentId);
-      return !clearsAt(g.duration, boundary, ownerSeat, sweepSeat);
+      return !this.expiresAt(g, g.duration, boundary, ownerSeat, sweepSeat, battleScopeId);
     });
 
     // Evo-cost/play-cost adjustments are keyed to their SOURCE (a predicate closure),
@@ -873,10 +912,10 @@ export class ModifierLedger {
     // are `Permanent` (seat-independent — never clears) and `UntilEachTurnEnd` (also
     // seat-independent per `clearsAt`), so the placeholder cannot affect the outcome.
     this.evoCostAdjustments = this.evoCostAdjustments.filter(
-      (a) => !clearsAt(a.duration, boundary, 0 as Seat, sweepSeat),
+      (a) => !this.expiresAt(a, a.duration, boundary, 0 as Seat, sweepSeat, battleScopeId),
     );
     this.playCostAdjustments = this.playCostAdjustments.filter(
-      (a) => !clearsAt(a.duration, boundary, 0 as Seat, sweepSeat),
+      (a) => !this.expiresAt(a, a.duration, boundary, 0 as Seat, sweepSeat, battleScopeId),
     );
 
     for (const permanentId of touched) {

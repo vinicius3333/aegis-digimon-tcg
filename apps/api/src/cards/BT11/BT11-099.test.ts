@@ -5,10 +5,21 @@ import { compiled } from "./BT11-099.js";
 
 describe("BT11-099 Ice Statue", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-099")).toMatchObject({ cardId: "BT11-099", colors: ["Blue"], kinds: ["Option"], playCost: 6 });
+    expect(getCardDefinition("BT11-099")).toMatchObject({
+      cardId: "BT11-099",
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 6,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
-      { trigger: "Main", actions: [{ kind: "TrashDigivolution", amount: 3 }, { kind: "Return", to: "hand" }] },
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "TrashDigivolution", amount: 3 },
+          { kind: "Return", to: "hand" },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
     ]);
   });

@@ -69,9 +69,9 @@ describe("BT15-077", () => {
             { card: "BT15-077", as: "ladyDevimon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { registerIrCard } from "../effects/interpreter.js";
 import { cite } from "./_kb.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
+import { compiled as originalA } from "../../cards/BT1/BT1-010.js";
+import { compiled as originalB } from "../../cards/BT1/BT1-011.js";
+import { compiled as originalC } from "../../cards/BT1/BT1-012.js";
+import { compiled as originalRemover } from "../../cards/BT1/BT1-013.js";
 
 const SIMULTANEOUS_SHA256 = "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494";
 const PENDING_ACTIVATION_SHA256 = "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0";
@@ -24,6 +29,102 @@ describe("bounded trigger ordering and pending source departure", () => {
       DELETION_PENDING_TOP_SHA256,
     );
     cite("comprehensive-0210", "§15-16-4-1 On Deletion triggers at card deletion", ON_DELETION_EVENT_SHA256);
+  });
+
+  it("runs a derived On Play after its deferred On Deletion body and before the older sibling", async () => {
+    registerIrCard("BT1-010", {
+      effects: [
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { controller: "mine", cardId: "BT1-012" }, count: 1 },
+              from: ["hand"],
+              payCost: false,
+            },
+            { kind: "GainMemory", amount: 1 },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    registerIrCard("BT1-011", {
+      effects: [{ trigger: "OnDeletion", actions: [{ kind: "GainMemory", amount: 4 }] }],
+      coverage: "full",
+      residual: [],
+    });
+    registerIrCard("BT1-012", {
+      effects: [{ trigger: "OnPlay", actions: [{ kind: "GainMemory", amount: 2 }] }],
+      coverage: "full",
+      residual: [],
+    });
+    registerIrCard("BT1-013", {
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 2 } }],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    try {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT1-013", as: "remover" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-010", as: "causingSource", dp: 3000 },
+              { card: "BT1-011", as: "olderSibling", dp: 3000 },
+            ],
+            hand: [{ card: "BT1-012", as: "derivedPlay" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const order = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === order.decisionId)?.req;
+      const keys = request?.options?.triggerKeys ?? [];
+      const causingKey = keys.find((key) => key.startsWith(`${s.inst("causingSource").instanceId}::`));
+      expect(causingKey).toBeDefined();
+      const siblingKey = keys.find((key) => key.startsWith(`${s.inst("olderSibling").instanceId}::`));
+      expect(siblingKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderTriggers", order: [causingKey!] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const resolved = s.events.filter((event) => event.kind === "effectResolved").map((event) => event.sourceCardId);
+      const causingIndex = resolved.indexOf("BT1-010");
+      const derivedIndex = resolved.indexOf("BT1-012");
+      const siblingIndex = resolved.indexOf("BT1-011");
+      expect(causingIndex).toBeGreaterThanOrEqual(0);
+      expect(derivedIndex).toBeGreaterThan(causingIndex);
+      expect(siblingIndex).toBeGreaterThan(derivedIndex);
+    } finally {
+      registerIrCard("BT1-010", originalA);
+      registerIrCard("BT1-011", originalB);
+      registerIrCard("BT1-012", originalC);
+      registerIrCard("BT1-013", originalRemover);
+    }
   });
 
   it("offers simultaneous optional deletion triggers to the owning controllers in turn-player order", async () => {

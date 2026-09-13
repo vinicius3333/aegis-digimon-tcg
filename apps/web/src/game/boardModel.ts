@@ -98,7 +98,7 @@ export function findDnaMaterialCombination(cardId: string, permanents: readonly 
       if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
         return false;
       const name = (def.nameEn ?? def.cardId).toLowerCase();
-      if (spec.names?.length && !spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
+      if (spec.names?.length && !spec.names.some((token) => nameIncludesToken(def.nameEn, token))) return false;
       if (spec.namesExact?.length && !spec.namesExact.some((token) => name === token.toLowerCase())) return false;
       if (spec.namesInText?.length) {
         const text = `${def.effectText ?? ""}\n${def.inheritedEffectText ?? ""}`.toLowerCase();
@@ -690,7 +690,7 @@ function stackGatesSatisfied(req: DigivolutionRequirement, base: Permanent): boo
       (def) =>
         def &&
         req.minNameStackNames!.some((n) =>
-          req.minNameStackMatch === "contains" ? def.nameEn.includes(n) : def.nameEn === n,
+          req.minNameStackMatch === "contains" ? nameIncludesToken(def.nameEn, n) : def.nameEn === n,
         ),
     ).length;
     if (matching < (req.minNameStackCount ?? 1)) return false;
@@ -761,7 +761,7 @@ function baseGrantedMatch(
     const t = g.target;
     const targetMatch =
       Boolean(t.namesExact?.some((n) => handDef.nameEn === n)) ||
-      Boolean(t.names?.some((n) => handDef.nameEn.includes(n))) ||
+      Boolean(t.names?.some((n) => nameIncludesToken(handDef.nameEn, n))) ||
       Boolean(t.traits?.some((tr) => cardHasTrait(handDef, tr)));
     if (!targetMatch) return false;
     // A conditional grant needs the board state its gate reads; without it, do not highlight

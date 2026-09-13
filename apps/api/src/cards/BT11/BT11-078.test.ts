@@ -8,7 +8,12 @@ import "./BT11-079.js";
 describe("BT11-078 Soulmon", () => {
   it("maps catalog facts, Retaliation, and the continuous DP grant to IR", () => {
     expect(getCardDefinition("BT11-078")).toMatchObject({
-      cardId: "BT11-078", colors: ["Purple"], level: 4, playCost: 5, dp: 4000, types: ["Ghost"],
+      cardId: "BT11-078",
+      colors: ["Purple"],
+      level: 4,
+      playCost: 5,
+      dp: 4000,
+      types: ["Ghost"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },

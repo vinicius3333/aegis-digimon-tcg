@@ -93,7 +93,7 @@ describe("BT22-027 Ryugumon", () => {
             { card: "BT22-023", as: "firstLevel5" },
             { card: "BT22-023", as: "secondLevel5" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

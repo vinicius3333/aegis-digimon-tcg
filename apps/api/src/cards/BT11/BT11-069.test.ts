@@ -63,25 +63,62 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("trashes security when an opposing Digimon unsuspends and only once per turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT11-069", as: "host", under: ["BT11-069"] }],
+  it("trashes security from the real opponent unsuspend phase once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "host", under: ["BT11-069"] }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstOpponent", suspended: true },
+            { card: "BT1-010", as: "secondOpponent", suspended: true },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-011", "BT1-012"],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT1-010", as: "opponent" }],
-        security: ["BT1-009", "BT1-011"],
-      },
-    });
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
-    const payload = { unsuspendedPermanentId: s.perm("opponent").permanentId };
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
 
-    await advance(s.engine).fireSubTrigger("whenUnsuspended", payload);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(1));
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0]]);
+    expect(s.state.memory).toBe(3);
 
-    await advance(s.engine).fireSubTrigger("whenUnsuspended", payload);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    // A second real unsuspend in the same opponent turn is suppressed.
+    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("secondOpponent").permanentId]);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(1));
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0]]);
+    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    // Pass a complete neutral turn; the second opponent Digimon stays suspended for the reset.
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const neutralTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await neutralTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const resetTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([securityIds[2]]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0], securityIds[1]]);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await resetTurn;
   });
 
   it("does not trash security for a host without Greymon or Omnimon in its name", async () => {

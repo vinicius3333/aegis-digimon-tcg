@@ -7,7 +7,12 @@ import { compiled } from "./BT11-077.js";
 describe("BT11-077 Chikurimon", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-077")).toMatchObject({
-      cardId: "BT11-077", colors: ["Purple"], level: 3, playCost: 4, dp: 1000, types: ["Mine", "Bagra Army"],
+      cardId: "BT11-077",
+      colors: ["Purple"],
+      level: 3,
+      playCost: 4,
+      dp: 1000,
+      types: ["Mine", "Bagra Army"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 5 }] },

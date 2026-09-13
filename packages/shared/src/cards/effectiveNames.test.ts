@@ -32,6 +32,13 @@ describe("effectiveStaticNames", () => {
 });
 
 describe("standardized English name substrings", () => {
+  it("includes MarineChimairamon only for the standardized Kimeramon token", () => {
+    expect(nameIncludesToken("MarineChimairamon", "Kimeramon")).toBe(true);
+    expect(nameIncludesToken("MARINECHIMAIRAMON", "kimeramon")).toBe(true);
+    expect(nameIncludesToken("MarineChimairamon", "MarineChimairamon")).toBe(true);
+    expect(nameIncludesToken("MarineChimairamon", "Kime")).toBe(false);
+    expect(nameIncludesToken("MarineChimairamon X", "Kimeramon")).toBe(false);
+  });
   const exclusions = [
     ["Pagumon", "Agumon"],
     ["DemiVeemon", "Vee"],

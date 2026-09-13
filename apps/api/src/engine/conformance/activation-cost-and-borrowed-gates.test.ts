@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { beforePayCost } from "../effects/builders.js";
 import { registerCard, unregisterCard } from "../effects/registry.js";
@@ -10,12 +10,24 @@ import { compiled as originalPaymentOption } from "../../cards/BT1/BT1-102.js";
 import { registerIrCard } from "../effects/interpreter.js";
 import { compiled as originalBorrower } from "../../cards/BT24/BT24-102.js";
 import { compiled as originalLender } from "../../cards/BT24/BT24-101.js";
+import { cite } from "./_kb.js";
 
 const PAYMENT_ONLY_OPTION = "BT1-102";
+const USE_COST_FINGERPRINT = "9ce3a3186cca41d61e5f2251c7fa13fea145b6029465954c50648e98758d6800";
+const BORROWED_EFFECT_FINGERPRINT = "4d8a2fdb6cd8ba472321cf810254e3909edc99004afa1dd6e965ba8347b61edf";
 
 describe("activation cost and borrowed timing gates", () => {
   let originalPaymentModule: EffectModule | undefined;
   let paymentOverrideActive = false;
+
+  beforeEach(() => {
+    cite("comprehensive-0047", "2-7-1: a card's use cost is the cost required to use that card", USE_COST_FINGERPRINT);
+    cite(
+      "comprehensive-0206",
+      "15-15-7-1/3: an effect that activates another effect causes that effect to activate, and the activating card is considered to have activated it",
+      BORROWED_EFFECT_FINGERPRINT,
+    );
+  });
 
   afterEach(() => {
     if (paymentOverrideActive) {

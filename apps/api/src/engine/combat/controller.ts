@@ -241,7 +241,10 @@ export interface CombatHooks {
    */
   sweepEndOfAttack?: () => void;
   /** Expire battle durations after all Digimon-battle reactions, preserving attack durations. */
-  sweepEndOfBattle?: () => Promise<void>;
+  sweepEndOfBattle?: (scopeId?: number) => Promise<void>;
+  /** Open/close an identity scope for nested field battles. */
+  beginBattleScope?: () => number;
+  endBattleScope?: (scopeId: number) => void;
   /** Re-derive passive effects when the field-Digimon battle context opens or closes. */
   recomputeBattleEffects?: () => Promise<void>;
   /**
@@ -1369,11 +1372,15 @@ export class CombatController {
   }
 
   private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+    const battleScopeId = this.hooks.beginBattleScope?.();
     this.battles.push({ attacker, defender });
     try {
       await this.hooks.recomputeBattleEffects?.();
       await this.resolveDigimonBattleResult(attacker, defender);
-      await this.hooks.sweepEndOfBattle?.();
+      await this.hooks.sweepEndOfBattle?.(battleScopeId);
+    } catch (error) {
+      if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
+      throw error;
     } finally {
       this.battles.pop();
       await this.hooks.recomputeBattleEffects?.();

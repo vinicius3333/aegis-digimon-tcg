@@ -40,8 +40,8 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
           battleArea: [{ card: "BT17-093", as: "source" }],
           hand: [{ card: "BT17-093", as: "replacement" }],
           deck: [
-            { card: "BT1-001", as: "turnDraw" },
-            { card: "BT1-002", as: "effectDraw" },
+            { card: "BT1-011", as: "turnDraw" },
+            { card: "BT1-012", as: "effectDraw" },
           ],
         },
       },
@@ -116,8 +116,8 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
             { card: "BT16-084", as: "yoleiKari" },
           ],
           deck: [
-            { card: "BT1-001", as: "turnDraw" },
-            { card: "BT1-002", as: "effectDraw" },
+            { card: "BT1-011", as: "turnDraw" },
+            { card: "BT1-012", as: "effectDraw" },
           ],
         },
       },
@@ -152,8 +152,8 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
             { card: "P-012", as: "vTamer" },
           ],
           deck: [
-            { card: "BT1-001", as: "turnDraw" },
-            { card: "BT1-002", as: "effectDraw" },
+            { card: "BT1-011", as: "turnDraw" },
+            { card: "BT1-012", as: "effectDraw" },
           ],
         },
       },
@@ -185,8 +185,8 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
             { card: "BT1-009", as: "spare" },
           ],
           deck: [
-            { card: "BT1-001", as: "turnDraw" },
-            { card: "BT1-002", as: "effectDraw" },
+            { card: "BT1-011", as: "turnDraw" },
+            { card: "BT1-012", as: "effectDraw" },
             { card: "BT1-010", as: "unreachableDraw" },
           ],
         },

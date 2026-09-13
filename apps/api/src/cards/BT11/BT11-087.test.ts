@@ -23,7 +23,7 @@ import "../index.js";
 //   BT10-076  — Troopmon (Bagra Army Digimon Lv.4) — will be milled, then added to hand
 //   BT10-073  — ChuuChuumon (Bagra Army Digimon Lv.3) — will be milled, then placed under Tamer
 //   BT12-094  — Yuu Amano (Bagra Army Tamer) — the Tamer to place cards under
-//   BT1-001   — filler deck cards (non-Bagra)
+//   BT1-009   — filler deck cards (non-Bagra)
 
 describe("BT11-087 Lilithmon [On Play]", () => {
   it("maps catalog facts and both printed effects to IR", () => {
@@ -123,7 +123,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
       {
         0: {
           battleArea: [{ card: "BT11-087", dp: 12000, as: "lilithmon", under: ["AD1-001"] }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           breeding: { card: "BT1-009", dp: 3000, as: "mover" },

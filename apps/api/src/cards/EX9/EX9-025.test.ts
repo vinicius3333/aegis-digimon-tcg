@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-025.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -115,6 +116,93 @@ describe("EX9-025", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(target.currentDP).toBe(5000);
+  });
+
+  it("suppresses a second attack this turn, expires the DP reduction, and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-025", as: "source", under: [{ card: "BT1-045", as: "base" }] },
+            { card: "BT1-009", as: "redProvider" },
+          ],
+          hand: [{ card: "BT1-095", as: "unsuspend" }],
+          deck: ["BT1-009", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-019", as: "target", suspended: true }],
+          deck: ["BT1-012", "BT1-012", "BT1-013", "BT1-013"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const source = s.perm("source");
+      const target = s.perm("target");
+      const baseId = s.inst("base").instanceId;
+      const firstDeckTopId = s.state.players[0]!.deck[0]!.instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: source.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(target.currentDP).toBe(4000);
+      expect(source.stack.map((card) => card.instanceId)).toEqual([firstDeckTopId, baseId]);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspend").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.memory).toBe(5);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-095");
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(source.isSuspended).toBe(false);
+      expect(target.currentDP).toBe(4000);
+      const deckBeforeSecondAttack = s.state.players[0]!.deck.map((card) => card.instanceId);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: source.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(source.stack.map((card) => card.instanceId)).toEqual([firstDeckTopId, baseId]);
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBeforeSecondAttack);
+      expect(target.currentDP).toBe(4000);
+
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(target.currentDP).toBe(6000);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      expect(source.isSuspended).toBe(false);
+      const secondDeckTopId = s.state.players[0]!.deck[0]!.instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: source.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(source.stack.map((card) => card.instanceId)).toEqual([secondDeckTopId, firstDeckTopId, baseId]);
+      expect(target.currentDP).toBe(2000);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
   });
 
   it.each([true, false])("pays inherited Barrier only when accepted after a legal evolution: %s", async (accept) => {

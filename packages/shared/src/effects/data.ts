@@ -989,6 +989,14 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       materials: [{ names: ["Kimeramon"] }, { names: ["Machinedramon"] }],
     },
   ],
+  // BT18-019 Millenniummon — [DNA Digivolve] [Kimeramon] + [Machinedramon]
+  // The generated record historically misread this named route as Red Lv.5 + Black Lv.6.
+  "BT18-019": [
+    {
+      cost: 0,
+      materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }],
+    },
+  ],
   // Chaosmon — [DNA Digivolve] Yellow Lv.6 + Purple/Black Lv.6
   "P-221": [
     {

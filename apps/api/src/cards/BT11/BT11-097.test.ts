@@ -114,7 +114,12 @@ function makeCtx(opts: { deletedIds: string[]; oppBattleArea: FakePerm[] }): Eff
 
 describe("BT11-097 Crimson Flare [Main]", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-097")).toMatchObject({ cardId: "BT11-097", colors: ["Red"], kinds: ["Option"], playCost: 5 });
+    expect(getCardDefinition("BT11-097")).toMatchObject({
+      cardId: "BT11-097",
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 5,
+    });
     const mainActions = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions;
     expect(mainActions).toMatchObject([{ kind: "Delete" }, { kind: "ActivateEffect", effectType: "OnDeletion" }]);
     expect(mainActions?.[1]).not.toHaveProperty("optional");

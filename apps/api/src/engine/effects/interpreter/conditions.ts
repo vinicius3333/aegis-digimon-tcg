@@ -22,7 +22,14 @@ import {
 import { countMatching } from "./scaling.js";
 import { findLooseCandidateByInstance } from "./targeting/loose.js";
 import { candidatePermanents } from "./targeting/permanents.js";
-import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinition } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  getCardDefinition,
+  isDigimon,
+  nameIncludesToken,
+  requireCardDefinition,
+} from "@aegis/shared";
 import type { Condition, Filter, Seat } from "@aegis/shared";
 import type { TriggerInfo } from "../EffectContext.js";
 
@@ -1055,9 +1062,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const topName = (definition.nameEn ?? "").toLowerCase();
       const names = cond.names ?? [];
       const excluded = cond.excludeNames ?? [];
-      return (
-        names.some((n) => topName.includes(n.toLowerCase())) && !excluded.some((n) => topName.includes(n.toLowerCase()))
-      );
+      return names.some((n) => nameIncludesToken(topName, n)) && !excluded.some((n) => nameIncludesToken(topName, n));
     }
     case "raw":
       {
@@ -1104,7 +1109,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             if (top === undefined) return false;
             const name = (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase();
             const names = [...m[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
-            return names.some((token) => name.includes(token));
+            return names.some((token) => nameIncludesToken(name, token));
           }
         }
         if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
@@ -1152,7 +1157,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             const def = deleted !== undefined ? ctx.game.definitionOf({ cardId: deleted } as never) : undefined;
             const name = (def?.nameEn ?? "").toLowerCase();
             const names = [...(cond.raw ?? "").matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
-            return names.some((token) => name.includes(token));
+            return names.some((token) => nameIncludesToken(name, token));
           }
         }
       }

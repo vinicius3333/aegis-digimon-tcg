@@ -4,6 +4,7 @@ import { compiled } from "./BT26-080.js";
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-080 compiled behavior", () => {
@@ -339,5 +340,81 @@ describe("BT26-080 compiled behavior", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("resets the copied BT25-077 play watcher on the next production turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-080", as: "host", under: [{ card: "BT25-077", as: "source" }] }],
+          hand: [
+            { card: "BT25-078", as: "firstPlay" },
+            { card: "BT25-078", as: "secondPlay" },
+            { card: "BT25-078", as: "thirdPlay" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-011", "BT1-011", "BT1-011", "BT1-011"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstTarget" },
+            { card: "BT1-011", as: "secondTarget" },
+            { card: "BT1-012", as: "thirdTarget" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("firstTarget").permanentId, s.perm("secondTarget").permanentId);
+
+    try {
+      const firstTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("firstTarget").isSuspended);
+      preferred.splice(0, preferred.length, s.perm("secondTarget").permanentId);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("secondPlay").instanceId),
+      );
+      expect(s.perm("secondTarget").isSuspended).toBe(false);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-077")).toHaveLength(
+        1,
+      );
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await firstTurn;
+
+      s.state.turnSeat = 1;
+      s.state.memory = -s.state.memory;
+      await advance(s.engine).runTurn(1);
+      s.state.turnSeat = 0;
+      s.state.memory = -s.state.memory;
+      preferred.splice(0, preferred.length, s.perm("secondTarget").permanentId);
+      const nextTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("secondTarget").isSuspended);
+      expect(s.perm("thirdTarget").isSuspended).toBe(false);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-077")).toHaveLength(
+        2,
+      );
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await nextTurn;
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(s.state.turnSeat);
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+    }
   });
 });

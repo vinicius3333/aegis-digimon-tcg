@@ -45,9 +45,9 @@ describe("BT15-034", () => {
           battleArea: [{ card: "BT15-034", as: "salamon" }],
           hand: [{ card: "BT15-033", as: "vaccine" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "middle" },
-            { card: "BT1-003", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "middle" },
+            { card: "BT1-009", as: "bottom" },
           ],
         },
       },
@@ -79,8 +79,8 @@ describe("BT15-034", () => {
             { card: "BT15-035", as: "nonVaccine" },
           ],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
       },
@@ -105,8 +105,8 @@ describe("BT15-034", () => {
           battleArea: [{ card: "BT15-034", as: "salamon" }],
           hand: [{ card: "BT15-033", as: "yellowVaccine" }],
           security: [
-            { card: "BT1-001", as: "oldTop" },
-            { card: "BT1-002", as: "oldBottom" },
+            { card: "BT1-009", as: "oldTop" },
+            { card: "BT1-010", as: "oldBottom" },
           ],
         },
       },
@@ -126,10 +126,11 @@ describe("BT15-034", () => {
   it("its inherited host applies -2000 DP only once when opponent security is removed", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-035", as: "host", under: ["BT15-034"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT15-035", as: "host", under: ["BT15-034"] }], security: ["BT1-009"] },
         1: {
           battleArea: [{ card: "BT15-029", as: "target", dp: 7000 }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010", "BT1-009"],
+          deck: ["BT1-010", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -143,5 +144,16 @@ describe("BT15-034", () => {
     await advance(s.engine).verb.trashFromSecurity(1, 1);
 
     expect(s.perm("target").currentDP).toBe(5000);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.trashFromSecurity(1, 1);
+    await settle(() => s.perm("target").currentDP === 5000);
+    expect(s.perm("target").currentDP).toBe(5000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });

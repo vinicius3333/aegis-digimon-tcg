@@ -45,7 +45,7 @@ describe("BT11-034 Cutemon", () => {
       0: {
         battleArea: [{ card: "BT10-005", as: "base" }],
         hand: [{ card: "BT11-034", as: "cutemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;

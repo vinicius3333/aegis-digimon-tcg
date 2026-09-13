@@ -200,6 +200,29 @@ describe("BT17-040 Kazuchimon", () => {
     expect(s.perm("attacker").currentDP).toBe(4000);
   });
 
+  it("resets the inherited once-per-turn security-removal DP loss on the next turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-101", under: ["BT17-040"], as: "fenriloogamon" }] },
+        1: { battleArea: [{ card: "BT4-035", dp: 30000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    await settle(() => s.perm("target").currentDP === 22000);
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(s.perm("target").currentDP).toBe(22000);
+
+    await advance(s.engine).runTurn(0);
+    await advance(s.engine).recompute();
+    expect(s.perm("target").currentDP).toBe(30000);
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    await settle(() => s.perm("target").currentDP === 22000);
+    expect(s.perm("target").currentDP).toBe(22000);
+  });
+
   it("digivolves onto a Lv.5 with [Pulsemon] in its text through the alternate route for 3", async () => {
     const s = setupEngine(
       {

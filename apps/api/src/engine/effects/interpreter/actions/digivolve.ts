@@ -11,6 +11,7 @@ import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { nameIncludesToken } from "@aegis/shared";
 import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
@@ -401,7 +402,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
           : candidates.filter((candidate) => {
               const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
               return (
-                (action.nameIncludesDigivolvingTarget !== true || candidateName.includes(baseName)) &&
+                (action.nameIncludesDigivolvingTarget !== true || nameIncludesToken(candidateName, baseName)) &&
                 (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName)
               );
             });

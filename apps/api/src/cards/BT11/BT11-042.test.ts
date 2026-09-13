@@ -40,9 +40,9 @@ describe("BT11-042 Angewomon", () => {
           hand: [{ card: "BT11-042", as: "angewomon" }],
           security: [
             { card: "BT11-038", as: "angel" },
-            { card: "BT1-001", as: "securityRest" },
+            { card: "BT1-009", as: "securityRest" },
           ],
-          deck: [{ card: "BT1-001", as: "recovery" }, "BT1-001"],
+          deck: [{ card: "BT1-009", as: "recovery" }, "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -76,7 +76,7 @@ describe("BT11-042 Angewomon", () => {
           security: [{ card: "BT11-038", as: "angel" }],
           // Normal digivolution draws the first card before this optional effect resolves;
           // leave the second card as the Recovery sentinel.
-          deck: ["BT1-001", { card: "BT1-001", as: "recovery" }],
+          deck: ["BT1-009", { card: "BT1-009", as: "recovery" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -123,7 +123,7 @@ describe("BT11-042 Angewomon", () => {
         0: {
           battleArea: [{ card: base, as: "base" }],
           hand: [{ card: "BT11-042", as: "angewomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 5;
@@ -140,34 +140,92 @@ describe("BT11-042 Angewomon", () => {
 
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT11-042", as: "angewomon" }],
+        battleArea: [
+          { card: "BT11-042", as: "host" },
+          { card: "BT1-013", as: "spare" },
+        ],
         hand: [
           { card: "BT11-094", as: "firstMirei" },
           { card: "BT11-094", as: "secondMirei" },
+          { card: "BT11-094", as: "thirdMirei" },
         ],
+        deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        security: ["BT1-013", "BT1-013"],
       },
+      1: { deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"] },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMirei").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 2);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMirei").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 3);
-    expect(s.state.memory).toBe(10 - 5 + 1 - 5);
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMirei").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 6 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMirei").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("secondMirei").instanceId),
+    );
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const resetTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdMirei").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 6 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await resetTurn;
   });
 
   it("inherited effect grants Blocker to Angel-family Digimon on the opponent's turn while a purple Digimon is in play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT11-083", under: ["BT11-042"] },
-          { card: "BT11-038", as: "angemon" },
+        battleArea: [{ card: "BT11-083", under: ["BT11-042"] }, { card: "BT11-038", as: "angemon" }, "BT1-009"],
+        security: [
+          { card: "BT1-010", as: "security-one" },
+          { card: "BT1-011", as: "security-two" },
         ],
+        deck: ["BT1-012", "BT1-013"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-028", as: "attacker", dp: 1000 }],
+        deck: ["BT1-014", "BT1-015"],
+        security: ["BT1-016", "BT1-017"],
       },
     });
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
 
     expect(observe(s.engine).hasKeyword(s.perm("angemon"), "Blocker")).toBe(true);
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("angemon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== attackerId));
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("security-one").instanceId,
+      s.inst("security-two").instanceId,
+    ]);
   });
 
   it("does not grant inherited Blocker without a purple Digimon or to a non-family Digimon", async () => {

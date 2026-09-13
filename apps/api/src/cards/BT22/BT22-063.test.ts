@@ -94,7 +94,7 @@ describe("BT22-063 Alphamon", () => {
 
   it("unsuspends after attacking even when neither DP-boost condition is true", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-063", as: "alphamon" }] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT22-063", as: "alphamon" }] }, 1: { security: ["BT1-009"] } },
       { autoSelectCards: true },
     );
     await s.ready();

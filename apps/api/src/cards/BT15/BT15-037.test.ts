@@ -4,6 +4,71 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 
 describe("BT15-037 Gatomon", () => {
+  it("carries Gatomon's inherited Barrier through a legal evolution and survives battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-045", as: "yellowBase", suspended: true }],
+          hand: [
+            { card: "BT15-037", as: "gatomon" },
+            { card: "ST3-08", as: "levelFive" },
+          ],
+          security: [{ card: "BT1-010", as: "securityForBarrier" }],
+        },
+        1: { battleArea: [{ card: "BT15-029", as: "attacker", dp: 8000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("gatomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT15-037");
+    expect(s.state.memory).toBe(3);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("levelFive").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "ST3-08");
+    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-045", "BT15-037"]);
+    expect(s.perm("yellowBase").stack[0]?.instanceId).toBe(s.inst("yellowBase").instanceId);
+    expect(s.perm("yellowBase").stack[1]?.instanceId).toBe(s.inst("gatomon").instanceId);
+    expect(s.state.memory).toBe(0);
+
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("yellowBase").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenBarrierDecision);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondBarrier",
+        permanentId: s.perm("yellowBase").permanentId,
+        accept: true,
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("yellowBase").permanentId)).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityForBarrier").instanceId,
+    );
+  });
+
   it("registers both printed Barrier clauses and scopes memory gain to own security", async () => {
     const { compiled } = await import("./BT15-037.js");
     expect(

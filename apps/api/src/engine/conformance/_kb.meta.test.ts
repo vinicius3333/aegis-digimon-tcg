@@ -118,9 +118,9 @@ describe("KB conformance meta", () => {
     );
     console.log(`[kb conformance] residual by source: ${JSON.stringify(Object.fromEntries(bySource))}`);
 
-    // REPORTING ONLY today — this suite has zero chapter test files yet, so the
-    // residual is necessarily everything not seeded into not-testable.ts. To flip
-    // this from a report into an enforcing gate once chapter tests exist, change
+    // REPORTING ONLY today — chapter test files now exist, but citation presence
+    // still does not prove every obligation in a chunk. To flip this from a report
+    // into an enforcing gate after the classified source coverage is complete, change
     // the line below from a `console.log`-only check to:
     //   expect(residual.length, `${residual.length} KB chunks are neither cited nor
     //   marked not-testable: ${residual.map((c) => c.id).join(", ")}`).toBe(0);

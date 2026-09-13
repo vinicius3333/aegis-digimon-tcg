@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-068.js";
 // Self-register every card module so the engine drives the REGISTERED BT15-068 IR.
 import "../index.js";
@@ -42,18 +44,28 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
       {
         0: {
           battleArea: [{ card: "BT15-078", as: "attacker", under: ["BT15-068", "BT15-072"] }],
-          security: ["BT1-001"],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
-          trash: [{ card: "BT1-009", as: "playedByEffect" }],
-          security: ["BT1-001"],
+          trash: [
+            { card: "BT1-009", as: "playedByEffect" },
+            { card: "BT1-009", as: "secondPlayedByEffect" },
+            { card: "BT1-009", as: "nextPlayedByEffect" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 0;
     s.state.memory = 0;
     await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -62,11 +74,53 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
+    await settle(() => s.state.memory === 1 && !observe(s.engine).isAttacking());
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("playedByEffect").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some((card) => card.topCard.instanceId === s.inst("playedByEffect").instanceId),
+    ).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (card) => card.topCard.instanceId === s.inst("secondPlayedByEffect").instanceId,
+      ),
+    ).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 4 && !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (card) => card.topCard.instanceId === s.inst("nextPlayedByEffect").instanceId,
+      ),
+    ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("POSITIVE: deleting the granted opponent Digimon costs 1 memory", async () => {
