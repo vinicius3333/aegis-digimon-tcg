@@ -22,3 +22,5 @@ Before this correction both exact-third-identity assertions failed: the earlier 
 - Affected manifest: the BT13 ledger's existing 39-file/1083-test manifest plus `src/engine/cards/irKindTier1Cluster.test.ts` and `src/engine/mechanic.test.ts`: 41 files/1216 tests pass, 5.53 seconds. It covers loose security placement, filters, selection, exact-instance relocation and the prior forced-attack/placement mechanisms. The AD1-002 unsupported-payload log belongs to an intentional passing negative case.
 - Independent read-only review found no controller/color/zone leak or lost ordinary candidate. Current-zone-dependent filters retain their existing permanent matching behavior; this checkpoint does not claim additional semantics for such filters.
 - Scoped TypeScript lint/format and `git diff --check` pass. Final current collection and strict API gates are recorded in the collection ledger when executed; no collection completion is inferred here.
+
+- Final collection-plus-layout on `e0b56c8c3`: 114 files/744 tests pass, 2.29 seconds. Strict API at 4096 MB passes. The engine candidate implementation is unchanged from its 41-file/1216-test gate.
