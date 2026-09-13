@@ -539,7 +539,7 @@ async function runSecurityAdd(
       const currentIndex = stack.indexOf(restored);
       if (currentIndex >= 0) {
         stack.splice(currentIndex, 1);
-        if (toTop) stack.unshift(restored);
+        if (toTop) insertCard(ctx.game.state.players[seat]!, Zone.Security, restored, "top");
         else stack.push(restored);
       }
       restored.faceUp = true;
