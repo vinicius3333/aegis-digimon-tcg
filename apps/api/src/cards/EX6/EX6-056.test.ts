@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-056.js";
+import "../index.js";
 
 describe("EX6-056 Beelzemon", () => {
   it("has Rush, trashes four deck cards, and de-digivolves an opponent by two when your trash has ten cards", () => {
@@ -22,22 +23,50 @@ describe("EX6-056 Beelzemon", () => {
   it("publicly trashes four cards from the deck on play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX6-056", as: "beelze" }],
+        hand: [{ card: "EX6-056", as: "beelze" }],
         deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         trash: Array.from({ length: 10 }, () => "BT1-009"),
       },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("beelze"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("beelze").topCard?.cardId === "EX6-056");
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.trash.length).toBeGreaterThanOrEqual(14);
+  });
+
+  it("uses Rush for a same-turn player attack after the paid play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-056", as: "beelze" }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("beelze").topCard?.cardId === "EX6-056");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beelze").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
   });
 
   it("publicly de-digivolves exactly two cards after the four-card trash reaches ten", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-056", as: "beelze" }],
+          hand: [{ card: "EX6-056", as: "beelze" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           trash: Array.from({ length: 6 }, () => "BT1-009"),
         },
@@ -47,8 +76,11 @@ describe("EX6-056 Beelzemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("beelze"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelze").instanceId })).toEqual({
+      ok: true,
+    });
     if (s.state.pendingDecision?.kind === "chooseTargets") {
       const decision = s.state.pendingDecision;
       s.engine.applyIntent(0, {
@@ -118,5 +150,22 @@ describe("EX6-056 Beelzemon", () => {
       }).ok,
     ).toBe(false);
     expect(illegal.perm("redBase").topCard?.cardId).toBe("BT1-020");
+  });
+
+  it("publicly moves a leaving Beelzemon's trash SGDL card under the breeding Gate", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX6-056", as: "beelze" }],
+        breeding: { card: "EX6-006", as: "gate" },
+        trash: [{ card: "EX6-059", as: "lord" }],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("beelze").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.breeding?.stack.length === 1);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-056")).toBe(false);
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lord").instanceId)).toBe(
+      true,
+    );
   });
 });

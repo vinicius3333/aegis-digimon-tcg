@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-023.js";
+import "../BT1/BT1-062.js";
 
 describe("EX6-023 Gokuumon", () => {
   it("shares a once-per-turn DigiXros effect that grants Security Attack -1 and deletes a 6000 DP or lower Digimon", () => {
@@ -54,6 +55,7 @@ describe("EX6-023 Gokuumon", () => {
   });
 
   it("publicly executes the DigiXros-only delete tail with one listed material", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -69,10 +71,11 @@ describe("EX6-023 Gokuumon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     await s.ready();
+    preferred.push(s.inst("overLimit").instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -84,6 +87,7 @@ describe("EX6-023 Gokuumon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("overLimit").instanceId);
     expect(s.perm("goku").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("overLimit"), "SecurityAttack")).toBe(-1);
   });
 
   it("publicly returns its yellow evolution card when leaving play", async () => {
@@ -113,6 +117,29 @@ describe("EX6-023 Gokuumon", () => {
     preferred.push(s.inst("ally").instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("goku"));
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("allows declining the inherited Security Attack -1 during a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-062", as: "host", under: ["EX6-019", "EX6-023"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
   });
 
   it("publicly returns its source after a real DigiXros host leaves play", async () => {

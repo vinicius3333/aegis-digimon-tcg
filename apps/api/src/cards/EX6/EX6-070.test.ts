@@ -165,12 +165,13 @@ describe("EX6-070 Phantom Pain", () => {
         0: {
           battleArea: [{ card: "EX6-057", as: "lilithmon" }],
           hand: [{ card: "EX6-070", as: "option" }],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
         1: {
-          deck: ["BT1-009"],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
           battleArea: [
-            { card: "BT1-009", as: "auraTarget" },
-            { card: "BT1-009", as: "delayTarget" },
+            { card: "BT1-009", as: "auraTarget", dp: 20_000, suspended: true },
+            { card: "BT1-009", as: "delayTarget", dp: 20_000 },
           ],
         },
       },
@@ -178,16 +179,28 @@ describe("EX6-070 Phantom Pain", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    preferred.push(s.inst("delayTarget").instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
-    preferred.push(s.inst("delayTarget").instanceId);
     const option = s.perm("option");
-    option.enterFieldTurnCount = s.state.turnCount - 1;
-    s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, option);
     s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await advance(s.engine).recompute();
     const delay = JSON.parse(option.activatableEffectsJson || "[]").find((entry: { effectKey: string }) =>
       entry.effectKey.includes("EX6-070"),
@@ -200,15 +213,14 @@ describe("EX6-070 Phantom Pain", () => {
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-
-    expect(
-      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("auraTarget").instanceId),
-    ).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(
       s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("delayTarget").instanceId),
     ).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
   });
 
   it("publicly deletes one unsuspended Digimon from Security and leaves a suspended peer", async () => {
@@ -217,21 +229,34 @@ describe("EX6-070 Phantom Pain", () => {
         0: { security: [{ card: "EX6-070", as: "option", faceUp: true }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "unsuspended" },
-            { card: "BT1-009", as: "suspended", suspended: true },
+            { card: "BT1-009", as: "highDPAttacker", dp: 20_000 },
+            { card: "BT1-009", as: "unsuspendedVictim" },
+            { card: "BT1-009", as: "suspendedPeer", suspended: true },
           ],
+          hand: [],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("highDPAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
 
     expect(
-      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("unsuspended").instanceId),
+      s.state.players[1]!.battleArea.some(
+        (perm) => perm.topCard?.instanceId === s.inst("unsuspendedVictim").instanceId,
+      ),
     ).toBe(false);
-    expect(s.perm("suspended").isSuspended).toBe(true);
+    expect(s.perm("suspendedPeer").isSuspended).toBe(true);
   });
 
   it("does not arm a Delay activation when the controller has no Lilithmon", async () => {

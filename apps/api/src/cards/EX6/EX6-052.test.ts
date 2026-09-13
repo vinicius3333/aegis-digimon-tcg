@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -36,17 +35,41 @@ describe("EX6-052 Bastemon", () => {
     }));
   it("publicly plays a purple level 3 from trash on digivolving", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-052", as: "bastemon" }], trash: [{ card: "EX6-046", as: "revived" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-049", as: "base" }],
+          hand: [{ card: "EX6-052", as: "bastemon" }],
+          trash: [
+            { card: "EX6-046", as: "revived" },
+            { card: "EX6-049", as: "nearLevelFour" },
+            { card: "BT1-014", as: "nearWrongColor" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bastemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bastemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId),
     );
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId),
     ).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("EX6-052");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-049"]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nearLevelFour").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nearWrongColor").instanceId)).toBe(
+      true,
+    );
   });
 
   it("legally evolves from a purple level 4, pays 3 memory, and keeps the source in its stack", async () => {
@@ -71,7 +94,7 @@ describe("EX6-052 Bastemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-049", as: "host", under: ["EX6-052"] }],
+          battleArea: [{ card: "EX6-055", as: "host", under: ["EX6-052"] }],
           deck: Array.from({ length: 10 }, () => "BT1-009"),
           trash: [
             { card: "EX6-047", as: "revivedA" },
@@ -108,7 +131,7 @@ describe("EX6-052 Bastemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-049", as: "host", under: ["EX6-052"] }],
+          battleArea: [{ card: "EX6-055", as: "host", under: ["EX6-052"] }],
           deck: Array.from({ length: 10 }, () => "BT1-009"),
           trash: [
             { card: "EX6-047", as: "revivedA" },

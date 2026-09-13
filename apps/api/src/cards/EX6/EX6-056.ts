@@ -113,7 +113,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Gate of Deadly Sins"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

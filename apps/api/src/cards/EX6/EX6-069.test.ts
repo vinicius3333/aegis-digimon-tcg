@@ -4,6 +4,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-069.js";
+import "../index.js";
 
 describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
   it("scopes the Delay play to a Gate of Deadly Sins in breeding, plus Security placement", () => {
@@ -53,7 +54,9 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
             { card: "EX6-069", as: "option" },
             { card: "EX6-059", as: "lord" },
           ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -101,19 +104,32 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
           breeding: { card: "EX6-006", under: [{ card: "EX6-059", as: "stackLord" }], as: "gate" },
           battleArea: [
             { card: "EX6-069", as: "option" },
-            { card: "BT12-085", as: "victim" },
+            { card: "EX6-057", as: "lilithmon" },
           ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.perm("option").placedByEffect = true;
-    s.state.turnCount += 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    s.state.turnSeat = 0;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.deletePermanent([s.perm("lilithmon").permanentId], "byEffect");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-059"));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-059")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lilithmon").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackLord").instanceId)).toBe(
       false,

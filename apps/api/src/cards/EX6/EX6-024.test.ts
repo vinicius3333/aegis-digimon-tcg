@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-024.js";
+import "../BT1/BT1-062.js";
 
 describe("EX6-024 Sagomon", () => {
   it("shares DigiXros Security Attack reduction and suspends an opposing Digimon or Tamer", () => {
@@ -52,6 +53,7 @@ describe("EX6-024 Sagomon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
   it("publicly restricts an opposing Digimon from suspending on DigiXros", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -62,10 +64,11 @@ describe("EX6-024 Sagomon", () => {
         },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     await s.ready();
+    preferred.push(s.inst("opponent").instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -76,6 +79,7 @@ describe("EX6-024 Sagomon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-024"));
     const opponent = s.perm("opponent");
     expect(observe(s.engine).isRestricted(opponent, "suspend")).toBe(true);
+    expect(observe(s.engine).keywordAmount(opponent, "SecurityAttack")).toBe(-1);
   });
 
   it("does not restrict an opposing Digimon without DigiXros", async () => {
@@ -136,6 +140,29 @@ describe("EX6-024 Sagomon", () => {
     preferred.push(s.inst("ally").instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("allows declining the inherited Security Attack -1 during a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-062", as: "host", under: ["EX6-019", "EX6-024"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
   });
 
   it("shares one optional use between the On Play and When Attacking windows", async () => {

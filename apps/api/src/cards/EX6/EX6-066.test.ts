@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-066.js";
 
@@ -59,12 +57,20 @@ describe("EX6-066 Sea of Destruction", () => {
             { card: "BT1-009", as: "lowTwo" },
             { card: "BT1-053", as: "high" },
           ],
+          deck: Array(10).fill("BT1-009"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("high").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.instanceId)).toEqual([s.inst("high").instanceId]);
   });

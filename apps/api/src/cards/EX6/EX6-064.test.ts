@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -26,13 +25,51 @@ describe("EX6-064 Shu-Chong Wong", () => {
   });
   it("publicly reveals three cards and adds one Beast-family card", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-064", as: "shu" }], deck: ["BT1-035", "BT1-009", "BT1-010"] } },
+      { 0: { hand: [{ card: "EX6-064", as: "shu" }], deck: ["BT1-035", "BT1-009", "BT1-010"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shu"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shu").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("shu") !== undefined);
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-035")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("publicly plays Shu-Chong and returns three revealed near-misses to the deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-064", as: "shu" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shu").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("shu") !== undefined && s.state.players[0]!.deck.length === 3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  });
+
+  it("plays Shu-Chong from security when an opponent attacks", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX6-064", as: "securityShu" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("securityShu").instanceId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("publicly digivolves a different own Digimon after an effect suspends one, paying the reduced cost", async () => {

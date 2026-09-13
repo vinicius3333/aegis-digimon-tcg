@@ -103,6 +103,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "instead",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -119,7 +120,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Lucemon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -142,7 +143,7 @@ export const compiled: CompiledCard = {
                       nameOrTrait: [
                         {
                           tokens: ["Lucemon: Satan Mode"],
-                          match: "name",
+                          match: "nameExact",
                         },
                       ],
                     },
