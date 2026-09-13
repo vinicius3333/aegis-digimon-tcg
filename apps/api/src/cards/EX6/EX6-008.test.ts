@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX6-008.js";
+import "./EX6-007.js";
 
 describe("EX6-008 ZubaEagermon", () => {
   it("pays 1 and places itself under a level 4 or Legend-Arms Digimon to give +4000 DP", () => {
@@ -68,16 +68,20 @@ describe("EX6-008 ZubaEagermon", () => {
 
   it("grants Raid and Piercing for the turn when another effect adds a card under itself", async () => {
     const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX6-008", as: "host" }],
-          hand: [{ card: "EX6-007", as: "added" }],
-        },
-      },
-      { autoSelectCards: true },
+      { 0: { battleArea: [{ card: "EX6-008", as: "host" }], hand: [{ card: "EX6-007", as: "added" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("added").instanceId]);
+    const effect = JSON.parse(s.inst("added").activatableEffectsJson || "[]")[0];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("added").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("added").instanceId));
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });

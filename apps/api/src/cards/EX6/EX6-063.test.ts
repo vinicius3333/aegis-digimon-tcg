@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -22,8 +21,8 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     const s = setupEngine(
       {
         0: {
+          hand: [{ card: "EX6-063", as: "tamer" }],
           battleArea: [
-            { card: "EX6-063", as: "tamer" },
             { card: "BT1-053", as: "yellow" },
             { card: "BT1-009", as: "red" },
           ],
@@ -31,10 +30,33 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tamer"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("tamer") !== undefined);
+    expect(s.state.memory).toBe(6);
     expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("red"), "Barrier")).toBe(false);
+  });
+
+  it("plays T.K. & Kari from security when an opponent attacks", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX6-063", as: "securityTamer" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("securityTamer").instanceId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("publicly grants Barrier at the start of its controller's main phase", async () => {
@@ -49,6 +71,28 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     await s.ready();
     await advance(s.engine).runTurn(0);
     expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(true);
+  });
+
+  it("expires the start-of-main Barrier at the end of the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: Array.from({ length: 10 }, () => "BT1-009"),
+        battleArea: [
+          { card: "EX6-063", as: "tamer" },
+          { card: "BT1-053", as: "yellow" },
+        ],
+      },
+      1: { deck: Array.from({ length: 10 }, () => "BT1-009"), battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(false);
   });
 
   it("suspends itself and gains memory when an Angel is played, but not for a near-miss Digimon", async () => {
@@ -85,6 +129,19 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     await settle(() => nearMiss.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-009"));
     expect(nearMiss.perm("tamer").isSuspended).toBe(false);
     expect(nearMiss.state.memory).toBe(3);
+  });
+
+  it("may refuse the Angel trigger without suspending the Tamer or gaining memory", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-063", as: "tamer" }], hand: [{ card: "BT1-053", as: "angel" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-053"));
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
   });
 
   it("checks the post-digivolution subject for the Angel trait and spends exactly three evolution memory", async () => {

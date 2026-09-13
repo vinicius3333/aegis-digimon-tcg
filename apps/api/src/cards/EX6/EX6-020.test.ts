@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-020.js";
+import "../BT1/BT1-060.js";
+import "../BT1/BT1-062.js";
 
 describe("EX6-020 Gatomon", () => {
   it("reveals three for Angel-family/Fallen Angel and Mirei Mikagura cards on play and digivolving", () => {
@@ -43,13 +46,81 @@ describe("EX6-020 Gatomon", () => {
 
   it("reduces an opposing Digimon by 2000 through its inherited attack effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-020"] }] },
-      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      0: {
+        battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-018", "EX6-020"] }],
+        hand: ["BT1-009"],
+        deck: Array(10).fill("BT1-009"),
+      },
+      1: {
+        battleArea: [{ card: "BT1-062", as: "opponent", dp: 20_000 }],
+        deck: Array(10).fill("BT1-009"),
+        security: Array(6).fill("BT1-009"),
+      },
     });
+    s.state.memory = 3;
     await s.ready();
-    const before = s.perm("opponent").currentDP;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.perm("opponent").currentDP).toBe(before - 2000);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("opponent").currentDP === 18_000 &&
+        s.state.players[1]!.security.length === 5 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("opponent").currentDP).toBe(18_000);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 4 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("opponent").currentDP).toBe(18_000);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 3 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("opponent").currentDP).toBe(18_000);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("publicly resolves the same Angel and exact Mirei buckets when digivolving", async () => {

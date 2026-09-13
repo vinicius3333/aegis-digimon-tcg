@@ -3,6 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-009.js";
+import "./EX6-010.js";
 
 describe("EX6-009 Duramon", () => {
   it("pays 2 and places itself under a level 5 or Legend-Arms Digimon to give Security Attack +1", () => {
@@ -74,19 +75,31 @@ describe("EX6-009 Duramon", () => {
   });
 
   it("trashes one opponent security card on a matching target switch and only once per turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-020", as: "host", under: ["EX6-009"] }] },
-      1: { security: ["BT1-009", "BT1-010"] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-010", as: "host", under: ["EX6-009"] }], deck: Array(10).fill("BT1-009") },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 12_000 }],
+          deck: Array(10).fill("BT1-009"),
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 4 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("does not offer the hand effect without a level-5 or Legend-Arms host", async () => {

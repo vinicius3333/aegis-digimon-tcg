@@ -211,25 +211,10 @@ export async function runReplacement(
   ) {
     amount *= scaleFactor(ctx, costScaling);
   }
-  // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
-  // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
-  // active reduceCost subscription anchored to this permanent, so two simultaneously-installed
-  // amounts would silently stack.
-  if (mode === "reduceCost" && action.amountChoices && action.amountChoices.length > 0) {
-    const eligible = action.amountChoices.filter(
-      (choice) => choice.condition === undefined || evaluateCondition(ctx, choice.condition),
-    );
-    if (eligible.length === 0) return;
-    if (eligible.length === 1) {
-      amount = eligible[0]!.amount;
-    } else {
-      const chosen = await ctx.ask.chooseOption(
-        ctx,
-        eligible.map((choice) => choice.raw ?? `Reduce the play cost by ${choice.amount}.`),
-      );
-      amount = eligible[chosen]!.amount;
-    }
-  }
+  // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead") are
+  // selected when the replacement activates. Installing a snapshot here would make a declined
+  // optional activation leave a stale amount behind for a later play.
+  const amountChoices = mode === "reduceCost" && action.amountChoices?.length ? action.amountChoices : undefined;
   const preventCost = action.cost ?? nestedPrevent?.cost;
   const withReplacementSource = async <T>(subCtx: EffectContext, body: () => Promise<T>): Promise<T> => {
     subCtx.fx.enterEffectResolution?.(
@@ -310,104 +295,101 @@ export async function runReplacement(
         if (protectsFilter.controller === "opponent" && leaving.controllerSeat === ownerSeat) return false;
         return permanentMatchesFilter(subCtx, leaving, protectsFilter, subCtx.source);
       },
-      preventCheck: (subCtx) =>
-        withReplacementSource(subCtx, async () => {
-          // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
-          if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
-          const availablePreventCosts = action.costOptions ?? nestedPrevent?.costOptions;
-          if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
-            return false;
-          }
-          if (action.optional !== false) {
-            // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
-            // from its digivolution cards"). A Prevent compiled without its own `raw` still has
-            // the cost's, so fall back through both. `printedClause` drops a `raw` that holds an
-            // internal identifier instead of printed text (some cards store the replacement's
-            // event name there), so no identifier can reach the player; the source card's own
-            // printed effect text is the last resort, so the question is always answerable.
-            const preventReason =
-              printedClause(action.raw) ??
-              printedClause(preventCost?.raw) ??
-              printedClause(subCtx.activeEffectText) ??
-              printedClause(subCtx.source.definition.effectText);
-            // The clause travels as the decision's `effectText` provenance (the channel the
-            // client already renders beside the source card), never interpolated into the
-            // question itself.
-            const askCtx = preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason };
-            const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
-            if (!yes) return false;
-          }
-          if (action.digivolveFromTrash === true) {
-            const targetId = subCtx.trigger.deletedPermanentId;
-            if (targetId === undefined) return false;
-            return (
-              (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, {
-                payCost: false,
-                processRulesBeforeWhenDigivolving: true,
-              })) !== undefined
-            );
-          }
-          if (action.playAndRelocateSourceUnder !== undefined) {
-            const host = subCtx.source.permanent();
-            if (host === undefined) return false;
-            const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
-            const candidates = [
-              ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
-              ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
-            ].filter((card) =>
-              definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)),
-            );
-            if (candidates.length === 0) return false;
-            const selected = await subCtx.ask.selectCards(subCtx, {
-              candidates: candidates.map((card) => card.instanceId),
-              min: 1,
-              max: 1,
-            });
-            if (selected.length === 0) return false;
-            const played = await subCtx.fx.playInstances(selected, { payCost: false });
-            const playedPermanent = played[0];
-            if (playedPermanent === undefined) return false;
-            return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
-          }
-          const runCtx: EffectContext =
-            action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
-          if (action.requiresDelayArmed === true) {
-            const source = subCtx.source.permanent();
-            if (source === undefined) return false;
-            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-            const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
-            if (!hasDelay) return false;
-            subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
-            const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
-            if (trashed <= 0) return false;
-          }
-          // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
-          // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
-          // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
-          // trashing the source card (already asked as the "prevent?" confirm above) the cost.
-          if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-            const source = subCtx.source.permanent();
-            if (source === undefined) return false;
-            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-            const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
-            if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
-          }
-          const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
-          if (preventCosts.length > 0) {
-            const paid = await payOneCostOption(subCtx, preventCosts);
-            if (!paid) return false;
-          }
-          for (const inner of action.actions ?? []) {
-            if (inner.kind === "Prevent") continue;
-            if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
-            const abort = await runAction(runCtx, inner);
-            if (abort) break;
-          }
-          if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
-            return false;
-          }
-          return true;
-        }),
+      preventCheck: async (subCtx) => {
+        // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
+        if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
+        const availablePreventCosts = action.costOptions ?? nestedPrevent?.costOptions;
+        if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
+          return false;
+        }
+        if (action.optional !== false) {
+          // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
+          // from its digivolution cards"). A Prevent compiled without its own `raw` still has
+          // the cost's, so fall back through both. `printedClause` drops a `raw` that holds an
+          // internal identifier instead of printed text (some cards store the replacement's
+          // event name there), so no identifier can reach the player; the source card's own
+          // printed effect text is the last resort, so the question is always answerable.
+          const preventReason =
+            printedClause(action.raw) ??
+            printedClause(preventCost?.raw) ??
+            printedClause(subCtx.activeEffectText) ??
+            printedClause(subCtx.source.definition.effectText);
+          // The clause travels as the decision's `effectText` provenance (the channel the
+          // client already renders beside the source card), never interpolated into the
+          // question itself.
+          const askCtx = preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason };
+          const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
+          if (!yes) return false;
+        }
+        if (action.digivolveFromTrash === true) {
+          const targetId = subCtx.trigger.deletedPermanentId;
+          if (targetId === undefined) return false;
+          return (
+            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !==
+            undefined
+          );
+        }
+        if (action.playAndRelocateSourceUnder !== undefined) {
+          const host = subCtx.source.permanent();
+          if (host === undefined) return false;
+          const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
+          const candidates = [
+            ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
+            ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
+          ].filter((card) =>
+            definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)),
+          );
+          if (candidates.length === 0) return false;
+          const selected = await subCtx.ask.selectCards(subCtx, {
+            candidates: candidates.map((card) => card.instanceId),
+            min: 1,
+            max: 1,
+          });
+          if (selected.length === 0) return false;
+          const played = await subCtx.fx.playInstances(selected, { payCost: false });
+          const playedPermanent = played[0];
+          if (playedPermanent === undefined) return false;
+          return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
+        }
+        const runCtx: EffectContext =
+          action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
+        if (action.requiresDelayArmed === true) {
+          const source = subCtx.source.permanent();
+          if (source === undefined) return false;
+          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+          const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
+          if (!hasDelay) return false;
+          subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
+          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          if (trashed <= 0) return false;
+        }
+        // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
+        // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
+        // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
+        // trashing the source card (already asked as the "prevent?" confirm above) the cost.
+        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+          const source = subCtx.source.permanent();
+          if (source === undefined) return false;
+          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+        }
+        const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
+        if (preventCosts.length > 0) {
+          const paid = await payOneCostOption(subCtx, preventCosts);
+          if (!paid) return false;
+        }
+        for (const inner of action.actions ?? []) {
+          if (inner.kind === "Prevent") continue;
+          if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
+          const abort = await runAction(runCtx, inner);
+          if (abort) break;
+        }
+        if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
+          return false;
+        }
+        return true;
+      },
     });
     return;
   }
@@ -454,6 +436,21 @@ export async function runReplacement(
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
+      ...(amountChoices !== undefined ? { amountChoices } : {}),
+      ...(amountChoices !== undefined
+        ? {
+            potentialAmount: (target: Permanent) => {
+              const projectionCtx = {
+                ...ctx,
+                trigger: { ...ctx.trigger, subjectPermanentId: target.permanentId },
+              } as EffectContext;
+              const eligible = amountChoices.filter(
+                (choice) => choice.condition === undefined || evaluateCondition(projectionCtx, choice.condition!),
+              );
+              return Math.max(0, ...eligible.map((choice) => choice.amount));
+            },
+          }
+        : {}),
       ...(scalesIntoColors
         ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length }
         : {}),
@@ -480,7 +477,7 @@ export async function runReplacement(
                 permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
             }
           : {}),
-      ...(interactiveCosts.length > 0 || interactiveOptional
+      ...(interactiveCosts.length > 0 || interactiveOptional || amountChoices !== undefined
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
@@ -515,6 +512,7 @@ export async function runReplacement(
                 ]);
               }
               if (interactiveCosts.some((cost) => !canPayCost(runtimeCtx, cost))) return false;
+              let selectedAmount = amount ?? 0;
               if (
                 interactiveCost?.kind === "suspend" &&
                 (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true) &&
@@ -528,6 +526,20 @@ export async function runReplacement(
                   action.raw ?? nestedCostModifier?.raw ?? "Pay the cost to reduce the cost?",
                 );
                 if (!accepted) return false;
+              }
+              if (amountChoices !== undefined) {
+                const eligible = amountChoices.filter(
+                  (choice) => choice.condition === undefined || evaluateCondition(runtimeCtx, choice.condition),
+                );
+                if (eligible.length === 0) return false;
+                const chosen =
+                  eligible.length === 1
+                    ? 0
+                    : await runtimeCtx.ask.chooseOption(
+                        runtimeCtx,
+                        eligible.map((choice) => choice.raw ?? `Reduce the play cost by ${choice.amount}.`),
+                      );
+                selectedAmount = eligible[chosen]!.amount;
               }
               if (nestedCostModifier?.dynamicFrom === "deletedDigimonPlayCost") {
                 if (interactiveCost?.kind !== "deleteOwn" || interactiveCost.target === undefined) return false;
@@ -570,7 +582,7 @@ export async function runReplacement(
                     : await payCost(runtimeCtx, cost);
                 if (!paid) return false;
               }
-              return true;
+              return amountChoices === undefined ? true : selectedAmount;
             },
             consumeOnActivate: true,
           }
@@ -639,70 +651,86 @@ export async function runReplacement(
       : {}),
     apply: (subCtx) =>
       withReplacementSource(subCtx, async () => {
-        const tracksDigiXrosExpansion = (action.actions ?? []).some(
-          (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
-        );
-        // A material-zone expansion's "by" payment remains optional even when an older
-        // compiled module omits the outer optional flag (BT19-087, CR 15-7-4).
-        const hasOptionalDigiXrosCost = (action.actions ?? []).some(
-          (nested) => nested.kind === "DigiXrosMaterialZoneExpansion" && nested.cost !== undefined,
-        );
+      const tracksDigiXrosExpansion = (action.actions ?? []).some(
+        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
+      );
+      // A material-zone expansion's "by" payment remains optional even when an older
+      // compiled module omits the outer optional flag (BT19-087, CR 15-7-4).
+      const hasOptionalDigiXrosCost = (action.actions ?? []).some(
+        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion" && nested.cost !== undefined,
+      );
+      if (
+        (action.actions ?? []).some(
+          (nested) =>
+            nested.kind === "DigiXrosMaterialZoneExpansion" &&
+            nested.cost !== undefined &&
+            !canPayCost(subCtx, nested.cost),
+        )
+      )
+        return false;
+      const expansionCountBefore = tracksDigiXrosExpansion
+        ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
+        : undefined;
+      const nestedActions = action.actions ?? [];
+      const dnaDigivolveActions = nestedActions.filter(
+        (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+      );
+      // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
+      // DNA to offer never replaces the event, so it must not claim the one replacement slot a
+      // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
+      const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
+      if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
+        return false;
+      }
+      const replacementCost = action.cost;
+      // CR §15-7-5 permits an optional processing payment to resolve even when its optional
+      // payload has no legal target; payload legality is checked by the nested action itself.
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !canPayCost(subCtx, replacementCost)
+      ) {
+        return false;
+      }
+      if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+        const delaySource = subCtx.source.permanent();
+        if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
         if (
-          (action.actions ?? []).some(
-            (nested) =>
-              nested.kind === "DigiXrosMaterialZoneExpansion" &&
-              nested.cost !== undefined &&
-              !canPayCost(subCtx, nested.cost),
-          )
+          dnaDigivolveActions.length > 0 &&
+          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
         )
           return false;
-        const expansionCountBefore = tracksDigiXrosExpansion
-          ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
-          : undefined;
-        const nestedActions = action.actions ?? [];
-        const dnaDigivolveActions = nestedActions.filter(
-          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+        if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
+          return false;
+        }
+        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
+        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+      } else if (
+        (action.optional === true || hasOptionalDigiXrosCost) &&
+        !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
+      ) {
+        return false;
+      }
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !(await payCost(subCtx, replacementCost))
+      ) {
+        return false;
+      }
+      for (const a of nestedActions) {
+        const abort = await runAction(subCtx, a);
+        if (abort) break;
+      }
+      // A declined or unresolvable DNA merge left the event unreplaced.
+      if (onlyDnaDigivolves) return subCtx.lastDigivolveResult === true;
+      if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
+        return (
+          (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??
+            expansionCountBefore) > expansionCountBefore
         );
-        // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
-        // DNA to offer never replaces the event, so it must not claim the one replacement slot a
-        // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
-        const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
-        if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
-          return false;
-        }
-        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-          const delaySource = subCtx.source.permanent();
-          if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount)
-            return false;
-          if (
-            dnaDigivolveActions.length > 0 &&
-            !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
-          )
-            return false;
-          if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
-            return false;
-          }
-          const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
-          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
-        } else if (
-          (action.optional === true || hasOptionalDigiXrosCost) &&
-          !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
-        ) {
-          return false;
-        }
-        for (const a of nestedActions) {
-          const abort = await runAction(subCtx, a);
-          if (abort) break;
-        }
-        // A declined or unresolvable DNA merge left the event unreplaced.
-        if (onlyDnaDigivolves) return subCtx.lastDigivolveResult === true;
-        if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
-          return (
-            (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??
-              expansionCountBefore) > expansionCountBefore
-          );
-        }
-        return true;
+      }
+      return true;
       }),
   });
 }

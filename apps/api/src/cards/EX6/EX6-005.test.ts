@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -44,11 +43,13 @@ describe("EX6-005 Kakkinmon", () => {
     await s.ready();
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("legendArms").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX6-005"]);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("can return a Legend-Arms card that is not a Digimon", async () => {
@@ -65,11 +66,13 @@ describe("EX6-005 Kakkinmon", () => {
     await s.ready();
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("legendArmsOption").instanceId,
     );
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });

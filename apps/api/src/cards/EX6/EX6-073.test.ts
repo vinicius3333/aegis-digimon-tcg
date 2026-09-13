@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
+import "./EX6-054.js";
+import "./EX6-058.js";
 import "../index.js";
 
 // A3 for EX6-073 (Ogudomon) — Purple Lv.7+ Digimon.
@@ -74,6 +76,7 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
               under: SGDL_IDS.map((id) => ({ card: id })),
             },
           ],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
@@ -115,6 +118,143 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
     // The effect trashes (7 - 3) = 4 security cards.
     const totalTrash = secBefore - p1.security.length;
     expect(totalTrash).toBe(4);
+    // The `by` payment is all-or-nothing: all seven distinct physical SGDL cards
+    // leave this host and are appended face-down to the owner's deck bottom.
+    expect(ogudomon.stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.slice(-7).map((card) => card.cardId)).toEqual(SGDL_IDS);
+    expect(s.state.players[0]!.deck.slice(-7).every((card) => card.faceUp === false)).toBe(true);
+  });
+});
+
+describe("EX6-073 [When Attacking] payment and deletion boundaries", () => {
+  it("continues the security tail after Lucemon's immediate replacement removes Ogudomon (Q6040)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OGUDOMON, as: "ogudomon", under: SGDL_IDS }], deck: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemonSource" }] }],
+          trash: [{ card: "EX6-058", as: "creepy" }],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: Array.from({ length: 10 }, () => "BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const answered = new Set<string>();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogudomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => {
+      autoOrderTriggers(s, answered);
+      return (
+        s.state.players[0]!.trash.some((card) => card.cardId === OGUDOMON) &&
+        !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-054") &&
+        s.state.players[1]!.security.length === 4 &&
+        s.state.pendingDecision === undefined
+      );
+    }, 2000);
+
+    // Chaos's replacement returns its Lucemon source, then Creepymon's nested On Play
+    // deletes Ogudomon and mills seven cards. The original attack effect still resolves.
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === OGUDOMON)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-054")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-058")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX10-013")).toBe(false);
+    expect(s.state.players[1]!.deck).toHaveLength(4); // Chaos returned Lucemon, then Creepymon milled 7.
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("EX10-013");
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("lucemonSource").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(4); // 7 minus the one actual deletion.
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("rejects an incomplete or duplicate-name seven-card payment without deleting or trashing security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: OGUDOMON, as: "ogudomon", under: [...SGDL_IDS.slice(0, 6), "BT13-091"] }],
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, as: "victim" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ogudomon").permanentId,
+      target: { kind: "player" },
+    });
+    expect(result).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("ogudomon").stack).toHaveLength(7);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("victim").permanentId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("counts only actual deletions when Scapegoat prevents the selected deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OGUDOMON, as: "ogudomon", under: SGDL_IDS }] },
+        1: {
+          battleArea: [
+            { card: "EX6-059", as: "scapegoat" },
+            { card: OPP_DIGIMON, as: "sacrifice" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogudomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("scapegoat").permanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("trashes zero security cards after seven actual deletions, including Digimon and Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OGUDOMON, as: "ogudomon", under: SGDL_IDS }] },
+        1: {
+          battleArea: [
+            { card: OPP_DIGIMON, as: "digimon1" },
+            { card: OPP_DIGIMON, as: "digimon2" },
+            { card: OPP_DIGIMON, as: "digimon3" },
+            { card: "BT1-085", as: "tamer1" },
+            { card: "BT1-086", as: "tamer2" },
+            { card: "BT1-087", as: "tamer3" },
+            { card: "BT1-088", as: "tamer4" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogudomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
 

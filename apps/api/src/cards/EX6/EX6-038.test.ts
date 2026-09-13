@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-038.js";
+import "./EX6-037.js";
 
 describe("EX6-038 Ludomon", () => {
   it("pays 1 and places itself under a level 3 or Legend-Arms Digimon for +2000 DP", () =>
@@ -51,8 +52,8 @@ describe("EX6-038 Ludomon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    const effect = JSON.parse(s.inst("ludomon").activatableEffectsJson || "[]").find(
-      (entry: { effectKey: string }) => entry.effectKey.includes("EX6-038"),
+    const effect = JSON.parse(s.inst("ludomon").activatableEffectsJson || "[]").find((entry: { effectKey: string }) =>
+      entry.effectKey.includes("EX6-038"),
     );
     expect(effect).toBeDefined();
     expect(
@@ -67,6 +68,32 @@ describe("EX6-038 Ludomon", () => {
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("ludomon").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(5000);
+  });
+
+  it("draws when a card is added under Ludomon during its owner's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-038", as: "host" }],
+          hand: [{ card: "EX6-037", as: "spada" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("spada").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("spada").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("spada").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
   it("does not expose the hand Main effect without a legal level 3 or Legend-Arms host", async () => {

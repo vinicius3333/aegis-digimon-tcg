@@ -51,6 +51,28 @@ describe("EX6-061 Leviamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
   });
 
+  it("Q3803: triggers its own play as an All Turns source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-061", as: "levia" },
+            { card: "BT1-010", as: "cost" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-060", as: "opponent", under: ["BT1-010", "BT1-011", "BT1-012"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).verb.playInstances([s.inst("levia").instanceId]);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+  });
+
   it("returns three cards and then deletes a stackless opponent Digimon", async () => {
     const s = setupEngine(
       {
@@ -236,5 +258,20 @@ describe("EX6-061 Leviamon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.breeding?.stack.at(-1)?.instanceId).toBe(s.inst("material").instanceId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
+  });
+
+  it("Q3805: cannot place the leaving Leviamon itself from trash under Gate", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX6-006", as: "gate" },
+        battleArea: [{ card: "EX6-061", as: "levia" }],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("levia").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("levia").instanceId));
+
+    expect(s.state.players[0]!.breeding?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("levia").instanceId)).toBe(true);
   });
 });

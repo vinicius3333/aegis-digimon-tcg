@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -37,11 +36,15 @@ describe("EX6-043 Diaboromon", () => {
   });
 
   it("publicly plays a Diaboromon token at the start of its controller's main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-043", as: "diaboromon" }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-043", as: "diaboromon" }], deck: ["BT1-009", "BT1-010"] } },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("diaboromon"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-043")).toBe(true);
   });
   it("publicly reacts to an opponent Digimon play with its non-inherited token effect", async () => {
     const s = setupEngine(

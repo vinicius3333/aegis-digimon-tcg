@@ -25,13 +25,23 @@ describe("EX6-035 Cherubimon", () => {
       amount: -4000,
       scaling: { per: 1, unit: "cards", filter: { excludeSelf: true } },
     }));
-  it("publicly plays a level-3 yellow Digimon from hand on play", async () => {
+  it("publicly plays a level-4 yellow/green Digimon from hand on paid play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-035", as: "cherub" }], hand: [{ card: "EX6-016", as: "rookie" }] } },
+      {
+        0: {
+          hand: [
+            { card: "EX6-035", as: "cherub" },
+            { card: "EX6-033", as: "rookie" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId),
     );
@@ -59,17 +69,20 @@ describe("EX6-035 Cherubimon", () => {
   it("still resolves the Then reduction when the optional hand play is declined", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
+        battleArea: [{ card: "BT1-009", as: "ally" }],
+        hand: [
           { card: "EX6-035", as: "cherub" },
-          { card: "BT1-009", as: "ally" },
+          { card: "EX6-033", as: "rookie" },
         ],
-        hand: [{ card: "EX6-016", as: "rookie" }],
       },
       1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
     });
+    s.state.memory = 10;
     await s.ready();
     const before = s.perm("opponent").currentDP;
-    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
     const decision = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(
@@ -79,7 +92,7 @@ describe("EX6-035 Cherubimon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await firing;
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rookie").instanceId)).toBe(true);
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
@@ -156,15 +169,24 @@ describe("EX6-035 Cherubimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "EX6-035", as: "cherub" },
+          { card: "EX6-034", as: "base" },
           { card: "BT1-009", as: "ally" },
         ],
+        hand: [{ card: "EX6-035", as: "cherub" }],
       },
       1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
     });
+    s.state.memory = 3;
     await s.ready();
     const before = s.perm("opponent").currentDP;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cherub"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cherub").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX6-035" && s.state.pendingDecision === undefined);
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
 });

@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-022.js";
@@ -50,16 +48,28 @@ describe("EX6-022 Angewomon", () => {
 
   it("publicly plays Mirei from hand when the controller has none", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-022", as: "ange" }], hand: [{ card: "BT11-094", as: "mirei" }] } },
+      {
+        0: {
+          hand: [
+            { card: "EX6-022", as: "ange" },
+            { card: "BT11-094", as: "mirei" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ange"));
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId),
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ange").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId) &&
+        s.state.pendingDecision === undefined,
     );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId)).toBe(
       true,
     );
+    expect(s.state.memory).toBe(3);
   });
 });
