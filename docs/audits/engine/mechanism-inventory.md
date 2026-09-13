@@ -223,7 +223,7 @@ security fields. Counts are distinct card IDs per exact marker.
 
 ## Canonical structured keyword inventory
 
-This inventories the 45 canonical union entries against every recursively located `keyword` object in committed IR. Declaration counts refer to `effects[*].keywords[*]`; other counts include action/grant and reference objects and must be traced to distinguish grants from requests. Printed-only and non-keyword-object grant representations remain separate obligations. Shape counts ignore `raw` prose but retain amounts and trait parameters. No behavioral score follows from these counts.
+This historical snapshot inventories the 45-entry canonical union that preceded Succession's reconciliation against every recursively located `keyword` object in committed IR. Declaration counts refer to `effects[*].keywords[*]`; other counts include action/grant and reference objects and must be traced to distinguish grants from requests. Printed-only and non-keyword-object grant representations remain separate obligations. Shape counts ignore `raw` prose but retain amounts and trait parameters. No behavioral score follows from these counts. The current 46-name denominator and counts supersede this snapshot below.
 
 | Canonical keyword    | Declaration cards | Other structured reference cards | Distinct structured shapes |
 | -------------------- | ----------------: | -------------------------------: | -------------------------: |
@@ -273,7 +273,7 @@ This inventories the 45 canonical union entries against every recursively locate
 | `Guard`              |                 3 |                                1 |                          1 |
 | `Detach`             |                 7 |                                0 |                          1 |
 
-Structured keyword names outside the canonical union: `EndOfAttack`, `OnDeletion`, `Unblockable`.
+The historical snapshot's structured names outside its then-canonical union included `Succession`; the current 46-name reconciliation below places it in the canonical union. Other structured names outside the current union are `EndOfAttack`, `OnDeletion`, and `Unblockable`.
 
 ### Parameterized structured shapes
 
