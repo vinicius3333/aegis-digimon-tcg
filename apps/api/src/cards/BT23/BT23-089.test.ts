@@ -423,6 +423,89 @@ describe("BT23-089 Takumi Aiba", () => {
     await loop;
   });
 
+  it("does not use a public face-down EX9 source to satisfy the same-level payment", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-089", as: "takumi" },
+            { card: "BT1-070", as: "base" },
+          ],
+          hand: [{ card: "EX9-043", as: "metal" }, { card: "BT22-064", as: "dia" }, "BT1-009"],
+          trash: [{ card: "BT1-070", as: "hiddenSource" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+          security: NEUTRAL_SECURITY,
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "opponentRedTamer" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+          security: NEUTRAL_SECURITY,
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const { loop } = await openOwnTurn(s);
+    const basePermanentId = s.perm("base").permanentId;
+    const metalId = s.inst("metal");
+    const hiddenSourceId = s.inst("hiddenSource").instanceId;
+    preferInstanceIds.push(basePermanentId);
+    const respondOptional = async (accept: boolean) => {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(decision.seat, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: basePermanentId, instanceId: metalId.instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await respondOptional(true);
+    await settle(() => s.perm("base").topCard?.cardId === "EX9-043" && s.state.pendingDecision === undefined);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(hiddenSourceId);
+    expect(s.perm("base").stack.find((card) => card.instanceId === hiddenSourceId)?.faceUp).toBe(false);
+
+    const diaId = s.inst("dia");
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: basePermanentId, instanceId: diaId.instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await respondOptional(false);
+    await settle(() => s.perm("base").topCard?.cardId === "BT22-064" && !observe(s.engine).isAttacking());
+    const stackAfterPublicProduction = s.perm("base").stack.map((card) => card.instanceId);
+    expect(stackAfterPublicProduction).toEqual([hiddenSourceId, s.inst("base").instanceId, metalId.instanceId]);
+    expect(s.perm("base").stack.find((card) => card.instanceId === hiddenSourceId)?.faceUp).toBe(false);
+    expect(stackAfterPublicProduction.filter((id) => id === hiddenSourceId)).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.turnSeat).toBe(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === diaId.instanceId));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === basePermanentId)).toBe(false);
+    expect(s.perm("takumi").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([hiddenSourceId, ...stackAfterPublicProduction, diaId.instanceId]),
+    );
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("cannot pay a second time while this Tamer is already suspended by the first payment", async () => {
     const s = setupEngine(
       {
