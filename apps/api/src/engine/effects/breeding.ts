@@ -44,6 +44,8 @@ export interface BreedingEngine {
   readonly state: GameState;
   emit(event: ServerEvent): void;
   nextPermanentId(): string;
+  /** Refresh derived inherited/static state before placement watchers inspect the host. */
+  recomputeContinuousEffects?: () => Promise<void>;
   fireTiming?: (timing: EffectTiming, trigger?: import("./EffectContext.js").TriggerInfo) => Promise<void>;
   fireSubTrigger?: (
     event: import("./EffectContext.js").SubTriggerEventName,
@@ -130,6 +132,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
       from: Zone.EggDeck,
       to: Zone.BattleArea,
     });
+    await engine.recomputeContinuousEffects?.();
     // Same SubTrigger seam placeUnder uses: a card was added to the host's digivolution cards.
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
@@ -162,6 +165,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
       from: Zone.EggDeck,
       to: Zone.BattleArea,
     });
+    await engine.recomputeContinuousEffects?.();
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [egg.instanceId],
