@@ -13,6 +13,31 @@ two-argument calls remain compatible and are explicitly unpinned. Citation
 diagnostics also retain the calling file. This is source-integrity evidence,
 not behavioral rule coverage.
 
+## Scoped Q&A refresh (2026-09-13)
+
+The replacement and remaining-engine fronts refreshed 224 card Q&A pages from
+the official card-rulings endpoint. Temporary extraction inputs were kept outside the repository; the durable per-card URL, timestamp, raw-response hash and outcome receipts are in the committed manifest. The scope contains 171 pages with self-category rulings, 53 pages with no self-category rulings, and zero fetch failures. Of these 53, 50 have the explicit empty-page marker and BT20-100, EX3-013 and EX7-048 contain only related categories, confirmed against the requested physical card category. The scoped receipt is recorded in
+`data/kb/manifest.json` under `qa.scopedRefreshes`; the historical global Q&A
+metadata remains unchanged (4,375 cards scanned on 2026-08-19, 2,617 cards
+with rulings and 42 historical failures).
+
+Nineteen cards differed from the committed map. Sixteen cards lost 21 wrongly attributed related-category entries through
+category reconciliation: the HTML page included a related card's
+category, and the parser now excludes it. Removed IDs and category owners are
+Q2612 → BT16-014, Q4905 → BT22-052, Q5349 → BT23-073, Q5352 → BT23-075,
+Q5604 → BT24-025, Q1308 → BT5-030, Q2858 → BT17-081, Q1967 → BT10-042,
+Q1688 → BT7-112, Q1736 → BT8-057, Q3359 → EX2-070, Q5169 → EX10-059,
+Q5166/Q5167 → EX10-059, Q2212/Q2213 → BT12-072, Q3816 → EX6-065, Q3084
+→ BT19-027, Q4585 → BT21-074, Q4108 → RB1-034, and Q974 → BT1-105.
+
+The refresh adds five self-category entries (BT26-029/Q7195,
+BT26-054/Q7056, BT26-054/Q7057, BT26-085/Q7129, and BT26-085/Q7130), updates
+the substantive answer and date of BT26-029/Q6995, and adds EX7-061 to
+EX10-055/Q5141's `related` metadata while preserving its answer. These are
+source reconciliation changes; they do not certify engine behavior. The
+official card pages retain the removed IDs in related-category HTML, so no
+removal is treated as a fetch failure.
+
 The rule importer now reconciles IDs against the previous index instead of
 reusing extraction positions. Unchanged chunks match within their source,
 section and title by exact text; unique section/title chunks retain identity
@@ -251,3 +276,52 @@ retains the earlier recorded scan/date/failure boundaries. No fresh-source,
 whole-KB normative execution or whole-catalog coverage claim follows from
 436 protected declarations. Final regression, review and delivery receipts
 are recorded in the four-front owner section after those gates complete.
+
+## Latest scoped Q&A provenance correction (2026-09-13)
+
+The persistent manifest now embeds all 224 per-card fetch rows (card ID, URL,
+status, timestamp, SHA-256 and changed flag), so the scoped reconciliation does
+not depend on `/tmp` artifacts for provenance. The refresh yielded 171 ruling
+pages, 53 empty pages and no fetch failures. Against the pre-refresh map, 21
+Q&A entries were removed because they belonged to related-card categories, and
+five self-category entries were added. The earlier summary's “16 removed” was
+the number of affected category groups, not the number of removed Q&A entries;
+the manifest now records the correct count of 21.
+
+The duration selector's exact current persisted aliases are
+`untilEndOfAttack` (BT4-090, RB1-025) and `untilEndOfBattle` (EX13-076, three
+occurrences). No `untilEndOfBattle` spelling variant is present. EX13-076's
+fresh Q&A page was fetched successfully but is empty; it remains a zero-ruling
+provider row rather than an omitted fetch.
+
+The exclusion review found a material classification residual: `manual-0000`
+through `manual-0005` are currently absent from `not-testable.ts`, but their
+committed texts contain substantive normative rule/manual content (including
+card information, game areas, breeding-area restrictions, deck construction,
+and token rules), despite OCR noise. They must not be classified as
+not-testable. The existing comprehensive title/TOC/bare-heading exclusions were
+not re-certified as behavioral coverage; they remain only source-content
+classifications pending independent review.
+
+The official Rule Manual Ver. 6.0 source download succeeded and is identified
+by SHA-256 `2cb70238044653781f71cc9f83d61c6cdf064557c7905838df9eda58d396cab2`.
+It is image-only across 49 pages. A provisional 150-DPI OCR pass yielded 62
+chunks versus 67 from the prior extraction; the discrepancy is an unresolved
+OCR/chunking ambiguity, not a source-text change and does not authorize pin
+updates. The source title is `Official Rule Manual`; the 57 manual and four
+comprehensive classifications are retained as normative/historical comments,
+not exclusions of unimplemented keywords. No source pins were changed.
+
+## Current normative classification boundary (2026-09-13)
+
+57 manual chunk IDs previously registered as not-testable solely because of repeated normative content, damaged OCR or historical lack-of-proof notes are no longer exclusions. Their original cross-references are preserved as comments explicitly labeled historical; old “unimplemented” keyword labels are not current defect findings. Four comprehensive IDs are similarly reclassified: 0031 (newest card text), 0171 (effect categories), 0174 (trigger-condition reference snapshots) and 0175 (processing/removal-time references). Repetition and absence of a convenient printed witness do not make normative text non-normative. No replacement cite is added without a behavioral witness. The separately authorized physical-marker classification at comprehensive-0029 and genuinely non-normative headings/TOC remain intact.
+
+The chapter integrity check still reports **436/436 pinned references**, no missing/dynamic/mismatched pins, and the existing single partial-note warning for comprehensive-0184. Assertion bodies, normative rule text and fingerprints are unchanged by this classification repair. The newly added fixture files bring scanned files to 78; calls remain 436. Existing level-relative trigger/removal snapshot, live processing, category, keyword and manual worked-example suites are reused. This clears misleading exclusion credit; it does not turn all remaining normative clauses or citation notes into proven behavior.
+
+Scoped Q&A refresh selection is reproducible from persisted IR: union cards containing explicit leave/delete prevent/instead actions, onAddDigivolutionCards, the rare duration aliases listed below, or the budget fields. Use `tools/kb/lib/http.mjs`'s force fetch and `parse-qa.mjs`'s requested-card category parser; successful empty pages are receipts, while fetch errors preserve historical data. Rare aliases are untilEachTurnEnd, endOfOpponentTurn, untilEndOfBattle, untilOpponentNextTurnEnd, untilEndOfAttack, forTheAttack, nextDigivolveThisTurn, untilOpponentNextUnsuspendPhase, untilYourTurnEnd. Budget fields are totalCost, totalDpCap, totalPlayCostBudget, totalPlayCostBudgetFromSelectionRef, costBudget, baseBudget, budget. The union is 224 cards; all per-card URLs, times, statuses and raw-response hashes are persisted in the scoped manifest receipt. This is not a fresh scan of all 4,458 catalog cards, and the historical global 42 fetch failures are not erased.
+
+Successful scoped-empty categories remain absent from the nonempty Q&A map; their 53 success receipts remain in the manifest. The current nonempty map contains 2,616 cards; the historical global 2,617 count is not rewritten as a fresh global scan. Existing collection ledgers distinguish related-card authority from self-category attribution; valid interaction proofs and scores are unchanged.
+
+The earlier manual-0000–0005 classification residual is superseded by the latest 57-ID removal: these IDs now retain normative historical cross-references without not-testable registration. Exhaustive behavioral correspondence of their clauses remains unproven. Fresh BT26-029 Q6995/Q7195 demonstrated a real stack-return versus whole-Digimon-return defect, corrected with dedicated red/green physical-instance controls and scoped IR parity (see BT26.md and digivolution-card-placement.md). No fingerprint was repinned. Final full API, real typecheck, tools and delivery receipts are recorded in mechanism-inventory.md.
+
+After the final source-attribution corrections, the focused semantic-ledger/layout gate passed **2 files / 34 tests**, actual exit 0; the index remains current and diff validation is clean. Collection scores/statuses and historical physical interaction assertions are preserved.

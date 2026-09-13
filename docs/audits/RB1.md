@@ -300,7 +300,7 @@ pnpm audit:index -- --check
 - Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
 - Catalog: colors Green; level 6; DP 12000; play cost 12; evolution `[{"color":"Green","level":5,"memoryCost":4}]`.
 - Contract: Main: ＜Blocker＞[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon. Then, if your opponent has no unsuspended Digimon, gain 1 memory.[End of Your Turn] 1 of your Digimon with [Angoramon] in its text may attack an opponent's Digimon.
-- KB: Q4100, Q4101, Q4108. Fresh query: `node tools/kb/query.mjs card RB1-025`.
+- KB: Q4100, Q4101. Q4108 is retained as related evidence but its semantic owner is RB1-034; the historical query receipt for this row is not a fresh fetch claim.
 - Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-025.ts); each printed timing/filter/cost/duration is represented by its compiled actions and resolved by `engine/effects/interpreter` and production primitives.
 - Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-025.test.ts): “suspends one opponent Digimon and gains memory only after none remain unsuspended”; “may force an Angoramon Digimon to attack an opponent Digimon at end of turn”; “does not open the attack effect when every Angoramon-text Digimon is suspended”; “allows Ruli to unsuspend a suspended Diarbbitmon before its end-turn attack”; “resolves only one end-turn attack when two Diarbbitmon effects trigger together”.
 
@@ -381,7 +381,7 @@ pnpm audit:index -- --check
 - Score: **10/10** (catalog/rules 2/2 · IR 2/2 · behavior 2/2 · peer/stack 2/2 · delivery 2/2).
 - Catalog: colors Green; level none; DP 0; play cost 3; evolution `[]`.
 - Contract: Main: [Your Turn] When one of your Digimon digivolves into a green card with [Beast], [Animal] or [Sovereign], other than [Sea Animal], in one of its traits, by suspending this Tamer, reduce the digivolution cost by 1.[End of Your Turn][Once Per Turn] You may unsuspend 1 of your Digimon with [Angoramon] in its text. · Security: [Security] Play this card without paying the cost.
-- KB: Q4101, Q4108. Fresh query: `node tools/kb/query.mjs card RB1-034`.
+- KB: Q4108 (semantic owner). Q4101 is retained as related evidence owned by RB1-025. The historical query receipt is retained as provenance; no new fetch is claimed in this ledger update.
 - Executable trace: [compiled module](../../apps/api/src/cards/RB1/RB1-034.ts); each printed timing/filter/cost/duration is represented by its compiled actions and resolved by `engine/effects/interpreter` and production primitives.
 - Reproducible card and stack assertions: [suite](../../apps/api/src/cards/RB1/RB1-034.test.ts): “suspends to reduce a qualifying green Beast digivolution cost by exactly 1”; “excludes Sea Animal from the Beast, Animal, or Sovereign reduction filter”; “unsuspends one suspended Digimon with Angoramon in its name at end of turn”.
 

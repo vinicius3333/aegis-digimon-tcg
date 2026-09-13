@@ -866,8 +866,8 @@ Remaining gaps: static gates and typecheck are coordinator-deferred under the di
 - Alternate evolution: `Digivolve: 1 from [Machinedramon]`.
 - `[On Play][When Digivolving]` effect: place up to 3 red and black level-5 cards with `[Cyborg]` in their traits and different card numbers from hand and trash under this Digimon as bottom digivolution cards; De-Digivolve 1 of an opponent's Digimon for each card placed.
 - `[All Turns]` replacement: when this Digimon would be deleted or returned to hand or deck, optionally trash 2 level-5 cards from its digivolution cards to prevent it from leaving play.
-- Q2212 and Q2213 are interaction rulings, not isolated EX3-013 text questions. Q2212 concerns BT12-072 gaining EX3-013's replacement while also gaining its own deletion-triggered security trash effect. Q2213 concerns BT12-072's All Turns effect making the EX3-013 When Digivolving effect active immediately after digivolving from EX3-013.
-- Rules evidence: comprehensive rules §8-2-2-2/§8-2-2-3 cover DNA/stack ordering principles; §16-12 covers De-Digivolve; the replacement and immediate trigger sections cover processing when a Digimon would leave play. The local Q&A answers Q2212 and Q2213 are recorded in `data/kb/qa.json` and returned by `node tools/kb/query.mjs card EX3-013`.
+- Q2212 and Q2213 are interaction rulings owned by BT12-072, not isolated EX3-013 text questions. They remain valid related-card evidence here: Q2212 concerns BT12-072 gaining EX3-013's replacement while also gaining its own deletion-triggered security trash effect; Q2213 concerns BT12-072's All Turns effect making the EX3-013 When Digivolving effect active immediately after digivolving from EX3-013.
+- Rules evidence: comprehensive rules §8-2-2-2/§8-2-2-3 cover DNA/stack ordering principles; §16-12 covers De-Digivolve; the replacement and immediate trigger sections cover processing when a Digimon would leave play. The local Q&A answers Q2212 and Q2213 are recorded in `data/kb/qa.json`; the historical EX3-013 query receipt is retained as provenance, while BT12-072 is the semantic owner.
 
 #### Clause-to-IR-to-test mapping
 
@@ -881,15 +881,15 @@ Remaining gaps: static gates and typecheck are coordinator-deferred under the di
 
 #### Q&A reconciliation
 
-##### Q2212 — interaction ruling: gained deletion trigger plus EX3-013 replacement
+##### Q2212 — related BT12-072 interaction ruling: gained deletion trigger plus EX3-013 replacement
 
-Q2212 is keyed to EX3-013 but describes BT12-072 Chaosdramon (X Antibody) with EX3-013 in its stack. BT12-072 contributes the gained `[All Turns][Once Per Turn]` deletion trigger that trashes the opponent's top security; EX3-013 contributes the independent optional `wouldLeavePlay` replacement. The focused test now uses the public Gaia Force `playCard` intent to attempt deletion, settles the gained security-trash processing, and then asserts that EX3-013 remains in play after exactly two level-5 cards are paid. It also verifies the non-cost cards remain in the stack and the top security instance reaches the opponent's trash.
+Q2212 is semantically owned by BT12-072 and describes its Chaosdramon (X Antibody) interaction with EX3-013 in its stack; an older lookup shard associated it with EX3-013. BT12-072 contributes the gained `[All Turns][Once Per Turn]` deletion trigger that trashes the opponent's top security; EX3-013 contributes the independent optional `wouldLeavePlay` replacement. The focused test now uses the public Gaia Force `playCard` intent to attempt deletion, settles the gained security-trash processing, and then asserts that EX3-013 remains in play after exactly two level-5 cards are paid. It also verifies the non-cost cards remain in the stack and the top security instance reaches the opponent's trash.
 
 The reusable engine mechanism fires the endangered permanent's self-anchored deletion watcher before consulting the leave-prevention replacement, then excludes that self watcher from the actual deletion pass. The public regression and mechanism evidence are recorded in `apps/api/src/engine/deletionSeams.test.ts` and the gained-on-deletion-before-would-leave-replacement mechanism under Mechanisms; there is no retained Q2212 engine gap for this card proof.
 
-##### Q2213 — interaction ruling: gained EX3-013 When Digivolving effect
+##### Q2213 — related BT12-072 interaction ruling: gained EX3-013 When Digivolving effect
 
-Q2213 is keyed to EX3-013 but asks about BT12-072 digivolving from EX3-013. The test performs that public alternate digivolution, asserts memory 2 → 0 for BT12-072's cost, and verifies the resulting stack. BT12-072's gained-effects grant is active as soon as the digivolution is confirmed, so EX3-013's placement/De-Digivolve effect resolves immediately: the opponent's target exposes its source, and the selected red level-5 Cyborg is consumed from hand into the bottom of the new stack.
+Q2213 is semantically owned by BT12-072 and asks about it digivolving from EX3-013; an older lookup shard associated it with EX3-013. The test performs that public alternate digivolution, asserts memory 2 → 0 for BT12-072's cost, and verifies the resulting stack. BT12-072's gained-effects grant is active as soon as the digivolution is confirmed, so EX3-013's placement/De-Digivolve effect resolves immediately: the opponent's target exposes its source, and the selected red level-5 Cyborg is consumed from hand into the bottom of the new stack.
 
 #### Stack, source, cost, and boundary proof
 
@@ -903,7 +903,7 @@ All legal material tests assert source-card identity and final `Permanent.stack`
 
 #### Verification
 
-- `node tools/kb/query.mjs card EX3-013` — **PASS**; Q2212 and Q2213 returned and were reconciled above.
+- Historical query receipt: `node tools/kb/query.mjs card EX3-013` — **PASS**; Q2212 and Q2213 were returned by the historical lookup and reconciled above. No fresh fetch is claimed here; semantic owner is BT12-072.
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-013.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (1 file, 19 tests; public Q2212 Gaia Force path).
 - `git diff --check` — **PASS** for the tracked EX3-013 card/test changes.
 - Root typecheck — **deferred by coordinator resource policy**. The known baseline API failure is out-of-scope `apps/api/src/cards/EX4/EX4-056.test.ts:111`.
@@ -4794,7 +4794,7 @@ Merged from the `*-MECHANISM.md` files under `docs/audits/EX3-reaudit/`. Link to
 
 #### Seam
 
-`gained-on-deletion-before-would-leave-replacement-ordering` is the Q2212 / EX3-013
+`gained-on-deletion-before-would-leave-replacement-ordering` uses related Q2212 evidence (semantic owner BT12-072) while proving EX3-013's
 ordering seam. When a permanent has gained an `On Deletion` effect and EX3-013's
 leave-play replacement would prevent its deletion, the gained self-trigger resolves
 first. The replacement then pays its cost and prevents the permanent from leaving.
@@ -4941,7 +4941,7 @@ Generated from `node tools/kb/query.mjs card <ID> --json` during this re-audit. 
 - `EX3-010`: —
 - `EX3-011`: —
 - `EX3-012`: Q3430, Q3431, Q4669, Q4670, Q4671, Q4672, Q6508
-- `EX3-013`: Q2212, Q2213
+- `EX3-013`: related interaction evidence Q2212, Q2213 (semantic owner: BT12-072)
 - `EX3-014`: Q3377, Q6718, Q6719; official errata dated 2022-11-11
 - `EX3-015`: Q3378
 - `EX3-016`: Q3348, Q3379, Q3380, Q3381, Q3382, Q3383, Q3384
@@ -5013,7 +5013,7 @@ All 74 cards are currently certified 10/10 by the 2026-09-13 recalculation and c
 - Unresolved — knowledge base defect. Local KB entries Q3372 and Q3373 are indexed under EX3-007 but describe EX3-048's four-card reveal. EX3-048 carries the same contract as Q3417 and Q3418. The committed EX3-007 catalog record, its IR, and its test contain only the inherited 3000-DP deletion effect, so the misindexed entries were not used to change EX3-007 behavior. The KB index itself still needs fixing. Recorded in both `docs/audits/EX3-reaudit/REVIEW-NOTES.md` (`c2ce25144`) and `internal-docs/audits/EX3-runtime-2026-08-27.md` (`eb1a58b75`).
 - Contradiction — unexecuted scores. `internal-docs/audits/EX3-runtime-2026-08-27.md` (`eb1a58b75`) scores all 74 cards 10/10 while stating "existing tests were inspected but not executed during this pass" and making "no green-test claim". The 2026-09-10 re-audit, run at base `d3c1b6f570d5f495438e31851f3285aa351c63d4`, found four reproducible failures at its restart baseline (one EX3-026, two EX3-030, one EX3-031, all on Q3664). The re-audit wins; the older 10/10 scores carried no behavioral proof.
 - Contradiction — collection result. `docs/audits/EX3-AUDIT.md` (2026-09-03, `8664b274d`) records the exact EX3 collection passing 75/75 files and 671/671 tests. The re-audit's restart baseline at a later base recorded 75 files and 671 tests with only 72 files and 667 tests passing. The re-audit's later closeout figure, 77/77 files and 770/770 tests on the merged base, is the current one.
-- Four engine seams were opened during the run and all four are closed. `gained-on-deletion-before-would-leave-replacement-ordering` (EX3-013, Q2212) and `simultaneous-play-event-collapse` (EX3-026/030/031, Q3664) required engine work and are documented under Mechanisms. `opponent-turn-effect-origin-dna` (EX3-063, Q2891) and `opponent-empty-security-reveal` (EX3-070, Q3435) closed with no engine change once a real public path was found.
+- Four engine seams were opened during the run and all four are closed. `gained-on-deletion-before-would-leave-replacement-ordering` (EX3-013, related Q2212 owned by BT12-072) and `simultaneous-play-event-collapse` (EX3-026/030/031, Q3664) required engine work and are documented under Mechanisms. `opponent-turn-effect-origin-dna` (EX3-063, Q2891) and `opponent-empty-security-reveal` (EX3-070, Q3435) closed with no engine change once a real public path was found.
 - Deferred, outside EX3. The broad monorepo run left 17 API failures across 15 non-EX3 files. All 17 reproduce at exact `origin/main` in the main worktree, so they are pre-existing and owned by other sets.
 - Historical, resolved. The re-audit's first root typecheck failed only at `src/cards/EX4/EX4-056.test.ts:111` because target kind `"digimon"` is not assignable to `"player" | "permanent"`. That EX4 baseline error was corrected upstream and the typecheck passed on the merged base.
 - No `SOURCE-RECONCILIATION.md` was produced for EX3, so no catalog discrepancy was formally recorded or ruled out for this set.

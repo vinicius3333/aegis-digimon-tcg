@@ -5457,3 +5457,7 @@ Current re-audit: none. EX7-059/Q6391 is an ordinary passing test in both the co
 - `docs/audits/EX7-REAUDIT-LEDGER.md` — last at `43e6f893d`, 2026-09-09. Winning scoring table; merged into the Card ledger section above.
 - `docs/audits/EX7-reaudit/` — last at `7430b511f`, 2026-09-09. 74 per-card reports, 13 `*-MECHANISM.md` reports, `KB-INDEX.md`, `RUN.md`, `REVIEW-NOTES.md`, `SOURCE-RECONCILIATION.md` and `WORKER-BRIEF.md`. All merged above except the worker brief, which was process instruction only.
 - `docs/audits/collections-summary.md` — never committed (untracked), generated 2026-08-22. Cross-set status table, deleted in favour of the generated index in `docs/audits/README.md`. It was the only record of this delivery evidence for EX7: commit `91bf6bedc`.
+
+### Current scoped QA provenance reconciliation — 2026-09-13
+
+Q4585 is owned by BT21-074 Satellamon. The EX7-048 entry preserves the physical BT21-073 Shotmon/Gundramon witness and its answer text; the older local-query receipt is a historical related-card shard. Existing tests, score, and status remain unchanged.

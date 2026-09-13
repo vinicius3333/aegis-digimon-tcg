@@ -3698,10 +3698,13 @@ Score: **8/10** pending coordinator typecheck, collection gates, commit, and bra
   when its controller has a Tamer; its Main clause makes the next own Digimon
   digivolution this turn optionally trash a same-color hand Digimon to reduce that
   evolution's memory cost by 4. Its Security effect returns itself to its owner's hand.
-- Local KB: `node tools/kb/query.mjs card EX1-071` returns Q1688, Q1736, and Q3258–Q3264,
+- Historical local KB receipt: `node tools/kb/query.mjs card EX1-071` included related Q1688, Q1736, and self-category Q3258–Q3264,
   plus Q3359. These establish timing/order, battle-area-only scope, color matching
   across continuous and multicolor/DNA colors, optional payment, and the printed-cost
   ceiling interaction.
+- Fresh self-category ownership: Q1688 is BT7-112, Q1736 is BT8-057, and Q3359 is EX2-070.
+  Their EX1-071 interaction remains valid physical cross-set evidence; the old local-query
+  receipt is historical related-card attribution.
 - Comprehensive rules evidence: §§6-5-1-2-1 and 8-1-2-3/8-1-2-6 cover public
   digivolution and stack state; §§15-16-2 and 15-16-8-1 cover Main/Your Turn
   effects; §3-4-7 covers breeding-area restrictions.

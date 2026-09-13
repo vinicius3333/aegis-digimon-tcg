@@ -346,7 +346,7 @@ Serial mechanism tests passed for the shared risks: ST1 wargreymon-historical-de
   - Score: 10/10
 - Original ledger row (ST1-AUDIT.md):
   - Catalog contract: 2/2
-  - KB/rules: Q607/Q974; 2/2
+  - KB/rules: Q607; Q974 is related evidence owned by BT1-105, not an ST1-13 ruling; 2/2
   - Direct module: [module](../../apps/api/src/cards/ST1/ST1-13.ts); 2/2
   - Behavioral proof: [test](../../apps/api/src/cards/ST1/ST1-13.test.ts): main target and security next-turn duration; 2/2
   - Gates: focused + collection + type/lint/format/diff; 2/2

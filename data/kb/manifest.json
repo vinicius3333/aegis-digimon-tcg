@@ -61,6 +61,1816 @@
       "P-092",
       "P-093",
       "P-094"
+    ],
+    "scopedRefreshes": [
+      {
+        "scope": "224-card replacement/engine fronts Q&A reconciliation",
+        "cardsScanned": 224,
+        "cardsWithRulings": 171,
+        "empty": 53,
+        "failed": 0,
+        "source": "https://world.digimoncard.com/rule/?card_no=<card_no>",
+        "fetchedAt": "2026-09-13T18:37:17.648Z",
+        "changedCards": 19,
+        "newSelfCategoryEntries": 5,
+        "updatedSelfEntries": 1,
+        "updatedRelatedMetadata": 1,
+        "removedRelatedQAs": 21,
+        "cards": [
+          {
+            "cardId": "AD1-008",
+            "url": "https://world.digimoncard.com/rule/?card_no=AD1-008",
+            "fetchedAt": "2026-09-13T18:33:18.596Z",
+            "status": "rulings",
+            "sha256": "221c4ec814dff67074be223ae3022a99f2ef29fa11ea5c54666bf1eae2a3b9d9",
+            "changed": false
+          },
+          {
+            "cardId": "AD1-017",
+            "url": "https://world.digimoncard.com/rule/?card_no=AD1-017",
+            "fetchedAt": "2026-09-13T18:33:21.275Z",
+            "status": "rulings",
+            "sha256": "b8cdd5bd3d8d6b782580d5b9d077031a59f6964f94ffc06471d750456bc7b2ba",
+            "changed": false
+          },
+          {
+            "cardId": "AD1-020",
+            "url": "https://world.digimoncard.com/rule/?card_no=AD1-020",
+            "fetchedAt": "2026-09-13T18:33:22.753Z",
+            "status": "rulings",
+            "sha256": "8d5288a74c6120e48820e75cc873aac4e050e3917b43f4b1db2abba6674d5dfb",
+            "changed": false
+          },
+          {
+            "cardId": "AD1-023",
+            "url": "https://world.digimoncard.com/rule/?card_no=AD1-023",
+            "fetchedAt": "2026-09-13T18:33:23.888Z",
+            "status": "rulings",
+            "sha256": "0aaedfcab889211bc7d8b23c19605283f3ffadbf29f6c8d51d13941c90261685",
+            "changed": false
+          },
+          {
+            "cardId": "BT1-113",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT1-113",
+            "fetchedAt": "2026-09-13T18:33:25.008Z",
+            "status": "rulings",
+            "sha256": "f4ecc1246dbc23248fa0544302c73d219e22109500353360dbd4d38fba63d92e",
+            "changed": false
+          },
+          {
+            "cardId": "BT10-093",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT10-093",
+            "fetchedAt": "2026-09-13T18:33:26.110Z",
+            "status": "rulings",
+            "sha256": "51df8e458072dba0fc67d4101a4baea81132c9b64906d93c572f47c23dfa92f2",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-044",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-044",
+            "fetchedAt": "2026-09-13T18:33:27.222Z",
+            "status": "rulings",
+            "sha256": "2d22dbd3acb347c560d9a34a554b95792aefd117d95de9b46ac6d0f80adc01b2",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-056",
+            "fetchedAt": "2026-09-13T18:33:28.314Z",
+            "status": "rulings",
+            "sha256": "e54156cfebf6b3f93c48f4e42d50410edb91ce0619afc626566386f667bf588b",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-062",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-062",
+            "fetchedAt": "2026-09-13T18:33:29.432Z",
+            "status": "rulings",
+            "sha256": "7266686b62aaf4375c847140dda127b32bc4e7d9e8c8c1ca29e36c481812c8f7",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-064",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-064",
+            "fetchedAt": "2026-09-13T18:33:30.535Z",
+            "status": "empty",
+            "sha256": "c70ae994cd25bae73762d85d786717ea87eb1efa4a08766197129379717c5ed5",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-088",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-088",
+            "fetchedAt": "2026-09-13T18:33:31.643Z",
+            "status": "rulings",
+            "sha256": "68396d36b913b74d78559965d7aded614475a603bc1f9aebbb9996300957b5e5",
+            "changed": false
+          },
+          {
+            "cardId": "BT11-107",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT11-107",
+            "fetchedAt": "2026-09-13T18:33:32.750Z",
+            "status": "rulings",
+            "sha256": "922f8a2f4b9a98234921f645c1042a3037d9edca1e051dabc9a489f46c3f13fc",
+            "changed": false
+          },
+          {
+            "cardId": "BT12-014",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT12-014",
+            "fetchedAt": "2026-09-13T18:33:33.860Z",
+            "status": "empty",
+            "sha256": "1aea8d0055ff42ade97f82778df6b533933e1b31497d07cd3621b9abb9f6df5d",
+            "changed": false
+          },
+          {
+            "cardId": "BT12-084",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT12-084",
+            "fetchedAt": "2026-09-13T18:33:34.959Z",
+            "status": "rulings",
+            "sha256": "a1a5e25b21a30d7e139e86cdeba78908c2027d9effe604c0feddbdcb04e22b62",
+            "changed": false
+          },
+          {
+            "cardId": "BT13-017",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT13-017",
+            "fetchedAt": "2026-09-13T18:33:36.075Z",
+            "status": "empty",
+            "sha256": "fb3bf1b40d93ba351357ec4f71bf1783dfe95383a22e5895b11ab098c9987c5b",
+            "changed": false
+          },
+          {
+            "cardId": "BT13-059",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT13-059",
+            "fetchedAt": "2026-09-13T18:33:37.275Z",
+            "status": "empty",
+            "sha256": "5163d8f07073b1fbef5d9722cf26b1fa4efbbfb0fbffa18fbd1720cc5e2bf9d8",
+            "changed": false
+          },
+          {
+            "cardId": "BT13-075",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT13-075",
+            "fetchedAt": "2026-09-13T18:33:38.392Z",
+            "status": "rulings",
+            "sha256": "7d2d528b4550b415850ccd3c39b4df1619cbd7cc631e3a833e5cc90486fb7407",
+            "changed": false
+          },
+          {
+            "cardId": "BT14-018",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-018",
+            "fetchedAt": "2026-09-13T18:33:39.496Z",
+            "status": "rulings",
+            "sha256": "27f54a1f7b00ebfc66615fb0d5f0f815b3fe4c6cc5fe4a689fcd78a2779d4114",
+            "changed": true
+          },
+          {
+            "cardId": "BT14-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-056",
+            "fetchedAt": "2026-09-13T18:33:40.613Z",
+            "status": "rulings",
+            "sha256": "44540cbecf8310ad4f46f1dc4751376e6d41955b65a1c056b7d8d2cc615f0b16",
+            "changed": false
+          },
+          {
+            "cardId": "BT14-060",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-060",
+            "fetchedAt": "2026-09-13T18:33:41.728Z",
+            "status": "rulings",
+            "sha256": "273099dd0ce842bfebd4097865497531b590c5333c38f5f727a4644ebb43755a",
+            "changed": false
+          },
+          {
+            "cardId": "BT14-068",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-068",
+            "fetchedAt": "2026-09-13T18:33:42.840Z",
+            "status": "rulings",
+            "sha256": "b425b8d1821b60eb123e04527d73816a42d77e31bcddc66ae415645b9ac3b2f4",
+            "changed": false
+          },
+          {
+            "cardId": "BT14-097",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-097",
+            "fetchedAt": "2026-09-13T18:33:43.938Z",
+            "status": "rulings",
+            "sha256": "db7e3cf5002ac0c02750716e860c49df453f54adae715d644b83de16fccb2ace",
+            "changed": false
+          },
+          {
+            "cardId": "BT14-098",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT14-098",
+            "fetchedAt": "2026-09-13T18:33:45.159Z",
+            "status": "rulings",
+            "sha256": "26f11223193644923f5b7ebd10d758223346fa1e5a7996e996ab6e2a946ac0d2",
+            "changed": false
+          },
+          {
+            "cardId": "BT15-012",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT15-012",
+            "fetchedAt": "2026-09-13T18:33:46.286Z",
+            "status": "empty",
+            "sha256": "fb3cea7246de18b498a6395aa776081b2ac09be9e0a7b61e2348595ae37a362b",
+            "changed": false
+          },
+          {
+            "cardId": "BT15-033",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT15-033",
+            "fetchedAt": "2026-09-13T18:33:47.061Z",
+            "status": "empty",
+            "sha256": "03a69cb2933f6f2e559c1e2202698abaf7dbddd8a8ba000bc50c8075740c9a54",
+            "changed": false
+          },
+          {
+            "cardId": "BT15-072",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT15-072",
+            "fetchedAt": "2026-09-13T18:33:48.155Z",
+            "status": "rulings",
+            "sha256": "879f8e6ebd57077723f95df0042dccdc91d70686851a79843bef1c22460e140a",
+            "changed": false
+          },
+          {
+            "cardId": "BT15-092",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT15-092",
+            "fetchedAt": "2026-09-13T18:33:49.240Z",
+            "status": "rulings",
+            "sha256": "6d3e9d434eef89b809cb699a15b9f5f90fb9d314410bb9505879f6cc4a0c2717",
+            "changed": false
+          },
+          {
+            "cardId": "BT15-101",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT15-101",
+            "fetchedAt": "2026-09-13T18:33:50.344Z",
+            "status": "rulings",
+            "sha256": "85c9340369cb949086677b17fe9161295f469f8305b095cbdeee28fc29f99051",
+            "changed": false
+          },
+          {
+            "cardId": "BT16-013",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT16-013",
+            "fetchedAt": "2026-09-13T18:33:51.449Z",
+            "status": "rulings",
+            "sha256": "1944e73cb80607c4af5475e44b83a943359c1b6c06206069c657d2fd128371e2",
+            "changed": false
+          },
+          {
+            "cardId": "BT16-080",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT16-080",
+            "fetchedAt": "2026-09-13T18:33:52.543Z",
+            "status": "rulings",
+            "sha256": "ea5f4ed841d74862ada21896e381a6af79299773fce1b218363781c7198245a1",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-003",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-003",
+            "fetchedAt": "2026-09-13T18:33:53.645Z",
+            "status": "rulings",
+            "sha256": "3f9ed9b4f5021bf02dac4e5fc43a43fb0bfee003b29f8b21bbafe92af6b409e4",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-006",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-006",
+            "fetchedAt": "2026-09-13T18:33:54.754Z",
+            "status": "rulings",
+            "sha256": "92def42a57de36d765e481af23b9b676e2f4301b92296298905a32bb1041b1bc",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-018",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-018",
+            "fetchedAt": "2026-09-13T18:33:55.855Z",
+            "status": "rulings",
+            "sha256": "6684b98d1be4e6e465d50df246ca41e77462685e3149837985804f4f748addfa",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-036",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-036",
+            "fetchedAt": "2026-09-13T18:33:56.952Z",
+            "status": "rulings",
+            "sha256": "bdc3d087e8f26e9a65512e5cde363376f9217fa6b369e92c2cabfc827f19fbd6",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-051",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-051",
+            "fetchedAt": "2026-09-13T18:33:58.060Z",
+            "status": "rulings",
+            "sha256": "8786e1d1b12d9880aab5253407ed9370b21afd630beffe3ebbaa1e7176b6d52d",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-056",
+            "fetchedAt": "2026-09-13T18:33:59.162Z",
+            "status": "empty",
+            "sha256": "b4a3645e46a2f46d62bead2eb5db26d244167fb3186bc57d0001726171d1abcc",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-057",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-057",
+            "fetchedAt": "2026-09-13T18:34:00.258Z",
+            "status": "rulings",
+            "sha256": "998b5bb657aad0d895e750cce91640cc57422e5761ff597f68e2f9c3f64c9982",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-060",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-060",
+            "fetchedAt": "2026-09-13T18:34:01.358Z",
+            "status": "empty",
+            "sha256": "ec833a951f198dacdf0d8c109831e943c0d1e526fb025803c01db75e3a5f1375",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-065",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-065",
+            "fetchedAt": "2026-09-13T18:34:02.476Z",
+            "status": "rulings",
+            "sha256": "4eff678e7416c98565a5a831e52191ddda03f3693618f20feb97630b714aad9b",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-067",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-067",
+            "fetchedAt": "2026-09-13T18:34:03.576Z",
+            "status": "rulings",
+            "sha256": "b2d34cc97364ea6df4d2354c9d3650aaa63ff87a8f61bba1fc4cac91c31999b7",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-073",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-073",
+            "fetchedAt": "2026-09-13T18:34:04.671Z",
+            "status": "rulings",
+            "sha256": "af3ef9f829764cfd00f831f75bfa94e30fa04b2865549eac638f929550eb39fb",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-084",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-084",
+            "fetchedAt": "2026-09-13T18:34:05.773Z",
+            "status": "rulings",
+            "sha256": "3183f3a36136d4decd383237aafa19e8d31d40d5ec337ad841b4fe7cde6b83ef",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-090",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-090",
+            "fetchedAt": "2026-09-13T18:34:06.877Z",
+            "status": "rulings",
+            "sha256": "aa945f644ee6dc8608f4484c42b2614c49343c013afe4681034d2f7d7fe6b097",
+            "changed": false
+          },
+          {
+            "cardId": "BT17-095",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT17-095",
+            "fetchedAt": "2026-09-13T18:34:07.629Z",
+            "status": "rulings",
+            "sha256": "5e83c430418912db9ca2ab0beb09712057a9aa89f07a7ac4a4228a7c2d6f37f0",
+            "changed": false
+          },
+          {
+            "cardId": "BT18-086",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT18-086",
+            "fetchedAt": "2026-09-13T18:34:09.078Z",
+            "status": "rulings",
+            "sha256": "f2fb1a1be7d45345f4d1569c639b44d313632f9330b1854858b76f358a42923a",
+            "changed": false
+          },
+          {
+            "cardId": "BT18-099",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT18-099",
+            "fetchedAt": "2026-09-13T18:34:10.177Z",
+            "status": "rulings",
+            "sha256": "74ff8e61caa612f4d78d4115156cd8b9baabe031c4ebbdf9dcfcbd818b56f351",
+            "changed": false
+          },
+          {
+            "cardId": "BT19-010",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT19-010",
+            "fetchedAt": "2026-09-13T18:34:10.940Z",
+            "status": "rulings",
+            "sha256": "e584d6590807e70d0216e8c0220792422f2e3de04cb077745826b3bcf15d151e",
+            "changed": false
+          },
+          {
+            "cardId": "BT19-011",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT19-011",
+            "fetchedAt": "2026-09-13T18:34:12.376Z",
+            "status": "rulings",
+            "sha256": "3ec149b06c7e6f358b6c42f412280a2ab00ca590a6c9b6afa6f28b616dfffca4",
+            "changed": false
+          },
+          {
+            "cardId": "BT19-043",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT19-043",
+            "fetchedAt": "2026-09-13T18:34:13.144Z",
+            "status": "rulings",
+            "sha256": "1b7e1e859fe75d7402d7ccf8aa852a5f17b26a7e20bb757e76dcf5cac7ce9a21",
+            "changed": false
+          },
+          {
+            "cardId": "BT19-048",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT19-048",
+            "fetchedAt": "2026-09-13T18:34:14.576Z",
+            "status": "rulings",
+            "sha256": "915029bc26ac8d6c61a95d4f18eae88fb085bf0efeb429536e9830c1bd889430",
+            "changed": false
+          },
+          {
+            "cardId": "BT19-096",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT19-096",
+            "fetchedAt": "2026-09-13T18:34:15.684Z",
+            "status": "rulings",
+            "sha256": "fba24b5323131f8982122f1d028c0e8f30411accd6f93ee51508bbab7b108b4b",
+            "changed": false
+          },
+          {
+            "cardId": "BT2-049",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT2-049",
+            "fetchedAt": "2026-09-13T18:34:16.867Z",
+            "status": "rulings",
+            "sha256": "44e1ebdd493ed9c1cb0d138da42c12fd98e175e2b9926b6f810eb68ed4327cb1",
+            "changed": false
+          },
+          {
+            "cardId": "BT2-082",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT2-082",
+            "fetchedAt": "2026-09-13T18:34:17.886Z",
+            "status": "rulings",
+            "sha256": "01e64ac1174141bbd5590ec1fa820d845cd730e29087cf8abbef75630f9c8ec5",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-027",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-027",
+            "fetchedAt": "2026-09-13T18:34:18.987Z",
+            "status": "rulings",
+            "sha256": "0a1505dc6f02da263248981665a9e3eee5245c2397b166f69efa2011335a6bc8",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-034",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-034",
+            "fetchedAt": "2026-09-13T18:34:19.745Z",
+            "status": "rulings",
+            "sha256": "3da7adf877a73dec7c33d6e58847f4d0258d3b2c181c12ce26849701bfec47fc",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-035",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-035",
+            "fetchedAt": "2026-09-13T18:34:20.849Z",
+            "status": "rulings",
+            "sha256": "54c557a68e64c6cafc276a426679f59793b28acb2bafad963d13e028f1d58f44",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-056",
+            "fetchedAt": "2026-09-13T18:34:21.951Z",
+            "status": "rulings",
+            "sha256": "41124e3017aadfe5372bcc877a304ac5d0eb266280d37875313efe5ba0190775",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-071",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-071",
+            "fetchedAt": "2026-09-13T18:34:23.052Z",
+            "status": "empty",
+            "sha256": "bf22e21159417dd449fb128bb722ef3809033722b19b79f1eca3915850ac1dca",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-080",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-080",
+            "fetchedAt": "2026-09-13T18:34:24.495Z",
+            "status": "rulings",
+            "sha256": "d6c18e3199d4c92231d9734746f69e350ce4d43d263a26d88def72de36e274d9",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-082",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-082",
+            "fetchedAt": "2026-09-13T18:34:25.254Z",
+            "status": "rulings",
+            "sha256": "9da70c197337b695dc3367ea500f121dceba099d96358efa6305ce9fa8fbce07",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-091",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-091",
+            "fetchedAt": "2026-09-13T18:34:26.380Z",
+            "status": "empty",
+            "sha256": "a092ade3da5c68d4b10d47eee0bcf5e3c8debc601e2787568ecb6bf194688081",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-097",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-097",
+            "fetchedAt": "2026-09-13T18:34:27.458Z",
+            "status": "empty",
+            "sha256": "7fb32a9baab5de5a92bd07a66d730d0d34fc81d0fe384b3ef1578916a54efe7d",
+            "changed": false
+          },
+          {
+            "cardId": "BT20-100",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT20-100",
+            "fetchedAt": "2026-09-13T18:34:28.901Z",
+            "status": "empty",
+            "sha256": "fcf471b73ebfb92aa480eacd84edbcb0fb59c036d75ff15c0d66fda9b6449596",
+            "changed": true
+          },
+          {
+            "cardId": "BT21-022",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT21-022",
+            "fetchedAt": "2026-09-13T18:34:30.035Z",
+            "status": "rulings",
+            "sha256": "85d021ca0ec02bbff7e85ae9601e318019e3a1679e4bf6d950a49c6fd973680c",
+            "changed": false
+          },
+          {
+            "cardId": "BT21-080",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT21-080",
+            "fetchedAt": "2026-09-13T18:34:31.112Z",
+            "status": "rulings",
+            "sha256": "ac35c8452e0c5600e88e68ab625bae9fc7c230a2c73298918648850117506dfb",
+            "changed": false
+          },
+          {
+            "cardId": "BT21-090",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT21-090",
+            "fetchedAt": "2026-09-13T18:34:32.209Z",
+            "status": "rulings",
+            "sha256": "3764c16f01bb3773c02d1d4ffad5652da0fa41f9f3f33f33735ef8af947acb96",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-001",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-001",
+            "fetchedAt": "2026-09-13T18:34:32.974Z",
+            "status": "empty",
+            "sha256": "ec86d18100ff6431e06c71a833e80d188844564c93ce74a4cb9482f1b39585b1",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-004",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-004",
+            "fetchedAt": "2026-09-13T18:34:34.071Z",
+            "status": "empty",
+            "sha256": "a2dfc540f153455da62feae80867e23df6aff315631c56ce15531a525d73a707",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-006",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-006",
+            "fetchedAt": "2026-09-13T18:34:35.236Z",
+            "status": "rulings",
+            "sha256": "3a95e58a3d3fd203de542194484e000185cc2cf786e5a63c27d60d8d3ab75a86",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-007",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-007",
+            "fetchedAt": "2026-09-13T18:34:36.624Z",
+            "status": "rulings",
+            "sha256": "c80943a6bad7286751638d697a3a62de2ffe8dabdecbf3f0968a7855db3ff3b9",
+            "changed": true
+          },
+          {
+            "cardId": "BT22-027",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-027",
+            "fetchedAt": "2026-09-13T18:34:37.792Z",
+            "status": "empty",
+            "sha256": "18b161348d32e74ca6d4e243b2d776d3797ee3135dc3312895ae358ec1778cb2",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-043",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-043",
+            "fetchedAt": "2026-09-13T18:34:38.820Z",
+            "status": "rulings",
+            "sha256": "22d82f676dbe2de4aa866f762819316faf6f173fad61ee233d3f6119ec7aa2de",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-044",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-044",
+            "fetchedAt": "2026-09-13T18:34:39.575Z",
+            "status": "rulings",
+            "sha256": "ea4a2efa62c08db8b80b0dd86e9d600e98982cffde4a4c95058c0d0d0723f368",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-054",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-054",
+            "fetchedAt": "2026-09-13T18:34:41.017Z",
+            "status": "rulings",
+            "sha256": "22ad1c655c59ff08154232f0f3f4be0ae45df026a9c7d5862f684c32572a6e64",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-072",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-072",
+            "fetchedAt": "2026-09-13T18:34:42.128Z",
+            "status": "rulings",
+            "sha256": "469a62e7ac6eaa0e16d42ed6bee31be5939ef2e1e367b93fb1fbe769e5d489f0",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-073",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-073",
+            "fetchedAt": "2026-09-13T18:34:43.241Z",
+            "status": "rulings",
+            "sha256": "5b9e6a5d72d4c53c788ca9bad0f489fe07816be6bba9ae08303cbf4727b7258b",
+            "changed": false
+          },
+          {
+            "cardId": "BT22-086",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT22-086",
+            "fetchedAt": "2026-09-13T18:34:44.328Z",
+            "status": "rulings",
+            "sha256": "a22c8c7051f4724be3766a8b0b26a52e265f54b8f1bd75a473b777c54b0219e7",
+            "changed": false
+          },
+          {
+            "cardId": "BT23-035",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT23-035",
+            "fetchedAt": "2026-09-13T18:34:45.100Z",
+            "status": "rulings",
+            "sha256": "d9f37153173c9d2df8e54732643d5c57a8dc3f51ae076ae31d045b32ee89ffce",
+            "changed": false
+          },
+          {
+            "cardId": "BT23-047",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT23-047",
+            "fetchedAt": "2026-09-13T18:34:46.184Z",
+            "status": "rulings",
+            "sha256": "ec2b065f383ab6ab6c88948bc192168d0ae82197e7a60e07f042ed3274d4bc54",
+            "changed": false
+          },
+          {
+            "cardId": "BT23-058",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT23-058",
+            "fetchedAt": "2026-09-13T18:34:47.628Z",
+            "status": "empty",
+            "sha256": "222197c5e3bbab134f0e8265b81d3766a62d899a3533716427f300399f6dd691",
+            "changed": false
+          },
+          {
+            "cardId": "BT23-074",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT23-074",
+            "fetchedAt": "2026-09-13T18:34:48.735Z",
+            "status": "rulings",
+            "sha256": "f8ec74ca7c02107ef347fe5f08452a15fa30278d7857211ef3c4da501fb843d0",
+            "changed": false
+          },
+          {
+            "cardId": "BT23-089",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT23-089",
+            "fetchedAt": "2026-09-13T18:34:49.494Z",
+            "status": "empty",
+            "sha256": "4a24730693d7ef4dc9f51a648ef0290048c2a4457a3e1b52d326705153a58a4f",
+            "changed": false
+          },
+          {
+            "cardId": "BT24-005",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-005",
+            "fetchedAt": "2026-09-13T18:34:50.594Z",
+            "status": "rulings",
+            "sha256": "28a80bc92e5d22c2a750db62fb7c69097f43ac1be7f0828b7ef8f9db283a26fc",
+            "changed": false
+          },
+          {
+            "cardId": "BT24-030",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-030",
+            "fetchedAt": "2026-09-13T18:34:52.036Z",
+            "status": "rulings",
+            "sha256": "afccd0e2cfc2be74b25c9b20f4a43f5de67a110ab0ae2f1f066634e8aee890a8",
+            "changed": false
+          },
+          {
+            "cardId": "BT24-040",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-040",
+            "fetchedAt": "2026-09-13T18:34:53.142Z",
+            "status": "rulings",
+            "sha256": "591047eca380869fbd7468b89cb52ff728f7128d3c2a62639c780dbf6a7616c3",
+            "changed": true
+          },
+          {
+            "cardId": "BT24-060",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-060",
+            "fetchedAt": "2026-09-13T18:34:54.250Z",
+            "status": "rulings",
+            "sha256": "79eec4a68fc0e5c88f6f12c2728c3cf2f5dfb881b9dd459020512834f2e6244c",
+            "changed": false
+          },
+          {
+            "cardId": "BT24-078",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-078",
+            "fetchedAt": "2026-09-13T18:34:55.356Z",
+            "status": "rulings",
+            "sha256": "95269fdaac84e30226fe8760d2ef923ba384ef51ce6c8e9d0f43f9cea6d4ac26",
+            "changed": false
+          },
+          {
+            "cardId": "BT24-095",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT24-095",
+            "fetchedAt": "2026-09-13T18:34:56.103Z",
+            "status": "rulings",
+            "sha256": "cbc9a023fb437a5eba3213846dde02ec8a52e8c8cbc19f600128cbedcb451a06",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-005",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-005",
+            "fetchedAt": "2026-09-13T18:34:57.206Z",
+            "status": "rulings",
+            "sha256": "55d9c306345088d47022d67bedd32ab17cbb4c0c4fdce73ad63d6096908b0c16",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-025",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-025",
+            "fetchedAt": "2026-09-13T18:34:58.648Z",
+            "status": "rulings",
+            "sha256": "960c1a410231a8ea31fb2b19dc31198f69c144182918edd917e41056b7bba18a",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-027",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-027",
+            "fetchedAt": "2026-09-13T18:34:59.752Z",
+            "status": "empty",
+            "sha256": "ff7b902ccc2dc8f0093f00c2ddedabe9076a16cbaa5f62ba6d455dcfc40d9a92",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-039",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-039",
+            "fetchedAt": "2026-09-13T18:35:00.851Z",
+            "status": "rulings",
+            "sha256": "9a284941349224b87120e5ff1afc1aa3914fdfaa96513f9ecc920e117ef14387",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-043",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-043",
+            "fetchedAt": "2026-09-13T18:35:01.954Z",
+            "status": "rulings",
+            "sha256": "7b9a0af33bfd7145427c85677c7cdcc5f6b428913a43cca4d8107118a66c89c3",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-053",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-053",
+            "fetchedAt": "2026-09-13T18:35:02.714Z",
+            "status": "rulings",
+            "sha256": "3380cb8b1904ded0c02b0dda148e78c22428e161dc9b98fae8691ad1965e11c7",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-060",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-060",
+            "fetchedAt": "2026-09-13T18:35:04.172Z",
+            "status": "rulings",
+            "sha256": "e46158df6b8063303eeae139450405a23362fd278bba613a6dbfc6785640bc24",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-084",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-084",
+            "fetchedAt": "2026-09-13T18:35:04.919Z",
+            "status": "rulings",
+            "sha256": "c70ea63259ee9872cb1efeff26b8c1b7639a238293f38f6282fc9feecab8401e",
+            "changed": false
+          },
+          {
+            "cardId": "BT25-101",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT25-101",
+            "fetchedAt": "2026-09-13T18:35:06.368Z",
+            "status": "rulings",
+            "sha256": "1e21effc65de2c23e2b0bd5ae8dd2540a2f09431b25f17f77a187568920956d1",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-016",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-016",
+            "fetchedAt": "2026-09-13T18:35:07.465Z",
+            "status": "rulings",
+            "sha256": "53c8279ea58748711fd34f4c30f0db2a7fedbe92d3bdb5b70cdf54162931bddc",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-021",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-021",
+            "fetchedAt": "2026-09-13T18:35:08.222Z",
+            "status": "rulings",
+            "sha256": "633d79d560d7825f331a3385522e3e84651e7f374ef59aac19dbc22959225c9e",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-029",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-029",
+            "fetchedAt": "2026-09-13T18:35:09.674Z",
+            "status": "rulings",
+            "sha256": "9b4092f7c7cdd931d1253151ff2bd0573aaa91410c49503bceea6bbb6d152b83",
+            "changed": true
+          },
+          {
+            "cardId": "BT26-030",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-030",
+            "fetchedAt": "2026-09-13T18:35:10.426Z",
+            "status": "rulings",
+            "sha256": "0ceff37c6400df468815ee799db7a16b8287238911bc08b874a7e686f1380a43",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-033",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-033",
+            "fetchedAt": "2026-09-13T18:35:11.531Z",
+            "status": "rulings",
+            "sha256": "9e3d22c9bf0af70753a8358af6fd9d514d6d019c2d82a357567d7630b7679110",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-044",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-044",
+            "fetchedAt": "2026-09-13T18:35:12.974Z",
+            "status": "rulings",
+            "sha256": "581c412282e7e9598e88a877f81b683871440d2f33f60df530d3d8289221e967",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-054",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-054",
+            "fetchedAt": "2026-09-13T18:35:14.085Z",
+            "status": "rulings",
+            "sha256": "135c22720fa38a1c574aecb49fd08e2d3dd358af48945089d043bf60b811b373",
+            "changed": true
+          },
+          {
+            "cardId": "BT26-079",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-079",
+            "fetchedAt": "2026-09-13T18:35:15.173Z",
+            "status": "rulings",
+            "sha256": "e54e5582b23106b9e428dd68a6f3b7a0d236c0cf1937c7f1d9fc169b1b0c3910",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-081",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-081",
+            "fetchedAt": "2026-09-13T18:35:15.940Z",
+            "status": "rulings",
+            "sha256": "570dd0ef0e8b340a79ad2357201cb429fdbb618e611c4f50d3c7a1a2d80890ac",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-083",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-083",
+            "fetchedAt": "2026-09-13T18:35:17.046Z",
+            "status": "rulings",
+            "sha256": "cccea33f71867b1f9624277c23dc2d9c4d4595cd5825ec8759761056fa9e53fd",
+            "changed": false
+          },
+          {
+            "cardId": "BT26-085",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-085",
+            "fetchedAt": "2026-09-13T18:35:18.482Z",
+            "status": "rulings",
+            "sha256": "8d77f1f273a6ab609921e78700cacc56ce7c63785a0eb8e66717de3f9f779ace",
+            "changed": true
+          },
+          {
+            "cardId": "BT26-099",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT26-099",
+            "fetchedAt": "2026-09-13T18:35:19.244Z",
+            "status": "empty",
+            "sha256": "162f7419e6d8a13399a801db094e01b5d4e3412a1f25bb02163845248b04cac2",
+            "changed": false
+          },
+          {
+            "cardId": "BT3-057",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT3-057",
+            "fetchedAt": "2026-09-13T18:35:20.688Z",
+            "status": "rulings",
+            "sha256": "cd6f5c889764b95212f890cff69f3b6df0e865f112a3bed4a6f73af66bd1d034",
+            "changed": false
+          },
+          {
+            "cardId": "BT4-090",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT4-090",
+            "fetchedAt": "2026-09-13T18:35:21.788Z",
+            "status": "rulings",
+            "sha256": "fcc32cfd7603fad29d72e7819696568ea4f061ceec4ce44720ffb22325498e3c",
+            "changed": true
+          },
+          {
+            "cardId": "BT4-098",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT4-098",
+            "fetchedAt": "2026-09-13T18:35:22.896Z",
+            "status": "rulings",
+            "sha256": "b4d5060a1ce0d49a5669e3e20389b2f03cfac0e133bde94e4ded9798bf6a0d5a",
+            "changed": false
+          },
+          {
+            "cardId": "BT5-086",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT5-086",
+            "fetchedAt": "2026-09-13T18:35:23.989Z",
+            "status": "rulings",
+            "sha256": "ddefbdede8a1ba9e4682b5aef5e9f1eb3e9237466092dea42bd78da8604baec3",
+            "changed": true
+          },
+          {
+            "cardId": "BT6-087",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT6-087",
+            "fetchedAt": "2026-09-13T18:35:26.999Z",
+            "status": "rulings",
+            "sha256": "3c6329b52457e596844c0c05336a4dca3cbaebc2f50e85b256434aaf1a6f281d",
+            "changed": false
+          },
+          {
+            "cardId": "BT6-088",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT6-088",
+            "fetchedAt": "2026-09-13T18:35:29.695Z",
+            "status": "rulings",
+            "sha256": "568456fef1c60981c4caa4d62343fd11512d50f5c95cd1e0b7ab38e4c59ba03f",
+            "changed": false
+          },
+          {
+            "cardId": "BT6-096",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT6-096",
+            "fetchedAt": "2026-09-13T18:35:31.140Z",
+            "status": "empty",
+            "sha256": "10c46a035c5ead071aaec736040f903df976f05050c065d350d672a9281c3ca7",
+            "changed": false
+          },
+          {
+            "cardId": "BT7-005",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT7-005",
+            "fetchedAt": "2026-09-13T18:35:32.244Z",
+            "status": "rulings",
+            "sha256": "f9fb02a909071ed74cdd4b09459a5a0b461a9a0b4439726cc9a08428e2346c07",
+            "changed": false
+          },
+          {
+            "cardId": "BT7-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT7-056",
+            "fetchedAt": "2026-09-13T18:35:33.340Z",
+            "status": "rulings",
+            "sha256": "b8fe51865efb05f9ab3a7d0b2729a1f13d25084da64b7f2a84589168fc04ac32",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-005",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-005",
+            "fetchedAt": "2026-09-13T18:35:33.739Z",
+            "status": "rulings",
+            "sha256": "8344377005610f1c17c276c3120999228405b84136ca6d4ce2b0a85e62102dfa",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-066",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-066",
+            "fetchedAt": "2026-09-13T18:35:34.854Z",
+            "status": "rulings",
+            "sha256": "42d6aa9ddded17eb439097d8f29e65cada53543d150035aee104e3efa6871324",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-069",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-069",
+            "fetchedAt": "2026-09-13T18:35:35.943Z",
+            "status": "empty",
+            "sha256": "98a606b90173393711b28727c9dacb6e9bfb39ec5cb5467372c7442db95596b7",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-070",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-070",
+            "fetchedAt": "2026-09-13T18:35:37.042Z",
+            "status": "rulings",
+            "sha256": "e05e2851df4b3dfc0da6eb096f0a18cb638575f576d9e4baaa73b9bd433b9475",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-105",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-105",
+            "fetchedAt": "2026-09-13T18:35:38.480Z",
+            "status": "rulings",
+            "sha256": "e3a1c3c074028d9b90c3b425037bd5d253c0269917679bacd956e9da5d35c524",
+            "changed": false
+          },
+          {
+            "cardId": "BT8-106",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT8-106",
+            "fetchedAt": "2026-09-13T18:35:39.246Z",
+            "status": "rulings",
+            "sha256": "475e4e545e019ba09d91553eca9a98a0eeda7331e78e001ed4318599b1337f24",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-012",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-012",
+            "fetchedAt": "2026-09-13T18:35:40.686Z",
+            "status": "rulings",
+            "sha256": "9b6d7deb04141f5210127bdaa5ca0b15ea7a8b29b18381f9b2e3f7746d77f765",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-014",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-014",
+            "fetchedAt": "2026-09-13T18:35:41.451Z",
+            "status": "rulings",
+            "sha256": "4527c965cbe8328cad63d7f1c7390e47e4707fe96e0c856f8aa7a1190dcbb8bc",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-015",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-015",
+            "fetchedAt": "2026-09-13T18:35:42.919Z",
+            "status": "rulings",
+            "sha256": "52573aa1715f3d6b964982ea8b14fc530b77f5999f8bac716aa23a07ced1afcb",
+            "changed": true
+          },
+          {
+            "cardId": "BT9-024",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-024",
+            "fetchedAt": "2026-09-13T18:35:43.656Z",
+            "status": "rulings",
+            "sha256": "eaf99654beb9c89693c1166d0abfcb9f5777a734c4117bf2ff09b9777359eb96",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-044",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-044",
+            "fetchedAt": "2026-09-13T18:35:45.113Z",
+            "status": "rulings",
+            "sha256": "8283f3057796b8fda5973bd7386d2c119a9811a794fe3e2532e7fd70b7763b08",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-050",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-050",
+            "fetchedAt": "2026-09-13T18:35:46.242Z",
+            "status": "rulings",
+            "sha256": "256dabb07609bc84ab2321f11c4e3e15bb8354ffc49722d7f64c32a7ae264359",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-051",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-051",
+            "fetchedAt": "2026-09-13T18:35:47.295Z",
+            "status": "rulings",
+            "sha256": "ef3131724e3d88a106866b333bce090fb61646cc067301044bd4ef61c8e852df",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-066",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-066",
+            "fetchedAt": "2026-09-13T18:35:48.406Z",
+            "status": "empty",
+            "sha256": "66096582a300d67af5f23e6527719542e083ca45f0fd0e8e50777e7b64220daf",
+            "changed": false
+          },
+          {
+            "cardId": "BT9-094",
+            "url": "https://world.digimoncard.com/rule/?card_no=BT9-094",
+            "fetchedAt": "2026-09-13T18:35:49.163Z",
+            "status": "rulings",
+            "sha256": "d98bf333a3733f7b4ba1a2c908019ac0a8716d31cda2b9a0fb283c0c7da7d2b5",
+            "changed": false
+          },
+          {
+            "cardId": "EX1-020",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX1-020",
+            "fetchedAt": "2026-09-13T18:35:50.607Z",
+            "status": "empty",
+            "sha256": "e938066485fdd01908247d2b116d0788f740c2f836cdf95b8f1dec8fb15cac05",
+            "changed": false
+          },
+          {
+            "cardId": "EX1-071",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX1-071",
+            "fetchedAt": "2026-09-13T18:35:51.699Z",
+            "status": "rulings",
+            "sha256": "12616ec37d07055613929d9c8b133883cd4e0c7076b9cc557e31005a9e7aa765",
+            "changed": true
+          },
+          {
+            "cardId": "EX10-019",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-019",
+            "fetchedAt": "2026-09-13T18:35:52.801Z",
+            "status": "rulings",
+            "sha256": "6f764e6a5ee7f9675280d09b23d84315e6755365192544b74d8c80497846c839",
+            "changed": false
+          },
+          {
+            "cardId": "EX10-034",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-034",
+            "fetchedAt": "2026-09-13T18:35:53.569Z",
+            "status": "rulings",
+            "sha256": "9e984520bb16c31529df1aeab10bc5706e8fe340ceb925fda05924f4d0098273",
+            "changed": false
+          },
+          {
+            "cardId": "EX10-042",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-042",
+            "fetchedAt": "2026-09-13T18:35:54.670Z",
+            "status": "empty",
+            "sha256": "f383b4743db9e2a4db6cf790d61d6ec79d444ce2d8c0a225c55732bbd7f40e2b",
+            "changed": false
+          },
+          {
+            "cardId": "EX10-047",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-047",
+            "fetchedAt": "2026-09-13T18:35:56.127Z",
+            "status": "rulings",
+            "sha256": "2b4ca0e3f6fa69f56751a97871a91d2a7c856d4e487b74779493e068418e5708",
+            "changed": false
+          },
+          {
+            "cardId": "EX10-055",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-055",
+            "fetchedAt": "2026-09-13T18:35:57.256Z",
+            "status": "rulings",
+            "sha256": "9679c5b96685f5366859ed0e7892bba5394c5924427b1d6289becfbee67762c0",
+            "changed": true
+          },
+          {
+            "cardId": "EX10-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX10-056",
+            "fetchedAt": "2026-09-13T18:35:58.382Z",
+            "status": "rulings",
+            "sha256": "5e43061d027a3b7000cca126d687b8c025f2d948660ed9fb0ea2dd3584c1cb2a",
+            "changed": true
+          },
+          {
+            "cardId": "EX11-018",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX11-018",
+            "fetchedAt": "2026-09-13T18:35:59.086Z",
+            "status": "rulings",
+            "sha256": "d995f66921b52a0ec421cfd24d69a7f22134222c8adf05497395b39acfe6c955",
+            "changed": false
+          },
+          {
+            "cardId": "EX11-034",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX11-034",
+            "fetchedAt": "2026-09-13T18:36:00.615Z",
+            "status": "rulings",
+            "sha256": "ce7bb388da486c39075456827c17f8805bb718c9ebd5594982bdeb491e4a9700",
+            "changed": false
+          },
+          {
+            "cardId": "EX11-043",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX11-043",
+            "fetchedAt": "2026-09-13T18:36:01.711Z",
+            "status": "rulings",
+            "sha256": "2c1fee94c4d7f9c60771e3251089e825bfd76eccf7f988c3bb10ad10883ada01",
+            "changed": false
+          },
+          {
+            "cardId": "EX11-045",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX11-045",
+            "fetchedAt": "2026-09-13T18:36:02.391Z",
+            "status": "rulings",
+            "sha256": "bfff6dd45293a32e5626331b0a3ed335f7db5352e752df81848f22a5e0b1b92b",
+            "changed": false
+          },
+          {
+            "cardId": "EX12-033",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX12-033",
+            "fetchedAt": "2026-09-13T18:36:03.824Z",
+            "status": "rulings",
+            "sha256": "6c2226bd115da03cdd6317671b0bacb621d940a6d111b1de1e7ee27dc46191d6",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-015",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-015",
+            "fetchedAt": "2026-09-13T18:36:04.927Z",
+            "status": "empty",
+            "sha256": "6e17a20be2e8bf56733290b5f096d9fb24aacbff578430b90451d5101e219b92",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-016",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-016",
+            "fetchedAt": "2026-09-13T18:36:06.023Z",
+            "status": "empty",
+            "sha256": "723ab7f182a9d0d25164df60407b005ba9215a5f03848f36740b663e78e41455",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-024",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-024",
+            "fetchedAt": "2026-09-13T18:36:07.131Z",
+            "status": "empty",
+            "sha256": "9af21a5fca69f435715e5d66ee9be4e007b70facb7296ffe778751543cdbd583",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-027",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-027",
+            "fetchedAt": "2026-09-13T18:36:07.894Z",
+            "status": "empty",
+            "sha256": "8c7c6b120d6ac57db592e29fde6b9888f9cc1faa8a058a96d41addce096f0e69",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-028",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-028",
+            "fetchedAt": "2026-09-13T18:36:09.336Z",
+            "status": "empty",
+            "sha256": "2e61d5d7fc99296eef6c11d7d945887c9acf7a3a45863f573516bdb83e7de5b9",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-032",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-032",
+            "fetchedAt": "2026-09-13T18:36:10.465Z",
+            "status": "empty",
+            "sha256": "16dd30ce97350afb635e7ab2e05c02357bdaa66334df1cacaed1ed50d5a08b2e",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-035",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-035",
+            "fetchedAt": "2026-09-13T18:36:11.593Z",
+            "status": "empty",
+            "sha256": "3a6d251d57838cd566a168ec7645bcba7d90b911a9e1efdbbabb11dc84452f11",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-041",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-041",
+            "fetchedAt": "2026-09-13T18:36:12.636Z",
+            "status": "empty",
+            "sha256": "ad2cf54b273ce3b7f11f6ee9db13afe21d8a5ec90b88dc14ea1eaaa20c68b6bc",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-043",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-043",
+            "fetchedAt": "2026-09-13T18:36:13.745Z",
+            "status": "empty",
+            "sha256": "854c429726890aa6741299482ff058bf9babac036d2db7f6615c9d14a131cff2",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-048",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-048",
+            "fetchedAt": "2026-09-13T18:36:14.509Z",
+            "status": "empty",
+            "sha256": "a630c583628234ed523e583475372981339c99b8538b232c090a952384fd7967",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-051",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-051",
+            "fetchedAt": "2026-09-13T18:36:15.943Z",
+            "status": "empty",
+            "sha256": "e77f6f4f9a750370ba655b533e41bc8331dc9731ddb81f656c949175ddc03ade",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-052",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-052",
+            "fetchedAt": "2026-09-13T18:36:17.045Z",
+            "status": "empty",
+            "sha256": "7a5ef4c845b056f0e073cd7835f2d4c3f6f3af0df84339c031235e05e4f736b9",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-062",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-062",
+            "fetchedAt": "2026-09-13T18:36:17.813Z",
+            "status": "empty",
+            "sha256": "5eca7ccd048a9976b653192b1e09a8df94f464af505341398f9aa60e5aa1534c",
+            "changed": false
+          },
+          {
+            "cardId": "EX13-076",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX13-076",
+            "fetchedAt": "2026-09-13T18:36:19.254Z",
+            "status": "empty",
+            "sha256": "9b7e535269d0bce5c124e878d60ecc7314649bd4eafe1ba925113b48dd8a72d4",
+            "changed": false
+          },
+          {
+            "cardId": "EX2-011",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX2-011",
+            "fetchedAt": "2026-09-13T18:36:20.354Z",
+            "status": "rulings",
+            "sha256": "c8d4788fa2fc27e93769270657b15c017fb284f6e450379c1fdadaef4ccf47fe",
+            "changed": false
+          },
+          {
+            "cardId": "EX3-013",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX3-013",
+            "fetchedAt": "2026-09-13T18:36:21.451Z",
+            "status": "empty",
+            "sha256": "12fb3c7a81f9931281de2ec391d15c709d86d951539bd4c89de01a66a9b16c75",
+            "changed": true
+          },
+          {
+            "cardId": "EX4-010",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX4-010",
+            "fetchedAt": "2026-09-13T18:36:22.569Z",
+            "status": "rulings",
+            "sha256": "40719bd968ce42fd851dca81af45c64483e79f7de1ec0349b6482a742b6c6604",
+            "changed": false
+          },
+          {
+            "cardId": "EX4-047",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX4-047",
+            "fetchedAt": "2026-09-13T18:36:23.664Z",
+            "status": "empty",
+            "sha256": "f9448651c70f225371ba623fdb24921362f4e0ed7443b4cec3bef05ce33eea74",
+            "changed": false
+          },
+          {
+            "cardId": "EX4-049",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX4-049",
+            "fetchedAt": "2026-09-13T18:36:24.777Z",
+            "status": "empty",
+            "sha256": "017b9892e8351c1bb1851ac7e32df2bcff4ee93333ef24a89f9d18b295c923c4",
+            "changed": false
+          },
+          {
+            "cardId": "EX4-073",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX4-073",
+            "fetchedAt": "2026-09-13T18:36:25.527Z",
+            "status": "rulings",
+            "sha256": "dd4c2f5c7b99891b0a7321ec0926d47ebdeeb3131c6002a9a979bd292f24f79b",
+            "changed": false
+          },
+          {
+            "cardId": "EX4-074",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX4-074",
+            "fetchedAt": "2026-09-13T18:36:26.672Z",
+            "status": "rulings",
+            "sha256": "96543bece7a3145fb2a5d8e5f88b00c916deb2ec1bc96753d7357843f904107e",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-001",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-001",
+            "fetchedAt": "2026-09-13T18:36:28.068Z",
+            "status": "rulings",
+            "sha256": "80857e3b081c65478f1fbe304c746c9ee7cc25a506e17a8e717b90b34ac9bfc6",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-015",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-015",
+            "fetchedAt": "2026-09-13T18:36:29.171Z",
+            "status": "rulings",
+            "sha256": "81793733de16ce849341cc4ef25d949e3188f60300e54395c031f24d535c84fd",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-018",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-018",
+            "fetchedAt": "2026-09-13T18:36:29.932Z",
+            "status": "rulings",
+            "sha256": "2e1410941d179716473cfaa6d415d8eaf695df928a45fc44a55ba80b5c326eb7",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-029",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-029",
+            "fetchedAt": "2026-09-13T18:36:31.369Z",
+            "status": "rulings",
+            "sha256": "90bd947dad176f65dcb2a34628708d3c7f8d7171644e975cff1adbe073f92f1b",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-041",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-041",
+            "fetchedAt": "2026-09-13T18:36:32.474Z",
+            "status": "empty",
+            "sha256": "70a81a46b0e8dcfa7ee2987e0f1503d0db00343ee5b7ea779a6654aba3b535a6",
+            "changed": false
+          },
+          {
+            "cardId": "EX5-065",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX5-065",
+            "fetchedAt": "2026-09-13T18:36:33.583Z",
+            "status": "rulings",
+            "sha256": "f5b289ea21c1c0e282aa6b568b0450a8ac51c8e8fd8b552b02e3f7bc234e5a56",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-001",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-001",
+            "fetchedAt": "2026-09-13T18:36:34.369Z",
+            "status": "empty",
+            "sha256": "9694c77868547b1241f7aaad4e619e9e35f5b31ec2de5c584d6367c10d390e3f",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-007",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-007",
+            "fetchedAt": "2026-09-13T18:36:35.782Z",
+            "status": "rulings",
+            "sha256": "fec6d82cd112dd54b49ea8115b467db14605fe3645da6698514c31daf328c676",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-008",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-008",
+            "fetchedAt": "2026-09-13T18:36:36.879Z",
+            "status": "rulings",
+            "sha256": "cf13189e867889b94ece000a0b2c6bda89e8669a0b8951764b4b5af78b31bfd8",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-009",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-009",
+            "fetchedAt": "2026-09-13T18:36:37.987Z",
+            "status": "rulings",
+            "sha256": "27576eb63febe5915b2d6a758ef0a14320b202802387ac5e51a59f992b2b1973",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-015",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-015",
+            "fetchedAt": "2026-09-13T18:36:38.758Z",
+            "status": "rulings",
+            "sha256": "b5da158c9042d292b77e4e448a424e7bb08b92d2e12c7e5acc32dd41c8e239c8",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-038",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-038",
+            "fetchedAt": "2026-09-13T18:36:40.193Z",
+            "status": "rulings",
+            "sha256": "df28dd35709157a388d4b24b5618c7650f711e8e0b84fa808bf1e7ab0a1e1d0c",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-040",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-040",
+            "fetchedAt": "2026-09-13T18:36:41.290Z",
+            "status": "rulings",
+            "sha256": "18a359beaf85e5ece7982b4b2c16c5a810a2b673ba71e01f8ef93fbdc3fecc38",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-042",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-042",
+            "fetchedAt": "2026-09-13T18:36:42.390Z",
+            "status": "rulings",
+            "sha256": "99a3bc1ae42f46e633e7be9c32b5ea627c4dcf2ffaaab746b8a6bf6b44556835",
+            "changed": true
+          },
+          {
+            "cardId": "EX6-044",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-044",
+            "fetchedAt": "2026-09-13T18:36:43.497Z",
+            "status": "rulings",
+            "sha256": "f32cf9e33d0ea40d008f7dfafb5a28cbf60917cf991c606e05840ccfa4882c0a",
+            "changed": false
+          },
+          {
+            "cardId": "EX6-054",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-054",
+            "fetchedAt": "2026-09-13T18:36:44.594Z",
+            "status": "rulings",
+            "sha256": "679a42cb22728fd1b566dc53f8ee078ae6df055c88cfd0ca039482054527b29c",
+            "changed": true
+          },
+          {
+            "cardId": "EX6-057",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX6-057",
+            "fetchedAt": "2026-09-13T18:36:45.696Z",
+            "status": "rulings",
+            "sha256": "35fb8ce4a190838a8051f708c377b074959f90d59dc105703e5112d861ee594d",
+            "changed": false
+          },
+          {
+            "cardId": "EX7-005",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX7-005",
+            "fetchedAt": "2026-09-13T18:36:46.460Z",
+            "status": "empty",
+            "sha256": "3cf1f148e38087ad543d9082cb30685ad87fb89ee4a658fc579544f7d125f381",
+            "changed": false
+          },
+          {
+            "cardId": "EX7-029",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX7-029",
+            "fetchedAt": "2026-09-13T18:36:47.941Z",
+            "status": "empty",
+            "sha256": "db7daacfc9a23b80584da937e0894ada3593a722c8c7efbb7bd179491a4381d9",
+            "changed": false
+          },
+          {
+            "cardId": "EX7-047",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX7-047",
+            "fetchedAt": "2026-09-13T18:36:48.664Z",
+            "status": "empty",
+            "sha256": "2f68430eafaec27bb2550bd40fb3a7a66075744f2638171942186df5305c0eba",
+            "changed": false
+          },
+          {
+            "cardId": "EX7-048",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX7-048",
+            "fetchedAt": "2026-09-13T18:36:50.200Z",
+            "status": "empty",
+            "sha256": "961428459e4cee00adda4115890ac46674e05f664e792b7fed7d7065bf584bc0",
+            "changed": true
+          },
+          {
+            "cardId": "EX8-029",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX8-029",
+            "fetchedAt": "2026-09-13T18:36:51.204Z",
+            "status": "rulings",
+            "sha256": "2c76cbb92937804b361b28d67ea4705337f1b88e9fc0ad32f98ff9c77da98c9e",
+            "changed": false
+          },
+          {
+            "cardId": "EX8-064",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX8-064",
+            "fetchedAt": "2026-09-13T18:36:52.301Z",
+            "status": "rulings",
+            "sha256": "578311ba0d4d9be2262567b27df9c94cf14f77a7b1e12ee84ef458280c38f2b8",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-002",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-002",
+            "fetchedAt": "2026-09-13T18:36:53.415Z",
+            "status": "rulings",
+            "sha256": "e791492c51a53515390bc1cedf9deddd699204489f1843cfb10c5a4e936d6445",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-011",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-011",
+            "fetchedAt": "2026-09-13T18:36:54.517Z",
+            "status": "rulings",
+            "sha256": "ff9668acb761dd2772a6bc888b17236af0dd424d755a4989ab55b3b8472348ad",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-032",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-032",
+            "fetchedAt": "2026-09-13T18:36:55.620Z",
+            "status": "empty",
+            "sha256": "c5df03bb959d8f7c09b3f4107155786a2be6d1e4d114be81fbd51c516aa634ba",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-037",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-037",
+            "fetchedAt": "2026-09-13T18:36:56.715Z",
+            "status": "rulings",
+            "sha256": "2fd23d1d8d93ae5903ae5858797fd260b1915a901d0ff135cca47a3011089e33",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-038",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-038",
+            "fetchedAt": "2026-09-13T18:36:57.817Z",
+            "status": "rulings",
+            "sha256": "e3a0bd7f3fb96b817dabf501b02104cb926b108ab8a7c60fb7c7ecc30e7394b6",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-056",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-056",
+            "fetchedAt": "2026-09-13T18:36:58.919Z",
+            "status": "rulings",
+            "sha256": "27d76d75e14a6ccb067c34d75d5d52a38af08d2279709140eb2b1867bd22ea63",
+            "changed": false
+          },
+          {
+            "cardId": "EX9-069",
+            "url": "https://world.digimoncard.com/rule/?card_no=EX9-069",
+            "fetchedAt": "2026-09-13T18:37:00.026Z",
+            "status": "rulings",
+            "sha256": "7305cb2f36947337571b30458833e44dc2f57c5ec3006051c4a634f1d93350e8",
+            "changed": false
+          },
+          {
+            "cardId": "LM-017",
+            "url": "https://world.digimoncard.com/rule/?card_no=LM-017",
+            "fetchedAt": "2026-09-13T18:37:00.786Z",
+            "status": "empty",
+            "sha256": "bef1c4aa59b8f522a5137ad9dcc78728253ff9aa2df96997f95e73418a94eb73",
+            "changed": false
+          },
+          {
+            "cardId": "LM-019",
+            "url": "https://world.digimoncard.com/rule/?card_no=LM-019",
+            "fetchedAt": "2026-09-13T18:37:01.890Z",
+            "status": "rulings",
+            "sha256": "520fa7482f24fe08eeef7dc92b76f8bd626b19821292726163e86b0f1a070eee",
+            "changed": false
+          },
+          {
+            "cardId": "LM-021",
+            "url": "https://world.digimoncard.com/rule/?card_no=LM-021",
+            "fetchedAt": "2026-09-13T18:37:03.325Z",
+            "status": "rulings",
+            "sha256": "98525fb3069fea385719c520989f8a0edd767e04da6db4cfa687145018a2594a",
+            "changed": false
+          },
+          {
+            "cardId": "LM-026",
+            "url": "https://world.digimoncard.com/rule/?card_no=LM-026",
+            "fetchedAt": "2026-09-13T18:37:04.425Z",
+            "status": "rulings",
+            "sha256": "bb1758ca2c67af3b544ddf0aee00a2107dd03a1e53c1c4d31a8b4468248a2f58",
+            "changed": false
+          },
+          {
+            "cardId": "P-072",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-072",
+            "fetchedAt": "2026-09-13T18:37:05.192Z",
+            "status": "rulings",
+            "sha256": "27d9953b6f78bbdbbd9a445c9f55fd37aaa6823d0e60ca663082cfdd9edbfa2d",
+            "changed": false
+          },
+          {
+            "cardId": "P-073",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-073",
+            "fetchedAt": "2026-09-13T18:37:06.628Z",
+            "status": "rulings",
+            "sha256": "910c2ee621b337bb8e8c0d86766b7e270a364793b457aaf395c71923e69a4b48",
+            "changed": false
+          },
+          {
+            "cardId": "P-094",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-094",
+            "fetchedAt": "2026-09-13T18:37:07.732Z",
+            "status": "empty",
+            "sha256": "15fadf4168aa48e59f380c57a82c9ff8ea0096c8e7129ef83fe1ab338db12885",
+            "changed": false
+          },
+          {
+            "cardId": "P-146",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-146",
+            "fetchedAt": "2026-09-13T18:37:08.499Z",
+            "status": "rulings",
+            "sha256": "8b07e7212024d80a8cd26847537323590ccdc6949da8a3e83951559fcbf6eba3",
+            "changed": false
+          },
+          {
+            "cardId": "P-168",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-168",
+            "fetchedAt": "2026-09-13T18:37:09.603Z",
+            "status": "empty",
+            "sha256": "9755d8032ab928e59ba9664c86b7b815903e9fd524e18d8afd05f443d3bc3b9d",
+            "changed": false
+          },
+          {
+            "cardId": "P-191",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-191",
+            "fetchedAt": "2026-09-13T18:37:11.039Z",
+            "status": "rulings",
+            "sha256": "ecf4eb36157553052a18b516d146b2c6ff76ec2d06fa5b64ff529be30931c08b",
+            "changed": false
+          },
+          {
+            "cardId": "P-213",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-213",
+            "fetchedAt": "2026-09-13T18:37:11.804Z",
+            "status": "rulings",
+            "sha256": "fdef508e8b7e5ede68a1e681dec64e05cd02aaf25fd2c65158d1424e33ff96d7",
+            "changed": false
+          },
+          {
+            "cardId": "P-214",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-214",
+            "fetchedAt": "2026-09-13T18:37:13.242Z",
+            "status": "rulings",
+            "sha256": "1c1ac9ebbf89fa506ef2bb7307b08bbbdbf6da7457871f8affaf9e187f41a738",
+            "changed": false
+          },
+          {
+            "cardId": "P-244",
+            "url": "https://world.digimoncard.com/rule/?card_no=P-244",
+            "fetchedAt": "2026-09-13T18:37:14.347Z",
+            "status": "rulings",
+            "sha256": "0a77f829062cb5860f640dfa13467178e2d2f345a716f890fe016210743e21bd",
+            "changed": false
+          },
+          {
+            "cardId": "RB1-001",
+            "url": "https://world.digimoncard.com/rule/?card_no=RB1-001",
+            "fetchedAt": "2026-09-13T18:37:15.443Z",
+            "status": "empty",
+            "sha256": "b0a9c16c6d245c6f0bccc63c70da3274fef909852e13c7dcbac9eb10aed01c7f",
+            "changed": false
+          },
+          {
+            "cardId": "RB1-025",
+            "url": "https://world.digimoncard.com/rule/?card_no=RB1-025",
+            "fetchedAt": "2026-09-13T18:37:16.546Z",
+            "status": "rulings",
+            "sha256": "a13d5b7e9947291a443e42ed416141079a897f5dd904edfe0982f1569a9e49fe",
+            "changed": true
+          },
+          {
+            "cardId": "ST1-13",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST1-13",
+            "fetchedAt": "2026-09-13T18:37:17.648Z",
+            "status": "rulings",
+            "sha256": "2436d4363f8df1a4098fc3610cd79930e4190dfe9e35d32410bdf4a577a2f6bc",
+            "changed": true
+          },
+          {
+            "cardId": "ST13-05",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST13-05",
+            "fetchedAt": "2026-09-13T18:37:18.750Z",
+            "status": "rulings",
+            "sha256": "544793a8cddbe3261afae82be5dae88352c15deeee89602c8ce49c9c63bb4977",
+            "changed": false
+          },
+          {
+            "cardId": "ST13-14",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST13-14",
+            "fetchedAt": "2026-09-13T18:37:19.847Z",
+            "status": "rulings",
+            "sha256": "b2794b52e0cab1f0198497b54db33ee8c82952e98ee2f3ee622e5b708c12743b",
+            "changed": false
+          },
+          {
+            "cardId": "ST19-02",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST19-02",
+            "fetchedAt": "2026-09-13T18:37:20.612Z",
+            "status": "empty",
+            "sha256": "799cc4d6cb69fc501d20f0d57a249ddbecc1af7c25f75edb68ee223bb2b4cfb2",
+            "changed": false
+          },
+          {
+            "cardId": "ST19-11",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST19-11",
+            "fetchedAt": "2026-09-13T18:37:24.402Z",
+            "status": "rulings",
+            "sha256": "2d84a74566afbcf5f08820d64710ca5d5666467022440238d850a2d934ed5cdb",
+            "changed": false
+          },
+          {
+            "cardId": "ST2-14",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST2-14",
+            "fetchedAt": "2026-09-13T18:37:27.127Z",
+            "status": "rulings",
+            "sha256": "61fa15fac1777fbb4f3916fcec84b246e1b4cd61ac0ce7301c9ce344e52cdcb1",
+            "changed": false
+          },
+          {
+            "cardId": "ST22-09",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST22-09",
+            "fetchedAt": "2026-09-13T18:37:28.589Z",
+            "status": "rulings",
+            "sha256": "90b481b0e0f3d817b6a67395cbe6e648e54440208aca43fb21176a3041707972",
+            "changed": false
+          },
+          {
+            "cardId": "ST22-10",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST22-10",
+            "fetchedAt": "2026-09-13T18:37:29.726Z",
+            "status": "rulings",
+            "sha256": "67b68a49bb570dfdf590773658abd84c35d4d5487f30578780fca840c1b063f2",
+            "changed": false
+          },
+          {
+            "cardId": "ST23-05",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST23-05",
+            "fetchedAt": "2026-09-13T18:37:30.844Z",
+            "status": "rulings",
+            "sha256": "f8fd677a1f721a3001dd4992b696130ff12592401b7dad83b8f204b6face6687",
+            "changed": false
+          },
+          {
+            "cardId": "ST24-06",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST24-06",
+            "fetchedAt": "2026-09-13T18:37:31.971Z",
+            "status": "rulings",
+            "sha256": "1f1aaf00d979eea0b71b037db9717227b95c5793086ae551dd22b3e7cfa17587",
+            "changed": false
+          },
+          {
+            "cardId": "ST24-10",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST24-10",
+            "fetchedAt": "2026-09-13T18:37:33.080Z",
+            "status": "rulings",
+            "sha256": "5587a03b430f992c135d230297de14b29b1e2ef1ba9bea52a9c4540f6a10676c",
+            "changed": false
+          },
+          {
+            "cardId": "ST7-12",
+            "url": "https://world.digimoncard.com/rule/?card_no=ST7-12",
+            "fetchedAt": "2026-09-13T18:37:34.209Z",
+            "status": "rulings",
+            "sha256": "a03da599e83048d55791a183f3f1df7f21dd8f222016cc1fa5807a4230cef3a5",
+            "changed": false
+          }
+        ]
+      }
     ]
   },
   "rules": {

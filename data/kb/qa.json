@@ -6195,13 +6195,6 @@
       "answer": "\"When [...] would leave the battle area\" refers to when this Digimon is placed in the trash, returned to the hand/deck, placed in the security stack, moved to the breeding area, or placed under another card.",
       "date": "2024-03-28",
       "related": []
-    },
-    {
-      "qno": "Q2612",
-      "question": "This card digivolved from [BT14-018 Goldramon]. This Digimon gains all effects of [Goldramon] in digivolution cards, but does [BT14-018 Goldramon]'s [On Play] [When Digivolving] effect activate?",
-      "answer": "Yes, it activates.\nThis card's \"this Digimon gains all effects of [Goldramon] in this Digimon's digivolution cards\" effect is an [All Turns] effect, so it will activate as soon as the digivolution is confirmed. Therefore, [When Evolving] effects are gained and will trigger.",
-      "date": "2024-03-28",
-      "related": []
     }
   ],
   "BT14-020": [
@@ -16456,15 +16449,6 @@
       "related": ["BT20-037"]
     }
   ],
-  "BT20-100": [
-    {
-      "qno": "Q4905",
-      "question": "I have this card, [Omnimon], and BT20-100 [The Last Guardian] in the battle area. When my [Omnimon] would leave the battle area, but it's prevented from leaving by BT20-100 [The Last Guardian]'s <Delay> effect, can I then use this card's [All Turns] effect to gain 2 memory?",
-      "answer": "Yes, you can.\nWhen your [Omnimon] would leave the battle area, this card's [All Turns] effect and BT20-100 [The Last Guardian]'s <Delay> effect trigger simultaneously, therefore the player can choose the desired activation order.\nEven if BT20-100 [The Last Guardian]'s <Delay> effect prevents [Omnimon] from leaving, you can activate this card's [All Turns] effect.",
-      "date": "2025-07-04",
-      "related": []
-    }
-  ],
   "BT20-101": [
     {
       "qno": "Q4415",
@@ -17845,20 +17829,6 @@
       "question": "This card is in the breeding area, and my [Mother Eater] in the battle area is treated as having 16000 DP. If my [Mother Eater] in the battle area is treated as having an original DP of 3000 by an effect, what happens to its DP?",
       "answer": "That [Mother Eater]'s DP becomes 3000.",
       "date": "2025-07-04",
-      "related": []
-    },
-    {
-      "qno": "Q5349",
-      "question": "I have a Digimon with BT22-007 [Mother Eater] in its digivolution cards in the breeding area, and I have this card and another Digimon with the [Eater] trait in the battle area. When my other Digimon with the [Eater] trait would leave the battle area other than by my effects, can I activate this card's [All Turns] effect and then activate the inherited effect on BT22-007 [Mother Eater] in the breeding area?",
-      "answer": "Yes, you can.",
-      "date": "2025-10-03",
-      "related": []
-    },
-    {
-      "qno": "Q5352",
-      "question": "I have a Digimon with BT22-007 [Mother Eater] in its digivolution cards in the breeding area. When this Digimon would leave the battle area other than by my effects, can I first use BT22-007 [Mother Eater]'s inherited effect to place this card in digivolution cards, then activate this card's [All Turns] effect?",
-      "answer": "No, you can't.",
-      "date": "2025-10-03",
       "related": []
     }
   ],
@@ -20964,13 +20934,6 @@
     }
   ],
   "BT24-040": [
-    {
-      "qno": "Q5604",
-      "question": "If I use this card's [Your Turn] effect to digivolve into BT24-040 [Venusmon], ignoring level, the \"[Digivolve] Blue/yellow Lv.5: Cost 4\" digivolution requirement and \"[Digivolve] Lv.5 w/[TS] trait: Cost 3\" digivolution requirement are both met, but can I choose either digivolution requirement?",
-      "answer": "Yes, you can.\nIf you activate this card's [Your Turn] effect and use the \"[Digivolve] Blue/yellow Lv.5: Cost 4\" digivolution requirement to perform digivolution into BT24-040 [Venusmon], you pay 4 cost for the digivolution.\nIf you activate this card's [Your Turn] effect and use the \"[Digivolve] Lv.5 w/[TS] trait: Cost 3\" digivolution requirement to perform digivolution into BT24-040 [Venusmon], you pay 3 cost for the digivolution.",
-      "date": "2025-12-25",
-      "related": []
-    },
     {
       "qno": "Q5621",
       "question": "If I activate this card's [All Turns] effect when multiples of my [TS] trait Digimon would leave the battle area other than by my effects at the same time, are all of those Digimon prevented from leaving?",
@@ -25609,13 +25572,6 @@
       "answer": "No, you can't.",
       "date": "2024-03-28",
       "related": []
-    },
-    {
-      "qno": "Q1308",
-      "question": "My opponent has this Digimon in play. Can I use [BT4-090 Chaosmon]'s [When Digivolving] effect to attack it?",
-      "answer": "No, you can't.",
-      "date": "2024-03-28",
-      "related": []
     }
   ],
   "BT4-091": [
@@ -26607,13 +26563,6 @@
       "qno": "Q1357",
       "question": "When this Digimon is deleted, I activate this card's [All Turns] effect to have this Digimon remain in the battle area. Does this cause \"When another Digimon is deleted\" effects to activate?",
       "answer": "No. This card's [All Turns] effect prevents other effects from deleting this Digimon or returning it to its owner's hand or deck, so it isn't treated as being deleted by the game rules.",
-      "date": "2024-03-28",
-      "related": []
-    },
-    {
-      "qno": "Q2858",
-      "question": "I attacked using BT5-086 [Omnimon]'s <Blitz> and unsuspended it using the other [When Digivolving] effect. After the attack ends, can I use this card's [End of Your Turn] effect to attack again?",
-      "answer": "Yes, you can.\nIf BT5-086 [Omnimon] digivolves during the main phase, you can use the [End of Your Turn] effect to attack again after the attack from <Blitz> ends.",
       "date": "2024-03-28",
       "related": []
     }
@@ -30702,13 +30651,6 @@
       "answer": "No. If a [MetalGreymon] or [X Antibody] isn’t in this Digimon’s digivolution cards at the time its [When Digivolving] effect activates, it doesn’t gain +3000 DP from its effect.",
       "date": "2024-03-28",
       "related": []
-    },
-    {
-      "qno": "Q1967",
-      "question": "I digivolved one of my [MetalGreymon] into [BT9-015 MetalGreymon (X Antibody)]. It gets <Security Attack+1> and +3000 DP with its [When Digivolving] effect, but does that effect activate when my opponent has this Digimon in play?",
-      "answer": "Yes, it activates. [BT9-015 MetalGreymon (X Antibody)] gains <Security Attack +1> from the [When Digivolving] effect, so after that effect has activated, this card then prevents further [When Attacking] and [When Digivolving] effects from activating.",
-      "date": "2024-03-28",
-      "related": []
     }
   ],
   "BT9-016": [
@@ -32518,20 +32460,6 @@
   ],
   "EX1-071": [
     {
-      "qno": "Q1688",
-      "question": "If I activate EX1-071 [Win Rate: 60%!]'s [Main] effect and then declare digivolution of this card, do I perform EX1-071 [Win Rate: 60%!]'s \"would digivolve\" effect processing or activate this card's 1st effect first?",
-      "answer": "You activate this card's 1st effect first.\nYou declare digivolution of this card, then activate this card's 1st effect immediately before choosing the card to digivolve.\nAfter that, you choose your Digimon to digivolve and process EX1-071 [Win Rate: 60%!]'s \"would digivolve\" effect. If you would digivolve from a Tamer, EX1-071 [Win Rate: 60%!]'s effect can't be processed.",
-      "date": "2025-04-04",
-      "related": []
-    },
-    {
-      "qno": "Q1736",
-      "question": "My opponent has this Digimon in play. During my turn, I use an Option card like [BT1-109 Smashed Potatoes] or [EX1-071 Win Rate: 60%!] which has an effect that activates “the next time one of your Digimon digivolves”. After that, all of my opponent’s Digimon become suspended. If I then digivolve one of my Digimon, are the effects from the Option cards I used earlier negated?",
-      "answer": "No. You already used the Option cards and activated their effects, so this card’s [Opponent’s Turn] effect can’t negate them.",
-      "date": "2024-03-28",
-      "related": ["BT1-109"]
-    },
-    {
       "qno": "Q3258",
       "question": "After using this card, I digivolve a red Digimon into a white Digimon card. What color card can I trash from my hand to reduce the memory cost of the digivolution?",
       "answer": "You can trash a red Digimon card to reduce the digivolution cost.\nThe card you can trash with this effect must match the color of the Digimon performing the digivolution in your battle area.",
@@ -32577,13 +32505,6 @@
       "qno": "Q3264",
       "question": "After using this card, can I reduce the digivolution cost of my digivolving Digimon by trashing 1 Digimon card in the hand with the same color when an effect to digivolve one of my Digimon is activated?",
       "answer": "Yes, you can.",
-      "date": "2024-03-28",
-      "related": []
-    },
-    {
-      "qno": "Q3359",
-      "question": "Can I activate effects that reduce digivolution costs like <Digisorption> or [EX1-071 Win Rate: 60%!] to reduce the digivolution cost of a card in my hand from 4 or more to 3 or less, and then use this card to digivolve into it?",
-      "answer": "No, those effects are only active when the digivolution is taking place, which means they reduce the digivolution cost after a player has announced a digivolution. As such, at the time this card's effect is activated, the digivolution cost hasn't been reduced, and you can't choose the card with this card’s effect.",
       "date": "2024-03-28",
       "related": []
     }
@@ -33804,13 +33725,6 @@
       "question": "If I choose this card itself for its [On Play] [When Digivolving] effect, can I activate its [All Turns] effect when my opponent's Digimon and this card itself would be deleted?",
       "answer": "Yes, it can be activated.",
       "date": "2025-09-05",
-      "related": []
-    },
-    {
-      "qno": "Q5169",
-      "question": "I used this card's [On Play] [When Digivolving] effect to place 3 cards including EX10-055 [Tactimon] from my trash as this Digimon's top digivolution cards and chose my opponent's EX7-061 [Lilithmon (X Antibody)] as the target to delete. This caused the 1st [All Turns] effect on my opponent's EX7-061 [Lilithmon (X Antibody)] to interrupt, and this card was chosen as the target to delete. This card's [All Turns] effect gives it EX10-055 [Tactimon]'s [All Turns] effect at such times, but does it trigger?",
-      "answer": "Yes, it triggers.\nIf the gained [All Turns] effect from EX10-055 [Tactimon] activates, this card will be prevented from leaving, EX7-061 [Lilithmon (X Antibody)]'s \"by deleting 1 other Digimon\" condition will no longer be met, and EX7-061 [Lilithmon (X Antibody)] will be deleted.",
-      "date": "2025-09-05",
       "related": ["EX7-061"]
     }
   ],
@@ -33860,20 +33774,6 @@
     {
       "qno": "Q5148",
       "question": "Does this card's [All Turns] effect trigger when either my Digimon or my opponent's Digimon gets linked?",
-      "answer": "No, it doesn't trigger.",
-      "date": "2025-09-05",
-      "related": []
-    },
-    {
-      "qno": "Q5166",
-      "question": "When this card would be played, I placed EX10-056 [Bagramon] under it for its DigiXros, then I played this card. I then used this card's [On Play] [When Digivolving] effect to place 1 card from my opponent's hand as their Digimon's bottom digivolution card. This card's [All Turns] effect gives it EX10-056 [Bagramon]'s [All Turns] effect at such times, but does it trigger from this card's [On Play] [When Digivolving] effect placing a card from my opponent's hand as their Digimon's bottom digivolution card?",
-      "answer": "Yes, it triggers.",
-      "date": "2025-09-05",
-      "related": []
-    },
-    {
-      "qno": "Q5167",
-      "question": "I used this card's [On Play] [When Digivolving] effect to place 1 card from my opponent's hand as their Digimon's bottom digivolution card, then I placed 3 cards including EX10-056 [Bagramon] from my trash as this Digimon's top digivolution cards. This card's [All Turns] effect gives it EX10-056 [Bagramon]'s [All Turns] effect at such times, but does it trigger from this card's [On Play] [When Digivolving] effect placing a card from my opponent's hand as their Digimon's bottom digivolution card?",
       "answer": "No, it doesn't trigger.",
       "date": "2025-09-05",
       "related": []
@@ -36800,22 +36700,6 @@
       "question": "If I activate this card's [On Play] effect, can my opponent play Digimon with 5000 DP or less into their breeding area?",
       "answer": "No, they can't.",
       "date": "2026-05-08",
-      "related": []
-    }
-  ],
-  "EX3-013": [
-    {
-      "qno": "Q2212",
-      "question": "\"This Digimon has [EX3-013 Chaosdramon] in its digivolution cards. and then an effect attempts to delete it. Is it possible to first activate this card's \"\"When this Digimon would be deleted, trash the top card of your opponent's security stack\"\" effect, trashing a security card from the opponent's security stack, and then activate [EX3-13 Chaosdramon]'s \"\"you may trash 2 level 5 cards in this Digimon's digivolution cards to prevent it from leaving play\"\" effect and prevent the deletion?\"",
-      "answer": "Yes, it is.",
-      "date": "2024-03-28",
-      "related": []
-    },
-    {
-      "qno": "Q2213",
-      "question": "When this card digivolves from [EX3-013 Chaosdramon], it gains all of the effects of the [Chaosdramon] in its digivolution cards. Does that mean [EX3-013 Chaosdramon]'s [On Play][When Digivolving] effect activates?",
-      "answer": "Yes, it activates.\nThis card's \"\"This Digimon gains all effects of [Machinedramon] and [Chaosdramon] cards in this Digimon's digivolution cards\"\" effect is an [All Turns] effect, so it is active as soon as the digivolution is confirmed. Therefore, the [When Digivolving] effect is gained and triggered.",
-      "date": "2024-03-28",
       "related": []
     }
   ],
@@ -40473,13 +40357,6 @@
       "answer": "Yes, that's correct.",
       "date": "2024-03-28",
       "related": []
-    },
-    {
-      "qno": "Q3816",
-      "question": "If I use this card's <Delay> effect to play a Digimon from digivolution cards when my Digimon with the[Legend-Arms] trait and [EX6-042 RaijiLudomon] in its digivolution cards would be deleted, can I then use [EX6-042 RaijiLudomon]'s inherited effect to prevent the deletion?",
-      "answer": "Yes, you can.",
-      "date": "2024-03-28",
-      "related": []
     }
   ],
   "EX6-043": [
@@ -40621,13 +40498,6 @@
     }
   ],
   "EX6-054": [
-    {
-      "qno": "Q3084",
-      "question": "I use this card's [End of Your Turn] effect to return this card itself to the bottom of the deck, I use this card's <Decode (Blue Lv.5)> to play a card with an [On Play] effect, then I attempt to return my opponent's EX6-054 [Lucemon: Chaos Mode] to the bottom of the deck, and EX6-054 [Lucemon: Chaos Mode]'s [All Turns] effect plays a card with an [On Play] effect. At such times, do the [On Play] effects on cards played by these effects trigger simultaneously?",
-      "answer": "Yes, they trigger simultaneously.",
-      "date": "2024-11-22",
-      "related": []
-    },
     {
       "qno": "Q3787",
       "question": "Which player gains <Recovery +1 ≪Deck≫> for this card's [On Play] [When Digivolving] effect?",
@@ -41265,15 +41135,6 @@
     {
       "qno": "Q4578",
       "question": "This card with BT21-054 [Shotmon] as a link card is in the battle area. What happens if this card digivolves into EX7-044 [Gigadramon] and no longer meets BT21-054 [Shotmon]'s link requirements?",
-      "answer": "The BT21-054 [Shotmon] linked with this card is trashed upon the rule check timing.",
-      "date": "2025-04-04",
-      "related": ["BT21-054"]
-    }
-  ],
-  "EX7-048": [
-    {
-      "qno": "Q4585",
-      "question": "This card with BT21-054 [Shotmon] as a link card is in the battle area. What happens if this card digivolves into EX7-048 [Gundramon] and no longer meets BT21-054 [Shotmon]'s link requirements?",
       "answer": "The BT21-054 [Shotmon] linked with this card is trashed upon the rule check timing.",
       "date": "2025-04-04",
       "related": ["BT21-054"]
@@ -46650,13 +46511,6 @@
       "answer": "Yes, you can.\nAt the end of your turn, this card and [RB1-034 Ruli Tsukiyono]'s effects trigger at the same time, so you can attack if you first activate [RB1-034 Ruli Tsukiyono]'s effect and then unsuspend this card.",
       "date": "2024-03-28",
       "related": ["RB1-034"]
-    },
-    {
-      "qno": "Q4108",
-      "question": "I used this card's [End of Your Turn] effect to unsuspend my [RB1-025 Diarbbitmon] while it was suspended. In such cases, can I use [RB1-025 Diarbbitmon]'s [End of Your Turn] effect to attack?",
-      "answer": "Yes, you can.\nAt the end of your turn, this card and [RB1-025 Diarbbitmon]'s effects trigger at the same time, so you can attack if you first activate this card's effect and then unsuspend [RB1-025 Diarbbitmon].",
-      "date": "2024-03-28",
-      "related": []
     }
   ],
   "RB1-027": [
@@ -46830,13 +46684,6 @@
       "qno": "Q607",
       "question": "During my next turn after this card's security effect was activated, does it apply to newly played Digimon and Digimon moved from the breeding area to the battle area?",
       "answer": "Yes, it does.",
-      "date": "2024-03-28",
-      "related": []
-    },
-    {
-      "qno": "Q974",
-      "question": "This card's effect has set a Digimon's original DP to 3000. If [ST1-13 Shadow Wing] is used to give that Digimon +3000 DP, is its DP now 6000?",
-      "answer": "Yes, effects that increase or decrease DP work as normal, raising the Digimon's DP to 6000.",
       "date": "2024-03-28",
       "related": []
     }
@@ -50957,8 +50804,15 @@
     {
       "qno": "Q6995",
       "question": "What does a \"can't trash stacked cards\" effect do, exactly?",
-      "answer": "This effect prevents cards placed on top from being trashed by <De-Digivolve> or similar effects, and it prevents cards placed on the bottom from being trashed by effects that trash digivolution cards.",
-      "date": "2026-08-18",
+      "answer": "This means that the effect prevents \"perform XX on stacked cards\" processing.\nFor example, a \"can't trash stacked cards\" effect prevents trashing stacked cards from the top by <De-Digivolve> (which trashes the top stacked cards) or similar effects, and prevents trashing stacked cards from the bottom by \"trash the bottom digivolution cards\" or similar effects.\nHowever, because the effect only prevents processing that \"performs XX on stacked cards\", you can perform XX with processing that applies the action to a Digimon itself.",
+      "date": "2026-08-28",
+      "related": []
+    },
+    {
+      "qno": "Q7195",
+      "question": "If a Digimon has been given the \"can't return any of its stacked cards to hands or decks\" effect with this card's [On Play] [When Digivolving] effect, can that Digimon be returned with effects such as \"Return Digimon to the hand\" or \"Return Digimon to the deck\"?",
+      "answer": "Yes, the Digimon can be returned.",
+      "date": "2026-08-28",
       "related": []
     }
   ],
@@ -53720,6 +53574,38 @@
       "answer": "Yes, you can.",
       "date": "2026-06-19",
       "related": ["BT21-062", "EX11-046"]
+    }
+  ],
+  "BT26-054": [
+    {
+      "qno": "Q7056",
+      "question": "Can I change the attack target of a Digimon that isn't affected by effects with an effect that \"changes the attack target\"?",
+      "answer": "Yes, you can.",
+      "date": "2026-08-18",
+      "related": []
+    },
+    {
+      "qno": "Q7057",
+      "question": "A card stacked in a Digimon with this card in its digivolution cards is placed into its digivolution cards by an effect. At such times, if this card becomes that Digimon's top card, will this card's [All Turns] effect trigger?",
+      "answer": "Yes, it triggers.",
+      "date": "2026-08-18",
+      "related": []
+    }
+  ],
+  "BT26-085": [
+    {
+      "qno": "Q7129",
+      "question": "What does a \"can't trash stacked cards\" effect do, exactly?",
+      "answer": "This effect prevents cards placed on top from being trashed by <De-Digivolve> or similar effects, and it prevents cards placed on the bottom from being trashed by effects that trash digivolution cards.",
+      "date": "2026-08-18",
+      "related": []
+    },
+    {
+      "qno": "Q7130",
+      "question": "What kind of card does \"a card with X in its text\" refer to?",
+      "answer": "It refers to a card that contains the specified text or icon in its name, traits, effects, inherited effects, (Rule), digivolve requirements, DNA Digivolve, DigiXros requirements, Burst Digivolve, App Fusion, Link, or Assembly requirements.\nFor example, \"a card with [Knightmon] in its text\" would include cards with the name [DarkKnightmon] and cards with the text [Knightmon] in their effects.",
+      "date": "2026-08-18",
+      "related": []
     }
   ]
 }
