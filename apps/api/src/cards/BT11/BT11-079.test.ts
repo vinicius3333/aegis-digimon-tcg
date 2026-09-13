@@ -8,7 +8,12 @@ import { compiled } from "./BT11-079.js";
 describe("BT11-079 DarkLizardmon", () => {
   it("maps catalog facts, Retaliation, and deletion draw-discard to IR", () => {
     expect(getCardDefinition("BT11-079")).toMatchObject({
-      cardId: "BT11-079", colors: ["Purple"], level: 4, playCost: 5, dp: 4000, types: ["Evil Dragon"],
+      cardId: "BT11-079",
+      colors: ["Purple"],
+      level: 4,
+      playCost: 5,
+      dp: 4000,
+      types: ["Evil Dragon"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },

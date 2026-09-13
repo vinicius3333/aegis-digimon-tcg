@@ -35,8 +35,8 @@ describe("BT11-035 ClearAgumon", () => {
         battleArea: [{ card: "BT11-003", as: "base" }],
         hand: [{ card: "BT11-035", as: "clear" }],
         deck: [
-          { card: "BT1-001", as: "drawA" },
-          { card: "BT1-002", as: "drawB" },
+          { card: "BT1-009", as: "drawA" },
+          { card: "BT1-009", as: "drawB" },
         ],
       },
     });

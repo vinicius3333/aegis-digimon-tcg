@@ -56,7 +56,7 @@ describe("BT22-011 BlueMeramon", () => {
             { card: "BT8-014", as: "tooExpensiveFlame" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

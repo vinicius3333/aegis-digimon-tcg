@@ -54,7 +54,7 @@ describe("BT22-025 UlforceVeedramon", () => {
             { card: "BT22-022", as: "lowest" },
             { card: "BT22-023", as: "higher" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { preferOptionIndex: 0, autoSelectCards: true },

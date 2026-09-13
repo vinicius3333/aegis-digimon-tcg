@@ -68,7 +68,7 @@ describe("BT22-097 Music of the Heart", () => {
 
   it("draws and places the used physical Option through the public play intent", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT22-097", as: "music" }], battleArea: ["BT22-087"], deck: ["BT22-001"] },
+      0: { hand: [{ card: "BT22-097", as: "music" }], battleArea: ["BT22-087"], deck: ["BT1-009"] },
     });
     const musicId = s.inst("music").instanceId;
     const initialHand = s.state.players[0]!.hand.length;

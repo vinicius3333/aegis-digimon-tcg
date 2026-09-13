@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-067.js";
@@ -26,27 +28,70 @@ describe("BT15-067", () => {
     }));
 
   it("plays a qualifying Digimon when a natural effect suspends this Ouryumon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT15-067", as: "ouryumon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           hand: [
             { card: "BT14-043", as: "koDokugumon" },
+            { card: "BT14-043", as: "secondKoDokugumon" },
+            { card: "BT14-043", as: "nextKoDokugumon" },
             { card: "BT15-058", as: "ginryumon" },
+            { card: "BT15-058", as: "secondGinryumon" },
           ],
         },
-        1: { battleArea: [{ card: "BT14-042", as: "opposingTarget" }] },
+        1: {
+          battleArea: [{ card: "BT14-042", as: "opposingTarget" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 10;
+    preferred.push(s.perm("ouryumon").topCard!.instanceId);
 
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstGinryumonId = s.inst("ginryumon").instanceId;
+    const secondGinryumonId = s.inst("secondGinryumon").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koDokugumon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-058"));
 
     expect(s.perm("ouryumon").isSuspended).toBe(true);
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-058");
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT15-058")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === firstGinryumonId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === secondGinryumonId)).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("ouryumon").permanentId]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKoDokugumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT15-058")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === firstGinryumonId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === secondGinryumonId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("ouryumon").permanentId]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextKoDokugumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT15-058").length === 2,
+    );
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT15-058")).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

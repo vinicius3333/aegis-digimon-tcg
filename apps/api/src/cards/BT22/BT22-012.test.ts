@@ -150,8 +150,8 @@ describe("BT22-012 RizeGreymon", () => {
 
   it("uses the inherited Security Attack +1 in a real attack against two security cards", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", under: ["BT22-012"], as: "attacker" }] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      0: { battleArea: [{ card: "BT1-026", under: ["BT22-012"], as: "attacker" }] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     await s.ready();
     expect(
@@ -163,5 +163,7 @@ describe("BT22-012 RizeGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("attacker").topCard?.cardId).toBe("BT1-026");
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

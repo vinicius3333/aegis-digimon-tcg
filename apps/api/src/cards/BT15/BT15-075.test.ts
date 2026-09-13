@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-075.js";
 import "../index.js";
 
@@ -36,9 +37,9 @@ describe("BT15-075", () => {
         0: {
           battleArea: [{ card: "BT15-075", as: "loogarmon", under: ["BT14-087"] }],
           hand: [{ card: "BT1-009", as: "costCard" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -97,5 +98,62 @@ describe("BT15-075", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.memory).toBe(-2);
+  });
+
+  it("gains end-of-attack memory once across same-turn attacks and again after reset", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-091", as: "host", under: ["BT15-075"] }],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT15-032", as: "opponent", under: ["BT14-029"] }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.perm("host").stack.find((card) => card.cardId === "BT15-075")!.instanceId;
+    expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT14-029"]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(-1);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT14-029"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

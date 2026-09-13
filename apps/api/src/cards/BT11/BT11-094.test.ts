@@ -24,14 +24,25 @@ import { compiled } from "./BT11-094.js";
 //   BT11-042  — Angewomon (Yellow+Purple Lv.5; evoCost: Yellow Lv.4 @ 3, Purple Lv.4 @ 3)
 //   BT11-083  — LadyDevimon (Purple+Yellow Lv.5; evoCost: Purple Lv.4 @ 3, Yellow Lv.4 @ 3)
 //   BT10-074  — Quetzalmon (Purple Lv.4) — digivolve base for Angewomon (Purple Lv.4 @ 3)
-//   BT1-001   — filler
+//   BT1-009   — neutral filler
 
 describe("BT11-094 Mirei Mikagura", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-094")).toMatchObject({ cardId: "BT11-094", colors: ["Purple", "Yellow"], kinds: ["Tamer"], playCost: 5 });
+    expect(getCardDefinition("BT11-094")).toMatchObject({
+      cardId: "BT11-094",
+      colors: ["Purple", "Yellow"],
+      kinds: ["Tamer"],
+      playCost: 5,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", amount: 1 }] },
-      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }, { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }] },
+      {
+        trigger: "YourTurn",
+        actions: [
+          { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" },
+          { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
     ]);
   });
@@ -43,11 +54,11 @@ describe("BT11-094 Mirei Mikagura", () => {
           // Mirei on the battle area.
           battleArea: [{ card: "BT11-094", dp: 0, as: "mireiPerm" }],
           // Deck fodder for draw phase.
-          deck: Array.from({ length: 5 }, () => "BT1-001"),
+          deck: Array.from({ length: 5 }, () => "BT1-009"),
           // A playable hand card prevents the engine from auto-ending Main phase.
           hand: ["AD1-001"],
         },
-        1: { deck: Array.from({ length: 5 }, () => "BT1-001") },
+        1: { deck: Array.from({ length: 5 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -80,7 +91,7 @@ describe("BT11-094 Mirei Mikagura", () => {
             // BT11-042 Angewomon evoCost: Purple Lv.4 @ 3
             { card: "BT10-074", dp: 2000, as: "base" },
           ],
-          deck: ["BT1-001"], // draw fodder
+          deck: ["BT1-009"], // neutral draw fodder
           hand: [
             // Angewomon in hand (will be digivolved onto base).
             { card: "BT11-042", as: "angewomon" },

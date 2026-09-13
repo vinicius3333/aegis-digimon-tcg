@@ -103,7 +103,7 @@ describe("BT15-090", () => {
             { card: "BT1-009", as: "lowLevel", dp: 12000 },
             { card: "BT1-036", as: "highLevel", dp: 1000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },

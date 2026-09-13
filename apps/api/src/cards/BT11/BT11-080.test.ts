@@ -7,10 +7,21 @@ import { compiled } from "./BT11-080.js";
 describe("BT11-080 Devimon", () => {
   it("maps catalog facts and the yellow-gated keywords to IR", () => {
     expect(getCardDefinition("BT11-080")).toMatchObject({
-      cardId: "BT11-080", colors: ["Purple"], level: 4, playCost: 5, dp: 5000, types: ["Fallen Angel"],
+      cardId: "BT11-080",
+      colors: ["Purple"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      types: ["Fallen Angel"],
     });
     expect(compiled.effects).toMatchObject([
-      { trigger: "YourTurn", actions: [{ kind: "Aura", effect: { keyword: { keyword: "Rush" } } }, { kind: "Aura", effect: { keyword: { keyword: "Retaliation" } } }] },
+      {
+        trigger: "YourTurn",
+        actions: [
+          { kind: "Aura", effect: { keyword: { keyword: "Rush" } } },
+          { kind: "Aura", effect: { keyword: { keyword: "Retaliation" } } },
+        ],
+      },
     ]);
   });
 

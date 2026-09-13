@@ -32,7 +32,7 @@ describe("BT15-042", () => {
   it("trashes security as the optional cost before giving one opponent -9000 DP", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-042", as: "magnadramon" }], security: [{ card: "BT1-001", as: "cost" }] },
+        0: { hand: [{ card: "BT15-042", as: "magnadramon" }], security: [{ card: "BT1-009", as: "cost" }] },
         1: { battleArea: [{ card: "BT1-009", dp: 10000, as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -56,11 +56,11 @@ describe("BT15-042", () => {
           battleArea: [{ card: "BT15-042", as: "magnadramon" }],
           hand: [{ card: "BT15-033", as: "yellow" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
-        1: { security: ["BT1-003"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
@@ -81,7 +81,7 @@ describe("BT15-042", () => {
         0: {
           battleArea: [{ card: "BT1-060", as: "yellowBase" }],
           hand: [{ card: "BT15-042", as: "magnadramon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 10000, as: "target" }] },
       },
@@ -101,5 +101,41 @@ describe("BT15-042", () => {
     expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-060"]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("resets the once-per-turn security-removal trigger on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-042", as: "magnadramon" }],
+          hand: [
+            { card: "BT15-033", as: "firstYellow" },
+            { card: "BT15-033", as: "secondYellow" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-009"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

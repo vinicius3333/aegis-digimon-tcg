@@ -1,11 +1,13 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { validateCompetitiveDeck } from "../../tournaments/participants/deckLegality.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT11-061.js";
 import "./BT11-070.js";
 import "./BT11-111.js";
+import "../ST5/ST5-15.js";
 
 describe("BT11-061 Vemmon", () => {
   it("maps the catalog facts and both printed effects to IR", () => {
@@ -54,7 +56,15 @@ describe("BT11-061 Vemmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("vemmon"));
+    const effect = observe(s.engine).activatableEffects(s.perm("vemmon"));
+    expect(effect).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("vemmon").topCard.instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("vemmon").stack.length === 1);
     expect(s.perm("vemmon").stack[0]?.cardId).toBe("BT11-061");
   });
@@ -70,7 +80,15 @@ describe("BT11-061 Vemmon", () => {
       { autoOrderCards: true },
     );
     await s.ready();
-    const resolving = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("vemmon"));
+    const effect = observe(s.engine).activatableEffects(s.perm("vemmon"));
+    expect(effect).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("vemmon").topCard.instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
     const addSelection = s.decisions.filter(({ req }) => req.kind === "selectCards").at(-1);
     expect(addSelection?.req.options).toMatchObject({ min: 0, max: 1 });
@@ -91,7 +109,7 @@ describe("BT11-061 Vemmon", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("revealedVemmon").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(() => s.perm("vemmon").stack.length === 1 && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("vemmon").stack[0]?.cardId).toBe("BT11-061");
@@ -111,14 +129,25 @@ describe("BT11-061 Vemmon", () => {
           hand: [
             { card: "BT11-070", as: "destromon" },
             { card: "BT11-111", as: "galacticmon" },
+            { card: "BT11-111", as: "nextGalacticmon" },
           ],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+          security: Array.from({ length: 4 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT2-052", as: "blackProvider" }],
+          hand: [{ card: "ST5-15", as: "laserEye" }],
+          deck: Array.from({ length: 5 }, () => "BT1-009"),
+          security: Array.from({ length: 4 }, () => "BT1-009"),
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
-
-    await s.engine.recomputeContinuousEffects();
+    const inheritedSourceId = s.inst("vemmon").instanceId;
+    const hostId = s.perm("host").permanentId;
+    const destromonId = s.inst("destromon").instanceId;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -138,5 +167,39 @@ describe("BT11-061 Vemmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT11-111");
     expect(s.state.memory).toBe(0); // printed 6; the once-per-turn reduction was consumed
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laserEye").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === destromonId && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toContain(inheritedSourceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("nextGalacticmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard.instanceId === s.inst("nextGalacticmon").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(5); // printed 6, same inherited source reset and reduces to 5
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toContain(inheritedSourceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

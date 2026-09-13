@@ -78,7 +78,7 @@ describe("BT15-079", () => {
             { card: "BT15-079", as: "excludedPiedmon" },
           ],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

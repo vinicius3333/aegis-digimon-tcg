@@ -1,7 +1,8 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-025.js";
 
 describe("BT11-025 Gaogamon", () => {
@@ -49,25 +50,90 @@ describe("BT11-025 Gaogamon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT11-025");
     expect(s.state.memory).toBe(2);
   });
-  it("gains 1 memory when attacking while the opponent has 8 cards in hand", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-025", as: "gaogamon" }] },
-      1: { hand: Array.from({ length: 8 }, () => "BT1-001") },
-    });
-    await s.ready();
-    s.state.memory = 0;
+  it("gains memory from public attacks once per turn and resets on the next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-025", as: "gaogamon" },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget", suspended: true },
+            { card: "BT1-009", as: "secondTarget", suspended: true },
+            { card: "BT1-009", as: "thirdTarget", suspended: true },
+          ],
+          hand: Array.from({ length: 8 }, () => "BT1-009"),
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const gaogamonId = s.perm("gaogamon").permanentId;
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    const thirdTargetId = s.perm("thirdTarget").permanentId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("gaogamon").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: gaogamonId,
+        target: { kind: "permanent", permanentId: firstTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== firstTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(4);
 
-    expect(s.state.memory).toBe(1);
-    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("gaogamon").permanentId });
-    expect(s.state.memory).toBe(1);
+    await advance(s.engine).verb.unsuspend([gaogamonId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: gaogamonId,
+        target: { kind: "permanent", permanentId: secondTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== secondTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.suspend([thirdTargetId]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: gaogamonId,
+        target: { kind: "permanent", permanentId: thirdTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== thirdTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not gain memory below the 8-card threshold", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT11-025", as: "gaogamon" }] },
-      1: { hand: Array.from({ length: 7 }, () => "BT1-001") },
+      1: { hand: Array.from({ length: 7 }, () => "BT1-009") },
     });
     await s.ready();
 
@@ -76,34 +142,87 @@ describe("BT11-025 Gaogamon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("inherited effect returns an opponent level 3 when its host attacks with a Tamer in play", async () => {
+  it("inherited effect returns exact level 3 targets from public attacks, once per turn and again next turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT11-028", as: "host", under: ["BT11-025"] },
+            { card: "ST2-08", as: "host", under: ["BT11-025"] },
+            { card: "BT1-013", as: "spare" },
             { card: "BT1-086", as: "tamer" },
           ],
+          hand: [{ card: "BT11-025", as: "unused" }],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
         1: {
           battleArea: [
-            { card: "BT11-023", as: "target" },
-            { card: "BT11-023", as: "second" },
-            { card: "BT11-025", as: "level4" },
+            { card: "BT11-023", as: "target", suspended: true },
+            { card: "BT1-009", as: "battleVictim", suspended: true },
+            { card: "BT11-023", as: "secondBounce", suspended: true },
           ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: Array.from({ length: 3 }, () => "BT1-009"),
         },
       },
       { autoSelectCards: true },
     );
-    await s.ready();
-    const targetId = s.perm("target").topCard!.instanceId;
+    s.state.memory = 10;
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("target").permanentId;
+    const battleVictimId = s.perm("battleVictim").permanentId;
+    const secondBounceId = s.perm("secondBounce").permanentId;
+    const targetInstanceId = s.inst("target").instanceId;
+    const secondBounceInstanceId = s.inst("secondBounce").instanceId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetInstanceId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(false);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(targetId);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT11-025")).toBe(true);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: battleVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== battleVictimId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondBounceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === secondBounceInstanceId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

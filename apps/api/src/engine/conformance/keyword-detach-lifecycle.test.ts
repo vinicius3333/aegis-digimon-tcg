@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
+import "../../cards/EX10/EX10-062.js";
 
 // Current primary source: Comprehensive Rules v4.2, §16-46 (header updated 2026-08-18; changelog 2026-08-07).
 // https://world.digimoncard.com/rule/pdf/general_rule.pdf
@@ -141,6 +142,94 @@ describe("Detach departure lifecycle", () => {
     expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
   });
 
+  it("does not save a Digimon from the zero-DP rule after an opponent Option reduces its DP", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-045" }], hand: [{ card: "BT1-106", as: "option" }] },
+        1: { battleArea: [{ card: "BT26-019", as: "target", linked: [{ card: "BT26-010", as: "link" }] }] },
+      },
+      { autoSelectCards: false, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const detachDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: detachDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("link").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("target").instanceId);
+  });
+
+  it("fires an allied EX10-062 link-trash watcher when Detach pays its link cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-045" }], hand: [{ card: "BT1-106", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT26-019", as: "target", linked: [{ card: "BT26-010", as: "link" }] },
+            { card: "EX10-062", as: "watcher" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.every(({ topCard }) => topCard.cardId !== "BT26-019"),
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("target").instanceId, s.inst("link").instanceId]),
+    );
+    expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("fires an allied EX10-062 watcher while Gaia Force is prevented by Detach", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009" }], hand: [{ card: "ST1-16", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT26-019", as: "target", linked: [{ card: "BT26-010", as: "link" }] },
+            { card: "EX10-062", as: "watcher" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("target").permanentId),
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
   it("does not prevent the owner's own deletion cost", async () => {
     const s = setupEngine(
       {
@@ -167,6 +256,43 @@ describe("Detach departure lifecycle", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(targetId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(targetInstanceId);
   });
+
+  it("pays Detach when an attack into an equal-DP security Digimon would delete the holder", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-019", as: "attacker", linked: [{ card: "BT26-010", as: "link" }] }],
+        },
+        1: {
+          security: [{ card: "BT1-014", as: "securityDigimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.length === 1 &&
+        s.state.players[1]!.security.length === 0,
+    );
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("attacker").permanentId,
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
+  });
+
   it.each([
     { links: [], accept: true },
     { links: [], accept: false },

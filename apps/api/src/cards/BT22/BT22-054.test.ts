@@ -70,7 +70,7 @@ describe("BT22-054 Hagurumon", () => {
     const s = setupEngine(
       {
         0: {
-          deck: ["BT22-001"],
+          deck: ["BT1-009"],
           battleArea: [{ card: "BT22-056", as: "host", under: ["BT22-043", "BT22-054"] }],
         },
         1: { battleArea: [{ card: "BT22-071", as: "opponent" }] },

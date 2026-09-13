@@ -122,6 +122,35 @@ describe("BT17-049 Antylamon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === beastId)).toBe(false);
   });
+
+  it("does not delete itself when it is the only suspended Digimon available as the cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", under: ["BT17-049"], as: "host" }],
+          trash: [{ card: "BT17-043", as: "trashBeast" }],
+        },
+        1: { security: [{ card: "BT1-009" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const beastId = s.inst("trashBeast").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === beastId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("spends exactly 3 memory on the printed [Turuiemon] route and keeps the source stack", async () => {
     const s = setupEngine(
       {

@@ -172,8 +172,9 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
     const isLinkedCard = permanent.linked.some((card) => card.instanceId === ctx.source.instanceId);
     if (!isLinkedCard && !permanent.stack.some((card) => card.instanceId === ctx.source.instanceId)) return false;
     const def = ctx.game.definitionOf(permanent.topCard);
+    const effectiveHostKinds = ctx.game.effectiveKinds?.(permanent.permanentId, def.kinds) ?? def.kinds;
     const isBattleAreaDigimon =
-      def.kinds.includes(CardKind.Digimon) ||
+      effectiveHostKinds.includes(CardKind.Digimon) ||
       (ctx.source.isOnBattleArea() && def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0);
     // The breeding area has one rules-defined exception to the ordinary Digimon-host
     // requirement: BT13-007 King Drasil_7D6 is a Digi-Egg whose inherited effect is active

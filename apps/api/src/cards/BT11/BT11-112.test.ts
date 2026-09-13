@@ -185,7 +185,7 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
 });
 
 describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory", () => {
-  it("gains memory from the actual unsuspended-permanent trigger field", async () => {
+  it("gains memory once on its turn, ignores the opponent's turn, and resets next turn", async () => {
     const s = setup(
       {
         0: {
@@ -193,18 +193,53 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
             { card: "BT11-112", as: "kouji" },
             { card: "BT11-023", as: "blue" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
     await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
-    s.perm("blue").isSuspended = true;
 
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("blue").permanentId]);
     await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
-
     await settle(() => s.state.memory === 4, 200);
     expect(s.state.memory).toBe(4);
+
+    // The frequency is shared by both trigger routes during this turn.
+    await advance(s.engine).verb.suspend([s.perm("blue").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
+    await settle(() => false, 60);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    // On the opponent's turn, the same unsuspend event does not satisfy [Your Turn].
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.suspend([s.perm("blue").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
+    await settle(() => false, 60);
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    // The once-per-turn window resets for the next turn of the Tamer's controller.
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("blue").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
+    await settle(() => s.state.memory === 4, 200);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });
 

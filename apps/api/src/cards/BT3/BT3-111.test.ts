@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-111.js";
 
@@ -160,5 +161,56 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
 
     expect(s.state.memory).toBe(5);
     expect(s.perm("dinobeemon").inBreeding).toBe(true);
+  });
+
+  it("unsuspends once per turn after battle deletion and resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT3-111", as: "dragon" }], deck: Array(10).fill("BT1-010") },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 1000, suspended: true, as: "first" },
+            { card: "BT1-010", dp: 1000, suspended: true, as: "second" },
+            { card: "BT1-010", dp: 1000, suspended: true, as: "third" },
+          ],
+          security: ["BT1-011", "BT1-011", "BT1-011"],
+          deck: Array(10).fill("BT1-010"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = (target: string) =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dragon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm(target).permanentId },
+      });
+    expect(attack("first")).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 2 &&
+        !s.perm("dragon").isSuspended &&
+        !observe(s.engine).isAttacking(),
+    );
+    await advance(s.engine).verb.unsuspend([s.perm("dragon").permanentId]);
+    expect(attack("second")).toEqual({ ok: true });
+    await settle(() => s.perm("dragon").isSuspended && !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("third").permanentId]);
+    expect(attack("third")).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        !observe(s.engine).isAttacking() &&
+        !s.perm("dragon").isSuspended,
+    );
+    expect(s.perm("dragon").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

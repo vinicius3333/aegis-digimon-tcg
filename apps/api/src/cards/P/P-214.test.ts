@@ -95,10 +95,27 @@ describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-boun
         hostStackBefore,
       );
 
-      // A Digivolving P-214 places only its top card under the other host; the old Lv.3
-      // source card is no longer part of a permanent and is trashed by the placement rule.
-      expect(s.state.players[0]!.trash.some((card) => card.instanceId === evolutionBaseId)).toBe(isEvolution);
-      expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === evolutionBaseId)).toBe(false);
+      // Accepted Decode plays the exact former base from its digivolution cards before P-214
+      // is placed under Seadramon; that source's own On Play resolves afterward.
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === evolutionBaseId)).toBe(false);
+      expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === evolutionBaseId)).toBe(
+        isEvolution,
+      );
+      expect(
+        s.events.some(
+          (event) =>
+            event.kind === "cardsMoved" &&
+            evolutionBaseId !== undefined &&
+            event.instanceIds?.includes(evolutionBaseId) &&
+            event.from === "various" &&
+            event.to === "battleArea",
+        ),
+      ).toBe(isEvolution);
+      expect(
+        s.events.some(
+          (event) => event.kind === "effectResolved" && event.sourceCardId === "BT15-022" && event.timing === "OnPlay",
+        ),
+      ).toBe(isEvolution);
     },
   );
 

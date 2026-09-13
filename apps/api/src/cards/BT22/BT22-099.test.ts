@@ -59,7 +59,7 @@ describe("BT22-099 Kuremi Detective Agency", () => {
         0: {
           hand: [{ card: "BT22-099", as: "agency" }],
           battleArea: ["BT22-054"],
-          deck: ["BT1-001", "BT1-002", "BT22-054"],
+          deck: ["BT1-009", "BT1-010", "BT22-054"],
         },
       },
       { autoSelectCards: true },
@@ -80,7 +80,7 @@ describe("BT22-099 Kuremi Detective Agency", () => {
         0: {
           hand: [{ card: "BT22-099", as: "agency" }],
           battleArea: ["BT22-054"],
-          deck: ["BT1-001", "BT1-002", "BT22-054"],
+          deck: ["BT1-009", "BT1-010", "BT22-054"],
         },
       },
       { autoSelectCards: true },

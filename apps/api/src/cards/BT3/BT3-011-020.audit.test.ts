@@ -62,7 +62,12 @@ describe("BT3-011 through BT3-020 IR coverage", () => {
         expect.objectContaining({
           trigger: "YourTurn",
           actions: [
-            expect.objectContaining({ grant: "color", kind: "GrantStatic", tokens: ["Yellow"], duration: "forTheTurn" }),
+            expect.objectContaining({
+              grant: "color",
+              kind: "GrantStatic",
+              tokens: ["Yellow"],
+              duration: "forTheTurn",
+            }),
           ],
         }),
       ]),

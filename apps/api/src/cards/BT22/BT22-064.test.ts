@@ -92,4 +92,43 @@ describe("BT22-064 Diaboromon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-071")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
+
+  it("deletes exactly the selected tied lowest-cost Digimon and preserves the other tie", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-059", as: "infermon" }],
+          hand: [{ card: "BT22-064", as: "diaboromon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "otherTie" },
+            { card: "BT1-009", as: "selectedTie" },
+            { card: "BT22-071", as: "higherCost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const selectedId = s.perm("selectedTie").permanentId;
+    const otherId = s.perm("otherTie").permanentId;
+    const higherId = s.perm("higherCost").permanentId;
+    preferred.push(selectedId);
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("infermon").permanentId,
+        instanceId: s.inst("diaboromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === selectedId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === selectedId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === otherId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

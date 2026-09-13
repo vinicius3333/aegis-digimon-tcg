@@ -32,13 +32,13 @@ describe("BT15-003", () => {
         0: {
           battleArea: [{ card: "BT14-033", as: "attacker", dp: 8000, under: ["BT15-003"] }],
           security: [
-            { card: "BT1-002", as: "top" },
-            { card: "BT1-001", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
-          security: [{ card: "BT1-001", as: "opponentSecurity" }],
+          security: [{ card: "BT1-009", as: "opponentSecurity" }],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true },
@@ -80,8 +80,8 @@ describe("BT15-003", () => {
         0: {
           battleArea: [{ card: "BT14-033", as: "attacker", under: ["BT15-003"] }],
           security: [
-            { card: "BT1-002", as: "top" },
-            { card: "BT1-001", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
@@ -107,7 +107,7 @@ describe("BT15-003", () => {
       {
         0: {
           battleArea: [{ card: "BT14-033", as: "attacker", under: ["BT15-003"] }],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
       },
@@ -126,5 +126,49 @@ describe("BT15-003", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("allows the inherited trigger again after a complete opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-033", as: "attacker", dp: 8000, under: ["BT15-003"] }],
+          security: ["BT1-009", "BT1-010", "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-009"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && s.state.players[0]!.security.length === 2);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 4 && s.state.players[0]!.security.length === 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

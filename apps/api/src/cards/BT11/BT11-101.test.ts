@@ -6,10 +6,21 @@ import { compiled } from "./BT11-101.js";
 
 describe("BT11-101 Holy Sunshine", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-101")).toMatchObject({ cardId: "BT11-101", colors: ["Yellow"], kinds: ["Option"], playCost: 8 });
+    expect(getCardDefinition("BT11-101")).toMatchObject({
+      cardId: "BT11-101",
+      colors: ["Yellow"],
+      kinds: ["Option"],
+      playCost: 8,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
-      { trigger: "Main", actions: [{ kind: "ModifyDP", amount: -5000 }, { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } }] },
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "ModifyDP", amount: -5000 },
+          { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
     ]);
   });

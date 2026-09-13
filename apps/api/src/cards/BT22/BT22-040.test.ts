@@ -71,7 +71,7 @@ describe("BT22-040 Cendrillmon", () => {
             { card: "BT22-032", as: "fodder" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );

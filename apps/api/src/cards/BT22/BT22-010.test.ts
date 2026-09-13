@@ -37,7 +37,7 @@ describe("BT22-010 Meramon", () => {
 
   it("pays exactly 2 through public Main activation and grants Raid and Piercing", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true },
     );
     await s.ready();

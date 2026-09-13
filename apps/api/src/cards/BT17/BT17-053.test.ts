@@ -130,6 +130,40 @@ describe("BT17-053 Keramon", () => {
     expect(s.perm("keramon").topCard?.instanceId).toBe(keramonId);
   });
 
+  it("can decline the optional Infermon digivolution and preserve the stack and memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-053", as: "keramon" }],
+          hand: [{ card: "BT17-055", as: "infermon" }],
+        },
+        1: { hand: [{ card: "BT17-056", as: "playedLevel5" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const keramonId = s.perm("keramon").topCard!.instanceId;
+    const infermonId = s.inst("infermon").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("playedLevel5").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-056") &&
+        s.perm("keramon").topCard?.instanceId === keramonId &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("keramon").topCard?.instanceId).toBe(keramonId);
+    expect(s.perm("keramon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === infermonId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("plays a Diaboromon Token when its Unidentified host is deleted in battle", async () => {
     const s = setupEngine(
       {

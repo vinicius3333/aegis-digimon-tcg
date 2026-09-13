@@ -15,7 +15,7 @@ describe("BT22-004 Wanyamon", () => {
           { card: "BT22-043", as: "terriermon" },
           { card: "BT22-008", as: "invalidAgumon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.phase = Phase.Breeding;
@@ -86,7 +86,7 @@ describe("BT22-004 Wanyamon", () => {
       {
         0: {
           eggDeck: [{ card: "BT22-004", as: "host" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
           hand: [
             { card: "BT22-043", as: "terriermon" },
             { card: "BT22-046", as: "gargomon" },
@@ -145,7 +145,7 @@ describe("BT22-004 Wanyamon", () => {
     expect(host.stack[1]!.cardId).toBe("BT22-004");
     expect(host.stack[2]!.cardId).toBe("BT22-043");
     expect(host.topCard?.instanceId).toBe(s.inst("next").instanceId);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);
 
     const deckAfterFirst = s.state.players[0]!.deck.length;

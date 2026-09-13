@@ -105486,7 +105486,7 @@
       "VB"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[ME]/[VB] trait: Cost 3\n[DNA Digivolve] Blue/Black Lv.5 + Purple/Yellow Lv.5 : Cost 0\n[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait\n\n＜Evade＞ \n＜Decode (Lv.5 or lower w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait)＞ \n[On Play] [When Digivolving] Trash any 4 digivolution cards from your opponent's Digimon. Then, return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, 1 of your opponent's Digimon can't suspend until their turn ends.",
-    "nameJp": "ウォーグレイモン"
+    "nameJp": "メタルガルルモン"
   },
   {
     "cardId": "EX12-036",
@@ -107555,6 +107555,50 @@
     "nameJp": "デュークモン"
   },
   {
+    "cardId": "EX13-016",
+    "set": "EX13",
+    "nameEn": "Omnimon",
+    "colors": [
+      "Red",
+      "White",
+      "Blue"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 15,
+    "dp": 15000,
+    "evoCosts": [
+      {
+        "color": "Red",
+        "level": 6,
+        "memoryCost": 5
+      },
+      {
+        "color": "Blue",
+        "level": 6,
+        "memoryCost": 5
+      }
+    ],
+    "rarity": "SR",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-016",
+    "level": 7,
+    "forms": [
+      "Mega"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Holy Warrior",
+      "Royal Knight",
+      "CS"
+    ],
+    "effectText": "[Digivolve] Lv.6 w/[CS] trait: Cost 5 [DNA Digivolve] Lv.6 w/[Greymon] in name + Lv.6 w/[Garurumon] in name : Cost 0\n[Assembly -7] [WarGreymon] × [MetalGarurumon] × [Agumon] × [Gabumon]\n\n＜Raid＞ \n＜Blocker＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 2 of your opponent's Digimon or Tamers can't suspend until their turn ends.\n[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.\n[All Turns] When this Digimon would leave the battle area, by trashing 2 same-level cards from its digivolution cards, it doesn't leave.",
+    "nameJp": "オメガモン"
+  },
+  {
     "cardId": "EX13-017",
     "set": "EX13",
     "nameEn": "Veemon",
@@ -108840,8 +108884,8 @@
     "kinds": [
       "Digimon"
     ],
-    "playCost": 12,
-    "dp": 12000,
+    "playCost": 13,
+    "dp": 13000,
     "evoCosts": [
       {
         "color": "Black",
@@ -109055,6 +109099,30 @@
     "nameJp": "シスタモン ノワール（覚醒）/ミッキーバレット（覚醒）"
   },
   {
+    "cardId": "EX13-067",
+    "set": "EX13",
+    "nameEn": "Nokia Shiramine",
+    "colors": [
+      "Red",
+      "Blue"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 4,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-067",
+    "types": [
+      "CS"
+    ],
+    "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any of your Digimon digivolve, if you have 1 or fewer Digimon, by suspending this Tamer, you may play 1 [Gabumon] if that Digimon has [Greymon] in its name and 1 [Agumon] if it has [Garurumon] in its name from your hand or trash without paying the cost.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "白峰ノキア"
+  },
+  {
     "cardId": "EX13-068",
     "set": "EX13",
     "nameEn": "Takato Matsuki",
@@ -109096,6 +109164,27 @@
     "effectText": "[Start of Your Main Phase] If you have a Digimon with [Veemon] or [Veedramon] in its name, gain 1 memory.\n[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞. After, 1 of your Digimon may digivolve into a Digimon card with [Veedramon] in its name in the hand with the cost reduced by 2.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "四ノ宮リナ"
+  },
+  {
+    "cardId": "EX13-070",
+    "set": "EX13",
+    "nameEn": "Davis Motomiya & Ken Ichijoji",
+    "colors": [
+      "Blue",
+      "Green"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 4,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-070",
+    "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[End of Your Turn] By suspending this Tamer, activate 1 of the effects below:\n・1 of your Digimon may digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand. Reduce this effect's paid cost by 1 for each of your opponent's Digimon.\n・2 of your Digimon may DNA digivolve into a [Free] trait Digimon card in the hand.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "本宮大輔＆一乗寺賢"
   },
   {
     "cardId": "EX13-071",
@@ -109228,6 +109317,42 @@
     ],
     "effectText": "[Digivolve] Lv.6 w/[Free]/[Royal Knight] trait: Cost 5 \n[Assembly -8] 6 [Free]/[Royal Knight] trait Digimon cards w/different names\n\n＜Piercing＞ \n＜Vortex＞ \n＜Blocker＞ \n＜Evade＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon. Then, you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it. Compare the number of digivolution cards instead of DP in this battle.\n[All Turns] [Once Per Turn] When this Digimon wins a battle, you may return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may unsuspend.\n[Rule] Trait: Has [Free] Attribute.",
     "nameJp": "インペリアルドラモン：パラディンモード"
+  },
+  {
+    "cardId": "EX13-077",
+    "set": "EX13",
+    "nameEn": "Omnimon: Merciful Mode",
+    "colors": [
+      "White"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 16,
+    "dp": 16000,
+    "evoCosts": [
+      {
+        "color": "All",
+        "level": 6,
+        "memoryCost": 6
+      }
+    ],
+    "rarity": "SEC",
+    "maxCountInDeck": 4,
+    "imageId": "EX13-077",
+    "level": 7,
+    "forms": [
+      "Mega"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Holy Warrior",
+      "ADVENTURE"
+    ],
+    "effectText": "[Digivolve] [Omnimon]: Cost 2 \n[Assembly -8] 6 [ADVENTURE] trait Digimon cards w/different colors\n\n[On Play] [When Digivolving] 1 of your Digimon may attack without suspending. Then, for every 2 of your Digimon and Tamers' colors, activate 1 effect below:\n・This Digimon may battle 1 of your opponent's Digimon.\n・By returning 5 cards from your opponent's trash to the bottom of the deck, ＜Recovery +1＞ \n[All Turns] This Digimon gains all colors in its digivolution cards, and +1000 DP for each of your Digimon and Tamers' colors.",
+    "nameJp": "オメガモン：マーシフルモード"
   },
   {
     "cardId": "EX2-001",

@@ -100,12 +100,12 @@ describe("BT15-027", () => {
             { card: "BT15-027", as: "scorpiomon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT15-025", as: "onPlayTarget" }],
-          security: ["BT1-001"],
-          deck: ["BT1-001"],
+          security: ["BT1-009"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -153,7 +153,7 @@ describe("BT15-027", () => {
             { card: "BT15-027", as: "scorpiomon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -178,10 +178,10 @@ describe("BT15-027", () => {
 
   it("lets an inherited host suspend to block an opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-009"] },
       1: {
         battleArea: [{ card: "BT15-031", as: "host", under: ["BT15-025", "BT15-027"], dp: 11000 }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     s.state.turnSeat = 0;

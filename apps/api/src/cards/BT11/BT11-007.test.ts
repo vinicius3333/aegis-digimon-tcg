@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-007.js";
 
 describe("BT11-007 Biyomon", () => {
@@ -101,13 +102,33 @@ describe("BT11-007 Biyomon", () => {
 
   it("gains 1 memory on its host's deletion while a red Tamer remains", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-007"] }, "BT1-085"] },
+      0: {
+        battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-007"] }, "BT1-085"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-080", as: "titan", dp: 13000, suspended: true }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
+      },
     });
-    s.state.memory = 0;
+    s.state.memory = 3;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("titan").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId),
+    );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(4);
   });
 
   it("does not gain memory when its host and red Tamer are deleted simultaneously (Q2052)", async () => {

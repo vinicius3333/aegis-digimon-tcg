@@ -500,6 +500,38 @@ describe("EX13-044 Breakdramon", () => {
     await loop;
   });
 
+  it("keeps the main and inherited printed copies as independent once-per-turn watchers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // The top Examon is a legal normal Lv.6 evolution over the EX13-044 source,
+          // so its inherited EX13-044 watcher is active alongside the standalone copy's
+          // main watcher on the other permanent.
+          battleArea: [
+            { card: cardId, as: "main" },
+            { card: "EX13-045", as: "inherited", under: [cardId] },
+            { card: NON_MATCH, as: "trigger" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: NON_MATCH, dp: 1000, as: "firstPrey" },
+            { card: NON_MATCH, dp: 1000, as: "secondPrey" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("trigger").permanentId]);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    // Both separately printed copies may battle once from this same suspension event.
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
+  });
+
   it("fires off a real attack declaration, whose own suspension is the event", async () => {
     const s = setupEngine(
       {

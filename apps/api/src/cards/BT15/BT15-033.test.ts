@@ -29,8 +29,8 @@ describe("BT15-033", () => {
         0: {
           battleArea: [{ card: "BT15-034", as: "host", suspended: true, under: ["BT15-033"] }],
           security: [
-            { card: "BT1-001", as: "topSecurity" },
-            { card: "BT1-002", as: "bottomSecurity" },
+            { card: "BT1-009", as: "topSecurity" },
+            { card: "BT1-010", as: "bottomSecurity" },
           ],
         },
         1: { battleArea: [{ card: "BT15-029", as: "attacker" }] },
@@ -62,7 +62,7 @@ describe("BT15-033", () => {
       {
         0: {
           battleArea: [{ card: "BT15-034", as: "host", suspended: true, under: ["BT15-033"] }],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
         1: { battleArea: [{ card: "BT15-029", as: "attacker" }] },
       },
@@ -113,7 +113,7 @@ describe("BT15-033", () => {
       {
         0: {
           battleArea: [{ card: "BT15-034", as: "host", under: ["BT15-033"] }],
-          security: [{ card: "BT1-001", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
       },
       { autoAcceptOptional: true },
