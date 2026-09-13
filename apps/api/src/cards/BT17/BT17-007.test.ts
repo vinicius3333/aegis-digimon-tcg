@@ -61,7 +61,7 @@ describe("BT17-007", () => {
           { card: "BT17-013", as: "warGrowlmon" },
           { card: "BT17-015", as: "warGreymon" },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
 
@@ -82,7 +82,7 @@ describe("BT17-007", () => {
             { card: "BT1-051", as: "yellowLv4", under: ["BT1-048"] },
           ],
           hand: [{ card: "BT16-012", as: "silphymon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -108,7 +108,7 @@ describe("BT17-007", () => {
             { card: "BT1-051", as: "yellowLv4", under: ["BT1-048"] },
           ],
           hand: [{ card: "BT17-078", as: "omnimon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -235,7 +235,7 @@ describe("BT17-007", () => {
           { card: "BT17-013", as: "warGrowlmon" },
           { card: "BT17-015", as: "warGreymon" },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
 
@@ -259,7 +259,7 @@ describe("BT17-007", () => {
             { card: "BT17-015", as: "warGreymon" },
             { card: "BT17-078", as: "omnimon" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -278,7 +278,7 @@ describe("BT17-007", () => {
       0: {
         battleArea: [{ card: "BT17-007", as: "host", under: ["BT17-001"] }],
         trash: [{ card: "BT17-015", as: "warGreymon" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
 
@@ -297,7 +297,7 @@ describe("BT17-007", () => {
           { card: "BT1-085", as: "tai" },
         ],
         trash: [{ card: "BT17-013", as: "warGrowlmon" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
 
@@ -316,7 +316,7 @@ describe("BT17-007", () => {
             { card: "BT1-051", as: "yellowLv4", under: ["BT1-048"] },
           ],
           hand: [{ card: "BT16-012", as: "silphymon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -344,7 +344,7 @@ describe("BT17-007", () => {
             { card: "BT1-014", as: "otherRedLv4", under: ["BT17-001"] },
           ],
           hand: [{ card: "BT16-012", as: "silphymon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -375,7 +375,7 @@ describe("BT17-007", () => {
             { card: "BT17-081", as: "taiAndMatt" },
           ],
           trash: [{ card: "BT17-015", as: "warGreymon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -397,7 +397,7 @@ describe("BT17-007", () => {
           { card: "BT1-087", as: "tk" },
         ],
         trash: [{ card: "BT17-015", as: "warGreymon" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
 

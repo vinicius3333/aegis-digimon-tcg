@@ -45,6 +45,9 @@ const compiled: CompiledCard = {
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",
+            // The two cards leave the trash simultaneously; the player chooses
+            // their order when they become the bottom cards of the stack.
+            orderPlacedCards: true,
             costs: [
               {
                 kind: "place",

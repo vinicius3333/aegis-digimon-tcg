@@ -177,6 +177,8 @@ export interface PrimitivesEngine {
   trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Complete a rule check before an effect-driven digivolution's own timing window. */
+  processRulesBeforeWhenDigivolving?: () => Promise<void>;
   /** Resolve the normal When Digivolving window for a public digivolution-like entry. */
   fireWhenDigivolving?: (seat: Seat, permanent: Permanent, previousLevel?: number) => Promise<void>;
   /** Run the would-digivolve and before-cost windows for effect-driven App Fusion. */
@@ -1330,6 +1332,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
+      processRulesBeforeWhenDigivolving?: boolean;
       suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined> => {
@@ -1501,6 +1504,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // the undefined default false silently skipped the bonus for nearly every card module.
     if (opts?.draw !== false) await draw(seat, 1);
     await opts?.beforeWhenDigivolving?.();
+    if (opts?.processRulesBeforeWhenDigivolving) {
+      await engine.processRulesBeforeWhenDigivolving?.();
+    }
+    // A replacement digivolution can itself be removed by the nested rule check (for
+    // example, a newly evolved Digimon still at 0 DP). Its entry timing cannot activate
+    // after that physical removal; the outer rule pass retains and orders its reactions.
+    if (opts?.processRulesBeforeWhenDigivolving) {
+      if (
+        access.permanentById(permanent.permanentId) !== permanent ||
+        permanent.topCard?.instanceId !== instance.instanceId
+      ) {
+        return permanent;
+      }
+    }
     // The digivolved-into card's OWN [When Digivolving] fires (it was digivolved BY AN EFFECT),
     // with `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate).
     if (opts?.suppressWhenDigivolving !== true) {
@@ -2320,6 +2337,28 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           )
             .filter((card): card is CardInstance => card !== undefined)
             .map((card) => card.instanceId);
+    const sourceInBattle = access.permanentById(sourcePermanentId);
+    const source =
+      sourceInBattle ?? state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+    const destination =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (
+      source === undefined ||
+      destination?.topCard === undefined ||
+      sourcePermanentId === destPermanentId ||
+      isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
+    )
+      return false;
+    if (sourceInBattle !== undefined) {
+      const resolvingSeat = effectSeatStack.at(-1) ?? source.controllerSeat;
+      const cause = "byEffect" as const;
+      const prevented = await engine.consultLeavePrevention?.([sourcePermanentId], cause, resolvingSeat, {
+        isBounce: true,
+      });
+      if (prevented?.has(sourcePermanentId)) return false;
+    }
+
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {
       // A whole permanent placed under another by an effect/cost is still one or more
@@ -2487,6 +2526,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         )
           return false;
         if (isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")) return false;
+        const cause = "byEffect" as const;
+        const prevented = await engine.consultLeavePrevention?.([permanentId], cause, effectSeat, { isBounce: true });
+        if (prevented?.has(permanentId)) return false;
         const extracted = extractPermanentAt(owner, idx)!;
         // Comprehensive Rules §3-4-5-2: a Digimon in the breeding area can't be affected
         // by (and its battle-area effects don't run) effects unless they reference breeding.
@@ -2686,7 +2728,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // separately so refreshing those values does not depend on emitting a subtrigger.
     const linkedHostsToRefresh = new Set<string>();
     const linkedHostByInstance = new Map<string, string>();
-    const optionBattleAreaTrashed: string[] = [];
+    const optionBattleAreaTrashed: { instanceId: string; permanentId: string }[] = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
     for (const instanceId of instanceIds) {
@@ -2743,7 +2785,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             card.faceUp = false;
             insertCard(player(card.ownerSeat), Zone.Trash, card);
           }
-          optionBattleAreaTrashed.push(instanceId);
+          optionBattleAreaTrashed.push({ instanceId, permanentId: extracted.permanentId });
           break;
         }
       }
@@ -2793,8 +2835,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
     }
-    for (const instanceId of optionBattleAreaTrashed) {
+    for (const { instanceId } of optionBattleAreaTrashed) {
       await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: instanceId });
+    }
+    // Battle-area Options paid through a generic `trash` cost leave as whole permanents, but
+    // this is still a trash event rather than a deletion. Publish the typed batch timing after
+    // movement so printed `When this card is trashed in your battle area` effects resolve with
+    // the same post-move identity/owner semantics as deletePermanent (BT19-095 / Q3170).
+    if (optionBattleAreaTrashed.length > 0 && opts?.byRule !== true && engine.fireTiming) {
+      await engine.fireTiming(EffectTiming.WhenTrashedFromBattleArea, {
+        deletedPermanentId: optionBattleAreaTrashed[0]!.permanentId,
+        deletedInstanceIds: optionBattleAreaTrashed.map(({ instanceId }) => instanceId),
+      });
     }
     const discardedFromSecurity = fromSecurity.filter((id) => movedIds.has(id));
     if (discardedFromSecurity.length > 0) {

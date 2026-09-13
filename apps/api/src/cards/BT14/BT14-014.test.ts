@@ -67,7 +67,7 @@ describe("BT14-014", () => {
         0: {
           battleArea: [{ card: "BT14-012", as: "greymon" }],
           hand: [{ card: "BT14-014", as: "metalgreymon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -100,7 +100,7 @@ describe("BT14-014", () => {
         0: {
           battleArea: [{ card: "BT14-012", as: "greymon" }],
           hand: [{ card: "BT14-014", as: "metalgreymon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
           security: ["BT1-085"],
         },
         1: {

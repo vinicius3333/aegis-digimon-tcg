@@ -111,7 +111,7 @@ describe("BT14-039", () => {
           { card: "BT14-040", as: "control", under: ["BT14-039"] },
         ],
       },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.turnSeat = 0;
     await s.ready();

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-027.js";
@@ -7,6 +8,7 @@ describe("BT3-027 Paildramon", () => {
   it("has Jamming and unsuspends its Imperialdramon host when attacking", async () => {
     const s = setupEngine({
       0: {
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
         battleArea: [
           { card: "BT3-027", as: "paildramon" },
           { card: "BT3-031", as: "imperial", under: ["BT3-027"] },
@@ -50,13 +52,16 @@ describe("BT3-027 Paildramon", () => {
   it("does not trigger its inherited effect a second time in the same turn", async () => {
     const s = setupEngine({
       0: {
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
         battleArea: [
           { card: "BT3-027", as: "paildramon" },
           { card: "BT3-031", as: "imperial", under: ["BT3-027"] },
         ],
       },
-      1: { security: ["BT1-010", "BT1-011"] },
+      1: { security: ["BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013", "BT1-014"] },
     });
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const attackerId = s.perm("imperial").permanentId;
 
     expect(
@@ -72,5 +77,16 @@ describe("BT3-027 Paildramon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("imperial").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 5000);
+    expect(s.perm("imperial").isSuspended).toBe(false);
   });
 });

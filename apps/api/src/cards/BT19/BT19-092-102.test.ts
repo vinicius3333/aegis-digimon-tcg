@@ -38,8 +38,8 @@ describe("BT19-092 through BT19-102 audit contract", () => {
     const triggers = compiled.effects.filter((effect) => effect.trigger === "whenTrashedFromBattleArea");
     expect(triggers).toHaveLength(1);
     expect(triggers[0]?.turnCondition).toBeUndefined();
-    expect(triggers[0]?.actions[0]).toMatchObject({ duration: "untilOpponentTurnEnd" });
-    expect(triggers[0]?.actions[1]).toMatchObject({ duration: "untilOpponentTurnEnd" });
+    expect(triggers[0]?.actions[0]).toMatchObject({ duration: "forTheTurn" });
+    expect(triggers[0]?.actions[1]).toMatchObject({ duration: "forTheTurn" });
   });
 
   it("restricts Luminamon's deletion play to cards under your Tamers", () => {

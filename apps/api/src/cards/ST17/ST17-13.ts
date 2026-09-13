@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
     {
       trigger: "Security",
       actions: [
-        { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 1 },
+        { kind: "DeDigivolve", target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 }, amount: 1 },
         {
           kind: "SubTrigger",
           event: "whenSecurityBattleEnded",
@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Veemon"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Veemon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("ST17-13", compiled);

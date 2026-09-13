@@ -31,7 +31,7 @@ describe("BT14-100", () => {
             { card: "BT14-100", as: "option" },
           ],
           trash: [{ card: "BT14-074", as: "returned" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -41,9 +41,9 @@ describe("BT14-100", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-100")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-074")).toBe(true);
   });

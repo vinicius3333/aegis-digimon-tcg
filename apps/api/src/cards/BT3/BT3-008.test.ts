@@ -55,13 +55,7 @@ describe("BT3-008 Zubamon", () => {
       {
         0: {
           hand: [{ card: "BT3-008", as: "source" }],
-          deck: [
-            { card: "BT3-019", as: "ragna" },
-            { card: "EX6-065", as: "option" },
-            "BT3-014",
-            "BT3-015",
-            "BT3-017",
-          ],
+          deck: [{ card: "BT3-019", as: "ragna" }, { card: "EX6-065", as: "option" }, "BT3-014", "BT3-015", "BT3-017"],
         },
       },
       { autoSelectCards: true },
@@ -105,13 +99,7 @@ describe("BT3-008 Zubamon", () => {
       0: {
         battleArea: [{ card: "BT3-001", as: "base" }],
         hand: [{ card: "BT3-008", as: "source" }],
-        deck: [
-          { card: "BT3-014", as: "drawn" },
-          { card: "BT3-019", as: "notAdded" },
-          "BT3-015",
-          "BT3-017",
-          "BT3-018",
-        ],
+        deck: [{ card: "BT3-014", as: "drawn" }, { card: "BT3-019", as: "notAdded" }, "BT3-015", "BT3-017", "BT3-018"],
       },
     });
     s.state.memory = 0;

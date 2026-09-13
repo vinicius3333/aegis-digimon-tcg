@@ -5,6 +5,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-048.js";
 import "./index.js";
+import "./BT17-018.js";
+import "./BT17-051.js";
 
 // A3 for BT17-048 (Argomon, Green Lv.5):
 //   [On Deletion] If 4+ [Argomon] in trash, may play 1 Lv.6 [Argomon] from hand for free.
@@ -220,6 +222,42 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
 
     const lv6IsOnField = p0.battleArea.some((perm) => perm.topCard?.cardId === ARGOMON_LV6);
     expect(lv6IsOnField).toBe(true);
+  });
+
+  it("cancels an inherited Argomon On Deletion when BT17-051 places that source first (Q2808)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ARGOMON_LV5, dp: 7000, under: ["BT17-042"], as: "argomon" }],
+          trash: ["BT2-042", "BT2-045"],
+          hand: [{ card: ARGOMON_LV6, as: "lv6Argomon" }],
+        },
+        1: {
+          battleArea: [{ card: "ST7-09", as: "base" }],
+          hand: [{ card: "BT17-018", as: "deletionEffect" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT17-048", "BT17-051"] },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletionEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === ARGOMON_LV6));
+
+    const p0 = s.state.players[0]!;
+    expect(p0.battleArea.filter((p) => p.topCard?.cardId === ARGOMON_LV6)).toHaveLength(1);
+    expect(s.perm("lv6Argomon").stack).toHaveLength(4);
+    expect(s.perm("lv6Argomon").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT17-048", "BT17-042", "BT2-042", "BT2-045"]),
+    );
+    // BT17-042's inherited [On Deletion] would gain 1 memory if it activated after BT17-051
+    // placed it from trash. The opponent's BT17-018 play costs 8, moving memory 10 -> 2.
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("naturally unsuspends its host after attacking by suspending Rhythm", async () => {

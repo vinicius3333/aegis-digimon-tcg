@@ -40592,7 +40592,7 @@
     "types": [
       "Device"
     ],
-    "effectText": "While you don't have [Knight Device], you may ignore this card's color requirements.When an effect trashes this card in your battle area, 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn.\n[Main] 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn. Then, place this card in the battle area.",
+    "effectText": "While you don't have [Knight Device] in the battle area, you may ignore this card's color requirements.\nWhen this card is trashed from the battle area, 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn.\n[Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn. Then, place this card in the battle area.",
     "securityEffectText": "[Security] Suspend 2 of your opponent's Digimon or Tamers. Then, add this card to the hand.",
     "rarity": "C",
     "maxCountInDeck": 4,
@@ -105486,7 +105486,7 @@
       "VB"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[ME]/[VB] trait: Cost 3\n[DNA Digivolve] Blue/Black Lv.5 + Purple/Yellow Lv.5 : Cost 0\n[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait\n\n＜Evade＞ \n＜Decode (Lv.5 or lower w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait)＞ \n[On Play] [When Digivolving] Trash any 4 digivolution cards from your opponent's Digimon. Then, return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[All Turns] [Once Per Turn] When any Digimon are played or digivolve, 1 of your opponent's Digimon can't suspend until their turn ends.",
-    "nameJp": "ウォーグレイモン"
+    "nameJp": "メタルガルルモン"
   },
   {
     "cardId": "EX12-036",

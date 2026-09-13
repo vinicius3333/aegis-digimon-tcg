@@ -45,7 +45,7 @@ describe("BT14-022", () => {
 
   it("lets the controller trash any source, then returns a separate source-less level 5", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-009"] },
       1: {
         battleArea: [
           {
@@ -104,7 +104,7 @@ describe("BT14-022", () => {
   it("re-evaluates after trashing and can return that newly source-less Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT14-015", as: "target", under: ["BT14-012"] }] },
       },
       { autoSelectCards: true },
@@ -125,7 +125,7 @@ describe("BT14-022", () => {
   it("does not return a source-less level 6 or a level 5 that still has sources", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT14-022", as: "gesomon" }], security: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT14-017", as: "level6" },

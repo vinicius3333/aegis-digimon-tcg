@@ -42,7 +42,7 @@ describe("ST2-06 Garurumon", () => {
               ],
             },
           ],
-          security: ["BT1-001"],
+          security: ["ST1-02"],
         },
       },
       { autoSelectCards: true },
@@ -62,7 +62,7 @@ describe("ST2-06 Garurumon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST2-08", as: "attacker", under: ["ST2-06"] }] },
-        1: { battleArea: [{ card: "ST1-03", as: "sourceLess" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "ST1-03", as: "sourceLess" }], security: ["ST1-02"] },
       },
       { autoSelectCards: true },
     );

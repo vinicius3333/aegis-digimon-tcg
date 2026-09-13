@@ -55,7 +55,7 @@ describe("BT14-020", () => {
   it("lets the controller choose any opposing source and grants unblockable for the turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-020", as: "gomamon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT14-020", as: "gomamon" }], security: ["BT1-009"] },
         1: {
           battleArea: [
             {
@@ -115,7 +115,7 @@ describe("BT14-020", () => {
   it("Q2390 grants unblockable even when no opposing source can be trashed", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT14-020", as: "gomamon" }] },
-      1: { battleArea: [{ card: "BT14-011", as: "blocker" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT14-011", as: "blocker" }], security: ["BT1-009"] },
     });
     s.state.memory = 10;
     const turn = s.engine.runOneTurn();

@@ -77,7 +77,7 @@ describe("BT14-038", () => {
       0: {
         battleArea: [{ card: "BT14-034", as: "base" }],
         hand: [{ card: "BT14-038", as: "etemon" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     s.state.memory = 5;
@@ -94,7 +94,7 @@ describe("BT14-038", () => {
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[0]!.security.at(-1)?.cardId === "BT14-038");
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT14-038"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-038"]);
     assertNoLoudGap(s);
   });
 
@@ -104,7 +104,7 @@ describe("BT14-038", () => {
         0: {
           battleArea: [{ card: "BT14-040", as: "host", under: ["BT14-034", "BT14-038"] }],
           trash: [{ card: "BT11-044", as: "trashedEtemon" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -112,7 +112,7 @@ describe("BT14-038", () => {
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[0]!.security.at(-1)?.cardId === "BT11-044");
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT11-044"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT11-044"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT14-040");
     assertNoLoudGap(s);
   });

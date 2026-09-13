@@ -24,10 +24,10 @@ it("draws once when the opponent's security is removed, but not from own securit
   const s = setupEngine({
     0: {
       battleArea: [{ card: "BT14-007", as: "stack", under: ["BT14-001"] }],
-      deck: ["BT1-001", "BT1-001"],
-      security: ["BT1-001"],
+      deck: ["BT1-009", "BT1-009"],
+      security: ["BT1-009"],
     },
-    1: { security: ["BT1-001"] },
+    1: { security: ["BT1-091"] },
   });
   s.state.turnSeat = 0;
   await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("stack"));
@@ -47,9 +47,9 @@ it("survives the legal Koromon-to-Agumon breeding stack and draws after a real s
     0: {
       breeding: { card: "BT14-001", as: "koromon" },
       hand: [{ card: "BT14-007", as: "agumon" }],
-      deck: ["BT1-001", "BT1-001"],
+      deck: ["BT1-009", "BT1-009"],
     },
-    1: { security: ["BT1-001"] },
+    1: { security: ["BT1-091"] },
   });
   s.state.memory = 3;
 
@@ -84,5 +84,60 @@ it("survives the legal Koromon-to-Agumon breeding stack and draws after a real s
   expect(s.state.players[0]!.hand).toHaveLength(2);
   expect(s.perm("koromon").topCard.cardId).toBe("BT14-007");
   expect(s.perm("koromon").stack[0]?.cardId).toBe("BT14-001");
+  assertNoLoudGap(s);
+});
+
+it("resets the inherited once-per-turn draw on the next natural turn", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT1-009", under: ["BT14-001"], as: "attacker" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        hand: ["BT1-009"],
+        security: ["BT1-091", "BT1-091"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+
+  const firstTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const handBeforeFirstAttack = s.state.players[0]!.hand.length;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.security.length === 1);
+  expect(s.state.players[0]!.hand).toHaveLength(handBeforeFirstAttack + 1);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await firstTurn;
+
+  s.state.turnSeat = 1;
+  s.state.memory = 3;
+  await advance(s.engine).runTurn(1);
+
+  s.state.turnSeat = 0;
+  s.state.memory = 3;
+  const secondTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const handBeforeSecondAttack = s.state.players[0]!.hand.length;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.security.length === 0);
+  expect(s.state.players[0]!.hand).toHaveLength(handBeforeSecondAttack + 1);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await secondTurn;
   assertNoLoudGap(s);
 });

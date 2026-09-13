@@ -39,7 +39,7 @@ describe("BT14-071", () => {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT14-071"] }],
           hand: [
             { card: "BT14-072", as: "fangmon" },
-            { card: "BT1-002", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
           trash: [{ card: "BT14-071", as: "darkAnimal" }],
         },
@@ -58,8 +58,70 @@ describe("BT14-071", () => {
       }).ok,
     ).toBe(true);
 
-    await settle(() => s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
+    await settle(() => s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
+  });
+
+  it("resets the inherited once-per-turn memory watcher on the next natural turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-074", as: "host", under: ["BT14-071"] }],
+          hand: [
+            { card: "BT14-072", as: "fangmonA" },
+            { card: "BT14-072", as: "fangmonB" },
+            { card: "BT14-072", as: "fangmonC" },
+            { card: "BT1-009", as: "discardA" },
+            { card: "BT1-009", as: "discardB" },
+            { card: "BT1-009", as: "discardC" },
+          ],
+          trash: [{ card: "BT14-071", as: "darkAnimal" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("discardA").instanceId, s.inst("discardB").instanceId, s.inst("discardC").instanceId);
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonA").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.memory).toBe(7);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonB").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.memory === 3 && s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-009").length === 2,
+    );
+    expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonC").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.memory === 0 && s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-009").length === 3,
+    );
+    expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });

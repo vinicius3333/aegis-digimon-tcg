@@ -45,8 +45,8 @@ describe("BT14-037", () => {
       {
         0: {
           hand: [{ card: "BT14-037", as: "magna" }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
-          deck: ["BT1-006"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-028", as: "target" }] },
       },
@@ -69,7 +69,7 @@ describe("BT14-037", () => {
       {
         0: {
           hand: [{ card: "BT14-037", as: "magna" }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           deck: ["BT1-007"],
         },
         1: {
@@ -96,8 +96,8 @@ describe("BT14-037", () => {
         0: {
           battleArea: [{ card: "BT14-035", as: "base" }],
           hand: [{ card: "BT14-037", as: "magna" }],
-          security: ["BT1-001"],
-          deck: ["BT1-002", "BT1-003"],
+          security: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }] },
       },
@@ -125,8 +125,8 @@ describe("BT14-037", () => {
         0: {
           battleArea: [{ card: "BT14-035", as: "base" }],
           hand: [{ card: "BT14-037", as: "magna" }],
-          security: ["BT1-001"],
-          deck: ["BT1-002"],
+          security: ["BT1-009"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-020", as: "attacker" }] },
       },
