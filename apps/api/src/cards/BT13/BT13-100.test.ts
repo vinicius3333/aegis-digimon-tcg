@@ -20,9 +20,9 @@ describe("BT13-100 BT13-100", () => {
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
-              { match: "trait", tokens: ["Vegetation"] },
-              { match: "trait", tokens: ["Plant"] },
-              { match: "trait", tokens: ["Fairy"] },
+              { match: "traitContains", tokens: ["Vegetation"] },
+              { match: "traitContains", tokens: ["Plant"] },
+              { match: "traitContains", tokens: ["Fairy"] },
             ],
           },
           actions: [
@@ -61,22 +61,26 @@ describe("BT13-100 BT13-100", () => {
         0: {
           battleArea: [
             { card: "BT13-100", as: "yoshino" },
-            { card: "BT13-004", as: "base" },
+            { card: "BT1-065", as: "base" },
           ],
-          hand: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT1-071", as: "vegiemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lalamon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("lalamon").instanceId);
+    s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vegiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("vegiemon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.perm("yoshino").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
   });
 
   it("declining the suspend cost leaves Yoshino active and grants no memory", async () => {
@@ -85,21 +89,25 @@ describe("BT13-100 BT13-100", () => {
         0: {
           battleArea: [
             { card: "BT13-100", as: "yoshino" },
-            { card: "BT13-004", as: "base" },
+            { card: "BT1-065", as: "base" },
           ],
-          hand: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT1-071", as: "vegiemon" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lalamon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("lalamon").instanceId);
+    s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vegiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("vegiemon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.perm("yoshino").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(2);
   });
 });
