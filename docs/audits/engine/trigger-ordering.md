@@ -10,24 +10,25 @@ controller-choice, source-identity, and zone-departure surface remains open.
 
 The first bounded conformance proof is
 `apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts`.
-It uses two physical EX7-072 Seventh Fascination cards in the trash and a public
-digivolution into EX7-061 Lilithmon (X Antibody). Both real trash triggers are offered
-in one `orderTriggers` decision with their distinct source instance identities. After
-one selected source returns to the bottom of the deck, the remaining pending source
-still resolves and also returns to the deck. This proves one simultaneous controller
-choice and one source-departure transition for this exact card shape.
+It uses a legal equal-DP battle between two BT25-040 holders owned by opposing
+controllers. The battle creates one simultaneous deletion event; after the real
+turn loop reaches seat 0's Main Phase, seat 0 receives its `selectCards` processing
+decision first, followed by seat 1. Both refusals preserve the exact deleted
+instances in their owners' trash. This proves controller priority for this native
+Ascension provider shape without claiming a shared cross-controller ordering prompt.
 
-The test cites comprehensive rules §15-4-3 and §15-4-4. It does not certify all
+The second bounded case uses two physical EX7-072 Seventh Fascination cards in the
+trash and a public digivolution into EX7-061 Lilithmon (X Antibody). Both real trash
+triggers are offered in one `orderTriggers` decision with their distinct source
+instance identities. After one selected source returns to the bottom of the deck,
+the remaining pending source still resolves and also returns to the deck. This
+proves one simultaneous controller choice and one source-departure transition for
+this exact card shape.
+
+The test cites comprehensive rules §§15-4-3, 15-4-4, 15-4-5 and 15-8-5. It does not certify all
 simultaneous trigger pools, turn-player precedence, derived triggering, replacement
 ordering, source movement between every zone, or all optional/refusal paths. No
 engine-wide or keyword-wide certification follows from this case.
-
-The same file also uses a legal equal-DP battle between two BT25-040 holders owned by
-opposing controllers. The battle creates one simultaneous deletion event; after the
-real turn loop reaches seat 0's Main Phase, seat 0 receives its `selectCards` processing
-decision first, followed by seat 1. Both refusals preserve the exact deleted instances
-in their owners' trash. This proves controller priority for this native Ascension
-provider shape without claiming a shared cross-controller ordering prompt.
 
 The same file also retains a three-card public equal-DP battle fixture with valid
 level-5 Cyborg payloads. It asserts `state.turnSeat === 0` and phase `Main` before

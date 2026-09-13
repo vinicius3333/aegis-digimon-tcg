@@ -16,7 +16,25 @@ The effect kernel rejects a live physical source whose matching stack card is fa
 
 The initial full run found six failures (42353 passes): four old tests incorrectly assembled active inherited sources face down, and two Option-use cost preflights exposed the overbroad guard. The inherited fixtures now explicitly use face-up sources (BT10-006, BT8-079, BT8-006 and BT20-080); the narrow self-waiver exception is retained. The corrected six-file regression passes 43 tests, including both real hidden-Option cost/use paths. These fixture tests are supplemental regression, not additional legal public hidden-source certificates.
 
-The three public sequences prove the demonstrated copied and inherited source leak. The legal Succession producer proof and the seeded visible-over-hidden cases now cover face-down filtering before highest-visible selection for the demonstrated Bacchusmon provider shapes; they do not expose source identity in the public decision payload. Raw/fallback public producers, hidden off-field snapshots, source-turnover/visibility transitions, native keyword scans, dynamic names and other numerical/card-information readers remain open. Existing green regressions do not certify those obligations. BT22's historical complete status is reopened and BT22-010 capped provisionally at 8/10; BT26-080 retains its existing cap. Independent read-only review found no blocker for this bounded change.
+## Finite current-reader map
+
+| Reader shape                                                                                 | Current printed consumers with executable evidence                    | Public evidence and boundary                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Highest matching visible stack source copied as effects                                      | BT26-032, BT26-060, BT26-080 and BT26-103 (Succession)                | `stack-visible-source-priority.test.ts` and `keyword-succession-lifecycle.test.ts` prove visible-over-hidden selection and the legal Giromon producer path for the Bacchusmon shape; source identity is not exposed in the decision payload |
+| Inherited keyword/effect read from a live stack source                                       | EX5-053 inheriting Blocker from EX5-051                               | `keyword-blocker-source-changes.test.ts` proves the exact stack source, host evolution, and loss of Blocker after turnover; this is persistent-effect turnover, not pending activation                                                      |
+| Stack placement and position metadata                                                        | BT26-055, BT13-007 and EX6-006 placement providers                    | `digivolution-card-placement.md` records exact physical IDs, bottom position, face state, and final stacks for the demonstrated public producers; it does not certify information readers                                                   |
+| Raw/fallback, off-field snapshots, native keyword scans, dynamic names and numerical readers | No additional current consumer is claimed from the bounded public set | These paths remain open where no real public producer/consumer pair and exact source-visible assertion exists                                                                                                                               |
+
+The highest-risk remaining gap is comprehensive rule §15-4-4-4: a triggered effect
+losing its source effect before activation. The public Blocker turnover proof above
+shows that live inherited effect recalculation follows a public evolution, while the
+trigger-ordering proof covers a source physically departing before its pending effect
+activates (§15-4-4-3). No current public card path in the bounded reader set creates a
+pending stack-sourced effect and then changes that host's top card before activation,
+so this narrower pending-loss claim remains open rather than being inferred from the
+persistent Blocker case.
+
+The three public sequences prove the demonstrated copied and inherited source leak. The legal Succession producer proof and the seeded visible-over-hidden cases now cover face-down filtering before highest-visible selection for the demonstrated Bacchusmon provider shapes; they do not expose source identity in the public decision payload. Existing green regressions do not certify the open reader classes in the finite map above. BT22's historical complete status is reopened and BT22-010 capped provisionally at 8/10; BT26-080 retains its existing cap. Independent read-only review found no blocker for this bounded change.
 
 ## Delivery gates
 
