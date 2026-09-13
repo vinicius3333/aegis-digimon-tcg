@@ -2699,7 +2699,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             linkTrashed.push({
               instanceId,
               hostPermanentId: host,
-              hostSnapshot: { ...hostPermanent, stack: [...hostPermanent.stack], linked: [...hostPermanent.linked] },
+              hostSnapshot: hostPermanent.clone(),
             });
         }
       }
@@ -2802,7 +2802,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const currentHost = access.permanentById(entry.hostPermanentId) ?? entry.hostSnapshot;
       await engine.fireSubTrigger!("whenLinkTrashed", {
         subjectPermanentId: entry.hostPermanentId,
-        linkTrashedSubject: { ...currentHost, stack: [...currentHost.stack], linked: [...currentHost.linked] },
+        linkTrashedSubject: currentHost.clone(),
       });
     }
     for (const instanceId of optionBattleAreaTrashed) {
