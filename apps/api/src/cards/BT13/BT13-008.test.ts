@@ -35,6 +35,7 @@ describe("BT13-008 Agumon", () => {
     s.state.memory = 3;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("koromon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -43,6 +44,8 @@ describe("BT13-008 Agumon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("koromon").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("koromon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("koromon").topCard.cardId === "BT13-008");
     expect(s.state.memory).toBe(3);
   });

@@ -27,6 +27,7 @@ describe("BT13-003 Kyaromon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("firstBase").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -34,6 +35,8 @@ describe("BT13-003 Kyaromon", () => {
         instanceId: s.inst("firstWizardmon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("firstBase").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("firstBase").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => observe(s.engine).hasKeyword(s.perm("firstRecipient"), "Jamming"));
 
     await advance(s.engine).runTurn(0);

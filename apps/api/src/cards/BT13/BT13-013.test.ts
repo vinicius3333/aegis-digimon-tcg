@@ -95,6 +95,7 @@ describe("BT13-013 BaoHuckmon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("bao").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -102,6 +103,8 @@ describe("BT13-013 BaoHuckmon", () => {
         instanceId: s.inst("savior").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("bao").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("bao").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("bao").topCard.cardId === "BT13-016");
     expect(s.state.memory).toBe(7);
   });

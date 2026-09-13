@@ -86,6 +86,7 @@ describe("BT13-039 KnightChessmon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-039", as: "knight" }] },
       });
       s.state.memory = 4;
+      const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -94,6 +95,8 @@ describe("BT13-039 KnightChessmon", () => {
           alternateRequirementIndex: 0,
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
       await settle(() => s.perm("base").topCard.cardId === "BT13-039");
       expect(s.state.memory).toBe(2);
     }
@@ -105,6 +108,7 @@ describe("BT13-039 KnightChessmon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-039", as: "knight" }] },
       });
       s.state.memory = 4;
+      const evolutionMaterialId2 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -112,6 +116,8 @@ describe("BT13-039 KnightChessmon", () => {
           instanceId: s.inst("knight").instanceId,
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId2));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
       await settle(() => s.perm("base").topCard.cardId === "BT13-039");
       expect(s.state.memory).toBe(1);
     }

@@ -109,6 +109,7 @@ describe("BT13-041 Chirinmon", () => {
       0: { battleArea: [{ card: "BT13-038", as: "base" }], hand: [{ card: "BT13-041", as: "chirin" }] },
     });
     s.state.memory = 4;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -116,6 +117,8 @@ describe("BT13-041 Chirinmon", () => {
         instanceId: s.inst("chirin").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-041");
     expect(s.state.memory).toBe(1);
   });

@@ -70,6 +70,7 @@ describe("BT13-018 ShineGreymon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const evolutionMaterialId1 = s.perm("rize").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -78,6 +79,8 @@ describe("BT13-018 ShineGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("rize").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("rize").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("marcus").currentDP === 3000);
     await settle();
     expect(s.state.memory).toBe(7);

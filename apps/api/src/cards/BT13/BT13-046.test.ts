@@ -235,6 +235,7 @@ describe("BT13-046 Kentaurosmon", () => {
       1: { security: ["BT1-013", "BT1-014", "BT1-015"] },
     });
     s.state.memory = 6;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -242,6 +243,8 @@ describe("BT13-046 Kentaurosmon", () => {
         instanceId: s.inst("kent").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-046");
     expect(s.state.memory).toBe(1);
   });

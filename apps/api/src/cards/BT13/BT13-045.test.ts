@@ -183,6 +183,7 @@ describe("BT13-045 KingChessmon", () => {
         ).toMatchObject({ ok: false });
       }
       s.state.memory = 4;
+      const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -191,6 +192,8 @@ describe("BT13-045 KingChessmon", () => {
           ...(alternate ? { alternateRequirementIndex: 0 } : {}),
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
       await settle(() => s.perm("base").topCard.cardId === "BT13-045");
       expect(s.state.memory).toBe(expected);
     }

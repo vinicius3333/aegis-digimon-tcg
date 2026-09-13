@@ -135,6 +135,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     });
     s.state.memory = 10;
     const targetTop = s.perm("target").topCard;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -142,6 +143,8 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[1]!.hand.includes(targetTop));
 
     expect(s.state.players[1]!.hand).toHaveLength(8);

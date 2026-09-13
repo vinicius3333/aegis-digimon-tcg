@@ -79,6 +79,7 @@ describe("BT13-092 BT13-092", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("ravemon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -86,6 +87,8 @@ describe("BT13-092 BT13-092", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("ravemon").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("ravemon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("ravemon").topCard?.cardId === "BT13-092");
 
     const trashIds = s.state.players[1]!.trash.map((card) => card.instanceId);

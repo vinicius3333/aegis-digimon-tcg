@@ -227,6 +227,7 @@ describe("BT13-044 BanchoLeomon", () => {
     s.state.memory = 6;
     const baseDP = s.perm("target").currentDP;
     await s.ready();
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -234,6 +235,8 @@ describe("BT13-044 BanchoLeomon", () => {
         instanceId: s.inst("bancho").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-044");
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -246,6 +249,7 @@ describe("BT13-044 BanchoLeomon", () => {
       0: { battleArea: [{ card: "BT13-041", as: "base" }], hand: [{ card: "BT13-044", as: "bancho" }] },
     });
     s.state.memory = 4;
+    const evolutionMaterialId2 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -253,6 +257,8 @@ describe("BT13-044 BanchoLeomon", () => {
         instanceId: s.inst("bancho").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
     await settle(() => s.perm("base").topCard.cardId === "BT13-044");
     expect(s.state.memory).toBe(1);
   });

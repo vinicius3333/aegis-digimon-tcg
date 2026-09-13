@@ -81,6 +81,7 @@ describe("BT13-031 MirageGaogamon", () => {
     );
     s.state.memory = 6;
     const tamerTop = s.perm("tamer").topCard;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -88,6 +89,8 @@ describe("BT13-031 MirageGaogamon", () => {
         instanceId: s.inst("mirage").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[1]!.hand.includes(tamerTop));
 
     expect(s.state.players[1]!.hand).toContain(tamerTop);

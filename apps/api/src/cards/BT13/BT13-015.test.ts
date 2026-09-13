@@ -58,6 +58,7 @@ describe("BT13-015 RizeGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("geo").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -66,6 +67,8 @@ describe("BT13-015 RizeGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("geo").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("geo").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-092"));
     expect(s.state.memory).toBe(7);
   });
@@ -86,6 +89,7 @@ describe("BT13-015 RizeGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId2 = s.perm("geo").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -94,6 +98,8 @@ describe("BT13-015 RizeGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("geo").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(s.perm("geo").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
     await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
     await settle();
 
@@ -119,6 +125,7 @@ describe("BT13-015 RizeGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId3 = s.perm("geo").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -127,6 +134,8 @@ describe("BT13-015 RizeGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("geo").stack.some((card) => card.instanceId === evolutionMaterialId3));
+    expect(s.perm("geo").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId3);
     await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
     await settle();
 

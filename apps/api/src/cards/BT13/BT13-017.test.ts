@@ -77,6 +77,7 @@ describe("BT13-017 Jesmon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -84,6 +85,8 @@ describe("BT13-017 Jesmon", () => {
         instanceId: s.inst("jesmon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     const tooLarge = setupEngine(
@@ -98,6 +101,7 @@ describe("BT13-017 Jesmon", () => {
     );
     tooLarge.state.memory = 10;
     await tooLarge.ready();
+    const evolutionMaterialId2 = tooLarge.perm("base").topCard!.instanceId;
     expect(
       tooLarge.engine.applyIntent(0, {
         type: "digivolve",
@@ -105,6 +109,8 @@ describe("BT13-017 Jesmon", () => {
         instanceId: tooLarge.inst("jesmon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => tooLarge.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(tooLarge.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
     await settle();
     expect(tooLarge.state.players[1]!.battleArea).toHaveLength(1);
   });

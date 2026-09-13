@@ -225,6 +225,7 @@ describe("BT13-040 Magnamon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-040", as: "magna" }] },
       });
       s.state.memory = 5;
+      const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -233,6 +234,8 @@ describe("BT13-040 Magnamon", () => {
           ...(alternate ? { alternateRequirementIndex: 0 } : {}),
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
       await settle(() => s.perm("base").topCard.cardId === "BT13-040");
       expect(s.state.memory).toBe(expectedMemory);
     }

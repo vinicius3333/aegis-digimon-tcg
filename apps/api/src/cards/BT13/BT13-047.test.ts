@@ -78,6 +78,7 @@ describe("BT13-047 Angoramon", () => {
       0: { breeding: { card: "BT13-004", as: "base" }, hand: [{ card: "BT13-047", as: "angora" }] },
     });
     s.state.memory = 1;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -85,6 +86,8 @@ describe("BT13-047 Angoramon", () => {
         instanceId: s.inst("angora").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-047");
     expect(s.state.memory).toBe(1);
   });

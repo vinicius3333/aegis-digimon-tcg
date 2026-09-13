@@ -176,6 +176,7 @@ describe("BT13-050 Sunflowmon", () => {
       0: { battleArea: [{ card: "BT13-049", as: "base" }], hand: [{ card: "BT13-050", as: "sunflow" }] },
     });
     s.state.memory = 3;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -183,6 +184,8 @@ describe("BT13-050 Sunflowmon", () => {
         instanceId: s.inst("sunflow").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-050");
     expect(s.state.memory).toBe(1);
   });

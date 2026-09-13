@@ -162,6 +162,7 @@ describe("BT13-108 Waltz's End", () => {
     });
     expect(observe(s.engine).isRestrictedByEffect(s.perm("low"), "beAffected", "Option")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("low"), "beAffected", "Digimon")).toBe(false);
+    const evolutionMaterialId1 = s.perm("suspender").topCard!.instanceId;
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",
@@ -170,6 +171,8 @@ describe("BT13-108 Waltz's End", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("suspender").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("suspender").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const suspensionDecision = s.state.pendingDecision!;
     expect(

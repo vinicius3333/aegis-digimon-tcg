@@ -168,6 +168,7 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("shine").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -175,6 +176,8 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("shine").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("shine").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("shine").topCard.cardId === "BT13-020");
     await settle();
 

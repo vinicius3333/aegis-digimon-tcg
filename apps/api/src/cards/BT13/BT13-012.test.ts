@@ -22,6 +22,7 @@ describe("BT13-012 GeoGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("agumon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -30,6 +31,8 @@ describe("BT13-012 GeoGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("agumon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-092"));
     await settle();
 
@@ -50,6 +53,7 @@ describe("BT13-012 GeoGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId2 = s.perm("agumon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -58,6 +62,8 @@ describe("BT13-012 GeoGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(s.perm("agumon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
     await settle(() => s.perm("agumon").topCard.cardId === "BT13-012");
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -79,6 +85,7 @@ describe("BT13-012 GeoGreymon", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId3 = s.perm("agumon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -87,6 +94,8 @@ describe("BT13-012 GeoGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").stack.some((card) => card.instanceId === evolutionMaterialId3));
+    expect(s.perm("agumon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId3);
     await settle(() => s.perm("agumon").topCard.cardId === "BT13-012");
     await settle();
 
