@@ -293,4 +293,60 @@ describe("declared optional processing conditions", () => {
       expect(s.state.memory).toBe(10);
     },
   );
+
+  it("BT15-091 rejects forged or duplicate ordered loose payments atomically", async () => {
+    cite("comprehensive-0056", "3-1-3-3/4 simultaneous cards from one area are ordered by their owner");
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-020", as: "host", under: [{ card: "BT15-002", as: "existing" }] }],
+          trash: [
+            { card: "BT15-024", as: "garurumon" },
+            { card: "BT15-026", as: "weregarurumon" },
+          ],
+          hand: [{ card: "BT15-091", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: false },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const garurumonId = s.inst("garurumon").instanceId;
+    const weregarurumonId = s.inst("weregarurumon").instanceId;
+    const existingId = s.inst("existing").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const decision = s.state.pendingDecision!;
+    for (const invalidOrder of [
+      [garurumonId, garurumonId],
+      [garurumonId, "forged-material"],
+    ]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderCards", order: invalidOrder },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+      expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([existingId]);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([garurumonId, weregarurumonId]);
+    }
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order: [weregarurumonId, garurumonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("host").stack.length === 3);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      weregarurumonId,
+      garurumonId,
+      existingId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("option").instanceId]);
+  });
 });

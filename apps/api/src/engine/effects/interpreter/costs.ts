@@ -551,7 +551,6 @@ export async function payCost(
           ctx.fx.placeMixedMaterialsUnder === undefined ||
           ctx.ask.orderCards === undefined ||
           first.kind !== "place" ||
-          first.targetIsPermanent !== true ||
           first.target === undefined ||
           first.underFilter === undefined ||
           first.bindHostAs === undefined ||
@@ -562,20 +561,31 @@ export async function payCost(
         )
           return false;
         const paymentCtx = { ...ctx, selections: new Map(ctx.selections) };
-        const sources = await resolvePermanentTargets(paymentCtx, first.target);
-        if (sources.length !== 1) return false;
+        const firstIsPermanent = first.targetIsPermanent === true;
+        const sources = firstIsPermanent ? await resolvePermanentTargets(paymentCtx, first.target) : [];
+        if (firstIsPermanent && sources.length !== 1) return false;
+        const firstCandidates = firstIsPermanent
+          ? []
+          : candidateLooseInstances(
+              paymentCtx,
+              first.target,
+              zoneList((first.target.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+            );
+        const firstPicked = firstIsPermanent ? undefined : await pickLoose(paymentCtx, first.target, firstCandidates);
+        if (!firstIsPermanent && (firstPicked?.length ?? 0) !== 1) return false;
         const hosts = await resolvePermanentTargets(paymentCtx, {
           filter: first.underFilter,
           orFilters: first.underOrFilters,
           count: 1,
         });
         const hostId = hosts[0];
-        if (hosts.length !== 1 || hostId === sources[0]) return false;
+        if (hosts.length !== 1 || (firstIsPermanent && hostId === sources[0])) return false;
         paymentCtx.selections.set(first.bindHostAs, hostId!);
-        const source = ctx.game.permanentById(sources[0]!);
-        if (source?.topCard === undefined) return false;
-        const chosen = [source.topCard.instanceId];
-        const looseSelections: { cost: Cost; id: string }[] = [];
+        const source = firstIsPermanent ? ctx.game.permanentById(sources[0]!) : undefined;
+        if (firstIsPermanent && source?.topCard === undefined) return false;
+        const firstId = firstIsPermanent ? source!.topCard!.instanceId : firstPicked![0]!;
+        const chosen = [firstId];
+        const looseSelections: { cost: Cost; id: string }[] = firstIsPermanent ? [] : [{ cost: first, id: firstId }];
         for (const nested of cost.costs.slice(1)) {
           if (
             nested.target === undefined ||
@@ -600,8 +610,8 @@ export async function payCost(
           visibleCards: chosen.map((instanceId) => ({
             instanceId,
             cardId:
-              instanceId === source.topCard.instanceId
-                ? source.topCard.cardId
+              firstIsPermanent && instanceId === source!.topCard!.instanceId
+                ? source!.topCard!.cardId
                 : (candidateLooseInstances(paymentCtx, { filter: {}, count: "all" }, ["trash", "hand"]).find(
                     (candidate) => candidate.instanceId === instanceId,
                   )?.cardId ?? instanceId),
@@ -616,9 +626,16 @@ export async function payCost(
           return false;
         // Choices await user input; revalidate every original source and host before payment.
         if (
-          !candidatePermanents(ctx, first.target).some(
-            (permanent) => permanent.permanentId === sources[0] && permanent.topCard?.instanceId === chosen[0],
-          ) ||
+          (firstIsPermanent &&
+            !candidatePermanents(ctx, first.target).some(
+              (permanent) => permanent.permanentId === sources[0] && permanent.topCard?.instanceId === firstId,
+            )) ||
+          (!firstIsPermanent &&
+            !candidateLooseInstances(
+              paymentCtx,
+              first.target,
+              zoneList((first.target.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+            ).some((candidate) => candidate.instanceId === firstId)) ||
           !candidatePermanents(ctx, { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }).some(
             (permanent) => permanent.permanentId === hostId,
           ) ||
