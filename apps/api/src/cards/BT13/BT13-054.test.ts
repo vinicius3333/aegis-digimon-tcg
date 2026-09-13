@@ -40,24 +40,66 @@ describe("BT13-054 Lilamon", () => {
 
   it("when digivolving may play Yoshino from hand for free", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: [{ card: "BT13-100", as: "yoshino" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-051", as: "base" }],
+          hand: [
+            { card: "BT13-054", as: "lila" },
+            { card: "BT13-100", as: "yoshino" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lila"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-100"));
-    expect(s.state.memory).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yoshino").instanceId),
+    );
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT13-051")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });
 
   it("may decline Yoshino and never offers a different Tamer", async () => {
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["BT13-100"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-051", as: "base" }],
+          hand: [
+            { card: "BT13-054", as: "lila" },
+            { card: "BT13-100", as: "yoshino" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    declined.state.memory = 4;
     await declined.ready();
-    await advance(declined.engine).fireForPermanent(EffectTiming.WhenDigivolving, declined.perm("lila"));
-    expect(declined.state.players[0]!.hand).toHaveLength(1);
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("base").permanentId,
+        instanceId: declined.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("base").topCard.cardId === "BT13-054");
+    expect(
+      declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("yoshino").instanceId),
+    ).toBe(true);
+    expect(
+      declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("bonusDraw").instanceId),
+    ).toBe(true);
+    expect(declined.state.memory).toBe(1);
 
     const wrong = setupEngine(
       { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["ST24-14"] } },
@@ -89,11 +131,13 @@ describe("BT13-054 Lilamon", () => {
       0: { battleArea: [{ card: "BT13-051", as: "base" }], hand: [{ card: "BT13-054", as: "lila" }] },
     });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lila").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-054");
     expect(s.state.memory).toBe(1);
   });
