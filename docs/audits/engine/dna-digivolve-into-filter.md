@@ -1,6 +1,6 @@
 ---
 title: DNA digivolve destination audit
-updated: 2026-09-06
+updated: 2026-09-13
 ---
 
 # DNA digivolve destination audit
@@ -72,9 +72,14 @@ BT20-081 Fenriloogamon: Takemikazuchi needed a new predicate: its second materia
 
 Coverage is now 72/72, guarded by `packages/shared/src/effects/dnaDigivolutionCoverage.test.ts`.
 
-Note out of scope: BT18-019 Millenniummon's stored requirement is `Red Lv.5 + Black Lv.6` while the
-printed line reads `[Kimeramon] + [Machinedramon]`. It already had a requirement, so the backfill
-did not touch it — worth a separate look.
+BT18-019 Millenniummon's stored requirement was `Red Lv.5 + Black Lv.6` while the official
+[printed line](https://world.digimoncard.com/cards/?card_no=BT18-019&search=true) reads
+`[Kimeramon] + [Machinedramon]`. The card module, shared requirement override, and generated
+`effects.json` record now store the exact named recipe at cost 0. Focused proof passes with BT8-084
+Kimeramon (White Lv.5) plus BT11-072 Machinedramon, showing colors are not gates, and rejects
+BT18-016 Volcanomon plus BT11-072, showing the stale color/level pair no longer over-matches.
+The scoped sync rebuilt both packages successfully but hit its fixed 30-second Oxfmt stdin timeout;
+the aggregate was then synchronized with the equivalent BT18-019-only generated record.
 
 ## A correction from the backfill
 
@@ -100,8 +105,6 @@ worth adding as cards are touched, no longer load-bearing.
 
 ## Remaining work
 
-1. Reconcile BT18-019 Millenniummon's stored requirement (`Red Lv.5 + Black Lv.6`) with its
-   printed line (`[Kimeramon] + [Machinedramon]`).
-2. Optionally add `hasDnaDigivolutionRequirement: true` to the 54 `into` filters as those cards are
+1. Optionally add `hasDnaDigivolutionRequirement: true` to the 54 `into` filters as those cards are
    touched, so the shown pool matches the legal one. Cosmetic now; run
    `node tools/audit-dna-into-filters.mjs` for the list.

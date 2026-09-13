@@ -50130,8 +50130,8 @@
       {
         "cost": 0,
         "materials": [
-          { "color": "Red", "level": 5 },
-          { "color": "Black", "level": 6 }
+          { "namesExact": ["Kimeramon"] },
+          { "namesExact": ["Machinedramon"] }
         ]
       }
     ],

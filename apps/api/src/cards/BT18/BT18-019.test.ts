@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-019.js";
 
@@ -6,6 +7,13 @@ describe("BT18-019 Millenniummon", () => {
   it("deletes one opposing Digimon on play and retains the DNA-only return clause", async () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }],
+      },
+    ]);
+    expect(dnaDigivolutionRequirementsFor("BT18-019")).toEqual(compiled.dnaDigivolveRequirement);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
@@ -93,6 +101,49 @@ describe("BT18-019 Millenniummon", () => {
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT18-015", "BT11-072"]),
     );
+  });
+
+  it("accepts the printed named DNA route regardless of material colors", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT8-084", as: "kimeramon" },
+          { card: "BT11-072", as: "machinedramon" },
+        ],
+        hand: [{ card: "BT18-019", as: "millennium" }],
+      },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("kimeramon").permanentId, s.perm("machinedramon").permanentId],
+        instanceId: s.inst("millennium").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-019"));
+  });
+
+  it("rejects a Red Lv.5 plus Black Lv.6 pair without the printed names", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-016", as: "wrongRed" },
+          { card: "BT11-072", as: "machinedramon" },
+        ],
+        hand: [{ card: "BT18-019", as: "millennium" }],
+      },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("wrongRed").permanentId, s.perm("machinedramon").permanentId],
+        instanceId: s.inst("millennium").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("may decline the DNA-only distinct-level return and gain no memory", async () => {
