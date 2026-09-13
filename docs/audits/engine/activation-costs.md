@@ -110,6 +110,21 @@ open. The separate EX9-025/EX9-061 public deck-payment cases in
 `digivolution-card-placement.test.ts` provide the same §15-7-5 boundary for a
 different set and cost shape; they are referenced rather than duplicated here.
 
+The BT20-073 MetalPhantomon ordering fixture exposed a separate, concrete
+boundary for this rule. Its entry actions have a payable `deleteOwn` condition
+when the controller has a Digimon, but their opponent level-5-or-lower Delete
+payload can have no target (for example, an opponent whose only Digimon is a
+level-6 BT25-077). The public BT20-073 test and the ordering conformance file
+pass when a level-5 target is present, while the no-target branch currently
+does not expose the processing choice. `runAction`'s target preflight admits
+§15-7-5 only for `allowCostWithoutTarget` or the loose placement exception;
+BT20-073 has neither flag. This is an open implementation gap requiring a
+card-scoped IR/test review: §15-7-5 should allow paying or refusing the
+`deleteOwn` condition when that cost is payable, while still rejecting the
+choice when the own Digimon payment pool is empty. The existing BT20-073
+ledger's 10/10 claim is therefore bounded to its recorded entry and inherited
+cases and must not be read as proof of this targetless-cost shape.
+
 ## Compound assignment checkpoint (2026-09-12)
 
 BT14-090 Dragon of Courage is the reviewed printed consumer for this bounded
