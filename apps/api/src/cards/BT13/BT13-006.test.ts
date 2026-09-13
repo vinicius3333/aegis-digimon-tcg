@@ -15,7 +15,7 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
           hand: [{ card: "BT1-010", as: "cost" }],
         },
         1: {
@@ -46,7 +46,7 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
           hand: [{ card: "BT1-010", as: "kept" }],
         },
         1: {
@@ -73,7 +73,7 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
           hand: [{ card: "BT1-010", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 12000 }] },
