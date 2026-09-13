@@ -382,3 +382,31 @@ This verifies the two public permutation/refusal boundaries, not all compound co
 ### Current primary-source check
 
 On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.
+
+## Borrowed force-cost processing proof (2026-09-13)
+
+`BT23-060.ts` is the current printed consumer assigning
+`borrowedEffectOverrides.forceCostProcessing: true` for its public
+`[When Attacking]` `ActivateForeignEffect`. It borrows the face-up
+`BT23-045` `[On Play]` clause. The borrowed clause has a placement processing
+cost and a return payload; when the eligible card is in trash, that cost is
+mandatory under the borrowed override, and when the trash branch is absent the
+hand branch is still processed without a second consent prompt.
+
+`apps/api/src/engine/conformance/activation-cost-borrowed-effects.test.ts`
+proves both real public attack paths. After the attack and its security
+resolution finish, it asserts the exact physical payment instance is at the
+bottom of security, the opponent victim instance is in its owner's hand, the
+machine remains in play, memory is unchanged, and no decision remains. The
+completed decision trace contains no second optional consent for the borrowed
+processing step. This proves the current BT23-060/BT23-045 consumer shape
+only; it does not certify all borrowed effects or ordinary optional activation
+costs.
+
+| Reviewed obligation                                      | Current evidence                                                                                     | Status                  |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| Borrowed processing cost is paid before payload          | BT23-060 public attack with BT23-043 trash payer                                                     | Focused green           |
+| Hand fallback remains a single forced processing step    | BT23-060 public attack with BT23-015 hand payer                                                      | Focused green           |
+| Payment identity and destination are preserved           | Both cases assert the exact payer instance at security bottom                                        | Focused green           |
+| No duplicate optional consent / no pending decision leak | Both cases use `autoAcceptOptional: false` and assert zero optional requests and empty pending state | Focused green           |
+| Other borrowed cost kinds and force assignments          | No additional current printed `forceCostProcessing` assignment found                                 | Open discovery boundary |
