@@ -69,7 +69,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       { 0: { hand: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sleep").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("sleep").stack.some((card) => card.cardId === "BT13-091"));
@@ -83,7 +83,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       { 0: { hand: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sleep").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.perm("sleep").stack.length === 0);

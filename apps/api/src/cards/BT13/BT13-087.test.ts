@@ -62,7 +62,7 @@ describe("BT13-087 Dynasmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 12;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("royal").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 

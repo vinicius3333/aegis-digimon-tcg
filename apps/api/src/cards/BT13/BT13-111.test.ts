@@ -36,7 +36,7 @@ describe("BT13-111 Gallantmon", () => {
         trash: Array.from({ length: 20 }, () => "BT1-009"),
       },
     });
-    blocked.state.memory = 12;
+    blocked.state.memory = 10;
     await blocked.ready();
     expect(
       blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("gallantmon").instanceId }),
@@ -44,7 +44,7 @@ describe("BT13-111 Gallantmon", () => {
     await settle(() =>
       blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-111"),
     );
-    expect(blocked.state.memory).toBe(-1);
+    expect(blocked.state.memory).toBe(-3);
     expect(blocked.state.players[0]!.hand.some((card) => card.cardId === "BT13-111")).toBe(false);
   });
 
@@ -101,13 +101,14 @@ describe("BT13-111 Gallantmon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 13;
+    s.state.memory = 10;
     const lowId = s.perm("low").topCard!.instanceId;
     const highId = s.perm("high").topCard!.instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === lowId));
+    expect(s.state.memory).toBe(-3);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === lowId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(true);
   });
@@ -120,12 +121,13 @@ describe("BT13-111 Gallantmon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 13;
+    s.state.memory = 10;
     const highId = s.perm("high").topCard!.instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === highId));
+    expect(s.state.memory).toBe(-3);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(false);
   });
 

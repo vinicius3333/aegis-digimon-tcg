@@ -93,7 +93,7 @@ describe("BT13-086 BT13-086", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 12;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xt").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103")).toBe(true);

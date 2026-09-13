@@ -50,16 +50,28 @@ describe("BT13-045 KingChessmon", () => {
 
   it("deletes another Digimon and plays a Chessmon from hand on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-035", as: "victim" }], hand: [{ card: "BT13-045", as: "king" }, "BT13-035"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-035", as: "victim" }],
+          hand: [
+            { card: "BT13-045", as: "king" },
+            { card: "BT13-035", as: "playedPawn" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 20;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-035"), 3000);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-035")).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("playedPawn").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("playedPawn").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("reduces only its own hand play by 8 at eight trashed Chessmon", async () => {
@@ -89,10 +101,10 @@ describe("BT13-045 KingChessmon", () => {
       },
       { autoDeclineOptional: true },
     );
-    s.state.memory = 15;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-045"));
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("when digivolving deletes another Digimon and plays a non-King Chessmon for free", async () => {
@@ -100,21 +112,39 @@ describe("BT13-045 KingChessmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT13-045", as: "king" },
+            { card: "BT13-041", as: "base" },
             { card: "BT13-036", as: "victim" },
           ],
-          hand: [{ card: "BT13-042", as: "bishop" }, "BT13-045"],
+          hand: [
+            { card: "BT13-045", as: "evolvingKing" },
+            { card: "BT13-042", as: "bishop" },
+            { card: "BT13-045", as: "retainedKing" },
+          ],
+          deck: [{ card: "BT1-009", as: "evolutionDraw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    const before = s.state.memory;
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("king"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-042"));
+    const sourceId = s.inst("base").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolvingKing").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("bishop").instanceId),
+    );
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolvingKing").instanceId);
+    expect(s.perm("base").stack.some((card) => card.instanceId === sourceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-045")).toBe(true);
-    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("retainedKing").instanceId, s.inst("evolutionDraw").instanceId].sort(),
+    );
+    expect(s.state.memory).toBe(6);
   });
 
   it("cannot pay with itself, play another KingChessmon, or play a non-Chessmon", async () => {

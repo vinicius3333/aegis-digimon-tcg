@@ -49,12 +49,13 @@ describe("BT13-112 Omnimon", () => {
       { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     const targetId = s.perm("target").topCard!.instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+    expect(s.state.memory).toBe(-4);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === targetId)).toBe(false);
   });
 
@@ -68,7 +69,7 @@ describe("BT13-112 Omnimon", () => {
       },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
       ok: true,
@@ -120,7 +121,7 @@ describe("BT13-112 Omnimon", () => {
       EffectDuration.UntilEachTurnEnd,
       { byEffectOnly: true },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
       ok: true,
     });
@@ -162,11 +163,12 @@ describe("BT13-112 Omnimon", () => {
       { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 14;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
+    expect(s.state.memory).toBe(-4);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
   });
 

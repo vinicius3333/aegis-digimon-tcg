@@ -45,7 +45,7 @@ describe("BT13-053 Mihiramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 20;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mihira").instanceId })).toEqual({
       ok: true,
     });
@@ -56,17 +56,24 @@ describe("BT13-053 Mihiramon", () => {
   it("may suspend a low-DP Digimon and separately lock a high-DP Digimon (Q2295-Q2297)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-053", as: "mihira" }] },
-      1: { battleArea: [{ card: "BT13-053", as: "low" }, { card: "BT13-111", as: "high" }] },
+      1: {
+        battleArea: [
+          { card: "BT13-053", as: "low" },
+          { card: "BT13-111", as: "high" },
+        ],
+      },
     });
     await s.ready();
     const resolving = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mihira"));
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const pending = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("high").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("high").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await resolving;
     expect(s.perm("low").isSuspended).toBe(true);
     expect(s.perm("high").isSuspended).toBe(false);
@@ -90,25 +97,31 @@ describe("BT13-053 Mihiramon", () => {
     });
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("lilamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("lilamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT13-054");
     expect(s.state.memory).toBe(8);
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("rosemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("rosemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT13-057");
     expect(s.state.memory).toBe(5);
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("other").permanentId,
-      instanceId: s.inst("other-lilamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("other").permanentId,
+        instanceId: s.inst("other-lilamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("other").topCard.cardId === "BT13-054");
     expect(s.state.memory).toBe(2);
   });
@@ -118,11 +131,13 @@ describe("BT13-053 Mihiramon", () => {
       0: { battleArea: [{ card: "BT13-051", as: "base" }], hand: [{ card: "BT13-053", as: "mihira" }] },
     });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("mihira").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mihira").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-053");
     expect(s.state.memory).toBe(1);
   });

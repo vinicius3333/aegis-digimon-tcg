@@ -38,7 +38,7 @@ describe("BT13-030 UlforceVeedramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
       ok: true,
@@ -142,7 +142,7 @@ describe("BT13-030 UlforceVeedramon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first-tamer").instanceId })).toEqual({
       ok: true,
     });
@@ -164,7 +164,7 @@ describe("BT13-030 UlforceVeedramon", () => {
       },
       { autoOrderTriggers: false },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
       ok: true,
     });

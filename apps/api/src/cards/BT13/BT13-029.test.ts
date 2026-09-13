@@ -111,7 +111,7 @@ describe("BT13-029 MachGaogamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
       ok: true,

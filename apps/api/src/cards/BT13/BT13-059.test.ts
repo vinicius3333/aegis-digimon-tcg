@@ -49,7 +49,7 @@ describe("BT13-059 Examon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 30;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("examon").instanceId })).toEqual({
       ok: true,
     });
@@ -63,7 +63,10 @@ describe("BT13-059 Examon", () => {
     ]);
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-027", as: "slayer" }, { card: "BT1-026", as: "breaker" }],
+        battleArea: [
+          { card: "BT20-027", as: "slayer" },
+          { card: "BT1-026", as: "breaker" },
+        ],
         hand: [{ card: "BT13-059", as: "examon" }],
       },
     });
@@ -86,7 +89,9 @@ describe("BT13-059 Examon", () => {
     const slayer = getCardDefinition("BT20-027")!;
     const breaker = getCardDefinition("BT1-026")!;
 
-    expect(dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker])).toBeUndefined();
+    expect(
+      dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker]),
+    ).toBeUndefined();
     expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
   });
 

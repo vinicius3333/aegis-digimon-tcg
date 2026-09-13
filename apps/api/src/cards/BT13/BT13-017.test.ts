@@ -34,7 +34,7 @@ describe("BT13-017 Jesmon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
@@ -51,7 +51,7 @@ describe("BT13-017 Jesmon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    tooLarge.state.memory = 20;
+    tooLarge.state.memory = 10;
     await tooLarge.ready();
     expect(
       tooLarge.engine.applyIntent(0, { type: "playCard", instanceId: tooLarge.inst("jesmon").instanceId }),
@@ -122,7 +122,7 @@ describe("BT13-017 Jesmon", () => {
       },
       { autoAcceptOptional: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
@@ -137,7 +137,7 @@ describe("BT13-017 Jesmon", () => {
       },
       { autoDeclineOptional: true },
     );
-    declined.state.memory = 20;
+    declined.state.memory = 10;
     await declined.ready();
 
     expect(
