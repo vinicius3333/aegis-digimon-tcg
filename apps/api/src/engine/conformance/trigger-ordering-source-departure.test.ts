@@ -323,6 +323,16 @@ describe("bounded trigger ordering and pending source departure", () => {
         }),
       ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "optional");
+      const metalCost = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === metalCost.decisionId)?.req.sourceCardId).toBe("BT20-073");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: metalCost.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
       const ownWatcher = s.state.pendingDecision!;
       expect(ownWatcher.seat).toBe(0);
       expect(s.decisions.find(({ req }) => req.decisionId === ownWatcher.decisionId)?.req.sourceCardId).toBe(

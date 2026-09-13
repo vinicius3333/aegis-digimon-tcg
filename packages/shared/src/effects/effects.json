@@ -68608,7 +68608,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -68631,7 +68632,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },

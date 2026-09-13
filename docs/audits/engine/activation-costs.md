@@ -114,16 +114,17 @@ The BT20-073 MetalPhantomon ordering fixture exposed a separate, concrete
 boundary for this rule. Its entry actions have a payable `deleteOwn` condition
 when the controller has a Digimon, but their opponent level-5-or-lower Delete
 payload can have no target (for example, an opponent whose only Digimon is a
-level-6 BT25-077). The public BT20-073 test and the ordering conformance file
-pass when a level-5 target is present, while the no-target branch currently
-does not expose the processing choice. `runAction`'s target preflight admits
-§15-7-5 only for `allowCostWithoutTarget` or the loose placement exception;
-BT20-073 has neither flag. This is an open implementation gap requiring a
-card-scoped IR/test review: §15-7-5 should allow paying or refusing the
-`deleteOwn` condition when that cost is payable, while still rejecting the
-choice when the own Digimon payment pool is empty. The existing BT20-073
-ledger's 10/10 claim is therefore bounded to its recorded entry and inherited
-cases and must not be read as proof of this targetless-cost shape.
+level-6 BT20-076). The IR now marks both entry actions with
+`allowCostWithoutTarget`; the public BT20-073 test accepts the processing
+choice, selects an exact own payment instance, verifies that instance in the
+trash, preserves the level-6 opponent, and leaves no pending decision. The
+ordering conformance case explicitly refuses this targetless condition before
+continuing its other pending watcher. This is a card-scoped use of the
+existing §15-7-5 escape hatch: the cost remains payable only when a real own
+Digimon exists, while the targetless payload no longer suppresses the
+processing choice. Other cost kinds and generated actions still require their
+own targetless review; BT20-073's collection entry remains bounded to its
+recorded entry and inherited cases.
 
 ## Compound assignment checkpoint (2026-09-12)
 
