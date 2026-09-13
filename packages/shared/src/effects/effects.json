@@ -209777,10 +209777,6 @@
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "to": "hand"
-          },
-          {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" }
           }
         ]
       },
