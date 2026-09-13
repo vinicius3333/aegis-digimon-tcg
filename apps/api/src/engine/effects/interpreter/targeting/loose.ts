@@ -777,7 +777,10 @@ export async function pickLoose(
   // CR 15-10-2-1 requires the printed X for a fixed-count target. Different-color
   // feasibility validates the completed selection; it cannot silently turn an exact
   // two-card payment into a one-card payment. Only an up-to target may use its lower min.
-  const selectionMin = min;
+  // Ordinary different-color processing may resolve with the largest feasible subset
+  // when the requested exact count cannot be formed (CR 15-10-2-1). A budgeted
+  // processing cost remains all-or-nothing and keeps its exact minimum below.
+  const selectionMin = requireDifferentColors && maxTotalPlayCost === undefined ? 0 : min;
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {
@@ -813,6 +816,13 @@ export async function pickLoose(
       spent += cost;
       return true;
     });
+  }
+  if (requireDifferentColors && !target.upTo && maxTotalPlayCost === undefined && chosen.length < want) {
+    const feasible = filterToDistinctColors(candidates.map(({ instanceId }) => instanceId), (instanceId) => {
+      const candidate = candidates.find((item) => item.instanceId === instanceId)!;
+      return ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors ?? [];
+    });
+    if (feasible.length >= want) return [];
   }
   return !target.upTo && chosen.length < selectionMin ? [] : chosen;
 }

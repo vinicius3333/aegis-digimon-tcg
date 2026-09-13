@@ -136,11 +136,10 @@ export async function consultLeavePrevention(
           : [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
               (card) => card?.instanceId === repl.sourceInstanceId,
             );
-      // A face-down inherited/linked card has no available effect text. Likewise,
-      // reject an instance-anchored subscription whose physical role cannot be found
-      // in the live source; both can occur when an earlier simultaneous body mutates
-      // the source before a later leaving target is collected.
-      if (repl.sourceInstanceId !== undefined && (sourceRole === undefined || sourceCard?.faceUp !== true)) continue;
+      // A face-down inherited/linked card has no available effect text. Instance-only
+      // delayed reactions have no permanent source to inspect and retain their existing
+      // lifecycle; physical role validation applies only to source-backed subscriptions.
+      if (srcPerm !== undefined && repl.sourceInstanceId !== undefined && (sourceRole === undefined || sourceCard?.faceUp !== true)) continue;
       eligible.push({
         repl,
         ctx,
