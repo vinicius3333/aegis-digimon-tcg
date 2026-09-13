@@ -1,17 +1,17 @@
 ---
 set: EX8
 cards: 74
-status: verified
-verified_at: 2026-09-10
+status: in-progress
+verified_at: 2026-09-13
 catalog_commit: e540204fb
-evidence_commit: eabe99351
+evidence_commit: 5c9c8b671
 ---
 
 # EX8 audit
 
 ## Status
 
-All 74 EX8 cards are verified at 10/10 (aggregate 740/740). The winning source is the re-audit closed on 2026-09-10 (`docs/audits/EX8-REAUDIT-LEDGER.md`, `dc8bf012e`, with the run log, review notes and per-card reports under `docs/audits/EX8-reaudit/`, `193c8972c`), run from base `2c851acd73948611728b9c7e2c3c785d98b1087a` and requiring fresh evidence for every card. It supersedes `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) and the older `internal-docs/audits/EX8-runtime-2026-08-27.md` (`52da0b5bb`), which had already recalculated all 74 cards to 10/10 from base `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`. Eleven card-local IR defects were closed during the run and no shared engine seam remained open. One catalog-to-module discrepancy was corrected in executable IR (EX8-048's missing level-3 Mineral alternate evolution at cost 2); the catalog JSON itself needed no correction.
+Current bounded status is 73 historical 10/10 rows plus EX8-064 capped at 8/10 for its delivery gate, an aggregate 738/740 pending collection recalculation. This document does not recertify the full collection. The historical source is the re-audit closed on 2026-09-10 (`docs/audits/EX8-REAUDIT-LEDGER.md`, `dc8bf012e`, with the run log, review notes and per-card reports under `docs/audits/EX8-reaudit/`, `193c8972c`), run from base `2c851acd73948611728b9c7e2c3c785d98b1087a` and requiring fresh evidence for every card. It supersedes `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) and the older `internal-docs/audits/EX8-runtime-2026-08-27.md` (`52da0b5bb`), which had already recalculated all 74 cards to 10/10 from base `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`. Eleven card-local IR defects were closed during that run and no shared engine seam remained open at that checkpoint. One catalog-to-module discrepancy was corrected in executable IR (EX8-048's missing level-3 Mineral alternate evolution at cost 2); the catalog JSON itself needed no correction.
 
 ## Gates
 
@@ -37,7 +37,7 @@ Superseded gates from the 2026-08-27 runtime audit, retained for comparison (`in
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX8-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+The table below preserves the historical rows from `docs/audits/EX8-REAUDIT-LEDGER.md`; the current EX8-064 correction is the explicit exception and remains capped at 8/10 until a collection recalculation. The per-card sections merge the reports in `docs/audits/EX8-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those historical notes remain distinct from the current bounded score.
 
 | Card    | Report                           | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                                      |
 | ------- | -------------------------------- | ------------: | -------: | --------: | ---------: | ----: | ----: | --------------------------------------------------------------------------- |
@@ -104,7 +104,7 @@ Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card
 | EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
+| EX8-064 | see below |             2 |        2 |         2 |          2 |     0 | 8/10  | Bounded correction; collection recalculation pending                        |
 | EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
@@ -6214,7 +6214,7 @@ Workers must run `node tools/kb/query.mjs card <ID>` and record all returned Q&A
 
 ## Open items
 
-- No card is below 10/10 and no shared engine seam remains open from this collection audit (`docs/audits/EX8-reaudit/REVIEW-NOTES.md`, `193c8972c`).
+- Historical re-audit rows remain at 10/10, but the current bounded EX8-064 correction is capped at 8/10 pending collection recalculation; no full collection certification is claimed from this update.
 - Carried-over minor observation from the 2026-08-27 runtime audit: the `suspend`/`beSuspended` alias added to `ContinuousEffectLedger.hasRestriction` is not mirrored for player-scoped restrictions. There is no current player-scoped producer for this vocabulary, so it does not affect EX8 behaviour, but it stays open as an engine consistency item (`internal-docs/audits/EX8-runtime-2026-08-27.md`).
 - Known-green diagnostic: the expected AD1-002 unsupported-effect logger path emits a diagnostic during the collection gate while its own regression stays green.
 - Contradiction, resolved in favour of the newer source: the 2026-08-27 runtime audit reports the EX8 focused collection at 74 files / 455 tests, while the 2026-09-10 re-audit's combined gate reports 210 files / 2,766 tests over a wider scope. These measure different scopes rather than the same one; the 2026-09-10 numbers are current.
