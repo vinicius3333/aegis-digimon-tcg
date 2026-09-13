@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-049.js";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-049 Lalamon", () => {
@@ -57,7 +55,7 @@ describe("BT13-049 Lalamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
             { card: "BT13-050", as: "vegetation" },
             { card: "BT13-100", as: "yoshino" },
@@ -68,12 +66,16 @@ describe("BT13-049 Lalamon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lalamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("vegetation").instanceId, s.inst("yoshino").instanceId].sort(),
     );
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
   });
 
@@ -81,7 +83,7 @@ describe("BT13-049 Lalamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
             { card: "BT13-050", as: "vegetation" },
             { card: "ST24-14", as: "long-yoshino" },
@@ -91,9 +93,13 @@ describe("BT13-049 Lalamon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lalamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("long-yoshino").instanceId, s.inst("nonmatch").instanceId].sort(),
