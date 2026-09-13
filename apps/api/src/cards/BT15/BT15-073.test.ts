@@ -29,10 +29,10 @@ describe("BT15-073", () => {
           battleArea: [{ card: "BT15-071", as: "base" }],
           hand: [
             { card: "BT15-073", as: "bakemon" },
-            { card: "BT1-001", as: "filler" },
+            { card: "BT1-009", as: "filler" },
           ],
-          deck: [{ card: "BT1-002", as: "drawn" }],
-          security: ["BT1-001"],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -59,11 +59,11 @@ describe("BT15-073", () => {
       {
         0: {
           battleArea: [{ card: "BT15-073", as: "bakemon", under: ["BT15-071"], suspended: true }],
-          hand: [{ card: "BT1-001", as: "filler" }],
-          deck: [{ card: "BT1-002", as: "drawn" }],
-          security: ["BT1-001"],
+          hand: [{ card: "BT1-009", as: "filler" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+          security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -93,9 +93,9 @@ describe("BT15-073", () => {
         // inherited retaliation clause printed on BT15-073 underneath it.
         0: {
           battleArea: [{ card: "BT2-059", as: "host", under: ["BT15-073"], suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
