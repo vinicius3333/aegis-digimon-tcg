@@ -32,10 +32,10 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
   const trash = ctx.game.player(ctx.source.ownerSeat).trash;
   return deletedStackIds.some((instanceId) => {
     const card = trash.find((candidate) => candidate.instanceId === instanceId);
-    // The current deletion LKI snapshot preserves only card IDs, while cards in trash are
-    // normalized face-up. Keep this branch ID-based until the event snapshot carries visibility;
-    // live stacks above are visibility-gated.
-    return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+    // Normal deletion keeps the stack card's event-time face state when moving it to trash;
+    // cards whose producer normalized visibility before firing must carry an explicit snapshot
+    // state, which the current snapshot contract does not yet provide.
+    return card?.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card));
   });
 }
 
