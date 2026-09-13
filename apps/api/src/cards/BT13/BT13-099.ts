@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: "kinds",
+          grant: "kind",
           tokens: ["Digimon"],
           staticEffect: { kind: "SetBaseDP", value: 3000 },
           duration: "untilOpponentTurnEnd",

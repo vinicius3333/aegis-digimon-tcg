@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-099.js";
+import "../ST1/ST1-10.js";
 
 describe("BT13-099 Spencer Damon", () => {
   it("debuffs one opposing Digimon when one of your yellow Digimon becomes suspended", () => {
@@ -30,7 +31,7 @@ describe("BT13-099 Spencer Damon", () => {
     expect(grantStatic?.kind).toBe("GrantStatic");
     if (grantStatic?.kind !== "GrantStatic") throw new Error("BT13-099 must grant a static Digimon form");
     expect(grantStatic).toMatchObject({
-      grant: "kinds",
+      grant: "kind",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       tokens: ["Digimon"],
       staticEffect: { kind: "SetBaseDP", value: 3000 },
@@ -64,10 +65,104 @@ describe("BT13-099 Spencer Damon", () => {
   });
 
   it("gains the temporary Digimon and Blocker status through a real turn end", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-099", as: "spencer" }] } });
-    await advance(s.engine).runTurn(0);
-    await s.engine.recomputeContinuousEffects();
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-099", as: "spencer" },
+            { card: "BT1-047", as: "tinkOne" },
+            { card: "BT1-047", as: "tinkTwo" },
+            { card: "BT13-064", as: "pawn" },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `ownDeck${index + 1}` })),
+          security: Array.from({ length: 3 }, (_, index) => ({ card: "BT1-010", as: `ownSecurity${index + 1}` })),
+        },
+        1: {
+          battleArea: [
+            { card: "ST1-10", as: "phoenix", suspended: true },
+            { card: "BT1-010", as: "opponentAttacker" },
+          ],
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `opponentDeck${index + 1}` })),
+          security: Array.from({ length: 3 }, (_, index) => ({ card: "BT1-010", as: `opponentSecurity${index + 1}` })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const spencer = s.perm("spencer");
+    const tinkOne = s.perm("tinkOne");
+    const tinkTwo = s.perm("tinkTwo");
+    const phoenix = s.perm("phoenix");
+    const pawn = s.perm("pawn");
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tinkOne.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => tinkOne.isSuspended && phoenix.currentDP === 11_000 && !observe(s.engine).isAttacking());
+    expect(phoenix.currentDP).toBe(11_000);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tinkTwo.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => tinkTwo.isSuspended && !observe(s.engine).isAttacking());
+    expect(phoenix.currentDP).toBe(11_000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
     expect(observe(s.engine).hasKeyword(s.perm("spencer"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("spencer"), "digivolve")).toBe(true);
+    expect(spencer.currentDP).toBe(3_000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: phoenix.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: pawn.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => pawn.topCard === undefined || !observe(s.engine).isAttacking());
+    expect(phoenix.currentDP).toBe(10_000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: spencer.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(spencer.topCard.cardId).toBe("BT13-099");
+    expect(spencer.currentDP).toBe(3_000);
+    expect(s.state.players[0]!.battleArea).toContain(spencer);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(phoenix.currentDP).toBe(12_000);
+    expect(observe(s.engine).hasKeyword(spencer, "Blocker")).toBe(false);
+    expect(observe(s.engine).isRestricted(spencer, "digivolve")).toBe(false);
+
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tinkOne.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(phoenix.currentDP).toBe(11_000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+    expect(observe(s.engine).hasKeyword(spencer, "Blocker")).toBe(true);
+    expect(spencer.currentDP).toBe(3_000);
   });
 });
