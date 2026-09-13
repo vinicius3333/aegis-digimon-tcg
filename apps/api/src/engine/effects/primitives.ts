@@ -821,11 +821,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   const grantPierce: Primitives["grantPierce"] = (permanentId, duration, opts): void => {
-    ledger.addPierceGrant(
-      permanentId,
-      durationForTarget(permanentId, duration),
-      opts?.continuous === true ? { continuous: true } : continuousOpt(),
-    );
+    ledger.addPierceGrant(permanentId, durationForTarget(permanentId, duration), {
+      ...(opts?.continuous === true ? { continuous: true } : continuousOpt()),
+      durationOwnerSeat: access.permanentById(permanentId)?.controllerSeat,
+    });
   };
 
   const changeEvoCost = (
@@ -2398,6 +2397,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {
+      await engine.recomputeContinuousEffects?.();
       // A whole permanent placed under another by an effect/cost is still one or more
       // digivolution cards being added. Share the same awaited event seam as `placeUnder`
       // so ST13-05/ST13-14 and every analogous watcher resolve before the parent continues.
@@ -2497,6 +2497,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (!relocatePermanent(destPermanentId, sourcePermanentId, opts)) return [];
       moved.push(sourcePermanentId);
     }
+    await engine.recomputeContinuousEffects?.();
     for (const movedCardIds of movedCardIdsBySource) {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
@@ -4420,7 +4421,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /**
-   * A stack-trash lock also covers an opponent effect returning an individual stacked card to
+   * A stack-return restriction covers an opponent effect returning an individual stacked card to
    * hand or deck (BT26-029). It deliberately does not protect against the host controller's own
    * effect, an unattributed rules move, or a bounce of the host's top card/permanent.
    */
@@ -4428,9 +4429,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (byEffectSeat === undefined) return instanceIds;
     return instanceIds.filter((instanceId) => {
       const host = hostOfStackInstance(state, instanceId);
-      if (host === undefined || !continuous.stackTrashLocked(host.hostPermanentId)) return true;
+      if (host === undefined) return true;
       const hostSeat = access.permanentById(host.hostPermanentId)?.controllerSeat;
-      return hostSeat === undefined || byEffectSeat === hostSeat;
+      return !continuous.hasRestriction(host.hostPermanentId, "stackReturn", undefined, {
+        byOpponentEffect: byEffectSeat !== hostSeat,
+      });
     });
   };
 
@@ -4925,8 +4928,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (selected.length === 0) continue;
         if (
           byEffectSeat !== undefined &&
-          byEffectSeat !== permanent.controllerSeat &&
-          continuous.stackTrashLocked(permanent.permanentId)
+          continuous.hasRestriction(permanent.permanentId, "stackReturn", undefined, {
+            byOpponentEffect: byEffectSeat !== permanent.controllerSeat,
+          })
         ) {
           continue;
         }

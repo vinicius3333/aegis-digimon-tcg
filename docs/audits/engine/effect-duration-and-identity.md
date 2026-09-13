@@ -27,11 +27,11 @@ duration occurrences / distinct cards:
 | Duration                          | Occurrences / cards |
 | --------------------------------- | ------------------: |
 | `untilOpponentTurnEnd`            |          1139 / 578 |
-| `forTheTurn`                      |           923 / 638 |
-| `permanent`                       |           625 / 522 |
+| `forTheTurn`                      |           925 / 640 |
+| `permanent`                       |           627 / 524 |
 | `untilYourTurnEnd`                |             37 / 20 |
 | `untilOpponentNextUnsuspendPhase` |             18 / 12 |
-| `untilEachTurnEnd`                |              10 / 4 |
+| `untilEachTurnEnd`                |               8 / 2 |
 | `endOfOpponentTurn`               |               6 / 2 |
 | `untilEndOfBattle`                |               3 / 1 |
 | `untilOpponentNextTurnEnd`        |               3 / 2 |
@@ -117,3 +117,32 @@ parity and historical collection-score contradictions are owned by the KB and
 ledger integrity front, whose bounded infrastructure checkpoint is now delivered. See [kb-citation-integrity.md](kb-citation-integrity.md)
 and the replacement/placement owners for discovered residuals. This document
 adds no duplicate collection ledger and awards no new collection 10/10 credit.
+
+## Current duration reconciliation, 2026-09-13
+
+The current recursive scan of `packages/shared/src/effects/effects.json` reports
+`forTheTurn` **925 occurrences / 640 cards**, `untilOpponentTurnEnd` **1,139 /
+578**, `permanent` **627 / 524**, and `untilEachTurnEnd` **8 / 2**. The remaining
+current counts are `untilYourTurnEnd` 37/20, `untilOpponentNextUnsuspendPhase`
+18/12, `endOfOpponentTurn` 6/2, `untilEndOfBattle` 3/1,
+`untilOpponentNextTurnEnd` 3/2, `untilEndOfAttack` 2/2, `forTheAttack` 1/1,
+and `nextDigivolveThisTurn` 2/2. These replace the older static table values;
+they are producer discovery denominators and do not certify every card.
+
+Duration-relative target grants are translated at installation using the target's
+controller snapshot. The continuous ledger now retains that snapshot per entry,
+so a later controller change cannot change the already-established endpoint. This
+covers target-anchored restrictions, keyword/name/trait/color/kind grants,
+DP/attack-legality/link-cap grants, timing/security disables and related
+projections. Player-scoped entries and grants that already carry an explicit
+`ownerSeat`, `sourceSeat` or `granterSeat` remain directly anchored. The modifier
+ledger applies the same per-entry fallback: legacy synthetic entries use the live
+controller only when no installation snapshot exists. This is a compatibility
+fallback, not fresh behavioral evidence.
+
+The new BT13-077 controller-turnover matrix is the strong control for a copied or
+granted duration: its real `untilOpponentTurnEnd` effect survives the original
+owner's boundary and expires at the original opponent boundary after the target's
+controller changes. Existing OPT/reset suites remain the evidence for stable
+subscription identities and next-turn reset. No broad copied-provider or complete
+duration-category certification is claimed.

@@ -559,6 +559,18 @@ export class ContinuousEffectLedger {
   private playerEffectTimingDisables: PlayerEffectTimingDisable[] = [];
   private dnaLevelOverrides: DnaLevelOverride[] = [];
   private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
+  private readonly durationOwners = new WeakMap<object, Seat>();
+
+  // Durations are translated relative to the recipient at installation. A later
+  // controller change must not translate that already-installed endpoint again.
+  private anchorDuration<T extends object>(entry: T): T {
+    const target = entry as { permanentId?: string; attackerPermanentId?: string; ownerSeat?: Seat };
+    if (target.ownerSeat !== undefined) return entry;
+    const id = target.permanentId ?? target.attackerPermanentId;
+    const seat = id === undefined ? undefined : (this.anyControllerSeatOf?.(id) ?? this.controllerSeatOf?.(id));
+    if (seat !== undefined) this.durationOwners.set(entry, seat);
+    return entry;
+  }
 
   beginBattleScope(scopeId: number): void {
     const parent = [...this.battleScopes.keys()].at(-1);
@@ -615,7 +627,7 @@ export class ContinuousEffectLedger {
     sweepSeat: Seat,
     battleScopeId?: number,
   ): boolean {
-    if (!clearsAt(duration, boundary, ownerSeat, sweepSeat)) return false;
+    if (!clearsAt(duration, boundary, this.durationOwners.get(entry) ?? ownerSeat, sweepSeat)) return false;
     if (boundary !== "endBattle" || battleScopeId === undefined) return true;
     const scope = this.battleScopes.get(battleScopeId);
     return scope?.parent === undefined || !scope.entries.has(entry);
@@ -628,14 +640,16 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean; fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean },
   ): void {
-    this.restrictions.push({
-      permanentId,
-      restriction,
-      duration,
-      continuous: opts?.continuous,
-      fromSourceKind: opts?.fromSourceKind,
-      byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
-    });
+    this.restrictions.push(
+      this.anchorDuration({
+        permanentId,
+        restriction,
+        duration,
+        continuous: opts?.continuous,
+        fromSourceKind: opts?.fromSourceKind,
+        byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+      }),
+    );
   }
 
   /** Record a duration-scoped rule for every matching permanent a player controls, including future entrants. */
@@ -647,11 +661,13 @@ export class ContinuousEffectLedger {
     matches: (permanentId: string) => boolean,
     opts?: { continuous?: boolean },
   ): void {
-    this.playerRestrictions.push({ seat, ownerSeat, restriction, duration, matches, continuous: opts?.continuous });
+    this.playerRestrictions.push(
+      this.anchorDuration({ seat, ownerSeat, restriction, duration, matches, continuous: opts?.continuous }),
+    );
   }
 
   addUnsuspendedDigivolveProhibition(seat: Seat, sourceSeat: Seat, duration: EffectDuration): void {
-    this.unsuspendedDigivolveProhibitions.push({ seat, sourceSeat, duration });
+    this.unsuspendedDigivolveProhibitions.push(this.anchorDuration({ seat, sourceSeat, duration }));
   }
 
   isUnsuspendedDigivolveProhibited(seat: Seat): boolean {
@@ -720,12 +736,14 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.attackTargetRestrictions.push({
-      attackerPermanentId,
-      targetPermanentId,
-      duration,
-      continuous: opts?.continuous,
-    });
+    this.attackTargetRestrictions.push(
+      this.anchorDuration({
+        attackerPermanentId,
+        targetPermanentId,
+        duration,
+        continuous: opts?.continuous,
+      }),
+    );
   }
 
   /** Whether this exact attacker is prohibited from attacking this exact defender. */
@@ -736,7 +754,7 @@ export class ContinuousEffectLedger {
   }
 
   restrictSecurityAddsFromEffect(blockedEffectSeat: Seat, granterSeat: Seat, duration: EffectDuration): void {
-    this.securityAddRestrictions.push({ blockedEffectSeat, granterSeat, duration });
+    this.securityAddRestrictions.push(this.anchorDuration({ blockedEffectSeat, granterSeat, duration }));
   }
 
   cannotAddSecurityFromEffect(effectSeat: Seat | undefined): boolean {
@@ -752,7 +770,7 @@ export class ContinuousEffectLedger {
    */
   armSuspendRestrictionSource(permanentId: string, duration: EffectDuration): void {
     if (this.suspendRestrictionSources.some((s) => s.permanentId === permanentId)) return;
-    this.suspendRestrictionSources.push({ permanentId, duration });
+    this.suspendRestrictionSources.push(this.anchorDuration({ permanentId, duration }));
   }
 
   /** Whether a BT23-024 source is currently armed (read by the continuous recompute). */
@@ -770,7 +788,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.digivolveIntoConstraints.push({ permanentId, matchesInto, duration, continuous: opts?.continuous });
+    this.digivolveIntoConstraints.push(
+      this.anchorDuration({ permanentId, matchesInto, duration, continuous: opts?.continuous }),
+    );
   }
 
   /**
@@ -790,13 +810,15 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean; noDigivolutionCards?: boolean; defenderLevelMax?: number },
   ): void {
-    this.canAttackUnsuspendedGrants.push({
-      permanentId,
-      duration,
-      continuous: opts?.continuous,
-      noDigivolutionCards: opts?.noDigivolutionCards,
-      defenderLevelMax: opts?.defenderLevelMax,
-    });
+    this.canAttackUnsuspendedGrants.push(
+      this.anchorDuration({
+        permanentId,
+        duration,
+        continuous: opts?.continuous,
+        noDigivolutionCards: opts?.noDigivolutionCards,
+        defenderLevelMax: opts?.defenderLevelMax,
+      }),
+    );
   }
 
   /** Whether a permanent may also attack opponent unsuspended Digimon (positive grant). */
@@ -833,7 +855,9 @@ export class ContinuousEffectLedger {
   }
 
   grantVortexCanAttackPlayers(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.vortexCanAttackPlayersGrants.push({ permanentId, duration, continuous: opts?.continuous });
+    this.vortexCanAttackPlayersGrants.push(
+      this.anchorDuration({ permanentId, duration, continuous: opts?.continuous }),
+    );
   }
 
   /** Whether a permanent's ＜Vortex＞ attack may also target a player (positive grant). */
@@ -843,12 +867,14 @@ export class ContinuousEffectLedger {
 
   /** Record a seat-level memory gain lock (rule implementation). */
   addMemoryGainPolicy(seat: Seat, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.memoryGainPolicies.push({
-      seat,
-      exceptTamerEffects: true,
-      duration,
-      continuous: opts?.continuous,
-    });
+    this.memoryGainPolicies.push(
+      this.anchorDuration({
+        seat,
+        exceptTamerEffects: true,
+        duration,
+        continuous: opts?.continuous,
+      }),
+    );
   }
 
   /**
@@ -870,7 +896,7 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.costReductionBlocks.push({ seat, costType, duration, continuous: opts?.continuous });
+    this.costReductionBlocks.push(this.anchorDuration({ seat, costType, duration, continuous: opts?.continuous }));
   }
 
   /** Whether cost reductions are forbidden for `seat` and `costType`. */
@@ -891,15 +917,17 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean; byEffectOnly?: boolean },
   ): void {
-    this.playProhibitions.push({
-      seat,
-      sourceSeat,
-      match,
-      mode,
-      duration,
-      continuous: opts?.continuous,
-      byEffectOnly: opts?.byEffectOnly,
-    });
+    this.playProhibitions.push(
+      this.anchorDuration({
+        seat,
+        sourceSeat,
+        match,
+        mode,
+        duration,
+        continuous: opts?.continuous,
+        byEffectOnly: opts?.byEffectOnly,
+      }),
+    );
   }
 
   /**
@@ -943,12 +971,14 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.securityEffectDisables.push({
-      attackerPermanentId,
-      sourceKind,
-      duration,
-      continuous: opts?.continuous,
-    });
+    this.securityEffectDisables.push(
+      this.anchorDuration({
+        attackerPermanentId,
+        sourceKind,
+        duration,
+        continuous: opts?.continuous,
+      }),
+    );
   }
 
   addSecurityEffectDisableForSeat(
@@ -957,7 +987,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.securityEffectDisables.push({ attackerSeat, sourceKind, duration, continuous: opts?.continuous });
+    this.securityEffectDisables.push(
+      this.anchorDuration({ attackerSeat, sourceKind, duration, continuous: opts?.continuous }),
+    );
   }
 
   /**
@@ -988,7 +1020,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.effectTimingDisables.push({ permanentId, timings, duration, continuous: opts?.continuous });
+    this.effectTimingDisables.push(
+      this.anchorDuration({ permanentId, timings, duration, continuous: opts?.continuous }),
+    );
   }
 
   addPlayerEffectTimingDisable(
@@ -999,7 +1033,9 @@ export class ContinuousEffectLedger {
     matches: (permanentId: string) => boolean,
     opts?: { continuous?: boolean },
   ): void {
-    this.playerEffectTimingDisables.push({ seat, ownerSeat, timings, duration, matches, continuous: opts?.continuous });
+    this.playerEffectTimingDisables.push(
+      this.anchorDuration({ seat, ownerSeat, timings, duration, matches, continuous: opts?.continuous }),
+    );
   }
 
   /**
@@ -1022,15 +1058,17 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean; digiXrosOnly?: boolean; dynamicTokens?: () => string[] },
   ): void {
-    this.nameTraitGrants.push({
-      permanentId,
-      kind,
-      tokens,
-      duration,
-      continuous: opts?.continuous,
-      digiXrosOnly: opts?.digiXrosOnly,
-      dynamicTokens: opts?.dynamicTokens,
-    });
+    this.nameTraitGrants.push(
+      this.anchorDuration({
+        permanentId,
+        kind,
+        tokens,
+        duration,
+        continuous: opts?.continuous,
+        digiXrosOnly: opts?.digiXrosOnly,
+        dynamicTokens: opts?.dynamicTokens,
+      }),
+    );
   }
 
   /** Extra name aliases granted to a permanent (lowercased tokens), excluding DigiXros-only grants. */
@@ -1065,7 +1103,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.originalCardInfoOverrides.push({ permanentId, ...info, duration, continuous: opts?.continuous });
+    this.originalCardInfoOverrides.push(
+      this.anchorDuration({ permanentId, ...info, duration, continuous: opts?.continuous }),
+    );
   }
 
   originalCardInfoOverride(permanentId: string): { name?: string; colors?: string[] } | undefined {
@@ -1089,7 +1129,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean; alsoColor?: CardColor },
   ): void {
-    this.colorWaivers.push({ instanceId, duration, continuous: opts?.continuous, alsoColor: opts?.alsoColor });
+    this.colorWaivers.push(
+      this.anchorDuration({ instanceId, duration, continuous: opts?.continuous, alsoColor: opts?.alsoColor }),
+    );
   }
 
   /** Whether an instance's color requirement is waived outright (no colour source needed). */
@@ -1105,7 +1147,7 @@ export class ContinuousEffectLedger {
   }
 
   addDnaLevelOverride(permanentId: string, level: number, opts?: { intoNames?: string[]; continuous?: boolean }): void {
-    this.dnaLevelOverrides.push({ permanentId, level, ...opts });
+    this.dnaLevelOverrides.push(this.anchorDuration({ permanentId, level, ...opts }));
   }
 
   dnaLevelFor(permanentId: string, into: CardDefinition): number | undefined {
@@ -1139,19 +1181,21 @@ export class ContinuousEffectLedger {
       sourceKinds?: string[];
     },
   ): void {
-    this.keywordGrants.push({
-      permanentId,
-      keyword,
-      amount,
-      duration,
-      continuous: opts?.continuous,
-      active: opts?.active,
-      specifiers: opts?.specifiers,
-      sourceCardId: opts?.sourceCardId,
-      sourceEffectText: opts?.sourceEffectText,
-      sourceSeat: opts?.sourceSeat,
-      sourceKinds: opts?.sourceKinds,
-    });
+    this.keywordGrants.push(
+      this.anchorDuration({
+        permanentId,
+        keyword,
+        amount,
+        duration,
+        continuous: opts?.continuous,
+        active: opts?.active,
+        specifiers: opts?.specifiers,
+        sourceCardId: opts?.sourceCardId,
+        sourceEffectText: opts?.sourceEffectText,
+        sourceSeat: opts?.sourceSeat,
+        sourceKinds: opts?.sourceKinds,
+      }),
+    );
   }
 
   constructor(
@@ -1162,7 +1206,7 @@ export class ContinuousEffectLedger {
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
   addPlayerKeywordGrant(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void {
-    this.playerKeywordGrants.push({ seat, keyword, amount, duration });
+    this.playerKeywordGrants.push(this.anchorDuration({ seat, keyword, amount, duration }));
   }
 
   /** Grant a named custom effect to every matching current/future permanent controlled by `seat`. */
@@ -1173,7 +1217,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
   ): void {
-    this.playerCustomEffectGrants.push({ seat, ownerSeat, token, duration, activationIdentity: {}, matches });
+    this.playerCustomEffectGrants.push(
+      this.anchorDuration({ seat, ownerSeat, token, duration, activationIdentity: {}, matches }),
+    );
   }
 
   /** Return active player-scoped named grants that match a newly entered permanent. */
@@ -1269,7 +1315,7 @@ export class ContinuousEffectLedger {
    * lapses on dropPermanent / sweep / clearContinuous like every other grant.
    */
   addLinkMaxGrant(permanentId: string, delta: number, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.linkMaxGrants.push({ permanentId, delta, duration, continuous: opts?.continuous });
+    this.linkMaxGrants.push(this.anchorDuration({ permanentId, delta, duration, continuous: opts?.continuous }));
   }
 
   /** Sum of every active `<Link +N>` delta granted to a permanent (0 when none). */
@@ -1295,17 +1341,19 @@ export class ContinuousEffectLedger {
       oncePerTurnKey?: string;
     },
   ): void {
-    this.linkCostReductionGrants.push({
-      permanentId,
-      amount,
-      traits: traits.map((t) => t.toLowerCase()),
-      duration,
-      continuous: opts?.continuous,
-      sourceInstanceId: opts?.sourceInstanceId,
-      controllerSeat: opts?.controllerSeat,
-      optional: opts?.optional,
-      oncePerTurnKey: opts?.oncePerTurnKey,
-    });
+    this.linkCostReductionGrants.push(
+      this.anchorDuration({
+        permanentId,
+        amount,
+        traits: traits.map((t) => t.toLowerCase()),
+        duration,
+        continuous: opts?.continuous,
+        sourceInstanceId: opts?.sourceInstanceId,
+        controllerSeat: opts?.controllerSeat,
+        optional: opts?.optional,
+        oncePerTurnKey: opts?.oncePerTurnKey,
+      }),
+    );
   }
 
   /**
@@ -1347,7 +1395,7 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.kindGrants.push({ permanentId, kinds, duration, continuous: opts?.continuous });
+    this.kindGrants.push(this.anchorDuration({ permanentId, kinds, duration, continuous: opts?.continuous }));
   }
 
   /** Additional kinds currently granted to a permanent (CardKind values, deduplicated). */
@@ -1364,7 +1412,7 @@ export class ContinuousEffectLedger {
    * rule implementation). Read by `cannotIgnoreDigivolution`.
    */
   addCannotIgnoreDigivolution(seat: Seat, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.cannotIgnoreDigivolutionFlags.push({ seat, duration, continuous: opts?.continuous });
+    this.cannotIgnoreDigivolutionFlags.push(this.anchorDuration({ seat, duration, continuous: opts?.continuous }));
   }
 
   /** Whether `seat` is currently barred from using ignore-digivolution-requirements effects. */
@@ -1381,7 +1429,7 @@ export class ContinuousEffectLedger {
    * recompute), exactly like a granted keyword.
    */
   addColorGrant(permanentId: string, color: string, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.colorGrants.push({ permanentId, color, duration, continuous: opts?.continuous });
+    this.colorGrants.push(this.anchorDuration({ permanentId, color, duration, continuous: opts?.continuous }));
   }
 
   /** Additional colors currently granted to a permanent (CardColor values, deduplicated). */
@@ -1399,7 +1447,7 @@ export class ContinuousEffectLedger {
    * consulted at the digivolution-card trash sites.
    */
   addStackTrashLock(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.stackTrashLocks.push({ permanentId, duration, continuous: opts?.continuous });
+    this.stackTrashLocks.push(this.anchorDuration({ permanentId, duration, continuous: opts?.continuous }));
   }
 
   /** Whether a permanent's stacked cards are currently locked against trashing (by any active lock). */
@@ -1413,7 +1461,9 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     opts?: { continuous?: boolean },
   ): void {
-    this.stackCardTrashLocks.push({ instanceId, ownerSeat, duration, continuous: opts?.continuous });
+    this.stackCardTrashLocks.push(
+      this.anchorDuration({ instanceId, ownerSeat, duration, continuous: opts?.continuous }),
+    );
   }
 
   /** Whether effects are currently forbidden from trashing this exact stacked card. */
@@ -1426,7 +1476,7 @@ export class ContinuousEffectLedger {
    * Q3751/Q3752). Read by `securityAttackInverted`, consulted at the security-check strike count.
    */
   addSecurityAttackInversion(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.securityAttackInversions.push({ permanentId, duration, continuous: opts?.continuous });
+    this.securityAttackInversions.push(this.anchorDuration({ permanentId, duration, continuous: opts?.continuous }));
   }
 
   /** Whether a permanent's ＜Security Attack ±N＞ grants are currently sign-inverted (any active rule). */
@@ -1491,16 +1541,18 @@ export class ContinuousEffectLedger {
         c.granterInstanceId === opts?.granterInstanceId,
     );
     if (exists) return;
-    this.stackEffectConferrals.push({
-      targetPermanentId,
-      stackInstanceId,
-      continuous: opts?.continuous,
-      trigger: opts?.trigger,
-      excludeInherited: opts?.excludeInherited,
-      excludeKeywords: opts?.excludeKeywords,
-      inheritedOnly: opts?.inheritedOnly,
-      granterInstanceId: opts?.granterInstanceId,
-    });
+    this.stackEffectConferrals.push(
+      this.anchorDuration({
+        targetPermanentId,
+        stackInstanceId,
+        continuous: opts?.continuous,
+        trigger: opts?.trigger,
+        excludeInherited: opts?.excludeInherited,
+        excludeKeywords: opts?.excludeKeywords,
+        inheritedOnly: opts?.inheritedOnly,
+        granterInstanceId: opts?.granterInstanceId,
+      }),
+    );
   }
 
   /** Active stack-effect conferrals (GrantStatic grant:"effects"). */
@@ -1511,7 +1563,7 @@ export class ContinuousEffectLedger {
   /** Offer a permanent's [On Deletion] effects at the end of its own attack (BT16-015). */
   projectOnDeletionAtEndOfAttack(permanentId: string, duration: EffectDuration): void {
     if (this.onDeletionAtEndOfAttackProjections.some((p) => p.permanentId === permanentId)) return;
-    this.onDeletionAtEndOfAttackProjections.push({ permanentId, duration, continuous: true });
+    this.onDeletionAtEndOfAttackProjections.push(this.anchorDuration({ permanentId, duration, continuous: true }));
   }
 
   /** Permanents currently projecting their [On Deletion] effects into the end-of-attack window. */
@@ -1540,14 +1592,16 @@ export class ContinuousEffectLedger {
           grant.activationIdentity === opts.activationIdentity,
       );
     if (exists) return;
-    this.customEffectGrants.push({
-      grantId: this.nextCustomEffectGrantId++,
-      instanceId,
-      ownerSeat,
-      token,
-      duration,
-      ...opts,
-    });
+    this.customEffectGrants.push(
+      this.anchorDuration({
+        grantId: this.nextCustomEffectGrantId++,
+        instanceId,
+        ownerSeat,
+        token,
+        duration,
+        ...opts,
+      }),
+    );
   }
 
   /** Keep effects granted to a Digimon attached when that Digimon changes its top card. */

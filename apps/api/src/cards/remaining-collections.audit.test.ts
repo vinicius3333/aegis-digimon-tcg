@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { describeRemainingCollectionAuditContract, standardLedgerScore } from "./collection-audit-contract.js";
+import {
+  assertNarrativeRubricScore,
+  describeRemainingCollectionAuditContract,
+  standardLedgerScore,
+} from "./collection-audit-contract.js";
 import "./index.js";
 
 describeRemainingCollectionAuditContract({
@@ -66,5 +70,42 @@ describe("authoritative collection ledger scores", () => {
   });
   it("rejects a reduced card score when the collection still claims verified", () => {
     expect(() => standardLedgerScore({ body: partial, verified: true })).toThrow("Verified collection");
+  });
+  it.each([
+    ["duplicate category", partial.replace("stack 1/2", "behavior 1/2")],
+    ["unknown category", partial.replace("stack 1/2", "unrelated 1/2")],
+  ])("rejects %s even when numeric totals agree", (_label, body) => {
+    expect(() => standardLedgerScore({ body })).toThrow(/category|categories/);
+  });
+});
+
+describe("narrative worker rubric integrity", () => {
+  const rubric =
+    "#### Worker score\n\n- Catalog/rules: 2/2\n- IR trace: 2/2\n- Behavioral proof: 2/2\n- Peer/stack proof: 2/2\n- Delivery gates: 0/2\n- Worker total: **8/10**";
+  it("accepts the historical worker eight without awarding coordinator delivery", () => {
+    expect(() => assertNarrativeRubricScore("EX4-001", rubric)).not.toThrow();
+  });
+  it("accepts EX4's compact six-item receipt while excluding reproducibility from the score", () => {
+    const compact =
+      "Worker score: catalog/rules 2/2, IR trace 2/2, behavior 2/2, peer/stack proof 2/2, " +
+      "reproducibility 2/2 (unscored evidence note); Delivery gates 0/2. Worker claim: 8/10 maximum.";
+    expect(() => assertNarrativeRubricScore("EX4-040", compact)).not.toThrow();
+  });
+  it("rejects an unlabelled sixth reproducibility score", () => {
+    const misleading =
+      "Worker score: catalog/rules 2/2, IR trace 2/2, behavior 2/2, peer/stack proof 2/2, " +
+      "reproducibility 2/2; Delivery gates 0/2. Worker claim: 8/10 maximum.";
+    expect(() => assertNarrativeRubricScore("EX4-040", misleading)).toThrow(/reproducibility/i);
+  });
+  it.each([
+    ["duplicate category", rubric.replace("Peer/stack proof", "Behavioral proof")],
+    [
+      "missing category hidden by history",
+      rubric.replace("- Peer/stack proof: 2/2\n", "") + "\n#### History\n- Peer/stack proof: 2/2",
+    ],
+    ["inflated worker total", rubric.replace("8/10", "10/10")],
+    ["fractional rating", rubric.replace("IR trace: 2/2", "IR trace: 2.0/2")],
+  ])("rejects %s", (_label, body) => {
+    expect(() => assertNarrativeRubricScore("EX4-001", body)).toThrow(/rubric|categor|rating|total/i);
   });
 });

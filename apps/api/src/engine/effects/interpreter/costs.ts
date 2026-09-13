@@ -130,7 +130,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
       .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return required > 0 && candidates.length >= required;
+    return required > 0 && candidates.length >= (cost.target.upTo ? Math.max(1, cost.target.minimum ?? 1) : required);
   }
   if (cost.kind === "moveToBattleArea") {
     if (cost.target !== undefined) {
@@ -322,8 +322,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       }
       candidates = [...candidates, ...linked];
     }
-    const required = cost.target.count === "all" ? candidates.length : cost.target.count;
-    if (required <= 0) return false;
+    const maximum = cost.target.count === "all" ? candidates.length : cost.target.count;
+    const required = cost.target.upTo ? (cost.target.minimum ?? 0) : maximum;
+    if (maximum <= 0 || maximum < required) return false;
     if (cost.target.filter.sameHost !== true) return candidates.length >= required;
     const byHost = new Map<string, LooseCandidate[]>();
     for (const candidate of candidates) {
@@ -1117,13 +1118,17 @@ export async function payCost(
               .map((card) => card.instanceId);
             const max = cost.target.count === "all" ? candidateIds.length : cost.target.count;
             const cap = Math.min(max, candidateIds.length);
-            if (cap < 1) return false;
-            const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: 1, max: cap });
-            // Defensive guard: `min: 1` already makes the cost mandatory once activated
-            // (KB Q1569), so a decision layer honoring the contract cannot return fewer
-            // than 1 here. If it does, treat it as an unpaid cost (consistent with the
-            // fixed-count path) rather than trusting the out-of-contract response.
-            if (chosen.length < 1) return false;
+            const minimum = Math.max(1, cost.target.minimum ?? 1);
+            if (cap < minimum) return false;
+            const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: minimum, max: cap });
+            // Validate the entire physical payment before the first mutation.
+            if (
+              chosen.length < minimum ||
+              chosen.length > cap ||
+              new Set(chosen).size !== chosen.length ||
+              chosen.some((id) => !candidateIds.includes(id))
+            )
+              return false;
             const moved = await ctx.fx.trashDigivolutionCards(self.permanentId, chosen, {
               byEffectSeat: ctx.source.ownerSeat,
               byEffectCardId: ctx.source.cardId,
@@ -1218,7 +1223,7 @@ export async function payCost(
         if (requested <= 0) return false;
         const isUpTo = cost.target.upTo === true;
         const n = isUpTo ? Math.min(requested, candidates.length) : requested;
-        const minCount = isUpTo ? Math.min(cost.target.minimum ?? 0, n) : requested;
+        const minCount = isUpTo ? (cost.target.minimum ?? 0) : requested;
         if (candidates.length < minCount || n < minCount) return false;
         if (cost.target.filter.sameHost === true) {
           const byHost = new Map<string, LooseCandidate[]>();
@@ -1230,14 +1235,14 @@ export async function payCost(
           }
           const requiresSameLevelPair = cost.target.filter.sameLevelPair === true;
           const eligibleHosts = [...byHost.entries()].filter(([, group]) => {
-            if (!requiresSameLevelPair) return group.length >= n;
+            if (!requiresSameLevelPair) return group.length >= minCount;
             const levels = new Map<number, number>();
             for (const candidate of group) {
               if (candidate.faceUp === false) continue;
               const level = getCardDefinition(candidate.cardId)?.level;
               if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
             }
-            return [...levels.values()].some((count) => count >= n);
+            return [...levels.values()].some((count) => count >= minCount);
           });
           if (eligibleHosts.length === 0) return false;
           const hostId =
@@ -1261,7 +1266,7 @@ export async function payCost(
             }
             candidates = candidates.filter((candidate) => {
               const level = getCardDefinition(candidate.cardId)?.level;
-              return level !== undefined && (levels.get(level) ?? 0) >= n;
+              return level !== undefined && (levels.get(level) ?? 0) >= minCount;
             });
           }
           if (cost.bindHostAs !== undefined) {

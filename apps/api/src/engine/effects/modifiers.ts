@@ -262,6 +262,7 @@ export class ModifierLedger {
   private pierceGrants: PierceGrant[] = [];
   private evoCostAdjustments: EvoCostAdjustment[] = [];
   private playCostAdjustments: PlayCostAdjustment[] = [];
+  private readonly durationOwners = new WeakMap<object, Seat>();
   private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
 
   beginBattleScope(scopeId: number): void {
@@ -293,7 +294,7 @@ export class ModifierLedger {
     sweepSeat: Seat,
     battleScopeId?: number,
   ): boolean {
-    if (!clearsAt(duration, boundary, ownerSeat, sweepSeat)) return false;
+    if (!clearsAt(duration, boundary, this.durationOwners.get(entry) ?? ownerSeat, sweepSeat)) return false;
     if (boundary !== "endBattle" || battleScopeId === undefined) return true;
     const scope = this.battleScopes.get(battleScopeId);
     // The outermost battle owns all pre-existing battle grants. A nested battle owns only
@@ -340,6 +341,7 @@ export class ModifierLedger {
       skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
     };
     this.dpModifiers.push(modifier);
+    this.durationOwners.set(modifier, ownerSeatOfPermanent(state, permanentId));
     this.recomputeDP(state, permanentId);
     return modifier;
   }
@@ -499,6 +501,7 @@ export class ModifierLedger {
       continuous: opts?.continuous,
     };
     this.baseDpOverrides.push(override);
+    this.durationOwners.set(override, ownerSeatOfPermanent(state, permanentId));
     this.recomputeDP(state, permanentId);
     return override;
   }
@@ -559,6 +562,7 @@ export class ModifierLedger {
   ): MinDpFloor {
     const entry: MinDpFloor = { permanentId, floor, duration, continuous: opts?.continuous };
     this.minDpFloors.push(entry);
+    this.durationOwners.set(entry, ownerSeatOfPermanent(state, permanentId));
     this.recomputeDP(state, permanentId);
     return entry;
   }
@@ -636,9 +640,14 @@ export class ModifierLedger {
   }
 
   /** Grant Piercing to a permanent for a duration (read by combat at battle outcome). */
-  addPierceGrant(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): PierceGrant {
+  addPierceGrant(
+    permanentId: string,
+    duration: EffectDuration,
+    opts?: { continuous?: boolean; durationOwnerSeat?: Seat },
+  ): PierceGrant {
     const grant: PierceGrant = { permanentId, duration, continuous: opts?.continuous };
     this.pierceGrants.push(grant);
+    if (opts?.durationOwnerSeat !== undefined) this.durationOwners.set(grant, opts.durationOwnerSeat);
     return grant;
   }
 
@@ -877,7 +886,7 @@ export class ModifierLedger {
     });
 
     this.dpModifiers = this.dpModifiers.filter((m) => {
-      const ownerSeat = ownerSeatOfPermanent(state, m.permanentId);
+      const ownerSeat = this.durationOwners.get(m) ?? ownerSeatOfPermanent(state, m.permanentId);
       if (m.skipsCurrentOpponentTurnEnd === true) {
         if (boundary === "opponentTurnEnd" && ownerSeat !== sweepSeat) m.skipsCurrentOpponentTurnEnd = false;
         return true;

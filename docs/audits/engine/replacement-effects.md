@@ -253,4 +253,30 @@ is delivered.
 
 The persisted explicit Tamer-source leave providers found by the same recursive scan are BT23-058 (opponent effect only), BT25-039 (other than your effects, Shaman/Iliad), BT24-101 and BT26-033 (TS trait). BT17-085 and ST17-10 have no TS trait in the committed catalog. The former two providers cannot replace their own effect cost; the latter two require a trait these sources do not have. Trait-grant or copied-provider intersections remain unproven, rather than being counted as closed printed coverage.
 
+## Latest provider inventory and witness boundary (2026-09-13)
+
+The narrower non-reducer persisted IR scan reports 433 replacement action occurrences across
+405 distinct cards; it excludes 222 playing/digivolution reducers and the one stack-trash redirect. The complete recursive inventory is 656 occurrences across 452 cards (see the current owner reconciliation in mechanism-inventory.md). By event and mode: `wouldLeavePlay` has 131 implicit, 61
+`prevent`, and 15 `instead` occurrences; `wouldBeDeleted` has 16 implicit, 15
+`prevent`, and 3 `instead`; `wouldBePlayed` has 89 implicit and 5 `instead`;
+`wouldDigivolve` has 93 implicit, 2 `gainMemoryOnDna`, 1 `instead`, and 2
+`increaseCost`. These are representation counts, not proof denominators.
+
+The fresh `replacement-remaining-fronts.test.ts` adds four synthetic seam
+witnesses: exact ordering of three simultaneous providers, one payment for an
+`affectsAll` group, inherited source departure by physical instance identity,
+controller turnover separated from top-card replacement, and nested movement
+with a distinct nested provider while the active provider is guarded against
+re-entry. The test uses real `Permanent` and `CardInstance` objects, but its
+subscriptions are synthetic. It therefore proves reusable consultation and
+identity seams only; it does not certify every cross-product of actual copied
+or granted card producers.
+
+Existing real-card coverage remains bounded to `BT18-096`, the DNA/placement
+consumers, Guard/Detach public suites, Decode/Eater consumers, and the source
+barriers in `leavePrevent.test.ts` and `breedingInheritedLeaveReplacement.test.ts`.
+Copied providers, controller-turnover races, broader simultaneous groups and
+mixed ordered-material payments remain residuals. No collection or full-engine
+credit follows from the synthetic witnesses.
+
 Final checkpoint gates: shared/API/web typechecks, scoped Oxlint/Oxfmt, index (66 sets), and diff validation passed. Read-only Luna review approved both fixes and the legal DigiXros witness. Full serialized engine regression passed **325 files / 7,852 tests**, with **3 files / 4 tests failed** (7,856 total, 26.09 seconds). All four failures were reproduced on unchanged `805400f2c`: the three color-related assertions plus the order-dependent `comprehensive-0206` citation/exclusion overlap. The KB overlap reappeared in this run and is reserved for the integrity front; this is not a green whole-engine claim.

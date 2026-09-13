@@ -920,3 +920,61 @@ one fork, 3,072 MB heap; memory snapshots retained free RAM throughout execution
 Read-only Luna reviewers approved source-role semantics and citation/tooling
 scope after the invalid fixture and movement candidate were corrected/withdrawn.
 The complete tooling suite passed **38/38** tests with `node --test --test-concurrency=1 tools/*.test.mjs tools/kb/*.test.mjs`. Shared typecheck also passed. Oxfmt accepted all 43 changed/new TypeScript, JavaScript-tooling and Markdown files; `pnpm audit:index --check` confirmed the unchanged 66-set index, and `git diff --check` was clean. Scoped lint on the new tooling and behavioral changes had no findings; the citation-only migration retains 24 pre-existing lint warnings without altering assertion bodies or introducing suppressions. The citation checker reports 436/436 pinned references and one disclosed partial-note warning, with no unresolved references or fingerprint mismatches. Delivery is a reviewable branch/PR; this bounded engine audit does not certify any whole collection or authorize an Orca collection-complete status.
+
+## Remaining-front owner reconciliation (2026-09-13)
+
+This section is the current obligation inventory for branch `audit-engine-remaining-fronts-20260913`, based on `23b105eb6321c877ffb54e8f5c181f50d24521e7`. Historical failures/counts above do not reopen the 66 collections, the 46 keyword contracts, 22 generic costs, 19 compound shapes, zone/order contracts, or the completed chapter-pin migration.
+
+Representation denominators below count recursive persisted IR object occurrences and distinct card IDs separately. They are discovery denominators, not behavioral scores. Reproduce the complete ID lists directly without writing another audit artifact:
+
+```sh
+node --input-type=module <<'JS'
+import { readFileSync } from 'node:fs';
+const buckets = new Map();
+function add(key, id) {
+  const bucket = buckets.get(key) ?? { occurrences: 0, cards: new Set() };
+  bucket.occurrences++; bucket.cards.add(id); buckets.set(key, bucket);
+}
+function walk(value, id) {
+  if (!value || typeof value !== 'object') return;
+  if (value.duration) add(`duration:${value.duration}`, id);
+  if (value.kind === 'Replacement') add(`replacement:${value.event}:${value.mode ?? 'implicit'}`, id);
+  if (value.event === 'onAddDigivolutionCards') add('placement:onAddDigivolutionCards', id);
+  if (value.mixedSources) add('placement:mixedSources', id);
+  for (const [key, child] of Object.entries(value)) {
+    if (/budget|total.*cap|totalCost|SelectionRef|selectionRef/i.test(key)) add(`field:${key}`, id);
+    walk(child, id);
+  }
+}
+for (const [id, card] of Object.entries(JSON.parse(readFileSync('packages/shared/src/effects/effects.json', 'utf8')))) walk(card, id);
+for (const [key, bucket] of [...buckets].sort()) console.log(key, bucket.occurrences, bucket.cards.size, [...bucket.cards].sort().join(','));
+JS
+```
+
+| Obligation                    | Current producers / consumers                                                                                                                                                                                 | Closure and evidence boundary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leave/deletion replacements   | wouldLeavePlay: implicit 131/121, prevent 61/58, instead 15/14; wouldBeDeleted: implicit 16/16, prevent 15/15, instead 3/3                                                                                    | `runReplacement`/keyword installation → `SubTriggerRegistry` → `consultLeavePrevention`; new three-provider/three-victim ordering, one affectsAll payment, physical inherited departure, controller/top distinction and actually eligible guarded nested payment. Existing `leavePrevent`, breeding and recomputation barriers retain declined/full costs, paid source movement and instance-only delayed behavior. Synthetic subscriptions certify this shared seam, not real copied-provider cross-products. |
+| Other replacement eligibility | wouldBePlayed reduceCost 112/111, implicit 89/89, instead 5/5; wouldDigivolve reduceCost 110/109, implicit 93/92, increaseCost 2/2, gainMemoryOnDna 2/2, instead 1/1; wouldTrashDigivolutionCard implicit 1/1 | Playing/digivolution reducers and redirects use their separate eligibility consumers; these are not silently folded into leave consultation. Existing full API regressions are reused. All Replacement objects total **656 occurrences / 452 cards**; the narrower 433/405 non-reducer playing/digivolution/leave/deletion scan excludes 222 reducers and the one stack-trash redirect.                                                                                                                        |
+| Placement downstream          | 54/54 onAdd consumers; mixedSources 5/4: BT12-089, BT26-102, EX2-007, EX2-048                                                                                                                                 | Singular/batch relocation now recomputes acquired watchers before the first emitted addition; real BT7-056 watcher with test-only relocation producer and physical IDs. Batch control observes memory before both bus calls, not only final OPT gain. Existing mixed cost preflight/order/identity controls are reused. Ordinary mixedSources sequential processing is a separately identified unproved interaction; cost-primitive atomicity is not its proof.                                                |
+| Duration identity             | Per-alias counts in `effect-duration-and-identity.md`; target entries vs explicitly recorded seat/owner/source entries                                                                                        | Endpoint snapshot per installed target entry closes controller-dependent expiry. Real BT13-077 installation and synthetic pre/post-turnover category controls cover keyword/name/color/link-max, DP delta/base/floor and Piercing. Explicit granter-seat custom effects retain their separate ownership; existing GrantStatic/aura, source recomputation, OPT/reset, scoped attack/battle and copier-use tracking regressions are reused.                                                                      |
+| Numeric budgets               | totalPlayCostBudget 10/6 + selection-ref 1/1; costBudget 4/3; totalCost 6/4 + scaling 1/1; totalDpCap 11/8 + source-DP 2/1 + scaling 3/2; baseBudget 11/7; budget 17/10 + add 8/4 + bonus 5/3                 | Loose/permanent targeting, PlayMultiple, RevealAdd, DP modification/deletion/return budget consumers remain distinct. Existing budget controls prove their bounded cases; no union-of-field count is called complete budget coverage.                                                                                                                                                                                                                                                                          |
+| Selection references          | fromSelectionRef 285/128; selectionRef 26/19; underSelectionRef 4/4; excludeSelectionRef 4/3; sameColorAsSelectionRef 1/1                                                                                     | Permanent/loose binding and named cost/action consumers; BT11-107 budget from selected live permanent remains one producer. Existing chained-selection and physical/source snapshot controls are retained.                                                                                                                                                                                                                                                                                                     |
+| Selection minimum / costs     | Ordinary/name/card-number/level upTo paths; source-local and same-host test-only cost intersections                                                                                                           | Explicit minima are no longer lowered or discarded. Quantity/card-ID sanitization precedes acceptance. Source-local duplicate payment now rejects before any mutation; source-local/same-host availability agrees with a complete minimum below its maximum. Fixed payments and grouped deckBottom semantics remain unchanged. The generic EX10-033 payment-count hypothesis was withdrawn: that path already pays the selected count.                                                                         |
+
+Finite shared seams are closed by the listed controls. Producer-specific copied/trait-granted protection during mixed payment, ordinary mixed-material downstream races and full normative subclause/note correspondence remain below exhaustive certification. Absence of a legal current printed intersection is disclosed, not replaced with an invented production card. No blanket whole-engine or collection completion follows from this inventory.
+
+### Delivery gates for the remaining fronts (2026-09-13)
+
+The unchanged-base full API receipt was **5,167 files / 43,132 tests**, exit 0. After all engine/card corrections, shared build and copy-data preceded the complete API run (no path filter):
+
+```sh
+TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run --pool=forks --maxWorkers=1 --no-file-parallelism
+```
+
+Final receipt: **5,172 files / 43,174 tests passed**, 175.77 seconds, actual exit **0**, no unhandled errors. Expected room-lock/mock and unsupported-AD1-002 negative-test logs are not unhandled failures. An intermediate 43,168-test receipt predates the fresh Q&A-driven BT26-029 correction and is not the delivery receipt.
+
+Real API typecheck (`NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter @aegis/api typecheck`) passed, followed serially by shared and web typechecks. The complete tools gate passed **38/38** (`node --test --test-concurrency=1 tools/*.test.mjs tools/kb/*.test.mjs`). Independent scoped BT26 serializer check passed: 104 records synchronized, one semantic changed card, zero semantic or byte changes outside BT26. This is serializer parity, not a new full-collection audit.
+
+Chapter integrity remains **436/436 pinned**, zero mismatches/unresolved/errors, with the existing comprehensive-0184 partial-note warning. The 66-set index is current. Scoped source/engine-ledger/data Oxfmt and Oxlint passed; lint retains only three pre-existing chapter warnings (shadowing, conditional expectation and literal concatenation), with no new findings or suppressions. Existing collection ledgers receive only narrowly scoped source-attribution/narrative corrections; unrelated historical table formatting and the generated effects.json baseline format are preserved. The generated JSON is checked by its authoritative scoped serializer.
+
+The single-owner test/build/typecheck queue was serialized, one API fork with a 3,072 MB test heap; real RAM snapshots were checked without terminating external processes. Independent Luna source and provenance reviews found no blockers. This branch is delivered for review, with the explicit finite certification residuals above; no whole-engine/collection completion, original parallel-mode validation, issue #4730 reopening, merge or deployment is claimed.

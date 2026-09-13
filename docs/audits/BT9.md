@@ -538,6 +538,8 @@ proven.
 
 - Catalog: red level 5 Digimon, DP 8000, play cost 8, red level-4 evolution cost 3; Cyborg/X Antibody; alternate evolution is 0 from `[MetalGreymon]`. When Digivolving it gains Security Attack +1 through the opponent’s turn; then, if `[MetalGreymon]` or `[X Antibody]` is in the stack, it gets +3000 DP through the end of the opponent’s next turn.
 - KB: Q1808 confirms exact card-name matching, not trait matching. Q1809 confirms that adding X Antibody after activation does not retroactively grant the +3000 DP. Q1967 confirms that the When Digivolving effect activates even in the opponent’s play while Venusmon suppresses later When Attacking/When Digivolving effects.
+- Fresh self-category ownership: Q1967 belongs to BT10-042; this BT9-015 sentence preserves the
+  physical Venusmon interaction as cross-set evidence, while the prior local receipt is historical.
 - Rules and primitives: §§2-3-1.2/.3 and 2-3-2 define the name/trait boundary; §15-7 handles the effect’s conditional second clause. `ModifyDP` supports `untilOpponentNextTurnEnd`, while the keyword gain uses `untilOpponentTurnEnd`; activation-time stack conditions are evaluated when the effect resolves.
 - Direct module: `BT9-015.ts` gives Security Attack +1 through opponent-turn end and +3000 DP through opponent-next-turn end, with an exact self-stack condition and alternate MetalGreymon requirement. It is full, residual-free, and registers only through `registerIrCard("BT9-015", compiled)`.
 - Focused proof: `BT9-015.test.ts` checks catalog/structure, legal evolution, Venusmon activation behavior, both duration endpoints, Q1808 trait/name rejection, exact X Antibody qualification, and Q1809 late-placement rejection.

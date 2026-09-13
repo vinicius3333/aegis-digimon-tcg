@@ -3,6 +3,7 @@ import { digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegi
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./BT26-029.js";
 import "../index.js";
 
@@ -27,7 +28,7 @@ describe("BT26-029 compiled fidelity", () => {
           { kind: "SelectBind" },
           { kind: "Restrict", restriction: "dpImmune" },
           { kind: "StackTrashLock" },
-          { kind: "Restrict", restriction: "returnToHandOrDeck" },
+          { kind: "Restrict", restriction: "stackReturn" },
         ],
       },
     ]);
@@ -88,7 +89,7 @@ describe("BT26-029 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("holy"), "dpImmune")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("holy"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("holy"), "stackReturn")).toBe(true);
   });
 
   it("may decline the security cost and grants no protection when declined", async () => {
@@ -106,10 +107,10 @@ describe("BT26-029 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("security").instanceId]);
     expect(observe(s.engine).isRestricted(s.perm("holy"), "dpImmune")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("holy"), "beReturned")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("holy"), "stackReturn")).toBe(false);
   });
 
-  it("enforces DP, stack-trash, De-Digivolve, and bounce protection only against opposing effects (Q6995)", async () => {
+  it("enforces DP, stack-trash, De-Digivolve, and stacked-card return protection only against opposing effects (Q6995)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -172,7 +173,7 @@ describe("BT26-029 compiled fidelity", () => {
     expect(s.perm("protected").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("bottom").instanceId);
 
     advance(s.engine).verb.enterEffectResolution(1);
-    await advance(s.engine).verb.returnToHand([s.perm("protected").topCard.instanceId]);
+    await advance(s.engine).verb.returnToHand([s.inst("upper").instanceId]);
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("protected").permanentId,
@@ -319,13 +320,13 @@ describe("BT26-029 compiled fidelity", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("aegiomon"), "beReturned"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("aegiomon"), "stackReturn"));
 
     expect(s.perm("aegiomon").topCard.cardId).toBe("BT26-029");
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("aegiomon"), "dpImmune")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("aegiomon"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("aegiomon"), "stackReturn")).toBe(true);
   });
 
   it("publishes Decode, Ascension, and the rule-granted Angel trait", async () => {
@@ -356,4 +357,113 @@ describe("BT26-029 compiled fidelity", () => {
       s.inst("aegiomon").instanceId,
     );
   });
+});
+
+describe("BT26-029 stacked-card return identity (Q6995/Q7195)", () => {
+  it.each(["hand", "deck"])(
+    "protects individual cards but permits returning the Digimon to %s",
+    async (destination) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT26-029", as: "holy" },
+              {
+                card: "BT1-019",
+                as: "target",
+                under: [
+                  { card: "BT1-001", as: "egg" },
+                  { card: "BT1-009", as: "bottom" },
+                ],
+              },
+            ],
+            security: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("target").permanentId);
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+      const targetId = s.perm("target").permanentId;
+      const ids = s.perm("target").stack.map((card) => card.instanceId);
+      advance(s.engine).verb.enterEffectResolution(1);
+      if (destination === "hand") await advance(s.engine).verb.returnToHand(ids);
+      else await advance(s.engine).verb.returnToDeck(ids, { toTop: false });
+      expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual(ids);
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.players[0]!.deck).toHaveLength(0);
+      expect(s.state.players[0]!.eggDeck).toHaveLength(0);
+      if (destination === "hand") await advance(s.engine).verb.returnToHand([s.inst("target").instanceId]);
+      else await advance(s.engine).verb.returnToDeck([s.inst("target").instanceId], { toTop: false });
+      advance(s.engine).verb.leaveEffectResolution();
+      expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).not.toContain(targetId);
+      const landed = destination === "hand" ? s.state.players[0]!.hand : s.state.players[0]!.deck;
+      expect(landed.map((card) => card.instanceId)).toEqual([s.inst("target").instanceId]);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(ids));
+    },
+  );
+
+  it("does not infer return immunity from Giant Slayer's trash-only protection", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT26-085",
+            as: "giant",
+            under: [
+              { card: "BT1-009", as: "bottom" },
+              { card: "BT1-010", as: "upper" },
+            ],
+          },
+        ],
+      },
+    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giant"));
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("giant").permanentId, [s.inst("bottom").instanceId], 1);
+    expect(s.perm("giant").stack.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+    advance(s.engine).verb.enterEffectResolution(1);
+    await advance(s.engine).verb.returnToHand([s.inst("bottom").instanceId]);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.perm("giant").stack.map((card) => card.instanceId)).toEqual([s.inst("upper").instanceId]);
+  });
+});
+
+describe("stack-top return protection shares stacked-card semantics", () => {
+  it.each([true, false])(
+    "protects stack tops only with an explicit return grant: protected=%s",
+    async (protectedReturn) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              ...(protectedReturn ? [{ card: "BT26-029", as: "holy" }] : []),
+              {
+                card: protectedReturn ? "BT1-019" : "BT26-085",
+                as: "target",
+                under: [
+                  { card: "BT1-001", as: "egg" },
+                  { card: "BT1-010", as: "upper" },
+                ],
+              },
+            ],
+            security: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("target").permanentId);
+      await advance(s.engine).fire(EffectTiming.OnPlay, protectedReturn ? s.perm("holy") : s.perm("target"));
+      const topId = s.inst("target").instanceId;
+      const moved = await internalsOf(s.engine).primitives.returnStackTopsToDeck([topId], { byEffectSeat: 1 });
+      expect(moved.map((card) => card.instanceId)).toEqual(protectedReturn ? [] : [topId]);
+      expect(s.perm("target").topCard.instanceId).toBe(protectedReturn ? topId : s.inst("upper").instanceId);
+      expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual(
+        protectedReturn ? [s.inst("egg").instanceId, s.inst("upper").instanceId] : [s.inst("egg").instanceId],
+      );
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(protectedReturn ? [] : [topId]);
+    },
+  );
 });

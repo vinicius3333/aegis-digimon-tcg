@@ -86,3 +86,11 @@ blocker in the bounded numeric parser contract.
   behavioral evidence. Verified status still requires the full audit workflow.
 - Complete source/consumer denominators and the generic engine audit remain
   open; reduced provisional scores are not promoted by green regression.
+
+## Current rubric identity reconciliation (2026-09-13)
+
+The current 798-row remaining-collection contract now validates the semantic identity of five distinct rubric categories in addition to integer arithmetic. Standard rows recognize the three documented layouts: catalog/rules + IR + behavior + stack + delivery; catalog + rules + IR + behavior + delivery; catalog + rules + IR + behavior + stack. Unknown or repeated dimensions cannot replace an omitted dimension merely because their numerators sum to ten.
+
+EX3/EX4 narrative verification now reads the actual bounded worker rubric, including tables, rating bullets in a Result section, compact prose and multiline parenthesized receipts. A later History section cannot supply a missing dimension. Worker delivery remains 0/2; current coordinator scores remain separate. EX4-040's historical sixth “reproducibility 2/2” is explicitly an unscored evidence note, rather than silently making its worker total ten. No card's current score, status, executable behavior or module registration was promoted by this repair.
+
+New controls reproduced duplicate/unknown standard dimensions and duplicated/missing/inflated narrative ratings against the old implementation. Fractional and misleading sixth-component controls remain strict. The real 798-row verifier passes with the corrected parser, so historical narrative formatting is supported without weakening the five-dimension contract. Exact catalog IDs/names and existing module/test-link checks remain in the same verifier. Semantic rubric identity does not prove the contents of those linked behavioral tests, or the full correspondence between normative source clauses and evidence notes; those remain separate obligations. The 66-set index is a status/layout gate, not a recalculation of all card evidence.

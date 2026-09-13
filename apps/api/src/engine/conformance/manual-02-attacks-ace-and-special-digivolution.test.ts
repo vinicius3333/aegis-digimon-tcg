@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
@@ -22,128 +22,156 @@ import "../../cards/index.js";
  * covers only for the fixed 2-material case.
  */
 
-markNotTestable(
-  "manual-0017",
-  "The 5-step attack timing list (Declaration/Counter/Block/Confirm/End) and rules A-C for " +
-    "confirming an attack (security stack >=1 vs. 0, attack vs. a Digimon) restate " +
-    "comprehensive-0143/0144/0145/0146/0147, already tested at ch11-attacking.test.ts §11-1, " +
-    "§11-2, §11-3, §11-4.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0017",
+//   "The 5-step attack timing list (Declaration/Counter/Block/Confirm/End) and rules A-C for " +
+//     "confirming an attack (security stack >=1 vs. 0, attack vs. a Digimon) restate " +
+//     "comprehensive-0143/0144/0145/0146/0147, already tested at ch11-attacking.test.ts §11-1, " +
+//     "§11-2, §11-3, §11-4.",
+// );
 
-markNotTestable(
-  "manual-0018",
-  "Confirmation rule C ('a battle occurs between the attacking Digimon and the target Digimon') " +
-    "and the Battles DP-comparison rule (higher DP wins; a tie deletes both) restate " +
-    "comprehensive-0148 (ch11 §11-5, already tested — a blocked attack redirects damage, doesn't " +
-    "cancel it) and comprehensive-0155 (ch14 §14, already tested — DP comparison and the tie-" +
-    "deletes-both case). The Security Checks rule intro restates comprehensive-0153, already " +
-    "tested at ch13-security-checks.test.ts §13-1.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0018",
+//   "Confirmation rule C ('a battle occurs between the attacking Digimon and the target Digimon') " +
+//     "and the Battles DP-comparison rule (higher DP wins; a tie deletes both) restate " +
+//     "comprehensive-0148 (ch11 §11-5, already tested — a blocked attack redirects damage, doesn't " +
+//     "cancel it) and comprehensive-0155 (ch14 §14, already tested — DP comparison and the tie-" +
+//     "deletes-both case). The Security Checks rule intro restates comprehensive-0153, already " +
+//     "tested at ch13-security-checks.test.ts §13-1.",
+// );
 
-markNotTestable(
-  "manual-0019",
-  "'If multiple security checks can be performed ..., the checks are performed 1 card at a " +
-    "time' and 'even if a security stack is reduced to 0 cards, the winner/loser aren't decided " +
-    "yet' restate comprehensive-0221 (ch16a §16-1..16-4-3, already tested: securityStrikeCount " +
-    "sums multiple <Security A.> grants into a real per-check total) and comprehensive-0153/0154 " +
-    "(ch13-security-checks.test.ts, already tested: the game is only won/lost on a successful " +
-    "attack against 0 remaining security, not merely by reaching 0).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0019",
+//   "'If multiple security checks can be performed ..., the checks are performed 1 card at a " +
+//     "time' and 'even if a security stack is reduced to 0 cards, the winner/loser aren't decided " +
+//     "yet' restate comprehensive-0221 (ch16a §16-1..16-4-3, already tested: securityStrikeCount " +
+//     "sums multiple <Security A.> grants into a real per-check total) and comprehensive-0153/0154 " +
+//     "(ch13-security-checks.test.ts, already tested: the game is only won/lost on a successful " +
+//     "attack against 0 remaining security, not merely by reaching 0).",
+// );
 
-markNotTestable(
-  "manual-0020",
-  "'If that card is placed in an area by an effect, it isn't placed in the trash' (a checked " +
-    "security card that a [Security] effect relocates is exempt from the default trash " +
-    "destination) restates the same conditional-destination rule already tested at " +
-    "ch13-security-checks.test.ts §13-1-8-3-2 (comprehensive-0318).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0020",
+//   "'If that card is placed in an area by an effect, it isn't placed in the trash' (a checked " +
+//     "security card that a [Security] effect relocates is exempt from the default trash " +
+//     "destination) restates the same conditional-destination rule already tested at " +
+//     "ch13-security-checks.test.ts §13-1-8-3-2 (comprehensive-0318).",
+// );
 
-markNotTestable(
-  "manual-0021",
-  "The End of Attack step and the full attack-sequence flow diagram (repeating Declaration " +
-    "through Security Checks) restate comprehensive-0149 (ch11 §11-6, already tested) and " +
-    "comprehensive-0143..0148, already tested above/at ch11-attacking.test.ts.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0021",
+//   "The End of Attack step and the full attack-sequence flow diagram (repeating Declaration " +
+//     "through Security Checks) restate comprehensive-0149 (ch11 §11-6, already tested) and " +
+//     "comprehensive-0143..0148, already tested above/at ch11-attacking.test.ts.",
+// );
 
-markNotTestable(
-  "manual-0022",
-  "Activation-Type effects ('can be declared and processed when there is no other processing') " +
-    "restate comprehensive-0176, already tested at ch15-02-timing-and-resolution.test.ts §15-8-4. " +
-    "'Pass' moving the memory counter to 3 on the opponent's side, and Turn End Conditions, " +
-    "restate comprehensive-0109/0104, already tested at ch06-game-procedures.test.ts §6-5-1-2-3.." +
-    "/§6-1-4 — including the PASS_TURN_MEMORY=3 constant this chunk's own number matches exactly.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0022",
+//   "Activation-Type effects ('can be declared and processed when there is no other processing') " +
+//     "restate comprehensive-0176, already tested at ch15-02-timing-and-resolution.test.ts §15-8-4. " +
+//     "'Pass' moving the memory counter to 3 on the opponent's side, and Turn End Conditions, " +
+//     "restate comprehensive-0109/0104, already tested at ch06-game-procedures.test.ts §6-5-1-2-3.." +
+//     "/§6-1-4 — including the PASS_TURN_MEMORY=3 constant this chunk's own number matches exactly.",
+// );
 
-markNotTestable(
-  "manual-0023",
-  "'If the memory counter goes back to 0 or more at the end of the turn, the turn will continue " +
-    "without switching' restates comprehensive-0104, already tested at ch06-game-procedures.test." +
-    "ts §6-1-4. Digimon ACE (low play cost, <Blast Digivolve>/<Blast DNA Digivolve>, <Overflow>) " +
-    "restates comprehensive-0049/0050 (ch02 §2-10/§2-11, already tested — isAce, overflowMemory) " +
-    "and comprehensive-0305 (ch04 §4-19, already tested — Overflow moves the memory marker).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0023",
+//   "'If the memory counter goes back to 0 or more at the end of the turn, the turn will continue " +
+//     "without switching' restates comprehensive-0104, already tested at ch06-game-procedures.test." +
+//     "ts §6-1-4. Digimon ACE (low play cost, <Blast Digivolve>/<Blast DNA Digivolve>, <Overflow>) " +
+//     "restates comprehensive-0049/0050 (ch02 §2-10/§2-11, already tested — isAce, overflowMemory) " +
+//     "and comprehensive-0305 (ch04 §4-19, already tested — Overflow moves the memory marker).",
+// );
 
-markNotTestable(
-  "manual-0024",
-  "<Blast Digivolve> ('one of your Digimon in the battle area may digivolve into a Digimon ACE " +
-    "card without paying the cost, once, during the opponent's counter timing') restates " +
-    "comprehensive-0245, already tested and documented as an unimplemented DIVERGENCE at " +
-    "ch16c-deletion-and-advanced-keywords.test.ts §16-26.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0024",
+//   "<Blast Digivolve> ('one of your Digimon in the battle area may digivolve into a Digimon ACE " +
+//     "card without paying the cost, once, during the opponent's counter timing') restates " +
+//     "comprehensive-0245, already tested and documented as an unimplemented DIVERGENCE at " +
+//     "ch16c-deletion-and-advanced-keywords.test.ts §16-26.",
+// );
 
-markNotTestable(
-  "manual-0025",
-  "<Blast DNA Digivolve> (the DNA-digivolution analogue of <Blast Digivolve>, same counter-" +
-    "timing/no-cost/once-per-timing shape) restates comprehensive-0250, already tested and " +
-    "documented as an unimplemented DIVERGENCE at ch16c-deletion-and-advanced-keywords.test.ts " +
-    "§16-31.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0025",
+//   "<Blast DNA Digivolve> (the DNA-digivolution analogue of <Blast Digivolve>, same counter-" +
+//     "timing/no-cost/once-per-timing shape) restates comprehensive-0250, already tested and " +
+//     "documented as an unimplemented DIVERGENCE at ch16c-deletion-and-advanced-keywords.test.ts " +
+//     "§16-31.",
+// );
 
-markNotTestable(
-  "manual-0026",
-  "<Overflow>'s processing timing and ordering ('as soon as' a card with Overflow leaves the " +
-    "field or is played from a digivolution stack, before any 'then' text on the SAME effect') " +
-    "restates comprehensive-0305, already tested at ch04-basic-terminology.test.ts §4-19 " +
-    "(including the simultaneous-Overflow turn-player-first ordering, 4-19-5).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0026",
+//   "<Overflow>'s processing timing and ordering ('as soon as' a card with Overflow leaves the " +
+//     "field or is played from a digivolution stack, before any 'then' text on the SAME effect') " +
+//     "restates comprehensive-0305, already tested at ch04-basic-terminology.test.ts §4-19 " +
+//     "(including the simultaneous-Overflow turn-player-first ordering, 4-19-5).",
+// );
 
-markNotTestable(
-  "manual-0027",
-  "'Overflow isn't processed when a card with Overflow is placed under a card' (a narrower " +
-    "exemption than the general leaving-the-field trigger) restates comprehensive-0305, already " +
-    "tested at ch04 §4-19. Dual cards ('included in both the Digimon card and Option card " +
-    "categories'; 'don't have a play cost and can't be played') restate comprehensive-0289, " +
-    "already tested — including its it.fails DIVERGENCE — at ch04-basic-terminology.test.ts §4-6.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0027",
+//   "'Overflow isn't processed when a card with Overflow is placed under a card' (a narrower " +
+//     "exemption than the general leaving-the-field trigger) restates comprehensive-0305, already " +
+//     "tested at ch04 §4-19. Dual cards ('included in both the Digimon card and Option card " +
+//     "categories'; 'don't have a play cost and can't be played') restate comprehensive-0289, " +
+//     "already tested — including its it.fails DIVERGENCE — at ch04-basic-terminology.test.ts §4-6.",
+// );
 
-markNotTestable(
-  "manual-0028",
-  "Arts Digivolve ('instead of trashing after use, your cards may digivolve into this card " +
-    "without paying the cost') restates comprehensive-0306, already tested at ch04-basic-" +
-    "terminology.test.ts §4-20 — GameEngine.resolveArtsDigivolve offers the free digivolve " +
-    "(via the cost-free `digivolveFromInstance` primitive) BEFORE the pending-trash step in " +
-    "playCard.ts's Option branch, for every isDualCard card (a rule on the DUAL-card mechanic " +
-    "itself, not a per-card parameter).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0028",
+//   "Arts Digivolve ('instead of trashing after use, your cards may digivolve into this card " +
+//     "without paying the cost') restates comprehensive-0306, already tested at ch04-basic-" +
+//     "terminology.test.ts §4-20 — GameEngine.resolveArtsDigivolve offers the free digivolve " +
+//     "(via the cost-free `digivolveFromInstance` primitive) BEFORE the pending-trash step in " +
+//     "playCard.ts's Option branch, for every isDualCard card (a rule on the DUAL-card mechanic " +
+//     "itself, not a per-card parameter).",
+// );
 
-markNotTestable(
-  "manual-0029",
-  "Dual card rules (referenceable as either a Digimon or Option card; no play cost; color-" +
-    "requirement gating for Option use) restate comprehensive-0289..0291, already tested at ch04 " +
-    "§4-6/§4-6-5/§4-6-6. Arts Digivolve restates comprehensive-0306, already " +
-    "tested at ch04-basic-terminology.test.ts §4-20 and ch02-card-information.test.ts §2-11.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0029",
+//   "Dual card rules (referenceable as either a Digimon or Option card; no play cost; color-" +
+//     "requirement gating for Option use) restate comprehensive-0289..0291, already tested at ch04 " +
+//     "§4-6/§4-6-5/§4-6-6. Arts Digivolve restates comprehensive-0306, already " +
+//     "tested at ch04-basic-terminology.test.ts §4-20 and ch02-card-information.test.ts §2-11.",
+// );
 
-markNotTestable(
-  "manual-0030",
-  "The worked Arts Digivolve procedure ('use the [GeoGrey Sword] Option text ... Arts Digivolve " +
-    "allows you to digivolve into one of your cards on the field without paying the cost instead " +
-    "of trashing it') restates the SAME rule already tested end-to-end at comprehensive-0306 " +
-    "(ch04 §4-20: playing BT25-043 as its Option side, applying its -8000 DP, then accepting the " +
-    "Arts Digivolve prompt to digivolve a Lv.5 Yellow permanent into it instead of trashing it) " +
-    "and comprehensive-0289 (ch04 §4-6) — there is no additional engine surface this worked " +
-    "example reaches that those tests don't already exercise.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0030",
+//   "The worked Arts Digivolve procedure ('use the [GeoGrey Sword] Option text ... Arts Digivolve " +
+//     "allows you to digivolve into one of your cards on the field without paying the cost instead " +
+//     "of trashing it') restates the SAME rule already tested end-to-end at comprehensive-0306 " +
+//     "(ch04 §4-20: playing BT25-043 as its Option side, applying its -8000 DP, then accepting the " +
+//     "Arts Digivolve prompt to digivolve a Lv.5 Yellow permanent into it instead of trashing it) " +
+//     "and comprehensive-0289 (ch04 §4-6) — there is no additional engine surface this worked " +
+//     "example reaches that those tests don't already exercise.",
+// );
 
 describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALES with material count", () => {
   it(
@@ -209,42 +237,52 @@ describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALE
   );
 });
 
-markNotTestable(
-  "manual-0037",
-  "DNA Digivolve mechanics and its worked example (blue Lv.4 + green Lv.4 -> Paildramon, cost 0) " +
-    "restate comprehensive-0127/0128, already tested at ch08-digivolution.test.ts §8-2/§8-2-2.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0037",
+//   "DNA Digivolve mechanics and its worked example (blue Lv.4 + green Lv.4 -> Paildramon, cost 0) " +
+//     "restate comprehensive-0127/0128, already tested at ch08-digivolution.test.ts §8-2/§8-2-2.",
+// );
 
-markNotTestable(
-  "manual-0038",
-  "DNA Digivolve rules cont'd ('statuses aren't carried over'; 'a linked card is trashed before " +
-    "placing as a digivolution card'; 'can't DNA digivolve by an effect unless it specifies DNA " +
-    "digivolution') restate comprehensive-0129/0130, already tested at ch08-digivolution.test.ts " +
-    "§8-2-2-1-7/§8-2-3-1. Burst Digivolve's intro restates comprehensive-0131, already tested at " +
-    "§8-3.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0038",
+//   "DNA Digivolve rules cont'd ('statuses aren't carried over'; 'a linked card is trashed before " +
+//     "placing as a digivolution card'; 'can't DNA digivolve by an effect unless it specifies DNA " +
+//     "digivolution') restate comprehensive-0129/0130, already tested at ch08-digivolution.test.ts " +
+//     "§8-2-2-1-7/§8-2-3-1. Burst Digivolve's intro restates comprehensive-0131, already tested at " +
+//     "§8-3.",
+// );
 
-markNotTestable(
-  "manual-0039",
-  "Burst Digivolve's worked example (returning [Marcus Damon] to the hand to digivolve into " +
-    "ShineGreymon: Burst Mode) and its rules (top stacked card trashed at end of the burst-" +
-    "digivolved turn; 'can't burst digivolve unless the effect specifies it') restate " +
-    "comprehensive-0131..0133, already tested with the same real card (BT13-020) at " +
-    "ch08-digivolution.test.ts §8-3.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0039",
+//   "Burst Digivolve's worked example (returning [Marcus Damon] to the hand to digivolve into " +
+//     "ShineGreymon: Burst Mode) and its rules (top stacked card trashed at end of the burst-" +
+//     "digivolved turn; 'can't burst digivolve unless the effect specifies it') restate " +
+//     "comprehensive-0131..0133, already tested with the same real card (BT13-020) at " +
+//     "ch08-digivolution.test.ts §8-3.",
+// );
 
-markNotTestable(
-  "manual-0040",
-  "The Burst Digivolve declare/return/draw procedure restates comprehensive-0131..0133 (ch08 " +
-    "§8-3, already tested). App Fusion's intro ('the Digimon and link card specified are fused " +
-    "to digivolve that Digimon') restates comprehensive-0134, already tested at ch08-digivolution" +
-    ".test.ts §8-4.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0040",
+//   "The Burst Digivolve declare/return/draw procedure restates comprehensive-0131..0133 (ch08 " +
+//     "§8-3, already tested). App Fusion's intro ('the Digimon and link card specified are fused " +
+//     "to digivolve that Digimon') restates comprehensive-0134, already tested at ch08-digivolution" +
+//     ".test.ts §8-4.",
+// );
 
-markNotTestable(
-  "manual-0041",
-  "App Fusion's worked example (DoGatchmon fusing [Gatchmon]/[Navimon]/[Timemon] link " +
-    "combinations) and its rules restate comprehensive-0134/0135, already tested with a real " +
-    "compiled card at ch08-digivolution.test.ts §8-4/§8-4-2. Effect Rules' 'Effect Basics' " +
-    "heading (which opens the next major section) has no body of its own in this chunk.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0041",
+//   "App Fusion's worked example (DoGatchmon fusing [Gatchmon]/[Navimon]/[Timemon] link " +
+//     "combinations) and its rules restate comprehensive-0134/0135, already tested with a real " +
+//     "compiled card at ch08-digivolution.test.ts §8-4/§8-4-2. Effect Rules' 'Effect Basics' " +
+//     "heading (which opens the next major section) has no body of its own in this chunk.",
+// );

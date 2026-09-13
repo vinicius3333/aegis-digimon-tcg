@@ -4111,7 +4111,7 @@ pnpm --filter @aegis/api typecheck
 git diff --check
 ```
 
-The focused test was run serially with one worker. Worker score: catalog/rules 2/2, IR 2/2, behavior 2/2, peer/stack 2/2, reproducibility 2/2; Delivery gates 0/2 per worker brief. Worker claim: **8/10 maximum**; coordinator must recalculate collection gates.
+The focused test was run serially with one worker. Worker score: catalog/rules 2/2, IR 2/2, behavior 2/2, peer/stack 2/2; Delivery gates 0/2 per worker brief. Reproducibility 2/2 is an unscored evidence note, not a sixth rubric category. Worker claim: **8/10 maximum**; coordinator must recalculate collection gates.
 
 ### EX4-041 — DeadlyAxemon
 

@@ -14,7 +14,7 @@ import {
   CardInstance,
   type Filter,
 } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { definitionMatches } from "../effects/interpreter.js";
 import { matchNameOrTrait } from "../effects/interpreter/matching/definition.js";
@@ -39,12 +39,14 @@ import { advance } from "../testkit/advance.js";
 // multiple competing "versions" of the same printed card simultaneously resolvable at
 // runtime. There is no "which version is newest" decision for the engine to get right or
 // wrong, so there is no engine-observable consequence to assert.
-markNotTestable(
-  "comprehensive-0031",
-  "Rule concerns physical card reprints with differing text over time; the engine's card " +
-    "registry holds exactly one static definition per cardId with no version-overlay " +
-    "concept, so there is no 'newest version' decision for the engine to make.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "comprehensive-0031",
+//   "Rule concerns physical card reprints with differing text over time; the engine's card " +
+//     "registry holds exactly one static definition per cardId with no version-overlay " +
+//     "concept, so there is no 'newest version' decision for the engine to make.",
+// );
 
 describe("§2-2 Card Category (comprehensive-0032)", () => {
   it("2-2-3..2-2-6: the four card categories are distinct and drive real predicates", () => {

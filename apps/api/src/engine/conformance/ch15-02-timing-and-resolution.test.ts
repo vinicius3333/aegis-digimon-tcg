@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, Phase, requireCardDefinition, type CardColor, type Seat } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { resolveTiming, orderTurnPlayerFirst, type ResolutionEnv } from "../effects/stack.js";
@@ -743,14 +743,16 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
 });
 
 // §15-8 Effect Categories (comprehensive-0171)
-markNotTestable(
-  "comprehensive-0171",
-  "15-8-1 is a one-line list of the 4 category names (persistent/trigger/activation/" +
-    "immediate); it carries no independently testable claim beyond its own subsections, " +
-    "each verified separately: persistent at comprehensive-0172 (ch15-04), trigger-type at " +
-    "comprehensive-0173 above, activation-type at comprehensive-0176 above, and immediate-type " +
-    "at comprehensive-0177/0178 above.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "comprehensive-0171",
+//   "15-8-1 is a one-line list of the 4 category names (persistent/trigger/activation/" +
+//     "immediate); it carries no independently testable claim beyond its own subsections, " +
+//     "each verified separately: persistent at comprehensive-0172 (ch15-04), trigger-type at " +
+//     "comprehensive-0173 above, activation-type at comprehensive-0176 above, and immediate-type " +
+//     "at comprehensive-0177/0178 above.",
+// );
 describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
   it("15-8-4-1/15-8-4-2: BT15-009's [Main][Once Per Turn] is activation-type — it needs a player DECLARATION during the main phase, unlike a trigger-type effect", () => {
     cite(
@@ -901,24 +903,28 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
 // card in ch15-04-continuous-and-static.test.ts rather than duplicated here.
 
 // §15-8-3-8/15-8-3-9-3 Trigger-Type Effects, cont'd (comprehensive-0174/0175)
-markNotTestable(
-  "comprehensive-0174",
-  "15-8-3-8 distinguishes a trigger CONDITION reference (state at trigger time, frozen) " +
-    "from an ordinary reference (state at processing time) inside one trigger-type effect's " +
-    "own body — a nuance of WHICH state a specific card's text snapshots. No compiled card " +
-    "in the corpus carries the shape the rule's own example needs (a trigger-condition-scoped " +
-    "reference like 'a Digimon with a level less than or equal to the PLAYED Digimon', frozen " +
-    "even if that Digimon later digivolves before the effect activates) — the interpreter's " +
-    "relativeToSource DP/level comparisons all read LIVE state at processing time, so this " +
-    "specific frozen-snapshot semantic has no producing IR shape to drive.",
-);
-markNotTestable(
-  "comprehensive-0175",
-  "15-8-3-9-3/4 states that a reference made in a trigger-type effect's PROCESSING " +
-    "CONDITIONS reads current-processing-time state (or trigger-time state for a " +
-    "removed-from-area trigger). This is a narrower restatement of the general processing-" +
-    "conditions timing already verified via BT9-042's 'if you have [Justimon]/[Raidenmon]' " +
-    "gate (comprehensive-0168 above, which reads current battle-area state at declaration " +
-    "time) — no additional real card isolates the trigger-time-vs-processing-time distinction " +
-    "this specific sub-chunk adds for a removed-from-area trigger.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "comprehensive-0174",
+//   "15-8-3-8 distinguishes a trigger CONDITION reference (state at trigger time, frozen) " +
+//     "from an ordinary reference (state at processing time) inside one trigger-type effect's " +
+//     "own body — a nuance of WHICH state a specific card's text snapshots. No compiled card " +
+//     "in the corpus carries the shape the rule's own example needs (a trigger-condition-scoped " +
+//     "reference like 'a Digimon with a level less than or equal to the PLAYED Digimon', frozen " +
+//     "even if that Digimon later digivolves before the effect activates) — the interpreter's " +
+//     "relativeToSource DP/level comparisons all read LIVE state at processing time, so this " +
+//     "specific frozen-snapshot semantic has no producing IR shape to drive.",
+// );
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "comprehensive-0175",
+//   "15-8-3-9-3/4 states that a reference made in a trigger-type effect's PROCESSING " +
+//     "CONDITIONS reads current-processing-time state (or trigger-time state for a " +
+//     "removed-from-area trigger). This is a narrower restatement of the general processing-" +
+//     "conditions timing already verified via BT9-042's 'if you have [Justimon]/[Raidenmon]' " +
+//     "gate (comprehensive-0168 above, which reads current battle-area state at declaration " +
+//     "time) — no additional real card isolates the trigger-time-vs-processing-time distinction " +
+//     "this specific sub-chunk adds for a removed-from-area trigger.",
+// );

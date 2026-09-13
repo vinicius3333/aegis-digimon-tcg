@@ -271,6 +271,35 @@ The singular identity and public DigiXros deletion-only corrections and their
 serialized red/green gates are owned by
 [replacement-effects.md](replacement-effects.md#singular-identity-and-digixros-deletion-only-checkpoint-2026-09-13).
 
+## Current placement reconciliation, 2026-09-13
+
+The new conformance focus covers an acquired BT7-056 inherited watcher after
+singular relocation and after a two-source batch relocation. It asserts the
+physical source identities, destination identity, event position/provenance,
+and exactly one memory gain for the once-per-turn watcher in the batch case.
+Existing `primitives.test.ts` mixed-batch tests already cover physical material preflight, source preservation and exact bottom order; no redundant new mixed-primitive test is retained. These are synthetic seam fixtures because no current printed
+card supplies the required BT7-056 black-source/owner-turn relocation
+intersection; they do not claim a production card producer.
+
+The ordinary compiled `mixedSources` interpreter path remains sequential: it
+selects and orders the complete set, then calls relocation or loose placement
+one candidate at a time, opening the addition window after each candidate. Its
+source shedding and event behavior therefore must not be inferred from the
+separate atomic `placeMixedMaterialsUnder` primitive. A first downstream reaction
+can alter a later selected source before that source is processed; this remains
+an explicit residual until a legal producer or a deliberately synthetic atomicity
+contract is established. The 54-card persisted `onAddDigivolutionCards` consumer
+denominator has colocated tests and finite real downstream witnesses, but is not
+complete placement-subsystem certification.
+
 ## Subsequent integrity delivery, 2026-09-13
 
 The earlier 13-record EX6 persisted-IR residual is resolved by the scoped canonical reconciliation owned by [kb-citation-integrity.md](kb-citation-integrity.md#integrity-checkpoint-2026-09-13). All 74 EX6 records now pass parity; no direct card behavior or new collection certification is implied. The placement checkpoint gates above retain their historical meaning.
+
+## Fresh ruling: stacked-card return versus Digimon identity (2026-09-13)
+
+Full review of the newly fetched BT26-029 Q7195 demonstrates a separate identity defect: its immunity against returning “stacked cards” must permit returning the Digimon itself. The existing `returnToHandOrDeck` grant blocked whole-Digimon bounce, while shared stacked-card return readers also incorrectly treated every StackTrashLock as return immunity. Giant Slayer (BT26-085)'s printed/Q7129 trash-only protection exposes that latter error.
+
+The corrected BT26-029 grant uses the independently enforced `stackReturn` restriction. Individual source-card hand/deck and complete-stack suffix returns read that restriction; whole-Digimon hand/deck bounce retains `beReturned`. Trash/De-Digivolve locks retain their separate readers. New real-card hand/deck tests assert blocked individual material returns and permitted whole-Digimon returns with exact owner destinations and attached-card trash IDs; the Giant Slayer comparison permits individual material return while still preventing trash. Complete-stack top-return controls assert actual promotion and final deck order. Source cards use real physical IDs and a legal red level-2 → level-3 → level-4 target stack; the Giant Slayer material arrangement is a test-only effect-placed stack, not an unpaid Assembly claim.
+
+Three new behavioral cases failed against the old implementation for the intended reason; the initial corrected run exposed a test lookup of an already departed permanent. Capturing its physical permanent ID before movement fixed that fixture without weakening the absence/destination assertions. The four-file focus then passed **225 tests**. The old whole-Digimon immunity assertion is explicitly superseded by Q7195, rather than silently weakened to obtain green. Further final API/parity receipts are recorded in the owner ledger after execution.

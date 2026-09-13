@@ -2179,3 +2179,9 @@ Bounded cross-collection limitation: cold affordability of mode-less nested/fixe
 - `docs/audits/EX6-TEST-QUEUE.md` — last at `eb1a58b75`, 2026-09-05. Runtime and collection gate checklist with the embargo conditions and the exact collection command; its command and outcome are recorded under Gates.
 - `docs/audits/EX6-reaudit/` — last at `0c3b8f6a1`, 2026-09-09. 74 per-card reports plus `KB-INDEX.md`, `RUN.md`, `REVIEW-NOTES.md`, `SOURCE-RECONCILIATION.md`, `WORKER-BRIEF.md`, two `*-MECHANISM.md` reports, and a stray `TEST-ME.md` placeholder. All merged above except the worker brief and the placeholder.
 - `docs/audits/collections-summary.md` — never committed (untracked), generated 2026-08-22. Cross-set status table, deleted in favour of the generated index in `docs/audits/README.md`. It was the only record of this delivery evidence for EX6: commit `0580457dc`.
+
+### Current scoped QA provenance reconciliation — 2026-09-13
+
+Q3816 is owned by EX6-065 Mythical Arms of Salvation. EX6-042 RaijiLudomon preserves the physical Delay/inherited-prevention interaction evidence and answer text; older local-query receipts there are historical related-card attribution. No test, score, or status is changed.
+
+Q3084 belongs to BT19-027 Ryugumon, not EX6-054. Its prior appearance in the EX6-054 Q&A index is historical related-category attribution, not a self-category ruling or a change to EX6-054 behavior.
