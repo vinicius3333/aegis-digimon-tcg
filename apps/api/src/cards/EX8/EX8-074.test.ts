@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-074.js";
@@ -217,16 +218,20 @@ describe("EX8-074", () => {
       {
         0: {
           battleArea: [{ card: "EX8-074", as: "medieval" }],
+          deck: Array(40).fill("BT1-009"),
           hand: [
             { card: "EX8-047", as: "first-play" },
             { card: "EX8-048", as: "second-play" },
+            { card: "EX8-047", as: "third-play" },
           ],
         },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first-target", dp: 8000 },
             { card: "BT1-011", as: "second-target", dp: 8000 },
+            { card: "BT1-012", as: "third-target", dp: 8000 },
           ],
+          deck: Array(40).fill("BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -237,14 +242,34 @@ describe("EX8-074", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first-play").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second-play").instanceId })).toEqual({
       ok: true,
     });
     await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third-play").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("reactivates when the opponent plays a Digimon on their turn (Q3988)", async () => {

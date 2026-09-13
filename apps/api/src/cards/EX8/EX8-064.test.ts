@@ -85,7 +85,10 @@ describe("EX8-064", () => {
   it("applies the printed -6000 DP turn modifier to every opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-064", as: "source" }] },
+        0: {
+          battleArea: [{ card: "EX8-064", as: "source" }],
+          deck: Array(40).fill("BT1-009"),
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first", dp: 10000 },
@@ -108,7 +111,7 @@ describe("EX8-064", () => {
   it("de-digivolves the selected opposing stack by exactly 3 before applying the global DP reduction", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-064", as: "source" }] },
+        0: { battleArea: [{ card: "EX8-064", as: "source" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
         1: {
           battleArea: [{ card: "EX8-064", as: "target", under: ["BT10-009", "EX8-060", "EX8-062"] }],
         },
@@ -327,13 +330,15 @@ describe("EX8-064", () => {
   it("trashes the opponent's top security card after another Digimon is deleted", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-064", as: "source" }] },
+        0: { battleArea: [{ card: "EX8-064", as: "source" }], deck: Array(20).fill("BT1-009") },
         1: {
           battleArea: [
             { card: "BT1-009", as: "victim" },
             { card: "BT1-009", as: "secondVictim" },
+            { card: "BT1-009", as: "thirdVictim" },
           ],
-          security: ["BT1-010", "BT1-011"],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -343,14 +348,31 @@ describe("EX8-064", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.security.length === 2);
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityInstanceId)).toBe(true);
     expect(s.state.players[1]!.security[0]!.instanceId).toBe(secondSecurityInstanceId);
 
     await advance(s.engine).verb.deletePermanent([s.perm("secondVictim").permanentId], "byEffect");
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondVictim").instanceId));
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.deletePermanent([s.perm("thirdVictim").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });
