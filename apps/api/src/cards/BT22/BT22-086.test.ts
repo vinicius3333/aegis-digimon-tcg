@@ -78,7 +78,7 @@ describe("BT22-086 Yao Qinglan", () => {
             { card: "BT22-086", as: "yao" },
             { card: "BT1-033", under: [{ card: "BT22-069", as: "added" }], as: "base" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -93,7 +93,7 @@ describe("BT22-086 Yao Qinglan", () => {
     await settle(() => s.perm("yao").isSuspended && s.state.players[0]!.hand.length > 0, 400);
 
     expect(s.perm("yao").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("plays Yao Qinglan from security during a public security check", async () => {

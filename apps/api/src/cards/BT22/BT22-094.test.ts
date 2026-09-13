@@ -63,7 +63,7 @@ describe("BT22-094 Yuugo Kamishiro", () => {
 
   it("reveals a mixed deck and adds only the CS card through a public play intent", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT22-094", as: "yuugo" }], deck: ["BT1-001", "BT1-002", "BT22-054"] } },
+      { 0: { hand: [{ card: "BT22-094", as: "yuugo" }], deck: ["BT1-009", "BT1-010", "BT22-054"] } },
       { autoSelectCards: true },
     );
     const yuugoId = s.inst("yuugo").instanceId;
@@ -73,8 +73,8 @@ describe("BT22-094 Yuugo Kamishiro", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-054"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-054")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(false);
   });
 
   it("returns itself to deck bottom and reduces an owned CS Digimon play by exactly 2", async () => {

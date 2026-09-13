@@ -143,7 +143,7 @@ describe("BT22-042 Nyabootmon", () => {
           ],
           hand: [{ card: "BT22-032", as: "replacement" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );

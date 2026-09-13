@@ -70,7 +70,7 @@ describe("BT22-069 Lunamon", () => {
     const s = setupEngine(
       {
         0: {
-          deck: ["BT22-001"],
+          deck: ["BT1-009"],
           battleArea: [{ card: "BT22-072", as: "host", under: ["BT22-069", "BT22-071"] }],
         },
       },
@@ -88,7 +88,7 @@ describe("BT22-069 Lunamon", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: lunamon.instanceId, effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-001"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
 
     expect(host.topCard!.instanceId).toBe(initialTopUnder);
     expect(host.stack[0]!.instanceId).toBe(initialTop);
