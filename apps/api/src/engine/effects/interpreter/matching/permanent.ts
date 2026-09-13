@@ -233,8 +233,10 @@ export function permanentMatchesFilter(
   if (stackKeywords !== undefined) {
     if (
       !stackKeywords.every((keyword) =>
-        permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true &&
+            textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword),
         ),
       )
     )
@@ -593,6 +595,7 @@ export function permanentMatchesFilter(
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
     const refs = filter.digivolutionStackNameOrTrait;
     const hit = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const stackDefinition = ctx.game.definitionOf(card);
       return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, stackDefinition));
     });
@@ -610,6 +613,7 @@ export function permanentMatchesFilter(
   if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
     const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
     const hasExcluded = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();
       return excluded.some((n) => name === n);
     });
