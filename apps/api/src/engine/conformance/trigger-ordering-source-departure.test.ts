@@ -9,6 +9,8 @@ const SIMULTANEOUS_SHA256 = "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b
 const PENDING_ACTIVATION_SHA256 = "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0";
 const DERIVED_TRIGGER_SHA256 = "c12a72babb8fa25e11755af5c32e4d0efccdb4e812e15d3b2dd8cc2e2df1ee50";
 const IMMEDIATE_TYPE_SHA256 = "50033be9509953fb2b00c56799e11cee1838740d4c5c06a962969a748a6fcdde";
+const DELETION_PENDING_TOP_SHA256 = "8591423c545be03c90aa350157893da9538e16a3fbbb42459c031ea2258d6932";
+const ON_DELETION_EVENT_SHA256 = "e24eb2b826f21a8fa8a09e42fa4c357c7f46c5f7fcedbb93fe8955b3b00d3afc";
 
 describe("bounded trigger ordering and pending source departure", () => {
   beforeEach(() => {
@@ -16,6 +18,12 @@ describe("bounded trigger ordering and pending source departure", () => {
     cite("comprehensive-0165", "§15-4-4 Pending Activation", PENDING_ACTIVATION_SHA256);
     cite("comprehensive-0166", "§15-4-5 Derived Triggering", DERIVED_TRIGGER_SHA256);
     cite("comprehensive-0177", "§15-8-5 Immediate-Type Effects", IMMEDIATE_TYPE_SHA256);
+    cite(
+      "comprehensive-0173",
+      "§15-8-3-5 deletion triggers remain pending for the original top card",
+      DELETION_PENDING_TOP_SHA256,
+    );
+    cite("comprehensive-0210", "§15-16-4-1 On Deletion triggers at card deletion", ON_DELETION_EVENT_SHA256);
   });
 
   it("offers simultaneous optional deletion triggers to the owning controllers in turn-player order", async () => {
@@ -170,6 +178,66 @@ describe("bounded trigger ordering and pending source departure", () => {
     const surrender = s.state.gameOver ? undefined : s.engine.applyIntent(0, { type: "surrender" });
     expect(surrender === undefined || surrender.ok).toBe(true);
     await loop;
+  });
+
+  it("resolves an inherited OnDeletion after its host leaves in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-065", as: "attacker", dp: 11000 },
+            { card: "BT20-071", as: "survivor", under: [{ card: "BT20-070" }] },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT20-078",
+              as: "deletedHost",
+              dp: 11000,
+              suspended: true,
+              under: [{ card: "BT20-073", as: "metal" }],
+            },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const hostId = s.inst("deletedHost").instanceId;
+      const metalId = s.inst("metal").instanceId;
+      const attackerId = s.inst("attacker").instanceId;
+      const survivorId = s.inst("survivor").instanceId;
+      const survivorSourceId = s.perm("survivor").stack[0]!.instanceId;
+      expect(s.perm("deletedHost").stack.map((card) => card.instanceId)).toEqual([metalId]);
+      expect(s.perm("survivor").stack).toHaveLength(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("deletedHost").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === hostId));
+      await settle(() => s.perm("survivor").stack.length === 0);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+        survivorSourceId,
+      );
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(survivorId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(attackerId);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+        expect.arrayContaining([hostId, metalId]),
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
   });
 
   it("prioritizes a public derived deletion trigger over an older pending trigger", async () => {

@@ -54,6 +54,12 @@ completion. A paired control adds lower-DP BT1-009 Agumon; seat 0's watcher dele
 Agumon instead, and the enemy Bacchusmon watcher is offered to seat 1 and declined.
 This establishes both eligibility and source identity before departure.
 
+The sixth bounded case covers the deletion exception in comprehensive §§15-8-3-5 and
+15-16-4-1. A public battle deletes a suspended BT20-078 Reapermon carrying face-up
+BT20-073 MetalPhantomon; the inherited On Deletion trigger remains associated with
+the original top card while the host leaves play and De-Digivolves a separate
+opponent stack by exactly one, preserving every physical instance ID.
+
 ## Current source and ordering classes
 
 | Class                                                                  | Current public consumer/provider                                                                 | Executable proof                                                                                                      | Status                                     |
@@ -62,6 +68,7 @@ This establishes both eligibility and source identity before departure.
 | Simultaneous pending sources that depart after order selection         | EX7-061 Lilithmon (X Antibody) with two EX7-072 Seventh Fascination cards                        | Second case above, with one `orderTriggers` request and both exact source IDs reaching deck                           | Proven for this trash-trigger shape        |
 | Derived trigger while an older trigger remains pending                 | BT19-065, BT20-073, BT19-020                                                                     | Fourth case above, with exact source IDs and derived request precedence                                               | Proven for this chain                      |
 | A pending source leaving or changing before that same source activates | BT25-077 Bacchusmon watcher created by effect-play, then deleted by the turn player's Bacchusmon | Fifth case deletes the enemy source before its pending watcher can activate; paired Agumon control proves eligibility | Proven for this public play/deletion shape |
+| Inherited On Deletion after the carrier leaves play                     | BT20-073 under a battle-deleted BT20-078 Reapermon                              | Sixth case keeps the inherited trigger's original top-card identity and De-Digivolves a separate stacked target       | Proven for this public battle shape                 |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining
@@ -75,6 +82,8 @@ outside this bounded proof.
   controller-selected orders.
 - Add source-identity cases where a pending trigger's card becomes a different physical
   card or moves within the same battle-area host.
+- Keep inherited On Deletion triggers separate from ordinary pending source departure:
+  §15-8-3-5 anchors them to the original top card after deletion.
 - Add derived chains for other event families and preserve exact source identities
   and controller decisions in each request.
 - Reconcile every trigger consumer and provider/exception denominator before claiming
