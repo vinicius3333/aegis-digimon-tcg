@@ -259,7 +259,7 @@ describe("EX7-027 Chaperomon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX7-024", as: "host", under: ["EX7-027"], suspended: true },
+            { card: "BT1-063", as: "host", dp: 1000, under: ["EX7-027"], suspended: true },
             { card: "EX7-024", as: "fodder" },
           ],
           deck: ["BT1-009", "BT1-010"],
@@ -305,7 +305,7 @@ describe("EX7-027 Chaperomon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX7-024", as: "host", under: ["EX7-027"], suspended: true },
+            { card: "BT1-063", as: "host", dp: 1000, under: ["EX7-027"], suspended: true },
             { card: "EX7-024", as: "firstFodder" },
             { card: "EX7-024", as: "secondFodder" },
           ],

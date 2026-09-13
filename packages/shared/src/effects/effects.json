@@ -173501,11 +173501,7 @@
                 "to": "hand"
               },
               {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": ["Option"],
-                  "costComparison": { "op": "eq", "value": 6 }
-                },
+                "filter": { "controllerDefault": "mine", "kind": ["Option"], "playCostOneOf": [6] },
                 "count": 1,
                 "to": "hand"
               }
@@ -174259,7 +174255,7 @@
               "count": "all"
             },
             "restriction": "attackTargetChange",
-            "duration": "whileInPlay"
+            "duration": "forTheTurn"
           }
         ]
       }
@@ -174648,7 +174644,7 @@
       {
         "trigger": "Static",
         "actions": [],
-        "keywords": [{ "keyword": "Overclock", "qualifier": "Puppet", "raw": "＜Overclock ([Puppet] trait)＞" }]
+        "keywords": [{ "keyword": "Overclock", "traitFilter": ["Puppet"], "raw": "＜Overclock ([Puppet] trait)＞" }]
       },
       {
         "trigger": "EndOfYourTurn",
@@ -174664,7 +174660,7 @@
                 "filter": {
                   "controller": "mine",
                   "excludeSelf": true,
-                  "kindOrToken": ["Digimon", "Token"],
+                  "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["Puppet"], "match": "trait" }],
                   "allowTokens": true
                 },
@@ -174674,7 +174670,7 @@
             }
           }
         ],
-        "keywords": [{ "keyword": "Overclock", "qualifier": "Puppet", "raw": "＜Overclock ([Puppet] trait)＞" }]
+        "keywords": [{ "keyword": "Overclock", "traitFilter": ["Puppet"], "raw": "＜Overclock ([Puppet] trait)＞" }]
       },
       {
         "trigger": "StartOfYourMainPhase",
@@ -176548,7 +176544,7 @@
           },
           {
             "kind": "GainKeyword",
-            "target": { "sameTarget": true },
+            "target": { "sameTarget": true, "filter": {}, "count": 1 },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd"
           },

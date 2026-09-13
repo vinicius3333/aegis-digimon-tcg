@@ -209,11 +209,23 @@ describe("EX7-028 Piximon", () => {
   });
 
   it("retained red: preserves inherited -4000 DP through a second same-turn attack", async () => {
+    const automation = { autoAcceptOptional: true, autoSelectCards: true };
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-039", as: "host", under: ["EX7-028"] }],
-          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          battleArea: [
+            { card: "BT1-063", as: "host", under: ["EX7-028"] },
+            { card: "BT1-071", as: "helper" },
+          ],
+          hand: [
+            { card: "EX7-069", as: "windslicer" },
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+          ],
           deck: ["BT1-009", "BT1-011", "BT1-012"],
         },
         1: {
@@ -222,7 +234,7 @@ describe("EX7-028 Piximon", () => {
           security: ["BT1-014", "BT1-014", "BT1-014", "BT1-014", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      automation,
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -235,7 +247,33 @@ describe("EX7-028 Piximon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 11000 && !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    automation.autoSelectCards = false;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("windslicer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("helper").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const unsuspendDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: unsuspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("host").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("windslicer").instanceId));
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
+    automation.autoSelectCards = true;
     const attacksBeforeSecond = s.events.filter((event) => event.kind === "attackDeclared").length;
     expect(attack()).toEqual({ ok: true });
     await settle(
@@ -258,7 +296,7 @@ describe("EX7-028 Piximon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-039", as: "host", under: ["EX7-028"] }],
+          battleArea: [{ card: "BT1-063", as: "host", under: ["EX7-028"] }],
           hand: ["BT1-011"],
           deck: ["BT1-009", "BT1-011", "BT1-012"],
         },

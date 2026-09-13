@@ -62,7 +62,7 @@ describe("EX7-033 Monochromon", () => {
     await source.ready();
     expect(observe(source.engine).hasEffectiveTrait(source.perm("source"), "Dinosaur")).toBe(true);
 
-    const host = setupEngine({ 0: { battleArea: [{ card: "EX7-036", as: "host", under: ["EX7-033"] }] } });
+    const host = setupEngine({ 0: { battleArea: [{ card: "BT11-053", as: "host", under: ["EX7-033"] }] } });
     await host.ready();
     expect(observe(host.engine).hasPierce(host.perm("host"))).toBe(true);
   });
@@ -70,7 +70,7 @@ describe("EX7-033 Monochromon", () => {
   it("uses inherited Piercing after winning a battle against an opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "host", dp: 7000, under: ["EX7-033"] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", dp: 7000, under: ["EX7-033"] }] },
         1: {
           battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }],
           security: ["BT1-009"],

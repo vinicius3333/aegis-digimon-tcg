@@ -199,7 +199,7 @@ describe("EX7-018 Gekomon", () => {
 
   it("keeps inherited Jamming on a real host stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-018"] }], security: SECURITY },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: ["EX7-018"] }], security: SECURITY },
       1: { deck: [...FILLER], security: SECURITY },
     });
     const loop = s.engine.startTurnLoop();

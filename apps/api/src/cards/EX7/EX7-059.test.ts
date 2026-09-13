@@ -133,7 +133,7 @@ describe("EX7-059", () => {
         0: {
           battleArea: [
             { card: "EX7-059", as: "beel" },
-            { card: "BT1-009", as: "other", under: ["EX7-066"] },
+            { card: "EX7-073", as: "other", under: ["EX7-066"] },
           ],
           hand: [{ card: "EX7-066", as: "option" }],
         },

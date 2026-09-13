@@ -93,7 +93,7 @@ describe("EX7-002 Hiyarimon", () => {
         battleArea: [{ card: "BT1-028", as: "host", dp: 5000, under: ["EX7-002"] }],
       },
       1: {
-        battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true, under: ["BT1-014"] }],
+        battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true, under: ["BT1-001"] }],
       },
     });
     expect(

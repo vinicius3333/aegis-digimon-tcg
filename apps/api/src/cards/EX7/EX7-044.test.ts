@@ -263,7 +263,7 @@ describe("EX7-044 Gigadramon", () => {
 
   it("forces an opposing non-Blocker to block through inherited Collision", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-064", as: "attacker", dp: 8000, under: ["EX7-044"] }], security: ["BT1-009"] },
+      0: { battleArea: [{ card: "BT2-064", as: "attacker", dp: 8000, under: ["EX7-044"] }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 3000 }], security: ["BT1-011"] },
     });
     await s.ready();

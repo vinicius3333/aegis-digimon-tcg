@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-019.js";
+import "../ST8/ST8-11.js";
 import "../index.js";
 
 async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>) {
@@ -194,20 +195,20 @@ describe("EX7-019 Sorcermon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", dp: 5000, under: ["EX7-019"] }],
-          hand: ["BT1-028"],
+          battleArea: [{ card: "BT1-038", as: "host", dp: 5000, under: ["EX7-019"] }],
+          hand: ["BT1-028", { card: "ST8-11", as: "victory" }],
           deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "stacked", under: ["EX7-018", "EX7-018"] },
+            { card: "BT1-038", as: "stacked", under: ["BT1-028", "EX7-018"] },
             { card: "BT1-014", as: "bare" },
           ],
           security: ["BT1-028", "BT1-028", "BT1-028"],
           deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -220,11 +221,16 @@ describe("EX7-019 Sorcermon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("stacked").stack.length === 1);
-    expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["EX7-018"]);
+    expect(s.perm("stacked").stack.map((card) => card.cardId)).toEqual(["BT1-028"]);
 
-    // Public attacks are real; this structural unsuspend only reopens a second attack in the
-    // same Main window because the fixture intentionally has no unsuspend card effect.
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    // Victory Sword publicly unsuspends the blue host.
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("victory").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("victory").instanceId));
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
