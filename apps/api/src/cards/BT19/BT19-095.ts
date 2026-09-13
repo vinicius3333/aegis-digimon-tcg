@@ -1,10 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Both grant clauses print "until the end of your opponent's turn"
-// (`untilOpponentTurnEnd`), matching the rest of the Device cycle (BT19-093,
-// BT19-098, P-159). KB Q3170 confirms it for the trashed clause: trashed during
-// the opponent's turn, the grant lasts to the end of THAT turn.
+// Both grant clauses print "for the turn" (`forTheTurn`). KB Q3170 confirms the
+// trashed clause's duration when it resolves during the opponent's turn: it
+// lasts until the end of that current opponent turn.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -23,6 +22,7 @@ const compiled: CompiledCard = {
             kind: "youHaveNone",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Knight Device"],
@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 4000,
-          duration: "untilOpponentTurnEnd",
+          duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
@@ -64,7 +64,7 @@ const compiled: CompiledCard = {
             keyword: "Piercing",
             raw: "＜Piercing＞",
           },
-          duration: "untilOpponentTurnEnd",
+          duration: "forTheTurn",
         },
         {
           kind: "PlaceInBattleAreaSelf",
@@ -84,7 +84,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 4000,
-          duration: "untilOpponentTurnEnd",
+          duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
             keyword: "Piercing",
             raw: "＜Piercing＞",
           },
-          duration: "untilOpponentTurnEnd",
+          duration: "forTheTurn",
         },
       ],
     },

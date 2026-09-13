@@ -40592,7 +40592,7 @@
     "types": [
       "Device"
     ],
-    "effectText": "While you don't have [Knight Device], you may ignore this card's color requirements.When an effect trashes this card in your battle area, 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn.\n[Main] 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn. Then, place this card in the battle area.",
+    "effectText": "While you don't have [Knight Device] in the battle area, you may ignore this card's color requirements.\nWhen this card is trashed from the battle area, 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn.\n[Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn. Then, place this card in the battle area.",
     "securityEffectText": "[Security] Suspend 2 of your opponent's Digimon or Tamers. Then, add this card to the hand.",
     "rarity": "C",
     "maxCountInDeck": 4,
