@@ -544,3 +544,54 @@ paths.
 | Payment identity and destination are preserved           | Both cases assert the exact payer instance at security bottom                                        | Focused green           |
 | No duplicate optional consent / no pending decision leak | Both cases use `autoAcceptOptional: false` and assert zero optional requests and empty pending state | Focused green           |
 | Other borrowed cost kinds and force assignments          | No additional current printed `forceCostProcessing` assignment found                                 | Open discovery boundary |
+
+## Ordered loose-material target-host normalization (2026-09-13)
+
+The EX9 restart at `b88aeb69f` exposed two existing BT14-090 failures in
+`activation-cost-compound-assignment.test.ts` (distinct physical trash cards)
+and `activation-processing-costs.test.ts` (targetless Option use, accepted
+processing). The unchanged baseline broad gate passed 269 files / 3,390 tests
+and failed those two assertions: the Agumon stack remained empty. No EX9
+module uses `CostGatedBlock`; this is an independent shared payment defect
+found while validating the required mechanism gate.
+
+The ordered all-loose compound path in `payCost` only accepted an object-shaped
+first host. BT14-090 instead encodes `host: "target"`, an Agumon `underFilter`
+and `bindHostAs`, followed by another loose placement bound to that host.
+The first host check returned false before payment. The correction normalizes
+that target-host form through `underFilter`/`underOrFilters`, retaining the
+object-host form. Selection and final host revalidation use the same normalized
+target. Distinct identities, subsequent bound-host checks, player ordering and
+atomic placement remain intact. No card IR or serialized catalog change is
+needed for this seam.
+
+Existing tests supply the red-capable regression signal; no redundant test was
+added. The isolated `git archive b88aeb69f` replay reproduced both failures: two
+files, 18 passing / two failing tests (39.54 seconds), using
+`TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/engine/conformance/activation-processing-costs.test.ts src/engine/conformance/activation-cost-compound-assignment.test.ts --maxWorkers=1 --no-file-parallelism`.
+The corrected BT14-090 focus passes **one file / 11 tests** (7.47 seconds).
+Its existing same-host case selects the first material before the host, observes
+both materials still in trash until its manual `orderCards` response, asserts
+exact ordered identities on the chosen host, refuses BT14-101's subsequent
+optional attack and waits for the Option to finish resolving into trash.
+The unused second host stays unchanged; final memory is 6 after the printed
+4-cost Option. The auxiliary Tai fixture was removed because its legitimate
+Greymon-evolution memory gain would obscure this payment assertion.
+
+Final corrected regression passes **276 files / 3,433 tests** (15.32 seconds), after integrating main `e423e12a223a67f5a0808cf46cdf96352edb3834`:
+EX9 **78 files / 992 tests**, engine mechanisms **192 files / 2,397 tests**,
+five affected peer card files / 40 tests and audit layout / four tests. The
+exact serialized command is recorded in [EX9.md](../EX9.md#gates). This
+includes both baseline-red conformance cases, primitives, interpreter binding/
+atomic-failure proof, Training, public deck-top placement and object-host peers.
+Serial shared/API/web typecheck with a 4096-MB heap passed; changed-code
+Oxlint, Oxfmt and `git diff --check` passed. Final structured Auto Review
+using Codex/Luna reports no accepted/actionable findings. This proves the
+bounded normalization and named providers; other compound shapes and the
+pre-existing permanent-host OR-filter precheck boundary remain outside this
+certificate. No EX9 card uses `underOrFilters`.
+
+The final integrated interpreter adopts the published normalization from main
+commit `66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` byte for byte. The strengthened
+BT14-090 case follows its material-first decision sequence and retains the
+unpaid-batch, manual-order, same-host, exact-identity and final-resolution proof.

@@ -176,7 +176,6 @@ describe("BT14-090", () => {
       {
         0: {
           battleArea: [
-            { card: "BT12-095", as: "tai" },
             { card: "BT14-007", as: "agumonA" },
             { card: "BT14-007", as: "agumonB" },
           ],
@@ -191,12 +190,13 @@ describe("BT14-090", () => {
           ],
         },
       },
-      { autoSelectCards: false },
+      { autoSelectCards: false, autoOrderCards: false },
     );
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -243,6 +243,24 @@ describe("BT14-090", () => {
       }),
     ).toEqual({ ok: true });
 
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.state.pendingDecision!;
+    const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)?.req;
+    expect(orderRequest?.kind).toBe("orderCards");
+    expect(orderRequest?.options?.candidateInstanceIds).toEqual([greymonId, metalGreymonId]);
+    expect(s.perm("agumonA").stack).toHaveLength(0);
+    expect(s.perm("agumonB").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([greymonId, metalGreymonId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order: [metalGreymonId, greymonId] },
+      }),
+    ).toEqual({ ok: true });
+
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.perm("agumonA").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT14-012", "BT14-014"]),
@@ -256,15 +274,35 @@ describe("BT14-090", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("agumonA").topCard?.cardId === "BT14-101");
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.perm("agumonA").topCard?.cardId === "BT14-101",
+    );
+    const attackDecision = s.state.pendingDecision!;
+    const attackRequest = s.decisions.find(({ req }) => req.decisionId === attackDecision.decisionId)?.req;
+    expect(attackRequest?.sourceCardId).toBe("BT14-101");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
+    );
 
     expect(s.perm("agumonA").topCard?.cardId).toBe("BT14-101");
-    expect(s.perm("agumonA").stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT14-007", "BT14-012", "BT14-014"]),
-    );
+    expect(s.perm("agumonA").stack.map(({ cardId }) => cardId)).toEqual(["BT14-014", "BT14-012", "BT14-007"]);
     expect(s.perm("agumonA").stack).toHaveLength(3);
     expect(s.perm("agumonB").stack).toHaveLength(0);
     expect(s.perm("agumonB").topCard?.cardId).toBe("BT14-007");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("otherGreymon").instanceId,
+      optionId,
+    ]);
+    expect(s.state.memory).toBe(6);
   });
 
   it("naturally plays Agumon from hand and returns itself after a Security check", async () => {
