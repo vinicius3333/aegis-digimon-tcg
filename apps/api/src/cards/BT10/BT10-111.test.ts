@@ -160,13 +160,25 @@ describe("BT10-111 Shoutmon (King Version)", () => {
         },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-024"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-024") &&
+        s.state.pendingDecision === undefined,
+    );
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-024")!;
-    expect(played.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT10-111", "BT10-021"]));
-    expect(s.state.memory).toBe(memoryBeforeDigiXros - 3);
-    expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("kingVersion").instanceId);
-    expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("mailbirdramon").instanceId);
+    expect(played.stack.map((card) => card.instanceId)).toEqual([
+      s.inst("kingVersion").instanceId,
+      s.inst("mailbirdramon").instanceId,
+    ]);
+    expect(memoryBeforeDigiXros).toBe(5);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("mailbirdramon").instanceId,
+      ),
+    ).toBe(false);
   });
 
   it("expires the substitute at a natural turn boundary before moving or paying DigiXros materials", async () => {
