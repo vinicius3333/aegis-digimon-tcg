@@ -673,3 +673,18 @@ duration expiry, duplicate-instance collapse, controller changes, or actual
 block-declaration legality. Blocker behavioral proof and the complete
 printed/inherited/security provider denominator remain open for the owner
 document [blocker-lifecycle.md](blocker-lifecycle.md).
+
+## Final bounded reconciliation (2026-09-12)
+
+The canonical 46-name union was reconciled against the current conformance directory and the persisted card/IR catalog with the following reproducible scans:
+
+```sh
+rg -n "^describe|^  it\(" apps/api/src/engine/conformance apps/api/src/engine/combat
+node tools/kb/query.mjs rules "keyword"
+```
+
+The current owners now point to source chunks with executable fingerprints for Blocker, Piercing, Recovery, and Blast Digivolve. Their public anchors cover the core consumer seams: block legality and source change; Piercing survival, tie, grant, and mandatory security; Recovery amount/order/limit; and Blast consent, exact host selection, cost waiver, draw, refusal, and printed-requirement rejection. These are bounded behavioral proofs, not whole catalog certifications.
+
+The remaining rows are classified by actual representation: native static providers, inherited or `GainKeyword` grants, security text, and structured consumer parameters where those forms occur in the persisted IR. A grant or inherited row is not marked missing merely because a second card ID lacks a dedicated test; it remains an inventory class until a distinct runtime contract exists. Conversely, the following concrete gaps remain real and bounded: Engage explicit refusal, Execute alternate/refusal outcomes, Progress grant/source departure, De-Digivolve N=4, and provider-specific source departure/duration cases for Delay, Training, Ascension, LinkMax, and several amount-bearing keywords. Generic engine queues for targeting, replacement, and evolution are historical planning material outside this keyword denominator unless a current keyword owner cites them. `EndOfAttack`, `OnDeletion`, and `Unblockable` remain structured timing/restriction consumers rather than additional canonical keywords.
+
+No full 46-keyword certification is claimed from this reconciliation, and no collection-wide score is inferred from marker counts.
