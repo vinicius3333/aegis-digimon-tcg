@@ -2308,7 +2308,10 @@ export class GameEngine {
         if (perm.stack.length === 0 || currentTop === undefined) continue;
         const def = lookupDefinition(currentTop.cardId);
         if (def === undefined || !def.kinds.includes(CardKind.Digimon)) continue;
-        await this.primitives.trashStackTops(perm.permanentId, 1);
+        // Burst's pending processing removes the Burst card itself and promotes its
+        // former source. Use the stack-aware physical peel without applying De-Digivolve's
+        // keyword restrictions or level floor.
+        await this.primitives.trashStackTops(perm.permanentId, 1, { stackedCards: true });
       }
     }
   }
