@@ -203,7 +203,7 @@ describe("BT26-032 compiled fidelity", () => {
           deck: ["BT1-009", "BT1-009", "BT1-010"],
         },
         1: {
-          battleArea: [{ card: "BT1-080", as: "target", suspended: true, dp: 12000 }],
+          battleArea: [{ card: "BT1-080", as: "target", suspended: true }],
           deck: ["BT1-009", "BT1-009", "BT1-010"],
         },
       },
@@ -213,52 +213,55 @@ describe("BT26-032 compiled fidelity", () => {
     await s.ready();
 
     const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
 
-    const optional = s.decisions.find((decision) => decision.req.kind === "optional");
-    expect(optional).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional!.req.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
+      const optional = s.decisions.find((decision) => decision.req.kind === "optional");
+      expect(optional).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: optional!.req.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
 
-    const choose = s.decisions.find((decision) => decision.req.kind === "chooseOption");
-    expect(choose?.req.options?.choices).toHaveLength(2);
-    expect(choose?.req.options?.choices).toEqual([
-      "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
-      "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
-    ]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: choose!.req.decisionId,
-        response: { kind: "chooseOption", optionIndex: 1 },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+      const choose = s.decisions.find((decision) => decision.req.kind === "chooseOption");
+      expect(choose?.req.options?.choices).toHaveLength(2);
+      expect(choose?.req.options?.choices).toEqual([
+        "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+        "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+      ]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choose!.req.decisionId,
+          response: { kind: "chooseOption", optionIndex: 1 },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
 
-    const suspend = s.state.pendingDecision;
-    expect(suspend?.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: suspend!.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP === 7000);
-    expect(s.perm("target").currentDP).toBe(7000);
-    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("nested").instanceId]);
-    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
-    expect(s.state.pendingDecision).toBeUndefined();
+      const suspend = s.state.pendingDecision;
+      expect(suspend?.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: suspend!.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("target").currentDP === 7000);
+      expect(s.perm("target").currentDP).toBe(7000);
+      expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("nested").instanceId]);
+      expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+      expect(s.state.pendingDecision).toBeUndefined();
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    }
   });
 
   it("may suspend either player's Digimon to pay the continuation (Q7001)", async () => {
