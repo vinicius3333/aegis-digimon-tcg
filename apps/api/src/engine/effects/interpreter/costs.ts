@@ -563,15 +563,15 @@ export async function payCost(
         // Gaogamon and MachGaogamon). They leave simultaneously, so collect all
         // selections before asking the controller for their bottom-stack order.
         if (first.targetIsPermanent !== true) {
-          if (typeof first.host !== "object" || first.host === null) return false;
-          const hosts = await resolvePermanentTargets(paymentCtx, {
-            filter: first.host.filter,
-            orFilters: first.host.orFilters,
-            count: first.host.count,
-          });
-          const hostId = hosts.length === 1 ? hosts[0] : undefined;
-          if (hostId === undefined) return false;
-          paymentCtx.selections.set(first.bindHostAs, hostId);
+          const hostTarget =
+            typeof first.host === "object" && first.host !== null
+              ? first.host
+              : first.host === "target" && first.underFilter !== undefined
+                ? { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }
+                : undefined;
+          if (hostTarget === undefined) return false;
+          let hosts: string[] = [];
+          let hostId: string | undefined;
           const chosen: string[] = [];
           const looseSelections: { cost: Cost; id: string }[] = [];
           for (const [index, nested] of cost.costs.entries()) {
@@ -594,7 +594,18 @@ export async function payCost(
               return false;
             chosen.push(picked[0]!);
             looseSelections.push({ cost: nested, id: picked[0]! });
+            if (index === 0) {
+              hosts = await resolvePermanentTargets(paymentCtx, {
+                filter: hostTarget.filter,
+                orFilters: hostTarget.orFilters,
+                count: hostTarget.count,
+              });
+              hostId = hosts.length === 1 ? hosts[0] : undefined;
+              if (hostId !== undefined) paymentCtx.selections.set(first.bindHostAs, hostId);
+            }
           }
+          if (hostId === undefined) return false;
+          paymentCtx.selections.set(first.bindHostAs, hostId);
           const ordered = await ctx.ask.orderCards(paymentCtx, {
             candidates: chosen,
             visibleCards: chosen.map((instanceId) => {
@@ -620,9 +631,9 @@ export async function payCost(
             return false;
           if (
             !candidatePermanents(ctx, {
-              filter: first.host.filter,
-              orFilters: first.host.orFilters,
-              count: first.host.count,
+              filter: hostTarget.filter,
+              orFilters: hostTarget.orFilters,
+              count: hostTarget.count,
             }).some((permanent) => permanent.permanentId === hostId) ||
             looseSelections.some(
               ({ cost: nested, id }) =>
