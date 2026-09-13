@@ -51,7 +51,7 @@ describe("BT11-031 ZeigGreymon", () => {
       0: {
         battleArea: [{ card: "BT10-024", as: "base", suspended: true }],
         hand: [{ card: "BT11-031", as: "zeig" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: ["BT11-023", "BT11-023"] },
     });

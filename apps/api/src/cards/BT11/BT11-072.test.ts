@@ -23,7 +23,7 @@ describe("BT11-072 Machinedramon", () => {
 
   it("reveals five and trashes unmatched cards", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-072", as: "machine" }], deck: ["BT1-001", "BT1-002"] } },
+      { 0: { battleArea: [{ card: "BT11-072", as: "machine" }], deck: ["BT1-009", "BT1-009"] } },
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("machine"));

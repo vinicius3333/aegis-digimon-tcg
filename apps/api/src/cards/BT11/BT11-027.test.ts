@@ -53,7 +53,7 @@ describe("BT11-027 Veedramon", () => {
       0: {
         battleArea: [{ card: "BT11-027", as: "veedramon" }],
         hand: [{ card: "BT11-090", as: "blueTamer" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
     });
     s.state.memory = 10;
@@ -71,7 +71,7 @@ describe("BT11-027 Veedramon", () => {
       0: {
         battleArea: [{ card: "BT11-027", as: "veedramon" }],
         hand: [{ card: "BT1-085", as: "redTamer" }],
-        deck: [{ card: "BT1-001", as: "notDrawn" }],
+        deck: [{ card: "BT1-009", as: "notDrawn" }],
       },
     });
     s.state.memory = 10;
@@ -113,8 +113,8 @@ describe("BT11-027 Veedramon", () => {
           { card: "BT11-090", as: "second" },
         ],
         deck: [
-          { card: "BT1-001", as: "drawn" },
-          { card: "BT1-002", as: "notDrawn" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-009", as: "notDrawn" },
         ],
       },
     });

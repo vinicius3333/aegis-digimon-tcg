@@ -78,7 +78,7 @@ describe("BT11-041 Etemon", () => {
         0: {
           battleArea: [{ card: "BT11-040", as: "base" }],
           hand: [{ card: "BT11-041", as: "etemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "ST15-11", as: "target" }] },
       },

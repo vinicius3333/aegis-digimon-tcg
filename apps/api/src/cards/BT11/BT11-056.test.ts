@@ -39,7 +39,7 @@ describe("BT11-056 Jijimon", () => {
           battleArea: [{ card: "BT11-055", as: "base" }],
           hand: [{ card: "BT11-056", as: "jijimon" }],
           deck: [
-            { card: "BT1-001", as: "digivolveDraw" },
+            { card: "BT1-009", as: "digivolveDraw" },
             { card: "BT1-085", as: "tamer" },
             { card: "BT1-064", as: "rest1" },
             { card: "BT1-065", as: "rest2" },
@@ -79,7 +79,7 @@ describe("BT11-056 Jijimon", () => {
             { card: "BT1-065", as: "notRevealed" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -112,7 +112,7 @@ describe("BT11-056 Jijimon", () => {
             { card: "BT1-064", as: "chosen" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );

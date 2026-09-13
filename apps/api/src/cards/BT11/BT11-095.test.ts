@@ -5,9 +5,21 @@ import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT11-095.js";
 describe("BT11-095 Taiki, Kiriha, & Nene", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-095")).toMatchObject({ cardId: "BT11-095", colors: ["White"], kinds: ["Tamer"], playCost: 4, types: ["Xros Heart", "BlueFlare", "General"] });
+    expect(getCardDefinition("BT11-095")).toMatchObject({
+      cardId: "BT11-095",
+      colors: ["White"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["Xros Heart", "BlueFlare", "General"],
+    });
     expect(compiled.effects).toMatchObject([
-      { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", amount: 1 }] },
+      {
+        trigger: "StartOfYourMainPhase",
+        actions: [
+          { kind: "GainMemory", amount: 1 },
+          { kind: "Draw", amount: 1 },
+        ],
+      },
       { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
     ]);
@@ -15,7 +27,7 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
 
   it("places a Xros Heart card, gains memory and draws", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-095", as: "tamer" }], hand: ["BT10-008"], deck: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT11-095", as: "tamer" }], hand: ["BT10-008"], deck: ["BT1-009"] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     const before = s.state.memory;
@@ -30,7 +42,7 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
         0: {
           battleArea: [{ card: "BT11-095", as: "tamer" }],
           hand: [{ card: "BT10-008", as: "material" }],
-          deck: [{ card: "BT1-001", as: "deck-card" }],
+          deck: [{ card: "BT1-009", as: "deck-card" }],
         },
       },
       { autoDeclineOptional: true },

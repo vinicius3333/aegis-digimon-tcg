@@ -61,7 +61,7 @@ describe("BT11-033 MirageGaogamon", () => {
         0: {
           battleArea: [{ card: "BT11-028", as: "base" }],
           hand: [{ card: "BT11-033", as: "mirage" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT11-028", as: "level5" }],
@@ -94,7 +94,7 @@ describe("BT11-033 MirageGaogamon", () => {
         0: {
           battleArea: [{ card: "BT11-028", as: "base" }],
           hand: [{ card: "BT11-033", as: "mirage" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "AD1-025", as: "level7" }],

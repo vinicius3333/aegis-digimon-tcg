@@ -108,7 +108,7 @@ describe("BT11-057 Titamon", () => {
           battleArea: [{ card: "BT1-075", as: "base" }],
           hand: [
             { card: "BT11-057", as: "titamon" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
         },
         1: { battleArea: [{ card: "BT1-020", as: "already-suspended", suspended: true }] },

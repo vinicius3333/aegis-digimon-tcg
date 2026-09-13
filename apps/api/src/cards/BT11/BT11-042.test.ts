@@ -40,9 +40,9 @@ describe("BT11-042 Angewomon", () => {
           hand: [{ card: "BT11-042", as: "angewomon" }],
           security: [
             { card: "BT11-038", as: "angel" },
-            { card: "BT1-001", as: "securityRest" },
+            { card: "BT1-009", as: "securityRest" },
           ],
-          deck: [{ card: "BT1-001", as: "recovery" }, "BT1-001"],
+          deck: [{ card: "BT1-009", as: "recovery" }, "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -76,7 +76,7 @@ describe("BT11-042 Angewomon", () => {
           security: [{ card: "BT11-038", as: "angel" }],
           // Normal digivolution draws the first card before this optional effect resolves;
           // leave the second card as the Recovery sentinel.
-          deck: ["BT1-001", { card: "BT1-001", as: "recovery" }],
+          deck: ["BT1-009", { card: "BT1-009", as: "recovery" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -123,7 +123,7 @@ describe("BT11-042 Angewomon", () => {
         0: {
           battleArea: [{ card: base, as: "base" }],
           hand: [{ card: "BT11-042", as: "angewomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 5;
@@ -148,9 +148,13 @@ describe("BT11-042 Angewomon", () => {
       },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMirei").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMirei").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMirei").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMirei").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.state.memory).toBe(10 - 5 + 1 - 5);
   });

@@ -7,7 +7,12 @@ import "./BT11-061.js";
 
 describe("BT11-105 Fusionize", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-105")).toMatchObject({ cardId: "BT11-105", colors: ["Black"], kinds: ["Option"], playCost: 1 });
+    expect(getCardDefinition("BT11-105")).toMatchObject({
+      cardId: "BT11-105",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 1,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
       { trigger: "Main", actions: [{ kind: "PlaceUnder" }, { kind: "Digivolve" }] },
@@ -67,7 +72,7 @@ describe("BT11-105 Fusionize", () => {
         0: {
           battleArea: [{ card: "BT11-065", as: "host" }],
           hand: [{ card: "BT11-105", as: "option" }],
-          trash: ["BT1-001"],
+          trash: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
@@ -80,7 +85,7 @@ describe("BT11-105 Fusionize", () => {
     await settle();
 
     expect(s.perm("host").topCard?.cardId).toBe("BT11-065");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
   it("Security reveals three cards, plays Vemmon, and trashes the rest", async () => {
@@ -88,7 +93,7 @@ describe("BT11-105 Fusionize", () => {
       {
         0: {
           security: [{ card: "BT11-105", as: "option", faceUp: true }],
-          deck: [{ card: "BT11-061", as: "vemmon" }, "BT1-001", "BT1-002"],
+          deck: [{ card: "BT11-061", as: "vemmon" }, "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
@@ -101,9 +106,7 @@ describe("BT11-105 Fusionize", () => {
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === vemmonId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-002"]),
-    );
+    expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "BT1-009")).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

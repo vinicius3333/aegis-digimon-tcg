@@ -59,7 +59,7 @@ describe("BT11-020 Gaomon", () => {
           deck: [
             { card: "BT11-025", as: "gaogamon" },
             { card: "BT11-090", as: "tamer" },
-            { card: "BT1-001", as: "rest" },
+            { card: "BT1-009", as: "rest" },
           ],
         },
       },
@@ -85,8 +85,8 @@ describe("BT11-020 Gaomon", () => {
           hand: [{ card: "BT11-020", as: "gaomon" }],
           deck: [
             { card: "BT11-090", as: "tamer" },
-            { card: "BT1-001", as: "rest1" },
-            { card: "BT1-001", as: "rest2" },
+            { card: "BT1-009", as: "rest1" },
+            { card: "BT1-009", as: "rest2" },
           ],
         },
       },

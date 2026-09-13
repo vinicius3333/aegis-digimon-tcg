@@ -4,8 +4,21 @@ import { compiled } from "./BT11-044.js";
 
 describe("BT11-044 MetalEtemon", () => {
   it("maps the catalog and reveals exactly four for optional eligible play under the shared cost budget", () => {
-    expect(getCardDefinition("BT11-044")).toMatchObject({ cardId: "BT11-044", colors: ["Yellow", "Black"], level: 6, playCost: 11, dp: 11000, types: ["Cyborg"] });
-    expect(compiled.effects).toEqual([{ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 4, rest: "trash" })] }, { trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 4, rest: "trash" })] }]);
+    expect(getCardDefinition("BT11-044")).toMatchObject({
+      cardId: "BT11-044",
+      colors: ["Yellow", "Black"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      types: ["Cyborg"],
+    });
+    expect(compiled.effects).toEqual([
+      { trigger: "OnPlay", actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 4, rest: "trash" })] },
+      {
+        trigger: "WhenDigivolving",
+        actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 4, rest: "trash" })],
+      },
+    ]);
   });
 
   it("may play eligible revealed Digimon totaling less than 7 and trashes the rest", async () => {
@@ -17,7 +30,7 @@ describe("BT11-044 MetalEtemon", () => {
             { card: "BT11-036", as: "chuumon" },
             { card: "BT11-040", as: "sukamon" },
             { card: "BT11-023", as: "rest1" },
-            { card: "BT1-001", as: "rest2" },
+            { card: "BT1-009", as: "rest2" },
           ],
         },
       },

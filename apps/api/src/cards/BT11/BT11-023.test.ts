@@ -82,8 +82,8 @@ describe("BT11-023 Veemon", () => {
           hand: [{ card: "BT11-023", as: "veemon" }],
           deck: [
             { card: "BT11-090", as: "tamer" },
-            { card: "BT1-001", as: "rest1" },
-            { card: "BT1-001", as: "rest2" },
+            { card: "BT1-009", as: "rest1" },
+            { card: "BT1-009", as: "rest2" },
           ],
         },
       },
