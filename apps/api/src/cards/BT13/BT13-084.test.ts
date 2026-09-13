@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -85,6 +84,8 @@ describe("BT13-084 Astamon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-088"));
     expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("astamon").stack.map((card) => card.instanceId)).toContain(s.inst("astamon").instanceId);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
   });
 
@@ -92,17 +93,22 @@ describe("BT13-084 Astamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT13-083", as: "cost" }],
+          hand: [
             { card: "BT13-084", as: "astamon" },
-            { card: "BT13-083", as: "cost" },
+            { card: "BT13-088", as: "sleep" },
           ],
-          hand: [{ card: "BT13-088", as: "sleep" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("astamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(3);
     expect(s.perm("astamon").topCard?.cardId).toBe("BT13-084");
     expect(s.perm("cost").topCard?.cardId).toBe("BT13-083");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-088")).toBe(true);
