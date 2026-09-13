@@ -4,4 +4,4 @@ The §16-6 contract places the specified number of cards from the named area fac
 
 These cases establish Recovery +1 deck processing for two printed providers and do not certify other producers, larger amounts, inherited grants, or unrelated security manipulation.
 
-Rules basis: comprehensive-0224, §16-6-1 through §16-6-2.
+Rules basis: `comprehensive-0224`, SHA-256 `5639a0a98e8ef565e6fb4895f6e03d2beef6ce819056dae2015103762b7f655d`, §16-6-1 through §16-6-2.

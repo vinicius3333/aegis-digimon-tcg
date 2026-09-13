@@ -6,4 +6,4 @@ The new conformance cases use printed BT1-026 Piercing, a no-Piercing BT1-025 co
 
 The evidence is limited to these providers and battle shapes. Replacement effects, multiple Piercing sources, Security Attack modifiers, and all other producers remain open.
 
-Rules basis: comprehensive rules 16-7-1 through 16-7-6 (Piercing qualification, survival, mandatory security processing, timing, and one-check-per-attack limit).
+Rules basis: `comprehensive-0225`, SHA-256 `f4d39e19988d50be36db0a6be32a7b3c639428df9116ff194f4a878181cc6cf5`, §16-7-1 through §16-7-6 (Piercing qualification, survival, mandatory security processing, timing, and one-check-per-attack limit).

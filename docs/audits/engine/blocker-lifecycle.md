@@ -11,8 +11,8 @@ open.
 
 ## Contract and sources
 
-The reviewed comprehensive rules are `comprehensive-0223`, §16-5 (Blocker),
-and `comprehensive-0151`, §12-1 (block declaration and legality). A Blocker
+The reviewed comprehensive rules are `comprehensive-0223`, §16-5 (Blocker), SHA-256 `f21e9a4a1278163e9b07ebe6f0776b3b15a6d1f9884771e498431baeb23e5a7d`,
+and `comprehensive-0151`, §12-1 (block declaration and legality), SHA-256 `1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566`. A Blocker
 permits its controller to declare a block during the opponent's attack; the
 blocker must be in the battle area and able to suspend, and the attack target
 changes to that Digimon. BT19-064's card contract was read from the committed
