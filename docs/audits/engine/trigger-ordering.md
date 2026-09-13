@@ -69,6 +69,15 @@ BT19-065 optional effect is then declined, so the result cannot be attributed to
 effect. This uses the §15-8-3-5 event snapshot and keeps the source-departure exception
 scoped to the deleted stack source and its former top card.
 
+The eighth and ninth cases cover copied effects whose source changes role before activation.
+Both use a seeded, legal BT26-060 Chronomon: Destroy Mode over BT26-016 Chronomon: Holy
+Mode and a public attack. In the negative case, Yolei is ordered first, its deletion
+causes BT20-073 to De-Digivolve Chronomon so BT26-016 becomes the physical top card, and
+the copied BT26-016 attack effect is absent while the native BT19-065 reaction is declined.
+The paired control removes BT20-073; the same copied effect is then offered, accepted,
+and deletes a 6,000-DP survivor. Both cases assert the old/new physical IDs, trigger
+keys, trash, security, and completed attack.
+
 ## Current source and ordering classes
 
 | Class                                                                  | Current public consumer/provider                                                                 | Executable proof                                                                                                      | Status                                     |
@@ -79,6 +88,8 @@ scoped to the deleted stack source and its former top card.
 | A pending source leaving or changing before that same source activates | BT25-077 Bacchusmon watcher created by effect-play, then deleted by the turn player's Bacchusmon | Fifth case deletes the enemy source before its pending watcher can activate; paired Agumon control proves eligibility | Proven for this public play/deletion shape |
 | Inherited On Deletion after the carrier leaves play                     | BT20-073 under a battle-deleted BT20-078 Reapermon                              | Sixth case keeps the inherited trigger's original top-card identity and De-Digivolves a separate stacked target       | Proven for this public battle shape                 |
 | Nested inherited On Deletion after a public deletion window             | BT8-085 Yolei deletes BT19-065 carrying BT20-073 during an attack             | Seventh case selects the exact BT20-073 trigger key, then checks old/new attacker top IDs and all trash zones          | Proven for this public nested shape                 |
+| Copied effect loses its source role before activation                    | BT26-060 over BT26-016; Yolei + BT20-073 De-Digivolve the Chronomon attacker | Eighth case orders Yolei, then BT20-073, and observes no BT26-016 optional attack effect after the source becomes top   | Proven for this copied-source turnover shape        |
+| Copied effect remains eligible when source role is unchanged              | Same Chronomon stack without BT20-073                                       | Ninth case accepts the copied BT26-016 effect and deletes the eligible 6,000-DP survivor                            | Proven by paired control                              |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining

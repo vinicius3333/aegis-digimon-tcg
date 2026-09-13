@@ -627,4 +627,228 @@ describe("bounded trigger ordering and pending source departure", () => {
       await loop;
     }
   });
+
+  it("drops a copied Chronomon effect when its source becomes the new top card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-060", as: "chronomon", under: [{ card: "BT26-016" }] },
+            { card: "BT8-085", as: "yolei" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-065", as: "enemy", dp: 3000, under: [{ card: "BT20-073", as: "metal" }] },
+            { card: "BT1-053", as: "survivor" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+          trash: [{ card: "ST5-10", as: "nativePayload" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const enemyId = s.inst("enemy").instanceId;
+      const metalId = s.inst("metal").instanceId;
+      const oldTopId = s.perm("chronomon").topCard.instanceId;
+      const newTopId = s.perm("chronomon").stack[0]!.instanceId;
+      const survivorId = s.inst("survivor").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("chronomon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      const first = s.state.pendingDecision!;
+      const firstRequest = s.decisions.find(({ req }) => req.decisionId === first.decisionId)?.req;
+      expect(first.kind).toBe("orderTriggers");
+      expect(first.seat).toBe(0);
+      const firstTriggerIndex =
+        firstRequest?.options?.triggerCardIds?.findIndex((cardId) => cardId === "BT8-085") ?? -1;
+      const yoleiKey = firstTriggerIndex >= 0 ? firstRequest?.options?.triggerKeys?.[firstTriggerIndex] : undefined;
+      expect(yoleiKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: first.decisionId,
+          response: { kind: "orderTriggers", order: [yoleiKey!] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const yolei = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === yolei.decisionId)?.req.sourceCardId).toBe("BT8-085");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: yolei.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === enemyId));
+      const deletionOrder = s.state.pendingDecision!;
+      const deletionRequest = s.decisions.find(({ req }) => req.decisionId === deletionOrder.decisionId)?.req;
+      expect(deletionOrder.kind).toBe("orderTriggers");
+      expect(deletionOrder.seat).toBe(1);
+      const metalKey = deletionRequest?.options?.triggerKeys?.find((key) => key.startsWith(`${metalId}::BT20-073/`));
+      expect(metalKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: deletionOrder.decisionId,
+          response: { kind: "orderTriggers", order: [metalKey!] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      const native = s.state.pendingDecision!;
+      expect(native.kind).toBe("optional");
+      expect(s.decisions.find(({ req }) => req.decisionId === native.decisionId)?.req.sourceCardId).toBe("BT19-065");
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: native.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(oldTopId);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(newTopId);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(metalId);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(survivorId);
+      expect(s.decisions.some(({ req }) => req.promptText.includes("Delete 1 of your opponent's Digimon"))).toBe(false);
+      const engage = s.state.pendingDecision!;
+      expect(engage.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: engage.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
+  });
+
+  it("resolves the same copied Chronomon effect while its source remains buried", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-060", as: "chronomon", under: [{ card: "BT26-016" }] },
+            { card: "BT8-085", as: "yolei" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-065", as: "enemy", dp: 3000 },
+            { card: "BT1-053", as: "survivor" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+          trash: [{ card: "ST5-10", as: "nativePayload" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const survivorId = s.inst("survivor").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("chronomon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      const order = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === order.decisionId)?.req;
+      expect(order.kind).toBe("orderTriggers");
+      const yoleiIndex = request?.options?.triggerCardIds?.findIndex((cardId) => cardId === "BT8-085") ?? -1;
+      const yoleiKey = yoleiIndex >= 0 ? request?.options?.triggerKeys?.[yoleiIndex] : undefined;
+      expect(yoleiKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderTriggers", order: [yoleiKey!] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const yolei = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: yolei.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT19-065"));
+      await settle();
+      const native = s.state.pendingDecision!;
+      expect(native.kind).toBe("optional");
+      expect(s.decisions.find(({ req }) => req.decisionId === native.decisionId)?.req.sourceCardId).toBe("BT19-065");
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: native.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const copied = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === copied.decisionId)?.req.sourceCardId).toBe("BT26-016");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: copied.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(survivorId);
+      const recovery = s.state.pendingDecision!;
+      expect(recovery.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: recovery.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      const engage = s.state.pendingDecision!;
+      expect(engage.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: engage.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
+  });
 });
