@@ -18,12 +18,12 @@ The initial full run found six failures (42353 passes): four old tests incorrect
 
 ## Finite current-reader map
 
-| Reader shape                                                                                 | Current printed consumers with executable evidence              | Public evidence and boundary                                                                                                                                                                                                                |
-| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Highest matching visible stack source copied as effects                                      | BT26-032, BT26-060, BT26-080 and BT26-103 (Succession)          | `stack-visible-source-priority.test.ts` and `keyword-succession-lifecycle.test.ts` prove visible-over-hidden selection and the legal Giromon producer path for the Bacchusmon shape; source identity is not exposed in the decision payload |
+| Reader shape                                                                                 | Current printed consumers with executable evidence              | Public evidence and boundary                                                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Highest matching visible stack source copied as effects                                      | BT26-032, BT26-060, BT26-080 and BT26-103 (Succession)          | `stack-visible-source-priority.test.ts` and `keyword-succession-lifecycle.test.ts` prove visible-over-hidden selection and the legal Giromon producer path for the Bacchusmon shape; source identity is not exposed in the decision payload                     |
 | Inherited keyword/effect read from a live stack source                                       | EX5-053 inheriting Blocker from EX5-051; P-062 Gammamon watcher | `keyword-blocker-source-changes.test.ts` and `stack-metadata-filtering.test.ts` prove exact live source identity, hidden-source exclusion, and visible-source activation; this is persistent/effect-source matching, not a collection-wide provider certificate |
-| Stack placement and position metadata                                                        | BT26-055, BT13-007 and EX6-006 placement providers              | `digivolution-card-placement.md` records exact physical IDs, bottom position, face state, and final stacks for the demonstrated public producers; it does not certify information readers                                                   |
-| Raw/fallback, off-field snapshots, native keyword scans, dynamic names and numerical readers | EX9-054 Negamon scaling plus EX8-045 source-color scaling | EX9-054 filters face-down stack cards for its named `[Negamon]` scaling predicate, while EX8-045 counts only face-up source colors after EX9-043 places a real trash card face down; paired red and green controls retain exact stack IDs and resolve fully |
+| Stack placement and position metadata                                                        | BT26-055, BT13-007 and EX6-006 placement providers              | `digivolution-card-placement.md` records exact physical IDs, bottom position, face state, and final stacks for the demonstrated public producers; it does not certify information readers                                                                       |
+| Raw/fallback, off-field snapshots, native keyword scans, dynamic names and numerical readers | EX9-054 Negamon scaling plus EX8-045 source-color scaling       | EX9-054 filters face-down stack cards for its named `[Negamon]` scaling predicate, while EX8-045 counts only face-up source colors after EX9-043 places a real trash card face down; paired red and green controls retain exact stack IDs and resolve fully     |
 
 The highest-risk remaining gap is comprehensive rule §15-4-4-4: a triggered effect
 losing its source effect before activation. The eighth and ninth cases in
@@ -38,7 +38,12 @@ Gammamon source does. It verifies exact security instances and the real Tamer su
 this exercises `permanentMatchesFilter` rather than only the Succession kernel. Negative
 identity predicates read only visible cards; hidden cards are not treated as positive matches.
 
-The three public sequences prove the demonstrated copied and inherited source leak. The legal Succession producer proof and the seeded visible-over-hidden cases now cover face-down filtering before highest-visible selection for the demonstrated Bacchusmon provider shapes; they do not expose source identity in the public decision payload. Existing green regressions do not certify the open reader classes in the finite map above. BT22's historical complete status is reopened and BT22-010 capped provisionally at 8/10; BT26-080 retains its existing cap. Independent read-only review found no blocker for this bounded change.
+The three public sequences prove the demonstrated copied and inherited source
+leak. The legal Succession producer proof and seeded visible-over-hidden cases
+cover face-down filtering before highest-visible selection for the demonstrated
+Bacchusmon provider shapes; they do not expose source identity in the public
+decision payload. Remaining reader rows are provider-specific boundaries, not a
+whole-catalog certificate. Historical collection scores remain historical.
 
 ## Delivery gates
 
