@@ -242,7 +242,14 @@ export function maskSetRecordValues(document, set) {
 }
 
 export function outsideSetBytesMatch(baseDocument, currentDocument, set) {
-  return maskSetRecordValues(baseDocument, set) === maskSetRecordValues(currentDocument, set);
+  const replacements = new Map(
+    [...topLevelEntryRanges(currentDocument)]
+      .filter(([key]) => key.startsWith(`${set}-`))
+      .map(([key, range]) => [key, range.value]),
+  );
+  // Reconstruct only the allowed edits, including new reveals. Masking values
+  // leaves newly added set keys behind and wrongly classifies them as outside edits.
+  return replaceTopLevelEntries(baseDocument, replacements) === currentDocument;
 }
 
 export function rebaseScopedEntriesOntoBase(baseDocument, currentDocument, set) {
