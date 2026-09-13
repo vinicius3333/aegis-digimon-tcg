@@ -25,13 +25,14 @@ No inherited or copied Blast Digivolve provider is claimed here; the keyword is 
 | Legal printed host requirement                               | same test, real BT2-063 host for ST15-12                                                            | passed; host remains unchanged on refusal              |
 | No normal memory payment                                     | same test, memory 0 before acceptance                                                               | passed; AD1-005 enters the real host stack at memory 0 |
 | Physical source and host identity                            | captured ACE instance and both host top instances; exact stack asserted                             | passed                                                 |
-| Attack and draw completion                                   | acceptance awaits attack end and empty pending decision; draw instance is checked                   | passed                                                 |
+| Attack and draw completion                                   | acceptance awaits attack end and empty pending decision; draw and attacker destination are checked  | passed                                                 |
 | Multiple eligible hosts and exact host choice                | second base selected with `blast-digivolve:<permanentId>` effect key; first remains unchanged       | passed                                                 |
-| Refusal with multiple eligible hosts                         | both host-specific Counter entries exposed, then empty `respondCounter` pass                        | passed                                                 |
+| Refusal with multiple eligible hosts                         | both host-specific Counter entries exposed, then empty `respondCounter` pass and full attack wait   | passed                                                 |
+| Printed requirement negative                                 | real AD1-024 host leaves AD1-005 absent from `eligibleCounters`                                     | passed                                                 |
 | Post-digivolution printed effects and full combat resolution | covered by individual provider tests (EX7/ST15/BT19), not re-certified as one cross-provider matrix | partial, provider-specific                             |
 
 ## Focused gate
 
-`pnpm test src/engine/conformance/keyword-blast-digivolve-consent.test.ts --reporter=dot` — 2 tests passed.
+`(cd apps/api && pnpm test src/engine/conformance/keyword-blast-digivolve-consent.test.ts --reporter=dot)` — 3 tests passed.
 
-The owner test is intentionally limited to the public Counter consent, refusal preservation, physical host/source identity, and zero-cost acceptance. A full API/type/build gate and Git delivery remain coordinator work.
+On refusal, the attack resolves normally: the defending Security card is checked and moved to trash, while the ACE and both bases stay in their original zones. On acceptance, AD1-005's own effects are auto-accepted; the attacker is deleted by the resulting public battle and the normal evolution draw is checked by physical instance ID. The provider inventory is representative evidence, not a claim that every printed card has been certified.

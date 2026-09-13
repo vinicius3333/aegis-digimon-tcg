@@ -45,7 +45,7 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"], deck: ["BT1-013", "BT1-014"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: false },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
@@ -64,6 +64,7 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     );
     expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "counterResolved"));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(aceId);
     expect(s.perm("base").topCard.instanceId).toBe(baseId);
     expect(s.perm("base").topCard.cardId).toBe("BT2-063");
@@ -95,6 +96,8 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     await s.ready();
     s.state.memory = 0;
     const opened = await openCounter(s, "attacker");
+    const attackerId = s.perm("attacker").topCard.instanceId;
+    const securityId = s.state.players[0]!.security[0]!.instanceId;
     const aceId = s.inst("gaiamon").instanceId;
     const drawId = s.inst("draw").instanceId;
     const firstBaseId = s.perm("redBaseOne").topCard.instanceId;
@@ -115,8 +118,7 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     await settle(
       () => s.perm("redBaseOne").topCard.cardId === "AD1-005" || s.perm("redBaseTwo").topCard.cardId === "AD1-005",
     );
-    if (s.state.pendingDecision !== undefined)
-      throw new Error(`unexpected decision: ${JSON.stringify(s.state.pendingDecision)}`);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     const evolved = [s.perm("redBaseOne"), s.perm("redBaseTwo")].filter(
       (permanent) => permanent.topCard.cardId === "AD1-005",
     );
@@ -134,5 +136,36 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(securityId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(attackerId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerId);
+  });
+
+  it("does not expose AD1-005 when no real red level-5 host satisfies its printed requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-024", as: "wrongBase" }],
+          hand: [{ card: "AD1-005", as: "gaiamon" }],
+          security: ["BT1-009"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongBase").permanentId,
+        instanceId: s.inst("gaiamon").instanceId,
+        useBlastDigivolve: true,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("AD1-005");
+    expect(s.perm("wrongBase").topCard.cardId).toBe("AD1-024");
   });
 });
