@@ -338,6 +338,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return [...byHost.values()].some((group) => {
       const levels = new Map<number, number>();
       for (const candidate of group) {
+        // CR 3-4-5-8: a face-down digivolution card's level is not available for
+        // a same-level comparison. It remains eligible for quantity-only costs.
+        if (candidate.faceUp === false) continue;
         const level = getCardDefinition(candidate.cardId)?.level;
         if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
       }
@@ -994,6 +997,7 @@ export async function payCost(
               cardId: card.cardId,
               ownerSeat: card.ownerSeat,
               hostPermanentId: host.permanentId,
+              faceUp: card.faceUp,
             }));
           const n = cost.target.count === "all" ? candidates.length : cost.target.count;
           if (n <= 0 || candidates.length < n) return false;
@@ -1068,6 +1072,7 @@ export async function payCost(
           const requiresSameLevelPair =
             (cost.target.filter as Filter & { sameLevelPair?: boolean }).sameLevelPair === true;
           if (requiresSameLevelPair) {
+            eligible = eligible.filter((card) => card.faceUp !== false);
             const levelCounts = new Map<number, number>();
             for (const card of eligible) {
               const level = getCardDefinition(card.cardId)?.level;
@@ -1135,6 +1140,7 @@ export async function payCost(
             if (!requiresSameLevelPair) return group.length >= n;
             const levels = new Map<number, number>();
             for (const candidate of group) {
+              if (candidate.faceUp === false) continue;
               const level = getCardDefinition(candidate.cardId)?.level;
               if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
             }
@@ -1154,6 +1160,7 @@ export async function payCost(
           if (hostId === undefined) return false;
           candidates = byHost.get(hostId) ?? [];
           if (requiresSameLevelPair) {
+            candidates = candidates.filter((candidate) => candidate.faceUp !== false);
             const levels = new Map<number, number>();
             for (const candidate of candidates) {
               const level = getCardDefinition(candidate.cardId)?.level;

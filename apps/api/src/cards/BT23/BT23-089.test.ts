@@ -1,8 +1,9 @@
 import { getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import "../index.js";
 import { compiled } from "./BT23-089.js";
 
@@ -15,8 +16,22 @@ const NEUTRAL_SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
 const SAME_LEVEL_STACK = ["BT2-056", "BT22-031"];
 // Numemon (Lv.4) plus Huckmon (Lv.3): a stack with no same-level pair.
 const MIXED_LEVEL_STACK = ["BT2-056", "BT23-006"];
+// Real catalog cards seeded in a face-down state; their levels are unavailable to
+// the same-level payment filter under CR 4-7-9/10. This is a supplemental
+// information-boundary fixture, not a public producer proof.
+const HIDDEN_LEVEL_STACK = [
+  { card: "BT2-056", faceUp: false },
+  { card: "BT22-031", faceUp: false },
+];
 
 describe("BT23-089 Takumi Aiba", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0293",
+      "4-7-9/10: face-down stacked cards have no referenceable card information",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
+    );
+  });
   it("matches every catalog field and printed text", () => {
     expect(getCardDefinition("BT23-089")).toMatchObject({
       cardId: "BT23-089",
@@ -369,6 +384,39 @@ describe("BT23-089 Takumi Aiba", () => {
     );
     expect(s.perm("takumi").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not infer a same-level pair from face-down cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-089", as: "takumi" },
+            { card: "BT23-031", as: "angewomon", under: HIDDEN_LEVEL_STACK },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+          security: NEUTRAL_SECURITY,
+        },
+        1: opponentBlockers(),
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("angewomon").permanentId;
+    const topId = s.perm("angewomon").topCard!.instanceId;
+    const hiddenIds = s.perm("angewomon").stack.map((card) => card.instanceId);
+
+    const { loop } = await openOwnTurn(s);
+    await attackInto(s, "angewomon", "bigA");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.perm("takumi").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([...hiddenIds, topId]);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
