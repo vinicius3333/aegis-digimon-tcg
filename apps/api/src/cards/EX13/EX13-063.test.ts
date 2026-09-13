@@ -799,7 +799,6 @@ describe("EX13-063 PrinceMamemon", () => {
   });
 
   it("＜Guard＞ saves every Digimon in one opponent-effect leave event for a single payment", async () => {
-    const preferred: string[] = [MAT_BIG];
     const s = setupEngine(
       {
         0: {
@@ -814,16 +813,48 @@ describe("EX13-063 PrinceMamemon", () => {
         },
         1: { deck: DECK, security: [SENTINEL] },
       },
-      { autoAcceptOptional: true, autoChooseOption: true, autoOrderTriggers: true, preferTriggerKeys: preferred },
+      { autoAcceptOptional: false, autoChooseOption: true, autoOrderTriggers: false },
     );
     await s.ready();
     const allyA = s.perm("allyA").permanentId;
     const allyB = s.perm("allyB").permanentId;
 
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
-    preferred.push(s.inst("payer").instanceId);
     const deletion = advance(s.engine).verb.deletePermanent([allyA, allyB], "byEffect");
-
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.state.pendingDecision!;
+    const payload = JSON.parse(order.payloadJson ?? "{}") as { triggerKeys?: string[] };
+    const payerKey = payload.triggerKeys?.find((key) => key.endsWith(`/${MAT_BIG}`));
+    expect(payerKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [payerKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const payerDecision = s.state.pendingDecision!;
+    const payerRequest = s.decisions.find(({ req }) => req.decisionId === payerDecision.decisionId)!.req;
+    expect(payerRequest.sourceCardId).toBe(MAT_BIG);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: payerDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const princeDecision = s.state.pendingDecision!;
+    const princeRequest = s.decisions.find(({ req }) => req.decisionId === princeDecision.decisionId)!.req;
+    expect(princeRequest.sourceCardId).toBe(cardId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: princeDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     expect(await deletion).toBe(0);
     advance(s.engine).verb.leaveEffectResolution();
     await settle(() => s.state.pendingDecision === undefined);
