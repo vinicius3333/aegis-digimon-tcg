@@ -691,6 +691,8 @@ The finite scan of the nine previously questioned families is: Rush has current 
 
 No full 46-keyword certification is claimed from this reconciliation, and no collection-wide score is inferred from marker counts.
 
+The effective duration audit uses §15-8-2 (`comprehensive-0172`, SHA-256 `d4b49613685801d2adcd744aeb58471c0a393a33f9f697539d305a9d21e896c6`) and natural public loops: `BT8-062.test.ts` case “gains Jamming and Blocker through the opponent's next turn” asserts `untilOpponentTurnEnd` at player 0 main, after player 0 ends, and false after player 1 ends; `BT20-098.test.ts` case “keeps Rush and Blocker through the opponent's turn, then expires them” makes the same assertions for a public Option grant. Permanent source seams are exercised by `P-045.test.ts`'s public Decoy grant and deletion protection and `BT11-086`'s AllTurns source. These are the concrete duration proofs; native consumer tests are not being counted as grant-expiry evidence.
+
 | Family | Effective duration/source seam | Concrete producer and public path | Boundary assertion |
 | --- | --- | --- | --- |
 | Rush | native/inherited; `forTheTurn`, attack-end alias, opponent-turn-end, permanent | BT10-024, AD1-020, BT20-098, BT11-086; `rush-lifecycle.md` and chapter tests | same-turn attack and inherited/native eligibility are covered; attack-end aliases share the attack ledger |
