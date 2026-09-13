@@ -586,8 +586,8 @@ export function permanentMatchesFilter(
   }
   if (filter.digivolutionStackKindExclude && filter.digivolutionStackKindExclude.length > 0) {
     const excluded = filter.digivolutionStackKindExclude.map((k) => KIND_MAP[k as keyof typeof KIND_MAP]);
-    if (permanent.stack.some((card) => card.faceUp !== true)) return false;
     const hit = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const stackDef = ctx.game.definitionOf(card);
       return excluded.some((k) => k !== undefined && stackDef.kinds.includes(k));
     });
