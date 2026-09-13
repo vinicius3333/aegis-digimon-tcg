@@ -24143,7 +24143,7 @@
           {
             "kind": "Attack",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "mandatory": true,
+            "optional": true,
             "attackPlayer": true
           }
         ]
