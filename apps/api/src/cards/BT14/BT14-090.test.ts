@@ -191,7 +191,7 @@ describe("BT14-090", () => {
           ],
         },
       },
-      { autoSelectCards: false },
+      { autoSelectCards: false, autoOrderCards: false },
     );
     s.state.memory = 10;
     await s.ready();
@@ -214,10 +214,25 @@ describe("BT14-090", () => {
     const agumonAId = s.perm("agumonA").permanentId;
     const agumonBId = s.perm("agumonB").permanentId;
 
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const firstHostDecision = s.state.pendingDecision!;
+    const firstHostRequest = s.decisions.find(({ req }) => req.decisionId === firstHostDecision.decisionId)?.req;
+    expect(firstHostRequest?.kind).toBe("chooseTargets");
+    expect(firstHostRequest?.options?.candidateInstanceIds).toEqual(expect.arrayContaining([agumonAId, agumonBId]));
+    expect(firstHostRequest?.options?.candidateInstanceIds).not.toEqual(
+      expect.arrayContaining([greymonId, metalGreymonId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstHostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [agumonAId] },
+      }),
+    ).toEqual({ ok: true });
+
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const firstPaymentDecision = s.state.pendingDecision!;
-    const firstPaymentEntry = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId);
-    const firstPaymentRequest = firstPaymentEntry?.req;
+    const firstPaymentRequest = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId)?.req;
     expect(firstPaymentRequest?.kind).toBe("selectCards");
     expect(firstPaymentRequest?.options?.candidateInstanceIds).toEqual([greymonId, s.inst("otherGreymon").instanceId]);
     expect(
@@ -228,18 +243,16 @@ describe("BT14-090", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const firstHostDecision = s.state.pendingDecision!;
-    const firstHostRequest = s.decisions.find(({ req }) => req.decisionId === firstHostDecision.decisionId)?.req;
-    expect(firstHostRequest?.options?.candidateInstanceIds).toEqual(expect.arrayContaining([agumonAId, agumonBId]));
-    expect(firstHostRequest?.options?.candidateInstanceIds).not.toEqual(
-      expect.arrayContaining([greymonId, metalGreymonId]),
-    );
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.state.pendingDecision!;
+    const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)?.req;
+    expect(orderRequest?.kind).toBe("orderCards");
+    expect(orderRequest?.options?.candidateInstanceIds).toEqual([greymonId, metalGreymonId]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: firstHostDecision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [agumonAId] },
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order: [metalGreymonId, greymonId] },
       }),
     ).toEqual({ ok: true });
 
