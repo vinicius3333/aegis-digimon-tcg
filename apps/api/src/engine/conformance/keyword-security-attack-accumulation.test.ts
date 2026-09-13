@@ -81,4 +81,102 @@ describe("Security Attack accumulation", () => {
     await turn;
     expect(observe(s.engine).keywordAmount(host, "SecurityAttack")).toBe(1);
   });
+
+  it.each([0, 2])(
+    "publicly applies the current -2 provider to one complete security attack with %s Security cards",
+    async (securityCount) => {
+      const preferred: string[] = [];
+      const options = { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT26-034", as: "cost" }],
+            hand: [{ card: "BT26-027", as: "petermon" }],
+            security:
+              securityCount === 2
+                ? [
+                    { card: "BT1-010", as: "security1" },
+                    { card: "BT1-011", as: "security2" },
+                  ]
+                : [],
+            deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "target" }],
+            security: [{ card: "BT1-010", as: "enemySecurity" }],
+            deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          },
+        },
+        options,
+      );
+      await s.ready();
+      s.state.memory = 10;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.state.memory).toBe(10);
+      preferred.push(s.perm("cost").permanentId);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
+        ok: true,
+      });
+      expect(s.state.memory).toBe(6);
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const first = s.state.pendingDecision!;
+      const firstRequest = s.decisions.find(({ req }) => req.decisionId === first.decisionId)!.req;
+      expect(firstRequest.sourceCardId).toBe("BT26-027");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: first.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -2,
+      );
+      await settle();
+      expect(s.perm("cost").isSuspended).toBe(true);
+      expect(s.perm("petermon").isSuspended).toBe(false);
+      expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      await settle(
+        () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== first.decisionId,
+      );
+      const second = s.state.pendingDecision!;
+      const secondRequest = s.decisions.find(({ req }) => req.decisionId === second.decisionId)!.req;
+      expect(second.seat).toBe(0);
+      expect(secondRequest.sourceCardId).toBe("BT26-027");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: second.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("target").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.perm("target").isSuspended && !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined,
+      );
+      expect(s.state.gameOver).toBe(false);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(
+        securityCount === 2 ? [s.inst("security1").instanceId, s.inst("security2").instanceId] : [],
+      );
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([]);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });
