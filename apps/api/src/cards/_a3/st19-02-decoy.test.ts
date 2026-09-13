@@ -60,7 +60,7 @@ function fakeDefinition(cardId: string, over: Partial<CardDefinition> = {}): Car
 
 function makeSource(permanent: Permanent): CardSource {
   return {
-    instanceId: "INST#ST19-02",
+    instanceId: permanent.topCard!.instanceId,
     cardId: "ST19-02",
     ownerSeat: 0 as Seat,
     definition: fakeDefinition("ST19-02"),
