@@ -108,6 +108,8 @@ export function Pile({
   onClick,
   drop,
   useSelectedSleeve = true,
+  egg = false,
+  width,
 }: {
   count: number;
   label: string;
@@ -137,8 +139,10 @@ export function Pile({
   onClick?: () => void;
   drop?: DropAttrs;
   useSelectedSleeve?: boolean;
+  egg?: boolean;
+  width?: number;
 }) {
-  const w = compact ? 42 : 62;
+  const w = width ?? (compact ? 42 : 62);
   if (shield) {
     const dpLabel =
       securityDpDelta !== 0 ? `${securityDpDelta > 0 ? "+" : "−"}${Math.abs(securityDpDelta)} DP` : undefined;
@@ -201,6 +205,11 @@ export function Pile({
         <span key={count} className="game-security-shield__count" aria-hidden>
           {count}
         </span>
+        <span className="game-security-cards" aria-hidden="true">
+          {Array.from({ length: Math.min(count, 10) }, (_, index) => (
+            <i key={index} />
+          ))}
+        </span>
         <span className="game-security-shield__label" aria-hidden>
           {label}
         </span>
@@ -255,7 +264,7 @@ export function Pile({
           the reference client's own deck-out warning. */}
       <div
         aria-hidden
-        className={`game-pile${riffling ? " game-pile--riffling" : ""}`}
+        className={`game-pile${egg ? " game-pile--egg" : ""}${riffling ? " game-pile--riffling" : ""}`}
         style={{ position: "relative", width: w, height: w * 1.4 }}
       >
         {Array.from({ length: layers }, (_, index) => (
@@ -265,7 +274,7 @@ export function Pile({
             style={{
               position: "absolute",
               inset: 0,
-              transform: `translate(${(index + 1) * 2.6}px,${(index + 1) * 2.6}px)`,
+              transform: `translate(${(index + 1) * 1.2}px,${(index + 1) * 1.2}px)`,
               borderRadius: 8,
               background: "var(--ds-surface-muted)",
               border: "1px solid var(--ds-border)",
@@ -288,7 +297,7 @@ export function Pile({
             {topCardId ? (
               <CardMini cardId={topCardId} width={w} />
             ) : (
-              <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} />
+              <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} egg={egg} />
             )}
           </div>
         )}
@@ -396,6 +405,7 @@ const SUMMONING_STAR_INDEXES = [0, 1, 2, 3, 4, 5];
 
 export function PermanentView({
   perm,
+  keywordLabels,
   highlight,
   candidate,
   dimmed,
@@ -416,10 +426,9 @@ export function PermanentView({
   drop,
   onPointerDown,
   onKeyboardActivate,
-  onInspectStart,
-  onInspectEnd,
 }: {
   perm: Permanent;
+  keywordLabels?: Readonly<Record<string, string>>;
   highlight?: boolean;
   candidate?: boolean;
   dimmed?: boolean;
@@ -452,8 +461,6 @@ export function PermanentView({
   onPointerDown?: (e: React.PointerEvent) => void;
   /** Keyboard fallback for drag-only interactions (select to play or attack). */
   onKeyboardActivate?: () => void;
-  onInspectStart?: (element: HTMLDivElement, immediate: boolean) => void;
-  onInspectEnd?: () => void;
 }) {
   const permanentWidth = width ?? (compact ? 76 : 116);
   const { t } = useTranslation();
@@ -462,7 +469,7 @@ export function PermanentView({
   const def = getCardDefinition(topId);
   const delta = perm.currentDP - perm.baseDP;
   const hasDpDelta = delta !== 0;
-  const activeKeywords = [...perm.grantedKeywords].map(formatKeyword);
+  const activeKeywords = [...perm.grantedKeywords].map((keyword) => keywordLabels?.[keyword] ?? formatKeyword(keyword));
   const visibleKeywords = activeKeywords.slice(0, 3);
   const hiddenKeywordCount = activeKeywords.length - visibleKeywords.length;
   // Server truth (`Permanent.keywords`): the resolved keyword list already folds a
@@ -504,28 +511,18 @@ export function PermanentView({
             }
           : undefined
       }
-      onMouseEnter={(event) => onInspectStart?.(event.currentTarget, false)}
-      onMouseLeave={onInspectEnd}
-      onFocus={(event) => onInspectStart?.(event.currentTarget, true)}
-      onBlur={onInspectEnd}
       // Non-interactive permanents stay unlabeled: the card art inside already
       // exposes the card name, and a second name on the wrapper reads twice.
       role={interactive ? "button" : undefined}
-      tabIndex={interactive || onInspectStart ? 0 : undefined}
-      aria-label={
-        onInspectStart
-          ? `${t("game.inspectOpponent")}: ${cardName}${stateLabel}${dpLabel}`
-          : interactive
-            ? `${cardName}${stateLabel}${dpLabel}`
-            : undefined
-      }
-      aria-describedby={onInspectStart ? "opponent-permanent-inspector" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? `${cardName}${stateLabel}${dpLabel}` : undefined}
       className={
         [
           lunge ? `game-permanent-lunge--${lunge}` : "",
           shake ? "game-permanent-shake" : "",
           freezePulse ? "game-permanent-freeze" : "",
           effectSource ? "game-permanent--effect-source" : "",
+          candidate ? "game-permanent--candidate" : "",
         ]
           .filter(Boolean)
           .join(" ") || undefined
@@ -533,7 +530,7 @@ export function PermanentView({
       {...(drop ?? {})}
       style={{
         position: "relative",
-        cursor: onPointerDown ? "grab" : onClick ? "pointer" : "default",
+        cursor: interactive ? "pointer" : "default",
         touchAction: "none",
         opacity: dimmed ? 0.4 : 1,
         // The reference client hides the destination until the centre-screen
@@ -543,19 +540,6 @@ export function PermanentView({
         transition: "transform 160ms, opacity 160ms",
       }}
     >
-      {candidate ? (
-        <div
-          style={{
-            position: "absolute",
-            inset: -5,
-            borderRadius: 12,
-            border: "2px solid var(--ds-warning)",
-            animation: "aegis-pulse 1.2s ease-in-out infinite",
-            zIndex: 3,
-            pointerEvents: "none",
-          }}
-        />
-      ) : null}
       {perm.stack.map((ci, i) => {
         const sc = COLORS[colorKey(getCardDefinition(ci.cardId)?.colors[0])];
         return (
@@ -563,8 +547,8 @@ export function PermanentView({
             key={i}
             style={{
               position: "absolute",
-              left: -4 - i * 4,
-              top: 6 + i * 4,
+              left: `calc(-4px - ${i} * var(--arena-source-step, 4px))`,
+              top: `calc(var(--arena-source-top, 6px) + ${i} * var(--arena-source-step, 4px))`,
               width: permanentWidth,
               height: permanentWidth * 1.4,
               borderRadius: 9,
@@ -764,6 +748,9 @@ export function PermanentView({
                 fontWeight: 700,
                 lineHeight: 1.25,
                 whiteSpace: "nowrap",
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               {keyword}
@@ -808,6 +795,7 @@ export function PermanentView({
 
 export function BreedingSlot({
   perm,
+  keywordLabels,
   label,
   candidate,
   focused,
@@ -818,6 +806,7 @@ export function BreedingSlot({
   drop,
 }: {
   perm?: Permanent;
+  keywordLabels?: Readonly<Record<string, string>>;
   label: string;
   candidate?: boolean;
   /** The breeding step is open: the slot is the one lit thing on a dimmed board. */
@@ -860,7 +849,7 @@ export function BreedingSlot({
         style={{
           position: "relative",
           width: w,
-          height: Math.round(w * 1.34),
+          height: Math.round(w * 1.4),
           borderRadius: compact ? 8 : 12,
           border: candidate ? "2px solid var(--ds-warning)" : "1.5px dashed var(--ds-border-strong)",
           display: "grid",
@@ -876,7 +865,7 @@ export function BreedingSlot({
           </span>
         ) : null}
         {perm && perm.topCard?.cardId ? (
-          <PermanentView perm={perm} compact={compact} width={Math.round(w * 1.16)} />
+          <PermanentView perm={perm} keywordLabels={keywordLabels} compact={compact} width={w} />
         ) : (
           <span
             style={{
@@ -1296,6 +1285,7 @@ export function Hand({
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
   const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
+  const handOverflows = rowWidth > 0 && n * cardWidth - overlap * Math.max(0, n - 1) > rowWidth - HAND_TILT_BLEED * 2;
   // A pick is taken from the pointer, not from the click that may follow it. On
   // touch the hand is a `pan-x` scroll-snap row, so the browser is free to turn a
   // tap into a scroll or to retarget the trailing click at the row — which left a
@@ -1338,6 +1328,7 @@ export function Hand({
       <div
         ref={setRowEl}
         data-testid="hand"
+        data-hand-overflow={handOverflows ? "true" : undefined}
         className={selection ? "game-hand game-hand--selecting" : "game-hand"}
         style={{
           position: "relative",
@@ -1355,7 +1346,9 @@ export function Hand({
           const off = i - mid;
           // The arc always spends the same room, however many cards are fanned, so
           // the outermost card never drops below the dock and out of the window.
-          const fan = mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
+          const fan = !handOverflows && mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
+          const maxFanAngle = Math.min(12, mid * 4);
+          const fanAngle = !handOverflows && mid > 0 ? (off / mid) * maxFanAngle : 0;
           const pickPosition = selection ? selection.pickedInstanceIds.indexOf(entry.instanceId) : -1;
           const picked = pickPosition !== -1;
           const pickable = selection?.selectableInstanceIds.includes(entry.instanceId) ?? false;
@@ -1369,10 +1362,14 @@ export function Hand({
           // never grows it. A card is inspected by clicking it, which opens the same
           // focused overlay the touch layout uses.
           const style: CSSProperties = {
+            ...({
+              "--arena-hand-margin": `${i === 0 ? 0 : -overlap}px`,
+              "--arena-hand-transform": `translateY(${sel ? -34 : hov ? -18 : fan}px) rotate(${sel || hov ? 0 : fanAngle}deg)`,
+            } as CSSProperties),
             marginLeft: i === 0 ? 0 : -overlap,
             cursor: "grab",
             touchAction: "none",
-            transform: `translateY(${sel ? -34 : hov ? -18 : fan}px) rotate(${sel || hov ? 0 : off * 4}deg)`,
+            transform: `translateY(${sel ? -34 : hov ? -18 : fan}px) rotate(${sel || hov ? 0 : fanAngle}deg)`,
             transformOrigin: "bottom center",
             transition: "transform 200ms",
             zIndex: sel ? 50 : hov ? 40 : 10 + i,
@@ -1502,24 +1499,8 @@ interface ArrowPoint {
 }
 
 /**
- * The reference client draws a straight beam between the two card centres, not a
- * curve: the arc the web port had made the tip approach the target sideways, which
- * is what left it reading as pointing past the card rather than into it.
- */
-function beamBetween(from: ArrowPoint, to: ArrowPoint): string {
-  return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
-}
-
-/**
- * The target arrow (`TargetArrow.cs`). One tail, one straight beam per target,
- * drawn from board coordinates the caller re-measures as the cards move — which is
- * what keeps a declared attack pointing at its target while the board shifts under
- * it. The caller clips both ends to the cards' edges (`arrowGeometry.ts`), so the
- * head points at the target rather than covering it.
- *
- * `tracking` is the reference client's persistent arrow: it extends with two quick
- * flashes and then stays up until the thing it is about is over. Without it the
- * beam draws itself once, which is what a hovering drag preview wants.
+ * A trail of filled chevrons points between the real card edges. Each trail ends
+ * at its own target; it never continues across the art to another zone.
  */
 export function AttackArrow({
   from,
@@ -1528,73 +1509,55 @@ export function AttackArrow({
   tracking = false,
 }: {
   from: ArrowPoint;
-  /** One target or several; an effect can be aimed at more than one card at a time. */
   to: ArrowPoint | readonly ArrowPoint[];
   kind?: "attack" | "effect";
   tracking?: boolean;
 }) {
   const targets = Array.isArray(to) ? (to as readonly ArrowPoint[]) : [to as ArrowPoint];
-  const headId = `aegis-arrowhead-${kind}`;
   return (
     <svg
       className={`game-attack-arrow game-attack-arrow--${kind}${tracking ? " game-attack-arrow--tracking" : ""}`}
+      aria-hidden="true"
+      focusable="false"
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 60, pointerEvents: "none" }}
     >
-      <defs>
-        {/* Marker units are stroke widths, so the head grows with the arc rather
-            than needing its own breakpoint. The dark rim is what keeps the tip
-            readable over bright card art. */}
-        <marker id={headId} markerWidth="5" markerHeight="5" refX="3.6" refY="2.5" orient="auto">
-          <path
-            className="game-attack-arrow__head"
-            d="M0,0 L3.6,2.5 L0,5 Z"
-            fill={`var(--battle-arrow-${kind})`}
-            stroke="var(--battle-arrow-casing)"
-            strokeWidth={0.3}
-            strokeLinejoin="round"
-          />
-        </marker>
-      </defs>
       {targets.map((target, index) => {
-        const arc = beamBetween(from, target);
+        const dx = target.x - from.x;
+        const dy = target.y - from.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance < 1) return null;
+        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        const width = Math.min(28, Math.max(22, distance * 0.085));
+        const headLength = Math.min(24, distance * 0.4);
+        const count = Math.max(0, Math.min(40, Math.floor((distance - headLength - 26) / 28) + 1));
+        const lastPosition = distance - headLength - 14;
         return (
-          <g key={index}>
-            {/* Soft glow pass under the beam, the way the reference client draws attacks.
-                The glow and the casing end flat: a round cap on the wider strokes
-                would poke out past the head as a nub on the tip. */}
-            <path
-              className="game-attack-arrow__stroke game-attack-arrow__stroke--glow"
-              d={arc}
-              pathLength={100}
-              strokeDasharray={100}
-              fill="none"
-              stroke={`var(--battle-arrow-${kind}-glow)`}
-              strokeWidth={14}
-              strokeLinecap="butt"
-            />
-            {/* Dark casing between the glow and the bright core: without it the beam
-                disappears into pale card art wherever it crosses one. */}
-            <path
-              className="game-attack-arrow__stroke game-attack-arrow__stroke--casing"
-              d={arc}
-              pathLength={100}
-              strokeDasharray={100}
-              fill="none"
-              stroke="var(--battle-arrow-casing)"
-              strokeWidth={10}
-              strokeLinecap="butt"
-            />
-            <path
-              className="game-attack-arrow__stroke game-attack-arrow__stroke--core"
-              d={arc}
-              pathLength={100}
-              strokeDasharray={100}
-              fill="none"
-              stroke={`var(--battle-arrow-${kind})`}
-              strokeWidth={6}
-              strokeLinecap="round"
-              markerEnd={`url(#${headId})`}
-            />
+          <g key={index} fill={`var(--battle-arrow-${kind})`}>
+            {Array.from({ length: count }, (_, step) => {
+              const position = lastPosition - (count - step - 1) * 28;
+              const progress = (step + 1) / Math.max(1, count);
+              return (
+                <g
+                  key={step}
+                  transform={`translate(${from.x + (dx / distance) * position} ${from.y + (dy / distance) * position}) rotate(${angle})`}
+                  opacity={0.25 + progress * 0.6}
+                >
+                  <path
+                    className="game-attack-arrow__chevron"
+                    d="M-6,-12 L6,0 L-6,12 L-12,12 L0,0 L-12,-12 Z"
+                    transform={`scale(${width / 24})`}
+                    style={{ "--arrow-step": step } as CSSProperties}
+                  />
+                </g>
+              );
+            })}
+            <g transform={`translate(${target.x} ${target.y}) rotate(${angle})`}>
+              <path
+                className="game-attack-arrow__head"
+                d={`M0,0 L${-headLength},${-headLength / 2} L${-headLength},${headLength / 2} Z`}
+                style={{ "--arrow-step": count } as CSSProperties}
+              />
+            </g>
           </g>
         );
       })}

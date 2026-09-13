@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CardBack } from "./cards";
 import { CardSleevePicker } from "./sleevePicker";
@@ -43,5 +43,13 @@ describe("card sleeves", () => {
     );
 
     expect(container.querySelectorAll('img[src="/sleeves/omnimon.png"]')).toHaveLength(1);
+    expect(container.querySelectorAll('img[src="/sleeves/digimon-standard.webp"]')).toHaveLength(1);
+  });
+
+  it("keeps Digi-Egg backs white when the main deck sleeve changes", () => {
+    const { container } = render(<CardBack width={70} egg />);
+    act(() => setCardSleeveId("alphamon"));
+    expect(container.querySelector('img[src="/sleeves/digimon-egg.webp"]')).toBeTruthy();
+    expect(container.querySelector('img[src="/sleeves/alphamon.png"]')).toBeNull();
   });
 });

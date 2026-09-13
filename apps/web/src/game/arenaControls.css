@@ -1,0 +1,183 @@
+/* The HUD shares the metal, glass and light of the memory pieces. */
+/* Card art sets its own inline cursor; every hit surface must inherit the field action. */
+.game-board
+  :is(
+    [data-drop="perm-you"][role="button"],
+    [data-drop="perm-opp"][role="button"],
+    .game-breeding-slot__box[role="button"]
+  )
+  * {
+  cursor: inherit !important;
+}
+
+.game-board .game-arena-counters {
+  --arena-control-ink: #e4faff;
+  --arena-control-light: #79dfef;
+  align-items: center;
+  gap: 0.625rem;
+  padding-bottom: 0.375rem;
+  color: var(--arena-control-light);
+}
+
+.game-board .game-arena-counter {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgb(167 228 236 / 65%);
+  border-radius: 0.75rem;
+  background: linear-gradient(155deg, #36535e, #182f3a 58%, #0a1c27);
+  box-shadow:
+    inset 0 1px 0 rgb(237 254 255 / 38%),
+    inset 0 -2px 0 rgb(0 0 0 / 35%),
+    0 3px 0 #0c202b,
+    0 5px 8px rgb(0 0 0 / 32%);
+}
+
+.game-board .game-arena-counter[data-counter="eggs"] {
+  color: #f4de9e;
+}
+.game-board .game-arena-counter[data-counter="trash"] {
+  color: #c2d3db;
+}
+
+.game-board .game-arena-counter svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 60%));
+}
+
+.game-board .game-arena-counter strong {
+  right: -0.25rem;
+  bottom: -0.375rem;
+  min-width: 1.5rem;
+  padding: 0.1875rem 0.25rem;
+  border: 1px solid #aacbd5;
+  border-radius: 0.25rem;
+  color: var(--arena-control-ink);
+  background: #112733;
+  box-shadow: 0 2px 3px rgb(0 0 0 / 40%);
+  font: 700 0.75rem/1 var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender) {
+  border: 1px solid rgb(186 217 228 / 65%);
+  color: #def8ff;
+  background: linear-gradient(145deg, #354b59, #142b38);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 24%),
+    0 3px 0 #0a1c29,
+    0 5px 8px rgb(0 0 0 / 25%);
+  transition:
+    filter 150ms ease,
+    translate 150ms ease;
+}
+
+.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):focus-visible,
+.game-board .game-end-turn-orb:focus-visible {
+  outline: 3px solid #e5faff;
+  outline-offset: 4px;
+}
+
+.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):active {
+  translate: 0 2px;
+}
+
+.game-board .game-end-turn-orb {
+  --orb-edge: #ed7b80;
+  --orb-base: #87343d;
+  --orb-shadow: #54212c;
+  color: #fff6ed;
+  border: 2px solid #f9c6b1;
+  background: radial-gradient(ellipse at 35% 20%, #f8978a, #ce565b 48%, #a93949 82%);
+  box-shadow:
+    0 0 0 4px var(--orb-edge),
+    inset 0 2px 2px rgb(255 246 232 / 60%),
+    inset 0 -5px 6px var(--orb-base),
+    0 7px 0 4px var(--orb-shadow),
+    0 12px 14px rgb(23 28 34 / 45%);
+  text-shadow: 0 2px 1px var(--orb-shadow);
+  transition:
+    translate 150ms ease,
+    filter 150ms ease;
+}
+
+.game-board .game-end-turn-orb--breeding {
+  --orb-edge: #73cddd;
+  --orb-base: #24677d;
+  --orb-shadow: #163e53;
+  border-color: #cff8fc;
+  background: radial-gradient(ellipse at 35% 20%, #b0edf0, #4aa8c1 48%, #287b9a 82%);
+}
+
+.game-board .game-end-turn-orb--waiting,
+.game-board .game-end-turn-orb:disabled {
+  --orb-edge: #94a9ad;
+  --orb-base: #465f65;
+  --orb-shadow: #293e48;
+  border-color: #c5d5d8;
+  color: #e5eef1;
+  background: radial-gradient(ellipse at 35% 20%, #a5bcc0, #657f88 48%, #465e6c 82%);
+}
+
+.game-board .game-end-turn-orb__ring {
+  animation: none;
+}
+.game-board .game-end-turn-orb:active:not(:disabled) {
+  translate: 0 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):hover,
+  .game-board .game-end-turn-orb:hover:not(:disabled) {
+    filter: brightness(1.15);
+  }
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  .game-board .game-arena-counters {
+    gap: 0.375rem;
+  }
+  .game-board .game-arena-counter {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.375rem;
+    box-shadow:
+      inset 0 1px 0 rgb(237 254 255 / 30%),
+      0 2px 0 #0c202b,
+      0 3px 4px rgb(0 0 0 / 30%);
+  }
+  .game-board .game-arena-counter svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  .game-board .game-arena-counter strong {
+    right: -0.1875rem;
+    bottom: -0.5rem;
+    min-width: 1.0625rem;
+    padding: 0.125rem;
+    font-size: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender),
+  .game-board .game-end-turn-orb {
+    transition: none;
+  }
+}
+
+/* Player counters occupy the reserved HUD strip at the foot of the hand. */
+.game-player-dock > .game-arena-counters[data-side="you"] {
+  position: absolute;
+  z-index: 8;
+  right: 2rem;
+  bottom: 0.75rem;
+  align-self: auto;
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  .game-player-dock > .game-arena-counters[data-side="you"] {
+    right: 1rem;
+    bottom: 0.5rem;
+  }
+}

@@ -11,6 +11,12 @@ export interface CardSleeve {
 
 export const CARD_SLEEVES: readonly CardSleeve[] = [
   {
+    id: "digimon-standard",
+    label: "Digimon Card Game",
+    collection: "Standard Card Back",
+    src: "/sleeves/digimon-standard.webp",
+  },
+  {
     id: "classic",
     label: "Aegis",
     collection: "Original",
@@ -53,7 +59,7 @@ export const CARD_SLEEVES: readonly CardSleeve[] = [
   },
 ];
 
-export const DEFAULT_CARD_SLEEVE = CARD_SLEEVES[1]!;
+export const DEFAULT_CARD_SLEEVE = CARD_SLEEVES[0]!;
 
 const listeners = new Set<() => void>();
 

@@ -22,6 +22,8 @@ export interface SpotlightSubject {
    * suspended Digimon is lit across its short side and clipped along its long one.
    */
   suspended?: boolean;
+  /** A selected source stays lit without wearing the target outline. */
+  ring?: boolean;
 }
 
 /** One hole in the mask, centred on its subject. */
@@ -32,6 +34,7 @@ export interface SpotlightHole {
   width: number;
   height: number;
   radius: number;
+  ring?: boolean;
 }
 
 /** How far past the card's edge the lit area reaches. */
@@ -66,6 +69,7 @@ export function spotlightHoles(
       width,
       height,
       radius: SPOTLIGHT_RADIUS_PX,
+      ...(subject.ring === false ? { ring: false } : {}),
     });
   }
   return holes;

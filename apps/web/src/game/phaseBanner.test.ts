@@ -4,17 +4,19 @@ import { en } from "../i18n/en";
 import { isAnnouncedPhase, phaseBannerFrom } from "./phaseBanner";
 
 describe("phaseBannerFrom", () => {
-  it("announces only the two phases the player acts in", () => {
-    expect(isAnnouncedPhase(Phase.Breeding)).toBe(true);
-    expect(isAnnouncedPhase(Phase.Main)).toBe(true);
-    for (const phase of [Phase.Active, Phase.Draw, Phase.End, Phase.None]) {
-      expect(isAnnouncedPhase(phase), phase).toBe(false);
-      expect(phaseBannerFrom({ phase, turnSeat: 0, viewerSeat: 0, key: 1 }), phase).toBeNull();
+  it("announces every turn phase, excluding the idle state", () => {
+    for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End]) {
+      expect(isAnnouncedPhase(phase), phase).toBe(true);
+      expect(phaseBannerFrom({ phase, turnSeat: 0, viewerSeat: 0, key: 1 })?.phase).toBe(phase);
+    }
+    for (const phase of [Phase.None, "unknown"]) {
+      expect(isAnnouncedPhase(phase)).toBe(false);
+      expect(phaseBannerFrom({ phase, turnSeat: 0, viewerSeat: 0, key: 1 })).toBeNull();
     }
   });
 
   it("prints a real label for each announced phase", () => {
-    for (const phase of [Phase.Breeding, Phase.Main]) {
+    for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End]) {
       const banner = phaseBannerFrom({ phase, turnSeat: 0, viewerSeat: 0, key: 1 });
       expect(en[banner!.labelKey], phase).toBeTruthy();
     }

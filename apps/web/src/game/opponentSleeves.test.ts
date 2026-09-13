@@ -11,6 +11,9 @@ describe("opponent hidden-card backs", () => {
     // The piles are drawn from the presented board (`shownOpp`), not the live state.
     expect(gameScreenSource).toMatch(/count=\{shownOpp\.deckCount\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
     expect(gameScreenSource).toMatch(/count=\{shownOpp\.trash\.length\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
+    expect(gameScreenSource).toMatch(
+      /count=\{shownOpp\.eggDeckCount\}(?:(?!\/>)[\s\S])*?egg(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/,
+    );
     // The security shield's count goes through `shieldSecurityCount`, which holds the
     // figure while a scene is still showing a card leaving, so it is matched by its own
     // `shield="opp"` marker instead.

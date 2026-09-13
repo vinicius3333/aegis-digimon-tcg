@@ -32,6 +32,7 @@ const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
+const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
@@ -75,6 +76,8 @@ export function App() {
       <Suspense fallback={<ScreenFallback />}>
         {labCardId ? (
           <CardEffectsDemo cardId={labCardId} />
+        ) : /^\/dev\/arena\/?$/i.test(pathname) ? (
+          <ArenaDemo />
         ) : isBoardShowcasePath(pathname) ? (
           <BoardShowcase />
         ) : isBattleLabPath(pathname) ? (

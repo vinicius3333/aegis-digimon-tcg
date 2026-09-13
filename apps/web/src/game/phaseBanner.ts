@@ -1,10 +1,4 @@
-/* The short "Breeding Phase" / "Main Phase" card the reference client slides
-   across the board as a phase opens. Only the two phases the player actually acts
-   in are announced: the active, draw and end steps pass in a frame and a banner
-   for each would turn every turn into a slideshow.
-
-   Driven entirely by the server's `phaseChanged` event — the phase name and the
-   seat it belongs to are both on the wire. Pure. */
+/* Phase announcements driven by the server, in the order they arrive. */
 
 import { Phase, type Seat } from "@aegis/shared";
 
@@ -19,15 +13,18 @@ export interface PhaseBanner {
 }
 
 const BANNER_LABEL_KEYS = {
+  [Phase.Active]: "game.phaseBanner.active",
+  [Phase.Draw]: "game.phaseBanner.draw",
+  [Phase.End]: "game.phaseBanner.end",
   [Phase.Breeding]: "game.phaseBanner.breeding",
   [Phase.Main]: "game.phaseBanner.main",
 } as const;
 
 export type PhaseBannerLabelKey = (typeof BANNER_LABEL_KEYS)[keyof typeof BANNER_LABEL_KEYS];
 
-/** Whether a phase is one of the two the board announces. */
+/** Whether a phase has an announcement. */
 export function isAnnouncedPhase(phase: string): phase is keyof typeof BANNER_LABEL_KEYS {
-  return phase === Phase.Breeding || phase === Phase.Main;
+  return Object.prototype.hasOwnProperty.call(BANNER_LABEL_KEYS, phase);
 }
 
 /**

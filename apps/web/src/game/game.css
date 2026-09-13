@@ -2614,73 +2614,29 @@
   }
 }
 
-/* The beam is drawn three times over: a soft coloured glow, a dark casing, and the
-   bright core that carries the head. The widths are properties rather than SVG
-   attributes so one breakpoint retunes all three — a pointer screen sits far
-   enough away that the phone-sized arrow reads as a hairline over card art. */
-.game-attack-arrow {
-  --arrow-core-width: 4;
-  --arrow-casing-width: 6.5;
-  --arrow-glow-width: 10;
-}
-
-.game-attack-arrow__stroke--core {
-  stroke-width: var(--arrow-core-width);
-}
-
-.game-attack-arrow__stroke--casing {
-  stroke-width: var(--arrow-casing-width);
-}
-
-.game-attack-arrow__stroke--glow {
-  stroke-width: var(--arrow-glow-width);
-  filter: drop-shadow(0 0 6px var(--battle-arrow-attack-glow));
-}
-
-.game-attack-arrow--effect .game-attack-arrow__stroke--glow {
-  filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow));
-}
-
-/* TargetArrow.cs:118-157 — the arrow extends over 85ms, holds 70ms, and repeats
-   once before it locks on. `pathLength` is normalised to 100 in the SVG. */
-.game-attack-arrow__stroke {
-  animation: battle-arrow-extend var(--t-attack-arrow, 380ms) linear both;
-}
-
+/* Filled, separated chevrons keep the target direction clear over the playmat. */
+.game-attack-arrow__chevron,
 .game-attack-arrow__head {
-  animation: battle-arrow-head var(--t-attack-arrow, 380ms) step-end both;
+  stroke: rgb(195 252 255 / 75%);
+  stroke-width: 0.65;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgb(0 24 36 / 35%));
+  animation: battle-arrow-chevron-in 160ms ease-out both;
+  animation-delay: calc(var(--arrow-step, 0) * 18ms);
 }
 
-@keyframes battle-arrow-extend {
-  0% {
-    stroke-dashoffset: 100;
+@keyframes battle-arrow-chevron-in {
+  from {
+    opacity: 0;
   }
-  22.4%,
-  40.8% {
-    stroke-dashoffset: 0;
-  }
-  40.9% {
-    stroke-dashoffset: 100;
-  }
-  63.2%,
-  100% {
-    stroke-dashoffset: 0;
+  to {
+    opacity: 1;
   }
 }
 
-@keyframes battle-arrow-head {
-  0% {
-    opacity: 0;
-  }
-  22.4% {
-    opacity: 1;
-  }
-  40.9% {
-    opacity: 0;
-  }
-  63.2% {
-    opacity: 1;
-  }
+.game-permanent--candidate {
+  --ds-card-rim-threat: #80efff;
+  --ds-card-glow-threat: rgb(100 235 255 / 22%);
 }
 
 /* --- Turn banner --------------------------------------------------------- */
@@ -5747,13 +5703,6 @@ button.side-panel__name:focus-visible {
   .narration-slot[data-slot="narration-you"] {
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
   }
-  /* A pointer screen carries a much longer board, so the beam grows a little —
-     but not to the tube it once was, which covered the card it pointed at. */
-  .game-attack-arrow {
-    --arrow-core-width: 5;
-    --arrow-casing-width: 8;
-    --arrow-glow-width: 12;
-  }
 }
 
 /* --- Reduced motion ------------------------------------------------------ */
@@ -5772,7 +5721,7 @@ button.side-panel__name:focus-visible {
   .game-permanent-lunge--up,
   .game-permanent-lunge--down,
   .game-security-shield--hit,
-  .game-attack-arrow__stroke,
+  .game-attack-arrow__chevron,
   .game-attack-arrow__head,
   .battle-clash,
   .battle-clash__art,
@@ -5803,12 +5752,6 @@ button.side-panel__name:focus-visible {
   .match-notice__erode {
     animation: none;
     opacity: 0.45;
-  }
-
-  /* The stroke animation is what draws the arrow in; without it the dash must
-     be closed by hand or the path would never paint. */
-  .game-attack-arrow__stroke {
-    stroke-dashoffset: 0;
   }
 
   /* The flying card back exists only for its trip: with no motion it would just
@@ -6324,8 +6267,8 @@ button.side-panel__name:focus-visible {
 
 .game-spotlight__ring {
   fill: none;
-  stroke: var(--battle-amber);
-  stroke-width: 2;
+  stroke: #80efff;
+  stroke-width: 1.5;
   animation: battle-spotlight-ring var(--t-spotlight-pulse, 1600ms) ease-in-out infinite;
 }
 
@@ -6880,8 +6823,7 @@ button.side-panel__name:focus-visible {
 
 /* Two quick flashes as it extends, then it simply stays up while the caller
    re-solves its endpoints frame by frame. */
-.game-attack-arrow--tracking .game-attack-arrow__stroke {
-  stroke-dashoffset: 0;
+.game-attack-arrow--tracking .game-attack-arrow__chevron {
   animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 4;
 }
 
@@ -7201,7 +7143,7 @@ button.side-panel__name:focus-visible {
   .game-security-shield--landing,
   .game-pile--riffling .game-pile__layer,
   .game-card-landing,
-  .game-attack-arrow--tracking .game-attack-arrow__stroke,
+  .game-attack-arrow--tracking .game-attack-arrow__chevron,
   .game-attack-arrow--tracking .game-attack-arrow__head,
   .game-security-shield__attack-label,
   .card-zoom {

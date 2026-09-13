@@ -1,7 +1,7 @@
 import { cardImageUrls, getCardDefinition, type CardDefinition } from "@aegis/shared";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useCardSleeve } from "./sleeve";
+import { DEFAULT_CARD_SLEEVE, useCardSleeve } from "./sleeve";
 import { COLORS, colorKey, emblemFor, paletteFor, palettePairFor, sigilPaths } from "./theme";
 
 /** True on hover-capable (desktop) pointers; false on touch/responsive devices. */
@@ -73,14 +73,16 @@ export function CardBack({
   width = 70,
   label,
   useSelectedSleeve = true,
+  egg = false,
 }: {
   width?: number;
   label?: number | string;
   useSelectedSleeve?: boolean;
+  egg?: boolean;
 }) {
   const h = Math.round(width * 1.4);
   const selectedSleeve = useCardSleeve();
-  const sleeve = useSelectedSleeve ? selectedSleeve : { src: null };
+  const sleeve = egg ? { src: "/sleeves/digimon-egg.webp" } : useSelectedSleeve ? selectedSleeve : DEFAULT_CARD_SLEEVE;
   return (
     <div
       style={{

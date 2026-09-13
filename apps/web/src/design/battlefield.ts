@@ -31,6 +31,12 @@ export const CLASSIC_BATTLEFIELD: Battlefield = {
 export const BATTLEFIELDS: readonly Battlefield[] = [
   CLASSIC_BATTLEFIELD,
   {
+    id: "tropical",
+    label: "Tropical Arena",
+    src: "/battlefield/aegis-arena-tropical.webp",
+    scrim: "linear-gradient(rgba(32,24,18,0.06), rgba(32,24,18,0.06))",
+  },
+  {
     id: "sanctum",
     label: "Sanctum",
     src: "/battlefield/aegis-arena-sanctum.webp",

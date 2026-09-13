@@ -31,9 +31,9 @@ import { joinWithBot } from "../net/client";
 import type { CSSProperties } from "react";
 import type { StartMode } from "../screens/Lobby";
 import type { AegisJoinOptions } from "../net/types";
-import { Avatar, Badge, Button, Logo, type Screen } from "../design/primitives";
+import { Badge, Button, Logo, type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
-import { CardFull } from "../design/cards";
+import { CardBack, CardFull } from "../design/cards";
 import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
@@ -43,13 +43,16 @@ import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
+import "./arena.css";
+import { ArenaCounters } from "./ArenaCounters";
+import "./arenaMobile.css";
+import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 import {
   AttackArrow,
   BoardInputLock,
   BreedingSlot,
   ClawSlash,
   Hand,
-  HAND_CARD_WIDTH,
   HAND_CARD_WIDTH_COMPACT,
   HAND_MIN_EXPOSURE_TOUCH,
   MemoryGauge,
@@ -83,7 +86,6 @@ import {
   digivolveBasePermanentIds,
   findDnaMaterialCombination,
   attackTargetIdsOf,
-  attackTargetsOf,
   buildMatchLog,
   canAttackPlayerWith,
   canAttackWith,
@@ -99,7 +101,6 @@ import {
   instanceCardId,
   permCardId,
   playButtonLabel,
-  playerColorKey,
   triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
@@ -117,7 +118,6 @@ import {
   CardZoomOverlay,
   CounterOverlay,
   DecisionOverlay,
-  PermanentDetailInspector,
   DigiXrosMaterialOverlay,
   EvadeOverlay,
   EvoCostChoiceOverlay,
@@ -152,7 +152,7 @@ import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
-import { buildPermanentDetail } from "./permanentDetail";
+import { buildPermanentDetail, buildPrintedCardDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
 import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
@@ -211,20 +211,16 @@ const LANDSCAPE_PHONE_QUERY = "(height < 520px) and (orientation: landscape)";
 /** Card width in a battle row on a landscape phone. */
 const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;
 /**
- * Split-screen and small laptops, where game.css narrows the pile rails to 104px.
- * The rail breeding slot must shrink with them or its permanent (1.16× the slot)
- * paints over the battle area.
- */
-const NARROW_RAIL_QUERY = "(width < 1240px)";
-/** Slot width whose 1.16× permanent exactly fits the 104px rail's 84px content box. */
-const NARROW_RAIL_SLOT_WIDTH = 72;
-
-/**
  * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
  * left to the browser until `move` decides between a sideways swipe (scroll the row)
  * and a drag (play / attack). `capture` is the element to capture onto once it does.
  */
 type DragOrigin = { deferred?: boolean; capture?: Element };
+
+/** Draw around the printed card; the permanent wrapper stays the interaction target. */
+function permanentVisualElement(element: HTMLElement): HTMLElement {
+  return element.querySelector<HTMLElement>(".game-card-enter > [data-state]") ?? element;
+}
 
 /** A drop area under the pointer: the `data-drop` name it carries, and the id it names. */
 type DropZoneHit = { target: DropTarget; id?: string };
@@ -277,9 +273,6 @@ type DragState =
 
 export function GameScreen({
   joinOptions,
-  identityColor,
-  identityAvatarId,
-  identityAvatarUrl,
   startMode = "casual",
   roomCode,
   botDeckId,
@@ -304,6 +297,8 @@ export function GameScreen({
     UseRoomResult,
     "room" | "status" | "state" | "events" | "decision" | "acknowledgeDecision" | "error" | "sessionId" | "roomCode"
   > & {
+    /** Canonical keyword names mapped to printed parameters in the visual demo. */
+    keywordLabels?: Readonly<Record<string, Readonly<Record<string, string>>>>;
     acknowledgeBlockWindow?: (blockerPermanentId?: string) => void;
     /** A fabricated connection has no server batches; its whole event list is one moment. */
     batches?: readonly ServerBatch[];
@@ -316,9 +311,40 @@ export function GameScreen({
   const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
+  const portraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait)");
+  const shortPortraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait) and (height < 650px)");
+  const mediumPortraitArena = useMediaQuery(
+    "(max-width: 1023px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px)",
+  );
+  const tabletPortraitArena = useMediaQuery("(min-width: 600px) and (max-width: 1023px) and (orientation: portrait)");
+  const compactArena = useMediaQuery("(height < 950px)");
+  const tightArena = useMediaQuery("(height < 875px)");
+  const arenaPileWidth = portraitArena
+    ? tabletPortraitArena
+      ? 62
+      : shortPortraitArena
+        ? 40
+        : 44
+    : compactPiles
+      ? 56
+      : 72;
+  const arenaPermanentWidth = portraitArena
+    ? tabletPortraitArena
+      ? 88
+      : shortPortraitArena
+        ? 48
+        : mediumPortraitArena
+          ? 60
+          : 76
+    : shortBoard
+      ? 76
+      : tightArena
+        ? 84
+        : compactArena
+          ? 100
+          : 116;
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
   const collapseNotices = narrowGameLayout && !landscapePhone;
-  const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
@@ -369,7 +395,7 @@ export function GameScreen({
   }, [vsBot, room, status, botDeckId, t]);
 
   const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
-  const [handPreview, setHandPreview] = useState<string | null>(null); // instanceId shown in the mobile tap preview
+  const [handPreview, setHandPreview] = useState<string | null>(null); // pinned hand-card inspection
   const [selPerm, setSelPerm] = useState<string | null>(null); // selected attacker permanentId
   // A link declaration in progress: the card to link (hand or a battle-area top) and the
   // server-projected Digimon it may be plugged into. The next tap on one of them sends it.
@@ -395,12 +421,10 @@ export function GameScreen({
   // A board-mode decision the viewer asked to see in the dialog instead (Escape
   // or the rail's back arrow). Reset with every new decision.
   const [decisionAsDialog, setDecisionAsDialog] = useState(false);
-  const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   // A card name clicked in the play log opens the card itself, without closing the log.
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
-  const inspectorTimerRef = useRef<number | undefined>(undefined);
   /** The decision whose prompt is already on screen, so no hold can take it back off. */
   const shownDecisionIdRef = useRef<string | undefined>(undefined);
   /** The combat-prompt window (block/counter/alliance/evade/barrier) already on screen, mirroring
@@ -451,6 +475,7 @@ export function GameScreen({
 
   const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const fieldRef = useRef<HTMLDivElement | null>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // Where each permanent last stood, in board coordinates. A deletion is narrated after
   // the board has already dropped the permanent, so the burst needs the last measurement
@@ -465,6 +490,7 @@ export function GameScreen({
   const oppDeckRef = useRef<HTMLDivElement | null>(null);
   const yourHandDockRef = useRef<HTMLDivElement | null>(null);
   const oppHandStripRef = useRef<HTMLDivElement | null>(null);
+  const attackPreviewTargetRef = useRef<{ security: boolean; permanentId?: string }>({ security: false });
   const [arrow, setArrow] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
 
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
@@ -590,18 +616,34 @@ export function GameScreen({
     unsuspendSweep?.seat === seat ? index * TIMINGS.suspendStagger : 0;
 
   const clearSel = () => {
+    setHandPreview(null);
     setHandSel(null);
     setSelPerm(null);
     setVortexMode(false);
     setLinkSel(null);
   };
 
-  useEffect(
-    () => () => {
-      if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-    },
-    [],
+  useEffect(() => {
+    if ((!handSel || handPreview) && !selPerm) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") clearSel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handSel, handPreview, selPerm]);
+
+  const selectedAttacker = state?.players[viewerSeat]?.battleArea.find(
+    (permanent) => permanent.permanentId === selPerm,
   );
+  const selectedAttackAvailable =
+    !!selectedAttacker && (vortexMode ? canVortexAttackWith(selectedAttacker) : canAttackWith(selectedAttacker));
+  useEffect(() => {
+    if (selPerm && !selectedAttackAvailable) {
+      setSelPerm(null);
+      setVortexMode(false);
+    }
+  }, [selPerm, selectedAttackAvailable]);
 
   // A locked board keeps no half-built action: the contextual action bar pins itself
   // to the viewport on a phone, which puts it outside the pane that takes the input,
@@ -625,7 +667,6 @@ export function GameScreen({
     setSecurityView(null);
     setDigiXrosPick(null);
     setAssemblyPick(null);
-    setOppInspector(null);
     setDecisionAsDialog(false);
   }, [decision?.decisionId, state?.turnSeat]);
 
@@ -683,7 +724,7 @@ export function GameScreen({
       if (!element?.isConnected) {
         return end.kind === "permanent" ? permCentersRef.current[end.permanentId] : undefined;
       }
-      const rect = element.getBoundingClientRect();
+      const rect = (end.kind === "permanent" ? permanentVisualElement(element) : element).getBoundingClientRect();
       if (!rect.width) return undefined;
       return {
         x: rect.left + rect.width / 2 - board.left,
@@ -748,11 +789,19 @@ export function GameScreen({
       setArrow(null);
       return;
     }
+    let frame = 0;
+    let applied = "";
     const measure = () => {
+      frame = window.requestAnimationFrame(measure);
       const b = boardRef.current;
       const a = permRefs.current[selPerm];
-      const opponentSecurityEl = oppSecRef.current;
-      if (!b || !a || !opponentSecurityEl) {
+      const preview = attackPreviewTargetRef.current;
+      const target = preview.security
+        ? oppSecRef.current
+        : preview.permanentId
+          ? permRefs.current[preview.permanentId]
+          : null;
+      if (!b || !a || !target) {
         setArrow(null);
         return;
       }
@@ -763,11 +812,17 @@ export function GameScreen({
         halfWidth: rect.width / 2,
         halfHeight: rect.height / 2,
       });
-      setArrow(beamBetweenBoxes(boxOf(a.getBoundingClientRect()), boxOf(opponentSecurityEl.getBoundingClientRect())));
+      const next = beamBetweenBoxes(
+        boxOf(permanentVisualElement(a).getBoundingClientRect()),
+        boxOf((preview.security ? target : permanentVisualElement(target)).getBoundingClientRect()),
+      );
+      const signature = `${Math.round(next.from.x)},${Math.round(next.from.y)}|${Math.round(next.to.x)},${Math.round(next.to.y)}`;
+      if (signature === applied) return;
+      applied = signature;
+      setArrow(next);
     };
-    measure();
-    const id = window.setTimeout(measure, 60);
-    return () => window.clearTimeout(id);
+    frame = window.requestAnimationFrame(measure);
+    return () => window.cancelAnimationFrame(frame);
   }, [selPerm, state]);
 
   useEffect(() => {
@@ -847,7 +902,7 @@ export function GameScreen({
     const boardRect = board.getBoundingClientRect();
     for (const [permanentId, element] of Object.entries(permRefs.current)) {
       if (!element?.isConnected) continue;
-      const rect = element.getBoundingClientRect();
+      const rect = permanentVisualElement(element).getBoundingClientRect();
       if (!rect.width) continue;
       const center = {
         x: rect.left + rect.width / 2 - boardRect.left,
@@ -870,15 +925,15 @@ export function GameScreen({
   // render (it is derived far below, after the connection gates); the boxes are
   // measured here, and the state is only replaced when the geometry actually
   // moved, so an effect that runs on every commit still settles in one pass.
-  const spotlightRequestRef = useRef<{ ids: readonly string[]; suspended: ReadonlySet<string> }>({
+  const spotlightRequestRef = useRef<{ ids: readonly string[]; attacker?: string; security: boolean }>({
     ids: [],
-    suspended: new Set(),
+    security: false,
   });
   const spotlightAppliedRef = useRef("");
   useEffect(() => {
-    const board = boardRef.current;
-    const { ids, suspended } = spotlightRequestRef.current;
-    if (!board || ids.length === 0) {
+    const board = fieldRef.current;
+    const { ids, attacker, security } = spotlightRequestRef.current;
+    if (!board || (ids.length === 0 && !attacker && !security)) {
       if (spotlightAppliedRef.current !== "") {
         spotlightAppliedRef.current = "";
         setSpotlightSubjects([]);
@@ -887,10 +942,12 @@ export function GameScreen({
     }
     const boardRect = board.getBoundingClientRect();
     const next: SpotlightSubject[] = [];
-    for (const id of ids) {
-      const element = permRefs.current[id];
+    const subjects = [...ids.map((id) => ({ id, element: permRefs.current[id], ring: true }))];
+    if (attacker) subjects.push({ id: attacker, element: permRefs.current[attacker], ring: false });
+    if (security && oppSecRef.current) subjects.push({ id: "security-opp", element: oppSecRef.current, ring: true });
+    for (const { id, element, ring } of subjects) {
       if (!element?.isConnected) continue;
-      const rect = element.getBoundingClientRect();
+      const rect = permanentVisualElement(element).getBoundingClientRect();
       if (!rect.width || !rect.height) continue;
       next.push({
         id,
@@ -898,13 +955,13 @@ export function GameScreen({
         y: rect.top - boardRect.top,
         width: rect.width,
         height: rect.height,
-        suspended: suspended.has(id),
+        ring,
       });
     }
     const signature = `${Math.round(boardRect.width)}x${Math.round(boardRect.height)}|${next
       .map(
         (subject) =>
-          `${subject.id}:${Math.round(subject.x)}:${Math.round(subject.y)}:${Math.round(subject.width)}:${Math.round(subject.height)}:${subject.suspended ? 1 : 0}`,
+          `${subject.id}:${Math.round(subject.x)}:${Math.round(subject.y)}:${Math.round(subject.width)}:${Math.round(subject.height)}:${subject.ring === false ? 0 : 1}`,
       )
       .join(",")}`;
     if (signature === spotlightAppliedRef.current) return;
@@ -1035,8 +1092,6 @@ export function GameScreen({
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
   const memory = displayMemory(shownState, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
-  const youColor = identityColor;
-  const oppColor = playerColorKey(opp, youColor === "Red" ? "Blue" : "Red");
 
   const handEntries: HandEntry[] = you.hand.map((ci) => ({
     instanceId: ci.instanceId,
@@ -1078,7 +1133,8 @@ export function GameScreen({
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
-  const handPreviewEntry = handPreview ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
+  const handPreviewEntry = handPreview ? shownHandEntries.find((entry) => entry.instanceId === handPreview) : undefined;
+  const handPreviewActions = handPreview ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
 
   // ----- intent senders (no-op safely if the room dropped) -----
   const playCard = (instanceId: string, confirmDrop = false) => {
@@ -1547,29 +1603,12 @@ export function GameScreen({
   };
 
   const selectHandCard = (entry: HandEntry) => {
-    // A tap on a touch layout does one thing: open the card's sheet. Toggling the
-    // selection off meant tapping a card could leave nothing on screen, which read
-    // as a card that had simply ignored the tap.
-    if (narrowGameLayout) {
-      playSound("select");
-      setHandSel(entry.instanceId);
-      setHandPreview(entry.instanceId);
-      setSelPerm(null);
-      return;
-    }
-    // Desktop: the first click arms the card, exactly as before — that meaning wins.
-    // The second click on the card already armed is the one that carried nothing, so
-    // it is the one that opens the focused overlay the touch layout reaches through
-    // its card sheet. Nothing grows under the cursor any more, so this is how a hand
-    // card is read here. The selection survives the overlay; every other path that
-    // cleared it (playing, cancelling, a new decision, the turn flipping) still does.
-    if (handSel === entry.instanceId) {
-      setZoomCardId(entry.cardId);
-      return;
-    }
     playSound("select");
     setHandSel(entry.instanceId);
+    setHandPreview(entry.instanceId);
     setSelPerm(null);
+    setCardMenu(null);
+    setStackView(null);
   };
 
   const handleTap = (d: DragState) => {
@@ -1577,7 +1616,8 @@ export function GameScreen({
       const entry = handEntries.find((candidate) => candidate.instanceId === d.instanceId);
       if (entry) selectHandCard(entry);
     } else if (!handSel) {
-      openOwnPermanent(d.permId);
+      if (selPerm === d.permId) clearSel();
+      else openOwnPermanent(d.permId);
     }
   };
 
@@ -1673,6 +1713,15 @@ export function GameScreen({
     return undefined;
   };
 
+  const findPresentedPermanent = (permanentId: string): Permanent | undefined => {
+    for (const player of shownState.players) {
+      const inBattle = player.battleArea.find((permanent) => permanent.permanentId === permanentId);
+      if (inBattle) return inBattle;
+      if (player.breeding?.permanentId === permanentId) return player.breeding;
+    }
+    return undefined;
+  };
+
   const openAppFusionChoice = (handInstanceId: string, hostPermanentId: string) => {
     if (!appFusionActionAvailable()) return;
     const entry = handEntries.find((candidate) => candidate.instanceId === handInstanceId);
@@ -1692,7 +1741,7 @@ export function GameScreen({
     // rect for them. The bottom sheet ignores the anchor, so fall back to the
     // viewport centre rather than dropping the tap.
     const rect = permRefs.current[permanentId]?.getBoundingClientRect();
-    hideOpponentInspector();
+    setStackView(null);
     setCardMenu({
       permanentId,
       side,
@@ -1710,7 +1759,6 @@ export function GameScreen({
     setHandSel(null);
     setCardMenu(null);
     setStackView(null);
-    setOppInspector(null);
   };
 
   /** Flatten a permanent into its [active, digivolution…, linked…] cards for the modal. */
@@ -1720,21 +1768,6 @@ export function GameScreen({
     for (const ci of perm.stack) cards.push({ cardId: ci.cardId, role: "stack" });
     for (const ci of perm.linked) cards.push({ cardId: ci.cardId, role: "linked" });
     return cards;
-  };
-
-  const showOpponentInspector = (permanentId: string, element: HTMLDivElement, immediate: boolean) => {
-    if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-    const open = () => {
-      const rect = element.getBoundingClientRect();
-      setOppInspector({ permanentId, x: rect.right, y: rect.top });
-    };
-    if (immediate) open();
-    else inspectorTimerRef.current = window.setTimeout(open, TIMINGS.inspectorOpen);
-  };
-
-  const hideOpponentInspector = () => {
-    if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-    inspectorTimerRef.current = window.setTimeout(() => setOppInspector(null), TIMINGS.inspectorClose);
   };
 
   function openOwnPermanent(permanentId: string) {
@@ -1758,15 +1791,15 @@ export function GameScreen({
       hasEffects: activatable.length > 0,
     });
     if (destination === "menu") showCardMenu(perm.permanentId, "you");
-    else setStackView(perm.permanentId);
+    else {
+      setCardMenu(null);
+      setStackView(perm.permanentId);
+    }
   }
-
-  const keepOpponentInspector = () => {
-    if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-  };
 
   // ----- click routing -----
   const onYourPerm = (perm: Permanent): (() => void) | undefined => {
+    if (selPerm === perm.permanentId) return clearSel;
     if (linkSel) {
       if (linkSel.targetPermanentIds.includes(perm.permanentId)) {
         return () => linkCard(linkSel.instanceId, perm.permanentId);
@@ -1850,10 +1883,11 @@ export function GameScreen({
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
     drag?.kind === "attack" ? you.battleArea.find((p) => p.permanentId === drag.permId) : undefined;
-  // The declaration the action bar is currently offering targets for. A ＜Vortex＞
-  // declaration is scored under its own rules, so it reads its own projection.
-  const attackTargets = attackTargetsOf(attackerPerm, opp.battleArea, vortexMode);
   const canAttackSecurity = canAttackPlayerWith(attackerPerm, vortexMode);
+  attackPreviewTargetRef.current = {
+    security: canAttackSecurity,
+    permanentId: canAttackSecurity ? undefined : attackTargetIdsOf(attackerPerm, vortexMode)[0],
+  };
 
   // ----- the open decision, and where it is answered -----
   // Everything below reads the server's decision payload; the client adds no
@@ -1928,11 +1962,14 @@ export function GameScreen({
     if (handSel && handIsDigi) return you.battleArea.filter(eligibleBase).map((p) => p.permanentId);
     return [];
   })();
+  const spotlightAttacker = !breedingWindow ? (selPerm ?? undefined) : undefined;
+  const spotlightSecurity = !!spotlightAttacker && canAttackSecurity;
   spotlightRequestRef.current = {
     ids: spotlightIds,
-    suspended: new Set(allPermanents.filter((permanent) => permanent.isSuspended).map((p) => p.permanentId)),
+    attacker: spotlightAttacker,
+    security: spotlightSecurity,
   };
-  const spotlightOpen = spotlightIds.length > 0;
+  const spotlightOpen = spotlightIds.length > 0 || !!spotlightAttacker;
 
   // Where memory would land if the action the pointer is offering were taken. Which
   // action that is changes with the pointer: a hovered or selected hand card prices its
@@ -2035,6 +2072,90 @@ export function GameScreen({
       })()
     : undefined;
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
+  // One physical raising area moves into the utility row on a portrait screen.
+  const yourBreedingDock = (
+    <div
+      className="game-breeding-dock"
+      style={{
+        width: 228,
+        flexShrink: 0,
+        borderRight: "1px solid var(--ds-border)",
+        padding: "8px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "var(--ds-foreground-muted)",
+        }}
+      >
+        {t("game.breedingArea")}
+      </div>
+      <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
+        {/* Hatching is the egg deck's own click during the breeding step —
+                    the step used to open a dialog to ask for the same thing. */}
+        <Pile
+          width={arenaPileWidth}
+          className={`game-utility-slot game-utility-slot--you-eggs${breedingActionsOpen && canHatchEgg ? " game-egg-deck--hatchable" : ""}`}
+          compact={compactPiles}
+          count={shownYou.eggDeckCount}
+          egg
+          label={t("game.pile.eggs")}
+          glow={breedingActionsOpen && canHatchEgg}
+          riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+          onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
+        />
+        <div className="game-utility-slot game-utility-slot--you-raising">
+          <BreedingSlot
+            perm={shownYou.breeding}
+            keywordLabels={
+              shownYou.breeding ? demoConnection?.keywordLabels?.[shownYou.breeding.permanentId] : undefined
+            }
+            label={t("game.pile.raising")}
+            compact={compactPiles}
+            burst={shownYou.breeding ? permanentBursts.get(shownYou.breeding.permanentId) : undefined}
+            // On a phone the dock is a row above the hand; a smaller slot gives
+            // its height back to the battle rows while staying a 44px+ target.
+            width={arenaPileWidth}
+            candidate={
+              (breedingActionsOpen && canMoveOutOfBreeding) ||
+              (!!shownYou.breeding &&
+                (eligibleBase(shownYou.breeding) ||
+                  (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(shownYou.breeding.permanentId))))
+            }
+            focused={breedingWindow}
+            drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
+            // Inside the breeding step the slot is the move-out action itself
+            // rather than the card menu — `onBreeding` still digivolves first
+            // when a hand card is selected.
+            onClick={
+              shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
+                ? onYourPerm(shownYou.breeding)
+                : onBreeding
+            }
+          />
+        </div>
+      </div>
+      {/* What the old breeding dialog said, beside the pieces that answer it
+                  instead of on top of the board. */}
+      {breedingActionsOpen ? (
+        <p className="game-breeding-hint" role="status">
+          {canHatchEgg
+            ? t("game.breedingHint.hatch")
+            : canMoveOutOfBreeding
+              ? t("game.breedingHint.move")
+              : t("game.breedingHint.end")}
+        </p>
+      ) : null}
+    </div>
+  );
+
   const overlays = (
     <>
       {decision && decision.seat === viewerSeat && decision.kind === "mulligan" ? (
@@ -2048,20 +2169,33 @@ export function GameScreen({
 
       {handPreviewEntry ? (
         <HandCardPreview
+          arenaInspection={{
+            side: "you",
+            container: boardRef.current,
+            returnFocusTo:
+              yourHandDockRef.current?.querySelectorAll<HTMLElement>(".game-hand-card")[
+                shownHandEntries.findIndex((entry) => entry.instanceId === handPreviewEntry.instanceId)
+              ],
+          }}
           cardId={handPreviewEntry.cardId}
-          activatableEffects={parseActivatable(handPreviewEntry.activatableEffectsJson)}
-          canPlay={handPreviewEntry.playableFromHand}
+          activatableEffects={parseActivatable(handPreviewActions?.activatableEffectsJson ?? "")}
+          canPlay={handPreviewActions?.playableFromHand === true}
           canDigivolve={
-            handPreviewEntry.digivolveTargetPermanentIds.length > 0 ||
-            appFusionHostIdsOf(handPreviewEntry.instanceId).length > 0
+            (handPreviewActions?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+            (!!handPreviewActions && appFusionHostIdsOf(handPreviewActions.instanceId).length > 0)
           }
-          canLink={handPreviewEntry.linkTargetPermanentIds.length > 0}
+          canLink={(handPreviewActions?.linkTargetPermanentIds.length ?? 0) > 0}
           onPlay={() => {
             if (handSel) playCard(handSel);
             setHandPreview(null);
           }}
           onLink={() =>
-            beginLink(handPreviewEntry.instanceId, handPreviewEntry.cardId, handPreviewEntry.linkTargetPermanentIds)
+            handPreviewActions &&
+            beginLink(
+              handPreviewActions.instanceId,
+              handPreviewActions.cardId,
+              handPreviewActions.linkTargetPermanentIds,
+            )
           }
           onActivateEffect={(effect) => {
             activateEffect(effect.instanceId, effect.effectKey);
@@ -2465,6 +2599,16 @@ export function GameScreen({
             const mine = cardMenu.side === "you";
             return (
               <CardActionMenu
+                arenaInspection={{
+                  side: cardMenu.side,
+                  container: boardRef.current,
+                  returnFocusTo: permRefs.current[perm.permanentId],
+                }}
+                detail={buildPermanentDetail(
+                  findPresentedPermanent(perm.permanentId) ?? perm,
+                  demoConnection?.keywordLabels?.[perm.permanentId],
+                )}
+                fate={fateBadges.get(perm.permanentId)}
                 x={cardMenu.x}
                 y={cardMenu.y}
                 cardId={perm.topCard?.cardId}
@@ -2532,34 +2676,26 @@ export function GameScreen({
             const perm = findPermanent(stackView);
             if (!perm) return null;
             const mine = perm.controllerSeat === viewerSeat;
+            const presentedPermanent = findPresentedPermanent(perm.permanentId) ?? perm;
             return (
               <StackViewerOverlay
+                arenaInspection={{
+                  side: presentedPermanent.controllerSeat === viewerSeat ? "you" : "opp",
+                  container: boardRef.current,
+                  returnFocusTo: permRefs.current[perm.permanentId],
+                }}
                 title={getCardDefinition(perm.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
                 cards={stackCardsOf(perm)}
-                detail={buildPermanentDetail(perm)}
+                detail={buildPermanentDetail(
+                  presentedPermanent,
+                  demoConnection?.keywordLabels?.[presentedPermanent.permanentId],
+                )}
                 fate={fateBadges.get(perm.permanentId)}
                 canAttack={mine && canAttackWith(perm)}
                 canVortex={mine && canVortexAttackWith(perm)}
                 onAttack={() => beginAttack(perm.permanentId)}
                 onVortex={() => beginAttack(perm.permanentId, true)}
                 onClose={() => setStackView(null)}
-              />
-            );
-          })()
-        : null}
-
-      {oppInspector && !decision && !stackView && !selPerm && !dragIsAttack
-        ? (() => {
-            const perm = findPermanent(oppInspector.permanentId);
-            if (!perm) return null;
-            return (
-              <PermanentDetailInspector
-                detail={buildPermanentDetail(perm)}
-                fate={fateBadges.get(perm.permanentId)}
-                anchorX={oppInspector.x}
-                anchorY={oppInspector.y}
-                onInteractStart={keepOpponentInspector}
-                onInteractEnd={hideOpponentInspector}
               />
             );
           })()
@@ -2641,7 +2777,14 @@ export function GameScreen({
             }
             cues.skipAnimations();
           }}
-          style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
+          style={{
+            flex: 1,
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            ...battlefield,
+            ...({ "--arena-background": battlefield.backgroundImage } as CSSProperties),
+          }}
         >
           {/* opponent identity bar */}
           <header
@@ -2655,53 +2798,42 @@ export function GameScreen({
               background: "var(--ds-surface)",
             }}
           >
-            <div className="game-opponent-identity" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Avatar name={shownOpp.displayName || t("game.opponent")} color={oppColor} size={40} />
-              <div>
-                <div
-                  className="game-name-plate"
-                  style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}
-                >
-                  {shownOpp.displayName || t("game.opponent")}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 12,
-                    color: "var(--ds-foreground-muted)",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: shownOpp.connected ? "var(--ds-success)" : "var(--ds-danger)",
-                    }}
-                  />
-                  {shownOpp.connected ? t("game.connected") : t("game.disconnected")} ·{" "}
-                  {shownState.turnSeat === otherSeat(viewerSeat) ? t("game.theirTurn") : t("game.waiting")}
-                </div>
-              </div>
-            </div>
+            <ArenaCounters
+              side="opp"
+              eggs={shownOpp.eggDeckCount}
+              hand={shownOpp.handCount}
+              deck={shownOpp.deckCount}
+              trash={shownOpp.trash.length}
+            />
             <div
               className="game-opponent-hand"
               ref={oppHandStripRef}
-              style={{ display: "flex", alignItems: "center", gap: 7 }}
+              role="img"
+              aria-label={t("game.handCount", { count: shownOpp.handCount })}
+              data-testid="opponent-hand"
+              data-hand-count={shownOpp.handCount}
+              style={
+                {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  "--arena-opponent-hand-count": Math.max(1, Math.min(shownOpp.handCount, 8)),
+                } as CSSProperties
+              }
             >
               {Array.from({ length: Math.min(shownOpp.handCount, 8) }).map((_, i) => (
-                <div key={i} aria-hidden style={{ marginLeft: i ? -22 : 0 }}>
-                  <div
-                    style={{
-                      width: 30,
-                      height: 42,
-                      borderRadius: 5,
-                      background: "linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface))",
-                      border: "1px solid var(--ds-border-strong)",
-                    }}
-                  />
+                <div
+                  key={i}
+                  aria-hidden
+                  style={
+                    {
+                      marginLeft: i ? -22 : 0,
+                      "--arena-opponent-position":
+                        shownOpp.handCount < 2 ? 0.5 : i / (Math.min(shownOpp.handCount, 8) - 1),
+                    } as CSSProperties
+                  }
+                >
+                  <CardBack width={30} useSelectedSleeve={false} />
                 </div>
               ))}
               <span
@@ -2725,7 +2857,36 @@ export function GameScreen({
                 {memory}
               </span>
             </div>
-            {narrowGameLayout ? (
+            {portraitArena ? (
+              <details
+                className="game-mobile-menu"
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.currentTarget.open = false;
+                    event.currentTarget.querySelector("summary")?.focus();
+                  }
+                }}
+                onClick={(event) => {
+                  if (event.target instanceof Element && event.target.closest("button"))
+                    event.currentTarget.open = false;
+                }}
+              >
+                <summary aria-label={t("mobile.board.matchMenu")}>
+                  <Icons.MoreVertical size={20} />
+                </summary>
+                <div className="game-mobile-menu__actions">
+                  <button type="button" onClick={() => setHistoryOpen(true)}>
+                    <Icons.ScrollText size={18} /> {t("game.matchLog")}
+                  </button>
+                  <button type="button" onClick={() => setBugReportOpen(true)}>
+                    <Icons.Bug size={18} /> {t("bugReport.button")}
+                  </button>
+                  <button type="button" onClick={() => room && intents.surrender(room)}>
+                    <Icons.LogOut size={18} /> {t("game.surrender")}
+                  </button>
+                </div>
+              </details>
+            ) : narrowGameLayout ? (
               <>
                 {/* Touch layout: the sidebar footer is out of reach mid-match, so the
                     match-level controls live in the header instead. */}
@@ -2838,12 +2999,6 @@ export function GameScreen({
             </aside>
           ) : null}
 
-          {phaseBanner ? (
-            <div className="game-phase-banner" key={phaseBanner.key} role="status">
-              <span>{t(phaseBanner.labelKey)}</span>
-            </div>
-          ) : null}
-
           {turnTransition ? (
             <div
               className={`game-turn-banner${
@@ -2857,6 +3012,7 @@ export function GameScreen({
           {/* field: left column / center / right column */}
           <div
             className="game-field"
+            ref={fieldRef}
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
             {/* The play surfaces refuse pointer input while a security check owns the
@@ -2890,11 +3046,13 @@ export function GameScreen({
                 {/* The ref rides a wrapper so the pile itself keeps the exact prop
                     shape opponentSleeves.test.ts pins for sleeve privacy. */}
                 <div
+                  className="game-utility-slot game-utility-slot--opp-deck"
                   ref={(el) => {
                     oppDeckRef.current = el;
                   }}
                 >
                   <Pile
+                    width={arenaPileWidth}
                     compact={compactPiles}
                     count={shownOpp.deckCount}
                     label={t("game.pile.deck")}
@@ -2903,7 +3061,8 @@ export function GameScreen({
                   />
                 </div>
                 <Pile
-                  className={trashEffectSource(otherSeat(viewerSeat))}
+                  width={arenaPileWidth}
+                  className={`game-utility-slot game-utility-slot--opp-trash ${trashEffectSource(otherSeat(viewerSeat)) ?? ""}`}
                   compact={compactPiles}
                   count={shownOpp.trash.length}
                   label={t("game.pile.trash")}
@@ -2914,6 +3073,7 @@ export function GameScreen({
               </div>
               <div style={{ flex: 1 }} />
               <Pile
+                width={arenaPileWidth}
                 className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
                 count={shieldSecurityCount(shownYou.securityCount, heldSecurityCounts.get(viewerSeat))}
@@ -2970,8 +3130,9 @@ export function GameScreen({
                     <PermanentView
                       key={p.permanentId}
                       perm={p}
+                      keywordLabels={demoConnection?.keywordLabels?.[p.permanentId]}
                       compact={narrowGameLayout || shortBoard}
-                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
+                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth}
                       refCb={(el) => {
                         permRefs.current[p.permanentId] = el;
                       }}
@@ -2993,17 +3154,17 @@ export function GameScreen({
                       lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                       suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                       onClick={onOppPerm(p)}
-                      onInspectStart={
-                        !selPerm && !dragIsAttack
-                          ? (element, immediate) => showOpponentInspector(p.permanentId, element, immediate)
-                          : undefined
-                      }
-                      onInspectEnd={!selPerm && !dragIsAttack ? hideOpponentInspector : undefined}
                     />
                   );
                 })}
               </div>
               <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
+                {phaseBanner ? (
+                  <div className="game-phase-banner" data-side={phaseBanner.side} key={phaseBanner.key} role="status">
+                    <span>{t(phaseBanner.labelKey)}</span>
+                  </div>
+                ) : null}
+
                 <MemoryGauge
                   value={memory}
                   compact={compactPiles}
@@ -3060,8 +3221,9 @@ export function GameScreen({
                     <PermanentView
                       key={p.permanentId}
                       perm={p}
+                      keywordLabels={demoConnection?.keywordLabels?.[p.permanentId]}
                       compact={narrowGameLayout || shortBoard}
-                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
+                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth}
                       refCb={(el) => {
                         permRefs.current[p.permanentId] = el;
                       }}
@@ -3095,6 +3257,8 @@ export function GameScreen({
               </div>
             </section>
 
+            {portraitArena ? yourBreedingDock : null}
+
             {/* right column: opp breeding+security (top) | your deck+trash (bottom) */}
             <aside
               className="game-pile-column game-pile-column--right"
@@ -3110,21 +3274,34 @@ export function GameScreen({
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-                {/* In the narrow rail the slot matches the pile width, so the card it
-                  holds cannot overflow the rail and get clipped. */}
-                <BreedingSlot
-                  perm={shownOpp.breeding}
-                  label={t("game.pile.raising")}
-                  compact={compactPiles}
-                  burst={shownOpp.breeding ? permanentBursts.get(shownOpp.breeding.permanentId) : undefined}
-                  width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
-                  onClick={
-                    narrowGameLayout && shownOpp.breeding
-                      ? () => showCardMenu(shownOpp.breeding!.permanentId, "opp")
-                      : undefined
-                  }
-                />
+                <div className="game-opponent-breeding" data-testid="opponent-breeding">
+                  <Pile
+                    className="game-utility-slot game-utility-slot--opp-eggs"
+                    width={arenaPileWidth}
+                    compact={compactPiles}
+                    count={shownOpp.eggDeckCount}
+                    egg
+                    label={t("game.pile.eggs")}
+                    useSelectedSleeve={false}
+                    riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:eggDeck`)}
+                  />
+                  <div className="game-utility-slot game-utility-slot--opp-raising">
+                    <BreedingSlot
+                      perm={shownOpp.breeding}
+                      label={t("game.pile.raising")}
+                      compact={compactPiles}
+                      burst={shownOpp.breeding ? permanentBursts.get(shownOpp.breeding.permanentId) : undefined}
+                      width={arenaPileWidth}
+                      onClick={
+                        narrowGameLayout && shownOpp.breeding
+                          ? () => showCardMenu(shownOpp.breeding!.permanentId, "opp")
+                          : undefined
+                      }
+                    />
+                  </div>
+                </div>
                 <Pile
+                  width={arenaPileWidth}
                   className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                   compact={compactPiles}
                   count={shieldSecurityCount(shownOpp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
@@ -3159,6 +3336,8 @@ export function GameScreen({
               <div style={{ flex: 1 }} />
               <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
                 <Pile
+                  className="game-utility-slot game-utility-slot--you-deck"
+                  width={arenaPileWidth}
                   compact={compactPiles}
                   count={shownYou.deckCount}
                   label={t("game.pile.deck")}
@@ -3168,7 +3347,8 @@ export function GameScreen({
                   }}
                 />
                 <Pile
-                  className={trashEffectSource(viewerSeat)}
+                  width={arenaPileWidth}
+                  className={`game-utility-slot game-utility-slot--you-trash ${trashEffectSource(viewerSeat) ?? ""}`}
                   compact={compactPiles}
                   count={shownYou.trash.length}
                   label={t("game.pile.trash")}
@@ -3192,80 +3372,7 @@ export function GameScreen({
             }}
           >
             {inputLocked ? <BoardInputLock /> : null}
-            {/* breeding area (bottom-left) */}
-            <div
-              className="game-breeding-dock"
-              style={{
-                width: 228,
-                flexShrink: 0,
-                borderRight: "1px solid var(--ds-border)",
-                padding: "8px 12px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "var(--ds-foreground-muted)",
-                }}
-              >
-                {t("game.breedingArea")}
-              </div>
-              <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
-                {/* Hatching is the egg deck's own click during the breeding step —
-                    the step used to open a dialog to ask for the same thing. */}
-                <Pile
-                  className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
-                  compact={compactPiles}
-                  count={shownYou.eggDeckCount}
-                  label={t("game.pile.eggs")}
-                  glow={breedingActionsOpen && canHatchEgg}
-                  riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
-                  onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
-                />
-                <BreedingSlot
-                  perm={shownYou.breeding}
-                  label={t("game.pile.raising")}
-                  compact={compactPiles}
-                  burst={shownYou.breeding ? permanentBursts.get(shownYou.breeding.permanentId) : undefined}
-                  // On a phone the dock is a row above the hand; a smaller slot gives
-                  // its height back to the battle rows while staying a 44px+ target.
-                  width={narrowGameLayout ? 46 : undefined}
-                  candidate={
-                    (breedingActionsOpen && canMoveOutOfBreeding) ||
-                    (!!shownYou.breeding &&
-                      (eligibleBase(shownYou.breeding) ||
-                        (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(shownYou.breeding.permanentId))))
-                  }
-                  focused={breedingWindow}
-                  drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-                  // Inside the breeding step the slot is the move-out action itself
-                  // rather than the card menu — `onBreeding` still digivolves first
-                  // when a hand card is selected.
-                  onClick={
-                    shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
-                      ? onYourPerm(shownYou.breeding)
-                      : onBreeding
-                  }
-                />
-              </div>
-              {/* What the old breeding dialog said, beside the pieces that answer it
-                  instead of on top of the board. */}
-              {breedingActionsOpen ? (
-                <p className="game-breeding-hint" role="status">
-                  {canHatchEgg
-                    ? t("game.breedingHint.hatch")
-                    : canMoveOutOfBreeding
-                      ? t("game.breedingHint.move")
-                      : t("game.breedingHint.end")}
-                </p>
-              ) : null}
-            </div>
+            {!portraitArena ? yourBreedingDock : null}
 
             {/* action bar + hand */}
             <div
@@ -3273,35 +3380,32 @@ export function GameScreen({
               ref={yourHandDockRef}
               style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}
             >
-              <ActionBar
-                youName={shownYou.displayName || joinOptions.displayName}
-                youColor={youColor}
-                avatarId={identityAvatarId}
-                avatarUrl={identityAvatarUrl}
-                handCount={shownYou.handCount}
-                selCardId={handPreview ? undefined : selCardId}
-                attackerCardId={attackerPerm?.topCard?.cardId}
-                attackTargets={attackTargets}
-                canAttackSecurity={canAttackSecurity}
-                vortexMode={vortexMode}
-                canPlay={selEntry?.playableFromHand === true}
-                hasBase={
-                  (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
-                  appFusionHostIdsOf(selEntry?.instanceId).length > 0
-                }
-                canLink={(selEntry?.linkTargetPermanentIds.length ?? 0) > 0}
-                linkingCardId={linkSel?.cardId}
-                onPlay={() => handSel && playCard(handSel)}
-                onLink={() =>
-                  selEntry && beginLink(selEntry.instanceId, selEntry.cardId, selEntry.linkTargetPermanentIds)
-                }
-                onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
-                onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}
-                onCancel={clearSel}
-              />
+              {!selPerm ? (
+                <ActionBar
+                  selCardId={handPreview ? undefined : selCardId}
+                  hasBase={
+                    (selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0 ||
+                    appFusionHostIdsOf(selEntry?.instanceId).length > 0
+                  }
+                  linkingCardId={linkSel?.cardId}
+                  onCancel={clearSel}
+                />
+              ) : null}
               <Hand
-                cardWidth={compactPiles ? HAND_CARD_WIDTH_COMPACT : HAND_CARD_WIDTH}
-                minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
+                cardWidth={
+                  portraitArena
+                    ? tabletPortraitArena
+                      ? 104
+                      : shortPortraitArena
+                        ? 44
+                        : mediumPortraitArena
+                          ? 60
+                          : 76
+                    : compactPiles
+                      ? HAND_CARD_WIDTH_COMPACT
+                      : 112
+                }
+                minExposure={portraitArena || compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
                 cards={shownHandEntries}
                 selectedInstanceId={handSel ?? undefined}
                 effectSourceInstanceId={
@@ -3326,6 +3430,13 @@ export function GameScreen({
                 onHoverChange={setHoveredHandInstanceId}
               />
             </div>
+            <ArenaCounters
+              side="you"
+              eggs={shownYou.eggDeckCount}
+              hand={shownYou.handCount}
+              deck={shownYou.deckCount}
+              trash={shownYou.trash.length}
+            />
           </footer>
 
           {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
@@ -3495,6 +3606,7 @@ function BoardShell({ children }: { children: React.ReactNode }) {
 
 export function HandCardPreview({
   cardId,
+  arenaInspection,
   activatableEffects,
   canPlay,
   canDigivolve,
@@ -3506,6 +3618,7 @@ export function HandCardPreview({
   onCancel,
 }: {
   cardId: string;
+  arenaInspection?: ArenaInspectionOptions;
   activatableEffects: ActivatableEntry[];
   canPlay: boolean;
   canDigivolve: boolean;
@@ -3520,6 +3633,52 @@ export function HandCardPreview({
   const { t } = useTranslation();
   const card = getCardDefinition(cardId);
   const [zoomed, setZoomed] = useState(false);
+  if (arenaInspection) {
+    const actions =
+      activatableEffects.length || canPlay || canDigivolve || (canLink && onLink) ? (
+        <>
+          {activatableEffects.map((effect) => (
+            <Button
+              key={`${effect.instanceId}:${effect.effectKey}`}
+              size="sm"
+              variant="secondary"
+              icon={Icons.Sparkles}
+              onClick={() => onActivateEffect(effect)}
+            >
+              {effect.description || t("game.activateEffect")}
+            </Button>
+          ))}
+          {canPlay ? (
+            <Button size="sm" icon={Icons.Sparkles} onClick={onPlay}>
+              {playButtonLabel(card?.kinds ?? [], t)}
+            </Button>
+          ) : null}
+          {canDigivolve ? (
+            <Button size="sm" variant="secondary" icon={Icons.ChevronUp} onClick={onChooseBase}>
+              {t("game.clickToDigivolve")}
+            </Button>
+          ) : null}
+          {canLink && onLink ? (
+            <Button size="sm" variant="secondary" icon={Icons.Link2} onClick={onLink}>
+              {t("game.link")}
+            </Button>
+          ) : null}
+        </>
+      ) : undefined;
+    return (
+      <>
+        <ArenaPermanentInspector
+          detail={buildPrintedCardDetail(cardId)}
+          inspection={arenaInspection}
+          actions={actions}
+          zoomed={zoomed}
+          onZoom={() => setZoomed(true)}
+          onClose={onCancel}
+        />
+        {zoomed ? <CardZoomOverlay cardId={cardId} onClose={() => setZoomed(false)} /> : null}
+      </>
+    );
+  }
   return createPortal(
     // Same bottom sheet as the field-card actions, so tapping a card reads the same
     // whether it is in hand or on the board.
@@ -3607,47 +3766,15 @@ export function HandCardPreview({
 }
 
 function ActionBar({
-  youName,
-  youColor,
-  avatarId,
-  avatarUrl,
-  handCount,
   selCardId,
-  attackerCardId,
-  attackTargets,
-  canAttackSecurity,
-  vortexMode,
-  canPlay,
   hasBase,
-  canLink = false,
   linkingCardId,
-  onPlay,
-  onLink,
-  onAttackSec,
-  onAttackPerm,
   onCancel,
 }: {
-  youName: string;
-  youColor: ColorName;
-  avatarId?: DigimonWorldAvatarId | null;
-  avatarUrl?: string | null;
-  handCount: number;
   selCardId?: string;
-  attackerCardId?: string;
-  /** Server-projected legal Digimon targets for the declaration being built. */
-  attackTargets: Permanent[];
-  canAttackSecurity: boolean;
-  vortexMode?: boolean;
-  canPlay: boolean;
   hasBase: boolean;
-  /** The selected hand card has a server-projected link recipient. */
-  canLink?: boolean;
   /** A link declaration is armed for this card; the bar shows the target hint. */
   linkingCardId?: string;
-  onPlay: () => void;
-  onLink?: () => void;
-  onAttackSec: () => void;
-  onAttackPerm: (permanentId: string) => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
@@ -3675,95 +3802,26 @@ function ActionBar({
   }
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
   if (selDef) {
-    const isEgg = selDef.kinds.includes(CardKind.DigiEgg);
-    return (
+    return hasBase ? (
       <div
         className="game-action-bar game-action-bar--contextual"
-        style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, padding: "4px 0 9px" }}
+        style={{ display: "flex", justifyContent: "center", padding: "4px 0 9px" }}
       >
-        <span style={{ fontSize: 13, color: "var(--ds-foreground-muted)" }}>
-          <strong style={{ color: "var(--ds-foreground)" }}>{selDef.nameEn}</strong>
-          {isEgg
-            ? t("game.digiEgg")
-            : ` · ${selDef.playCost < 0 ? t("game.noCost") : t("game.costsMemory", { count: selDef.playCost })}`}
+        <span
+          style={{ fontSize: 12.5, color: "var(--ds-primary)", display: "inline-flex", alignItems: "center", gap: 5 }}
+        >
+          <Icons.ChevronUp size={14} />
+          {t("game.clickToDigivolve")}
         </span>
-        {canPlay ? (
-          <Button size="sm" icon={Icons.Sparkles} sound={false} onClick={onPlay}>
-            {playButtonLabel(selDef.kinds, t)}
-          </Button>
-        ) : null}
-        {hasBase ? (
-          <span
-            style={{ fontSize: 12.5, color: "var(--ds-primary)", display: "inline-flex", alignItems: "center", gap: 5 }}
-          >
-            <Icons.ChevronUp size={14} />
-            {t("game.clickToDigivolve")}
-          </span>
-        ) : null}
-        {canLink && onLink ? (
-          <Button size="sm" variant="secondary" icon={Icons.Link2} sound={false} onClick={onLink}>
-            {t("game.link")}
-          </Button>
-        ) : null}
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          {t("common.cancel")}
-        </Button>
       </div>
-    );
+    ) : null;
   }
-  if (attackerCardId) {
-    // Both target lists are the server's own projection for this declaration mode, so a
-    // ＜Vortex＞ attack shows only what ＜Vortex＞ can legally hit (§16-33: opponent Digimon,
-    // unless a grant relaxes it into the security target too).
-    return (
-      <div
-        className="game-action-bar game-action-bar--contextual"
-        style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, padding: "4px 0 9px" }}
-      >
-        <span style={{ fontSize: 13, color: "var(--ds-foreground-muted)" }}>
-          {vortexMode ? t("game.vortexAttackWith") : t("game.attackWith")}{" "}
-          <strong style={{ color: "var(--ds-foreground)" }}>
-            {getCardDefinition(attackerCardId)?.nameEn ?? attackerCardId}
-          </strong>{" "}
-          →
-        </span>
-        {canAttackSecurity ? (
-          <Button size="sm" variant="danger" icon={Icons.Shield} sound={false} onClick={onAttackSec}>
-            {t("game.opponentSecurity")}
-          </Button>
-        ) : null}
-        {attackTargets.map((p) => (
-          <Button
-            key={p.permanentId}
-            size="sm"
-            variant="secondary"
-            icon={Icons.Swords}
-            sound={false}
-            onClick={() => onAttackPerm(p.permanentId)}
-          >
-            {getCardDefinition(p.topCard?.cardId ?? "")?.nameEn ?? t("game.digimon")}
-          </Button>
-        ))}
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          {t("common.cancel")}
-        </Button>
-      </div>
-    );
-  }
+
   return (
     <div
       className="game-action-bar game-action-bar--idle"
       style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 6px 4px" }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-        <Avatar name={youName} color={youColor} avatarId={avatarId} avatarUrl={avatarUrl} size={28} />
-        <span className="game-name-plate" style={{ fontWeight: 600, fontSize: 13.5, color: "var(--ds-foreground)" }}>
-          {youName}
-        </span>
-        <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11.5, color: "var(--ds-foreground-muted)" }}>
-          {t("game.handLabel", { count: handCount })}
-        </span>
-      </div>
       <span style={{ fontSize: 12.5, color: "var(--ds-foreground-muted)" }}>{t("game.dragHint")}</span>
     </div>
   );

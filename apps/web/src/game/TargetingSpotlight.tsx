@@ -51,17 +51,19 @@ export function TargetingSpotlight({
         </mask>
       </defs>
       <rect x={0} y={0} width={width} height={height} className="game-spotlight__scrim" mask={`url(#${MASK_ID})`} />
-      {holes.map((hole) => (
-        <rect
-          key={hole.id}
-          className="game-spotlight__ring"
-          x={hole.x}
-          y={hole.y}
-          width={hole.width}
-          height={hole.height}
-          rx={hole.radius}
-        />
-      ))}
+      {holes
+        .filter((hole) => hole.ring !== false)
+        .map((hole) => (
+          <rect
+            key={hole.id}
+            className="game-spotlight__ring"
+            x={hole.x}
+            y={hole.y}
+            width={hole.width}
+            height={hole.height}
+            rx={hole.radius}
+          />
+        ))}
     </svg>
   );
 }

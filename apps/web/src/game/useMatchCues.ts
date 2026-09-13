@@ -1794,8 +1794,8 @@ export function useMatchCues({
         if (step) enqueue(step);
       }
     }
-    const openedPhase = [...fresh].reverse().find((event) => event.kind === "phaseChanged");
-    if (openedPhase?.kind === "phaseChanged") {
+    for (const openedPhase of fresh) {
+      if (openedPhase.kind !== "phaseChanged") continue;
       phaseBannerKeyRef.current += 1;
       const banner = phaseBannerFrom({
         phase: openedPhase.phase,
@@ -1807,7 +1807,6 @@ export function useMatchCues({
         enqueue({
           id: `phase-banner-${banner.key}`,
           track: "phaseBanner",
-          replace: true,
           // It names the phase the player is now in, so it keeps its time.
           skippable: false,
           async run(context) {

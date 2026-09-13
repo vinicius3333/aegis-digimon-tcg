@@ -49,6 +49,7 @@ export type * from "./ir/filters/contextPredicates.js";
 export type * from "./ir/filters/dp.js";
 export type * from "./ir/filters/filter.js";
 export type * from "./ir/filters/zones.js";
+export { KEYWORDS } from "./ir/keywords.js";
 export type * from "./ir/keywords.js";
 export type * from "./ir/predicates/conditions.js";
 export type * from "./ir/predicates/costs.js";

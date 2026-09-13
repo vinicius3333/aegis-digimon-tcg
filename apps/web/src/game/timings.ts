@@ -169,7 +169,7 @@ export const TIMINGS = {
   /** The phase card wiping open (the reference client's 0.2333s scale-Y blind). */
   phaseBannerIn: 233,
   /** The phase card, end to end: the 0.2333s wipe open, its 0.3s hold, and the wipe shut. */
-  phaseBanner: 766,
+  phaseBanner: 1400,
   /** One lap of the ring turning around the turn control while it is actionable. */
   turnControlPulse: 3200,
   /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */

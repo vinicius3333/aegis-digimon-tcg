@@ -30,6 +30,8 @@ export interface PermanentDetail {
   keywords: readonly string[];
   /** The subset of those that an effect granted rather than the card printing. */
   grantedKeywords: readonly string[];
+  /** Optional printed parameter labels for the demo editor. */
+  keywordLabels?: Readonly<Record<string, string>>;
   /**
    * How many security cards an attack by this position would check, as the server
    * resolved it: base 1 plus every ＜Security Attack ±N＞ in effect, floored at 0
@@ -62,7 +64,10 @@ function shownSecurityAttack(permanent: Permanent): number | undefined {
 }
 
 /** Everything the inspector shows for one field position. */
-export function buildPermanentDetail(permanent: Permanent): PermanentDetail {
+export function buildPermanentDetail(
+  permanent: Permanent,
+  keywordLabels?: Readonly<Record<string, string>>,
+): PermanentDetail {
   const topCardId = permanent.topCard?.cardId ?? "";
   const cards: StackCard[] = [
     ...(topCardId ? [{ cardId: topCardId, role: "top" as const }] : []),
@@ -80,11 +85,46 @@ export function buildPermanentDetail(permanent: Permanent): PermanentDetail {
     dpDelta: permanent.currentDP - permanent.baseDP,
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
+    ...(keywordLabels ? { keywordLabels } : {}),
     securityAttack: shownSecurityAttack(permanent),
     restrictions: restrictionBadges(permanent),
     suspended: permanent.isSuspended,
     summoningSick: permanent.summoningSick,
     inBreeding: permanent.inBreeding,
+  };
+}
+
+/** Printed information for a card outside the field, without inventing a permanent. */
+export type CardInspectionDetail = Pick<
+  PermanentDetail,
+  | "cardId"
+  | "name"
+  | "cards"
+  | "currentDP"
+  | "baseDP"
+  | "dpDelta"
+  | "keywords"
+  | "grantedKeywords"
+  | "keywordLabels"
+  | "securityAttack"
+  | "restrictions"
+  | "suspended"
+> & { printedOnly?: boolean };
+
+export function buildPrintedCardDetail(cardId: string): CardInspectionDetail {
+  const definition = getCardDefinition(cardId);
+  return {
+    cardId,
+    printedOnly: true,
+    name: definition?.nameEn ?? cardId,
+    cards: [{ cardId, role: "top" }],
+    currentDP: definition?.dp ?? 0,
+    baseDP: definition?.dp ?? 0,
+    dpDelta: 0,
+    keywords: [],
+    grantedKeywords: [],
+    restrictions: [],
+    suspended: false,
   };
 }
 

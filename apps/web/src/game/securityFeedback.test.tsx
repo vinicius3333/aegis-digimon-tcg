@@ -170,22 +170,25 @@ describe("opponent permanent inspection", () => {
     expect(previews.some((image) => image.getAttribute("style")?.includes("width: 260px"))).toBe(true);
   });
 
-  it("opens through pointer hover and keyboard focus hooks", () => {
-    const onInspectStart = vi.fn<(element: HTMLDivElement, immediate: boolean) => void>();
-    const onInspectEnd = vi.fn<() => void>();
+  it("keeps drag interactions keyboard accessible with a pointer cursor and no hover details", () => {
+    const onPointerDown = vi.fn<(event: React.PointerEvent) => void>();
+    const onKeyboardActivate = vi.fn<() => void>();
     render(
       <I18nProvider>
-        <PermanentView perm={permanent()} onInspectStart={onInspectStart} onInspectEnd={onInspectEnd} />
+        <PermanentView perm={permanent()} onPointerDown={onPointerDown} onKeyboardActivate={onKeyboardActivate} />
       </I18nProvider>,
     );
 
-    const target = screen.getByLabelText("Inspect opponent Digimon: Agumon");
+    const target = screen.getByRole("button", { name: "Agumon" });
+    expect(target.style.cursor).toBe("pointer");
     fireEvent.mouseEnter(target);
-    expect(onInspectStart).toHaveBeenLastCalledWith(target, false);
     fireEvent.focus(target);
-    expect(onInspectStart).toHaveBeenLastCalledWith(target, true);
-    fireEvent.blur(target);
-    expect(onInspectEnd).toHaveBeenCalled();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(onKeyboardActivate).not.toHaveBeenCalled();
+    fireEvent.keyDown(target, { key: "Enter" });
+    expect(onKeyboardActivate).toHaveBeenCalledOnce();
+    fireEvent.pointerDown(target);
+    expect(onPointerDown).toHaveBeenCalledOnce();
   });
 
   it("shows the top effect and inherited effects in stack order", () => {

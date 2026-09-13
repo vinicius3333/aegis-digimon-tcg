@@ -385,6 +385,19 @@ describe("match cues", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("announces all phases in order when they arrive in one batch", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    const phases = ["Active", "Draw", "Breeding", "Main", "End"];
+    rerender(phases.map((phase) => ({ kind: "phaseChanged", phase, turnSeat: 0, turnCount: 5 })) as ServerEvent[]);
+    await advance(0);
+    for (const phase of phases) {
+      expect(result.current.phaseBanner?.phase).toBe(phase);
+      await advance(TIMINGS.phaseBanner);
+    }
+    expect(result.current.phaseBanner).toBeNull();
+  });
+
   it("plays a live turn banner for its full time and then clears it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

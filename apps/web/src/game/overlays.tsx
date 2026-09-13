@@ -30,6 +30,7 @@ import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { assemblyMaterialCount, eligibleAssemblyCandidateIds } from "./assemblyMaterialSelection";
 import { TOUCH_LAYOUT_QUERY, useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
+import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
 
@@ -2102,6 +2103,9 @@ export function EvoCostChoiceOverlay({
  * Main phase, unsuspended). Closes on any outside click via a full-screen backdrop.
  */
 export function CardActionMenu({
+  arenaInspection,
+  detail,
+  fate,
   x,
   y,
   cardId,
@@ -2121,6 +2125,10 @@ export function CardActionMenu({
   onVortex,
   onClose,
 }: {
+  /** Arena field cards read across the opposite half while retaining their legal actions. */
+  arenaInspection?: ArenaInspectionOptions;
+  detail?: PermanentDetail;
+  fate?: PendingFateBadge;
   x: number;
   y: number;
   /** Card shown alongside the actions in `sheet` mode. */
@@ -2150,11 +2158,66 @@ export function CardActionMenu({
   const [zoomed, setZoomed] = useState<string | null>(null);
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && zoomed === null) onClose();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  }, [onClose, zoomed]);
+  if (arenaInspection && detail) {
+    return (
+      <>
+        <ArenaPermanentInspector
+          detail={detail}
+          inspection={arenaInspection}
+          fate={fate}
+          zoomed={zoomed !== null}
+          onZoom={setZoomed}
+          onClose={onClose}
+          actions={
+            canAttack || (canVortex && onVortex) || link || effects?.length || promote ? (
+              <>
+                {canAttack ? (
+                  <Button size="sm" variant="danger" icon={Icons.Swords} onClick={onAttack}>
+                    {t("overlay.attack")}
+                  </Button>
+                ) : null}
+                {canVortex && onVortex ? (
+                  <Button size="sm" variant="danger" icon={Icons.Swords} onClick={onVortex}>
+                    {t("overlay.vortexAttack")}
+                  </Button>
+                ) : null}
+                {link ? (
+                  <Button size="sm" variant="secondary" icon={Icons.Link2} onClick={link.onLink}>
+                    {t("overlay.link")}
+                  </Button>
+                ) : null}
+                {(effects ?? []).map((effect, index) => (
+                  <Button
+                    key={index}
+                    size="sm"
+                    variant="secondary"
+                    icon={Icons.Sparkles}
+                    className="arena-permanent-inspector__activate"
+                    onClick={effect.onActivate}
+                    aria-label={`${t("game.activateEffect")}: ${effect.label}`}
+                    title={effect.label}
+                  >
+                    {effect.label}
+                  </Button>
+                ))}
+                {promote ? (
+                  <Button size="sm" variant="secondary" icon={Icons.ChevronUp} onClick={promote.onPromote}>
+                    {promote.label}
+                  </Button>
+                ) : null}
+              </>
+            ) : undefined
+          }
+        />
+        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+      </>
+    );
+  }
   if (sheet) {
     const def = getCardDefinition(cardId ?? "");
     const dpDelta = dp != null && baseDP != null ? dp - baseDP : 0;
@@ -2711,6 +2774,7 @@ function StackViewerSheet({
  * when the caller deems the permanent eligible.
  */
 export function StackViewerOverlay({
+  arenaInspection,
   cards,
   title,
   detail,
@@ -2722,6 +2786,7 @@ export function StackViewerOverlay({
   onVortex,
   onClose,
 }: {
+  arenaInspection?: ArenaInspectionOptions;
   cards: StackCard[];
   title: string;
   /** The position's computed state: live DP against the printed figure and the resolved keywords. */
@@ -2753,6 +2818,38 @@ export function StackViewerOverlay({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [onClose, zoomed]);
+
+  if (arenaInspection && detail) {
+    return (
+      <>
+        <ArenaPermanentInspector
+          detail={detail}
+          inspection={arenaInspection}
+          fate={fate}
+          zoomed={zoomed !== null}
+          onZoom={setZoomed}
+          onClose={onClose}
+          actions={
+            canAttack || (canVortex && onVortex) ? (
+              <>
+                {canAttack ? (
+                  <Button size="sm" variant="danger" icon={Icons.Swords} onClick={onAttack}>
+                    {t("overlay.attack")}
+                  </Button>
+                ) : null}
+                {canVortex && onVortex ? (
+                  <Button size="sm" variant="danger" icon={Icons.Swords} onClick={onVortex}>
+                    {t("overlay.vortexAttack")}
+                  </Button>
+                ) : null}
+              </>
+            ) : undefined
+          }
+        />
+        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+      </>
+    );
+  }
 
   if (sheet ?? touchLayout) {
     return (
