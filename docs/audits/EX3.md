@@ -114,6 +114,8 @@ Catalog/rules, IR trace, behavioral proof and comparative/stack proof were re-in
 
 ### Closing gates — 2026-09-13
 
+Orca child-worktree delivery remains pending despite the verified cards and pushed branch. The required `orca worktree set --worktree active --workspace-status completed --comment "COLLECTION COMPLETE: EX3; 100% 10/10; branch pushed" --json` returned `runtime_timeout`. The authoritative `orca status --json` reports the application running (PID 1615), runtime/graph `starting`, and `reachable: false`. Do not claim the Orca card was updated or the child-worktree completion protocol finished until the normal command succeeds. The audit and implementation are delivered in draft PR [#4753](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4753).
+
 These results supersede the pending restart checkpoint above. Implementation evidence is committed and pushed as `08dba44700b5fc73e8dfbd9e5d43d24006721c56` on `audit-EX3-20260913`; the audit ledger and generated index are delivered in a separate documentation commit. No engine or catalog behavior was changed.
 
 - `pnpm --filter @aegis/api build` passed separately after two sync-tool API build timeouts. Retried normal `pnpm effects:sync:set -- --set EX3 --base 59825151d` and `pnpm effects:check:set -- --set EX3 --base 59825151d` both passed: 74 records, one semantic change, zero semantic or byte changes outside EX3.
