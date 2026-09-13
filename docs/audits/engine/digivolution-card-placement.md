@@ -270,3 +270,7 @@ remains below whole-subsystem certification.
 The singular identity and public DigiXros deletion-only corrections and their
 serialized red/green gates are owned by
 [replacement-effects.md](replacement-effects.md#singular-identity-and-digixros-deletion-only-checkpoint-2026-09-13).
+
+## Subsequent integrity delivery, 2026-09-13
+
+The earlier 13-record EX6 persisted-IR residual is resolved by the scoped canonical reconciliation owned by [kb-citation-integrity.md](kb-citation-integrity.md#integrity-checkpoint-2026-09-13). All 74 EX6 records now pass parity; no direct card behavior or new collection certification is implied. The placement checkpoint gates above retain their historical meaning.

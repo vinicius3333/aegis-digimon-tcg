@@ -110,10 +110,10 @@ source identity was re-read and SHA-256 verified for `comprehensive-0172`,
 Printed card durations supply the endpoint contracts; these two pins do not
 claim exhaustive normative coverage.
 
-## Deferred integrity front
+## Integrity ownership
 
 Citation/exclusion reconciliation, legacy unpinned citations, persisted IR
 parity and historical collection-score contradictions are owned by the KB and
-ledger integrity front. See [kb-citation-integrity.md](kb-citation-integrity.md)
+ledger integrity front, whose bounded infrastructure checkpoint is now delivered. See [kb-citation-integrity.md](kb-citation-integrity.md)
 and the replacement/placement owners for discovered residuals. This document
 adds no duplicate collection ledger and awards no new collection 10/10 credit.
