@@ -291,6 +291,7 @@ describe("BT26-006 Monimon", () => {
             {
               card: "BT10-075",
               as: "attacker",
+              linked: [{ card: "BT24-036" }],
               under: [
                 { card: CARD_ID, as: "monimon" },
                 { card: "BT10-073", as: "costA" },
@@ -318,6 +319,7 @@ describe("BT26-006 Monimon", () => {
     await s.ready();
     const attackerId = s.perm("attacker").permanentId;
     const attackerCardId = s.perm("attacker").topCard.instanceId;
+    const attachedMaterialId = s.perm("attacker").linked[0]!.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -333,6 +335,7 @@ describe("BT26-006 Monimon", () => {
     expect(digiXros.stack.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([attackerCardId, s.inst("handMaterial").instanceId]),
     );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(attachedMaterialId);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
   });
