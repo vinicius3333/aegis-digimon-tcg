@@ -432,6 +432,23 @@
 .combat-prompt {
   max-width: calc(100% - var(--ds-space-6));
 }
+.evade-prompt .game-actions-row {
+  flex-wrap: wrap;
+}
+.evade-prompt .game-actions-row > button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (width < 520px) {
+  .evade-prompt .game-actions-row {
+    flex-direction: column;
+  }
+  .evade-prompt .game-actions-row > button {
+    width: 100%;
+  }
+}
 .decision-overlay__heading {
   min-width: 0;
   flex: 1;
