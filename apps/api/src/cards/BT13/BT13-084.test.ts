@@ -109,7 +109,7 @@ describe("BT13-084 Astamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-084"] }],
+          battleArea: [{ card: "BT13-087", as: "host", under: ["BT13-084"] }],
           hand: [{ card: "BT1-009", as: "discard" }],
           trash: [{ card: "BT13-080", as: "rescue" }],
         },

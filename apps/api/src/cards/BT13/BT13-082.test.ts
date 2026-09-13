@@ -52,7 +52,7 @@ describe("BT13-082 Peckmon", () => {
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
+      { 0: { battleArea: [{ card: "BT13-085", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -65,7 +65,7 @@ describe("BT13-082 Peckmon", () => {
 
   it("does not trash from hand when the inherited host is deleted by battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
+      { 0: { battleArea: [{ card: "BT13-085", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

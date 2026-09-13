@@ -36,7 +36,7 @@ describe("BT13-085 Crowmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", under: ["BT13-085"], as: "host" }],
+          battleArea: [{ card: "BT13-088", under: ["BT13-085"], as: "host" }],
           trash: [{ card: "BT13-083", as: "rescue" }],
         },
       },

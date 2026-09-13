@@ -41,7 +41,7 @@ describe("BT13-078 Phascomon", () => {
   it("draws before trashing for the inherited end-of-opponent-turn effect", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", under: ["BT13-078"], as: "host" }], deck: ["BT1-009"] },
+        0: { battleArea: [{ card: "BT13-081", under: ["BT13-078"], as: "host" }], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -57,7 +57,7 @@ describe("BT13-078 Phascomon", () => {
   it("draws before trashing through a real opponent turn end", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", under: ["BT13-078"], as: "host" }], deck: ["BT1-009"] },
+        0: { battleArea: [{ card: "BT13-081", under: ["BT13-078"], as: "host" }], deck: ["BT1-009"] },
         1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -72,7 +72,7 @@ describe("BT13-078 Phascomon", () => {
   it("does not repeat the inherited draw-trash effect on a second same-turn timing", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", under: ["BT13-078"], as: "host" }], deck: ["BT1-009", "BT1-009"] },
+        0: { battleArea: [{ card: "BT13-081", under: ["BT13-078"], as: "host" }], deck: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

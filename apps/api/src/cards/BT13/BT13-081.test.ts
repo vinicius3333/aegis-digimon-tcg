@@ -61,7 +61,7 @@ describe("BT13-081 Porcupamon", () => {
 
   it("draws then trashes one card at the opponent's turn end from its inherited stack", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-081"] }], deck: ["BT1-009"] } },
+      { 0: { battleArea: [{ card: "BT13-084", as: "host", under: ["BT13-081"] }], deck: ["BT1-009"] } },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
