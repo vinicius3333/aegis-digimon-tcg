@@ -133,7 +133,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 8;
     await s.ready();
@@ -189,7 +189,7 @@ describe("BT19-026 ZeigGreymon", () => {
           deck: [...FILLER],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: prefer },
+      { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: prefer },
     );
     s.state.memory = 15;
     await s.ready();
@@ -232,7 +232,7 @@ describe("BT19-026 ZeigGreymon", () => {
           deck: [...FILLER],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: prefer },
+      { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: prefer },
     );
     s.state.memory = 8;
     await s.ready();
@@ -269,7 +269,7 @@ describe("BT19-026 ZeigGreymon", () => {
           deck: [...FILLER],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 15;
     await s.ready();
@@ -302,7 +302,7 @@ describe("BT19-026 ZeigGreymon", () => {
           deck: [...FILLER],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 15;
     await s.ready();
@@ -339,7 +339,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
@@ -374,7 +374,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
@@ -408,7 +408,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
@@ -432,7 +432,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
@@ -462,7 +462,7 @@ describe("BT19-026 ZeigGreymon", () => {
         },
         1: { security: [...SECURITY], deck: [...FILLER] },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoChooseOption: true, autoAcceptOptional: true },
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();

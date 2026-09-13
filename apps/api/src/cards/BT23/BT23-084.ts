@@ -74,6 +74,9 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
+          // CR 15-7-5: the optional processing cost remains payable when the
+          // subsequent play cannot resolve because the breeding area is full.
+          allowCostWithoutTarget: true,
           cost: {
             kind: "compound",
             costs: [

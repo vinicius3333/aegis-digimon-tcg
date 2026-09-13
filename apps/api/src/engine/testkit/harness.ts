@@ -432,6 +432,20 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           }),
         );
       }
+      if (
+        req.kind === "chooseOption" &&
+        req.options?.choices?.length !== undefined &&
+        req.options.choices.length > 1 &&
+        req.options.choices.every((choice) => /^\d+ cards?$/.test(choice))
+      ) {
+        queueMicrotask(() =>
+          engineRef?.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: req.decisionId,
+            response: { kind: "chooseOption", optionIndex: 0 },
+          }),
+        );
+      }
     },
     emit: (e) => {
       events.push(e);

@@ -256,3 +256,40 @@ Do not infer their coverage from keyword counts or from the initial conformance
 test count. Each mechanism needs its own normative denominator, distinct
 consumer-shape map, public action proof, skips/fails/residual classification,
 and reproducible gates.
+
+## Future integration checklist — conditional user-authorized sequence
+
+This is a future integration plan, not audit evidence. The user authorized merge
+only after the entire audit is finished, with user edits preserved. The occupied
+main worktree at `/Users/viniciusluiz/aegis-match-logs-main` must not be detached,
+clobbered, reset, or switched during preparation.
+
+The first integration batch is this audit’s delivery work: PR #4744 (engine audit),
+PR #4745 (hotfix), and PR #4746 (release follow-up). The six collection branches
+to integrate afterward are `promo-full-reaudit` (PR #4742), `audit-lm-20260912`
+(PR #4737), `rb1-full-reaudit` (PR #4736), `ex10-full-reaudit` (PR #4739),
+`ex7-full-reaudit` (PR #4734), and `ex5-full-reaudit` (PR #4738). Their canonical
+source ledgers are [P](../audits/P.md), [LM](../audits/LM.md),
+[RB1](../audits/RB1.md), [EX10](../audits/EX10.md), [EX7](../audits/EX7.md),
+and [EX5](../audits/EX5.md). Refresh each PR and branch tip before integration;
+the plan deliberately records no current scores, SHAs, gate claims, or worktree
+status.
+
+After the full audit reaches its completion condition:
+
+1. Preserve and inventory user edits, unrelated agent files, and the occupied main
+   worktree. Keep a safe attach/detach plan so no checkout operation clobbers them.
+2. Merge PRs #4744, #4745, and #4746 into `main` first, resolving conflicts while
+   retaining the existing user changes. Run their documented affected gates.
+3. The root coordinator then switches the root local checkout to `main` after
+   verifying the working tree is safe.
+4. Integrate `promo-full-reaudit`, `audit-lm-20260912`, `rb1-full-reaudit`,
+   `ex10-full-reaudit`, `ex7-full-reaudit`, and `ex5-full-reaudit`, locally and
+   remotely, resolving conflicts against the current `main`. After each branch,
+   run its existing collection ledger commands: focused collection tests,
+   effects sync/check when applicable, typecheck, Oxlint/Oxfmt, audit index/layout,
+   and `git diff --check`.
+5. Re-run the final generated audit index, affected collection parity, focused
+   mechanism regressions, typecheck, style, and diff gates on merged `main`.
+   Record final SHAs and any unresolved ledger caveats. Deployment is outside this
+   checklist unless separately authorized.

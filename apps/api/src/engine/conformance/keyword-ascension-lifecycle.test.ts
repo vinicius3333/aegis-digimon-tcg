@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { cite } from "./_kb.js";
 import { observe } from "../testkit/observe.js";
 import { advance } from "../testkit/advance.js";
@@ -151,15 +150,13 @@ describe("Ascension through public battle deletion", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-019", as: "iliad", suspended: true },
-          ],
+          battleArea: [{ card: "BT24-019", as: "iliad", suspended: true }],
           hand: [
             { card: "BT26-030", as: "pumpkinmon" },
             { card: "BT1-009", as: "cost" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-011"] },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }], security: ["BT1-085"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -167,9 +164,9 @@ describe("Ascension through public battle deletion", () => {
     const grantedId = s.perm("iliad").topCard.instanceId;
     await s.ready();
     s.state.memory = 10;
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -190,4 +187,89 @@ describe("Ascension through public battle deletion", () => {
     assertNoLoudGap(s);
   });
 
+  it("expires granted Ascension before the next player's public battle", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-019", as: "iliad", suspended: true }],
+          hand: [
+            { card: "BT26-030", as: "pumpkinmon" },
+            { card: "BT1-009", as: "cost" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "attacker" }],
+          security: ["BT1-085"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("iliad").permanentId);
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("iliad").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.perm("iliad").isSuspended).toBe(true);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const grant = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: grant.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.hand.length === 1);
+      expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Ascension")).toBe(true);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      for (let i = 0; i < 3; i += 1) {
+        await settle(() => s.state.pendingDecision?.kind === "optional" || s.state.phase !== "End");
+        if (s.state.pendingDecision === undefined) break;
+        const execute = s.state.pendingDecision;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: execute.decisionId,
+            response: { kind: "optional", accept: false },
+          }),
+        ).toEqual({ ok: true });
+        await settle();
+      }
+      await advance(s.engine).waitForMainPhase(1);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("iliad").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("iliad").instanceId));
+      const iliadId = s.inst("iliad").instanceId;
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(iliadId);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).not.toContain(iliadId);
+      expect(s.state.pendingDecision).toBeUndefined();
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    } finally {
+      if (s.state.pendingDecision === undefined && s.state.phase === "Main")
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await Promise.race([loop, new Promise<void>((resolve) => setTimeout(resolve, 100))]);
+    }
+  });
 });

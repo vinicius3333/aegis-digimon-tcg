@@ -54,3 +54,22 @@ template) are unaffected and keep rejecting a matching card in breeding.
 `packages/shared/src/effects/effects.json` was regenerated via
 `pnpm effects:sync:set -- --set <SET>` for BT25, BT26, EX12, P, ST23, ST24 after
 the source changes. Full suite: 41,024 tests passed; `pnpm -r typecheck` passed.
+
+## Public BT26-080 field proof
+
+The reviewed `comprehensive-0261` chunk has SHA-256
+`bea2acb41142c08a4ce511f19dd3e0c0b2069a500a9a419267b553f3685e8b8a`.
+`apps/api/src/engine/conformance/keyword-use-req-field.test.ts` publicly uses
+the dual BT26-080 card as an Option. With real TS Digimon BT25-077 in the
+breeding area, the Purple Option requirement is waived, the Option pays its
+printed five memory, and its complete delete body removes the exact opposing
+target. With only real non-TS green BT1-080 in breeding, the same Option is
+rejected before payment and remains in hand. This proves the keyword's
+`field = battle area or breeding area` scope and its trait predicate for this
+consumer; it does not certify all 38 literal keyword cards.
+
+The existing `ch16c-deletion-and-advanced-keywords.test.ts` sweep covers 24
+compiled keyword records and BT25-093's battle-area TS runtime consumer. The
+literal-text inventory above contains 38 cards, including dual cards and
+source-specific forms. Pre-keyword free-text waivers remain a separate class:
+the EX7-074/Q3873 breeding exclusion is not evidence against the keyword.

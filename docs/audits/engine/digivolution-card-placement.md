@@ -172,3 +172,11 @@ Before the repair, the focused file reproduced two defects: accepted placement l
 ### Open obligations
 
 Whether the generic optional placement confirmation should be suppressed when the egg deck is empty remains a separate eligibility question and is not changed here. Downstream placement consumers, copied-source visibility, ordering with other start-of-main effects, the complete Mother Eater clause matrix, whole-card ten-point scoring, and collection certification remain open.
+
+## Legal batch-placement event checkpoint
+
+The real BT13-007 King Drasil_7D6 producer was exercised through `advance.runTurn`, with a seeded existing source, the actual top Digi-Egg, and two real Royal Knight permanents. Q2263 requires as-much-as-possible processing and Q2264 gives the activating player the order choice; comprehensive-0292 §3-1-3-4 and §4-7-5 provide the owner-order and face-up placement rules. The test uses no injected trigger or direct primitive call.
+
+`king-drasil-batch-placement-events.test.ts` produces three public addition records, one for each physical added identity (egg and the two Royal Knight tops), each with the host, effect seat, bottom position, and exact identity. The resulting stack contains all four face-up sources under the existing host. The focused result is **1 test passed**.
+
+This establishes the legal producer event and documents the current event granularity: the grouped physical action emits one addition event per moved identity. A legal downstream positive reaction remains open; native EX6-007 is not an inherited clause and is not used as a consumer proof when seeded under the breeding host. BT22-006's stricter top-card-rotation filter, copied-source cases, other batch producers, and the complete dynamic consumer denominator remain open; this test does not certify whole-card or collection completion.
