@@ -669,6 +669,16 @@ export async function runReplacement(
       if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
         return false;
       }
+      const replacementCost = action.cost;
+      // CR §15-7-5 permits an optional processing payment to resolve even when its optional
+      // payload has no legal target; payload legality is checked by the nested action itself.
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !canPayCost(subCtx, replacementCost)
+      ) {
+        return false;
+      }
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
@@ -685,6 +695,13 @@ export async function runReplacement(
       } else if (
         (action.optional === true || hasOptionalDigiXrosCost) &&
         !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
+      ) {
+        return false;
+      }
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !(await payCost(subCtx, replacementCost))
       ) {
         return false;
       }

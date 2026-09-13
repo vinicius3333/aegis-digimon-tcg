@@ -1505,8 +1505,13 @@ export async function payCost(
         if (n <= 0 || candidates.length < n) return false;
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        if (await returnToTop()) await ctx.fx.returnToDeck(chosen, { toTop: true });
-        else await ctx.fx.returnToEggDeck?.(chosen);
+        if (cost.to === "deckBottom" || cost.position === "bottom") {
+          await ctx.fx.returnToDeck(chosen, { toTop: false });
+        } else if (await returnToTop()) {
+          await ctx.fx.returnToDeck(chosen, { toTop: true });
+        } else {
+          await ctx.fx.returnToEggDeck?.(chosen);
+        }
         if (out) out.paidCount = chosen.length;
         return true;
       }
