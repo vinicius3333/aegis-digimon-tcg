@@ -165,3 +165,38 @@ describe("Security battle duration boundaries", () => {
     });
   }
 });
+
+describe("Nested battle duration ownership", () => {
+  it("expires inner grants at the inner boundary and preserves the enclosing grant", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-055", as: "attacker" }] } });
+    await s.ready();
+    const attacker = s.perm("attacker");
+    const { modifiers, continuous } = advance(s.engine).ledgers;
+    modifiers.addDpModifier(s.state, attacker.permanentId, 1000, EffectDuration.UntilEndBattle);
+    continuous.addKeywordGrant(attacker.permanentId, "Rush", EffectDuration.UntilEndBattle);
+
+    const outerScope = 101;
+    const innerScope = 102;
+    modifiers.beginBattleScope(outerScope);
+    continuous.beginBattleScope(outerScope);
+    modifiers.beginBattleScope(innerScope);
+    continuous.beginBattleScope(innerScope);
+    modifiers.addDpModifier(s.state, attacker.permanentId, 2000, EffectDuration.UntilEndBattle);
+    continuous.addKeywordGrant(attacker.permanentId, "Jamming", EffectDuration.UntilEndBattle);
+    modifiers.sweep(s.state, "endBattle", 0, innerScope);
+    continuous.sweep(s.state, "endBattle", 0, innerScope);
+    modifiers.endBattleScope(innerScope);
+    continuous.endBattleScope(innerScope);
+
+    expect(attacker.currentDP).toBe(14000);
+    expect(observe(s.engine).hasKeyword(attacker, "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(attacker, "Jamming")).toBe(false);
+
+    modifiers.sweep(s.state, "endBattle", 0, outerScope);
+    continuous.sweep(s.state, "endBattle", 0, outerScope);
+    modifiers.endBattleScope(outerScope);
+    continuous.endBattleScope(outerScope);
+    expect(attacker.currentDP).toBe(13000);
+    expect(observe(s.engine).hasKeyword(attacker, "Rush")).toBe(false);
+  });
+});

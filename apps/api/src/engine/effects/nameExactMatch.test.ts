@@ -2,6 +2,16 @@ import { describe, it, expect } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { matchNameOrTrait } from "./interpreter.js";
 
+// The official language reference grants a substring inclusion without renaming
+// MarineChimairamon. No committed definition exists for this printed name yet.
+it("keeps MarineChimairamon's standardized Kimeramon inclusion out of exact gates", () => {
+  const definition = { nameEn: "MarineChimairamon" };
+  expect(matchNameOrTrait(definition, { tokens: ["Kimeramon"], match: "name" })).toBe(true);
+  expect(matchNameOrTrait(definition, { tokens: ["Kimeramon"], match: "nameExact" })).toBe(false);
+  expect(matchNameOrTrait(definition, { tokens: ["Millenniummon", "Kimeramon"], match: "name" })).toBe(true);
+  expect(matchNameOrTrait(definition, { tokens: ["Kimeramon"], match: "name", negate: true })).toBe(false);
+});
+
 // `nameExact` models documented behavior `CardNames.Contains("X")` — literal card-name equality,
 // not substring. BT4-086 "[Cerberusmon]" must NOT match "Cerberusmon: Werewolf
 // Mode" (KB Q1231/Q1232), whereas the default `name` (substring) mode would.

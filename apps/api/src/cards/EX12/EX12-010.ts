@@ -2,7 +2,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // digivolutionRequirement[0]: names:["Agumon"] correctly encodes "w/[Agumon] in name" —
-// the engine resolves names via baseDef.nameEn.includes(n) (substring match), not exact
+// the engine resolves names through the shared standardized substring predicate, not exact
 // equality. Auditor "exact match" finding is a false positive.
 const compiled: CompiledCard = {
   effects: [

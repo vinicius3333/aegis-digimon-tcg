@@ -8,6 +8,7 @@ import {
   type Seat,
   type Keyword,
   type ZoneRef,
+  nameIncludesToken,
 } from "@aegis/shared";
 import type { Restriction } from "./EffectContext.js";
 import type { DurationBoundary } from "./modifiers.js";
@@ -557,6 +558,68 @@ export class ContinuousEffectLedger {
   private effectTimingDisables: EffectTimingDisable[] = [];
   private playerEffectTimingDisables: PlayerEffectTimingDisable[] = [];
   private dnaLevelOverrides: DnaLevelOverride[] = [];
+  private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
+
+  beginBattleScope(scopeId: number): void {
+    const parent = [...this.battleScopes.keys()].at(-1);
+    this.battleScopes.set(scopeId, { parent, entries: new Set(this.allEntries()) });
+  }
+
+  endBattleScope(scopeId: number): void {
+    this.battleScopes.delete(scopeId);
+  }
+
+  private allEntries(): object[] {
+    return [
+      ...this.restrictions,
+      ...this.playerRestrictions,
+      ...this.attackTargetRestrictions,
+      ...this.canAttackUnsuspendedGrants,
+      ...this.vortexCanAttackPlayersGrants,
+      ...this.suspendRestrictionSources,
+      ...this.unsuspendedDigivolveProhibitions,
+      ...this.digivolveIntoConstraints,
+      ...this.nameTraitGrants,
+      ...this.originalCardInfoOverrides,
+      ...this.colorWaivers,
+      ...this.keywordGrants,
+      ...this.playerKeywordGrants,
+      ...this.playerCustomEffectGrants,
+      ...this.linkMaxGrants,
+      ...this.linkCostReductionGrants,
+      ...this.kindGrants,
+      ...this.cannotIgnoreDigivolutionFlags,
+      ...this.securityAddRestrictions,
+      ...this.colorGrants,
+      ...this.stackTrashLocks,
+      ...this.stackCardTrashLocks,
+      ...this.securityAttackInversions,
+      ...this.stackEffectConferrals,
+      ...this.onDeletionAtEndOfAttackProjections,
+      ...this.customEffectGrants,
+      ...this.memoryGainPolicies,
+      ...this.costReductionBlocks,
+      ...this.playProhibitions,
+      ...this.securityEffectDisables,
+      ...this.effectTimingDisables,
+      ...this.playerEffectTimingDisables,
+      ...this.dnaLevelOverrides,
+    ];
+  }
+
+  private expiresAt(
+    entry: object,
+    duration: EffectDuration,
+    boundary: DurationBoundary,
+    ownerSeat: Seat,
+    sweepSeat: Seat,
+    battleScopeId?: number,
+  ): boolean {
+    if (!clearsAt(duration, boundary, ownerSeat, sweepSeat)) return false;
+    if (boundary !== "endBattle" || battleScopeId === undefined) return true;
+    const scope = this.battleScopes.get(battleScopeId);
+    return scope?.parent === undefined || !scope.entries.has(entry);
+  }
 
   /** Record a "can't <restriction>" rule on a permanent for a duration. */
   addRestriction(
@@ -1049,7 +1112,7 @@ export class ContinuousEffectLedger {
     return this.dnaLevelOverrides.find(
       (entry) =>
         entry.permanentId === permanentId &&
-        (entry.intoNames === undefined || entry.intoNames.some((name) => into.nameEn.includes(name))),
+        (entry.intoNames === undefined || entry.intoNames.some((name) => nameIncludesToken(into.nameEn, name))),
     )?.level;
   }
 
@@ -1499,7 +1562,8 @@ export class ContinuousEffectLedger {
     return this.customEffectGrants;
   }
 
-  /** Expire all continuous rules whose duration clears at `boundary`. */
+  /** Expire all continuous rules whose duration clears at `boundary`; nested battle scopes
+   * restrict end-battle cleanup to entries created inside that scope. */
   /**
    * Drain the permanents whose `beAffected` immunity expired since the last call, so the caller
    * can recompute the effects that now apply to them again (KB Q5328).
@@ -1510,10 +1574,10 @@ export class ContinuousEffectLedger {
     return drained;
   }
 
-  sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat): void {
+  sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat, battleScopeId?: number): void {
     const ownerOf = (permanentId: string): Seat => ownerSeatOfPermanent(state, permanentId);
     this.restrictions = this.restrictions.filter((r) => {
-      if (!clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat)) return true;
+      if (!this.expiresAt(r, r.duration, boundary, ownerOf(r.permanentId), sweepSeat, battleScopeId)) return true;
       // Losing "isn't affected by effects" RE-APPLIES an effect the card was given while it was
       // immune (KB Q5328). The DP ledger only re-reads that suppression when it recomputes, so
       // record the recipient for the sweep site to recompute.
@@ -1521,90 +1585,105 @@ export class ContinuousEffectLedger {
       return false;
     });
     this.playerRestrictions = this.playerRestrictions.filter(
-      (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
+      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId),
     );
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter(
-      (entry) => !clearsAt(entry.duration, boundary, ownerOf(entry.attackerPermanentId), sweepSeat),
+      (entry) =>
+        !this.expiresAt(entry, entry.duration, boundary, ownerOf(entry.attackerPermanentId), sweepSeat, battleScopeId),
     );
     this.canAttackUnsuspendedGrants = this.canAttackUnsuspendedGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.vortexCanAttackPlayersGrants = this.vortexCanAttackPlayersGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.suspendRestrictionSources = this.suspendRestrictionSources.filter(
-      (s) => !clearsAt(s.duration, boundary, ownerOf(s.permanentId), sweepSeat),
+      (s) => !this.expiresAt(s, s.duration, boundary, ownerOf(s.permanentId), sweepSeat, battleScopeId),
     );
     this.unsuspendedDigivolveProhibitions = this.unsuspendedDigivolveProhibitions.filter(
-      (entry) => !clearsAt(entry.duration, boundary, entry.sourceSeat, sweepSeat),
+      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.sourceSeat, sweepSeat, battleScopeId),
     );
     this.digivolveIntoConstraints = this.digivolveIntoConstraints.filter(
-      (c) => !clearsAt(c.duration, boundary, ownerOf(c.permanentId), sweepSeat),
+      (c) => !this.expiresAt(c, c.duration, boundary, ownerOf(c.permanentId), sweepSeat, battleScopeId),
     );
     this.nameTraitGrants = this.nameTraitGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.originalCardInfoOverrides = this.originalCardInfoOverrides.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.keywordGrants = this.keywordGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.playerKeywordGrants = this.playerKeywordGrants.filter(
-      (grant) => !clearsAt(grant.duration, boundary, grant.seat, sweepSeat),
+      (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.seat, sweepSeat, battleScopeId),
     );
     this.playerCustomEffectGrants = this.playerCustomEffectGrants.filter(
-      (grant) => !clearsAt(grant.duration, boundary, grant.ownerSeat, sweepSeat),
+      (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.ownerSeat, sweepSeat, battleScopeId),
     );
     this.linkMaxGrants = this.linkMaxGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.linkCostReductionGrants = this.linkCostReductionGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
-    this.kindGrants = this.kindGrants.filter((g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat));
+    this.kindGrants = this.kindGrants.filter(
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
+    );
     this.cannotIgnoreDigivolutionFlags = this.cannotIgnoreDigivolutionFlags.filter(
-      (f) => !clearsAt(f.duration, boundary, f.seat, sweepSeat),
+      (f) => !this.expiresAt(f, f.duration, boundary, f.seat, sweepSeat, battleScopeId),
     );
     this.securityAddRestrictions = this.securityAddRestrictions.filter(
-      (entry) => !clearsAt(entry.duration, boundary, entry.granterSeat, sweepSeat),
+      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.granterSeat, sweepSeat, battleScopeId),
     );
     this.colorGrants = this.colorGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.stackTrashLocks = this.stackTrashLocks.filter(
-      (l) => !clearsAt(l.duration, boundary, ownerOf(l.permanentId), sweepSeat),
+      (l) => !this.expiresAt(l, l.duration, boundary, ownerOf(l.permanentId), sweepSeat, battleScopeId),
     );
     this.stackCardTrashLocks = this.stackCardTrashLocks.filter(
-      (lock) => !clearsAt(lock.duration, boundary, lock.ownerSeat, sweepSeat),
+      (lock) => !this.expiresAt(lock, lock.duration, boundary, lock.ownerSeat, sweepSeat, battleScopeId),
     );
     this.securityAttackInversions = this.securityAttackInversions.filter(
-      (i) => !clearsAt(i.duration, boundary, ownerOf(i.permanentId), sweepSeat),
+      (i) => !this.expiresAt(i, i.duration, boundary, ownerOf(i.permanentId), sweepSeat, battleScopeId),
     );
     // Color waivers are scoped to a card instance (usually the playing card itself);
     // they clear on turn boundaries by their stated duration, owner-agnostic.
-    this.colorWaivers = this.colorWaivers.filter((w) => !clearsAt(w.duration, boundary, sweepSeat, sweepSeat));
-    this.memoryGainPolicies = this.memoryGainPolicies.filter((p) => !clearsAt(p.duration, boundary, p.seat, sweepSeat));
+    this.colorWaivers = this.colorWaivers.filter(
+      (w) => !this.expiresAt(w, w.duration, boundary, sweepSeat, sweepSeat, battleScopeId),
+    );
+    this.memoryGainPolicies = this.memoryGainPolicies.filter(
+      (p) => !this.expiresAt(p, p.duration, boundary, p.seat, sweepSeat, battleScopeId),
+    );
     this.costReductionBlocks = this.costReductionBlocks.filter(
-      (b) => !clearsAt(b.duration, boundary, b.seat, sweepSeat),
+      (b) => !this.expiresAt(b, b.duration, boundary, b.seat, sweepSeat, battleScopeId),
     );
     this.playProhibitions = this.playProhibitions.filter(
-      (p) => !clearsAt(p.duration, boundary, p.sourceSeat, sweepSeat),
+      (p) => !this.expiresAt(p, p.duration, boundary, p.sourceSeat, sweepSeat, battleScopeId),
     );
     this.securityEffectDisables = this.securityEffectDisables.filter(
-      (d) => !clearsAt(d.duration, boundary, d.attackerSeat ?? ownerOf(d.attackerPermanentId ?? ""), sweepSeat),
+      (d) =>
+        !this.expiresAt(
+          d,
+          d.duration,
+          boundary,
+          d.attackerSeat ?? ownerOf(d.attackerPermanentId ?? ""),
+          sweepSeat,
+          battleScopeId,
+        ),
     );
     this.effectTimingDisables = this.effectTimingDisables.filter(
-      (d) => !clearsAt(d.duration, boundary, ownerOf(d.permanentId), sweepSeat),
+      (d) => !this.expiresAt(d, d.duration, boundary, ownerOf(d.permanentId), sweepSeat, battleScopeId),
     );
     this.playerEffectTimingDisables = this.playerEffectTimingDisables.filter(
-      (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
+      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId),
     );
     // UntilOpponentTurnEnd is framed from the GRANTER's seat (recorded as `ownerSeat`), so this
     // clears at the end of the granter's opponent's turn (RB1-030). Anchored on the instance, the
     // grant also lingers harmlessly in trash post-deletion until this boundary sweep removes it.
     this.customEffectGrants = this.customEffectGrants.filter(
-      (g) => !clearsAt(g.duration, boundary, g.ownerSeat, sweepSeat),
+      (g) => !this.expiresAt(g, g.duration, boundary, g.ownerSeat, sweepSeat, battleScopeId),
     );
   }
 

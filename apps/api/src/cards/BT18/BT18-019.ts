@@ -2,8 +2,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored IR correction: BT18-073's Q&A requires the target Millenniummon to
-// have a DNA Digivolution requirement. The generated card data omitted that
-// structural header for BT18-019, so preserve it here for interpreter legality checks.
+// have a DNA Digivolution requirement. The generated card data omitted the named
+// material recipe, so preserve the printed requirement here for interpreter legality checks.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -153,12 +153,10 @@ export const compiled: CompiledCard = {
       cost: 0,
       materials: [
         {
-          color: "Red",
-          level: 5,
+          namesExact: ["Kimeramon"],
         },
         {
-          color: "Black",
-          level: 6,
+          namesExact: ["Machinedramon"],
         },
       ],
     },

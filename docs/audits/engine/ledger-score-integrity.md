@@ -30,10 +30,16 @@ values and inconsistent totals fail. A collection still marked verified must
 have every standard row at ten; an in-progress collection can retain honest
 lower scores. Module/test reference checks remain required.
 
-P-009 now records 2/2 catalog, 2/2 rules, 2/2 IR, 1/2 behavior and 1/2 stack,
-with total eight and explicit remaining obligations in its sole ledger. ST2-01
-also has its current five numeric parts recorded at eight in its sole ledger.
-Other historical scores remain historical and are not freshly recalculated.
+P-009 and ST2-01 were reduced to eight during the initial score-integrity
+checkpoint. Read-only inspection of the authoritative collection ledgers now
+finds `docs/audits/P.md` recording P-009 at 10/10 in the verified 249-card Promo
+ledger, with five current 2/2 components, and `docs/audits/ST2.md` recording
+ST2-01 at 10/10 in the verified 16-card ST2 ledger, also with five current 2/2
+components. This inspection did not rerun the collection verifier or behavioral
+tests; those rows are the current ledger state and its recorded source proof,
+not a fresh recertification. The earlier eight-point rows and failed verifier
+results remain historical evidence only; other historical scores are not freshly
+recalculated.
 
 ## Behavioral proof
 

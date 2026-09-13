@@ -127,13 +127,20 @@ function normalizeSubstringName(value: string): string {
     .trim();
 }
 
-/** Match an English name token while respecting standardized name exclusions. */
+// The English reference list explicitly includes this name for Kimeramon gates.
+// This is a substring reference rule, not an additional full-name identity.
+const INCLUDED_NAME_TOKENS: Record<string, readonly string[]> = {
+  marinechimairamon: ["kimeramon"],
+};
+
+/** Match an English name token while respecting standardized name references. */
 export function nameIncludesToken(name: string, token: string): boolean {
   const normalizedName = normalizeSubstringName(name);
   const normalizedToken = normalizeSubstringName(token);
   return (
     normalizedToken.length > 0 &&
     !EXCLUDED_NAME_TOKENS[normalizedName]?.includes(normalizedToken) &&
-    normalizedName.includes(normalizedToken)
+    (normalizedName.includes(normalizedToken) ||
+      INCLUDED_NAME_TOKENS[normalizedName]?.includes(normalizedToken) === true)
   );
 }

@@ -161,7 +161,11 @@ describe("EX8-064", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
-  it("plays an exact total cost 10 after DNA and lets the newly played Piedmon observe delayed 0-DP deletion (Q3951)", async () => {
+  it("plays a legal subset up to total cost 10 after DNA and lets Piedmon observe delayed 0-DP deletion (Q3951)", async () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[2]).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: { count: "all", upTo: true, totalPlayCostBudget: 10 },
+    });
     const s = setupEngine(
       {
         0: {
@@ -170,7 +174,11 @@ describe("EX8-064", () => {
             { card: "EX8-060", as: "myotismonMaterial" },
           ],
           hand: [{ card: "EX8-064", as: "bolt" }],
-          trash: ["EX8-062", "EX8-057", "EX8-059"],
+          trash: [
+            { card: "EX8-062", as: "trashPiedmon" },
+            { card: "EX8-057", as: "trashDemiDevimon" },
+            { card: "EX8-059", as: "trashDevimon" },
+          ],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "zeroDp", dp: 6000 }],
@@ -189,14 +197,133 @@ describe("EX8-064", () => {
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010") &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-059"),
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("trashDemiDevimon").instanceId,
+        ),
     );
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
-      expect.arrayContaining(["EX8-064", "EX8-062", "EX8-057", "EX8-059"]),
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("bolt").instanceId,
+        s.inst("trashPiedmon").instanceId,
+        s.inst("trashDemiDevimon").instanceId,
+      ]),
+    );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("trashDevimon").instanceId,
     );
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+
+  it("allows an explicit zero-card choice when affordable NSo cards are available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-062", as: "piedmonMaterial" },
+            { card: "EX8-060", as: "myotismonMaterial" },
+          ],
+          hand: [{ card: "EX8-064", as: "bolt" }],
+          trash: [
+            { card: "EX8-062", as: "availableSeven" },
+            { card: "EX8-057", as: "availableThree" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("piedmonMaterial").permanentId, s.perm("myotismonMaterial").permanentId],
+        instanceId: s.inst("bolt").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.kind).toBe("selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX8-064"]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("availableSeven").instanceId, s.inst("availableThree").instanceId]),
+    );
+  });
+
+  it("selects the legal physical subset when matching NSo candidates exceed the total cost budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-062", as: "piedmonMaterial" },
+            { card: "EX8-060", as: "myotismonMaterial" },
+          ],
+          hand: [{ card: "EX8-064", as: "bolt" }],
+          trash: [
+            { card: "EX8-062", as: "legalSeven" },
+            { card: "EX8-057", as: "legalThree" },
+            { card: "EX8-059", as: "overCombined" },
+            { card: "P-174", as: "overBudget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("piedmonMaterial").permanentId, s.perm("myotismonMaterial").permanentId],
+        instanceId: s.inst("bolt").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.kind).toBe("selectCards");
+    expect(selection.options?.min).toBe(0);
+    expect(selection.options?.max).toBe(3);
+    expect(selection.options?.maxTotalPlayCost).toBe(10);
+    expect(selection.options?.candidateInstanceIds).not.toContain(s.inst("overBudget").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [
+            s.inst("legalSeven").instanceId,
+            s.inst("legalThree").instanceId,
+            s.inst("overCombined").instanceId,
+          ],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("legalThree").instanceId,
+      ),
+    );
+    const battleAreaIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(battleAreaIds).toEqual(
+      expect.arrayContaining([
+        s.inst("bolt").instanceId,
+        s.inst("legalSeven").instanceId,
+        s.inst("legalThree").instanceId,
+      ]),
+    );
+    expect(battleAreaIds).not.toContain(s.inst("overBudget").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("overCombined").instanceId, s.inst("overBudget").instanceId]),
+    );
+  });
+
   it("trashes the opponent's top security card after another Digimon is deleted", async () => {
     const s = setupEngine(
       {

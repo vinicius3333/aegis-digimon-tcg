@@ -29,6 +29,7 @@ import {
   digiXrosRequirementFor,
   assemblyRequirementFor,
   appFusionCostFor,
+  nameIncludesToken,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -822,6 +823,7 @@ export class GameEngine {
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
   private readonly securityDp = new SecurityDpLedger();
+  private battleScopeSequence = 0;
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
   private readonly deletionMaxDp = new DeletionMaxDpLedger();
   /** Continuous DP-based-deletion BUDGET bonuses (BT19-011's inherited modifier; rebuilt each continuous recompute). */
@@ -1023,7 +1025,9 @@ export class GameEngine {
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
-      sweepEndOfBattle: () => this.sweepBattleDurations(),
+      beginBattleScope: () => this.beginBattleScope(),
+      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
+      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
       recomputeBattleEffects: () => this.recomputeContinuousEffects(),
       continuous: this.continuous,
       hasKeyword: (permanentId, keyword) => {
@@ -1784,12 +1788,26 @@ export class GameEngine {
     }
   }
 
+  /** Open an identity token for one battle, so nested battles do not sweep parent grants. */
+  private beginBattleScope(): number {
+    const scopeId = ++this.battleScopeSequence;
+    this.modifiers.beginBattleScope(scopeId);
+    this.continuous.beginBattleScope(scopeId);
+    return scopeId;
+  }
+
+  private endBattleScope(scopeId: number): void {
+    this.modifiers.endBattleScope(scopeId);
+    this.continuous.endBattleScope(scopeId);
+  }
+
   /** Expire battle grants after its reactions, independently of the enclosing attack. */
-  private async sweepBattleDurations(): Promise<void> {
-    this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat);
-    this.continuous.sweep(this.state, "endBattle", this.state.turnSeat);
+  private async sweepBattleDurations(scopeId?: number): Promise<void> {
+    this.modifiers.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
+    this.continuous.sweep(this.state, "endBattle", this.state.turnSeat, scopeId);
     this.recomputeExpiredAffectationRecipients();
     await this.recomputeContinuousEffects();
+    if (scopeId !== undefined) this.endBattleScope(scopeId);
   }
 
   /** Expire attack grants, including unused battle grants when no battle occurred. */
@@ -2327,7 +2345,7 @@ export class GameEngine {
    * name-substring OR trait). */
   private static baseGrantTargetMatches(target: BaseGrantedDigivolve["target"], evolving: CardDefinition): boolean {
     if (target.namesExact && target.namesExact.some((n) => evolving.nameEn === n)) return true;
-    if (target.names && target.names.some((n) => evolving.nameEn.includes(n))) return true;
+    if (target.names && target.names.some((n) => nameIncludesToken(evolving.nameEn, n))) return true;
     if (target.traits && target.traits.some((t) => cardHasTrait(evolving, t))) return true;
     return false;
   }
@@ -5910,7 +5928,9 @@ export class GameEngine {
     // a one-shot stale value left from an earlier window.
     await this.recomputeContinuousEffects();
     const deps: SecurityCheckDeps = {
-      sweepEndOfBattle: () => this.sweepBattleDurations(),
+      beginBattleScope: () => this.beginBattleScope(),
+      sweepEndOfBattle: (scopeId) => this.sweepBattleDurations(scopeId),
+      endBattleScope: (scopeId) => this.endBattleScope(scopeId),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       // Strike = the number of security cards checked: base 1 plus every ＜Security
       // Attack +N＞ granted to the attacker. The securityAttack IR producer writes these

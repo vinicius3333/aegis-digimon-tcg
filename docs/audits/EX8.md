@@ -1,17 +1,17 @@
 ---
 set: EX8
 cards: 74
-status: verified
-verified_at: 2026-09-10
+status: in-progress
+verified_at: 2026-09-13
 catalog_commit: e540204fb
-evidence_commit: eabe99351
+evidence_commit: 5c9c8b671
 ---
 
 # EX8 audit
 
 ## Status
 
-All 74 EX8 cards are verified at 10/10 (aggregate 740/740). The winning source is the re-audit closed on 2026-09-10 (`docs/audits/EX8-REAUDIT-LEDGER.md`, `dc8bf012e`, with the run log, review notes and per-card reports under `docs/audits/EX8-reaudit/`, `193c8972c`), run from base `2c851acd73948611728b9c7e2c3c785d98b1087a` and requiring fresh evidence for every card. It supersedes `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) and the older `internal-docs/audits/EX8-runtime-2026-08-27.md` (`52da0b5bb`), which had already recalculated all 74 cards to 10/10 from base `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`. Eleven card-local IR defects were closed during the run and no shared engine seam remained open. One catalog-to-module discrepancy was corrected in executable IR (EX8-048's missing level-3 Mineral alternate evolution at cost 2); the catalog JSON itself needed no correction.
+Current bounded status is 73 historical 10/10 rows plus EX8-064 capped at 8/10 for its delivery gate, an aggregate 738/740 pending collection recalculation. This document does not recertify the full collection. The historical source is the re-audit closed on 2026-09-10 (`docs/audits/EX8-REAUDIT-LEDGER.md`, `dc8bf012e`, with the run log, review notes and per-card reports under `docs/audits/EX8-reaudit/`, `193c8972c`), run from base `2c851acd73948611728b9c7e2c3c785d98b1087a` and requiring fresh evidence for every card. It supersedes `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) and the older `internal-docs/audits/EX8-runtime-2026-08-27.md` (`52da0b5bb`), which had already recalculated all 74 cards to 10/10 from base `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`. Eleven card-local IR defects were closed during that run and no shared engine seam remained open at that checkpoint. One catalog-to-module discrepancy was corrected in executable IR (EX8-048's missing level-3 Mineral alternate evolution at cost 2); the catalog JSON itself needed no correction.
 
 ## Gates
 
@@ -37,7 +37,7 @@ Superseded gates from the 2026-08-27 runtime audit, retained for comparison (`in
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX8-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+The table below preserves the historical rows from `docs/audits/EX8-REAUDIT-LEDGER.md`; the current EX8-064 correction is the explicit exception and remains capped at 8/10 until a collection recalculation. The per-card sections merge the reports in `docs/audits/EX8-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those historical notes remain distinct from the current bounded score.
 
 | Card    | Report                           | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                                      |
 | ------- | -------------------------------- | ------------: | -------: | --------: | ---------: | ----: | ----: | --------------------------------------------------------------------------- |
@@ -104,7 +104,7 @@ Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card
 | EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
+| EX8-064 | see below |             2 |        2 |         2 |          2 |     0 | 8/10  | Bounded correction; collection recalculation pending                        |
 | EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
 | EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
@@ -5162,7 +5162,7 @@ Applicable ruling:
 | `[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimon` | `DeDigivolve` target is opponent Digimon count 1, amount 3. | An opposing stack with three sources is reduced by exactly three, promoting its bottom card before the global DP modifier. |
 | `for the turn, all of their Digimon get -6000 DP` | `ModifyDP` target is all opponent Digimon, amount -6000, duration `forTheTurn`. | Both opposing Digimon receive -6000 DP; running the opponent's turn restores their original DP. |
 | `Then, if DNA digivolving` | `PlayWithoutCost` condition is `isDnaDigivolving` with the raw DNA text. | The total-cost playback is observed only in the legal DNA proof; the ordinary structural When Digivolving path has the condition explicitly asserted. |
-| `you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost` | Optional no-cost play from trash, mine Digimon, NSo trait, `count: "all"`, `totalPlayCostBudget: 10`, `payCost: false`. | DNA playback selects the exact total-cost NSo set; the newly played EX8-062 then observes the delayed 0-DP deletion of the opposing Digimon (Q3951). |
+| `you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost` | Optional no-cost play from trash, mine Digimon, NSo trait, `count: "all"`, `upTo: true`, `totalPlayCostBudget: 10`, `payCost: false`. | DNA playback selects the legal 7+3 subset from a 7+3+5 pool; an explicit zero-card response plays none; a response containing all three is clamped to 7+3 and preserves the 5-cost instance. The newly played EX8-062 observes the delayed 0-DP deletion (Q3951). |
 | `[All Turns] [Once Per Turn] When other Digimon are deleted` | All-turns once-per-turn effect installs `SubTrigger(event: "onDeletionOf")` with `controllerDefault: "any"` (both-controller source scope), `excludeSelf: true`, and kind Digimon. | Deleting an opposing Digimon trims the opponent's top Security; deleting a second opposing Digimon in the same turn leaves the second Security card in place. |
 | `trash your opponent's top security card` | SubTrigger action is `Trash` from opponent Security, `position: "top"`, count 1. | The first Security instance moves to trash and the second remains, proving top ordering and count. |
 
@@ -5176,6 +5176,7 @@ The DNA material matcher enforces the exact Piedmon/Myotismon pair and zero cost
 - Corrected the DNA playback target field from invalid `totalPlayCost` to the supported `totalPlayCostBudget: 10`.
 - Corrected the deletion watcher controller field from invalid `controllerDefault: "both"` to the supported `controllerDefault: "any"`, preserving both-controller matching.
 - Strengthened `EX8-064.test.ts` with complete catalog identity/text and no-Security assertions, exact DNA/de-digivolution/DP/playback/security filters, DP expiry, DNA legality/refusal, Q3951 delayed deletion ordering, and same-turn security watcher suppression.
+- Corrected the DNA playback target to `upTo: true`, allowing the printed zero-to-ten total-cost choice while preserving the aggregate budget; focused tests cover exact physical IDs for legal subsets, explicit zero selection, and over-budget candidates.
 - Replaced the illegal Digi-Egg Security fixture (`BT1-001`) with inert main-deck Digimon (`BT1-010`). No Digi-Egg appears in deck or Security fixtures.
 - No engine, shared, catalog, or other-card files were changed.
 
@@ -5184,9 +5185,9 @@ The DNA material matcher enforces the exact Piedmon/Myotismon pair and zero cost
 Focused serialized test:
 
 ```text
-pnpm --filter @aegis/api exec vitest run src/cards/EX8/EX8-064.test.ts --maxWorkers=1 --no-file-parallelism
+NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX8/EX8-064.test.ts --maxWorkers=1 --no-file-parallelism
 Test Files  1 passed (1)
-Tests  9 passed (9)
+Tests  11 passed (11)
 ```
 
 Scoped checks:
@@ -5211,7 +5212,7 @@ No broad tests, collection tests, repository-wide typecheck, or git write comman
 
 #### Defects and remaining gaps
 
-The correction lane fixed the two typed IR errors without changing printed behavior: `PlayWithoutCost.target.totalPlayCostBudget: 10` is the supported aggregate-cost field, and the both-controller `onDeletionOf` source filter is represented by `controllerDefault: "any"`. Targeted tsc reports no EX8-064 diagnostic; its exit 2 is caused by unrelated pre-existing transitive errors named above. The implementation matches the committed catalog and Q3951. Every printed DNA, de-digivolution, global modifier, budgeted playback, delayed deletion, Security endpoint, count, duration, and once-per-turn clause has direct structural and behavioral evidence.
+The correction lane fixed the two typed IR errors without changing printed behavior: `PlayWithoutCost.target.totalPlayCostBudget: 10` is the supported aggregate-cost field, and the both-controller `onDeletionOf` source filter is represented by `controllerDefault: "any"`. The DNA playback target now carries `upTo: true`, so the optional action accepts zero through the legal subset within the printed total budget. The focused proof covers the aggregate boundary, explicit zero selection, individual over-budget exclusion, and exact physical remainders. Targeted tsc reports no EX8-064 diagnostic; its exit 2 is caused by unrelated pre-existing transitive errors named above. The implementation matches the committed catalog and Q3951. No full-card 10/10 claim is made from this bounded correction.
 
 #### Score
 
@@ -6213,7 +6214,7 @@ Workers must run `node tools/kb/query.mjs card <ID>` and record all returned Q&A
 
 ## Open items
 
-- No card is below 10/10 and no shared engine seam remains open from this collection audit (`docs/audits/EX8-reaudit/REVIEW-NOTES.md`, `193c8972c`).
+- Historical re-audit rows remain at 10/10, but the current bounded EX8-064 correction is capped at 8/10 pending collection recalculation; no full collection certification is claimed from this update.
 - Carried-over minor observation from the 2026-08-27 runtime audit: the `suspend`/`beSuspended` alias added to `ContinuousEffectLedger.hasRestriction` is not mirrored for player-scoped restrictions. There is no current player-scoped producer for this vocabulary, so it does not affect EX8 behaviour, but it stays open as an engine consistency item (`internal-docs/audits/EX8-runtime-2026-08-27.md`).
 - Known-green diagnostic: the expected AD1-002 unsupported-effect logger path emits a diagnostic during the collection gate while its own regression stays green.
 - Contradiction, resolved in favour of the newer source: the 2026-08-27 runtime audit reports the EX8 focused collection at 74 files / 455 tests, while the 2026-09-10 re-audit's combined gate reports 210 files / 2,766 tests over a wider scope. These measure different scopes rather than the same one; the 2026-09-10 numbers are current.

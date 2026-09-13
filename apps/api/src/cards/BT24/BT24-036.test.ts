@@ -124,6 +124,46 @@ describe("BT24-036 Medicmon", () => {
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === medicId)).toBe(false);
   });
 
+  it("keeps a security-reaction grant owned by this turn through the next security check, then expires it", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-047", as: "attacker" }] },
+        1: {
+          security: [
+            { card: "BT24-036", as: "medicmon" },
+            { card: "BT1-009", as: "secondSecurity" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    const attacker = s.perm("attacker");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT24-036")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("medicmon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("secondSecurity").instanceId]);
+    expect(attacker.currentDP).toBe(12000);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(attacker.currentDP).toBe(15000);
+  });
+
   it("applies On Play DP loss to a surviving opposing Digimon", async () => {
     const s = setupEngine(
       {

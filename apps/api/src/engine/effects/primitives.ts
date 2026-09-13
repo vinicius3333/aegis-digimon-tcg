@@ -23,6 +23,7 @@ import {
   type Keyword,
   type ServerEvent,
   type ZoneRef,
+  nameIncludesToken,
 } from "@aegis/shared";
 import {
   GameStateAccess,
@@ -1408,7 +1409,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           const matches = permanent.stack.filter((card) => {
             const stackDef = requireCardDefinition(card.cardId);
             return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains" ? stackDef.nameEn.includes(name) : stackDef.nameEn === name,
+              alternate.minNameStackMatch === "contains"
+                ? nameIncludesToken(stackDef.nameEn, name)
+                : stackDef.nameEn === name,
             );
           }).length;
           if (matches < required) return undefined;
@@ -1462,7 +1465,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           const matches = permanent.stack.filter((card) => {
             const stackDef = requireCardDefinition(card.cardId);
             return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains" ? stackDef.nameEn.includes(name) : stackDef.nameEn === name,
+              alternate.minNameStackMatch === "contains"
+                ? nameIncludesToken(stackDef.nameEn, name)
+                : stackDef.nameEn === name,
             );
           }).length;
           if (matches < required) return undefined;
@@ -6697,7 +6702,7 @@ function dnaMaterialSpecMatches(
   if (spec.level !== undefined && material.level !== spec.level) return false;
   if (spec.names && spec.names.length > 0) {
     const name = (material.nameEn ?? material.cardId).toLowerCase();
-    if (!spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
+    if (!spec.names.some((token) => nameIncludesToken(name, token))) return false;
   }
   if (spec.namesExact && spec.namesExact.length > 0) {
     const name = (material.nameEn ?? material.cardId).toLowerCase();

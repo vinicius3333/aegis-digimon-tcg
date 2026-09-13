@@ -357,7 +357,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ...(action.target.orFilters ?? []),
           ...(action.target.filter.orFilters ?? []),
         ];
-        const matching = playableCandidates(
+        let matching = playableCandidates(
           ctx,
           action.target,
           self.stack.filter((c) => {
@@ -365,6 +365,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             return filters.some((filter) => definitionMatches(filter, definition));
           }),
         );
+        const totalPlayCostBudget = action.target.totalPlayCostBudget;
+        const playCostOf = (card: (typeof matching)[number]): number => ctx.game.definitionOf(card).playCost ?? 0;
+        if (totalPlayCostBudget !== undefined) {
+          matching = matching.filter((card) => playCostOf(card) <= totalPlayCostBudget);
+        }
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;
@@ -378,11 +383,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const namedSelection = (names: string[], requireAll: boolean) => {
           const selected: typeof matching = [];
           const used = new Set<string>();
+          let spent = 0;
           for (const requiredName of names) {
             const candidate = matching.find((card) => {
               if (used.has(card.instanceId)) return false;
               const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
-              return definition.nameEn === requiredName;
+              return (
+                definition.nameEn === requiredName &&
+                (totalPlayCostBudget === undefined || spent + playCostOf(card) <= totalPlayCostBudget)
+              );
             });
             if (candidate === undefined) {
               if (requireAll) return [];
@@ -390,6 +399,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             }
             used.add(candidate.instanceId);
             selected.push(candidate);
+            spent += playCostOf(candidate);
           }
           return selected;
         };
@@ -401,7 +411,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             : requiredNamesExactUpTo.length > 0
               ? namedSelection(requiredNamesExactUpTo, false)
               : undefined;
-        const chosenOwn =
+        const chosenBeforeBudget =
           selectedNamed !== undefined
             ? selectedNamed.slice(0, cap).map((card) => card.instanceId)
             : matching.length > cap || action.target.upTo === true
@@ -409,8 +419,25 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   candidates: matching.map((card) => card.instanceId),
                   min: action.target.upTo === true ? 0 : cap,
                   max: cap,
+                  ...(totalPlayCostBudget === undefined ? {} : { maxTotalPlayCost: totalPlayCostBudget }),
                 })
               : matching.map((card) => card.instanceId);
+        const chosenOwn =
+          totalPlayCostBudget === undefined
+            ? chosenBeforeBudget
+            : chosenBeforeBudget.reduce<{ ids: string[]; spent: number }>(
+                (result, instanceId) => {
+                  const card = matching.find((candidate) => candidate.instanceId === instanceId);
+                  if (card === undefined) return result;
+                  const cost = playCostOf(card);
+                  if (result.spent + cost <= totalPlayCostBudget) {
+                    result.ids.push(instanceId);
+                    result.spent += cost;
+                  }
+                  return result;
+                },
+                { ids: [], spent: 0 },
+              ).ids;
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,

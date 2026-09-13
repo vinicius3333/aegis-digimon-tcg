@@ -1,5 +1,7 @@
+import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-015.js";
 import "../index.js";
@@ -159,6 +161,67 @@ describe("BT21-015 Cyclonemon", () => {
       true,
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === targetPermanentId)).toBe(false);
+  });
+
+  it("allows a security-played Cyclonemon to trigger Callismon's nested battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-055", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT25-058", as: "callismonA", dp: 13000 },
+            { card: "BT25-058", as: "callismonB", dp: 13000 },
+          ],
+          security: [{ card: "BT21-015", as: "cyclonemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    const attackerId = s.perm("attacker").permanentId;
+    const callismonAId = s.perm("callismonA").permanentId;
+    const callismonBId = s.perm("callismonB").permanentId;
+    const cyclonemonInstanceId = s.inst("cyclonemon").instanceId;
+    advance(s.engine).ledgers.modifiers.addDpModifier(s.state, attackerId, 1000, EffectDuration.UntilEndBattle);
+    expect(s.perm("attacker").currentDP).toBe(14000);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === attackerId)?.currentDP).toBe(
+      13000,
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === callismonAId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === callismonBId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("callismonA").instanceId, s.inst("callismonB").instanceId]),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === cyclonemonInstanceId),
+    ).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    const nestedBattles = s.events.filter(
+      (event): event is Extract<(typeof s.events)[number], { kind: "combatResolved" }> =>
+        event.kind === "combatResolved" && event.seat === 1,
+    );
+    const nestedTriggers = s.events.filter(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-058" && event.timing === "whenPlayed",
+    );
+    expect(nestedTriggers).toHaveLength(2);
+    expect(nestedBattles).toHaveLength(1);
+    const nestedBattle = nestedBattles[0];
+    expect(nestedBattle).toBeDefined();
+    if (nestedBattle === undefined) throw new Error("nested battle event was not recorded");
+    expect([callismonAId, callismonBId]).toContain(nestedBattle.attackerPermanentId);
+    expect(nestedBattle.deletedPermanentIds).toContain(nestedBattle.attackerPermanentId);
+    expect(nestedBattles.every((event) => event.deletedPermanentIds.includes(attackerId) === false)).toBe(true);
   });
 
   it("grants inherited +2000 DP only during its controller's turn", async () => {

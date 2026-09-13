@@ -1,10 +1,27 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../testkit/advance.js";
 import { observe } from "../testkit/observe.js";
 import { setupEngine, settle } from "../testkit/harness.js";
+import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
+const SECURITY_ATTACK_FINGERPRINT = "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502";
+const SECURITY_CHECK_FINGERPRINT = "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60";
+
 describe("Security Attack through public security checks", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0221",
+      "16-4-1/2: Security A. modifies the number of security checks and applies persistently",
+      SECURITY_ATTACK_FINGERPRINT,
+    );
+    cite(
+      "comprehensive-0153",
+      "13-1-2/3/8: modified checks occur in one attack, one card at a time, through the security-check procedure",
+      SECURITY_CHECK_FINGERPRINT,
+    );
+  });
+
   it("publicly grants BT26-017 Security Attack +1 and reveals two cards", async () => {
     const s = setupEngine(
       {
