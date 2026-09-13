@@ -4,6 +4,7 @@ import {
   Phase,
   Zone,
   assemblyRequirementFor,
+  canAssignDistinctColors,
   type AssemblyMaterial,
   type AssemblyRequirement,
   type CardDefinition,
@@ -27,7 +28,8 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  *     the player's own declaration order when the requirement is a single repeated slot (§7-3-2-6)
  *
  * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`level`/`levelMin`/
- * `levelMax`/`colors`/`differentLevels`/`differentNames`, all enforced below. `nameOrTrait` mirrors
+ * `levelMax`/`colors`/`differentLevels`/`differentNames`/`differentColors`, all enforced below. The
+ * `differentColors` constraint applies to the repeated single-slot form used by EX13-077. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
  * into one AND-combined `names`+`traits` slot (e.g. EX12-016/-017's "in name or ... trait",
  * BT26-073's "in text or ... trait"). It also preserves alternatives with different trait
@@ -261,14 +263,11 @@ function materialMatchesAssemblySlot(
 }
 
 /**
- * Whether `materials` can be assigned to the Assembly recipe `slots`. Every current compiled
- * Assembly requirement has exactly ONE slot (the compiler emits `materials: [oneSlot]`), so the
- * common case is "every material matches the one slot, exactly `slot.count` of them" (mirrors
- * DigiXros's single-slot special case), plus the slot's cross-material `differentLevels`/
- * `differentNames` distinctness flags. A future multi-slot requirement would need each material
- * assigned to a DISTINCT slot with that slot's exact count satisfied; not exercised by any card
- * in the current corpus, so kept as a straightforward per-slot partition rather than a full
- * bipartite search.
+ * Whether `materials` can be assigned to the Assembly recipe `slots`. A repeated single-slot
+ * requirement (such as EX13-077) requires every material to match that slot and applies its
+ * cross-material `differentLevels`/`differentNames`/`differentColors` flags. Multi-slot
+ * requirements use a per-slot partition for disjoint named/traited slots; their distinct-color
+ * assignment is not inferred across slots.
  */
 export function materialsSatisfyAssemblyRecipe(
   materials: CardDefinition[],
@@ -289,6 +288,7 @@ export function materialsSatisfyAssemblyRecipe(
       const names = materials.map((m) => m.nameEn);
       if (new Set(names).size !== names.length) return false;
     }
+    if (slot.differentColors === true && !canAssignDistinctColors(materials.map((m) => m.colors))) return false;
     return true;
   }
   // Multi-slot: each slot claims its own exact-count partition of qualifying materials, tried
