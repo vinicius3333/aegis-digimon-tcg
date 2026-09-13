@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-063.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT13-066.js";
+import "./BT13-068.js";
 
 describe("BT13-063 Dorumon", () => {
   it("grants inherited DP only with X Antibody", () => {
@@ -34,9 +36,9 @@ describe("BT13-063 Dorumon", () => {
     expect(withTrait.perm("host").currentDP).toBe(6000);
 
     const withoutTrait = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-063"] }] },
+      0: { battleArea: [{ card: "BT13-068", as: "host", under: ["BT13-063"] }] },
     });
     await withoutTrait.ready();
-    expect(withoutTrait.perm("host").currentDP).toBe(3000);
+    expect(withoutTrait.perm("host").currentDP).toBe(4000);
   });
 });

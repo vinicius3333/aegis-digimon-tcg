@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-066.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT13-071.js";
+import "./BT13-072.js";
 
 describe("BT13-066 Dorugamon", () => {
   it("grants inherited DP while carrying X Antibody", () => {
@@ -28,15 +30,15 @@ describe("BT13-066 Dorugamon", () => {
 
   it("applies the inherited bonus only while the live host has X Antibody", async () => {
     const withTrait = setupEngine({
-      0: { battleArea: [{ card: "BT13-063", as: "host", under: ["BT13-066"] }] },
+      0: { battleArea: [{ card: "BT13-072", as: "host", under: ["BT13-066"] }] },
     });
     await withTrait.ready();
-    expect(withTrait.perm("host").currentDP).toBe(4000);
+    expect(withTrait.perm("host").currentDP).toBe(9000);
 
     const withoutTrait = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-066"] }] },
+      0: { battleArea: [{ card: "BT13-071", as: "host", under: ["BT13-066"] }] },
     });
     await withoutTrait.ready();
-    expect(withoutTrait.perm("host").currentDP).toBe(3000);
+    expect(withoutTrait.perm("host").currentDP).toBe(8000);
   });
 });
