@@ -40,8 +40,9 @@ to the correct player. This does not certify all activation-cost shapes.
 cost → `payCost` → nested `runAction`. Optional payloads assigned to the
 opponent for Delete now use the existing seat-addressed decision API. Recipient
 controller fields on other action kinds do not determine their chooser. Explicit borrowed
-effect `forceCostProcessing` still bypasses the newly honored optional cost
-choice; its dedicated behavior needs regression coverage before certification.
+effect `forceCostProcessing` has a bounded BT23-060/BT23-045 proof below; other
+borrowed cost kinds and force assignments still need separate coverage before
+any broader certification.
 Implementation checkpoint: `7671a3b9f`; citation correction: `c99bcef5c`; citation infrastructure: `d2753b28e`.
 
 ## Obligation ledger
