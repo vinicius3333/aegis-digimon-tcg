@@ -1,3 +1,5 @@
+import "./BT13-060.js";
+import "./BT13-097.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
@@ -93,10 +95,31 @@ describe("BT13-098 Richard Sampson", () => {
 
   it("plays itself from security when an effect directly trashes it", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "BT13-098", as: "richard", faceUp: true }] } },
+      {
+        0: {
+          security: [{ card: "BT13-098", as: "richard", faceUp: true }],
+          battleArea: [
+            { card: "BT1-009", as: "target", suspended: true },
+            { card: "BT13-097", as: "thomas", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT13-060", as: "roseBurst" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.trash([s.inst("richard").instanceId]);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("roseBurst").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("richard").instanceId),
+    );
     expect(
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard?.instanceId === s.inst("richard").instanceId,

@@ -38,12 +38,16 @@ describe("BT13-102 Keenan Crier", () => {
   it("trashes an opposing Tamer through the optional hand choice", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+        0: { hand: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-009", as: "drawn" }] },
         1: { hand: [{ card: "BT13-094", as: "opponentTamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keenan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT13-094"));
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT13-094");
   });
@@ -52,16 +56,20 @@ describe("BT13-102 Keenan Crier", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-102", as: "keenan" }],
+          hand: [{ card: "BT13-102", as: "keenan" }],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { hand: [] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keenan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 

@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-096.js";
 
@@ -67,12 +65,22 @@ describe("BT13-096 Homer Yushima", () => {
 
   it("plays a blue level 3 from its digivolution cards on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-096", as: "homer", under: ["BT1-030"] }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT1-033", as: "blueHost", under: [{ card: "BT1-030", as: "gomamon" }] }],
+          hand: [{ card: "BT13-096", as: "homer" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("homer"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-030"));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-030")).toBe(true);
+    const sourceId = s.inst("gomamon").instanceId;
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("homer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sourceId));
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(sourceId);
+    expect(s.perm("blueHost").stack.map((card) => card.instanceId)).not.toContain(sourceId);
   });
 
   it("naturally suspends Homer and places a blue level-4-or-lower card under the played source", async () => {
