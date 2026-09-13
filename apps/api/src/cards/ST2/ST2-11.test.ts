@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST2-11.js";
@@ -23,8 +24,9 @@ describe("ST2-11 MetalGarurumon", () => {
 
   it("unsuspends after attacking and may attack again", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST2-11", as: "metalGarurumon" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      0: { battleArea: [{ card: "ST2-11", as: "metalGarurumon" }], deck: ["BT1-030", "BT1-031", "BT1-032"] },
+      // Use legal Digimon security cards; Digi-Eggs cannot be placed in security.
+      1: { security: ["BT1-030", "BT1-031", "BT1-032"], deck: ["BT1-033", "BT1-034", "BT1-035"] },
     });
     const attackerId = s.perm("metalGarurumon").permanentId;
     expect(
@@ -34,7 +36,7 @@ describe("ST2-11 MetalGarurumon", () => {
       () =>
         s.state.phase === Phase.Main &&
         !s.perm("metalGarurumon").isSuspended &&
-        s.state.players[1]!.security.length === 1 &&
+        s.state.players[1]!.security.length === 2 &&
         !observe(s.engine).isAttacking(),
     );
     expect(
@@ -43,9 +45,30 @@ describe("ST2-11 MetalGarurumon", () => {
     await settle(
       () =>
         s.state.phase === Phase.Main &&
-        s.state.players[1]!.security.length === 0 &&
+        s.state.players[1]!.security.length === 1 &&
         s.perm("metalGarurumon").isSuspended,
     );
     expect(s.perm("metalGarurumon").isSuspended).toBe(true);
+
+    // The once-per-turn identity resets on the controller's next turn.
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        !s.perm("metalGarurumon").isSuspended &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("metalGarurumon").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

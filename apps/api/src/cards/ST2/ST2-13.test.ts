@@ -1,7 +1,7 @@
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST2-13.js";
 
 describe("ST2-13 Hammer Spark", () => {
@@ -33,8 +33,21 @@ describe("ST2-13 Hammer Spark", () => {
   });
 
   it("gains 2 memory from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST2-13", as: "securityOption", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
-    expect(s.state.memory).toBe(2);
+    const s = setupEngine({
+      0: { security: [{ card: "ST2-13", as: "securityOption" }] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(-2);
   });
 });

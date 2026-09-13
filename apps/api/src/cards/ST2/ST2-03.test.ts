@@ -40,7 +40,7 @@ describe("ST2-03 Gabumon", () => {
         0: { battleArea: [{ card: "ST2-04", as: "attacker", under: ["ST2-03"] }] },
         1: {
           battleArea: [{ card: "ST1-08", as: "target", under: [{ card: "ST1-03", as: "bottom" }] }],
-          security: ["BT1-001"],
+          security: ["ST1-02"],
         },
       },
       { autoSelectCards: true },
@@ -62,7 +62,7 @@ describe("ST2-03 Gabumon", () => {
         0: { battleArea: [{ card: "ST2-04", as: "attacker", under: ["ST2-03"] }] },
         1: {
           battleArea: [{ card: "ST2-10", as: "target", under: [{ card: "ST1-03", as: "bottom" }] }],
-          security: ["BT1-001"],
+          security: ["ST1-02"],
         },
       },
       { autoSelectCards: true },

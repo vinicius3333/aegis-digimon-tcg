@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -53,12 +53,12 @@ describe("ST2-14 Sorrow Blue", () => {
         0: {
           battleArea: ["ST2-03"],
           hand: [{ card: "ST2-14", as: "option" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-030"],
         },
         1: {
           battleArea: [{ card: "ST2-03", as: "target", suspended: true }],
           trash: [{ card: "ST2-01", as: "newSource" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-031"],
         },
       },
       { autoSelectCards: true },
@@ -87,15 +87,25 @@ describe("ST2-14 Sorrow Blue", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "ST2-14", as: "securityOption", faceUp: true }],
-          deck: ["BT1-001"],
+          security: [{ card: "ST2-14", as: "securityOption" }],
+          deck: ["BT1-030"],
         },
-        1: { battleArea: [{ card: "ST2-03", as: "target" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "ST2-03", as: "target" }], deck: ["BT1-031"] },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.security.length === 0 && observe(s.engine).isRestricted(s.perm("target"), "attack"),
+    );
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
     await advance(s.engine).runTurn(1);
