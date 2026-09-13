@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT13-054.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT13-100.js";
 
 describe("BT13-054 Lilamon", () => {
   it("plays Yoshino optionally and grants inherited Security Attack +1 conditionally", () => {
@@ -64,7 +65,9 @@ describe("BT13-054 Lilamon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yoshino").instanceId),
     );
-    expect(s.state.memory).toBe(1);
+    // Yoshino can suspend for +1 after entering during this evolution.
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("yoshino").isSuspended).toBe(true);
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-051")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });

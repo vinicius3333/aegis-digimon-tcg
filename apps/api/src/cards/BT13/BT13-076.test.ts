@@ -162,7 +162,7 @@ describe("BT13-076 KingEtemon", () => {
         s.engine.applyIntent(0, {
           type: "attack",
           attackerPermanentId: attackerId,
-          target: { kind: "digimon", permanentId: s.perm("target").permanentId },
+          target: { kind: "permanent", permanentId: s.perm("target").permanentId },
         }),
       ).toEqual({ ok: true });
       await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
@@ -204,7 +204,7 @@ describe("BT13-076 KingEtemon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: thirdId,
-        target: { kind: "digimon", permanentId: s.perm("target").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === thirdId));
