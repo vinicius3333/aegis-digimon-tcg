@@ -1,3 +1,4 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -120,7 +121,7 @@ describe("BT13-016 SaviorHuckmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-021", as: "host", under: ["BT13-016"] }],
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT13-016"] }],
           trash: [{ card: "BT6-082", as: "sistermon" }],
         },
         1: { security: ["BT1-010"] },
