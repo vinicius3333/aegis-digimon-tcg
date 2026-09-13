@@ -2320,6 +2320,28 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           )
             .filter((card): card is CardInstance => card !== undefined)
             .map((card) => card.instanceId);
+    const sourceInBattle = access.permanentById(sourcePermanentId);
+    const source =
+      sourceInBattle ?? state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+    const destination =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (
+      source === undefined ||
+      destination?.topCard === undefined ||
+      sourcePermanentId === destPermanentId ||
+      isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
+    )
+      return false;
+    if (sourceInBattle !== undefined) {
+      const resolvingSeat = effectSeatStack.at(-1) ?? source.controllerSeat;
+      const cause = "byEffect" as const;
+      const prevented = await engine.consultLeavePrevention?.([sourcePermanentId], cause, resolvingSeat, {
+        isBounce: true,
+      });
+      if (prevented?.has(sourcePermanentId)) return false;
+    }
+
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {
       // A whole permanent placed under another by an effect/cost is still one or more
@@ -2487,6 +2509,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         )
           return false;
         if (isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")) return false;
+        const cause = "byEffect" as const;
+        const prevented = await engine.consultLeavePrevention?.([permanentId], cause, effectSeat, { isBounce: true });
+        if (prevented?.has(permanentId)) return false;
         const extracted = extractPermanentAt(owner, idx)!;
         // Comprehensive Rules §3-4-5-2: a Digimon in the breeding area can't be affected
         // by (and its battle-area effects don't run) effects unless they reference breeding.
