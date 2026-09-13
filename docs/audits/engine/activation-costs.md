@@ -157,6 +157,45 @@ cards, and runtime candidate exclusion still require a reusable seam test.
 
 ## History
 
+## Finite cost-shape reconciliation (2026-09-13)
+
+The persisted discovery table above has 22 top-level kinds. The following map records the
+actual current consumer classes and executable anchors reviewed in this pass. A discovery-only
+row is deliberately not treated as behavioral certification; `raw` has no current consumer and
+is rejected by `canPayCost`.
+
+| Kind                              | Current consumer/class anchor                              | Public executable evidence                                                                  | Status and precise boundary                                                                                    |
+| --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `attack`                          | AD1-020 printed attack payment                             | `cards/AD1/AD1-020.test.ts`                                                                 | native attack cost; alternate target/compound attack costs remain unreviewed                                   |
+| `compound`                        | BT14-090 named placement pair; BT23-060 borrowed placement | `activation-cost-compound-assignment.test.ts`, `activation-cost-borrowed-effects.test.ts`   | whole-clause payment and borrowed force path proved; other 19 consumers are inventory only                     |
+| `deleteOwn`                       | BT19-086 suspend + delete-own CostGatedBlock               | `activation-cost-targetless-payload.test.ts`                                                | all-or-nothing targetless payload boundary proved for this shape; other target filters unreviewed              |
+| `digivolve`                       | BT18-100 printed digivolve cost                            | `cards/BT18/BT18-100.test.ts`                                                               | native self digivolve payment; alternate source/waiver classes unreviewed                                      |
+| `flipSecurity`                    | BT23-043 borrowed security flip                            | `activation-cost-borrowed-effects.test.ts`                                                  | exact borrowed payer path; ordinary flip consumers not separately proved                                       |
+| `moveToBattleArea`                | BT20-095 printed Option action cost                        | `cards/BT20/BT20-095.test.ts`, `cards/EX13/EX13-072.test.ts`                                | current action path exists; standalone cost payment not separately anchored                                    |
+| `payMemory`                       | BT10-025 and BT23-053 memory costs                         | `cards/BT10/BT10-025.test.ts`, `cards/BT23/BT23-053.test.ts`                                | ordinary memory affordability/payment paths; compound and borrowed combinations remain bounded                 |
+| `place`                           | BT14-090 and ST17-10 ordered placement                     | `activation-cost-compound-assignment.test.ts`, `keyword-de-digivolve-parameters.test.ts`    | exact source/destination classes proved for reviewed consumers; other placement destinations remain unreviewed |
+| `placeAsSecurity`                 | BT18-034 / BT19-048 printed placement                      | `cards/BT18/BT18-034.test.ts`, `cards/BT19/BT19-048.test.ts`                                | current providers discovered; face-up/bottom and refusal classes need direct public anchors                    |
+| `placeOwnTopAtStackBottom`        | BT26-058 / EX5-016 source-top payment                      | `cards/BT26/BT26-058.test.ts`, `cards/EX5/EX5-016.test.ts`                                  | source-top movement class discovered; cross-stack source and refusal remain unreviewed                         |
+| `playFromDigivolutionCards`       | BT19-102 / BT24-060 / EX5-065                              | `cards/BT19/BT19-102.test.ts`, `cards/BT24/BT24-060.test.ts`, `cards/EX5/EX5-065.test.ts`   | source-stack play class discovered; targetless and compound variants remain unreviewed                         |
+| `raw`                             | no persisted consumer                                      | none                                                                                        | rejected by `canPayCost`; no current behavioral gap                                                            |
+| `reveal`                          | EX4-023 “that revealed card” continuation                  | `cards/EX4/EX4-023.test.ts`                                                                 | reveal-to-follow-up binding is current; multi-reveal ordering remains unreviewed                               |
+| `return`                          | BT19-086 / BT10-067 trash or hand return                   | card provider tests plus targetless checkpoint                                              | trash/hand return classes are real; bottom/stack and overlapping compound candidates remain open               |
+| `securityToHand`                  | BT23-086 / AD1-023 security payment                        | `cards/BT23/BT23-086.test.ts`, `cards/AD1/AD1-023.test.ts`                                  | top/bottom identity classes require additional direct cost assertions                                          |
+| `suspend`                         | BT19-086 and BT23 compound costs                           | `activation-cost-targetless-payload.test.ts`, `activation-cost-compound-assignment.test.ts` | public suspend payment exists; already-suspended and multi-target cost classes remain open                     |
+| `trash`                           | BT19-043 security/trash cost                               | `cards/BT19/BT19-043.test.ts`                                                               | native trash payment path; hand/stack/breeding source permutations remain bounded                              |
+| `trashBothSecurityTop`            | BT19-043 printed two-security cost                         | `cards/BT19/BT19-043.test.ts`                                                               | exact two-card top removal provider; refusal/empty-security boundary needs direct assertion                    |
+| `trashBottomFaceDownUnderDigimon` | BT26-048 printed source-stack cost                         | `cards/BT26/BT26-048.test.ts`                                                               | exact bottom face-down source class; alternate source eligibility remains open                                 |
+| `trashBottomFaceDownUnderTamer`   | BT25-027 / BT25-041 printed Tamer source cost              | `cards/BT25/BT25-029.test.ts`, `cards/BT25/BT25-041.test.ts`                                | current Tamer-stack class discovered; exact insufficient/refusal public cost proof remains open                |
+| `trashSecurityTop`                | BT15-033 / BT16-080 printed security cost                  | `cards/BT15/BT15-033.test.ts`                                                               | top security identity path discovered; face-up, bottom, and compound variants remain open                      |
+| `unsuspend`                       | BT14-054 / BT21-101 / EX12-064                             | `cards/BT14/BT14-054.test.ts`                                                               | ordinary unsuspend path exists; impossible already-ready and multi-target costs remain open                    |
+| `unsuspendNamed`                  | BT19-090 named unsuspend                                   | `cards/BT19/BT19-090.test.ts`                                                               | named filter provider passes; name/trait overlap and unavailable-name refusal remain open                      |
+
+The first focused closure run for the real `unsuspendNamed`, security-stack, digivolve, and
+borrowed-cost providers passed 7 files / 44 tests. This is a consumer-shape checkpoint, not a
+claim that every persisted card carrying a kind has full public-cost evidence. The remaining
+items above are concrete source/destination, target-selection, refusal, or multi-target classes,
+rather than a generic request to test every card.
+
 - 2026-09-12: initial optional-cost reproduction and correction on
   `audit/engine-mechanisms-20260912`; raw results recorded above.
 
