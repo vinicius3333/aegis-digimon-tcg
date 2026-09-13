@@ -101,7 +101,7 @@ describe("BT13-032 JumboGamemon", () => {
   it("uses Blocker to redirect an attack and delete the weaker attacker", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 5000 }] },
+        0: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
         1: { battleArea: [{ card: "BT13-032", as: "jumbo" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true },
