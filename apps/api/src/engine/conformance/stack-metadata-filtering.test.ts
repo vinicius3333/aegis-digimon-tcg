@@ -22,12 +22,15 @@ describe("public permanent matching and concealed stack information", () => {
     await s.ready();
     const hiddenHostId = s.perm("hiddenHost").permanentId;
     const visibleHostId = s.perm("visibleHost").permanentId;
+    const candidateId = s.inst("candidate").instanceId;
     expect(s.perm("hiddenHost").stack[0]!.faceUp).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.inst("candidate").faceUp === false || s.state.pendingDecision === undefined);
+    await settle(
+      () => s.perm("visibleHost").topCard.instanceId === candidateId && s.state.pendingDecision === undefined,
+    );
 
     expect(s.perm("hiddenHost").permanentId).toBe(hiddenHostId);
     expect(s.perm("visibleHost").permanentId).toBe(visibleHostId);
