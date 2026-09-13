@@ -5,6 +5,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT21/BT21-052.js";
 import "../BT1/BT1-080.js";
+import "../BT1/BT1-083.js";
+import "../BT9/BT9-055.js";
 import "./BT13-059.js";
 
 describe("BT13-053 Mihiramon", () => {
@@ -90,14 +92,15 @@ describe("BT13-053 Mihiramon", () => {
     expect(observe(s.engine).isRestricted(s.perm("high"), "unsuspend")).toBe(true);
   });
 
-  it("reduces the first legal digivolution of its inherited Lv.6 host", async () => {
+  it("reduces its host once per own turn across legal alternate and normal evolutions", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-080", as: "host", under: [{ card: "BT13-053", as: "source" }] },
+          { card: "BT1-083", as: "host", under: [{ card: "BT13-053", as: "source" }] },
           { card: "BT1-080", as: "other" },
         ],
         hand: [
+          { card: "BT9-055", as: "grandis" },
           { card: "BT13-059", as: "examon" },
           { card: "BT21-052", as: "examonX" },
           { card: "BT13-059", as: "other-examon" },
@@ -114,11 +117,23 @@ describe("BT13-053 Mihiramon", () => {
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("grandis").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT9-055");
+    await settle();
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
         instanceId: s.inst("examon").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT13-059");
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(6);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
 
     expect(
@@ -129,7 +144,7 @@ describe("BT13-053 Mihiramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("other").topCard.cardId === "BT13-059");
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(2);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
