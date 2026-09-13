@@ -563,12 +563,14 @@ export async function payCost(
         // Gaogamon and MachGaogamon). They leave simultaneously, so collect all
         // selections before asking the controller for their bottom-stack order.
         if (first.targetIsPermanent !== true) {
-          if (typeof first.host !== "object" || first.host === null) return false;
-          const hosts = await resolvePermanentTargets(paymentCtx, {
-            filter: first.host.filter,
-            orFilters: first.host.orFilters,
-            count: first.host.count,
-          });
+          const destinationTarget: Target | undefined =
+            typeof first.host === "object" && first.host !== null
+              ? { filter: first.host.filter, orFilters: first.host.orFilters, count: first.host.count }
+              : first.host === "target" && first.underFilter !== undefined
+                ? { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }
+                : undefined;
+          if (destinationTarget === undefined) return false;
+          const hosts = await resolvePermanentTargets(paymentCtx, destinationTarget);
           const hostId = hosts.length === 1 ? hosts[0] : undefined;
           if (hostId === undefined) return false;
           paymentCtx.selections.set(first.bindHostAs, hostId);
@@ -619,11 +621,7 @@ export async function payCost(
           )
             return false;
           if (
-            !candidatePermanents(ctx, {
-              filter: first.host.filter,
-              orFilters: first.host.orFilters,
-              count: first.host.count,
-            }).some((permanent) => permanent.permanentId === hostId) ||
+            !candidatePermanents(ctx, destinationTarget).some((permanent) => permanent.permanentId === hostId) ||
             looseSelections.some(
               ({ cost: nested, id }) =>
                 !candidateLooseInstances(

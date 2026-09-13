@@ -527,3 +527,22 @@ paths.
 | Payment identity and destination are preserved           | Both cases assert the exact payer instance at security bottom                                        | Focused green           |
 | No duplicate optional consent / no pending decision leak | Both cases use `autoAcceptOptional: false` and assert zero optional requests and empty pending state | Focused green           |
 | Other borrowed cost kinds and force assignments          | No additional current printed `forceCostProcessing` assignment found                                 | Open discovery boundary |
+
+## Target-host compound placement regression, 2026-09-13
+
+The existing public BT14-090 paid-condition cases in
+`activation-cost-compound-assignment.test.ts` and
+`activation-processing-costs.test.ts` reproduced on pristine baseline
+`b88aeb69f22995641622ab4388086ff771b23dc0`: 18 passed, two failed.
+Waiting across timer boundaries did not move either selected material.
+`canPayCost` accepted a first loose-card placement destination expressed as
+`host: "target"` with `underFilter`, while the compound payer required an
+object-shaped host and rejected that same payable cost.
+
+The compound payer now normalizes the existing target-host shorthand into the
+same destination target used for selection and final revalidation. Object hosts,
+ordered materials, bound subsequent destinations and atomic staged placement
+retain their existing paths. This bounded change avoids rewriting BT14-090 IR or
+broadening the cost model. The two unchanged existing suites pass all 20 cases in
+both the delegated run and coordinator acceptance; no duplicate tests were added.
+Broader mechanism regression and fresh typechecking remain required.
