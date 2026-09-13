@@ -66,6 +66,10 @@ describe("BT16-090 Lui Ohwada", () => {
     );
     await s.ready();
     s.state.memory = 3;
+    const luiId = s.inst("lui").instanceId;
+    const ukkoId = s.inst("ukkomon").instanceId;
+    const eggId = s.inst("egg").instanceId;
+    const bigId = s.inst("big").instanceId;
     const [effect] = observe(s.engine).activatableEffects(s.perm("lui")) as { effectKey: string }[];
     expect(
       s.engine.applyIntent(0, {
@@ -74,13 +78,15 @@ describe("BT16-090 Lui Ohwada", () => {
         effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]?.breeding?.topCard?.cardId === "BT16-083", 3000);
-
-    expect(s.state.players[0]?.battleArea.map((permanent) => permanent.topCard?.cardId)).not.toContain("BT16-082");
-    expect(s.state.players[0]?.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT16-082", "BT1-001"]),
+    await settle(
+      () => s.state.players[0]?.breeding?.topCard?.instanceId === bigId && s.state.pendingDecision === undefined,
+      3000,
     );
-    expect(s.state.players[0]?.breeding?.topCard?.instanceId).toBe(s.inst("big").instanceId);
+
+    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.instanceId === ukkoId)).toBe(false);
+    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.instanceId === luiId)).toBe(true);
+    expect(s.state.players[0]?.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([ukkoId, eggId]));
+    expect(s.state.players[0]?.hand.some((card) => card.instanceId === bigId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 
@@ -94,6 +100,9 @@ describe("BT16-090 Lui Ohwada", () => {
       },
     });
     await s.ready();
+    const luiId = s.inst("lui").instanceId;
+    const ukkoId = s.inst("ukkomon").instanceId;
+    const trashBefore = s.state.players[0]!.trash.map((card) => card.instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -101,6 +110,9 @@ describe("BT16-090 Lui Ohwada", () => {
         effectKey: MAIN_KEY,
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
-    expect(s.state.players[0]?.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("BT16-082");
+    expect(s.state.players[0]?.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([luiId, ukkoId]);
+    expect(s.state.players[0]?.trash.map((card) => card.instanceId)).toEqual(trashBefore);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

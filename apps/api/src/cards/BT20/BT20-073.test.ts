@@ -1,13 +1,27 @@
 import { getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import { compiled } from "./BT20-073.js";
 import "./index.js";
 import "./BT20-078.js";
 
 describe("BT20-073 MetalPhantomon", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0169",
+      "§15-7-1/2 processing-condition payment and refusal; §15-7-3 no partial payment",
+      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+    );
+    cite(
+      "comprehensive-0170",
+      "§15-7-5 permits payment when the subsequent payload has no legal target",
+      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+    );
+  });
+
   it("publishes the complete catalog identity and printed clauses", () => {
     expect(getCardDefinition("BT20-073")).toMatchObject({
       nameEn: "MetalPhantomon",
@@ -135,6 +149,47 @@ describe("BT20-073 MetalPhantomon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-073")).toBe(true);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-063");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-071");
+  });
+
+  it("offers and resolves the payable condition when the opponent has no legal payload target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-073", as: "metal" }],
+          battleArea: [{ card: "BT20-063", as: "payment" }],
+        },
+        1: { battleArea: [{ card: "BT20-076", as: "level6" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false },
+    );
+    await s.ready();
+    s.state.memory = 7;
+    const paymentId = s.inst("payment").instanceId;
+    const level6Id = s.inst("level6").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const paymentChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: paymentChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("payment").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(paymentId);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(level6Id);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT20-073");
+    expect(s.state.memory).toBe(0);
   });
 
   it("when inherited, de-digivolves the chosen opponent by exactly 1 on a public effect deletion", async () => {

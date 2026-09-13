@@ -105,6 +105,136 @@ describe("BT22-015 Omnimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Blocker")).toBe(true);
   });
 
+  it("does not use hidden source levels for same-level pair scaling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-015",
+              as: "omnimon",
+              under: [
+                { card: "EX9-039", faceUp: false },
+                { card: "EX9-039", faceUp: false },
+                { card: "EX9-043", faceUp: false },
+                { card: "BT22-009", faceUp: true },
+                { card: "BT22-009", faceUp: true },
+              ],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omnimon"));
+
+    // Only the two face-up level-4 sources form one readable pair; the two hidden EX9-039 sources
+    // contribute no level information and therefore cannot create a second pair.
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly ignores the hidden EX9 source when counting readable pairs", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-070", as: "base" },
+            { card: "BT1-044", as: "garurumon" },
+          ],
+          hand: [
+            { card: "EX9-043", as: "ex9" },
+            { card: "BT2-065", as: "war" },
+            { card: "BT22-015", as: "omnimonHand" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          trash: [{ card: "BT1-070", as: "hiddenBase" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-053", as: "target" },
+            { card: "BT1-054", as: "target2" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    const target2Id = s.perm("target2").permanentId;
+    const target2InstanceId = s.perm("target2").topCard.instanceId;
+    const hiddenBaseInstanceId = s.inst("hiddenBase").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ex9").instanceId,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-043");
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT1-070" && card.faceUp === false)).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("war").instanceId,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === "BT2-065");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("base").permanentId, s.perm("garurumon").permanentId],
+        instanceId: s.inst("omnimonHand").instanceId,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-015"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+    const omnimon = s.state.players[0]!.battleArea[0]!;
+    expect(omnimon.stack.map((card) => card.cardId)).toEqual(["BT1-070", "BT1-070", "EX9-043", "BT2-065", "BT1-044"]);
+    expect(omnimon.stack.find((card) => card.instanceId === hiddenBaseInstanceId)!.faceUp).toBe(false);
+    expect(omnimon.stack.find((card) => card.instanceId === s.inst("base").instanceId)!.faceUp).toBe(true);
+    expect(s.state.players[1]!.deck).toHaveLength(3);
+    expect(s.state.players[1]!.deck.at(-1)!.instanceId).toBe(targetInstanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([target2Id]);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(target2InstanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
   it("deletes exactly one lowest-DP opponent on play", async () => {
     const s = setupEngine(
       {

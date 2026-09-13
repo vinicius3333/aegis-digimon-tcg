@@ -28,33 +28,34 @@ card directly trashed from security.
 
 ## Obligation ledger
 
-| Obligation | Evidence | Status |
-| --- | --- | --- |
-| Identify Ascension as a trigger keyword | `keywords.ts`, keyword token, and all inspected compiled providers use `registerIrCard` | Verified, bounded |
-| Trigger only when the Digimon is deleted | Real public battle deletion of BT25-034, BT25-040, and BT26-029; BT1-052 negative control trashes to trash | Verified for native path |
-| Make processing optional | Public BT25-040 acceptance and explicit `respondDecision` refusal; refusal leaves the deleted card in trash and existing security unchanged | Verified for demonstrated native path |
-| Place the exact deleted card face-down on top security | BT25-040/BT26-029 preserve holder instance IDs; evolution source goes to trash; security card is face-down | Verified for native path |
-| Preserve source identity and destinations | BT25-040 and BT26-029 stacks assert holder/source/security instance IDs and final zones | Verified for demonstrated stacks |
-| Resolve simultaneous deletion effects in controller-selected order | BT26-075 public `orderTriggers` response selects Ascension first; pending On Deletion play is dropped and the same card reaches security | Verified for one multi-trigger provider |
-| Support granted Ascension | BT26-030 publicly trashes the selected hand-cost instance, grants Ascension to an Iliad Digimon, then a real battle deletion moves that exact instance to security; BT26-030 provider tests cover declined cost and no-grant behavior | Verified for acceptance and refusal; expiry in a full turn-loop remains open |
-| Support inherited Ascension | No fresh public conformance case yet; inherited keyword consumers and stack behavior remain to be exercised | Open |
-| Support copied/runtime-conferral Ascension | No public copy case in this bounded file; conferral identity and duplicate-instance semantics remain open | Open |
-| Handle source departure, top changes, face state, and re-entry | No live removal/re-entry sequence in this audit | Open |
-| Enforce timing, duplicate copies, and once-per-turn behavior | Ascension itself has no printed once-per-turn clause; multiple provider/grant interactions remain unproved | Open |
+| Obligation                                                         | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                       | Status                                                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Identify Ascension as a trigger keyword                            | `keywords.ts`, keyword token, and all inspected compiled providers use `registerIrCard`                                                                                                                                                                                                                                                                                                                                        | Verified, bounded                                                                      |
+| Trigger only when the Digimon is deleted                           | Real public battle deletion of BT25-034, BT25-040, and BT26-029; BT1-052 negative control trashes to trash                                                                                                                                                                                                                                                                                                                     | Verified for native path                                                               |
+| Make processing optional                                           | Public BT25-040 acceptance and explicit `respondDecision` refusal; refusal leaves the deleted card in trash and existing security unchanged                                                                                                                                                                                                                                                                                    | Verified for demonstrated native path                                                  |
+| Place the exact deleted card face-down on top security             | BT25-040/BT26-029 preserve holder instance IDs; evolution source goes to trash; security card is face-down                                                                                                                                                                                                                                                                                                                     | Verified for native path                                                               |
+| Preserve source identity and destinations                          | BT25-040 and BT26-029 stacks assert holder/source/security instance IDs and final zones                                                                                                                                                                                                                                                                                                                                        | Verified for demonstrated stacks                                                       |
+| Resolve simultaneous deletion effects in controller-selected order | BT26-075 public `orderTriggers` response selects Ascension first; pending On Deletion play is dropped and the same card reaches security                                                                                                                                                                                                                                                                                       | Verified for one multi-trigger provider                                                |
+| Support granted Ascension                                          | BT26-030 is played through the public `playCard` intent, publicly trashes the selected hand-cost instance, grants Ascension to an Iliad Digimon, then a real battle deletion moves that exact instance to security; BT26-030 provider tests cover declined cost and no-grant behavior; the expiry case declines both Execute prompts, hands off naturally, and has Titamon delete Iliad with the exact card remaining in trash | Verified for demonstrated acceptance, refusal, expiry, and post-expiry battle deletion |
+| Support inherited Ascension                                        | Catalog union of all six Ascension providers has no printed inherited Ascension clause; this obligation is not applicable to the current provider inventory                                                                                                                                                                                                                                                                    | Not applicable to current catalog; future source changes require proof                 |
+| Support copied/runtime-conferral Ascension                         | `GrantStatic` can route `copyEffectsFromDigivolution` through `conferStackEffects`, preserving the physical source and duration, but no current Ascension provider places Ascension in an inherited stack effect for that reader to copy                                                                                                                                                                                       | No current Ascension copy source; future copy-source interaction remains open          |
+| Handle source departure, top changes, face state, and re-entry     | No live removal/re-entry sequence in this audit                                                                                                                                                                                                                                                                                                                                                                                | Open                                                                                   |
+| Prove post-expiry deletion behavior                                | The current eight-case public conformance test hands off naturally after expiry, then uses Titamon's legal battle attack against Iliad and asserts the exact Iliad instance remains in trash and absent from security                                                                                                                                                                                                          | Verified for demonstrated granted provider shape                                       |
+| Enforce timing, duplicate copies, and once-per-turn behavior       | Ascension itself has no printed once-per-turn clause; multiple provider/grant interactions remain unproved                                                                                                                                                                                                                                                                                                                     | Open                                                                                   |
 
 ## Provider inventory
 
 The committed catalog and direct modules identify six materially distinct
 provider shapes inspected for this audit:
 
-| Provider | Shape | Direct implementation |
-| --- | --- | --- |
-| BT25-034 Angemon | Printed native keyword plus inherited Barrier | Compiled static keyword; `registerIrCard` |
-| BT25-040 MagnaAngemon | Printed native keyword plus security and inherited effects | Compiled static keyword; `registerIrCard` |
-| BT26-029 Aegiochusmon: Holy | Printed native keyword alongside Decode and inherited watchers | Compiled static keyword; `registerIrCard` |
-| EX12-047 Amaterasumon | Printed native keyword alongside Piercing/Security Attack and On Deletion | Compiled static keyword; `registerIrCard` |
-| BT26-030 Pumpkinmon | Temporary On Play/When Digivolving Ascension grant after hand-trash cost | Compiled `GainKeyword`; `registerIrCard` |
-| BT26-075 ScourgeChiropmon | Printed Execute and permanent Ascension, plus competing On Deletion | Compiled static keyword; `registerIrCard` |
+| Provider                    | Shape                                                                     | Direct implementation                     |
+| --------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- |
+| BT25-034 Angemon            | Printed native keyword plus inherited Barrier                             | Compiled static keyword; `registerIrCard` |
+| BT25-040 MagnaAngemon       | Printed native keyword plus security and inherited effects                | Compiled static keyword; `registerIrCard` |
+| BT26-029 Aegiochusmon: Holy | Printed native keyword alongside Decode and inherited watchers            | Compiled static keyword; `registerIrCard` |
+| EX12-047 Amaterasumon       | Printed native keyword alongside Piercing/Security Attack and On Deletion | Compiled static keyword; `registerIrCard` |
+| BT26-030 Pumpkinmon         | Temporary On Play/When Digivolving Ascension grant after hand-trash cost  | Compiled `GainKeyword`; `registerIrCard`  |
+| BT26-075 ScourgeChiropmon   | Printed Execute and permanent Ascension, plus competing On Deletion       | Compiled static keyword; `registerIrCard` |
 
 BT25-034 and BT25-040 also have separate security-trash effects. Their Q&A
 does not expand the Ascension contract and is kept distinct from battle
@@ -63,18 +64,22 @@ deletion proof.
 ## Public proof
 
 `apps/api/src/engine/conformance/keyword-ascension-lifecycle.test.ts` contains
-seven cases. The native cases prove BT25-034/BT25-040/BT26-029 acceptance with exact
+eight cases. The native cases prove BT25-034/BT25-040/BT26-029 acceptance with exact
 holder/source IDs, an explicit BT25-040 refusal, a BT1-052 non-keyword negative
 control, and final battle/security/trash state. The added BT26-075 case answers a real public
 `orderTriggers` decision and proves Ascension-first pending-effect loss. The
-added BT26-030 case observes the granted keyword, asserts the exact hand-cost
-instance was trashed, and uses the grant in a real battle deletion. Its provider
-suite separately proves declined or unavailable hand costs leave the cost in
-hand and grant neither keyword. A full turn-loop expiry proof remains open
-because the direct timing helper does not advance the production turn boundary.
+added BT26-030 case invokes the public `playCard` intent, observes the granted
+keyword, asserts the exact hand-cost instance was trashed, and uses the grant in
+a real battle deletion. Its provider suite separately proves declined or
+unavailable hand costs leave the cost in hand and grant neither keyword. The
+expiry case uses the full public turn loop, suspends Iliad through a public
+attack, declines both generated Execute prompts, waits for natural handoff to
+the next player, and has Titamon legally delete Iliad in battle; the exact
+instance remains in trash rather than moving to security, while the observable
+keyword check confirms Ascension is absent after the boundary.
 
 Focused result: `pnpm --filter @aegis/api exec vitest run
-src/engine/conformance/keyword-ascension-lifecycle.test.ts` — 1 file, 7 tests,
+src/engine/conformance/keyword-ascension-lifecycle.test.ts` — 1 file, 8 tests,
 all passing. The six-provider regression command passed 7 files / 79 tests.
 The short-circuit counterfactual was restored in `finally`; the pre/post SHA-256
 for `apps/api/src/engine/effects/primitives.ts` was
@@ -85,9 +90,12 @@ shared, web, and API. `git diff --check` is clean.
 
 ## Remaining work
 
-The audit remains below full certification until public proof covers inherited
-and copied providers, live persistent keyword loss/re-entry, multiple
-simultaneous Ascension candidates, and the complete catalog consumer set.
+The audit remains below full certification until public proof covers live
+persistent keyword loss/re-entry, multiple simultaneous Ascension candidates,
+and the complete catalog consumer set. The current catalog has no inherited
+Ascension provider; generic copied-effect support exists, but no current
+Ascension source is available for that path, so future source additions still
+require a dedicated copy proof.
 Potential engine counterfactuals should be scheduled by the coordinator only
 after focused lanes are paused; this audit found no failing public behavior
 requiring a source patch.

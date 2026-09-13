@@ -21,6 +21,14 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         typeof action.amount === "number"
           ? action.amount
           : (ctx.source.permanent()?.stack.filter((c) => !c.faceUp).length ?? 0);
+      const declaredAmount =
+        amount > 1
+          ? amount -
+            (await ctx.ask.chooseOption(
+              ctx,
+              Array.from({ length: amount }, (_, index) => `${amount - index} card${amount - index === 1 ? "" : "s"}`),
+            ))
+          : amount;
       // A scaling on DeDigivolve is a repetition count, not one larger peel. BT21-061 Q4568:
       // four Tamer colors perform De-Digivolve 1 twice, with state checked between peels.
       const repeat = scale ?? 1;
@@ -45,7 +53,10 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         const ids = await resolvePermanentTargets(ctx, target);
         // The trashing effect's seat gates EX11-070's stacked-trash-lock (KB Q5943).
         for (const id of ids)
-          await ctx.fx.deDigivolve(id, amount, { byEffectSeat: ctx.source.ownerSeat, stopAtLevel: action.stopAtLevel });
+          await ctx.fx.deDigivolve(id, declaredAmount, {
+            byEffectSeat: ctx.source.ownerSeat,
+            stopAtLevel: action.stopAtLevel,
+          });
       }
       if (action.trackOpponentDigimonCountAs !== undefined) {
         const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);

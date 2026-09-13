@@ -15068,15 +15068,17 @@
             },
             "actions": [
               {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "abortOnDecline": true
-              },
-              {
                 "kind": "ActivateEffect",
                 "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
                 "effectType": "WhenDigivolving",
-                "count": 1
+                "count": 1,
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by suspending this Tamer"
+                },
+                "optional": true,
+                "abortOnDecline": true
               }
             ]
           }
@@ -28195,7 +28197,10 @@
               "kind": "unsuspend",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By unsuspending this Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ],
         "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }]
@@ -68606,7 +68611,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -68629,7 +68635,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -90466,6 +90473,7 @@
             "payCost": false,
             "breeding": true,
             "requiresEmpty": "breedingArea",
+            "allowCostWithoutTarget": true,
             "cost": {
               "kind": "compound",
               "costs": [

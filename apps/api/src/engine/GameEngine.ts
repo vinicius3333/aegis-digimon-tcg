@@ -3139,6 +3139,21 @@ export class GameEngine {
    * here at all, since its source was deleted to pay the cost by design (Q5131).
    */
   private nestedTriggerSourceStillResident(pending: CollectedEffect): boolean {
+    // §15-8-3-5: an inherited [On Deletion] effect is pending for the former top card of the
+    // deleted stack. Its permanent identity necessarily changes/disappears, but this exception
+    // is valid only when the event snapshot still proves that exact source/host relationship.
+    const trigger = pending.triggerInfo;
+    const deletedHostId = trigger?.deletedHostInstanceByInstanceId?.[pending.source.instanceId];
+    const inheritedDeletedSource =
+      pending.timing === EffectTiming.OnDestroyedAnyone &&
+      pending.effect.isInherited === true &&
+      trigger?.deletedWasStackInstanceIds?.includes(pending.source.instanceId) === true &&
+      trigger.deletedInstanceIds?.includes(pending.source.instanceId) === true &&
+      deletedHostId !== undefined &&
+      trigger.deletedInstanceIds?.includes(deletedHostId) === true &&
+      rootZoneOfLooseInstance(this.state, pending.source.instanceId) === "trash" &&
+      rootZoneOfLooseInstance(this.state, deletedHostId) === "trash";
+    if (inheritedDeletedSource) return true;
     const identityAtDefer = this.nestedTriggerSourceIdentity.get(pending);
     if (identityAtDefer === undefined || identityAtDefer === null) return true;
     return permanentIdentityOf(pending.source) === identityAtDefer;

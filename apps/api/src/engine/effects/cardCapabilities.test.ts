@@ -66,7 +66,7 @@ function perm(permanentId: string, seat: Seat, cardId: string, stackCardIds: str
       instanceId: `${permanentId}#s${i}`,
       cardId: c,
       ownerSeat: seat,
-      faceUp: false,
+      faceUp: true,
     })) as never,
     linked: [] as never,
     baseDP: 0,

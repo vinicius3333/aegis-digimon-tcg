@@ -589,14 +589,15 @@ export function EvadeOverlay({
   const cardId = getCardId(permanentId);
   return (
     <div
-      className="combat-prompt"
+      className="combat-prompt evade-prompt"
       style={{
         position: "absolute",
         left: "50%",
         bottom: 232,
         transform: "translateX(-50%)",
         zIndex: 80,
-        width: 400,
+        width: "min(400px, calc(100vw - 24px))",
+        boxSizing: "border-box",
         background: "var(--ds-surface)",
         border: "2px solid var(--ds-warning)",
         borderRadius: 18,
