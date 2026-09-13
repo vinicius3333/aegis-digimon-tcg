@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-052.js";
+import "./BT13-055.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -36,35 +37,35 @@ describe("BT13-052 SymbareAngoramon", () => {
   });
 
   it("does not inherit Jamming but gives its host +1000 with no opposing Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-051", as: "host", under: ["BT13-052"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-055", as: "host", under: ["BT13-052"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(9000);
   });
 
   it("dynamically suppresses the inherited bonus only for an unsuspended opposing Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-051", as: "host", under: ["BT13-052"] }] },
+      0: { battleArea: [{ card: "BT13-055", as: "host", under: ["BT13-052"] }] },
       1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").currentDP).toBe(8000);
     s.perm("opponent").isSuspended = true;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(9000);
     s.perm("opponent").isSuspended = false;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 
   it("does not count an unsuspended opposing breeding Digimon for the inherited bonus", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-051", as: "host", under: ["BT13-052"] }] },
+      0: { battleArea: [{ card: "BT13-055", as: "host", under: ["BT13-052"] }] },
       1: { breeding: { card: "BT1-015", as: "breedingOpponent" } },
     });
     await s.ready();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(9000);
   });
 
   it("digivolves from a green level 3 for exactly 2 memory", async () => {
@@ -72,11 +73,13 @@ describe("BT13-052 SymbareAngoramon", () => {
       0: { battleArea: [{ card: "BT13-049", as: "base" }], hand: [{ card: "BT13-052", as: "symbare" }] },
     });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("symbare").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("symbare").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-052");
     expect(s.state.memory).toBe(1);
   });

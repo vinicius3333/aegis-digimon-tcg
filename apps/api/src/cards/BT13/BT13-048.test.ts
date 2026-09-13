@@ -102,7 +102,7 @@ describe("BT13-048 Salamon", () => {
 
   it("digivolves from a green level 2 for zero memory", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-004", as: "base" }], hand: [{ card: "BT13-048", as: "salamon" }] },
+      0: { breeding: { card: "BT13-004", as: "base" }, hand: [{ card: "BT13-048", as: "salamon" }] },
     });
     s.state.memory = 1;
     expect(

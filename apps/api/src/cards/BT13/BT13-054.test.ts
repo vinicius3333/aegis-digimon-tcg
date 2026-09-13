@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT13-054.js";
+import "./BT13-057.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT13-100.js";
@@ -116,7 +117,7 @@ describe("BT13-054 Lilamon", () => {
 
   it("dynamically grants inherited Security Attack +1 only on its turn with a suspended opponent", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-053", as: "host", under: ["BT13-054"] }] },
+      0: { battleArea: [{ card: "BT13-057", as: "host", under: ["BT13-054"] }] },
       1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
     });
     await s.ready();
