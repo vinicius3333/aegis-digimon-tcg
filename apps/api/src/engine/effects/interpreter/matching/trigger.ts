@@ -52,6 +52,7 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
         t.unsuspendedPermanentId,
     ].filter((id): id is string => id !== undefined);
   if (subjectIds.length === 0) return [];
+  const subjectSnapshot = t.linkTrashedSubject;
   // A POSITIVE self-gate: `isSelfRef: true` means the event subject must BE this watcher's own
   // card.PermanentOfThisCard()`). permanentMatchesFilter only enforces the NEGATIVE excludeSelf /
   // isSelfRef===false direction, so the positive restriction lives here at the subject seam.
@@ -79,7 +80,7 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
   }
   const allowedSeats = seatsForController(subCtx, effectiveFilter);
   return subjectIds.filter((subjectId) => {
-    const subject = subCtx.game.permanentById(subjectId);
+    const subject = subjectSnapshot?.permanentId === subjectId ? subjectSnapshot : subCtx.game.permanentById(subjectId);
     if (subject === undefined) return false;
     if (filter.isSelfRef === true) {
       const self = subCtx.source.permanent();

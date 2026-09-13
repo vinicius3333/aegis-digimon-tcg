@@ -48,7 +48,7 @@ describe("BT15-076", () => {
           battleArea: [{ card: "BT15-075", as: "base" }],
           hand: [{ card: "BT15-076", as: "myotismon" }],
           trash: [{ card: "BT15-068", as: "trashRookie" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

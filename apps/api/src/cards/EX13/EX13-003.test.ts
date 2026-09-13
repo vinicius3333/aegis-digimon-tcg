@@ -123,6 +123,39 @@ describe("EX13-003 Kyaromon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("does not offer a legal-to-evolve Digimon without [Kentaurosmon] or [Holy Beast]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-046", as: "host", under: ["EX13-003"] }],
+          hand: [
+            { card: "BT9-035", as: "nearMatch" },
+            { card: "AD1-017", as: "remover" },
+          ],
+          trash: dynasmonTrash,
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      automation,
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    // Starmon is a legal yellow Lv.4 evolution over Kudamon, but it is neither a
+    // [Kentaurosmon]-named nor a [Holy Beast] card, so the inherited effect must
+    // leave it in hand and avoid charging its reduced evolution cost.
+    expect(s.perm("host").topCard.cardId).toBe("BT1-046");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMatch").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("does not fire when the opponent's security stack is the one removed from", async () => {
     const s = setupEngine(
       {

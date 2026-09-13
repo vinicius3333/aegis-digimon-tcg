@@ -2,18 +2,45 @@
 set: EX8
 cards: 74
 status: verified
-verified_at: 2026-09-10
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+verified_at: 2026-09-13
+catalog_commit: 4f9e0c960
+evidence_commit: c3bc92c00
 ---
 
 # EX8 audit
 
 ## Status
 
-All 74 EX8 cards are verified at 10/10 (aggregate 740/740). The winning source is the re-audit closed on 2026-09-10 (`docs/audits/EX8-REAUDIT-LEDGER.md`, `dc8bf012e`, with the run log, review notes and per-card reports under `docs/audits/EX8-reaudit/`, `193c8972c`), run from base `2c851acd73948611728b9c7e2c3c785d98b1087a` and requiring fresh evidence for every card. It supersedes `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) and the older `internal-docs/audits/EX8-runtime-2026-08-27.md` (`52da0b5bb`), which had already recalculated all 74 cards to 10/10 from base `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`. Eleven card-local IR defects were closed during the run and no shared engine seam remained open. One catalog-to-module discrepancy was corrected in executable IR (EX8-048's missing level-3 Mineral alternate evolution at cost 2); the catalog JSON itself needed no correction.
+All 74 EX8 cards are freshly recalculated to 10/10 (740/740) on `audit-EX8-20260913`, from base `805400f2c45d9bb40983dde9691be06b605bec30`. Three Luna lanes rechecked every committed catalog contract, current KB ruling, compiled module and colocated behavioral/peer/stack proof. The closing collection gate passed 74 files and 711 tests; the combined mechanism gate passed 272 files and 3,183 tests; final typecheck passed. All 74 modules already register exclusively through `registerIrCard` and have no `@ts-nocheck`, so no card behavior or catalog correction was needed. Twenty existing proof suites were strengthened for production turn resets and timing. One shared distinct-color selection defect and one obsolete KB coverage exclusion were closed. Atomic engine and card commits are pushed; this ledger supersedes the historical 2026-09-10 delivery scores and the bounded EX8-064 checkpoint.
 
 ## Gates
+
+### Fresh closing gates — 2026-09-13
+
+Base: `805400f2c45d9bb40983dde9691be06b605bec30`. Evidence: `4826e2f4c` (distinct-color effect selection), `ffd0e21e1` (borrowed-effect KB classification), `c3bc92c00` (EX8 public turn proof), all pushed to `origin/audit-EX8-20260913`.
+
+- Inventory: 74 catalog IDs exactly match 74 modules and 74 colocated suites; 74 per-card fresh checkpoints and 74 accepted scoring rows. All modules have one exclusive `registerIrCard`, `coverage: "full"`, empty residuals and no `@ts-nocheck`. No skipped, failed-as-expected, TODO, exclusive or stray probe suites.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX8 --maxWorkers=1 --no-file-parallelism`: **74 files, 711 tests passed** (2.34 seconds).
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX8 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts src/cards/EX7/EX7-037.test.ts src/cards/AD1/AD1-023.test.ts src/cards/BT18/BT18-096.test.ts src/cards/EX13/EX13-077.test.ts --maxWorkers=1 --no-file-parallelism`: **272 files, 3,183 tests passed** (8.46 seconds).
+- `pnpm typecheck`: shared, API and web passed after all behavior/proof changes.
+- `pnpm effects:sync:set -- --set EX8 --base 805400f2c` and `pnpm effects:check:set -- --set EX8 --base 805400f2c`: 74 records already synchronized, zero semantic changes in EX8 effects records and zero semantic or byte changes in effects records outside EX8. The first final check hit the formatter's 30-second timeout; the complete retry passed without any source change. The deliberate shared engine change is separate from these effects-record boundaries.
+- Scoped `pnpm exec oxlint` passed for EX8 and changed engine files (exit 0). Four existing warnings remain in unchanged sections of `ch15-01-effect-basics.test.ts` (lines 47, 139, 159, 164); no new warning or error was introduced.
+- Scoped `pnpm exec oxfmt --check` passed across the 155 card, engine and evidence files; `git diff --check` passed. Closing document checks also passed: `audit-docs.test.ts` (1 file, 4 tests), `pnpm audit:index --check` (66 sets current), scoped Oxfmt for ledger/index and `git diff --check`.
+- Independent Luna reviewers approved the engine correction and final card proofs with no critical or important issue. Tests were serialized under coordinator control; API typecheck peaked around 3.4 GB RSS and observed memory remained comfortable.
+- Delivery: three atomic implementation/proof commits are pushed. The final ledger and generated status index are delivered on the same branch; no merge to main is performed.
+
+### Restart and historical checkpoints
+
+Fresh restart checkpoint on branch `audit-EX8-20260913`, base `805400f2c45d9bb40983dde9691be06b605bec30`, 2026-09-13:
+
+- Inventory: 74 catalog IDs exactly match 74 production modules and 74 colocated test files. All 74 modules register exclusively through `registerIrCard`; zero `@ts-nocheck`, `registerCard`, nonempty residuals or skipped tests in EX8. Existing injected-timing diagnostic fixtures are being checked for equivalent public-intent evidence; they do not by themselves establish printed-clause fidelity.
+- `pnpm typecheck`: shared, API and web passed.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX8 --maxWorkers=1 --no-file-parallelism`: 74 files, 708 tests passed.
+- Combined collection/mechanism/document gate: 267 files and 3,146 tests passed; one existing `interpreter.test.ts` different-colors fixed-count assertion failed. The exact failure reproduced from pristine `git archive 805400f2c` at `/tmp/ex8-base-805400f2c`; correction is being reviewed before awarding delivery gates.
+- `pnpm effects:sync:set -- --set EX8 --base 805400f2c`: 74 records already synchronized; zero semantic changes within EX8 and zero semantic or byte changes outside EX8.
+- Three Luna lanes re-read the complete collection against the catalog, current KB and existing behavior/stack tests. No card implementation change was needed in the initial trace. Missing next-turn reset assertions are being strengthened, and the baseline different-color selection failure is under rule-based correction. Tests run serially under coordinator control.
+
+Historical gates follow for comparison; they are not the current closing gate.
 
 Copied from `docs/audits/EX8-reaudit/RUN.md` (`193c8972c`), section "Closing gates".
 
@@ -37,86 +64,90 @@ Superseded gates from the 2026-08-27 runtime audit, retained for comparison (`in
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX8-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+The table is recalculated for this worktree after the fresh closing gates and pushed engine/card commits. Historical clause evidence is retained below; fresh revalidation checkpoints supersede the historical worker delivery caps.
 
-| Card    | Report                           | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                                      |
-| ------- | -------------------------------- | ------------: | -------: | --------: | ---------: | ----: | ----: | --------------------------------------------------------------------------- |
-| EX8-001 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-002 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-003 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-004 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-005 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-006 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-007 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-008 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-009 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-010 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-011 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-012 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-013 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-014 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-015 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-016 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-017 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-018 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-019 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-020 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-021 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-022 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-023 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-024 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-025 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-026 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted after fixture correction; final gates passed; branch pushed |
-| EX8-027 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-028 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-029 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-030 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted after fixture correction; final gates passed; branch pushed |
-| EX8-031 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-032 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-033 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-034 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-035 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-036 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-037 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-038 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-039 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-040 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-041 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-042 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-043 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-044 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-045 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-046 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-047 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-048 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-049 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-050 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-051 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-052 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-053 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-054 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-055 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-056 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-057 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-058 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-059 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-060 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-068 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-069 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-070 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-071 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-072 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-073 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
-| EX8-074 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Worker accepted; final gates passed; branch pushed                          |
+| Card    | Report    | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                      |
+| ------- | --------- | ------------: | -------: | --------: | ---------: | ----: | ----: | ----------------------------------------------------------- |
+| EX8-001 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-002 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-003 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-004 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-005 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-006 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-007 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-008 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-009 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-010 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-011 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-012 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-013 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-014 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-015 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-016 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-017 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-018 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-019 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-020 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-021 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-022 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-023 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-024 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-025 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-026 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-027 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-028 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-029 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-030 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-031 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-032 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-033 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-034 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-035 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-036 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-037 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-038 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-039 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-040 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-041 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-042 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-043 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-044 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-045 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-046 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-047 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-048 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-049 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-050 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-051 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-052 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-053 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-054 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-055 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-056 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-057 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-058 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-059 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-060 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-068 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-069 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-070 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-071 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-072 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-073 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| EX8-074 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
 
 ### EX8-001 — Koromon
+
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-001`, direct `apps/api/src/cards/EX8/EX8-001.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-001.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
 
 #### Scope and evidence
 
@@ -128,15 +159,15 @@ Scores are the final ones from `docs/audits/EX8-REAUDIT-LEDGER.md`; the per-card
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[When Attacking]` | inherited effect `trigger: "WhenAttacking"` | Positive Dinosaur/name tests drive `applyIntent({ type: "attack" })` and settle the resulting trash move. |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | Same-turn second attack is suppressed; the legal-stack test runs a fresh production turn and proves the next attack deletes the remaining target. |
-| `If this Digimon has [Tyrannomon] in its name` | condition `selfHasNameContaining`, names `["Tyrannomon"]` | MetalTyrannomon host test deletes a qualifying target. |
-| `or the [Dinosaur] trait` | condition `selfHasTrait` with trait token `Dinosaur` | Greymon/Dinosaur host test deletes a qualifying target; Reptile-only host is a negative. |
-| `delete 1 of your opponent's Digimon` | `Delete` action; target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | Opposing Digimon is trashed; a friendly 3000-DP Digimon remains. |
-| `with 3000 DP or less` | target DP comparison `{ op: "lte", value: 3000 }` | Exact 3000-DP positive and 5000-DP negative are covered. |
-| inherited text | `isInherited: true` | Real hatch -> EX8-007 alternate evolution -> AD1-001 evolution -> breeding move stack retains EX8-001 underneath and fires the effect. |
+| Printed clause                                 | Compiled IR                                                                              | Behavioral proof                                                                                                                                  |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`                             | inherited effect `trigger: "WhenAttacking"`                                              | Positive Dinosaur/name tests drive `applyIntent({ type: "attack" })` and settle the resulting trash move.                                         |
+| `[Once Per Turn]`                              | inherited effect `frequency: "OncePerTurn"`                                              | Same-turn second attack is suppressed; the legal-stack test runs a fresh production turn and proves the next attack deletes the remaining target. |
+| `If this Digimon has [Tyrannomon] in its name` | condition `selfHasNameContaining`, names `["Tyrannomon"]`                                | MetalTyrannomon host test deletes a qualifying target.                                                                                            |
+| `or the [Dinosaur] trait`                      | condition `selfHasTrait` with trait token `Dinosaur`                                     | Greymon/Dinosaur host test deletes a qualifying target; Reptile-only host is a negative.                                                          |
+| `delete 1 of your opponent's Digimon`          | `Delete` action; target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | Opposing Digimon is trashed; a friendly 3000-DP Digimon remains.                                                                                  |
+| `with 3000 DP or less`                         | target DP comparison `{ op: "lte", value: 3000 }`                                        | Exact 3000-DP positive and 5000-DP negative are covered.                                                                                          |
+| inherited text                                 | `isInherited: true`                                                                      | Real hatch -> EX8-007 alternate evolution -> AD1-001 evolution -> breeding move stack retains EX8-001 underneath and fires the effect.            |
 
 #### Implementation and defects
 
@@ -188,6 +219,10 @@ None for the printed EX8-001 contract. Collection recalculation, aggregate tests
 
 ### EX8-002 — Bukamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-002`, direct `apps/api/src/cards/EX8/EX8-002.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-002.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-002` Bukamon.
@@ -200,13 +235,13 @@ None for the printed EX8-001 contract. Collection recalculation, aggregate tests
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[When Attacking]` | inherited effect `trigger: "WhenAttacking"` | `gains 1 memory...` and `resets...` attack through `applyIntent({ type: "attack" })` |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | first attack gains; second same-turn attack remains at 0; next own turn gains again |
-| `If you have 0 memory` | `allOf(memoryAtMost 0, memoryAtLeast 0)` | exact-zero positive; `-1` and `+1` parameterized negatives |
-| `gain 1 memory` | `GainMemory` action with `amount: 1` | observable memory changes from 0 to 1 after attack resolution |
-| inherited text | `isInherited: true` | legal EX8-018-over-EX8-002 stack exercises the inherited source |
+| Printed clause         | Compiled IR                                 | Behavioral proof                                                                     |
+| ---------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `[When Attacking]`     | inherited effect `trigger: "WhenAttacking"` | `gains 1 memory...` and `resets...` attack through `applyIntent({ type: "attack" })` |
+| `[Once Per Turn]`      | inherited effect `frequency: "OncePerTurn"` | first attack gains; second same-turn attack remains at 0; next own turn gains again  |
+| `If you have 0 memory` | `allOf(memoryAtMost 0, memoryAtLeast 0)`    | exact-zero positive; `-1` and `+1` parameterized negatives                           |
+| `gain 1 memory`        | `GainMemory` action with `amount: 1`        | observable memory changes from 0 to 1 after attack resolution                        |
+| inherited text         | `isInherited: true`                         | legal EX8-018-over-EX8-002 stack exercises the inherited source                      |
 
 #### Implementation and defects
 
@@ -253,6 +288,10 @@ None for the printed EX8-002 contract. Collection-level recalculation, aggregate
 
 ### EX8-003 — Kokomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-003`, direct `apps/api/src/cards/EX8/EX8-003.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-003.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-003` Kokomon.
@@ -265,15 +304,15 @@ None for the printed EX8-002 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[When Attacking]` | inherited effect `trigger: "WhenAttacking"` | positive and reset tests use public `applyIntent({ type: "attack" })` |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | second attack in the same turn does not add another -2000 modifier; next own turn applies it again |
-| `If you have another Digimon` | `youHave` filter with `controllerDefault: "mine"`, `excludeSelf: true`, `kind: ["Digimon"]` | ally-positive case and sole-host negative distinguish another friendly Digimon from the host itself |
-| `1 of your opponent's Digimon` | `ModifyDP` target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | two opposing Digimon fixture ends with exactly one at 3000 DP and one at 5000 DP |
-| `gets -2000 DP` | `ModifyDP` with `amount: -2000` | target DP is observed at the exact -2000 result |
-| `for the turn` | action `duration: "forTheTurn"` | `advance(s.engine).runTurn(0)` expires the modifier and restores both targets to 5000 DP |
-| inherited text | `isInherited: true` | BT1-045-over-EX8-003 legal evolution stack exercises the source |
+| Printed clause                 | Compiled IR                                                                                 | Behavioral proof                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`             | inherited effect `trigger: "WhenAttacking"`                                                 | positive and reset tests use public `applyIntent({ type: "attack" })`                               |
+| `[Once Per Turn]`              | inherited effect `frequency: "OncePerTurn"`                                                 | second attack in the same turn does not add another -2000 modifier; next own turn applies it again  |
+| `If you have another Digimon`  | `youHave` filter with `controllerDefault: "mine"`, `excludeSelf: true`, `kind: ["Digimon"]` | ally-positive case and sole-host negative distinguish another friendly Digimon from the host itself |
+| `1 of your opponent's Digimon` | `ModifyDP` target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`          | two opposing Digimon fixture ends with exactly one at 3000 DP and one at 5000 DP                    |
+| `gets -2000 DP`                | `ModifyDP` with `amount: -2000`                                                             | target DP is observed at the exact -2000 result                                                     |
+| `for the turn`                 | action `duration: "forTheTurn"`                                                             | `advance(s.engine).runTurn(0)` expires the modifier and restores both targets to 5000 DP            |
+| inherited text                 | `isInherited: true`                                                                         | BT1-045-over-EX8-003 legal evolution stack exercises the source                                     |
 
 #### Implementation and defects
 
@@ -320,6 +359,10 @@ None for the printed EX8-003 contract. Collection-level recalculation, aggregate
 
 ### EX8-004 — Motimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-004`, direct `apps/api/src/cards/EX8/EX8-004.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-004.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-004` Motimon.
@@ -332,14 +375,14 @@ None for the printed EX8-003 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[Your Turn]` | inherited effect `trigger: "YourTurn"` | play-intent tests run during the controller's turn; production turn-loop reset test crosses an opponent turn |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | first qualifying play attacks; second same-turn qualifying play leaves host unsuspended; next own turn attacks again |
-| `any of your other [NSp] trait Digimon are played` | `SubTrigger` event `whenPlayed`; source filter `controller: "mine"`, `excludeSelf: true`, `kind: ["Digimon"]`, NSp trait | EX8-039 play positive, BT1-045 non-NSp play negative, and mixed host/played trait cases |
-| `if this Digimon has the [NSp] trait` | nested `selfHasTrait` condition with NSp trait filter | NSp host triggers; BT1-045 host does not |
-| `this Digimon may attack` | optional `Attack` targeting `isSelfRef`, `count: 1`, `isSelf: true`, `withoutSuspending: false` | auto-accept path suspends host and checks Security; auto-decline path leaves host unsuspended and Security unchanged |
-| inherited text | `isInherited: true` | EX8-039-over-EX8-004 stack exercises the source inherited effect |
+| Printed clause                                     | Compiled IR                                                                                                              | Behavioral proof                                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `[Your Turn]`                                      | inherited effect `trigger: "YourTurn"`                                                                                   | play-intent tests run during the controller's turn; production turn-loop reset test crosses an opponent turn         |
+| `[Once Per Turn]`                                  | inherited effect `frequency: "OncePerTurn"`                                                                              | first qualifying play attacks; second same-turn qualifying play leaves host unsuspended; next own turn attacks again |
+| `any of your other [NSp] trait Digimon are played` | `SubTrigger` event `whenPlayed`; source filter `controller: "mine"`, `excludeSelf: true`, `kind: ["Digimon"]`, NSp trait | EX8-039 play positive, BT1-045 non-NSp play negative, and mixed host/played trait cases                              |
+| `if this Digimon has the [NSp] trait`              | nested `selfHasTrait` condition with NSp trait filter                                                                    | NSp host triggers; BT1-045 host does not                                                                             |
+| `this Digimon may attack`                          | optional `Attack` targeting `isSelfRef`, `count: 1`, `isSelf: true`, `withoutSuspending: false`                          | auto-accept path suspends host and checks Security; auto-decline path leaves host unsuspended and Security unchanged |
+| inherited text                                     | `isInherited: true`                                                                                                      | EX8-039-over-EX8-004 stack exercises the source inherited effect                                                     |
 
 #### Implementation and defects
 
@@ -386,6 +429,10 @@ None for the printed EX8-004 contract. Collection-level recalculation, aggregate
 
 ### EX8-005 — Tumblemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-005`, direct `apps/api/src/cards/EX8/EX8-005.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-005.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-005` Tumblemon.
@@ -396,12 +443,12 @@ None for the printed EX8-004 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
+| Printed clause                                          | Compiled IR                                                                                                                | Behavioral proof                                                                                                                                                 |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `When this card is trashed from the digivolution cards` | inherited `Static` effect with `SubTrigger` event `onDigivolutionCardsDiscardedBatch`; `sourceFilter: { isSelfRef: true }` | Opposing public On Play trash path and direct production `trashDigivolutionCards` path move the exact EX8-005 instance to trash and settle the resulting memory. |
-| `of a Digimon with the [Mineral]/[Rock] trait` | `hostFilter.nameOrTrait` with tokens `Mineral`, `Rock`, `match: "trait"` | EX8-047 (Mineral), EX8-046 (Rock), and EX8-048 (Mineral) hosts gain; BT2-055 Puppet host does not. |
-| `gain 1 memory` | nested `GainMemory` action with `amount: 1` | Observable memory changes by +1 for the source owner; the EX8-022 opposing play test also proves the opposing-controller memory-frame net result. |
-| inherited text | `isInherited: true` | Real Digi-Egg hatch -> legal EX8-047 black Lv.3 evolution -> Breeding-to-Battle move retains EX8-005 underneath and fires the trigger. |
+| `of a Digimon with the [Mineral]/[Rock] trait`          | `hostFilter.nameOrTrait` with tokens `Mineral`, `Rock`, `match: "trait"`                                                   | EX8-047 (Mineral), EX8-046 (Rock), and EX8-048 (Mineral) hosts gain; BT2-055 Puppet host does not.                                                               |
+| `gain 1 memory`                                         | nested `GainMemory` action with `amount: 1`                                                                                | Observable memory changes by +1 for the source owner; the EX8-022 opposing play test also proves the opposing-controller memory-frame net result.                |
+| inherited text                                          | `isInherited: true`                                                                                                        | Real Digi-Egg hatch -> legal EX8-047 black Lv.3 evolution -> Breeding-to-Battle move retains EX8-005 underneath and fires the trigger.                           |
 
 The clause has no Once Per Turn, optional, cost, duration, Security, or turn-direction qualifier. No Digi-Egg is placed in main deck or Security in the strengthened fixtures.
 
@@ -455,6 +502,10 @@ None for the printed EX8-005 contract. Collection recalculation, aggregate tests
 
 ### EX8-006 — DemiMeramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-006`, direct `apps/api/src/cards/EX8/EX8-006.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-006.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-006` DemiMeramon.
@@ -467,14 +518,14 @@ None for the printed EX8-005 contract. Collection recalculation, aggregate tests
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[When Attacking]` | inherited effect `trigger: "WhenAttacking"` | public attack intents in positive, refusal, boundary, and reset tests |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | first attack deletes; second same-turn attack leaves the second target; next own turn deletes it |
-| `If this Digimon has the [NSo] trait` | `selfHasTrait` condition with NSo trait filter | EX8-008 NSo host positive; BT1-010 non-NSo host negative |
-| `by trashing 1 card in your hand` | `trash` cost filtered to `zone: "hand"`, `controller: "mine"`, count 1 | positive moves exactly one hand card to trash; no-hand case does not delete; optional refusal leaves hand unchanged |
-| `delete 1 of your opponent's level 3 Digimon` | `Delete` target filtered to opponent Digimon, `levels: [3]`, count 1 | two-target positive deletes one level 3 and leaves level 4; level-4-only and no-cost cases do not delete |
-| inherited text | `isInherited: true` | EX8-008-over-EX8-006 legal evolution stack exercises the inherited source |
+| Printed clause                                | Compiled IR                                                            | Behavioral proof                                                                                                    |
+| --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking]`                            | inherited effect `trigger: "WhenAttacking"`                            | public attack intents in positive, refusal, boundary, and reset tests                                               |
+| `[Once Per Turn]`                             | inherited effect `frequency: "OncePerTurn"`                            | first attack deletes; second same-turn attack leaves the second target; next own turn deletes it                    |
+| `If this Digimon has the [NSo] trait`         | `selfHasTrait` condition with NSo trait filter                         | EX8-008 NSo host positive; BT1-010 non-NSo host negative                                                            |
+| `by trashing 1 card in your hand`             | `trash` cost filtered to `zone: "hand"`, `controller: "mine"`, count 1 | positive moves exactly one hand card to trash; no-hand case does not delete; optional refusal leaves hand unchanged |
+| `delete 1 of your opponent's level 3 Digimon` | `Delete` target filtered to opponent Digimon, `levels: [3]`, count 1   | two-target positive deletes one level 3 and leaves level 4; level-4-only and no-cost cases do not delete            |
+| inherited text                                | `isInherited: true`                                                    | EX8-008-over-EX8-006 legal evolution stack exercises the inherited source                                           |
 
 #### Implementation and defects
 
@@ -523,6 +574,10 @@ None for the printed EX8-006 contract. Collection-level recalculation, aggregate
 
 ### EX8-007 — Agumon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-007`, direct `apps/api/src/cards/EX8/EX8-007.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-007.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-007` Agumon.
@@ -534,16 +589,16 @@ None for the printed EX8-006 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[On Play]` | effect `trigger: "OnPlay"` | Play-intent reveal tests resolve the live effect and inspect hand/deck state. |
-| `Reveal the top 3 cards` | `RevealAdd.revealCount: 3` | Three-card candidate/decoy fixtures and no-match fixture verify the exact reveal boundary. |
+| Printed clause                                                           | Compiled IR                                                                                                                | Behavioral proof                                                                                                                          |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `[On Play]`                                                              | effect `trigger: "OnPlay"`                                                                                                 | Play-intent reveal tests resolve the live effect and inspect hand/deck state.                                                             |
+| `Reveal the top 3 cards`                                                 | `RevealAdd.revealCount: 3`                                                                                                 | Three-card candidate/decoy fixtures and no-match fixture verify the exact reveal boundary.                                                |
 | `Add 1 card with [Tyrannomon] in its name or [Reptile]/[Dinosaur] trait` | first `RevealAdd.add` filter with `nameOrTrait` name `Tyrannomon` or trait `Reptile`, `Dinosaur`; `count: 1`, `to: "hand"` | Parameterized live reveals prove name-only MetalTyrannomon, Reptile-only Agumon, and Dinosaur-only Greymon matches; decoys remain bottom. |
-| `and 1 [Ryutaro Williams]` | second `RevealAdd.add` filter with exact name `Ryutaro Williams`; `count: 1`, `to: "hand"` | All-match fixtures and the Ryutaro-only fixture prove independent selection of the second category. |
-| `Return the rest to the bottom of the deck` | `rest: "deckBottom"` | No-match and mixed-reveal tests assert the final deck order and that unselected cards return bottom. |
-| `[Digivolve][Koromon]: Cost 0` | `digivolutionRequirement: [{ names: ["Koromon"], cost: 0, isAlternate: true }]` | EX8-001 Koromon alternate path succeeds at memory 0; BT2-005 and blue standard paths reject. |
-| standard Red/Green Lv.2 evolution costs 1 | catalog evolution requirements plus engine evolution validation | EX8-001 Red and EX8-004 Green standard paths succeed at memory 1, with memory reduced to 0; EX8-002 Blue rejects. |
-| `[Your Turn] This Digimon gets +2000 DP` | inherited effect `trigger: "YourTurn"`, self target, `ModifyDP.amount: 2000`, `duration: "permanent"`, `isInherited: true` | Live stack test observes 1000 -> 3000 on its controller's turn and 5000 -> 3000 when turn ownership changes (host baseline 3000). |
+| `and 1 [Ryutaro Williams]`                                               | second `RevealAdd.add` filter with exact name `Ryutaro Williams`; `count: 1`, `to: "hand"`                                 | All-match fixtures and the Ryutaro-only fixture prove independent selection of the second category.                                       |
+| `Return the rest to the bottom of the deck`                              | `rest: "deckBottom"`                                                                                                       | No-match and mixed-reveal tests assert the final deck order and that unselected cards return bottom.                                      |
+| `[Digivolve][Koromon]: Cost 0`                                           | `digivolutionRequirement: [{ names: ["Koromon"], cost: 0, isAlternate: true }]`                                            | EX8-001 Koromon alternate path succeeds at memory 0; BT2-005 and blue standard paths reject.                                              |
+| standard Red/Green Lv.2 evolution costs 1                                | catalog evolution requirements plus engine evolution validation                                                            | EX8-001 Red and EX8-004 Green standard paths succeed at memory 1, with memory reduced to 0; EX8-002 Blue rejects.                         |
+| `[Your Turn] This Digimon gets +2000 DP`                                 | inherited effect `trigger: "YourTurn"`, self target, `ModifyDP.amount: 2000`, `duration: "permanent"`, `isInherited: true` | Live stack test observes 1000 -> 3000 on its controller's turn and 5000 -> 3000 when turn ownership changes (host baseline 3000).         |
 
 The card has no Security clause, optional choice, cost, once-per-turn limit, or printed duration-expiry qualifier. `YourTurn` timing gates the inherited continuous modification to the controller's turn.
 
@@ -597,6 +652,10 @@ None for the printed EX8-007 contract. Collection recalculation, aggregate tests
 
 ### EX8-008 — Candlemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-008`, direct `apps/api/src/cards/EX8/EX8-008.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-008.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-008` Candlemon.
@@ -611,14 +670,14 @@ None for the printed EX8-007 contract. Collection recalculation, aggregate tests
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[Digivolve] Lv.2 w/[NSo] trait: Cost 0` | `digivolutionRequirement: [{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }]` | public digivolve intent succeeds from EX8-006 and rejects non-NSo BT2-005 |
-| `[On Deletion]` | effect `trigger: "OnDeletion"` | public deletion verb moves EX8-008 to trash and resolves gain |
-| `Gain 1 memory` | `GainMemory` action with `amount: 1` | memory changes from 0 to 1 after deletion resolution |
-| `[Your Turn]` | effect `trigger: "YourTurn"` | legal stacked host is +2000 on controller's turn and returns to base DP on opponent's turn |
-| `This Digimon gets +2000 DP` | inherited `ModifyDP`, self target, amount 2000 | BT1-014 host observes 4,000 -> 6,000 DP on your turn |
-| inherited text | `isInherited: true` | BT1-014-over-EX8-008 legal evolution stack exercises the source |
+| Printed clause                           | Compiled IR                                                                            | Behavioral proof                                                                           |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `[Digivolve] Lv.2 w/[NSo] trait: Cost 0` | `digivolutionRequirement: [{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }]` | public digivolve intent succeeds from EX8-006 and rejects non-NSo BT2-005                  |
+| `[On Deletion]`                          | effect `trigger: "OnDeletion"`                                                         | public deletion verb moves EX8-008 to trash and resolves gain                              |
+| `Gain 1 memory`                          | `GainMemory` action with `amount: 1`                                                   | memory changes from 0 to 1 after deletion resolution                                       |
+| `[Your Turn]`                            | effect `trigger: "YourTurn"`                                                           | legal stacked host is +2000 on controller's turn and returns to base DP on opponent's turn |
+| `This Digimon gets +2000 DP`             | inherited `ModifyDP`, self target, amount 2000                                         | BT1-014 host observes 4,000 -> 6,000 DP on your turn                                       |
+| inherited text                           | `isInherited: true`                                                                    | BT1-014-over-EX8-008 legal evolution stack exercises the source                            |
 
 #### Implementation and defects
 
@@ -665,6 +724,10 @@ None for the printed EX8-008 contract. Collection-level recalculation, aggregate
 
 ### EX8-009 — Guilmon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-009`, direct `apps/api/src/cards/EX8/EX8-009.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-009.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-009` Guilmon (X Antibody).
@@ -677,20 +740,20 @@ None for the printed EX8-008 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[On Play] [When Digivolving]` | separate `OnPlay` and `WhenDigivolving` effects | On Play reveal and live battle-area digivolution tests resolve each window and inspect the resulting hand/deck. |
-| `Reveal the top 3 cards` | both `RevealAdd` actions use `revealCount: 3` | Mixed and no-match fixtures assert exact three-card boundaries and final deck contents. |
-| `Add 1 card with [Growlmon]/[Gallantmon] in its name` | first add filter: controller default mine, `nameOrTrait` name tokens `Growlmon`, `Gallantmon`, count 1 to hand | AD1-003 Growlmon is selected in both On Play and When Digivolving paths. |
-| `and 1 [X Antibody]` | second add filter: controller default mine, `nameOrTrait` trait token `X Antibody`, count 1 to hand | BT10-016 name/trait and BT10-080 trait-only X Antibody fixtures prove trait matching is not name-only. |
-| `Return the rest to the bottom of the deck` | both actions use `rest: "deckBottom"` | Mixed reveal tests assert decoys return to the deck in the engine’s bottom-order convention. |
-| `[Digivolve][Gigimon]/[Guilmon]: Cost 0` | `digivolutionRequirement` names `Gigimon`, `Guilmon`, cost 0, alternate | BT12-001 Gigimon alternate path succeeds at memory 0; live battle-area Guilmon-base digivolution resolves both trigger categories. |
-| standard Red/Purple Lv.2 paths cost 1 | catalog evolution requirements plus engine validation | BT1-001 Red and BT2-007 Purple standard paths succeed at memory 1; BT1-007 Green rejects. |
-| `[Your Turn]` | inherited effect `trigger: "YourTurn"` | Opponent-turn deletion negative leaves memory unchanged; controller-turn positive gains memory. |
-| `[Once Per Turn]` | inherited effect `frequency: "OncePerTurn"` | First opposing deletion gains 1; second same-turn deletion is suppressed; a production Active-phase turn reset allows the next deletion to gain again. |
-| `When any of your opponent's Digimon is deleted` | `SubTrigger` event `onDeletionOf`, source filter `controller: "opponent"`, `kind: ["Digimon"]` | Opposing Digimon deletion gains; opponent-turn and own-deletion controls do not. |
-| `gain 1 memory` | nested `GainMemory` action amount 1 | Observable memory changes from 0 to 1 (and to 2 after reset). |
-| Q3874 host survival condition | `fireCondition: selfIsInBattleArea` | Simultaneous deletion of host and opponent produces no memory gain, matching Q3874. |
+| Printed clause                                        | Compiled IR                                                                                                    | Behavioral proof                                                                                                                                       |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `[On Play] [When Digivolving]`                        | separate `OnPlay` and `WhenDigivolving` effects                                                                | On Play reveal and live battle-area digivolution tests resolve each window and inspect the resulting hand/deck.                                        |
+| `Reveal the top 3 cards`                              | both `RevealAdd` actions use `revealCount: 3`                                                                  | Mixed and no-match fixtures assert exact three-card boundaries and final deck contents.                                                                |
+| `Add 1 card with [Growlmon]/[Gallantmon] in its name` | first add filter: controller default mine, `nameOrTrait` name tokens `Growlmon`, `Gallantmon`, count 1 to hand | AD1-003 Growlmon is selected in both On Play and When Digivolving paths.                                                                               |
+| `and 1 [X Antibody]`                                  | second add filter: controller default mine, `nameOrTrait` trait token `X Antibody`, count 1 to hand            | BT10-016 name/trait and BT10-080 trait-only X Antibody fixtures prove trait matching is not name-only.                                                 |
+| `Return the rest to the bottom of the deck`           | both actions use `rest: "deckBottom"`                                                                          | Mixed reveal tests assert decoys return to the deck in the engine’s bottom-order convention.                                                           |
+| `[Digivolve][Gigimon]/[Guilmon]: Cost 0`              | `digivolutionRequirement` names `Gigimon`, `Guilmon`, cost 0, alternate                                        | BT12-001 Gigimon alternate path succeeds at memory 0; live battle-area Guilmon-base digivolution resolves both trigger categories.                     |
+| standard Red/Purple Lv.2 paths cost 1                 | catalog evolution requirements plus engine validation                                                          | BT1-001 Red and BT2-007 Purple standard paths succeed at memory 1; BT1-007 Green rejects.                                                              |
+| `[Your Turn]`                                         | inherited effect `trigger: "YourTurn"`                                                                         | Opponent-turn deletion negative leaves memory unchanged; controller-turn positive gains memory.                                                        |
+| `[Once Per Turn]`                                     | inherited effect `frequency: "OncePerTurn"`                                                                    | First opposing deletion gains 1; second same-turn deletion is suppressed; a production Active-phase turn reset allows the next deletion to gain again. |
+| `When any of your opponent's Digimon is deleted`      | `SubTrigger` event `onDeletionOf`, source filter `controller: "opponent"`, `kind: ["Digimon"]`                 | Opposing Digimon deletion gains; opponent-turn and own-deletion controls do not.                                                                       |
+| `gain 1 memory`                                       | nested `GainMemory` action amount 1                                                                            | Observable memory changes from 0 to 1 (and to 2 after reset).                                                                                          |
+| Q3874 host survival condition                         | `fireCondition: selfIsInBattleArea`                                                                            | Simultaneous deletion of host and opponent produces no memory gain, matching Q3874.                                                                    |
 
 #### Implementation and defects
 
@@ -742,6 +805,10 @@ None for the printed EX8-009 contract or Q3874 ruling. Collection recalculation,
 
 ### EX8-010 — Meramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-010`, direct `apps/api/src/cards/EX8/EX8-010.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-010.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-010` Meramon.
@@ -756,15 +823,15 @@ None for the printed EX8-009 contract or Q3874 ruling. Collection recalculation,
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
+| Printed clause                           | Compiled IR                                                                            | Behavioral proof                                                                            |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `[Digivolve] Lv.3 w/[NSo] trait: Cost 2` | `digivolutionRequirement: [{ level: 3, traits: ["NSo"], cost: 2, isAlternate: true }]` | public digivolve intent succeeds from EX8-030 at memory cost 2 and rejects non-NSo BT10-058 |
-| `[On Play]` | `trigger: "OnPlay"` with opponent Digimon DP filter | live play deletes an exact 4,000-DP target and preserves 5,000 DP |
-| `[On Deletion]` | `trigger: "OnDeletion"` with the same filter | deleting EX8-010 deletes exact 4,000 DP and preserves 5,000 DP |
-| `1 of your opponent's Digimon` | target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1` | two-target boundary cases leave exactly one 5,000-DP Digimon |
-| `with 4000 DP or less` | `dp: { op: "lte", value: 4000 }` | exact 4,000 is deleted; 5,000 is not |
-| `[Your Turn]` | inherited effect `trigger: "YourTurn"` | legal stacked host gets the bonus on seat 0's turn and loses it on seat 1's turn |
-| `gets +2000 DP` | inherited self-target `ModifyDP`, amount 2000, duration `permanent` | BT1-014 observes 4,000 -> 6,000 DP on your turn, then 4,000 on opponent turn |
+| `[On Play]`                              | `trigger: "OnPlay"` with opponent Digimon DP filter                                    | live play deletes an exact 4,000-DP target and preserves 5,000 DP                           |
+| `[On Deletion]`                          | `trigger: "OnDeletion"` with the same filter                                           | deleting EX8-010 deletes exact 4,000 DP and preserves 5,000 DP                              |
+| `1 of your opponent's Digimon`           | target filter `controller: "opponent"`, `kind: ["Digimon"]`, `count: 1`                | two-target boundary cases leave exactly one 5,000-DP Digimon                                |
+| `with 4000 DP or less`                   | `dp: { op: "lte", value: 4000 }`                                                       | exact 4,000 is deleted; 5,000 is not                                                        |
+| `[Your Turn]`                            | inherited effect `trigger: "YourTurn"`                                                 | legal stacked host gets the bonus on seat 0's turn and loses it on seat 1's turn            |
+| `gets +2000 DP`                          | inherited self-target `ModifyDP`, amount 2000, duration `permanent`                    | BT1-014 observes 4,000 -> 6,000 DP on your turn, then 4,000 on opponent turn                |
 
 #### Implementation and defects
 
@@ -811,6 +878,10 @@ None for the printed EX8-010 contract. Collection-level recalculation, aggregate
 
 ### EX8-011 — Tyrannomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-011`, direct `apps/api/src/cards/EX8/EX8-011.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-011.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-011` Tyrannomon.
@@ -823,17 +894,17 @@ None for the printed EX8-010 contract. Collection-level recalculation, aggregate
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause | Compiled IR | Behavioral proof |
-| --- | --- | --- |
-| `[Digivolve]Lv.3 w/[Reptile] trait: Cost 2` | `digivolutionRequirement` level 3, traits `["Reptile"]`, cost 2, alternate | Blue Reptile Gabumon route succeeds with memory 2; non-Reptile Elecmon route rejects. |
-| standard Red/Green Lv.3 evolution costs 3 | catalog evolution paths plus engine validation | BT1-009 Red and EX8-039 Green standard paths succeed at memory 3; memory and resulting DP are asserted. |
-| `[Security]` | effect `trigger: "Security"`, end-of-battle timing | Security-check test reveals EX8-011, then verifies its deferred play after battle. |
-| `At the end of the battle` | Security action is a `SubTrigger` on `whenSecurityBattleEnded`, `once: true`, with effect timing annotation `timing: "endOfBattle"` | Attacker is removed by the Security Digimon battle, while EX8-011 still plays from trash at the battle endpoint. |
-| `play this card without paying the cost` | `PlayWithoutCost`, target self, `from: ["trash"]`, `payCost: false` | Exact security instance moves from Security through trash to the opponent’s Battle Area without changing memory. |
-| `[Start of Your Main Phase]` | `trigger: "StartOfYourMainPhase"` | Public timing seam test observes the +3000 DP grant. |
-| `[When Digivolving]` | `trigger: "WhenDigivolving"` | Standard Red/Green and alternate Reptile digivolutions observe the +3000 DP grant after resolving. |
-| `gets +3000 DP until the end of your opponent's turn` | self-target `ModifyDP`, amount 3000, duration `untilOpponentTurnEnd` | Start-of-main test grants 3000, then runs the opponent turn and confirms the temporary grant expires. |
-| inherited `[Your Turn]` +2000 DP | inherited `YourTurn` self-target `ModifyDP`, amount 2000, duration `permanent` | Live inherited stack test observes +2000 only for the controller’s turn and baseline after turn ownership changes. |
+| Printed clause                                        | Compiled IR                                                                                                                         | Behavioral proof                                                                                                   |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `[Digivolve]Lv.3 w/[Reptile] trait: Cost 2`           | `digivolutionRequirement` level 3, traits `["Reptile"]`, cost 2, alternate                                                          | Blue Reptile Gabumon route succeeds with memory 2; non-Reptile Elecmon route rejects.                              |
+| standard Red/Green Lv.3 evolution costs 3             | catalog evolution paths plus engine validation                                                                                      | BT1-009 Red and EX8-039 Green standard paths succeed at memory 3; memory and resulting DP are asserted.            |
+| `[Security]`                                          | effect `trigger: "Security"`, end-of-battle timing                                                                                  | Security-check test reveals EX8-011, then verifies its deferred play after battle.                                 |
+| `At the end of the battle`                            | Security action is a `SubTrigger` on `whenSecurityBattleEnded`, `once: true`, with effect timing annotation `timing: "endOfBattle"` | Attacker is removed by the Security Digimon battle, while EX8-011 still plays from trash at the battle endpoint.   |
+| `play this card without paying the cost`              | `PlayWithoutCost`, target self, `from: ["trash"]`, `payCost: false`                                                                 | Exact security instance moves from Security through trash to the opponent’s Battle Area without changing memory.   |
+| `[Start of Your Main Phase]`                          | `trigger: "StartOfYourMainPhase"`                                                                                                   | Public timing seam test observes the +3000 DP grant.                                                               |
+| `[When Digivolving]`                                  | `trigger: "WhenDigivolving"`                                                                                                        | Standard Red/Green and alternate Reptile digivolutions observe the +3000 DP grant after resolving.                 |
+| `gets +3000 DP until the end of your opponent's turn` | self-target `ModifyDP`, amount 3000, duration `untilOpponentTurnEnd`                                                                | Start-of-main test grants 3000, then runs the opponent turn and confirms the temporary grant expires.              |
+| inherited `[Your Turn]` +2000 DP                      | inherited `YourTurn` self-target `ModifyDP`, amount 2000, duration `permanent`                                                      | Live inherited stack test observes +2000 only for the controller’s turn and baseline after turn ownership changes. |
 
 The card has no optional choice, once-per-turn limit, cost on its effects, or Security effect beyond the mandatory end-of-battle play. Its only duration is the +3000 DP grant through the opponent’s turn end.
 
@@ -887,6 +958,10 @@ None for the printed EX8-011 contract. Collection recalculation, aggregate tests
 
 ### EX8-012 — Growlmon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-012`, direct `apps/api/src/cards/EX8/EX8-012.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-012.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-012 — Growlmon (X Antibody)
 
@@ -909,15 +984,15 @@ Peer/stack evidence was checked against EX8-009, which has the same inherited de
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Growlmon alternate evolution for 0 | `digivolutionRequirement: { names: ["Growlmon"], cost: 0, isAlternate: true }` | `publishes the exact Growlmon alternate route`; positive Growlmon stack test |
-| Draw 1, then trash 1 from hand | `Draw` mine/1 followed by mandatory `Trash` from mine hand/count 1 | `draws, trashes, and gains the Guilmon recovery effect over Growlmon` asserts the drawn cards and trashed Guilmon |
-| Gate on Growlmon name or X Antibody in this stack | `GainTriggeredEffect.condition` `anyOf` with `selfDigivolutionStackMatchesFilter` and `selfDigivolutionStackHasTrait` | positive Growlmon and X Antibody stack tests; `does not gain Guilmon recovery without a Growlmon or X Antibody stack card` |
-| Until opponent's turn ends, gain On Deletion recovery | self-targeted `GainTriggeredEffect`, `gainedTrigger: OnDeletion`, `duration: untilOpponentTurnEnd` | recovery positive path, `can decline the optional Guilmon recovery`, and `expires the gained Guilmon recovery at the end of the opponent's turn` |
-| You may play one Guilmon by name from trash without paying | optional `PlayWithoutCost`, `from: ["trash"]`, `payCost: false`, mine Guilmon name filter/count 1 | positive recovery and optional refusal tests assert final battle area/trash |
-| Your turn, once per turn, opposing Digimon deletion gains 1 memory | inherited `YourTurn`/`frequency: OncePerTurn` with `SubTrigger onDeletionOf`, opponent Digimon source filter, `selfIsInBattleArea`, `GainMemory 1` | positive opposing deletion, own-deletion negative, opponent-turn negative, same-turn once limit, and next-own-turn reset |
-| Q3875 simultaneous deletion ruling | `fireCondition: { kind: "selfIsInBattleArea" }` evaluated at trigger timing | `gains memory only once and not on the opponent's turn or simultaneous host deletion (Q3875)` |
+| Printed clause                                                     | Compiled IR                                                                                                                                        | Focused proof                                                                                                                                    |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Growlmon alternate evolution for 0                                 | `digivolutionRequirement: { names: ["Growlmon"], cost: 0, isAlternate: true }`                                                                     | `publishes the exact Growlmon alternate route`; positive Growlmon stack test                                                                     |
+| Draw 1, then trash 1 from hand                                     | `Draw` mine/1 followed by mandatory `Trash` from mine hand/count 1                                                                                 | `draws, trashes, and gains the Guilmon recovery effect over Growlmon` asserts the drawn cards and trashed Guilmon                                |
+| Gate on Growlmon name or X Antibody in this stack                  | `GainTriggeredEffect.condition` `anyOf` with `selfDigivolutionStackMatchesFilter` and `selfDigivolutionStackHasTrait`                              | positive Growlmon and X Antibody stack tests; `does not gain Guilmon recovery without a Growlmon or X Antibody stack card`                       |
+| Until opponent's turn ends, gain On Deletion recovery              | self-targeted `GainTriggeredEffect`, `gainedTrigger: OnDeletion`, `duration: untilOpponentTurnEnd`                                                 | recovery positive path, `can decline the optional Guilmon recovery`, and `expires the gained Guilmon recovery at the end of the opponent's turn` |
+| You may play one Guilmon by name from trash without paying         | optional `PlayWithoutCost`, `from: ["trash"]`, `payCost: false`, mine Guilmon name filter/count 1                                                  | positive recovery and optional refusal tests assert final battle area/trash                                                                      |
+| Your turn, once per turn, opposing Digimon deletion gains 1 memory | inherited `YourTurn`/`frequency: OncePerTurn` with `SubTrigger onDeletionOf`, opponent Digimon source filter, `selfIsInBattleArea`, `GainMemory 1` | positive opposing deletion, own-deletion negative, opponent-turn negative, same-turn once limit, and next-own-turn reset                         |
+| Q3875 simultaneous deletion ruling                                 | `fireCondition: { kind: "selfIsInBattleArea" }` evaluated at trigger timing                                                                        | `gains memory only once and not on the opponent's turn or simultaneous host deletion (Q3875)`                                                    |
 
 #### Changes
 
@@ -972,6 +1047,10 @@ No card-specific behavioral or IR defect was found. The engine's narrow type-che
 
 ### EX8-013 — SkullMeramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-013`, direct `apps/api/src/cards/EX8/EX8-013.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-013.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-013` SkullMeramon.
@@ -986,12 +1065,12 @@ No card-specific behavioral or IR defect was found. The engine's narrow type-che
 
 `apps/api/src/cards/EX8/EX8-013.ts` has no card-specific type diagnostic without `@ts-nocheck` and registers only through `registerIrCard("EX8-013", compiled)`.
 
-| Printed contract | IR/runtime mapping | Behavioral proof |
-| --- | --- | --- |
-| Standard Red Level 4 evolution for 3 | The catalog's standard evolution requirement is consumed by the normal digivolve legality/cost path | Standard Red Level 4 route with `ST1-07` succeeds at memory 3 and leaves memory 0 |
-| Level 4 with `[NSo]` trait for 3 | `compiled.digivolutionRequirement`: `{ level: 4, traits: ["NSo"], cost: 3, isAlternate: true }`; `digivolutionRequirementsFor` publishes it | Purple `EX8-059` (Level 4, NSo) succeeds with `useAlternateCost: true` at memory 3 and leaves memory 0 |
-| Inherited `＜Security Attack +1＞` | Static inherited effect with keyword `SecurityAttack`, amount `1`, and exact raw text | `observe(...).keywordAmount` returns 1 on a live stack and a player attack checks two security cards, moving both to trash |
-| NSo filter rejects non-matching source | Shared evolution legality validates level, color/trait, and selected alternate route | Blue non-NSo `BT1-037` is rejected with `{ ok: false, reason: "invalid-evolution" }` |
+| Printed contract                       | IR/runtime mapping                                                                                                                          | Behavioral proof                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Standard Red Level 4 evolution for 3   | The catalog's standard evolution requirement is consumed by the normal digivolve legality/cost path                                         | Standard Red Level 4 route with `ST1-07` succeeds at memory 3 and leaves memory 0                                          |
+| Level 4 with `[NSo]` trait for 3       | `compiled.digivolutionRequirement`: `{ level: 4, traits: ["NSo"], cost: 3, isAlternate: true }`; `digivolutionRequirementsFor` publishes it | Purple `EX8-059` (Level 4, NSo) succeeds with `useAlternateCost: true` at memory 3 and leaves memory 0                     |
+| Inherited `＜Security Attack +1＞`     | Static inherited effect with keyword `SecurityAttack`, amount `1`, and exact raw text                                                       | `observe(...).keywordAmount` returns 1 on a live stack and a player attack checks two security cards, moving both to trash |
+| NSo filter rejects non-matching source | Shared evolution legality validates level, color/trait, and selected alternate route                                                        | Blue non-NSo `BT1-037` is rejected with `{ ok: false, reason: "invalid-evolution" }`                                       |
 
 No optional effect, duration, once-per-turn, or card-specific security trigger is printed, so those dimensions are not applicable. The inherited keyword is verified through a realistic stack and a resolved security sequence rather than only by inspecting IR.
 
@@ -1034,6 +1113,10 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-014 — MasterTyrannomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-014`, direct `apps/api/src/cards/EX8/EX8-014.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-014.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-014 — MasterTyrannomon
 
@@ -1060,14 +1143,14 @@ Peer/stack evidence was checked against EX8-016 and EX8-042 Fortitude implementa
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Fortitude | non-inherited `Static` keyword `{ keyword: "Fortitude" }` | `replays itself through Fortitude only because it has a digivolution card`; `does not replay through Fortitude when no digivolution card remains` |
-| On Play suspension is optional and can target either player's Digimon | `OnPlay` `Suspend`, `optional: true`, `controllerDefault: "any"`, Digimon/count 1 | positive play test, optional-decline negative, and Q3876 opponent-target test |
-| When Digivolving repeats the same optional suspension | `WhenDigivolving` has the same `Suspend` target/filter/optionality | `suspends and deletes through the When Digivolving trigger` and standard evolution proof |
-| If this Digimon is suspended, delete opposing Digimon with DP ≤8000 | following `Delete`, opponent Digimon filter, `dp: { op: "lte", value: 8000 }`, `condition: selfIsSuspended` | exact 8000 positive, above-8000 negative, and optional-decline negative |
-| Inherited Security Attack +1 | inherited `Static` keyword `{ keyword: "SecurityAttack", amount: 1 }` | `uses inherited Security Attack +1 for two real security checks` asserts live keyword and two security cards trashed by one attack |
-| Evolution legality | compiled Dinosaur alternate requirement `{ level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }`; catalog supplies Red/Green Lv4 cost 4 | Dinosaur alternate positive, standard Red/Green positive, non-Dinosaur rejection |
+| Printed clause                                                        | Compiled IR                                                                                                                                     | Focused proof                                                                                                                                     |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fortitude                                                             | non-inherited `Static` keyword `{ keyword: "Fortitude" }`                                                                                       | `replays itself through Fortitude only because it has a digivolution card`; `does not replay through Fortitude when no digivolution card remains` |
+| On Play suspension is optional and can target either player's Digimon | `OnPlay` `Suspend`, `optional: true`, `controllerDefault: "any"`, Digimon/count 1                                                               | positive play test, optional-decline negative, and Q3876 opponent-target test                                                                     |
+| When Digivolving repeats the same optional suspension                 | `WhenDigivolving` has the same `Suspend` target/filter/optionality                                                                              | `suspends and deletes through the When Digivolving trigger` and standard evolution proof                                                          |
+| If this Digimon is suspended, delete opposing Digimon with DP ≤8000   | following `Delete`, opponent Digimon filter, `dp: { op: "lte", value: 8000 }`, `condition: selfIsSuspended`                                     | exact 8000 positive, above-8000 negative, and optional-decline negative                                                                           |
+| Inherited Security Attack +1                                          | inherited `Static` keyword `{ keyword: "SecurityAttack", amount: 1 }`                                                                           | `uses inherited Security Attack +1 for two real security checks` asserts live keyword and two security cards trashed by one attack                |
+| Evolution legality                                                    | compiled Dinosaur alternate requirement `{ level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }`; catalog supplies Red/Green Lv4 cost 4 | Dinosaur alternate positive, standard Red/Green positive, non-Dinosaur rejection                                                                  |
 
 #### Changes
 
@@ -1122,6 +1205,10 @@ No card-specific IR or behavioral defect was found. Fortitude replay is mandator
 
 ### EX8-015 — WarGrowlmon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-015`, direct `apps/api/src/cards/EX8/EX8-015.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-015.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-015` WarGrowlmon (X Antibody).
@@ -1137,14 +1224,14 @@ No card-specific IR or behavioral defect was found. Fortitude replay is mandator
 
 `apps/api/src/cards/EX8/EX8-015.ts` has no card-specific type diagnostic without `@ts-nocheck` and registers exclusively with `registerIrCard("EX8-015", compiled)`. Coverage is `full` and residual is empty.
 
-| Printed contract | IR/runtime mapping | Behavioral proof |
-| --- | --- | --- |
-| Alternate `[WarGrowlmon]` Level 4 evolution for 1 | `digivolutionRequirement: { names: ["WarGrowlmon"], cost: 1, isAlternate: true }`; shared `digivolutionRequirementsFor` and legality path perform exact name/cost checks | `BT2-017 WarGrowlmon` evolves into EX8-015 at memory 1 and leaves memory 0 |
-| Until opponent-turn end, self cannot return to hand or deck | When Digivolving `Restrict`, self target, `beReturned`, `untilOpponentTurnEnd`; restriction ledger is consumed by both return primitives | Same-turn hand and deck return attempts are refused; after opponent turn, hand return succeeds |
-| Until opponent-turn end, self gets +3000 DP | When Digivolving self `ModifyDP`, amount 3000, `untilOpponentTurnEnd` | 8000 becomes 11000 immediately and returns to 8000 after opponent turn |
-| Conditional delete of one opposing Digimon at 10000 DP or less | `Delete` targets opponent Digimon, count 1, inclusive `dp: { op: "lte", value: 10000 }`; `anyOf` condition checks a WarGrowlmon-name source or X Antibody-trait source | 10000-DP `BT1-024` is deleted while neutral 15000-DP `BT1-084` remains |
-| X Antibody trait source qualifies independently of source name | `selfDigivolutionStackHasTrait` with `nameOrTrait` trait match `X Antibody` | `BT12-078 Wizardmon (X Antibody)` source has no X Antibody words needed in the name and still permits deletion |
-| Inherited `＜Security Attack +1＞` | Static inherited keyword `SecurityAttack`, amount 1, exact raw text | Live host reports amount 1 and a player attack moves two security cards to trash |
+| Printed contract                                               | IR/runtime mapping                                                                                                                                                       | Behavioral proof                                                                                               |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Alternate `[WarGrowlmon]` Level 4 evolution for 1              | `digivolutionRequirement: { names: ["WarGrowlmon"], cost: 1, isAlternate: true }`; shared `digivolutionRequirementsFor` and legality path perform exact name/cost checks | `BT2-017 WarGrowlmon` evolves into EX8-015 at memory 1 and leaves memory 0                                     |
+| Until opponent-turn end, self cannot return to hand or deck    | When Digivolving `Restrict`, self target, `beReturned`, `untilOpponentTurnEnd`; restriction ledger is consumed by both return primitives                                 | Same-turn hand and deck return attempts are refused; after opponent turn, hand return succeeds                 |
+| Until opponent-turn end, self gets +3000 DP                    | When Digivolving self `ModifyDP`, amount 3000, `untilOpponentTurnEnd`                                                                                                    | 8000 becomes 11000 immediately and returns to 8000 after opponent turn                                         |
+| Conditional delete of one opposing Digimon at 10000 DP or less | `Delete` targets opponent Digimon, count 1, inclusive `dp: { op: "lte", value: 10000 }`; `anyOf` condition checks a WarGrowlmon-name source or X Antibody-trait source   | 10000-DP `BT1-024` is deleted while neutral 15000-DP `BT1-084` remains                                         |
+| X Antibody trait source qualifies independently of source name | `selfDigivolutionStackHasTrait` with `nameOrTrait` trait match `X Antibody`                                                                                              | `BT12-078 Wizardmon (X Antibody)` source has no X Antibody words needed in the name and still permits deletion |
+| Inherited `＜Security Attack +1＞`                             | Static inherited keyword `SecurityAttack`, amount 1, exact raw text                                                                                                      | Live host reports amount 1 and a player attack moves two security cards to trash                               |
 
 No optional, once-per-turn, duration beyond the printed opponent-turn expiry, or card-specific Security trigger is omitted: the only optionality in the printed contract is none; the conditional deletion is represented as a gate. The negative standard evolution fixture (`EX8-010 Meramon`) demonstrates that the When Digivolving buff/protection still occur without a qualifying source while deletion does not.
 
@@ -1192,6 +1279,10 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-016 — Dinomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-016`, direct `apps/api/src/cards/EX8/EX8-016.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-016.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and catalog evidence
 
 - Card: `EX8-016` Dinomon.
@@ -1206,16 +1297,16 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 `apps/api/src/cards/EX8/EX8-016.ts` has no card-specific type diagnostic after removing `@ts-nocheck`. It registers only through `registerIrCard("EX8-016", compiled)`; `coverage` is `full` and `residual` is empty.
 
-| Printed clause | IR/runtime mapping | Behavioral proof |
-| --- | --- | --- |
-| Security Attack +1 | Static `SecurityAttack` keyword, amount 1 | Live Dinomon reports amount 1 and checks two security cards |
-| Fortitude | Static `Fortitude` keyword; deletion/replay pipeline consumes the live keyword | Dinomon with a source is replayed without cost and its source is trashed; a source-less Dinomon does not replay |
-| `[On Play] [When Digivolving] You may suspend 1 Digimon` | Both triggers use optional `Suspend`, one Digimon, `controllerDefault: "any"`, kind Digimon | On Play suspends the opponent's Digimon (Q3877); When Digivolving refusal is explicitly tested |
-| Then delete one opponent's suspended Digimon with lowest DP | Each trigger follows optional Suspend with mandatory Delete, opponent Digimon, `suspended: true`, `superlative: "lowestDP"`, count 1 | Lowest suspended target is deleted; declining suspension still performs mandatory deletion |
-| Opponent's Turn restriction while self suspended | `OpponentsTurn` Aura applies `attackOnlySuspendedDigimon` to all opponent Digimon while `selfIsSuspended` | Marsmon's unsuspended attack is rejected (Q3878), suspended attack succeeds, and the restriction is absent for an unaffected opponent (Q3880) |
-| Raid interaction | Shared declaration-time restriction permits only suspended initial target; Raid redirection runs after declaration | Q3879 test declares against suspended Dinomon and confirms Raid switches to an unsuspended target |
-| Alternate evolution routes | `digivolutionRequirement` records Level 5 `Tyrannomon` name and `Dinosaur` trait, each cost 4 and alternate | `BT1-024` Tyrannomon-name and `EX7-035` Dinosaur-trait routes each evolve at memory 4 and leave memory 0 |
-| Standard evolution routes | Catalog standard Red/Green Level 5 requirements are consumed by normal legality/cost path | Neutral `BT1-024` Red and `BT1-076` Green sources each evolve at memory 5 and leave memory 0 |
+| Printed clause                                              | IR/runtime mapping                                                                                                                   | Behavioral proof                                                                                                                              |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security Attack +1                                          | Static `SecurityAttack` keyword, amount 1                                                                                            | Live Dinomon reports amount 1 and checks two security cards                                                                                   |
+| Fortitude                                                   | Static `Fortitude` keyword; deletion/replay pipeline consumes the live keyword                                                       | Dinomon with a source is replayed without cost and its source is trashed; a source-less Dinomon does not replay                               |
+| `[On Play] [When Digivolving] You may suspend 1 Digimon`    | Both triggers use optional `Suspend`, one Digimon, `controllerDefault: "any"`, kind Digimon                                          | On Play suspends the opponent's Digimon (Q3877); When Digivolving refusal is explicitly tested                                                |
+| Then delete one opponent's suspended Digimon with lowest DP | Each trigger follows optional Suspend with mandatory Delete, opponent Digimon, `suspended: true`, `superlative: "lowestDP"`, count 1 | Lowest suspended target is deleted; declining suspension still performs mandatory deletion                                                    |
+| Opponent's Turn restriction while self suspended            | `OpponentsTurn` Aura applies `attackOnlySuspendedDigimon` to all opponent Digimon while `selfIsSuspended`                            | Marsmon's unsuspended attack is rejected (Q3878), suspended attack succeeds, and the restriction is absent for an unaffected opponent (Q3880) |
+| Raid interaction                                            | Shared declaration-time restriction permits only suspended initial target; Raid redirection runs after declaration                   | Q3879 test declares against suspended Dinomon and confirms Raid switches to an unsuspended target                                             |
+| Alternate evolution routes                                  | `digivolutionRequirement` records Level 5 `Tyrannomon` name and `Dinosaur` trait, each cost 4 and alternate                          | `BT1-024` Tyrannomon-name and `EX7-035` Dinosaur-trait routes each evolve at memory 4 and leave memory 0                                      |
+| Standard evolution routes                                   | Catalog standard Red/Green Level 5 requirements are consumed by normal legality/cost path                                            | Neutral `BT1-024` Red and `BT1-076` Green sources each evolve at memory 5 and leave memory 0                                                  |
 
 The optional suspension has no once-per-turn or duration clause. The opponent-turn restriction is continuously conditioned on Dinomon remaining suspended; all applicable optional/refusal, targeting, duration, inherited, security, deletion, and evolution behaviors are covered.
 
@@ -1264,6 +1355,10 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-017 — Crabmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-017`, direct `apps/api/src/cards/EX8/EX8-017.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-017.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-017 — Crabmon
 
@@ -1288,15 +1383,15 @@ Peer/stack evidence was checked against EX8-046/EX8-050 keyword grants and EX8-0
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| On Play, one of your Digimon gains Blocker | `OnPlay` `GainKeyword`, mine Digimon filter/count 1, `keyword: Blocker`, duration `untilOpponentTurnEnd` | exact structural trace; public play grants Blocker to a friendly Digimon and explicitly leaves an opposing Digimon without it |
-| Grant expires at end of opponent's turn | `GainKeyword.duration: "untilOpponentTurnEnd"` | `gives a live friendly Digimon Blocker on play` runs the opponent turn and asserts the grant is gone |
-| Inherited Jamming | inherited `Static` keyword `{ keyword: "Jamming" }` | live inherited-host keyword assertion and losing security battle prove the attacker remains in battle area |
-| Standard Blue Lv2 evolution for 0 | catalog evolution requirement | blue Digi-Egg standard evolution is exercised at memory 0 |
-| Alternate Lv2 DS evolution for 0 | `digivolutionRequirement: { level: 2, traits: ["DS"], cost: 0, isAlternate: true }` | EX8-002 DS Digi-Egg alternate evolution succeeds at memory 0 |
-| Non-DS alternate rejection | same trait-gated alternate requirement | black non-DS Digi-Egg alternate evolution returns `invalid-evolution` |
-| Blocker combat use | granted keyword is consumed by normal block legality | public opponent attack opens a block window; `declareBlock` redirects the attack, suspends the blocker, and preserves security |
+| Printed clause                             | Compiled IR                                                                                              | Focused proof                                                                                                                  |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| On Play, one of your Digimon gains Blocker | `OnPlay` `GainKeyword`, mine Digimon filter/count 1, `keyword: Blocker`, duration `untilOpponentTurnEnd` | exact structural trace; public play grants Blocker to a friendly Digimon and explicitly leaves an opposing Digimon without it  |
+| Grant expires at end of opponent's turn    | `GainKeyword.duration: "untilOpponentTurnEnd"`                                                           | `gives a live friendly Digimon Blocker on play` runs the opponent turn and asserts the grant is gone                           |
+| Inherited Jamming                          | inherited `Static` keyword `{ keyword: "Jamming" }`                                                      | live inherited-host keyword assertion and losing security battle prove the attacker remains in battle area                     |
+| Standard Blue Lv2 evolution for 0          | catalog evolution requirement                                                                            | blue Digi-Egg standard evolution is exercised at memory 0                                                                      |
+| Alternate Lv2 DS evolution for 0           | `digivolutionRequirement: { level: 2, traits: ["DS"], cost: 0, isAlternate: true }`                      | EX8-002 DS Digi-Egg alternate evolution succeeds at memory 0                                                                   |
+| Non-DS alternate rejection                 | same trait-gated alternate requirement                                                                   | black non-DS Digi-Egg alternate evolution returns `invalid-evolution`                                                          |
+| Blocker combat use                         | granted keyword is consumed by normal block legality                                                     | public opponent attack opens a block window; `declareBlock` redirects the attack, suspends the blocker, and preserves security |
 
 #### Changes
 
@@ -1351,6 +1446,10 @@ No card-specific IR or behavioral defect was found. The test harness uses public
 
 ### EX8-018 — Gomamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-018`, direct `apps/api/src/cards/EX8/EX8-018.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-018.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and catalog evidence
 
 - Card: `EX8-018` Gomamon.
@@ -1366,15 +1465,15 @@ No card-specific IR or behavioral defect was found. The test harness uses public
 
 `apps/api/src/cards/EX8/EX8-018.ts` has no card-specific type diagnostic after removing `@ts-nocheck`. It registers exclusively with `registerIrCard("EX8-018", compiled)`; coverage is `full` and residual is empty.
 
-| Printed clause | IR/runtime mapping | Behavioral proof |
-| --- | --- | --- |
-| On Play reveal top 3 | `RevealAdd.revealCount: 3` uses the source owner's deck | Positive and negative deck-order tests inspect exact final zones/order |
-| Add up to/one DS trait card | First add bucket filters `nameOrTrait` trait `DS`, count 1, destination hand | `EX8-020` is selected from the live reveal |
-| Add one Sea Beast/Plesiosaur trait card | Second add bucket filters trait tokens `Sea Beast` or `Plesiosaur`, count 1, destination hand | `BT1-041` Sea Beast and `EX8-027` Plesiosaur variants are selected |
-| Return the rest to deck bottom | `rest: "deckBottom"` places unselected revealed cards at the bottom in engine order | Negative pool returns all three cards to the exact expected deck order |
-| Inherited attack draw at 7-or-fewer cards | Inherited `WhenAttacking` action draws 1 for `controller: "mine"` under `zoneCount(hand) <= 7` | Seven cards draws to eight; eight cards does not draw |
-| Once Per Turn | Effect frequency `OncePerTurn` is carried through the shared registered timing effect and turn tracker | Two attacks in one turn produce exactly one draw, then the next owner turn draws again after reset |
-| Alternate Level 2 DS evolution for 0 | `digivolutionRequirement: { level: 2, traits: ["DS"], cost: 0, isAlternate: true }` | DS `EX8-002 Bukamon` evolves at zero memory; non-DS `BT2-005 Kapurimon` is rejected |
+| Printed clause                            | IR/runtime mapping                                                                                     | Behavioral proof                                                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| On Play reveal top 3                      | `RevealAdd.revealCount: 3` uses the source owner's deck                                                | Positive and negative deck-order tests inspect exact final zones/order                             |
+| Add up to/one DS trait card               | First add bucket filters `nameOrTrait` trait `DS`, count 1, destination hand                           | `EX8-020` is selected from the live reveal                                                         |
+| Add one Sea Beast/Plesiosaur trait card   | Second add bucket filters trait tokens `Sea Beast` or `Plesiosaur`, count 1, destination hand          | `BT1-041` Sea Beast and `EX8-027` Plesiosaur variants are selected                                 |
+| Return the rest to deck bottom            | `rest: "deckBottom"` places unselected revealed cards at the bottom in engine order                    | Negative pool returns all three cards to the exact expected deck order                             |
+| Inherited attack draw at 7-or-fewer cards | Inherited `WhenAttacking` action draws 1 for `controller: "mine"` under `zoneCount(hand) <= 7`         | Seven cards draws to eight; eight cards does not draw                                              |
+| Once Per Turn                             | Effect frequency `OncePerTurn` is carried through the shared registered timing effect and turn tracker | Two attacks in one turn produce exactly one draw, then the next owner turn draws again after reset |
+| Alternate Level 2 DS evolution for 0      | `digivolutionRequirement: { level: 2, traits: ["DS"], cost: 0, isAlternate: true }`                    | DS `EX8-002 Bukamon` evolves at zero memory; non-DS `BT2-005 Kapurimon` is rejected                |
 
 The two search categories are intentionally distinct trait filters; no optional search action, paid cost, duration, or security-specific clause is printed. A card such as `EX8-027` may match both category traits, and the live reveal fixtures include it alongside a separate DS-only `EX8-020` so the two buckets are exercised against a mixed pool.
 
@@ -1385,12 +1484,12 @@ The two search categories are intentionally distinct trait filters; no optional 
 1. Exact catalog identity and all printed text fields.
 2. Exact RevealAdd count, two add buckets, and deck-bottom remainder.
 3. Exact inherited Once Per Turn attack draw condition.
-4–5. Positive DS and Sea Beast/Plesiosaur live reveal candidates (`BT1-041`, `EX8-027`).
-6. No-match negative returns all revealed cards to deck bottom.
-7. Inclusive seven-card boundary and once-per-turn suppression across two attacks.
-8. Eight-card negative boundary does not draw.
-9. Real next-turn reset through `startTurnLoop`, proving the inherited draw re-arms.
-10. DS Level 2 alternate evolution at zero and non-DS rejection.
+   4–5. Positive DS and Sea Beast/Plesiosaur live reveal candidates (`BT1-041`, `EX8-027`).
+4. No-match negative returns all revealed cards to deck bottom.
+5. Inclusive seven-card boundary and once-per-turn suppression across two attacks.
+6. Eight-card negative boundary does not draw.
+7. Real next-turn reset through `startTurnLoop`, proving the inherited draw re-arms.
+8. DS Level 2 alternate evolution at zero and non-DS rejection.
 
 Peer comparison covered EX8-020/EX8-027 inherited DS search vocabulary and EX8-017/EX8-019 neighboring DS evolution patterns; the focused mixed reveal pool also provides a trait-category comparison rather than a single-card fixture.
 
@@ -1420,6 +1519,10 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-019 — Penguinmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-019`, direct `apps/api/src/cards/EX8/EX8-019.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-019.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-019 — Penguinmon
 
@@ -1445,15 +1548,15 @@ Peer/stack evidence was checked against EX8-023 and EX8-028 Ice-Snow trait/evolu
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Your Turn cost reduction for an Ice-Snow Digimon being digivolved | `YourTurn` `Replacement`, `event: "wouldDigivolve"`, self source in `battleArea`, mine Digimon target whose trait matches Ice-Snow, nested `reduceCost` amount 1 | battle-area evolution to BT1-032 costs 1 from printed 2; non-Ice-Snow BT1-037 remains at printed cost 1 |
-| No breeding-area activation (Q3881) | `sourceFilter: { isSelfRef: true, zone: "battleArea" }` | breeding-area Ice-Snow evolution costs printed 1 rather than being reduced |
-| Rule trait Ice-Snow | `Rule` `GrantStatic`, self target, `grant: "trait"`, `tokens: ["Ice-Snow"]` | live `hasEffectiveTrait` assertion |
-| Inherited When Attacking gives one opposing Digimon Security Attack -1 | inherited `WhenAttacking` `GainKeyword`, opponent Digimon/count 1, SecurityAttack amount -1, `untilOpponentTurnEnd` | real host attack selects one of two opponents, target becomes -1 while the other remains 0; opponent's real attack performs zero security checks |
-| Modifier expiry | inherited grant duration `untilOpponentTurnEnd` | after the opponent turn, the target's SecurityAttack returns to 0 |
-| Standard evolution costs | catalog Blue/Yellow Lv2 requirements, 1 memory | blue battle-area evolution and yellow standard Digi-Egg evolution each pay 1 |
-| Hiyarimon alternate route | compiled `digivolutionRequirement: { names: ["Hiyarimon"], cost: 0, isAlternate: true }` | BT8-002 Hiyarimon succeeds at 0; off-color non-Hiyarimon Digi-Egg rejects |
+| Printed clause                                                         | Compiled IR                                                                                                                                                      | Focused proof                                                                                                                                    |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your Turn cost reduction for an Ice-Snow Digimon being digivolved      | `YourTurn` `Replacement`, `event: "wouldDigivolve"`, self source in `battleArea`, mine Digimon target whose trait matches Ice-Snow, nested `reduceCost` amount 1 | battle-area evolution to BT1-032 costs 1 from printed 2; non-Ice-Snow BT1-037 remains at printed cost 1                                          |
+| No breeding-area activation (Q3881)                                    | `sourceFilter: { isSelfRef: true, zone: "battleArea" }`                                                                                                          | breeding-area Ice-Snow evolution costs printed 1 rather than being reduced                                                                       |
+| Rule trait Ice-Snow                                                    | `Rule` `GrantStatic`, self target, `grant: "trait"`, `tokens: ["Ice-Snow"]`                                                                                      | live `hasEffectiveTrait` assertion                                                                                                               |
+| Inherited When Attacking gives one opposing Digimon Security Attack -1 | inherited `WhenAttacking` `GainKeyword`, opponent Digimon/count 1, SecurityAttack amount -1, `untilOpponentTurnEnd`                                              | real host attack selects one of two opponents, target becomes -1 while the other remains 0; opponent's real attack performs zero security checks |
+| Modifier expiry                                                        | inherited grant duration `untilOpponentTurnEnd`                                                                                                                  | after the opponent turn, the target's SecurityAttack returns to 0                                                                                |
+| Standard evolution costs                                               | catalog Blue/Yellow Lv2 requirements, 1 memory                                                                                                                   | blue battle-area evolution and yellow standard Digi-Egg evolution each pay 1                                                                     |
+| Hiyarimon alternate route                                              | compiled `digivolutionRequirement: { names: ["Hiyarimon"], cost: 0, isAlternate: true }`                                                                         | BT8-002 Hiyarimon succeeds at 0; off-color non-Hiyarimon Digi-Egg rejects                                                                        |
 
 #### Changes
 
@@ -1508,6 +1611,10 @@ No card-specific IR or behavioral defect was found. The deletion/attack fixtures
 
 ### EX8-020 — Dolphmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-020`, direct `apps/api/src/cards/EX8/EX8-020.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-020.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-020 — Dolphmon
 
@@ -1532,14 +1639,14 @@ Peer/stack evidence uses a legal BT1-038 Monzaemon (Blue level 5) host over EX8-
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| When Attacking inherited trigger | inherited effect with `trigger: "WhenAttacking"` | real host attacks in the seven-card and over-seven cases |
-| Once Per Turn | `frequency: "OncePerTurn"` | two attacks in one turn draw only once; next-own-turn test draws again |
+| Printed clause                       | Compiled IR                                                                         | Focused proof                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| When Attacking inherited trigger     | inherited effect with `trigger: "WhenAttacking"`                                    | real host attacks in the seven-card and over-seven cases                           |
+| Once Per Turn                        | `frequency: "OncePerTurn"`                                                          | two attacks in one turn draw only once; next-own-turn test draws again             |
 | If you have 7 or fewer cards in hand | `condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 }` | inclusive 7-card draw; 8-card negative; next-turn reset returns to 7 before attack |
-| Draw 1 | `Draw`, `controller: "mine"`, `amount: 1` | hand count increases by exactly one on qualifying attacks |
-| Standard Blue Lv3 evolution for 1 | catalog evolution requirement | existing Blue level-3 host evolution spends 1 memory |
-| Alternate Lv3 DS evolution for 1 | compiled `{ level: 3, traits: ["DS"], cost: 1, isAlternate: true }` | EX8-056 Syakomon DS route succeeds; non-DS BT2-069 route rejects |
+| Draw 1                               | `Draw`, `controller: "mine"`, `amount: 1`                                           | hand count increases by exactly one on qualifying attacks                          |
+| Standard Blue Lv3 evolution for 1    | catalog evolution requirement                                                       | existing Blue level-3 host evolution spends 1 memory                               |
+| Alternate Lv3 DS evolution for 1     | compiled `{ level: 3, traits: ["DS"], cost: 1, isAlternate: true }`                 | EX8-056 Syakomon DS route succeeds; non-DS BT2-069 route rejects                   |
 
 #### Changes
 
@@ -1594,6 +1701,10 @@ No card-specific IR or behavioral defect was found. The attack tests use public 
 
 ### EX8-021 — Seadramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-021`, direct `apps/api/src/cards/EX8/EX8-021.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-021.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 #### Scope and evidence
 
 - Card: `EX8-021` Seadramon.
@@ -1609,14 +1720,14 @@ No card-specific IR or behavioral defect was found. The attack tests use public 
 
 The assigned module already had no `@ts-nocheck`; that state was verified and preserved. `apps/api/src/cards/EX8/EX8-021.ts` registers exclusively with `registerIrCard("EX8-021", compiled)`, with `coverage: "full"` and empty residuals.
 
-| Printed clause | IR/runtime mapping | Behavioral proof |
-| --- | --- | --- |
-| `[When Attacking] [Once Per Turn] Gain 1 memory` | Non-inherited `WhenAttacking` effect, `frequency: "OncePerTurn"`, `GainMemory` amount 1 | Live top-card Seadramon gains exactly 1 on its first attack and not on its second in the same turn |
-| Once-per-turn reset | Shared registered timing effect uses the turn-scoped activation tracker | A real `startTurnLoop` opponent turn passes control; the owner's next attack re-arms the effect and adds 1 again (final memory 4 = pass +3 plus card +1) |
-| Effect is top-card only | WhenAttacking effect has no `isInherited` flag | A host with EX8-021 underneath gains no memory from its attack, while its inherited Jamming remains active |
-| Inherited `＜Jamming＞` | Static inherited keyword `Jamming`, exact raw text | Live host exposes Jamming and a 1000-DP host survives a losing battle against Security EX8-015 |
-| Alternate Level 3 DS route for 2 | `digivolutionRequirement: { level: 3, traits: ["DS"], cost: 2, isAlternate: true }` | Purple DS `EX8-056` evolves at memory 2; purple non-DS `BT2-069` is rejected |
-| Standard Blue Level 3 route for 2 | Catalog standard requirement is consumed by normal legality/cost path | Neutral Blue `BT1-030` evolves at memory 2 and leaves memory 0 |
+| Printed clause                                   | IR/runtime mapping                                                                      | Behavioral proof                                                                                                                                         |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[When Attacking] [Once Per Turn] Gain 1 memory` | Non-inherited `WhenAttacking` effect, `frequency: "OncePerTurn"`, `GainMemory` amount 1 | Live top-card Seadramon gains exactly 1 on its first attack and not on its second in the same turn                                                       |
+| Once-per-turn reset                              | Shared registered timing effect uses the turn-scoped activation tracker                 | A real `startTurnLoop` opponent turn passes control; the owner's next attack re-arms the effect and adds 1 again (final memory 4 = pass +3 plus card +1) |
+| Effect is top-card only                          | WhenAttacking effect has no `isInherited` flag                                          | A host with EX8-021 underneath gains no memory from its attack, while its inherited Jamming remains active                                               |
+| Inherited `＜Jamming＞`                          | Static inherited keyword `Jamming`, exact raw text                                      | Live host exposes Jamming and a 1000-DP host survives a losing battle against Security EX8-015                                                           |
+| Alternate Level 3 DS route for 2                 | `digivolutionRequirement: { level: 3, traits: ["DS"], cost: 2, isAlternate: true }`     | Purple DS `EX8-056` evolves at memory 2; purple non-DS `BT2-069` is rejected                                                                             |
+| Standard Blue Level 3 route for 2                | Catalog standard requirement is consumed by normal legality/cost path                   | Neutral Blue `BT1-030` evolves at memory 2 and leaves memory 0                                                                                           |
 
 The Once Per Turn condition has no optional/refusal branch, duration, or separate Security clause. The DS evolution negative uses a same-level, same-color near-peer whose only failure is the missing DS trait. No card-specific engine gap was found.
 
@@ -1660,6 +1771,10 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-022 — Frigimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-022`, direct `apps/api/src/cards/EX8/EX8-022.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-022.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-022 — Frigimon
 
@@ -1685,14 +1800,14 @@ Peer/stack evidence was checked against EX8-023 and EX8-028 Ice-Snow implementat
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Ice Clad | non-inherited `Static` keyword `{ keyword: "IceClad" }` | live keyword assertion and `uses Ice Clad source count to win a lower-DP battle` |
-| On Play and When Digivolving trash bottom 2 of one opposing Digimon | both triggers carry `TrashDigivolution`, opponent Digimon/count 1, `amount: 2`, `fromTop: false` | exact bottom-order On Play test and all-source When Digivolving test |
-| Then gain 1 memory only if opponent has no Digimon with digivolution cards | both branches carry `GainMemory 1` gated by `opponentHasNone` over opponent Digimon with `digivolutionCards: "hasAny"` | source-remains test gains no memory; all-sources-trashed test gains exactly 1 |
-| Inherited When Attacking Security Attack -1 | inherited `GainKeyword`, opponent Digimon/count 1, SecurityAttack amount -1, duration `untilOpponentTurnEnd` | real host attack modifies one pinned opposing target, opposing real attack performs one fewer security check, and the modifier expires after the opponent turn |
-| Standard Blue/Yellow evolution for 3 | catalog Blue and Yellow Lv3 requirements | standard Blue level-3 evolution test spends 3 memory |
-| Alternate Lv3 Ice-Snow evolution for 2 | compiled `{ level: 3, traits: ["Ice-Snow"], cost: 2, isAlternate: true }` | EX8-019 alternate evolution succeeds; non-Ice-Snow BT1-009 alternate path rejects |
+| Printed clause                                                             | Compiled IR                                                                                                            | Focused proof                                                                                                                                                  |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ice Clad                                                                   | non-inherited `Static` keyword `{ keyword: "IceClad" }`                                                                | live keyword assertion and `uses Ice Clad source count to win a lower-DP battle`                                                                               |
+| On Play and When Digivolving trash bottom 2 of one opposing Digimon        | both triggers carry `TrashDigivolution`, opponent Digimon/count 1, `amount: 2`, `fromTop: false`                       | exact bottom-order On Play test and all-source When Digivolving test                                                                                           |
+| Then gain 1 memory only if opponent has no Digimon with digivolution cards | both branches carry `GainMemory 1` gated by `opponentHasNone` over opponent Digimon with `digivolutionCards: "hasAny"` | source-remains test gains no memory; all-sources-trashed test gains exactly 1                                                                                  |
+| Inherited When Attacking Security Attack -1                                | inherited `GainKeyword`, opponent Digimon/count 1, SecurityAttack amount -1, duration `untilOpponentTurnEnd`           | real host attack modifies one pinned opposing target, opposing real attack performs one fewer security check, and the modifier expires after the opponent turn |
+| Standard Blue/Yellow evolution for 3                                       | catalog Blue and Yellow Lv3 requirements                                                                               | standard Blue level-3 evolution test spends 3 memory                                                                                                           |
+| Alternate Lv3 Ice-Snow evolution for 2                                     | compiled `{ level: 3, traits: ["Ice-Snow"], cost: 2, isAlternate: true }`                                              | EX8-019 alternate evolution succeeds; non-Ice-Snow BT1-009 alternate path rejects                                                                              |
 
 #### Changes
 
@@ -1747,6 +1862,10 @@ No card-specific IR or behavioral defect was found. The targeted card effects us
 
 ### EX8-023 — PolarBearmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-023`, direct `apps/api/src/cards/EX8/EX8-023.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-023.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-023 — PolarBearmon
 
@@ -1770,17 +1889,17 @@ Relevant comprehensive rules read from `data/kb/rules/comprehensive.md`: §§15-
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Inherited Your Turn Ice-Snow condition | Inherited `YourTurn` has two self `Aura` actions filtered to the Ice-Snow trait, each gated by opponent-wide `opponentHasNone` over Digimon with any sources | Empty opponent board grants both keywords (Q6042); a source-bearing opposing stack removes both; a last opposing stack deleted in battle enables Piercing and its security check (Q3883) |
-| `＜Piercing＞` and `＜Security Attack +1＞` | Separate keyword auras with exact `Piercing` and `SecurityAttack: 1` values | Live host keyword assertions and the real battle/security scenario |
-| `＜Ice Clad＞` | Non-inherited `Static` keyword `{ keyword: "IceClad" }` | Live keyword assertion plus a real lower-DP battle won from source count rather than DP |
-| On Play and When Digivolving trash any 2 opposing sources | Both timing entries carry `TrashDigivolution`, opponent Digimon with `hasAny`, amount 2, and `scope: "acrossDigimon"` | One-host and cross-host play tests; real alternate and standard evolution tests |
-| Then choose one opposing source-less Digimon | Both entries carry one source-less opponent target, followed by two same-target restrictions | Play/evolution assertions verify the selected permanent receives both restrictions after source trash |
-| Cannot suspend until end of opponent’s turn | `Restrict` `restriction: "suspend"`, `duration: "untilOpponentTurnEnd"` | Public state restriction assertion and opponent-turn expiry |
-| Cannot activate When Digivolving until end of opponent’s turn | Same target anchored with `sameTarget: true`, `restriction: "cannotActivateWhenDigivolving"`, and `untilOpponentTurnEnd` | Target gains a source after being selected yet remains restricted (Q3882); its EX8-022 When Digivolving memory branch is not activated/processed (Q3884–Q3888); expiry is asserted after the turn |
-| Standard Blue/Yellow level-4 evolution for 4 | Catalog `evoCosts`; normal legality path | Legal standard Blue/Yellow dual-color EX8-022 source evolves at exactly 4 memory |
-| Alternate level-4 Ice-Snow evolution for 3 | `digivolutionRequirement: { level: 4, traits: ["Ice-Snow"], cost: 3, isAlternate: true }` | Legal EX8-022 Ice-Snow source evolves at exactly 3 memory |
+| Printed clause                                                | Compiled IR                                                                                                                                                  | Focused proof                                                                                                                                                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inherited Your Turn Ice-Snow condition                        | Inherited `YourTurn` has two self `Aura` actions filtered to the Ice-Snow trait, each gated by opponent-wide `opponentHasNone` over Digimon with any sources | Empty opponent board grants both keywords (Q6042); a source-bearing opposing stack removes both; a last opposing stack deleted in battle enables Piercing and its security check (Q3883)          |
+| `＜Piercing＞` and `＜Security Attack +1＞`                   | Separate keyword auras with exact `Piercing` and `SecurityAttack: 1` values                                                                                  | Live host keyword assertions and the real battle/security scenario                                                                                                                                |
+| `＜Ice Clad＞`                                                | Non-inherited `Static` keyword `{ keyword: "IceClad" }`                                                                                                      | Live keyword assertion plus a real lower-DP battle won from source count rather than DP                                                                                                           |
+| On Play and When Digivolving trash any 2 opposing sources     | Both timing entries carry `TrashDigivolution`, opponent Digimon with `hasAny`, amount 2, and `scope: "acrossDigimon"`                                        | One-host and cross-host play tests; real alternate and standard evolution tests                                                                                                                   |
+| Then choose one opposing source-less Digimon                  | Both entries carry one source-less opponent target, followed by two same-target restrictions                                                                 | Play/evolution assertions verify the selected permanent receives both restrictions after source trash                                                                                             |
+| Cannot suspend until end of opponent’s turn                   | `Restrict` `restriction: "suspend"`, `duration: "untilOpponentTurnEnd"`                                                                                      | Public state restriction assertion and opponent-turn expiry                                                                                                                                       |
+| Cannot activate When Digivolving until end of opponent’s turn | Same target anchored with `sameTarget: true`, `restriction: "cannotActivateWhenDigivolving"`, and `untilOpponentTurnEnd`                                     | Target gains a source after being selected yet remains restricted (Q3882); its EX8-022 When Digivolving memory branch is not activated/processed (Q3884–Q3888); expiry is asserted after the turn |
+| Standard Blue/Yellow level-4 evolution for 4                  | Catalog `evoCosts`; normal legality path                                                                                                                     | Legal standard Blue/Yellow dual-color EX8-022 source evolves at exactly 4 memory                                                                                                                  |
+| Alternate level-4 Ice-Snow evolution for 3                    | `digivolutionRequirement: { level: 4, traits: ["Ice-Snow"], cost: 3, isAlternate: true }`                                                                    | Legal EX8-022 Ice-Snow source evolves at exactly 3 memory                                                                                                                                         |
 
 #### Changes
 
@@ -1828,6 +1947,10 @@ No EX8-023-specific IR or behavioral defect was found. All printed clauses have 
 
 ### EX8-024 — MegaSeadramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-024`, direct `apps/api/src/cards/EX8/EX8-024.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-024.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-024 — MegaSeadramon
 
@@ -1853,15 +1976,15 @@ Peer/stack evidence was checked against EX8-020/EX8-017 DS evolution cards and E
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| On Play, one of your Digimon unsuspends | `OnPlay` `Unsuspend`, mine Digimon/count 1 | suspended source is publicly fired and becomes unsuspended |
-| When Digivolving, one of your Digimon unsuspends | `WhenDigivolving` same mine Digimon/count-1 `Unsuspend` | DS alternate and standard Blue digivolve tests unsuspend a suspended ally |
-| When Attacking, once per turn, with memory ≥1, one opponent Digimon can't suspend until end of their turn | non-inherited `WhenAttacking` `Restrict`, opponent Digimon/count 1, `restriction: "suspend"`, `memoryAtLeast: 1`, duration `untilOpponentTurnEnd` | Q3891 test proves 0 does not activate and 1 does; restriction blocks the opponent attack’s required suspension and expires after that opponent turn |
-| Inherited When Attacking once per turn: place another Digimon at this host's bottom stack card and unsuspend | inherited `WhenAttacking`/`OncePerTurn`, self `Unsuspend`, optional `place` cost targeting mine `excludeSelf` Digimon/count 1, destination `digivolutionStack`, position `bottom`, host self | positive placement test asserts other Digimon leaves battle area, enters bottom stack, and host unsuspends |
-| Inherited placement may be declined | `optional: true`, `abortOnDecline: true` on the unsuspend action | refusal test leaves host suspended, stack unchanged, and other Digimon in battle area |
-| Once-per-turn limit and reset | inherited `frequency: "OncePerTurn"` | reset test performs two attacks in one turn (only first placement), then a next-own-turn attack successfully places the second Digimon |
-| Standard and DS alternate evolution costs | catalog Blue Lv4 cost 3 plus compiled DS Lv4 cost 3 alternate requirement | standard Blue route and DS route each pay exactly 3 |
+| Printed clause                                                                                               | Compiled IR                                                                                                                                                                                  | Focused proof                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play, one of your Digimon unsuspends                                                                      | `OnPlay` `Unsuspend`, mine Digimon/count 1                                                                                                                                                   | suspended source is publicly fired and becomes unsuspended                                                                                          |
+| When Digivolving, one of your Digimon unsuspends                                                             | `WhenDigivolving` same mine Digimon/count-1 `Unsuspend`                                                                                                                                      | DS alternate and standard Blue digivolve tests unsuspend a suspended ally                                                                           |
+| When Attacking, once per turn, with memory ≥1, one opponent Digimon can't suspend until end of their turn    | non-inherited `WhenAttacking` `Restrict`, opponent Digimon/count 1, `restriction: "suspend"`, `memoryAtLeast: 1`, duration `untilOpponentTurnEnd`                                            | Q3891 test proves 0 does not activate and 1 does; restriction blocks the opponent attack’s required suspension and expires after that opponent turn |
+| Inherited When Attacking once per turn: place another Digimon at this host's bottom stack card and unsuspend | inherited `WhenAttacking`/`OncePerTurn`, self `Unsuspend`, optional `place` cost targeting mine `excludeSelf` Digimon/count 1, destination `digivolutionStack`, position `bottom`, host self | positive placement test asserts other Digimon leaves battle area, enters bottom stack, and host unsuspends                                          |
+| Inherited placement may be declined                                                                          | `optional: true`, `abortOnDecline: true` on the unsuspend action                                                                                                                             | refusal test leaves host suspended, stack unchanged, and other Digimon in battle area                                                               |
+| Once-per-turn limit and reset                                                                                | inherited `frequency: "OncePerTurn"`                                                                                                                                                         | reset test performs two attacks in one turn (only first placement), then a next-own-turn attack successfully places the second Digimon              |
+| Standard and DS alternate evolution costs                                                                    | catalog Blue Lv4 cost 3 plus compiled DS Lv4 cost 3 alternate requirement                                                                                                                    | standard Blue route and DS route each pay exactly 3                                                                                                 |
 
 #### Changes
 
@@ -1916,6 +2039,10 @@ No card-specific IR or behavioral defect was found. Public play/digivolve/attack
 
 ### EX8-025 — Whamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-025`, direct `apps/api/src/cards/EX8/EX8-025.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-025.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-025 — Whamon
 
@@ -1940,13 +2067,13 @@ Peer/stack evidence was checked against EX8-020/EX8-021 DS cards, EX8-024's DS s
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| On Play, optionally place one of your DS Digimon cards from trash under this Digimon | `OnPlay` optional `PlaceUnder`, mine/trash Digimon with DS trait, count 1, `from: ["trash"]`, `position: "bottom"` | accepted live On Play moves EX8-027 from trash under Whamon; refusal leaves it in trash |
-| When Digivolving, same optional bottom placement | `WhenDigivolving` with the same exact filter/source/count/optional/bottom fields | Blue Lv4 evolution proves true-bottom ordering with an existing stack card; Black Lv4 P-162 route proves the alternate route |
-| End of Attack, once per turn, optionally play one own-stack DS Digimon with play cost ≤5 without paying | `EndOfAttack`, `frequency: "OncePerTurn"`, optional `PlayWithoutCost`, `from: ["digivolutionCards"]`, `fromOwnDigivolutionStack: true`, `payCost: false`, mine Digimon/DS/`playCostLte: 5`/count 1 | two attacks play only one card and never play a same-card foreign stack; refusal leaves the source stacked; next own turn plays the remaining source |
-| Inherited Your Turn attack target can't be switched | inherited `YourTurn` self `Restrict`, `restriction: "attackTargetChange"`, `duration: "permanent"` | matching BT8-030 host is restricted only on controller turn; real EX12-048 Raid redirect is blocked while player attack resolves and the unsuspended target remains |
-| Evolution, deletion, and inherited stack behavior | legal Blue and Black requirements plus stack-aware IR; no deletion clause on the card | Blue/Black stacks retain expected cards; deleting Whamon trashes Whamon and its entire stack; inherited restriction is observed on a host carrying EX8-025 |
+| Printed clause                                                                                          | Compiled IR                                                                                                                                                                                        | Focused proof                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play, optionally place one of your DS Digimon cards from trash under this Digimon                    | `OnPlay` optional `PlaceUnder`, mine/trash Digimon with DS trait, count 1, `from: ["trash"]`, `position: "bottom"`                                                                                 | accepted live On Play moves EX8-027 from trash under Whamon; refusal leaves it in trash                                                                             |
+| When Digivolving, same optional bottom placement                                                        | `WhenDigivolving` with the same exact filter/source/count/optional/bottom fields                                                                                                                   | Blue Lv4 evolution proves true-bottom ordering with an existing stack card; Black Lv4 P-162 route proves the alternate route                                        |
+| End of Attack, once per turn, optionally play one own-stack DS Digimon with play cost ≤5 without paying | `EndOfAttack`, `frequency: "OncePerTurn"`, optional `PlayWithoutCost`, `from: ["digivolutionCards"]`, `fromOwnDigivolutionStack: true`, `payCost: false`, mine Digimon/DS/`playCostLte: 5`/count 1 | two attacks play only one card and never play a same-card foreign stack; refusal leaves the source stacked; next own turn plays the remaining source                |
+| Inherited Your Turn attack target can't be switched                                                     | inherited `YourTurn` self `Restrict`, `restriction: "attackTargetChange"`, `duration: "permanent"`                                                                                                 | matching BT8-030 host is restricted only on controller turn; real EX12-048 Raid redirect is blocked while player attack resolves and the unsuspended target remains |
+| Evolution, deletion, and inherited stack behavior                                                       | legal Blue and Black requirements plus stack-aware IR; no deletion clause on the card                                                                                                              | Blue/Black stacks retain expected cards; deleting Whamon trashes Whamon and its entire stack; inherited restriction is observed on a host carrying EX8-025          |
 
 #### Changes
 
@@ -2001,6 +2128,10 @@ No card-specific IR, type, or behavioral defect was found. The card has no Secur
 
 ### EX8-026 — MetalSeadramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-026`, direct `apps/api/src/cards/EX8/EX8-026.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-026.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-026 — MetalSeadramon
 
@@ -2029,14 +2160,14 @@ Peer/stack evidence was checked against EX8-024/EX8-027 DS stack effects, EX8-04
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Hand Counter Blast Digivolve | `Counter`, `isFromHand: true`, empty actions, keyword `{ keyword: "BlastDigivolve" }` | opponent attack opens a real counter window; responding with EX8-026 over legal DS level 5 resolves the stack and its When Digivolving removal |
-| On Play, De-Digivolve 1 one opponent Digimon, then bottom-deck one opponent Digimon with play cost ≤7 | `OnPlay` actions ordered `DeDigivolve` opponent Digimon/count 1/amount 1, then `Return` opponent Digimon/count 1/`playCostLte: 7`/`to: "deckBottom"` | live On Play test confirms top card is trashed first and the newly exposed inclusive-cost-7 card reaches deck bottom; a cost-8 opposing Digimon remains in play and deck |
-| When Digivolving, same ordered removal | `WhenDigivolving` carries an exactly equal action sequence to `OnPlay` | real Blast Digivolve and standard/alternate evolution scenarios resolve the When Digivolving path |
-| All Turns, while owner has at least 1 memory, opponent Digimon cannot suspend | `AllTurns` `Restrict` over all opponent Digimon, `restriction: "suspend"`, `duration: "permanent"`, live `while: { kind: "memoryAtLeast", value: 1, controller: "mine" }` | at memory 1 opposing suspension is restricted; at 0 it lifts; off-turn signed memory proves the owner-side gauge; actual Blitz attack is rejected at Q3893 conditions |
-| Rule trait Aquatic | `Rule` self `GrantStatic` trait `Aquatic` | live state exposes Aquatic after the DS evolution/removal test |
-| Standard and alternate evolution requirements | catalog Blue/Black Lv5 cost4 plus compiled DS Lv5 cost3 alternate requirement | both standard color routes and DS alternate route are exercised with legal stacks and exact memory payment |
+| Printed clause                                                                                        | Compiled IR                                                                                                                                                               | Focused proof                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hand Counter Blast Digivolve                                                                          | `Counter`, `isFromHand: true`, empty actions, keyword `{ keyword: "BlastDigivolve" }`                                                                                     | opponent attack opens a real counter window; responding with EX8-026 over legal DS level 5 resolves the stack and its When Digivolving removal                           |
+| On Play, De-Digivolve 1 one opponent Digimon, then bottom-deck one opponent Digimon with play cost ≤7 | `OnPlay` actions ordered `DeDigivolve` opponent Digimon/count 1/amount 1, then `Return` opponent Digimon/count 1/`playCostLte: 7`/`to: "deckBottom"`                      | live On Play test confirms top card is trashed first and the newly exposed inclusive-cost-7 card reaches deck bottom; a cost-8 opposing Digimon remains in play and deck |
+| When Digivolving, same ordered removal                                                                | `WhenDigivolving` carries an exactly equal action sequence to `OnPlay`                                                                                                    | real Blast Digivolve and standard/alternate evolution scenarios resolve the When Digivolving path                                                                        |
+| All Turns, while owner has at least 1 memory, opponent Digimon cannot suspend                         | `AllTurns` `Restrict` over all opponent Digimon, `restriction: "suspend"`, `duration: "permanent"`, live `while: { kind: "memoryAtLeast", value: 1, controller: "mine" }` | at memory 1 opposing suspension is restricted; at 0 it lifts; off-turn signed memory proves the owner-side gauge; actual Blitz attack is rejected at Q3893 conditions    |
+| Rule trait Aquatic                                                                                    | `Rule` self `GrantStatic` trait `Aquatic`                                                                                                                                 | live state exposes Aquatic after the DS evolution/removal test                                                                                                           |
+| Standard and alternate evolution requirements                                                         | catalog Blue/Black Lv5 cost4 plus compiled DS Lv5 cost3 alternate requirement                                                                                             | both standard color routes and DS alternate route are exercised with legal stacks and exact memory payment                                                               |
 
 #### Changes
 
@@ -2095,6 +2226,10 @@ No remaining card-specific IR or behavioral defect was found. The `whileConditio
 
 ### EX8-027 — Plesiomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-027`, direct `apps/api/src/cards/EX8/EX8-027.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-027.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-027 — Plesiomon
 
@@ -2117,14 +2252,14 @@ Relevant comprehensive rules read from `data/kb/rules/comprehensive.md`: §§8-2
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| When Digivolving may play one level-4-or-lower Digimon from this Digimon's sources free | `WhenDigivolving` has optional `PlayWithoutCost`, `from: ["digivolutionCards"]`, `fromOwnDigivolutionStack: true`, level `lte 4`, and `payCost: false` | Legal Whamon→Plesiomon stack plays own EX8-020 source; an equally eligible source under another host remains untouched; refusal leaves the stack intact |
-| Your Turn Once Per Turn watcher for a played Digimon | One `YourTurn` effect with `frequency: "OncePerTurn"` installs `SubTrigger event: "whenPlayed"`, source-filtered to friendly Digimon | Plesiomon's own play triggers DNA (Q3894); a non-DS play is a meaningful negative and does not trigger DNA |
-| Your Turn Once Per Turn watcher for a digivolved Digimon | Same effect installs `SubTrigger event: "whenOneOfYoursDigivolves"`, friendly Digimon source filter, and the same frequency scope | Plesiomon's own legal alternate evolution triggers DNA (Q3895); standard Blue evolution also succeeds at cost 3 |
-| If any triggered subject has DS | Each watcher gates its body with `triggerSubjectMatchesFilter` for the DS trait | DS play/evolution routes resolve; non-DS BT1-009 play leaves the Aegisdramon card in hand |
-| Two of your Digimon may DNA digivolve into a DS Digimon in hand | Both watcher bodies use optional `DnaDigivolve`, exactly 2 friendly Digimon materials, `into.kind: ["Digimon"]` plus DS trait, `payCost: false`, and bind the result | Q3894/Q3895 routes produce the DS Aegisdramon and leave memory at exactly the Plesiomon evolution/play cost, demonstrating no normal DNA cost |
-| Then that DNA-digivolved Digimon may attack | Both bodies use optional `Attack` targeting `boundRef: "dnaDigivolvedByThisEffect"`, gated by `bindingExists`, with normal suspension | Q3894 and Q3895 routes resolve the bound attack and consume the defender's security; Q3896 presents an explicit order decision for simultaneous Plesiomon watchers |
+| Printed clause                                                                          | Compiled IR                                                                                                                                                          | Focused proof                                                                                                                                                      |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| When Digivolving may play one level-4-or-lower Digimon from this Digimon's sources free | `WhenDigivolving` has optional `PlayWithoutCost`, `from: ["digivolutionCards"]`, `fromOwnDigivolutionStack: true`, level `lte 4`, and `payCost: false`               | Legal Whamon→Plesiomon stack plays own EX8-020 source; an equally eligible source under another host remains untouched; refusal leaves the stack intact            |
+| Your Turn Once Per Turn watcher for a played Digimon                                    | One `YourTurn` effect with `frequency: "OncePerTurn"` installs `SubTrigger event: "whenPlayed"`, source-filtered to friendly Digimon                                 | Plesiomon's own play triggers DNA (Q3894); a non-DS play is a meaningful negative and does not trigger DNA                                                         |
+| Your Turn Once Per Turn watcher for a digivolved Digimon                                | Same effect installs `SubTrigger event: "whenOneOfYoursDigivolves"`, friendly Digimon source filter, and the same frequency scope                                    | Plesiomon's own legal alternate evolution triggers DNA (Q3895); standard Blue evolution also succeeds at cost 3                                                    |
+| If any triggered subject has DS                                                         | Each watcher gates its body with `triggerSubjectMatchesFilter` for the DS trait                                                                                      | DS play/evolution routes resolve; non-DS BT1-009 play leaves the Aegisdramon card in hand                                                                          |
+| Two of your Digimon may DNA digivolve into a DS Digimon in hand                         | Both watcher bodies use optional `DnaDigivolve`, exactly 2 friendly Digimon materials, `into.kind: ["Digimon"]` plus DS trait, `payCost: false`, and bind the result | Q3894/Q3895 routes produce the DS Aegisdramon and leave memory at exactly the Plesiomon evolution/play cost, demonstrating no normal DNA cost                      |
+| Then that DNA-digivolved Digimon may attack                                             | Both bodies use optional `Attack` targeting `boundRef: "dnaDigivolvedByThisEffect"`, gated by `bindingExists`, with normal suspension                                | Q3894 and Q3895 routes resolve the bound attack and consume the defender's security; Q3896 presents an explicit order decision for simultaneous Plesiomon watchers |
 
 #### Changes
 
@@ -2172,6 +2307,10 @@ No EX8-027-specific IR or behavioral defect was found. All printed clauses map d
 
 ### EX8-028 — Skadimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-028`, direct `apps/api/src/cards/EX8/EX8-028.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-028.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-028 — Skadimon
 
@@ -2197,14 +2336,14 @@ Peer/stack evidence was checked against EX8-023's Ice Clad/removal effects, EX8-
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Ice Clad | `Static` keyword `{ keyword: "IceClad" }` | live keyword assertion and a real lower-DP battle won by digivolution-card count |
-| Barrier | `Static` keyword `{ keyword: "Barrier" }` | real battle deletion prompts; accepting trashes top security and preserves Skadimon, while declining deletes it and preserves security |
-| When Digivolving, optional level-4-or-lower Ice-Snow play without cost; +1 level maximum per opposing source-less Digimon | `WhenDigivolving` `CostModifier` level ceiling amount 1, scaling per source-less opponent; optional `PlayWithoutCost` from hand, mine Digimon, Ice-Snow trait, level ≤4, payCost false | source-less opponent permits level-5 candidate via raised ceiling; opponent with sources does not; explicit optional refusal keeps Penguinmon in hand |
-| When Digivolving / When Attacking once per turn, place any source-less Digimon as bottom security and unsuspend | both timings have self `Unsuspend`, optional placement cost targeting any-controller source-less Digimon, security bottom/face-down; both use `frequency: "OncePerTurn"` and `sharedUseKey: "ir-shared-0"` | Q3897 own/opponent placement tests; repeated real attacks place only the first ally and leave the second ally in play |
-| Standard and Ice-Snow alternate evolution | catalog Blue/Yellow Lv5 cost4 plus compiled Ice-Snow Lv5 cost3 alternate requirement | standard Blue cost4 and Ice-Snow alternate cost3 routes resolve with legal stacks; source-less scaling is exercised during alternate evolution |
-| DNA/evolution interaction | no DNA requirement or card text; normal stack IR only | catalog confirms no DNA clause; focused standard/alternate stack paths cover all applicable evolution behavior |
+| Printed clause                                                                                                            | Compiled IR                                                                                                                                                                                                | Focused proof                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ice Clad                                                                                                                  | `Static` keyword `{ keyword: "IceClad" }`                                                                                                                                                                  | live keyword assertion and a real lower-DP battle won by digivolution-card count                                                                      |
+| Barrier                                                                                                                   | `Static` keyword `{ keyword: "Barrier" }`                                                                                                                                                                  | real battle deletion prompts; accepting trashes top security and preserves Skadimon, while declining deletes it and preserves security                |
+| When Digivolving, optional level-4-or-lower Ice-Snow play without cost; +1 level maximum per opposing source-less Digimon | `WhenDigivolving` `CostModifier` level ceiling amount 1, scaling per source-less opponent; optional `PlayWithoutCost` from hand, mine Digimon, Ice-Snow trait, level ≤4, payCost false                     | source-less opponent permits level-5 candidate via raised ceiling; opponent with sources does not; explicit optional refusal keeps Penguinmon in hand |
+| When Digivolving / When Attacking once per turn, place any source-less Digimon as bottom security and unsuspend           | both timings have self `Unsuspend`, optional placement cost targeting any-controller source-less Digimon, security bottom/face-down; both use `frequency: "OncePerTurn"` and `sharedUseKey: "ir-shared-0"` | Q3897 own/opponent placement tests; repeated real attacks place only the first ally and leave the second ally in play                                 |
+| Standard and Ice-Snow alternate evolution                                                                                 | catalog Blue/Yellow Lv5 cost4 plus compiled Ice-Snow Lv5 cost3 alternate requirement                                                                                                                       | standard Blue cost4 and Ice-Snow alternate cost3 routes resolve with legal stacks; source-less scaling is exercised during alternate evolution        |
+| DNA/evolution interaction                                                                                                 | no DNA requirement or card text; normal stack IR only                                                                                                                                                      | catalog confirms no DNA clause; focused standard/alternate stack paths cover all applicable evolution behavior                                        |
 
 #### Changes
 
@@ -2260,6 +2399,10 @@ No card-specific IR, type, or behavioral defect was found. EX8-028 has no DNA, i
 
 ### EX8-029 — Aegisdramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-029`, direct `apps/api/src/cards/EX8/EX8-029.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-029.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-029 — Aegisdramon
 
@@ -2282,14 +2425,14 @@ Relevant comprehensive rules read from `data/kb/rules/comprehensive.md`: §§8-2
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Return opponent Digimon up to total play cost 14 to deck bottom | `WhenDigivolving` `Return` targets opponent Digimon with `totalPlayCostBudget: 14`, `upTo: true`, destination `deckBottom` | Real evolution returns two cost-7 Digimon and leaves cost-15 over-budget Digimon; deck-bottom identities are asserted |
-| If DNA digivolving, optionally play up to total play cost 12 of DS cards from this result's sources free | Same effect has optional `PlayMultiple`, `totalCost: 12`, DS filter, `from: ["digivolutionCards"]`, `hostFilter: { isSelfRef: true }`, condition `isDnaDigivolving`, `payCost: false` | Plesiomon-triggered DNA route proves only DS cards from Aegisdramon's own resulting stack can be played; a same-eligibility card under breeding remains untouched |
-| All Turns at controller memory ≥1: own DS Digimon are not affected by opposing Digimon effects | `AllTurns` `GrantStatic` to all friendly DS Digimon, `immuneToOpponentDigimonEffects`, condition `memoryAtLeast: 1`, controller mine | At memory 1, a production opposing Digimon suspend effect chooses both DS and non-DS targets; only DS remains unaffected; memory 0 removes immunity |
-| All Turns at controller memory ≤1: opponent Digimon cannot activate On Play effects | A second `AllTurns` entry with `memoryAtMost: 1` uses player-scoped `DisableTimingEffect`, targeting all opposing Digimon with `timings: ["onPlay"]`, permanent duration, and `whileMatchesTargetFilter: true` | Real opposing Gabumon On Play draw is blocked at the low-memory side while the card still enters; recompute boundary tests cover +1, 0, −1 relative positions (Q3898/Q3899) |
-| Rule: Aquatic | `Rule` `GrantStatic` self, `grant: "trait"`, `tokens: ["Aquatic"]` | Structural IR trace and live DS peer setup confirm rule trait is part of the implementation |
-| Standard Blue/Black/Yellow level-6 evolution for 5 | Catalog `evoCosts`; normal evolution legality path | Real EX8-026 Blue level-6 base evolves into Aegisdramon at memory 5 |
+| Printed clause                                                                                           | Compiled IR                                                                                                                                                                                                    | Focused proof                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Return opponent Digimon up to total play cost 14 to deck bottom                                          | `WhenDigivolving` `Return` targets opponent Digimon with `totalPlayCostBudget: 14`, `upTo: true`, destination `deckBottom`                                                                                     | Real evolution returns two cost-7 Digimon and leaves cost-15 over-budget Digimon; deck-bottom identities are asserted                                                       |
+| If DNA digivolving, optionally play up to total play cost 12 of DS cards from this result's sources free | Same effect has optional `PlayMultiple`, `totalCost: 12`, DS filter, `from: ["digivolutionCards"]`, `hostFilter: { isSelfRef: true }`, condition `isDnaDigivolving`, `payCost: false`                          | Plesiomon-triggered DNA route proves only DS cards from Aegisdramon's own resulting stack can be played; a same-eligibility card under breeding remains untouched           |
+| All Turns at controller memory ≥1: own DS Digimon are not affected by opposing Digimon effects           | `AllTurns` `GrantStatic` to all friendly DS Digimon, `immuneToOpponentDigimonEffects`, condition `memoryAtLeast: 1`, controller mine                                                                           | At memory 1, a production opposing Digimon suspend effect chooses both DS and non-DS targets; only DS remains unaffected; memory 0 removes immunity                         |
+| All Turns at controller memory ≤1: opponent Digimon cannot activate On Play effects                      | A second `AllTurns` entry with `memoryAtMost: 1` uses player-scoped `DisableTimingEffect`, targeting all opposing Digimon with `timings: ["onPlay"]`, permanent duration, and `whileMatchesTargetFilter: true` | Real opposing Gabumon On Play draw is blocked at the low-memory side while the card still enters; recompute boundary tests cover +1, 0, −1 relative positions (Q3898/Q3899) |
+| Rule: Aquatic                                                                                            | `Rule` `GrantStatic` self, `grant: "trait"`, `tokens: ["Aquatic"]`                                                                                                                                             | Structural IR trace and live DS peer setup confirm rule trait is part of the implementation                                                                                 |
+| Standard Blue/Black/Yellow level-6 evolution for 5                                                       | Catalog `evoCosts`; normal evolution legality path                                                                                                                                                             | Real EX8-026 Blue level-6 base evolves into Aegisdramon at memory 5                                                                                                         |
 
 #### Changes
 
@@ -2343,6 +2486,10 @@ The correction lane addressed two type errors: the Return target now supplies re
 
 ### EX8-030 — Tapirmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-030`, direct `apps/api/src/cards/EX8/EX8-030.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-030.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-030 — Tapirmon
 
@@ -2366,13 +2513,13 @@ Relevant comprehensive rules read from `data/kb/rules/comprehensive.md`: §§4-1
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Opponent cannot gain memory except via Tamer effects | `AllTurns` `RestrictMemoryGain` with `seat: "opponent"`, `exceptTamerEffects: true`, permanent duration | Real attack and On Play effects show opposing Digimon-origin memory is denied while Tamer-origin memory is allowed |
-| Restriction affects the opponent player, not the Tapirmon controller | Shared memory policy is projected to the declared opponent seat | Controller-relative parameterized attack test blocks a Digimon on the opposing side but leaves memory gains by Tapirmon's own side legal |
-| Q3914 Tamer/Digimon multi-kind exception | `exceptTamerEffects` delegates source kinds to the memory policy, preserving a source carrying both `Digimon` and `Tamer` kinds | BT17-087 is treated as a Digimon at 3000 DP; its real attack still gains memory through the Tamer exception |
-| Standard Yellow level-2 evolution for 0 | Catalog `evoCosts`; normal evolution path | The NSo egg is evolved at zero and the evolution card is drawn |
-| Alternate level-2 NSo evolution for 0 | `digivolutionRequirement: { level: 2, traits: ["NSo"], cost: 0, isAlternate: true }` | EX8-006 (off-color NSo egg) succeeds; EX8-002 non-NSo egg is rejected |
+| Printed clause                                                       | Compiled IR                                                                                                                     | Focused proof                                                                                                                            |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Opponent cannot gain memory except via Tamer effects                 | `AllTurns` `RestrictMemoryGain` with `seat: "opponent"`, `exceptTamerEffects: true`, permanent duration                         | Real attack and On Play effects show opposing Digimon-origin memory is denied while Tamer-origin memory is allowed                       |
+| Restriction affects the opponent player, not the Tapirmon controller | Shared memory policy is projected to the declared opponent seat                                                                 | Controller-relative parameterized attack test blocks a Digimon on the opposing side but leaves memory gains by Tapirmon's own side legal |
+| Q3914 Tamer/Digimon multi-kind exception                             | `exceptTamerEffects` delegates source kinds to the memory policy, preserving a source carrying both `Digimon` and `Tamer` kinds | BT17-087 is treated as a Digimon at 3000 DP; its real attack still gains memory through the Tamer exception                              |
+| Standard Yellow level-2 evolution for 0                              | Catalog `evoCosts`; normal evolution path                                                                                       | The NSo egg is evolved at zero and the evolution card is drawn                                                                           |
+| Alternate level-2 NSo evolution for 0                                | `digivolutionRequirement: { level: 2, traits: ["NSo"], cost: 0, isAlternate: true }`                                            | EX8-006 (off-color NSo egg) succeeds; EX8-002 non-NSo egg is rejected                                                                    |
 
 #### Changes
 
@@ -2421,6 +2568,10 @@ No EX8-030-specific IR or behavioral defect was found. The live memory policy us
 
 ### EX8-031 — Renamon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-031`, direct `apps/api/src/cards/EX8/EX8-031.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-031.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-031 — Renamon (X Antibody)
 
@@ -2443,12 +2594,12 @@ Shared seam evidence was checked in the committed Option-use implementation: the
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate `[Digivolve][Renamon]: Cost 0` | `digivolutionRequirement: { names: ["Renamon"], cost: 0, isAlternate: true }` | A legal BT5-036 Renamon stack evolves into EX8-031 at zero memory; top card and source stack are asserted. |
-| On Play: return one Option with `[Plug-In]` from own trash | `OnPlay` → `Return`, `to: "hand"`, `count: 1`, filter `zone: "trash"`, `controller: "mine"`, `kind: ["Option"]`, name-only token `Plug-In` | Real play returns ST22-08 from trash; exact structural filter is asserted. |
-| When Digivolving: return one Option with `[Plug-In]` from own trash | `WhenDigivolving` → same exact `Return` action | The legal Renamon evolution returns name-only EX2-066 while leaving non-Plug-In ST3-13 in trash; exact structural filter is asserted for both timings. |
-| Your Turn / Once Per Turn: use Option with use cost 2+; one opposing Digimon gets -2000 for turn | Inherited `YourTurn` `SubTrigger(event: "whenOptionUsed")`, `triggerOptionCostAtLeast: 2`, `ModifyDP(amount: -2000, duration: "forTheTurn")`, `frequency: "OncePerTurn"`, opponent Digimon count 1 | Cost-1 Option does not trigger; cost-2 Option triggers after use; a second qualifying use does not stack; a new turn expires the DP modifier. |
+| Printed clause                                                                                   | Compiled IR                                                                                                                                                                                        | Focused proof                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Alternate `[Digivolve][Renamon]: Cost 0`                                                         | `digivolutionRequirement: { names: ["Renamon"], cost: 0, isAlternate: true }`                                                                                                                      | A legal BT5-036 Renamon stack evolves into EX8-031 at zero memory; top card and source stack are asserted.                                             |
+| On Play: return one Option with `[Plug-In]` from own trash                                       | `OnPlay` → `Return`, `to: "hand"`, `count: 1`, filter `zone: "trash"`, `controller: "mine"`, `kind: ["Option"]`, name-only token `Plug-In`                                                         | Real play returns ST22-08 from trash; exact structural filter is asserted.                                                                             |
+| When Digivolving: return one Option with `[Plug-In]` from own trash                              | `WhenDigivolving` → same exact `Return` action                                                                                                                                                     | The legal Renamon evolution returns name-only EX2-066 while leaving non-Plug-In ST3-13 in trash; exact structural filter is asserted for both timings. |
+| Your Turn / Once Per Turn: use Option with use cost 2+; one opposing Digimon gets -2000 for turn | Inherited `YourTurn` `SubTrigger(event: "whenOptionUsed")`, `triggerOptionCostAtLeast: 2`, `ModifyDP(amount: -2000, duration: "forTheTurn")`, `frequency: "OncePerTurn"`, opponent Digimon count 1 | Cost-1 Option does not trigger; cost-2 Option triggers after use; a second qualifying use does not stack; a new turn expires the DP modifier.          |
 
 Q5512 is proven with both a real Security activation and Delay activation: neither changes the opponent Digimon's DP. Q5513 is proven with BT8-097 Crimson Blaze reducing its card-level use cost to 1, so no inherited trigger fires. Q5514 is proven with BT17-035 Taomon reducing only payment, so an original-cost-2 Option still triggers. Q5515 is proven with BT24-085 using BT24-092 without payment, so the trigger still fires and memory is unchanged.
 
@@ -2499,6 +2650,10 @@ No EX8-031-specific IR or behavioral defect remains. The prior suppression was r
 
 ### EX8-032 — Apemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-032`, direct `apps/api/src/cards/EX8/EX8-032.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-032.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-032 — Apemon
 
@@ -2521,11 +2676,11 @@ Peer/stack evidence was checked against EX8-030's off-color NSo route, EX8-033/E
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate evolution from a level-3 NSo trait card for 2 | `digivolutionRequirement: { level: 3, traits: ["NSo"], cost: 2, isAlternate: true }` | Red EX8-008 Candlemon (off-color to Yellow) evolves successfully for exactly 2; non-NSo BT1-009 is rejected |
+| Printed clause                                                                           | Compiled IR                                                                                                                                    | Focused proof                                                                                                                                                              |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate evolution from a level-3 NSo trait card for 2                                  | `digivolutionRequirement: { level: 3, traits: ["NSo"], cost: 2, isAlternate: true }`                                                           | Red EX8-008 Candlemon (off-color to Yellow) evolves successfully for exactly 2; non-NSo BT1-009 is rejected                                                                |
 | Inherited When Attacking, once per turn, one opponent Digimon gets -2000 DP for the turn | inherited `WhenAttacking` `ModifyDP`, mine source selecting one opponent Digimon, amount -2000, duration `forTheTurn`, frequency `OncePerTurn` | real attack pins one target while a second target remains unchanged; second same-turn attack does not apply another modifier; after the opponent turn the modifier expires |
-| Exact controller/target scope | target filter `{ controller: "opponent", kind: ["Digimon"] }`, count 1 | two opposing Digimon prove only the selected target changes |
+| Exact controller/target scope                                                            | target filter `{ controller: "opponent", kind: ["Digimon"] }`, count 1                                                                         | two opposing Digimon prove only the selected target changes                                                                                                                |
 
 #### Changes
 
@@ -2580,6 +2735,10 @@ No card-specific IR, type, or behavioral defect was found. EX8-032 has no main, 
 
 ### EX8-033 — Pumpkinmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-033`, direct `apps/api/src/cards/EX8/EX8-033.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-033.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-033 — Pumpkinmon
 
@@ -2603,13 +2762,13 @@ The direct module uses typed `CompiledCard` IR and only `registerIrCard("EX8-033
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Standard Yellow or Purple level-4 evolution for 4 | Catalog `evoCosts`: `{color: "Yellow", level: 4, memoryCost: 4}` and `{color: "Purple", level: 4, memoryCost: 4}`; no compiled alternate requirement | Real evolution tests use EX8-032 Apemon (Yellow NSo) and EX8-059 Devimon (Purple NSo), both at exactly 4 memory; an AD1-001 level-4 source with neither color is rejected |
-| On Play, return 1 NSo card from your trash to hand | `OnPlay` → `Return`, `to: "hand"`, count 1, own trash filter with `nameOrTrait: [{tokens: ["NSo"], match: "trait"}]` | Play test returns exactly one EX8-034 NSo card and leaves non-NSo BT1-009 in trash |
-| When Digivolving, return 1 NSo card from your trash to hand | `WhenDigivolving` → same exact `Return` filter/count | Both real Yellow and Purple evolutions return EX8-034 and leave BT1-009 in trash |
-| On Deletion, one opposing Digimon gets -4000 DP for the turn | `OnDeletion` (non-inherited) → `ModifyDP`, amount `-4000`, duration `forTheTurn`, opposing Digimon filter, count 1 | Deletion test pins one of two opposing Digimon, confirms only it changes, and confirms both restore after the turn |
-| Inherited On Deletion `<Recovery +1 (Deck)>` | inherited `OnDeletion` with Recovery keyword amount 1, raw `<Recovery +1 (Deck)>` | Legal BT3-089 Purple stack carrying EX8-033 is deleted; the exact top deck card enters security face-down and the deck is emptied |
+| Printed clause                                               | Compiled IR                                                                                                                                          | Focused proof                                                                                                                                                             |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard Yellow or Purple level-4 evolution for 4            | Catalog `evoCosts`: `{color: "Yellow", level: 4, memoryCost: 4}` and `{color: "Purple", level: 4, memoryCost: 4}`; no compiled alternate requirement | Real evolution tests use EX8-032 Apemon (Yellow NSo) and EX8-059 Devimon (Purple NSo), both at exactly 4 memory; an AD1-001 level-4 source with neither color is rejected |
+| On Play, return 1 NSo card from your trash to hand           | `OnPlay` → `Return`, `to: "hand"`, count 1, own trash filter with `nameOrTrait: [{tokens: ["NSo"], match: "trait"}]`                                 | Play test returns exactly one EX8-034 NSo card and leaves non-NSo BT1-009 in trash                                                                                        |
+| When Digivolving, return 1 NSo card from your trash to hand  | `WhenDigivolving` → same exact `Return` filter/count                                                                                                 | Both real Yellow and Purple evolutions return EX8-034 and leave BT1-009 in trash                                                                                          |
+| On Deletion, one opposing Digimon gets -4000 DP for the turn | `OnDeletion` (non-inherited) → `ModifyDP`, amount `-4000`, duration `forTheTurn`, opposing Digimon filter, count 1                                   | Deletion test pins one of two opposing Digimon, confirms only it changes, and confirms both restore after the turn                                                        |
+| Inherited On Deletion `<Recovery +1 (Deck)>`                 | inherited `OnDeletion` with Recovery keyword amount 1, raw `<Recovery +1 (Deck)>`                                                                    | Legal BT3-089 Purple stack carrying EX8-033 is deleted; the exact top deck card enters security face-down and the deck is emptied                                         |
 
 #### Changes
 
@@ -2665,6 +2824,10 @@ No EX8-033-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-034 — Mammothmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-034`, direct `apps/api/src/cards/EX8/EX8-034.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-034.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-034 — Mammothmon
 
@@ -2688,12 +2851,12 @@ The shared interpreter path was traced for the applicable seams. Optional `PlayW
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate level-4 NSo evolution for 3 | `digivolutionRequirement: { level: 4, traits: ["NSo"], cost: 3, isAlternate: true }`; catalog supplies the standard Yellow level-4 cost | A real EX8-032 level-4 NSo host evolves into Mammothmon at memory 3; the refusal test uses the alternate route and confirms the resulting stack. |
-| When Digivolving, may play one own NSo Digimon with play cost 3 or less for free | `WhenDigivolving` → optional `PlayWithoutCost`, `from: ["hand"]`, `payCost: false`, count 1, own Digimon, `playCostLte: 3`, NSo trait | EX8-008 (NSo, cost 3) is played; EX8-010 (NSo, cost 4) and BT1-045 (non-NSo, cost 2) remain in hand. The optional refusal leaves the candidate in hand and leaves no pending decision. |
-| On Deletion, give two opposing Digimon Security Attack -1 until their turn ends | `OnDeletion` → `GainKeyword(SecurityAttack, -1)`, opponent Digimon filter, count 2, duration `untilOpponentTurnEnd` | Deleting Mammothmon modifies exactly two of three opposing Digimon; both modifiers expire after the opponent turn. A real opposing attack with the debuff leaves a security card unrevealed, proving the combat consumer. |
-| Inherited When Attacking, once per turn, one opponent Digimon gets -4000 for the turn | Inherited `WhenAttacking`, `frequency: "OncePerTurn"` → one opposing Digimon `ModifyDP(-4000, forTheTurn)` | A host carrying Mammothmon attacks and reduces the target by 4000; a second attack in the same turn does not add another reduction, and the modifier expires after the next turn. |
+| Printed clause                                                                        | Compiled IR                                                                                                                             | Focused proof                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate level-4 NSo evolution for 3                                                 | `digivolutionRequirement: { level: 4, traits: ["NSo"], cost: 3, isAlternate: true }`; catalog supplies the standard Yellow level-4 cost | A real EX8-032 level-4 NSo host evolves into Mammothmon at memory 3; the refusal test uses the alternate route and confirms the resulting stack.                                                                          |
+| When Digivolving, may play one own NSo Digimon with play cost 3 or less for free      | `WhenDigivolving` → optional `PlayWithoutCost`, `from: ["hand"]`, `payCost: false`, count 1, own Digimon, `playCostLte: 3`, NSo trait   | EX8-008 (NSo, cost 3) is played; EX8-010 (NSo, cost 4) and BT1-045 (non-NSo, cost 2) remain in hand. The optional refusal leaves the candidate in hand and leaves no pending decision.                                    |
+| On Deletion, give two opposing Digimon Security Attack -1 until their turn ends       | `OnDeletion` → `GainKeyword(SecurityAttack, -1)`, opponent Digimon filter, count 2, duration `untilOpponentTurnEnd`                     | Deleting Mammothmon modifies exactly two of three opposing Digimon; both modifiers expire after the opponent turn. A real opposing attack with the debuff leaves a security card unrevealed, proving the combat consumer. |
+| Inherited When Attacking, once per turn, one opponent Digimon gets -4000 for the turn | Inherited `WhenAttacking`, `frequency: "OncePerTurn"` → one opposing Digimon `ModifyDP(-4000, forTheTurn)`                              | A host carrying Mammothmon attacks and reduces the target by 4000; a second attack in the same turn does not add another reduction, and the modifier expires after the next turn.                                         |
 
 #### Changes
 
@@ -2743,6 +2906,10 @@ No EX8-034-specific behavior defect remains. The inherited attack IR and deletio
 
 ### EX8-035 — MarineAngemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-035`, direct `apps/api/src/cards/EX8/EX8-035.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-035.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-035 — MarineAngemon
 
@@ -2763,11 +2930,11 @@ Applicable rulings: Q3915 defines “1 or more memory” from MarineAngemon's co
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate level-5 DS evolution for 3 | `digivolutionRequirement: { level: 5, traits: ["DS"], cost: 3, isAlternate: true }`; catalog supplies standard Yellow level-5 cost 3 | A legal EX8-008 → EX8-059 evolution fixture verifies blocked direct timing and stack transition; an EX8-023 → EX8-028 DS/attack-stack route verifies a separate legal evolution and retained attack behavior. |
-| Security: after battle give two opposing Digimon Security Attack -1 for the turn, then add this card to hand | Security effect at `timing: "endOfBattle"`: `GainKeyword(SecurityAttack, -1)` against opponent Digimon count 2, `duration: "forTheTurn"`, followed by `AddToHandSelf` | A real security battle applies -1 to both opposing Digimon and moves the exact revealed MarineAngemon instance to hand; after the opponent turn, both keyword modifiers expire. |
-| All Turns while controller has 1+ memory, opposing Digimon cannot activate [When Digivolving] effects | `AllTurns` with controller-relative `memoryAtLeast(value: 1, controller: "mine")`, permanent `DisableTimingEffect` on all opposing Digimon for `whenDigivolving` | The live restriction is true at +1 and false at 0; with the opponent as turn player, signed memory -1 still represents +1 for MarineAngemon's controller (Q3915). |
+| Printed clause                                                                                               | Compiled IR                                                                                                                                                           | Focused proof                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate level-5 DS evolution for 3                                                                         | `digivolutionRequirement: { level: 5, traits: ["DS"], cost: 3, isAlternate: true }`; catalog supplies standard Yellow level-5 cost 3                                  | A legal EX8-008 → EX8-059 evolution fixture verifies blocked direct timing and stack transition; an EX8-023 → EX8-028 DS/attack-stack route verifies a separate legal evolution and retained attack behavior. |
+| Security: after battle give two opposing Digimon Security Attack -1 for the turn, then add this card to hand | Security effect at `timing: "endOfBattle"`: `GainKeyword(SecurityAttack, -1)` against opponent Digimon count 2, `duration: "forTheTurn"`, followed by `AddToHandSelf` | A real security battle applies -1 to both opposing Digimon and moves the exact revealed MarineAngemon instance to hand; after the opponent turn, both keyword modifiers expire.                               |
+| All Turns while controller has 1+ memory, opposing Digimon cannot activate [When Digivolving] effects        | `AllTurns` with controller-relative `memoryAtLeast(value: 1, controller: "mine")`, permanent `DisableTimingEffect` on all opposing Digimon for `whenDigivolving`      | The live restriction is true at +1 and false at 0; with the opponent as turn player, signed memory -1 still represents +1 for MarineAngemon's controller (Q3915).                                             |
 
 #### Shared seam and ruling proof
 
@@ -2820,6 +2987,10 @@ No EX8-035-specific IR or behavioral defect remains. The implementation was alre
 
 ### EX8-036 — SkullMammothmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-036`, direct `apps/api/src/cards/EX8/EX8-036.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-036.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-036 — SkullMammothmon
 
@@ -2843,12 +3014,12 @@ Peer evidence was checked against EX8-013's exact-cost NSo peer, EX8-034/EX8-060
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate evolution from level 5 with NSo trait for 3 | `digivolutionRequirement: { level: 5, traits: ["NSo"], cost: 3, isAlternate: true }` | Real EX8-033 NSo source evolves at exactly 3; BT1-020 non-NSo level 5 is rejected |
-| Standard Yellow or Purple level-5 evolution for 3 | Catalog `evoCosts`: Yellow/Purple level 5, memory cost 3 | Real stacks use EX8-034 Yellow and BT2-075 Purple sources, each successfully evolving at exactly 3 |
+| Printed clause                                                                                     | Compiled IR                                                                                                                                                        | Focused proof                                                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate evolution from level 5 with NSo trait for 3                                              | `digivolutionRequirement: { level: 5, traits: ["NSo"], cost: 3, isAlternate: true }`                                                                               | Real EX8-033 NSo source evolves at exactly 3; BT1-020 non-NSo level 5 is rejected                                                                                                                                                 |
+| Standard Yellow or Purple level-5 evolution for 3                                                  | Catalog `evoCosts`: Yellow/Purple level 5, memory cost 3                                                                                                           | Real stacks use EX8-034 Yellow and BT2-075 Purple sources, each successfully evolving at exactly 3                                                                                                                                |
 | When Digivolving, may play one own NSo Digimon costing 5 or less from hand or trash without paying | `WhenDigivolving` → optional `PlayWithoutCost`, `from: ["hand", "trash"]`, `payCost: false`, count 1, own Digimon filter with exact NSo trait and `playCostLte: 5` | Trash test plays exact-cost EX8-013 while BT1-038 and cost-6 EX8-033 remain in trash; parameterized standard-route tests play EX8-013 from hand while the same near-matches remain in hand; refusal test leaves candidate in hand |
-| On Deletion `<Recovery +1 (Deck)>` | `OnDeletion` keyword `{ keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" }` | Deleting EX8-036 moves the exact top BT1-009 deck card face-down onto security and empties the deck |
+| On Deletion `<Recovery +1 (Deck)>`                                                                 | `OnDeletion` keyword `{ keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" }`                                                                           | Deleting EX8-036 moves the exact top BT1-009 deck card face-down onto security and empties the deck                                                                                                                               |
 
 #### Changes
 
@@ -2904,6 +3075,10 @@ No EX8-036-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-037 — Sakuyamon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-037`, direct `apps/api/src/cards/EX8/EX8-037.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-037.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-037 — Sakuyamon (X Antibody)
 
@@ -2924,12 +3099,12 @@ Applicable rulings: Q3923 sequences the “if this effect used” tail after the
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate evolution over level-6 Sakuyamon without X Antibody for 1 | `digivolutionRequirement: { level: 6, names: ["Sakuyamon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true }` | ST22-05 Sakuyamon evolves legally at 1; an EX8-037 Sakuyamon (which has X Antibody) is rejected. |
-| When Digivolving, source stack containing Sakuyamon or X Antibody plays one Uka no Mitama Token | `WhenDigivolving` → conditional `PlayToken`, count 1, no cost, `anyOf` stack checks for name-only Sakuyamon or X Antibody trait; token action grants Rush | ST22-05 source creates a live 9000 DP Rush token; a BT9-040 X Antibody source also qualifies; a BT1-059 nonmatching source creates no token. |
-| Your Turn / Once Per Turn, when one of your Digimon attacks, may use one eligible Option free | `YourTurn` → source-filtered `SubTrigger(event: "whenAttacking", sourceFilter: mine Digimon)`, frequency `OncePerTurn`; optional `UseOptionWithoutCost`, from hand, payCost false, own Option filter | A real Sakuyamon attack uses LM-029 from hand for free and leaves the attacker unsuspended; a second attack in the same turn does not use the second copy. A cost-5 single-color Option is accepted while a multicolor cost-7 Option remains in hand. |
-| If the Option was used, one of your Digimon unsuspends | Ordered `Unsuspend` after the use action, condition `ifThisEffectUsed`, one own Digimon target | The qualifying attack unsuspends Sakuyamon; declining the optional use leaves it suspended. Q4738's LM-029 Main effect evolves Sakuyamon into BT13-020, yet the post-use tail still unsuspends the same permanent. |
+| Printed clause                                                                                  | Compiled IR                                                                                                                                                                                          | Focused proof                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate evolution over level-6 Sakuyamon without X Antibody for 1                             | `digivolutionRequirement: { level: 6, names: ["Sakuyamon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true }`                                                                             | ST22-05 Sakuyamon evolves legally at 1; an EX8-037 Sakuyamon (which has X Antibody) is rejected.                                                                                                                                                      |
+| When Digivolving, source stack containing Sakuyamon or X Antibody plays one Uka no Mitama Token | `WhenDigivolving` → conditional `PlayToken`, count 1, no cost, `anyOf` stack checks for name-only Sakuyamon or X Antibody trait; token action grants Rush                                            | ST22-05 source creates a live 9000 DP Rush token; a BT9-040 X Antibody source also qualifies; a BT1-059 nonmatching source creates no token.                                                                                                          |
+| Your Turn / Once Per Turn, when one of your Digimon attacks, may use one eligible Option free   | `YourTurn` → source-filtered `SubTrigger(event: "whenAttacking", sourceFilter: mine Digimon)`, frequency `OncePerTurn`; optional `UseOptionWithoutCost`, from hand, payCost false, own Option filter | A real Sakuyamon attack uses LM-029 from hand for free and leaves the attacker unsuspended; a second attack in the same turn does not use the second copy. A cost-5 single-color Option is accepted while a multicolor cost-7 Option remains in hand. |
+| If the Option was used, one of your Digimon unsuspends                                          | Ordered `Unsuspend` after the use action, condition `ifThisEffectUsed`, one own Digimon target                                                                                                       | The qualifying attack unsuspends Sakuyamon; declining the optional use leaves it suspended. Q4738's LM-029 Main effect evolves Sakuyamon into BT13-020, yet the post-use tail still unsuspends the same permanent.                                    |
 
 #### Shared seam and ruling proof
 
@@ -2983,6 +3158,10 @@ No EX8-037-specific IR or behavioral defect remains. The module is suppression-f
 
 ### EX8-038 — Agumon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-038`, direct `apps/api/src/cards/EX8/EX8-038.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-038.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-038 — Agumon
 
@@ -3003,11 +3182,11 @@ Applicable ruling: Q3924 confirms that the optional On Play suspension may targe
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate `[Digivolve][Koromon]: Cost 0` | `digivolutionRequirement: { names: ["Koromon"], cost: 0, isAlternate: true }` | A black Koromon Digi-Egg in the breeding area evolves into Agumon at zero memory; a non-Koromon Yokomon breeding card is rejected. The breeding-only Digi-Egg fixtures are not placed in deck or Security. |
-| On Play, may suspend one Digimon | `OnPlay` → optional `Suspend`, exact count 1, `controllerDefault: "any"`, kind Digimon | Separate live plays force an opposing AD1-001 or friendly EX8-015 target; the unselected opponent remains unsuspended. A refusal test leaves the board unchanged. |
-| Inherited Retaliation | Inherited `Static` entry with `keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }]` | A live host carrying EX8-038 reports Retaliation, and an unequal-DP battle deletes both the host and the opposing target, proving the inherited keyword is consumed by combat. |
+| Printed clause                           | Compiled IR                                                                                    | Focused proof                                                                                                                                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate `[Digivolve][Koromon]: Cost 0` | `digivolutionRequirement: { names: ["Koromon"], cost: 0, isAlternate: true }`                  | A black Koromon Digi-Egg in the breeding area evolves into Agumon at zero memory; a non-Koromon Yokomon breeding card is rejected. The breeding-only Digi-Egg fixtures are not placed in deck or Security. |
+| On Play, may suspend one Digimon         | `OnPlay` → optional `Suspend`, exact count 1, `controllerDefault: "any"`, kind Digimon         | Separate live plays force an opposing AD1-001 or friendly EX8-015 target; the unselected opponent remains unsuspended. A refusal test leaves the board unchanged.                                          |
+| Inherited Retaliation                    | Inherited `Static` entry with `keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }]` | A live host carrying EX8-038 reports Retaliation, and an unequal-DP battle deletes both the host and the opposing target, proving the inherited keyword is consumed by combat.                             |
 
 #### Shared seam and stack evidence
 
@@ -3060,6 +3239,10 @@ No EX8-038-specific IR or behavioral defect remains. The prior equal-DP Retaliat
 
 ### EX8-039 — Tentomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-039`, direct `apps/api/src/cards/EX8/EX8-039.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-039.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-039 — Tentomon
 
@@ -3083,13 +3266,13 @@ Peer evidence was checked against EX8-040 Kabuterimon and EX8-069's NSp trait fi
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Standard Green level-2 evolution for 0 | Catalog `evoCosts: [{color: "Green", level: 2, memoryCost: 0}]` | Green BT1-007 breeding stack evolves into Tentomon for zero |
-| Alternate level-2 NSp evolution for 0 | `digivolutionRequirement: { level: 2, traits: ["NSp"], cost: 0, isAlternate: true }` | Off-color blue NSp P-148 breeding stack evolves for zero; non-NSp EX8-002 breeding stack is rejected |
-| Reveal top 3 and add one Insectoid and one NSp card | `OnPlay` → `RevealAdd`, `revealCount: 3`, two count-1 hand adds with `controllerDefault: "mine"`, exact `Insectoid` and `NSp` trait filters | Deck with ST4-03 and EX7-015 adds exactly those cards; an all-nonmatching reveal adds neither |
-| Return the remainder to the bottom of the deck | `rest: "deckBottom"` | Mixed reveal confirms the unselected third card is bottomed after the existing unrevealed anchor, in the engine's owner-chosen order |
-| Inherited Your Turn +2000 DP | inherited `YourTurn` → self-only `ModifyDP(+2000, permanent)` | Host carrying EX8-039 is 8000 DP on its turn, 6000 on opponent's turn, and returns to 8000 when its turn resumes |
+| Printed clause                                      | Compiled IR                                                                                                                                 | Focused proof                                                                                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Standard Green level-2 evolution for 0              | Catalog `evoCosts: [{color: "Green", level: 2, memoryCost: 0}]`                                                                             | Green BT1-007 breeding stack evolves into Tentomon for zero                                                                          |
+| Alternate level-2 NSp evolution for 0               | `digivolutionRequirement: { level: 2, traits: ["NSp"], cost: 0, isAlternate: true }`                                                        | Off-color blue NSp P-148 breeding stack evolves for zero; non-NSp EX8-002 breeding stack is rejected                                 |
+| Reveal top 3 and add one Insectoid and one NSp card | `OnPlay` → `RevealAdd`, `revealCount: 3`, two count-1 hand adds with `controllerDefault: "mine"`, exact `Insectoid` and `NSp` trait filters | Deck with ST4-03 and EX7-015 adds exactly those cards; an all-nonmatching reveal adds neither                                        |
+| Return the remainder to the bottom of the deck      | `rest: "deckBottom"`                                                                                                                        | Mixed reveal confirms the unselected third card is bottomed after the existing unrevealed anchor, in the engine's owner-chosen order |
+| Inherited Your Turn +2000 DP                        | inherited `YourTurn` → self-only `ModifyDP(+2000, permanent)`                                                                               | Host carrying EX8-039 is 8000 DP on its turn, 6000 on opponent's turn, and returns to 8000 when its turn resumes                     |
 
 #### Changes
 
@@ -3145,6 +3328,10 @@ No EX8-039-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-040 — Kabuterimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-040`, direct `apps/api/src/cards/EX8/EX8-040.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-040.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-040 — Kabuterimon
 
@@ -3165,12 +3352,12 @@ Applicable ruling: Q3925 confirms that both the On Play and When Digivolving sus
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Standard Green level-3 evolution for 2; alternate level-3 NSp evolution for 2 | Catalog `evoCosts` supplies the standard route; `digivolutionRequirement: { level: 3, traits: ["NSp"], cost: 2, isAlternate: true }` supplies the alternate route | A real off-color blue EX7-015 NSp rookie evolves through the alternate route at cost 2 and suspends an allied Digimon. A red BT1-009 rookie without NSp is rejected. |
-| On Play may suspend one Digimon | `OnPlay` → optional `Suspend`, count 1, `controllerDefault: "any"`, Digimon filter | A real play forces opposing AD1-001 suspension; a separate real play with refusal leaves the opponent unsuspended. |
-| When Digivolving may suspend one Digimon | `WhenDigivolving` → the same optional any-controller one-Digimon `Suspend` action | The legal EX7-015 evolution forces friendly BT1-071 suspension while the opposing AD1-001 remains unsuspended, covering the second timing and Q3925's cross-controller allowance. |
-| Inherited Your Turn +2000 DP | Inherited `YourTurn` → self-targeted `ModifyDP(amount: 2000, duration: "permanent")` | A BT11-053 host carrying EX8-040 is 12000 DP on its controller's turn and returns to printed 10000 DP when the opponent's turn is active. |
+| Printed clause                                                                | Compiled IR                                                                                                                                                       | Focused proof                                                                                                                                                                     |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard Green level-3 evolution for 2; alternate level-3 NSp evolution for 2 | Catalog `evoCosts` supplies the standard route; `digivolutionRequirement: { level: 3, traits: ["NSp"], cost: 2, isAlternate: true }` supplies the alternate route | A real off-color blue EX7-015 NSp rookie evolves through the alternate route at cost 2 and suspends an allied Digimon. A red BT1-009 rookie without NSp is rejected.              |
+| On Play may suspend one Digimon                                               | `OnPlay` → optional `Suspend`, count 1, `controllerDefault: "any"`, Digimon filter                                                                                | A real play forces opposing AD1-001 suspension; a separate real play with refusal leaves the opponent unsuspended.                                                                |
+| When Digivolving may suspend one Digimon                                      | `WhenDigivolving` → the same optional any-controller one-Digimon `Suspend` action                                                                                 | The legal EX7-015 evolution forces friendly BT1-071 suspension while the opposing AD1-001 remains unsuspended, covering the second timing and Q3925's cross-controller allowance. |
+| Inherited Your Turn +2000 DP                                                  | Inherited `YourTurn` → self-targeted `ModifyDP(amount: 2000, duration: "permanent")`                                                                              | A BT11-053 host carrying EX8-040 is 12000 DP on its controller's turn and returns to printed 10000 DP when the opponent's turn is active.                                         |
 
 #### Shared seam and stack evidence
 
@@ -3223,6 +3410,10 @@ No EX8-040-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-041 — DarkTyrannomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-041`, direct `apps/api/src/cards/EX8/EX8-041.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-041.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-041 — DarkTyrannomon
 
@@ -3243,12 +3434,12 @@ Applicable ruling: Q3926 confirms that the Tamer suspended by the first action a
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate level-3 Reptile evolution for 2 | `digivolutionRequirement: { level: 3, traits: ["Reptile"], cost: 2, isAlternate: true }`; catalog supplies standard Green/Purple level-3 cost 3 | A red BT1-010 Reptile rookie evolves through the alternate route at cost 2, while a red BT1-009 non-Reptile rookie is rejected. The evolved source stack is retained. |
+| Printed clause                                                                                                 | Compiled IR                                                                                                                                                              | Focused proof                                                                                                                                                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate level-3 Reptile evolution for 2                                                                      | `digivolutionRequirement: { level: 3, traits: ["Reptile"], cost: 2, isAlternate: true }`; catalog supplies standard Green/Purple level-3 cost 3                          | A red BT1-010 Reptile rookie evolves through the alternate route at cost 2, while a red BT1-009 non-Reptile rookie is rejected. The evolved source stack is retained.                                                                                                                                       |
 | On Play: suspend one opponent Tamer, then restrict one opponent Tamer from unsuspending through their turn end | `OnPlay` has ordered mandatory `Suspend` and `Restrict(unsuspend)` actions, each independently targeting one opponent Tamer; restriction duration `untilOpponentTurnEnd` | Real On Play suspends the selected Tamer; an attempted unsuspend remains suspended while the restriction is active, survives the source controller's turn, and becomes legal after the opponent turn ends. An independent two-Tamer When Digivolving decision suspends one and restricts the other (Q3926). |
-| When Digivolving: same two-step Tamer sequence | `WhenDigivolving` repeats the exact ordered actions without binding the second target to the first | Manual public target responses choose distinct `suspended` and `restricted` Tamers; only the selected second Tamer is unsuspend-restricted. A real Reptile evolution repeats the entry effect. |
-| Inherited Retaliation | Inherited `Static` entry with `keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }]` | A BT11-053 host carrying EX8-041 reports Retaliation, and an unequal-DP battle deletes both the host and opposing target. |
+| When Digivolving: same two-step Tamer sequence                                                                 | `WhenDigivolving` repeats the exact ordered actions without binding the second target to the first                                                                       | Manual public target responses choose distinct `suspended` and `restricted` Tamers; only the selected second Tamer is unsuspend-restricted. A real Reptile evolution repeats the entry effect.                                                                                                              |
+| Inherited Retaliation                                                                                          | Inherited `Static` entry with `keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }]`                                                                           | A BT11-053 host carrying EX8-041 reports Retaliation, and an unequal-DP battle deletes both the host and opposing target.                                                                                                                                                                                   |
 
 #### Shared seam and stack evidence
 
@@ -3301,6 +3492,10 @@ No EX8-041-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-042 — MegaKabuterimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-042`, direct `apps/api/src/cards/EX8/EX8-042.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-042.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-042 — MegaKabuterimon
 
@@ -3324,14 +3519,14 @@ Peer evidence was checked against EX8-040 Kabuterimon's Fortitude/suspension pat
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Standard Green level-4 evolution for 3 | Catalog `evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }]` | BT1-071 evolves into EX8-042 with exactly 3 memory; the source remains in the stack. |
-| Alternate level-4 NSp evolution for 3 | `digivolutionRequirement: { level: 4, traits: ["NSp"], cost: 3, isAlternate: true }` | Off-color NSp EX7-018 evolves for exactly 3; non-NSp BT1-037 is rejected. |
-| Fortitude | Static keyword `{ keyword: "Fortitude", raw: "＜Fortitude＞" }` | EX8-042 carrying EX8-040 is deleted and replayed without cost as a new permanent; its digivolution card moves to trash. EX8-042 without a stack remains deleted. |
-| All Turns, suspended +3000 DP | AllTurns self-only `Aura` with `effect: modifyDP(+3000)` and `while: selfIsSuspended` | A live suspended EX8-042 is 10000 DP, returns to 7000 when unsuspended, and becomes 10000 again when suspended. |
-| Inherited battle deletion, trash one security card, Once Per Turn | Inherited AllTurns `SubTrigger(whenDeletesInBattle)` with self source filter, opponent `SecurityManipulation(trashTop, amount: 1)`, `frequency: "OncePerTurn"` | A host carrying EX8-042 deletes two opposing Digimon in battle in one turn: only the first deletion trashes the top security card. |
-| Q3927 simultaneous deletion exception | Inherited trigger is resolved only when the source survives as the deleting Digimon | Equal-DP battle deletes both battlers simultaneously; the opponent's two-card Security stack is unchanged, matching Q3927. |
+| Printed clause                                                    | Compiled IR                                                                                                                                                    | Focused proof                                                                                                                                                    |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard Green level-4 evolution for 3                            | Catalog `evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }]`                                                                                              | BT1-071 evolves into EX8-042 with exactly 3 memory; the source remains in the stack.                                                                             |
+| Alternate level-4 NSp evolution for 3                             | `digivolutionRequirement: { level: 4, traits: ["NSp"], cost: 3, isAlternate: true }`                                                                           | Off-color NSp EX7-018 evolves for exactly 3; non-NSp BT1-037 is rejected.                                                                                        |
+| Fortitude                                                         | Static keyword `{ keyword: "Fortitude", raw: "＜Fortitude＞" }`                                                                                                | EX8-042 carrying EX8-040 is deleted and replayed without cost as a new permanent; its digivolution card moves to trash. EX8-042 without a stack remains deleted. |
+| All Turns, suspended +3000 DP                                     | AllTurns self-only `Aura` with `effect: modifyDP(+3000)` and `while: selfIsSuspended`                                                                          | A live suspended EX8-042 is 10000 DP, returns to 7000 when unsuspended, and becomes 10000 again when suspended.                                                  |
+| Inherited battle deletion, trash one security card, Once Per Turn | Inherited AllTurns `SubTrigger(whenDeletesInBattle)` with self source filter, opponent `SecurityManipulation(trashTop, amount: 1)`, `frequency: "OncePerTurn"` | A host carrying EX8-042 deletes two opposing Digimon in battle in one turn: only the first deletion trashes the top security card.                               |
+| Q3927 simultaneous deletion exception                             | Inherited trigger is resolved only when the source survives as the deleting Digimon                                                                            | Equal-DP battle deletes both battlers simultaneously; the opponent's two-card Security stack is unchanged, matching Q3927.                                       |
 
 #### Changes
 
@@ -3387,6 +3582,10 @@ No EX8-042-specific implementation, type, or behavioral defect was found. The ca
 
 ### EX8-043 — MetalTyrannomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-043`, direct `apps/api/src/cards/EX8/EX8-043.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-043.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-043 — MetalTyrannomon
 
@@ -3407,14 +3606,14 @@ Applicable rulings: Q3928 confirms the optional suspension may target either pla
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate level-4 Dinosaur evolution for 3 | `digivolutionRequirement: { level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }`; catalog supplies standard Green/Black level-4 cost 4 | A legal off-color AD1-001 Dinosaur evolves at cost 3 and retains its source stack; a BT1-037 non-Dinosaur base is rejected. |
-| On Play/When Digivolving may suspend one Digimon | Each timing has optional `Suspend`, count 1, `controllerDefault: "any"`, Digimon filter | Live On Play selects an opposing Digimon; the real evolution path uses optional refusal while already suspended and continues to its conditional entry effects. |
-| If this Digimon is suspended, De-Digivolve 1 opposing Digimon | Ordered conditional `DeDigivolve(amount: 1)` against one opponent Digimon with `selfIsSuspended` gate | Suspended entry resolution exposes the target's BT1-009 source card, while declining suspension leaves the target unchanged and skips De-Digivolve/protection. |
-| Suspended self cannot be returned by opponent effects and cannot be De-Digivolved until opponent turn end | Two conditional self-targeted `Restrict` actions: `beReturned` with `byOpponentEffectsOnly`, and `cantBeDeDigivolved`, both `untilOpponentTurnEnd` | Opponent EX8-049 De-Digivolve and ST2-16 return attempts are blocked; the controller's own return succeeds. Protections persist through the source controller's turn and expire at opponent-turn end, after which a normal return succeeds. |
-| Rule trait Dinosaur | `Rule` → self `GrantStatic` trait Dinosaur | The alternate Dinosaur route and inherited stack both use the live source; the exact self rule is structurally asserted. |
-| Inherited Once Per Turn battle deletion trashes opponent's top security | Inherited `AllTurns` `SubTrigger(event: "whenDeletesInBattle", sourceFilter: isSelfRef)`, `SecurityManipulation(op: "trashTop", controller: "opponent", amount: 1)`, frequency `OncePerTurn` | A real inherited host battle trashes the exact top security card; two battles in one turn trash only once. When both battlers die at the same timing, the opponent security remains intact (Q3929). |
+| Printed clause                                                                                            | Compiled IR                                                                                                                                                                                  | Focused proof                                                                                                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate level-4 Dinosaur evolution for 3                                                                | `digivolutionRequirement: { level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }`; catalog supplies standard Green/Black level-4 cost 4                                              | A legal off-color AD1-001 Dinosaur evolves at cost 3 and retains its source stack; a BT1-037 non-Dinosaur base is rejected.                                                                                                                 |
+| On Play/When Digivolving may suspend one Digimon                                                          | Each timing has optional `Suspend`, count 1, `controllerDefault: "any"`, Digimon filter                                                                                                      | Live On Play selects an opposing Digimon; the real evolution path uses optional refusal while already suspended and continues to its conditional entry effects.                                                                             |
+| If this Digimon is suspended, De-Digivolve 1 opposing Digimon                                             | Ordered conditional `DeDigivolve(amount: 1)` against one opponent Digimon with `selfIsSuspended` gate                                                                                        | Suspended entry resolution exposes the target's BT1-009 source card, while declining suspension leaves the target unchanged and skips De-Digivolve/protection.                                                                              |
+| Suspended self cannot be returned by opponent effects and cannot be De-Digivolved until opponent turn end | Two conditional self-targeted `Restrict` actions: `beReturned` with `byOpponentEffectsOnly`, and `cantBeDeDigivolved`, both `untilOpponentTurnEnd`                                           | Opponent EX8-049 De-Digivolve and ST2-16 return attempts are blocked; the controller's own return succeeds. Protections persist through the source controller's turn and expire at opponent-turn end, after which a normal return succeeds. |
+| Rule trait Dinosaur                                                                                       | `Rule` → self `GrantStatic` trait Dinosaur                                                                                                                                                   | The alternate Dinosaur route and inherited stack both use the live source; the exact self rule is structurally asserted.                                                                                                                    |
+| Inherited Once Per Turn battle deletion trashes opponent's top security                                   | Inherited `AllTurns` `SubTrigger(event: "whenDeletesInBattle", sourceFilter: isSelfRef)`, `SecurityManipulation(op: "trashTop", controller: "opponent", amount: 1)`, frequency `OncePerTurn` | A real inherited host battle trashes the exact top security card; two battles in one turn trash only once. When both battlers die at the same timing, the opponent security remains intact (Q3929).                                         |
 
 #### Shared seam and stack evidence
 
@@ -3468,6 +3667,10 @@ No EX8-043-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-044 — HerculesKabuterimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-044`, direct `apps/api/src/cards/EX8/EX8-044.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-044.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-044 — HerculesKabuterimon
 
@@ -3489,12 +3692,12 @@ Applicable ruling: Q3930 confirms that the suspension effect may target either p
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Alternate level-5 NSp evolution for 3 | `digivolutionRequirement: { level: 5, traits: ["NSp"], cost: 3, isAlternate: true }`; catalog supplies standard Green level-5 cost 3 | A real off-color EX7-022 NSp evolution pays 3, resolves the entry effect, and retains its source stack. BT1-020 non-NSp level-5 evolution is rejected. |
-| Hand Counter Blast Digivolve | `Counter` entry is marked `isFromHand: true` and carries `BlastDigivolve` | The public counter window finds HerculesKabuterimon in hand; responding with it evolves over EX8-042 without paying memory and resolves its When Digivolving actions. |
-| On Play and When Digivolving may suspend up to three Digimon | Both timings contain optional `Suspend`, any-controller Digimon filter, `count: 3`, `upTo: true` | On Play suspends a newly eligible opponent and the real evolution path does the same; declining the optional On Play effect suspends nothing and leaves memory at the paid-play result. |
-| Gain 1 memory for each opponent Digimon suspended by this effect | Ordered `GainMemory(amount: 1)` with scaling per one, opponent controller, Digimon kind, `suspendedByThisEffect: true` | An already-suspended opponent is not counted; a newly suspended opponent gains exactly one memory. A mixed own/opponent suspension gains memory only for the opponent suspension. |
+| Printed clause                                                                                       | Compiled IR                                                                                                                                                                                 | Focused proof                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate level-5 NSp evolution for 3                                                                | `digivolutionRequirement: { level: 5, traits: ["NSp"], cost: 3, isAlternate: true }`; catalog supplies standard Green level-5 cost 3                                                        | A real off-color EX7-022 NSp evolution pays 3, resolves the entry effect, and retains its source stack. BT1-020 non-NSp level-5 evolution is rejected.                                          |
+| Hand Counter Blast Digivolve                                                                         | `Counter` entry is marked `isFromHand: true` and carries `BlastDigivolve`                                                                                                                   | The public counter window finds HerculesKabuterimon in hand; responding with it evolves over EX8-042 without paying memory and resolves its When Digivolving actions.                           |
+| On Play and When Digivolving may suspend up to three Digimon                                         | Both timings contain optional `Suspend`, any-controller Digimon filter, `count: 3`, `upTo: true`                                                                                            | On Play suspends a newly eligible opponent and the real evolution path does the same; declining the optional On Play effect suspends nothing and leaves memory at the paid-play result.         |
+| Gain 1 memory for each opponent Digimon suspended by this effect                                     | Ordered `GainMemory(amount: 1)` with scaling per one, opponent controller, Digimon kind, `suspendedByThisEffect: true`                                                                      | An already-suspended opponent is not counted; a newly suspended opponent gains exactly one memory. A mixed own/opponent suspension gains memory only for the opponent suspension.               |
 | When suspended, one own Digimon gains Piercing and +3000 DP through opponent turn end, once per turn | `AllTurns` `SubTrigger(whenSuspended)` with `frequency: "OncePerTurn"`; `SelectBind` one own Digimon, then bound `GainKeyword(Piercing)` and `ModifyDP(+3000)`, both `untilOpponentTurnEnd` | A selected ally receives Piercing and +3000, not HerculesKabuterimon; a second suspension in the turn does not repeat it; the grant persists through its turn and expires at opponent-turn end. |
 
 #### Shared seam and stack evidence
@@ -3549,6 +3752,10 @@ No EX8-044-specific IR or behavioral defect remains. The invalid `suspendedByThi
 
 ### EX8-045 — Callismon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-045`, direct `apps/api/src/cards/EX8/EX8-045.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-045.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-045 — Callismon
 
@@ -3573,14 +3780,14 @@ Peer evidence was checked against EX8-044/EX8-046 trait neighbors and BT20-035's
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Green level-5 evolution for 4; Purple level-5 evolution for 4 | Catalog `evoCosts` contains both exact color/level/cost entries | BT11-053 evolves legally through Green for 4; BT10-080 evolves legally through Purple for 4; Yellow BT1-059 is rejected. Each test verifies the source remains under Callismon and memory reaches 0. |
-| When Digivolving suspend one opponent's Digimon or Tamer | `WhenDigivolving` → mandatory `Suspend`, opponent controller, `kind: ["Digimon", "Tamer"]`, count 1 | A real evolution selects an opponent Digimon while a Tamer is also present; only the selected Digimon becomes suspended. A separate case selects the Tamer. |
-| Then return one of their suspended Tamers to deck bottom | Ordered `Return` after Suspend, opponent suspended Tamer filter, count 1, `to: "deckBottom"` | Real evolution bottoms a pre-suspended Tamer, and a case where the newly suspended object is itself a Tamer bottoms that same card. The remaining Tamer and deck order are asserted. |
-| Your Turn +1000 DP for each color in this Digimon's digivolution cards | `YourTurn` self-only `ModifyDP(+1000)` with permanent duration and scaling `{ per: 1, unit: "colors", filter: { zone: "digivolutionCards" } }` | Four source cards containing exactly three distinct colors produce 15000 DP; the same stack does not count source-card count or another Digimon's color. On the opponent's turn it returns to 12000. |
-| While opponent has no Digimon with equal or higher DP, gain Piercing and Security Attack +1 | Two self-only `YourTurn` auras, each gated by opponent Digimon `dp: { op: "gte", relativeToSource: true }` absence | With no opposing Digimon both keywords are present; an opposing Digimon at exactly Callismon's 15000 DP removes both. Q6043 is exercised by the no-opponent-Digimon state. |
-| Piercing and Security Attack +1 affect actual security checks | Keyword auras use `Piercing` and `SecurityAttack` amount 1 | A player attack performs two checks while active. Q3932 uses real `BT5-112` Security play to create a higher-DP opposing Digimon after check 1; the second check is not performed. Q3931 uses real Fortitude restoration after battle deletion and still performs the already-triggered Piercing check. |
+| Printed clause                                                                              | Compiled IR                                                                                                                                    | Focused proof                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Green level-5 evolution for 4; Purple level-5 evolution for 4                               | Catalog `evoCosts` contains both exact color/level/cost entries                                                                                | BT11-053 evolves legally through Green for 4; BT10-080 evolves legally through Purple for 4; Yellow BT1-059 is rejected. Each test verifies the source remains under Callismon and memory reaches 0.                                                                                                    |
+| When Digivolving suspend one opponent's Digimon or Tamer                                    | `WhenDigivolving` → mandatory `Suspend`, opponent controller, `kind: ["Digimon", "Tamer"]`, count 1                                            | A real evolution selects an opponent Digimon while a Tamer is also present; only the selected Digimon becomes suspended. A separate case selects the Tamer.                                                                                                                                             |
+| Then return one of their suspended Tamers to deck bottom                                    | Ordered `Return` after Suspend, opponent suspended Tamer filter, count 1, `to: "deckBottom"`                                                   | Real evolution bottoms a pre-suspended Tamer, and a case where the newly suspended object is itself a Tamer bottoms that same card. The remaining Tamer and deck order are asserted.                                                                                                                    |
+| Your Turn +1000 DP for each color in this Digimon's digivolution cards                      | `YourTurn` self-only `ModifyDP(+1000)` with permanent duration and scaling `{ per: 1, unit: "colors", filter: { zone: "digivolutionCards" } }` | Four source cards containing exactly three distinct colors produce 15000 DP; the same stack does not count source-card count or another Digimon's color. On the opponent's turn it returns to 12000.                                                                                                    |
+| While opponent has no Digimon with equal or higher DP, gain Piercing and Security Attack +1 | Two self-only `YourTurn` auras, each gated by opponent Digimon `dp: { op: "gte", relativeToSource: true }` absence                             | With no opposing Digimon both keywords are present; an opposing Digimon at exactly Callismon's 15000 DP removes both. Q6043 is exercised by the no-opponent-Digimon state.                                                                                                                              |
+| Piercing and Security Attack +1 affect actual security checks                               | Keyword auras use `Piercing` and `SecurityAttack` amount 1                                                                                     | A player attack performs two checks while active. Q3932 uses real `BT5-112` Security play to create a higher-DP opposing Digimon after check 1; the second check is not performed. Q3931 uses real Fortitude restoration after battle deletion and still performs the already-triggered Piercing check. |
 
 #### Changes
 
@@ -3636,6 +3843,10 @@ No EX8-045-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-046 — Gotsumon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-046`, direct `apps/api/src/cards/EX8/EX8-046.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-046.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-046 — Gotsumon
 
@@ -3655,11 +3866,11 @@ KB result: no entries; therefore no Q&A IDs, errata, restrictions, or card-speci
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
+| Printed clause                                                  | Compiled IR                                                                                                                                           | Focused proof                                                                                                                                                                        |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | On Deletion, trash one Mineral/Rock card from hand, then draw 2 | `OnDeletion` → `Draw(controller: "mine", amount: 2)` with optional abortable trash cost, hand/owner filter, and name-or-trait tokens `Mineral`/`Rock` | Deleting a played Gotsumon trashes the exact EX8-047 Mineral card and draws two exact deck cards; no qualifying hand card draws nothing; declining preserves the cost card and deck. |
-| Inherited Blocker | Inherited `Static` entry with Blocker keyword | A live EX8-048 black host carrying EX8-046 reports Blocker and blocks a real attack, leaving the host alive and security unchanged. |
-| Standard Black level-2 evolution for 0 | Catalog `evoCosts` | A black BT9-005 breeding stack evolves to EX8-046 at zero memory and retains the source stack. |
+| Inherited Blocker                                               | Inherited `Static` entry with Blocker keyword                                                                                                         | A live EX8-048 black host carrying EX8-046 reports Blocker and blocks a real attack, leaving the host alive and security unchanged.                                                  |
+| Standard Black level-2 evolution for 0                          | Catalog `evoCosts`                                                                                                                                    | A black BT9-005 breeding stack evolves to EX8-046 at zero memory and retains the source stack.                                                                                       |
 
 #### Shared seam and stack evidence
 
@@ -3713,6 +3924,10 @@ No EX8-046-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-047 — Sunarizamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-047`, direct `apps/api/src/cards/EX8/EX8-047.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-047.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-047 — Sunarizamon
 
@@ -3732,12 +3947,12 @@ KB result: no entries; therefore no Q&A IDs, errata, restrictions, or card-speci
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| On Play reveals top 3, adds one Mineral/Rock and one LIBERATOR, bottoms the rest | `OnPlay` → `RevealAdd(revealCount: 3)`, two independent one-card `add` clauses to hand, and `rest: "deckBottom"` | EX8-048/EX8-050 matching cards reach hand while AD1-001 and inert BT1-009 remain in the expected bottom order. |
-| Rule trait Mineral | `Rule` → self `GrantStatic` trait Mineral | Live Sunarizamon state reports effective Mineral. |
-| Inherited trigger when this card is discarded from a Mineral/Rock host | Inherited `Static` `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: isSelfRef, hostFilter: Mineral/Rock)`, deleting one opponent Digimon with printed play cost ≤4 | Opposing EX8-022 trashes the exact source from an EX8-048 Mineral host; the low-cost opponent is deleted and the discarded source leaves the stack. |
-| Delete one opposing Digimon with play cost 4 or less | Inherited Delete target: opponent Digimon, count 1, `playCostLte: 4` | BT1-010 cost 3 is deleted while EX8-041 cost 5 remains; the same discarded source under non-Mineral/Rock BT2-057 or AD1-001 produces no deletion. |
+| Printed clause                                                                   | Compiled IR                                                                                                                                                                             | Focused proof                                                                                                                                       |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play reveals top 3, adds one Mineral/Rock and one LIBERATOR, bottoms the rest | `OnPlay` → `RevealAdd(revealCount: 3)`, two independent one-card `add` clauses to hand, and `rest: "deckBottom"`                                                                        | EX8-048/EX8-050 matching cards reach hand while AD1-001 and inert BT1-009 remain in the expected bottom order.                                      |
+| Rule trait Mineral                                                               | `Rule` → self `GrantStatic` trait Mineral                                                                                                                                               | Live Sunarizamon state reports effective Mineral.                                                                                                   |
+| Inherited trigger when this card is discarded from a Mineral/Rock host           | Inherited `Static` `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: isSelfRef, hostFilter: Mineral/Rock)`, deleting one opponent Digimon with printed play cost ≤4 | Opposing EX8-022 trashes the exact source from an EX8-048 Mineral host; the low-cost opponent is deleted and the discarded source leaves the stack. |
+| Delete one opposing Digimon with play cost 4 or less                             | Inherited Delete target: opponent Digimon, count 1, `playCostLte: 4`                                                                                                                    | BT1-010 cost 3 is deleted while EX8-041 cost 5 remains; the same discarded source under non-Mineral/Rock BT2-057 or AD1-001 produces no deletion.   |
 
 #### Shared seam and lifecycle evidence
 
@@ -3790,6 +4005,10 @@ No EX8-047-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-048 — Landramon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-048`, direct `apps/api/src/cards/EX8/EX8-048.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-048.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-048 — Landramon
 
@@ -3810,13 +4029,13 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-3 evolution for 2 | Catalog `evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }]` | A legal EX8-047 Mineral level-3 base evolves into Landramon for exactly 2 memory; the full stack is observable. |
-| Level-3 Mineral alternate evolution for 2 | `digivolutionRequirement: [{ level: 3, traits: ["Mineral"], cost: 2, isAlternate: true }]` | `digivolutionRequirementsFor("EX8-048")` exposes the exact requirement; the legal Mineral stack succeeds while a non-Mineral BT1-029 base is rejected without changing memory or the stack. |
+| Printed clause                                                                          | Compiled IR                                                                                                                                                                    | Focused proof                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-3 evolution for 2                                                           | Catalog `evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }]`                                                                                                              | A legal EX8-047 Mineral level-3 base evolves into Landramon for exactly 2 memory; the full stack is observable.                                                                                                                  |
+| Level-3 Mineral alternate evolution for 2                                               | `digivolutionRequirement: [{ level: 3, traits: ["Mineral"], cost: 2, isAlternate: true }]`                                                                                     | `digivolutionRequirementsFor("EX8-048")` exposes the exact requirement; the legal Mineral stack succeeds while a non-Mineral BT1-029 base is rejected without changing memory or the stack.                                      |
 | If you have 1 or fewer Tamers, you may play one Close from hand without paying the cost | `WhenDigivolving` → optional `PlayWithoutCost`, exact Close-name hand target, `count: 1`, `from: ["hand"]`, `payCost: false`, `youHave` controller-default Tamer `countMax: 1` | With no Tamer, Close leaves hand and enters the battle area; the evolution draws one card and only the 2-memory evolution cost is paid. The optional branch is declined successfully, and two existing Tamers suppress the play. |
-| When this card is trashed from the sources of a Mineral/Rock Digimon | Inherited `Static` → `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: { isSelfRef: true }, hostFilter: Mineral/Rock trait)` | Trashing the exact EX8-048 source from both a Rock host (BT10-064) and a Mineral host (EX8-047) resolves the inherited effect; a non-Mineral/Rock host (BT10-065) does not. |
-| Delete one opponent's Digimon with play cost 4 or less | Inherited `Delete`, opponent Digimon filter, `count: 1`, `playCostLte: 4` | The exact play-cost-4 BT2-057 target is deleted, while play-cost-5 AD1-001 remains; the low-cost target is also deleted in the positive host cases. |
+| When this card is trashed from the sources of a Mineral/Rock Digimon                    | Inherited `Static` → `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: { isSelfRef: true }, hostFilter: Mineral/Rock trait)`                               | Trashing the exact EX8-048 source from both a Rock host (BT10-064) and a Mineral host (EX8-047) resolves the inherited effect; a non-Mineral/Rock host (BT10-065) does not.                                                      |
+| Delete one opponent's Digimon with play cost 4 or less                                  | Inherited `Delete`, opponent Digimon filter, `count: 1`, `playCostLte: 4`                                                                                                      | The exact play-cost-4 BT2-057 target is deleted, while play-cost-5 AD1-001 remains; the low-cost target is also deleted in the positive host cases.                                                                              |
 
 #### Shared seam and lifecycle evidence
 
@@ -3869,6 +4088,10 @@ The fresh audit found and fixed one card-specific implementation defect: the com
 
 ### EX8-049 — Golemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-049`, direct `apps/api/src/cards/EX8/EX8-049.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-049.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-049 — Golemon
 
@@ -3891,12 +4114,12 @@ Peer evidence was checked against EX8-048 Landramon and EX8-050 Gogmamon for Min
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-3 evolution for 2 | Catalog `evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }]` | EX8-047 evolves into Golemon for exactly 2 and retains the source in its stack; a Red BT1-009 source is rejected. |
-| On Play: De-Digivolve 1 one opponent's Digimon | `OnPlay` → `DeDigivolve`, opponent Digimon filter, count 1, amount 1 | Playing Golemon at its 5-memory cost removes exactly the target's top EX8-048 card, leaves one BT1-009 source, and places EX8-048 in trash. |
-| On Deletion: De-Digivolve 1 one opponent's Digimon | `OnDeletion` → same opponent Digimon filter/count/amount | Deleting Golemon resolves the separate deletion trigger and produces the same exact stack/trash endpoint. |
-| Inherited Blocker | Static inherited keyword `{ keyword: "Blocker", raw: "＜Blocker＞" }` | A live BT1-080 host carrying Golemon exposes Blocker through the public observer. |
+| Printed clause                                     | Compiled IR                                                           | Focused proof                                                                                                                               |
+| -------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-3 evolution for 2                      | Catalog `evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }]`     | EX8-047 evolves into Golemon for exactly 2 and retains the source in its stack; a Red BT1-009 source is rejected.                           |
+| On Play: De-Digivolve 1 one opponent's Digimon     | `OnPlay` → `DeDigivolve`, opponent Digimon filter, count 1, amount 1  | Playing Golemon at its 5-memory cost removes exactly the target's top EX8-048 card, leaves one BT1-009 source, and places EX8-048 in trash. |
+| On Deletion: De-Digivolve 1 one opponent's Digimon | `OnDeletion` → same opponent Digimon filter/count/amount              | Deleting Golemon resolves the separate deletion trigger and produces the same exact stack/trash endpoint.                                   |
+| Inherited Blocker                                  | Static inherited keyword `{ keyword: "Blocker", raw: "＜Blocker＞" }` | A live BT1-080 host carrying Golemon exposes Blocker through the public observer.                                                           |
 
 #### Changes
 
@@ -3952,6 +4175,10 @@ No EX8-049-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-050 — Gogmamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-050`, direct `apps/api/src/cards/EX8/EX8-050.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-050.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-050 — Gogmamon
 
@@ -3974,14 +4201,14 @@ Peer evidence was checked against EX8-048 Landramon, EX8-049 Golemon, and EX8-05
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-4 evolution for 3 | Catalog `evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }]` | EX8-049 evolves into Gogmamon for exactly 3 and retains the source; Purple BT10-079 is rejected without changing memory or the stack. |
-| Blocker | Static `keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }]` | A live EX8-050 exposes Blocker through the public observer. |
-| On Deletion reveal top 3 | `OnDeletion` → `RevealAdd`, `revealCount: 3` | Deletion of Gogmamon processes all three deck cards as one reveal operation. |
-| You may play one Mineral/Rock Digimon costing 5 or less for free | `RevealAdd.add` has controller mine, Digimon kind, `playCostLte: 5`, exact Mineral/Rock trait filter, count 1, `to: "play"`, `optional: true` | A revealed EX8-049 Mineral is played without cost; a no-match/cost-over-ceiling reveal plays nothing. A matching reveal is manually declined and also plays nothing. Q3933's either-trait boundary is covered by the Mineral fixture and the Rock card's peer implementation. |
-| Trash the rest | `rest: "trash"` | Positive and no-match cases assert every unselected revealed card reaches trash and the deck is empty. |
-| Opponent's Turn, Once Per Turn, when an opponent Digimon attacks, you may redirect to this Digimon | Inherited `OpponentsTurn` → `SubTrigger(whenOpponentAttacks)` → optional self-only `RedirectAttack`, `frequency: "OncePerTurn"` | Two attacks in one opponent turn redirect only the first to the inherited host; the second resolves against Security. A separate attack declines the optional redirect and proceeds to Security. |
+| Printed clause                                                                                     | Compiled IR                                                                                                                                   | Focused proof                                                                                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-4 evolution for 3                                                                      | Catalog `evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }]`                                                                             | EX8-049 evolves into Gogmamon for exactly 3 and retains the source; Purple BT10-079 is rejected without changing memory or the stack.                                                                                                                                         |
+| Blocker                                                                                            | Static `keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }]`                                                                               | A live EX8-050 exposes Blocker through the public observer.                                                                                                                                                                                                                   |
+| On Deletion reveal top 3                                                                           | `OnDeletion` → `RevealAdd`, `revealCount: 3`                                                                                                  | Deletion of Gogmamon processes all three deck cards as one reveal operation.                                                                                                                                                                                                  |
+| You may play one Mineral/Rock Digimon costing 5 or less for free                                   | `RevealAdd.add` has controller mine, Digimon kind, `playCostLte: 5`, exact Mineral/Rock trait filter, count 1, `to: "play"`, `optional: true` | A revealed EX8-049 Mineral is played without cost; a no-match/cost-over-ceiling reveal plays nothing. A matching reveal is manually declined and also plays nothing. Q3933's either-trait boundary is covered by the Mineral fixture and the Rock card's peer implementation. |
+| Trash the rest                                                                                     | `rest: "trash"`                                                                                                                               | Positive and no-match cases assert every unselected revealed card reaches trash and the deck is empty.                                                                                                                                                                        |
+| Opponent's Turn, Once Per Turn, when an opponent Digimon attacks, you may redirect to this Digimon | Inherited `OpponentsTurn` → `SubTrigger(whenOpponentAttacks)` → optional self-only `RedirectAttack`, `frequency: "OncePerTurn"`               | Two attacks in one opponent turn redirect only the first to the inherited host; the second resolves against Security. A separate attack declines the optional redirect and proceeds to Security.                                                                              |
 
 #### Changes
 
@@ -4037,6 +4264,10 @@ No EX8-050-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-051 — Proganomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-051`, direct `apps/api/src/cards/EX8/EX8-051.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-051.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-051 — Proganomon
 
@@ -4056,14 +4287,14 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-4 evolution for 3 | Catalog `evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }]` | EX8-049 evolves legally into Proganomon for exactly 3 memory and retains the legal source stack; a non-Black BT1-016 source is rejected without payment. |
-| `<Collision>` | Static keyword marker `{ keyword: "Collision" }` | A live Proganomon grants an opposing non-keyword Digimon Blocker eligibility, opens a mandatory block window, and rejects `declineBlock` while a blocker exists. |
-| `<Piercing>` | Static keyword marker `{ keyword: "Piercing" }` | A winning Proganomon attack against an opposing Digimon deletes that Digimon and still checks the opponent's security card. |
-| `<Fragment (3)>` | Static keyword marker `{ keyword: "Fragment", amount: 3 }` | With exactly three sources, Proganomon prevents battle deletion by trashing all three; with only two sources, deletion proceeds normally. |
-| When this card is trashed from the digivolution cards of a Mineral/Rock Digimon | Inherited `Static` → `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: { isSelfRef: true }, hostFilter: Mineral/Rock trait)` | Trashing the exact source from Mineral EX8-053 and Rock BT10-064 hosts triggers; a nonmatching BT1-080 host does not. |
-| De-Digivolve 1 one opponent's Digimon | Inherited `DeDigivolve`, target controller `opponent`, kind `Digimon`, count 1, amount 1 | The target's current top card moves to its owner's trash and the next source is promoted; an opposing Tamer is untouched. |
+| Printed clause                                                                  | Compiled IR                                                                                                                                      | Focused proof                                                                                                                                                    |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-4 evolution for 3                                                   | Catalog `evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }]`                                                                                | EX8-049 evolves legally into Proganomon for exactly 3 memory and retains the legal source stack; a non-Black BT1-016 source is rejected without payment.         |
+| `<Collision>`                                                                   | Static keyword marker `{ keyword: "Collision" }`                                                                                                 | A live Proganomon grants an opposing non-keyword Digimon Blocker eligibility, opens a mandatory block window, and rejects `declineBlock` while a blocker exists. |
+| `<Piercing>`                                                                    | Static keyword marker `{ keyword: "Piercing" }`                                                                                                  | A winning Proganomon attack against an opposing Digimon deletes that Digimon and still checks the opponent's security card.                                      |
+| `<Fragment (3)>`                                                                | Static keyword marker `{ keyword: "Fragment", amount: 3 }`                                                                                       | With exactly three sources, Proganomon prevents battle deletion by trashing all three; with only two sources, deletion proceeds normally.                        |
+| When this card is trashed from the digivolution cards of a Mineral/Rock Digimon | Inherited `Static` → `SubTrigger(event: "onDigivolutionCardsDiscardedBatch", sourceFilter: { isSelfRef: true }, hostFilter: Mineral/Rock trait)` | Trashing the exact source from Mineral EX8-053 and Rock BT10-064 hosts triggers; a nonmatching BT1-080 host does not.                                            |
+| De-Digivolve 1 one opponent's Digimon                                           | Inherited `DeDigivolve`, target controller `opponent`, kind `Digimon`, count 1, amount 1                                                         | The target's current top card moves to its owner's trash and the next source is promoted; an opposing Tamer is untouched.                                        |
 
 #### Shared seam and lifecycle evidence
 
@@ -4116,6 +4347,10 @@ No EX8-051-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-052 — Cyberdramon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-052`, direct `apps/api/src/cards/EX8/EX8-052.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-052.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-052 — Cyberdramon (X Antibody)
 
@@ -4137,12 +4372,12 @@ KB results: Q3934 says simultaneous effects triggered by this card's digivolutio
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-4 evolution for 3; alternate [Cyberdramon] for 0 | Catalog Black `evoCosts` plus `digivolutionRequirement: [{ names: ["Cyberdramon"], cost: 0, isAlternate: true }]` | The Cyberdramon route pays 0 and the standard Black route is exercised by the X Antibody stack; the source transitions are observable. |
-| When Digivolving, with [Cyberdramon]/[X Antibody] in the stack, may place one Device Option from hand or trash | `WhenDigivolving` → optional `PlaceInBattleAreaSelf`, one mine Option with Device trait, `from: ["hand", "trash"]`, gated by `anyOf` self-stack name/trait count ≥1 | A Cyberdramon stack places Pawn Device from hand; an X Antibody stack places it from trash; a stack with neither source leaves the Device in hand. Placed Options are marked `placedByEffect`. |
-| By trashing one of your Option cards in the battle area, De-Digivolve 2 one opponent's Digimon | `WhenDigivolving` → optional `DeDigivolve(amount: 2)`, opponent Digimon count 1, cost trashing one mine battle-area Option with `placedInBattleAreaByEffect: true`, aborting if declined/unpayable | An effect-placed Option is trashed and the opponent's three-card stack is reduced by two; optional refusal leaves both Option and target stack intact. |
-| Inherited once-per-turn attack cost and security trash | Inherited `WhenAttacking`, `frequency: "OncePerTurn"` → `SecurityManipulation(op: "trash", controller: "opponent", from: ["security"], count 1)` with the same effect-placed Option cost filter | The exact opponent security instance is trashed after the first attack and the paid Option leaves the board; a second same-turn attack cannot spend a second effect-placed Option, so only the ordinary security check occurs and the second Option remains. |
+| Printed clause                                                                                                 | Compiled IR                                                                                                                                                                                        | Focused proof                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Black level-4 evolution for 3; alternate [Cyberdramon] for 0                                                   | Catalog Black `evoCosts` plus `digivolutionRequirement: [{ names: ["Cyberdramon"], cost: 0, isAlternate: true }]`                                                                                  | The Cyberdramon route pays 0 and the standard Black route is exercised by the X Antibody stack; the source transitions are observable.                                                                                                                       |
+| When Digivolving, with [Cyberdramon]/[X Antibody] in the stack, may place one Device Option from hand or trash | `WhenDigivolving` → optional `PlaceInBattleAreaSelf`, one mine Option with Device trait, `from: ["hand", "trash"]`, gated by `anyOf` self-stack name/trait count ≥1                                | A Cyberdramon stack places Pawn Device from hand; an X Antibody stack places it from trash; a stack with neither source leaves the Device in hand. Placed Options are marked `placedByEffect`.                                                               |
+| By trashing one of your Option cards in the battle area, De-Digivolve 2 one opponent's Digimon                 | `WhenDigivolving` → optional `DeDigivolve(amount: 2)`, opponent Digimon count 1, cost trashing one mine battle-area Option with `placedInBattleAreaByEffect: true`, aborting if declined/unpayable | An effect-placed Option is trashed and the opponent's three-card stack is reduced by two; optional refusal leaves both Option and target stack intact.                                                                                                       |
+| Inherited once-per-turn attack cost and security trash                                                         | Inherited `WhenAttacking`, `frequency: "OncePerTurn"` → `SecurityManipulation(op: "trash", controller: "opponent", from: ["security"], count 1)` with the same effect-placed Option cost filter    | The exact opponent security instance is trashed after the first attack and the paid Option leaves the board; a second same-turn attack cannot spend a second effect-placed Option, so only the ordinary security check occurs and the second Option remains. |
 
 #### Shared seam and lifecycle evidence
 
@@ -4196,6 +4431,10 @@ The fresh audit found and fixed one card-specific KB defect: both Option costs p
 
 ### EX8-053 — BanchoGolemon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-053`, direct `apps/api/src/cards/EX8/EX8-053.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-053.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-053 — BanchoGolemon
 
@@ -4219,14 +4458,14 @@ Peer evidence was checked against EX8-049 Golemon, EX8-050 Gogmamon, and EX8-048
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-5 evolution for 3 | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 3 }]` | A legal EX8-049 → EX8-050 → EX8-053 stack is built with both source transitions and exact memory payment; a Purple BT10-079 source is rejected. |
-| Blocker | Static `keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }]` | A player attack opens a block window; BanchoGolemon declares the block, becomes suspended, and the attacker is deleted while Security remains unchanged. |
-| All Turns +5000 DP while opponent has a Digimon with 13000 DP or more | AllTurns self-only `Aura`, `modifyDP(+5000)`, while opponent Digimon filter `dp: { op: "gte", value: 13000 }` | Opposing 13000 DP gives 16000 DP; 12999 DP leaves BanchoGolemon at 11000 DP, proving the exact inclusive boundary. |
-| On Deletion reveal top 3 | `OnDeletion` → `RevealAdd`, `revealCount: 3` | Battle deletion processes exactly three deck cards before final placement. |
-| You may play one Mineral/Rock Digimon with cost 8 or less for free | RevealAdd candidate filter is own Digimon, `playCostLte: 8`, trait Mineral or Rock, count 1, `to: "play"`, `optional: true` | Real deletion plays EX8-048 (Mineral) and EX8-050 (Rock) from separate top-card fixtures; Q3936's either-trait ruling is covered. A cost-8 card is accepted while a matching cost-9 card is rejected. A matching candidate can be declined. |
-| Trash the rest | RevealAdd `rest: "trash"` | Positive, over-ceiling, and refusal paths assert all unplayed revealed cards reach trash and no deck cards remain. |
+| Printed clause                                                        | Compiled IR                                                                                                                 | Focused proof                                                                                                                                                                                                                               |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-5 evolution for 3                                         | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 3 }]`                                                           | A legal EX8-049 → EX8-050 → EX8-053 stack is built with both source transitions and exact memory payment; a Purple BT10-079 source is rejected.                                                                                             |
+| Blocker                                                               | Static `keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }]`                                                             | A player attack opens a block window; BanchoGolemon declares the block, becomes suspended, and the attacker is deleted while Security remains unchanged.                                                                                    |
+| All Turns +5000 DP while opponent has a Digimon with 13000 DP or more | AllTurns self-only `Aura`, `modifyDP(+5000)`, while opponent Digimon filter `dp: { op: "gte", value: 13000 }`               | Opposing 13000 DP gives 16000 DP; 12999 DP leaves BanchoGolemon at 11000 DP, proving the exact inclusive boundary.                                                                                                                          |
+| On Deletion reveal top 3                                              | `OnDeletion` → `RevealAdd`, `revealCount: 3`                                                                                | Battle deletion processes exactly three deck cards before final placement.                                                                                                                                                                  |
+| You may play one Mineral/Rock Digimon with cost 8 or less for free    | RevealAdd candidate filter is own Digimon, `playCostLte: 8`, trait Mineral or Rock, count 1, `to: "play"`, `optional: true` | Real deletion plays EX8-048 (Mineral) and EX8-050 (Rock) from separate top-card fixtures; Q3936's either-trait ruling is covered. A cost-8 card is accepted while a matching cost-9 card is rejected. A matching candidate can be declined. |
+| Trash the rest                                                        | RevealAdd `rest: "trash"`                                                                                                   | Positive, over-ceiling, and refusal paths assert all unplayed revealed cards reach trash and no deck cards remain.                                                                                                                          |
 
 #### Changes
 
@@ -4282,6 +4521,10 @@ No EX8-053-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-054 — Justimon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-054`, direct `apps/api/src/cards/EX8/EX8-054.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-054.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-054 — Justimon (X Antibody)
 
@@ -4306,13 +4549,13 @@ Peer evidence was checked against EX2-038 Justimon: Blitz Arm, whose When Digivo
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Standard Black level-5 evolution for 4 | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }]` | EX8-050 → EX8-054 evolves for exactly four and retains the source card. |
-| Alternate level-6 Justimon name without X Antibody for 1 | `digivolutionRequirement: { level: 6, names: ["Justimon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true }` | EX2-038 Justimon: Blitz Arm evolves through the alternate route for one; an X Antibody base is rejected. |
-| Rush, Piercing, Security Attack +1 | Three Static keyword entries | Live EX8-054 exposes all three keywords through the public observer. |
+| Printed clause                                                                                               | Compiled IR                                                                                                                                                                       | Focused proof                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Standard Black level-5 evolution for 4                                                                       | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }]`                                                                                                                 | EX8-050 → EX8-054 evolves for exactly four and retains the source card.                                                                                                                                                              |
+| Alternate level-6 Justimon name without X Antibody for 1                                                     | `digivolutionRequirement: { level: 6, names: ["Justimon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true }`                                                           | EX2-038 Justimon: Blitz Arm evolves through the alternate route for one; an X Antibody base is rejected.                                                                                                                             |
+| Rush, Piercing, Security Attack +1                                                                           | Three Static keyword entries                                                                                                                                                      | Live EX8-054 exposes all three keywords through the public observer.                                                                                                                                                                 |
 | When Attacking, Once Per Turn, activate one source Justimon When Digivolving effect as this Digimon's effect | `WhenAttacking`, `frequency: "OncePerTurn"`, `ActivateForeignEffect`, source zone `digivolutionCards`, `fromTriggers: ["WhenDigivolving"]`, Digimon/Justimon name filter, count 1 | A host carrying EX2-038 activates its source modal on attack and gains the selected +2000 DP result. Repeated attacks in one turn activate the source only once; after a real opponent turn, the next own attack activates it again. |
-| End of Your Turn, Once Per Turn, if opponent has an unsuspended Digimon, may attack a player | Optional Once Per Turn `EndOfYourTurn` condition requiring an opponent unsuspended Digimon, followed by self-only `Attack` with `attackPlayer: true` | A real turn-loop end attacks the opponent's player when an unsuspended Digimon exists. The structural condition and optionality are asserted; no invented attack occurs without the condition. |
+| End of Your Turn, Once Per Turn, if opponent has an unsuspended Digimon, may attack a player                 | Optional Once Per Turn `EndOfYourTurn` condition requiring an opponent unsuspended Digimon, followed by self-only `Attack` with `attackPlayer: true`                              | A real turn-loop end attacks the opponent's player when an unsuspended Digimon exists. The structural condition and optionality are asserted; no invented attack occurs without the condition.                                       |
 
 #### Changes
 
@@ -4368,6 +4611,10 @@ No EX8-054-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-055 — Pyramidimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-055`, direct `apps/api/src/cards/EX8/EX8-055.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-055.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-055 — Pyramidimon
 
@@ -4392,14 +4639,14 @@ Applicable rulings:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Black level-5 evolution for 4 | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }]` | EX8-051 evolves legally into EX8-055 for exactly 4 memory and preserves the EX8-051 source; a non-Black BT1-016 source is rejected without payment. |
-| `<Fragment (3)>` | Static keyword marker `{ keyword: "Fragment", amount: 3 }` | Structural proof verifies the exact marker; the real attack proof confirms three-source Fragment-compatible behavior does not prevent the card's own attack flow. |
-| `[When Digivolving] [When Attacking] By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon` | Each trigger has an `Unsuspend` with `abortOnDecline: true` and a trash cost filtered to `zone: "digivolutionCards"`, `controller: "mine"`, and Mineral/Rock trait, `count: 3`. | When Digivolving trashes two sources from Pyramidimon plus one from another Mineral Digimon, then unsuspends Pyramidimon; the exact two-card negative leaves it suspended and preserves both sources (Q3937/Q3938). A real attack trashes three sources and checks security twice. |
-| `this Digimon unsuspends` | `Unsuspend` target is the self reference with `count: 1`. | The positive digivolving test starts suspended and observes Pyramidimon unsuspended; structural proof verifies the target is self-only. |
-| `gains <Security Attack +1> for the turn` | `GainKeyword` targets self, keyword `SecurityAttack`, amount 1, duration `forTheTurn`. | Digivolving and attacking tests observe Security Attack +1; the attack test runs the next turn and observes the bonus expired. |
-| `[End of Your Turn] [Once Per Turn] You may place up to 3 ... from your trash as this Digimon's bottom digivolution cards` | Optional `EndOfYourTurn` effect with `frequency: "OncePerTurn"`, followed by a mandatory `PlaceUnder` of one and an optional `upTo: true` placement of two; both use the Mineral/Rock trash filter, self under-filter, and bottom position. | End-turn proof places Mineral EX8-053 and Rock Digi-Egg EX8-005 from trash beneath Pyramidimon. Declining the optional effect places nothing and leaves the card in trash (Q3939/Q3940). |
+| Printed clause                                                                                                               | Compiled IR                                                                                                                                                                                                                                 | Focused proof                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Black level-5 evolution for 4                                                                                                | Catalog `evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }]`                                                                                                                                                                           | EX8-051 evolves legally into EX8-055 for exactly 4 memory and preserves the EX8-051 source; a non-Black BT1-016 source is rejected without payment.                                                                                                                                |
+| `<Fragment (3)>`                                                                                                             | Static keyword marker `{ keyword: "Fragment", amount: 3 }`                                                                                                                                                                                  | Structural proof verifies the exact marker; the real attack proof confirms three-source Fragment-compatible behavior does not prevent the card's own attack flow.                                                                                                                  |
+| `[When Digivolving] [When Attacking] By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon` | Each trigger has an `Unsuspend` with `abortOnDecline: true` and a trash cost filtered to `zone: "digivolutionCards"`, `controller: "mine"`, and Mineral/Rock trait, `count: 3`.                                                             | When Digivolving trashes two sources from Pyramidimon plus one from another Mineral Digimon, then unsuspends Pyramidimon; the exact two-card negative leaves it suspended and preserves both sources (Q3937/Q3938). A real attack trashes three sources and checks security twice. |
+| `this Digimon unsuspends`                                                                                                    | `Unsuspend` target is the self reference with `count: 1`.                                                                                                                                                                                   | The positive digivolving test starts suspended and observes Pyramidimon unsuspended; structural proof verifies the target is self-only.                                                                                                                                            |
+| `gains <Security Attack +1> for the turn`                                                                                    | `GainKeyword` targets self, keyword `SecurityAttack`, amount 1, duration `forTheTurn`.                                                                                                                                                      | Digivolving and attacking tests observe Security Attack +1; the attack test runs the next turn and observes the bonus expired.                                                                                                                                                     |
+| `[End of Your Turn] [Once Per Turn] You may place up to 3 ... from your trash as this Digimon's bottom digivolution cards`   | Optional `EndOfYourTurn` effect with `frequency: "OncePerTurn"`, followed by a mandatory `PlaceUnder` of one and an optional `upTo: true` placement of two; both use the Mineral/Rock trash filter, self under-filter, and bottom position. | End-turn proof places Mineral EX8-053 and Rock Digi-Egg EX8-005 from trash beneath Pyramidimon. Declining the optional effect places nothing and leaves the card in trash (Q3939/Q3940).                                                                                           |
 
 #### Shared seam and lifecycle evidence
 
@@ -4452,6 +4699,10 @@ No EX8-055-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-056 — Syakomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-056`, direct `apps/api/src/cards/EX8/EX8-056.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-056.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-056 — Syakomon
 
@@ -4472,14 +4723,14 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-2 evolution for 0 | Catalog standard `evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }]` | A Purple EX8-006 level-2 Digi-Egg evolves into Syakomon for 0 memory and retains EX8-006 as the source. |
-| `[Digivolve] Lv.2 w/[DS] trait: Cost 0` | `digivolutionRequirement: [{ level: 2, traits: ["DS"], cost: 0, isAlternate: true }]` | An off-color Blue DS EX8-002 level-2 Digi-Egg evolves into Syakomon for 0 memory; the alternate requirement is also structurally asserted. |
-| `[On Deletion] ＜Draw 1＞` | `OnDeletion` → `Draw` with `controller: "mine"`, `amount: 1` | Deleting the live Syakomon draws the known deck card into the player's hand. |
-| `and trash 1 card in your hand` | The same `OnDeletion` action list follows with `Trash` filtered to the player's hand, `count: 1`. | The deletion proof observes the original filler card in trash, exactly one hand card remaining, and the drawn card retained in hand; the deleted Syakomon is also in trash. |
-| `[When Attacking] [Once Per Turn]` | Inherited effect with `trigger: "WhenAttacking"`, `isInherited: true`, and `frequency: "OncePerTurn"`. | A host carrying Syakomon attacks twice in the same turn; the first attack activates the inherited effect and the second does not. |
-| `Delete 1 of your opponent's level 3 Digimon` | `Delete` target has `controller: "opponent"`, `kind: ["Digimon"]`, `levels: [3]`, `count: 1`. | The first host attack against the player deletes one real opposing level-3 Digimon, leaves the second level-3 Digimon, and leaves an opposing level-4 Digimon untouched. |
+| Printed clause                                | Compiled IR                                                                                            | Focused proof                                                                                                                                                               |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-2 evolution for 0                | Catalog standard `evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }]`                            | A Purple EX8-006 level-2 Digi-Egg evolves into Syakomon for 0 memory and retains EX8-006 as the source.                                                                     |
+| `[Digivolve] Lv.2 w/[DS] trait: Cost 0`       | `digivolutionRequirement: [{ level: 2, traits: ["DS"], cost: 0, isAlternate: true }]`                  | An off-color Blue DS EX8-002 level-2 Digi-Egg evolves into Syakomon for 0 memory; the alternate requirement is also structurally asserted.                                  |
+| `[On Deletion] ＜Draw 1＞`                    | `OnDeletion` → `Draw` with `controller: "mine"`, `amount: 1`                                           | Deleting the live Syakomon draws the known deck card into the player's hand.                                                                                                |
+| `and trash 1 card in your hand`               | The same `OnDeletion` action list follows with `Trash` filtered to the player's hand, `count: 1`.      | The deletion proof observes the original filler card in trash, exactly one hand card remaining, and the drawn card retained in hand; the deleted Syakomon is also in trash. |
+| `[When Attacking] [Once Per Turn]`            | Inherited effect with `trigger: "WhenAttacking"`, `isInherited: true`, and `frequency: "OncePerTurn"`. | A host carrying Syakomon attacks twice in the same turn; the first attack activates the inherited effect and the second does not.                                           |
+| `Delete 1 of your opponent's level 3 Digimon` | `Delete` target has `controller: "opponent"`, `kind: ["Digimon"]`, `levels: [3]`, `count: 1`.          | The first host attack against the player deletes one real opposing level-3 Digimon, leaves the second level-3 Digimon, and leaves an opposing level-4 Digimon untouched.    |
 
 #### Shared seam and lifecycle evidence
 
@@ -4532,6 +4783,10 @@ No EX8-056-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-057 — DemiDevimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-057`, direct `apps/api/src/cards/EX8/EX8-057.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-057.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-057 — DemiDevimon
 
@@ -4555,15 +4810,15 @@ Peer evidence was checked against EX8-006 (NSo evolution/source), EX8-018 and EX
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-2 evolution for 0 | Catalog `evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }]` | A BT10-006 Purple level-2 breeding source evolves into EX8-057 for exactly 0 and retains the source stack. |
-| Alternate level-2 NSo-trait evolution for 0 | `digivolutionRequirement: { level: 2, traits: ["NSo"], cost: 0, isAlternate: true }` | An EX8-006 NSo level-2 breeding source evolves through the alternate route for 0. |
-| On Play reveals top 3 | `OnPlay` → `RevealAdd` with `revealCount: 3` | Mixed and all-nonmatching live play fixtures resolve exactly three revealed cards. |
-| Add one NSo and one Fallen Angel among them to hand | Two mandatory `add` entries, each `count: 1`, `to: "hand"`, own-card trait filters for `NSo` and `Fallen Angel` | The mixed fixture adds BT26-062 (NSo) and BT11-080 (Fallen Angel), while the structural assertion verifies exact controller and trait filters. |
-| Return the rest to the bottom of the deck | `rest: "deckBottom"` | The mixed fixture asserts the two unselected cards in exact bottom order; the negative fixture asserts all three non-matching cards return in order. |
-| Inherited When Attacking, Once Per Turn | Inherited effect `{ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }` | Two attacks in one turn resolve the draw/trash only once; a real next own turn resolves it again. |
-| Draw 1 then trash 1 card in hand | Ordered actions `{ kind: "Draw", controller: "mine", amount: 1 }`, then `{ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } }` | Live attack assertions verify one card reaches trash, hand size reflects draw-then-trash, and the second same-turn attack does not change either count. |
+| Printed clause                                      | Compiled IR                                                                                                                                                     | Focused proof                                                                                                                                           |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-2 evolution for 0                      | Catalog `evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }]`                                                                                              | A BT10-006 Purple level-2 breeding source evolves into EX8-057 for exactly 0 and retains the source stack.                                              |
+| Alternate level-2 NSo-trait evolution for 0         | `digivolutionRequirement: { level: 2, traits: ["NSo"], cost: 0, isAlternate: true }`                                                                            | An EX8-006 NSo level-2 breeding source evolves through the alternate route for 0.                                                                       |
+| On Play reveals top 3                               | `OnPlay` → `RevealAdd` with `revealCount: 3`                                                                                                                    | Mixed and all-nonmatching live play fixtures resolve exactly three revealed cards.                                                                      |
+| Add one NSo and one Fallen Angel among them to hand | Two mandatory `add` entries, each `count: 1`, `to: "hand"`, own-card trait filters for `NSo` and `Fallen Angel`                                                 | The mixed fixture adds BT26-062 (NSo) and BT11-080 (Fallen Angel), while the structural assertion verifies exact controller and trait filters.          |
+| Return the rest to the bottom of the deck           | `rest: "deckBottom"`                                                                                                                                            | The mixed fixture asserts the two unselected cards in exact bottom order; the negative fixture asserts all three non-matching cards return in order.    |
+| Inherited When Attacking, Once Per Turn             | Inherited effect `{ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }`                                                                    | Two attacks in one turn resolve the draw/trash only once; a real next own turn resolves it again.                                                       |
+| Draw 1 then trash 1 card in hand                    | Ordered actions `{ kind: "Draw", controller: "mine", amount: 1 }`, then `{ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } }` | Live attack assertions verify one card reaches trash, hand size reflects draw-then-trash, and the second same-turn attack does not change either count. |
 
 #### Changes
 
@@ -4619,6 +4874,10 @@ No EX8-057-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-058 — Gesomon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-058`, direct `apps/api/src/cards/EX8/EX8-058.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-058.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-058 — Gesomon
 
@@ -4639,13 +4898,13 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-3 evolution for 2 | Catalog standard `evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }]` | A Purple EX8-057 level-3 base evolves into Gesomon for exactly 2 memory and retains EX8-057 as its source. |
-| `[Digivolve] Lv.3 w/[DS] trait: Cost 2` | `digivolutionRequirement: [{ level: 3, traits: ["DS"], cost: 2, isAlternate: true }]` | The alternate route is structurally asserted and a legal off-color DS route is exercised before a further level-5 evolution, preserving Gesomon in the stack. A non-DS level-3 source is rejected without payment. |
-| `[On Deletion] Gain 1 memory` | `OnDeletion` → `GainMemory` with `amount: 1`. | Deleting the live Gesomon at memory 0 produces memory 1. |
-| `[When Attacking] [Once Per Turn]` | Inherited effect with `trigger: "WhenAttacking"`, `isInherited: true`, and `frequency: "OncePerTurn"`. | A host carrying Gesomon attacks twice in the same turn; only the first attack activates the inherited effect. The legal multi-step evolution stack also carries the inherited effect into the level-5 host. |
-| `Delete 1 of your opponent's level 3 Digimon` | `Delete` target has `controller: "opponent"`, `kind: ["Digimon"]`, `levels: [3]`, `count: 1`. | A real host attack deletes one opposing level-3 Digimon, leaves the second level-3 Digimon, and leaves an opposing level-4 Digimon untouched. |
+| Printed clause                                | Compiled IR                                                                                            | Focused proof                                                                                                                                                                                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Purple level-3 evolution for 2                | Catalog standard `evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }]`                            | A Purple EX8-057 level-3 base evolves into Gesomon for exactly 2 memory and retains EX8-057 as its source.                                                                                                         |
+| `[Digivolve] Lv.3 w/[DS] trait: Cost 2`       | `digivolutionRequirement: [{ level: 3, traits: ["DS"], cost: 2, isAlternate: true }]`                  | The alternate route is structurally asserted and a legal off-color DS route is exercised before a further level-5 evolution, preserving Gesomon in the stack. A non-DS level-3 source is rejected without payment. |
+| `[On Deletion] Gain 1 memory`                 | `OnDeletion` → `GainMemory` with `amount: 1`.                                                          | Deleting the live Gesomon at memory 0 produces memory 1.                                                                                                                                                           |
+| `[When Attacking] [Once Per Turn]`            | Inherited effect with `trigger: "WhenAttacking"`, `isInherited: true`, and `frequency: "OncePerTurn"`. | A host carrying Gesomon attacks twice in the same turn; only the first attack activates the inherited effect. The legal multi-step evolution stack also carries the inherited effect into the level-5 host.        |
+| `Delete 1 of your opponent's level 3 Digimon` | `Delete` target has `controller: "opponent"`, `kind: ["Digimon"]`, `levels: [3]`, `count: 1`.          | A real host attack deletes one opposing level-3 Digimon, leaves the second level-3 Digimon, and leaves an opposing level-4 Digimon untouched.                                                                      |
 
 #### Shared seam and lifecycle evidence
 
@@ -4697,6 +4956,10 @@ No EX8-058-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-059 — Devimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-059`, direct `apps/api/src/cards/EX8/EX8-059.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-059.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-059 — Devimon
 
@@ -4717,15 +4980,15 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-3 evolution for 2 | Catalog standard `evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }]` | A Purple EX8-057 level-3 base evolves into Devimon for exactly 2 memory and retains EX8-057 as its source. |
-| `[Digivolve] Lv.3 w/[NSo] trait: Cost 2` | `digivolutionRequirement: [{ level: 3, traits: ["NSo"], cost: 2, isAlternate: true }]` | The alternate route is structurally asserted and exercised from Red NSo EX8-008; a non-DS/NSo route is not used as a legal substitute. |
-| `[On Play] [When Digivolving]` | Separate `OnPlay` and `WhenDigivolving` `GrantAuraToOpponents` actions. | Parameterized live tests resolve both play and alternate-digivolution routes. |
-| `By trashing 1 card in your hand` | Each grant action has a one-card trash cost filtered to `controller: "mine"`, `zone: "hand"`, `count: 1`, with `abortOnDecline: true`. | Positive play and evolution tests trash the identified controller card; the no-hand-card test leaves the opponent without the granted deletion effect. |
-| `give 1 of your opponent's Digimon` | `GrantAuraToOpponents` target is opponent-controlled `kind: ["Digimon"]`, `count: 1`. | A selected opposing AD1-001 receives the grant; deleting it makes the opponent trash from the opponent's hand. Refusal leaves the opponent hand untouched. |
-| `"[On Deletion] Trash 1 card in your hand." until the end of their turn` | Grant text is exact and the shared aura lifecycle expires at the grantee's turn end. | Positive play/evolution tests delete the grantee and observe its opponent-controller hand card trashed. Declined and failed costs produce no deletion trigger. |
-| `[When Attacking] ＜Draw 1＞ and trash 1 card in your hand` | Inherited `WhenAttacking` actions are `Draw` mine amount 1 followed by `Trash` mine hand count 1. | A real attack proves the inherited draw-and-trash; a further evolution to BT10-079 preserves EX8-059 in the source stack and proves the inherited action remains live. |
+| Printed clause                                                           | Compiled IR                                                                                                                            | Focused proof                                                                                                                                                          |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-3 evolution for 2                                           | Catalog standard `evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }]`                                                            | A Purple EX8-057 level-3 base evolves into Devimon for exactly 2 memory and retains EX8-057 as its source.                                                             |
+| `[Digivolve] Lv.3 w/[NSo] trait: Cost 2`                                 | `digivolutionRequirement: [{ level: 3, traits: ["NSo"], cost: 2, isAlternate: true }]`                                                 | The alternate route is structurally asserted and exercised from Red NSo EX8-008; a non-DS/NSo route is not used as a legal substitute.                                 |
+| `[On Play] [When Digivolving]`                                           | Separate `OnPlay` and `WhenDigivolving` `GrantAuraToOpponents` actions.                                                                | Parameterized live tests resolve both play and alternate-digivolution routes.                                                                                          |
+| `By trashing 1 card in your hand`                                        | Each grant action has a one-card trash cost filtered to `controller: "mine"`, `zone: "hand"`, `count: 1`, with `abortOnDecline: true`. | Positive play and evolution tests trash the identified controller card; the no-hand-card test leaves the opponent without the granted deletion effect.                 |
+| `give 1 of your opponent's Digimon`                                      | `GrantAuraToOpponents` target is opponent-controlled `kind: ["Digimon"]`, `count: 1`.                                                  | A selected opposing AD1-001 receives the grant; deleting it makes the opponent trash from the opponent's hand. Refusal leaves the opponent hand untouched.             |
+| `"[On Deletion] Trash 1 card in your hand." until the end of their turn` | Grant text is exact and the shared aura lifecycle expires at the grantee's turn end.                                                   | Positive play/evolution tests delete the grantee and observe its opponent-controller hand card trashed. Declined and failed costs produce no deletion trigger.         |
+| `[When Attacking] ＜Draw 1＞ and trash 1 card in your hand`              | Inherited `WhenAttacking` actions are `Draw` mine amount 1 followed by `Trash` mine hand count 1.                                      | A real attack proves the inherited draw-and-trash; a further evolution to BT10-079 preserves EX8-059 in the source stack and proves the inherited action remains live. |
 
 #### Shared seam and lifecycle evidence
 
@@ -4778,6 +5041,10 @@ No EX8-059-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-060 — Myotismon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-060`, direct `apps/api/src/cards/EX8/EX8-060.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-060.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-060 — Myotismon
 
@@ -4805,15 +5072,15 @@ Peer evidence was checked against EX8-027 Plesiomon for the same Your Turn/SubTr
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-4 evolution for 3 | Catalog `evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }]` | Existing standard-route and alternate-route stack tests exercise the exact cost and retain the source stack. |
-| Alternate level-4 NSo-trait evolution for 3 | `digivolutionRequirement: { level: 4, traits: ["NSo"], cost: 3, isAlternate: true }` | EX8-059 → EX8-060 uses the NSo alternate route for 3. |
-| When Attacking, may play one NSo Digimon costing 3 or less from trash for free | `WhenAttacking` → optional `PlayWithoutCost`, own Digimon/NSo filter, `playCostLte: 3`, `from: ["trash"]`, `payCost: false` | BT26-062 is played from trash at the exact cost-3 ceiling, while cost-4 and non-NSo cards remain in trash; optional refusal leaves the candidate in trash. |
-| Your Turn, Once Per Turn, reacts to a played Digimon or a digivolution | `YourTurn`, `frequency: "OncePerTurn"`, two `SubTrigger`s for `whenPlayed` and `whenOneOfYoursDigivolves`, with own Digimon source filters | Q3941/Q3942 tests prove both Myotismon's own play and own evolution trigger paths; a non-NSo played Digimon is a negative. |
-| If any of them have NSo | Each DNA action has `condition: { kind: "triggerSubjectMatchesFilter", filter: NSo }` | The non-NSo play test leaves the DNA card in hand and does not create a DNA stack, while NSo-positive paths do. |
-| Two Digimon may DNA digivolve into an NSo Digimon in hand | `DnaDigivolve` uses two own Digimon materials, `into` own Digimon with NSo trait, `payCost: true`, `optional: true`, and binds `dnaDigivolvedByThisEffect` | Legal blue/purple level-5 pair produces EX12-032 from hand; acceptance and refusal intents are both covered. |
-| Then that DNA-digivolved Digimon may attack | Optional `Attack` targets `boundRef: "dnaDigivolvedByThisEffect"`, guarded by `bindingExists` | Positive Q3941/Q3942 paths attack the newly DNA'd stack; Q3943 proves no new attack is declared when DNA happens during an existing attack; Q3944 exercises simultaneous trigger ordering. |
+| Printed clause                                                                 | Compiled IR                                                                                                                                                 | Focused proof                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-4 evolution for 3                                                 | Catalog `evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }]`                                                                                          | Existing standard-route and alternate-route stack tests exercise the exact cost and retain the source stack.                                                                                      |
+| Alternate level-4 NSo-trait evolution for 3                                    | `digivolutionRequirement: { level: 4, traits: ["NSo"], cost: 3, isAlternate: true }`                                                                        | EX8-059 → EX8-060 uses the NSo alternate route for 3.                                                                                                                                             |
+| When Attacking, may play one NSo Digimon costing 3 or less from trash for free | `WhenAttacking` → optional `PlayWithoutCost`, own Digimon/NSo filter, `playCostLte: 3`, `from: ["trash"]`, `payCost: false`                                 | BT26-062 is played from trash at the exact cost-3 ceiling, while cost-4 and non-NSo cards remain in trash; optional refusal leaves the candidate in trash.                                        |
+| Your Turn, Once Per Turn, reacts to a played Digimon or a digivolution         | `YourTurn`, `frequency: "OncePerTurn"`, two `SubTrigger`s for `whenPlayed` and `whenOneOfYoursDigivolves`, with own Digimon source filters                  | Q3941/Q3942 tests prove both Myotismon's own play and own evolution trigger paths; a non-NSo played Digimon is a negative.                                                                        |
+| If any of them have NSo                                                        | Each DNA action has `condition: { kind: "triggerSubjectMatchesFilter", filter: NSo }`                                                                       | The non-NSo play test leaves the DNA card in hand and does not create a DNA stack, while NSo-positive paths do.                                                                                   |
+| Two Digimon may DNA digivolve into an NSo Digimon in hand                      | `DnaDigivolve` uses two own Digimon materials, `into` own Digimon with NSo trait, `payCost: true`, `optional: true`, and binds `dnaDigivolvedByThisEffect`  | Legal blue/purple level-5 pair produces EX12-032 from hand; acceptance and refusal intents are both covered.                                                                                      |
+| Then that DNA-digivolved Digimon may attack                                    | Optional `Attack` targets `boundRef: "dnaDigivolvedByThisEffect"`, guarded by `bindingExists`                                                               | Positive Q3941/Q3942 paths attack the newly DNA'd stack; Q3943 proves no new attack is declared when DNA happens during an existing attack; Q3944 exercises simultaneous trigger ordering.        |
 | Inherited When Attacking, Once Per Turn, delete one other Digimon to unsuspend | Inherited `WhenAttacking`, `frequency: "OncePerTurn"`, optional costed `Unsuspend`, `deleteOwn` target limited to own other Digimon, `abortOnDecline: true` | Declining leaves the host suspended; accepting deletes exactly one other Digimon and unsuspends on the first attack, suppresses the second same-turn activation, and resets on the next own turn. |
 
 #### Changes
@@ -4871,6 +5138,10 @@ The original module had a card-specific fidelity defect: both Your Turn watchers
 
 ### EX8-061 — MarineDevimon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-061`, direct `apps/api/src/cards/EX8/EX8-061.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-061.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-061 — MarineDevimon
 
@@ -4896,15 +5167,15 @@ Applicable rulings:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-4 evolution for 3 | Catalog standard `evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }]` | Purple EX8-058 evolves into MarineDevimon for exactly 3 memory and retains the legal source. |
-| `[Digivolve] Lv.4 w/[DS] trait: Cost 3` | `digivolutionRequirement: [{ level: 4, traits: ["DS"], cost: 3, isAlternate: true }]` | Blue DS EX8-021 evolves through the alternate route for 3 memory; a Red non-DS BT1-016 source is rejected without payment. |
-| `<Scapegoat>` | Static keyword marker `{ keyword: "Scapegoat" }`. | An opponent-caused deletion is prevented by deleting one other own Digimon; a controller-caused deletion is not prevented. |
-| `[When Attacking] [Once Per Turn]` | `WhenAttacking` `PlayWithoutCost` action with `frequency: "OncePerTurn"`, `optional: true`. | The first attack plays from trash; after manually unsuspending, the second attack in the same turn does not play the remaining eligible card. |
-| `If you have 1 or more memory` | `condition: { kind: "memoryAtLeast", value: 1, controller: "mine" }`. | At memory 1, each DS/Mollusk/Crustacean positive plays; at memory 0, the eligible card remains in trash (Q3945). |
+| Printed clause                                                                             | Compiled IR                                                                                                                                                                            | Focused proof                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-4 evolution for 3                                                             | Catalog standard `evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }]`                                                                                                            | Purple EX8-058 evolves into MarineDevimon for exactly 3 memory and retains the legal source.                                                                      |
+| `[Digivolve] Lv.4 w/[DS] trait: Cost 3`                                                    | `digivolutionRequirement: [{ level: 4, traits: ["DS"], cost: 3, isAlternate: true }]`                                                                                                  | Blue DS EX8-021 evolves through the alternate route for 3 memory; a Red non-DS BT1-016 source is rejected without payment.                                        |
+| `<Scapegoat>`                                                                              | Static keyword marker `{ keyword: "Scapegoat" }`.                                                                                                                                      | An opponent-caused deletion is prevented by deleting one other own Digimon; a controller-caused deletion is not prevented.                                        |
+| `[When Attacking] [Once Per Turn]`                                                         | `WhenAttacking` `PlayWithoutCost` action with `frequency: "OncePerTurn"`, `optional: true`.                                                                                            | The first attack plays from trash; after manually unsuspending, the second attack in the same turn does not play the remaining eligible card.                     |
+| `If you have 1 or more memory`                                                             | `condition: { kind: "memoryAtLeast", value: 1, controller: "mine" }`.                                                                                                                  | At memory 1, each DS/Mollusk/Crustacean positive plays; at memory 0, the eligible card remains in trash (Q3945).                                                  |
 | `you may play 1 level 4 or lower Digimon card ... from your trash without paying the cost` | Attack target filters mine-controlled `kind: ["Digimon"]`, `levelComparison: lte 4`, trait OR DS/Mollusk/Crustacean; source `from: ["trash"]`, `count: 1`, `payCost: false`, optional. | Parameterized attack tests play exact DS EX8-018, Mollusk BT11-063, and Crustacean BT14-021 cards, while the near-miss level-5 Mollusk BT14-063 remains in trash. |
-| Inherited `[On Deletion] You may play ...` | Inherited `OnDeletion` `PlayWithoutCost` with the same source, level, kind, trait, count, optional, and no-cost fields. | A host carrying MarineDevimon is deleted and plays eligible DS EX8-058 from trash; the source stack and played endpoint are observable. |
+| Inherited `[On Deletion] You may play ...`                                                 | Inherited `OnDeletion` `PlayWithoutCost` with the same source, level, kind, trait, count, optional, and no-cost fields.                                                                | A host carrying MarineDevimon is deleted and plays eligible DS EX8-058 from trash; the source stack and played endpoint are observable.                           |
 
 #### Shared seam and lifecycle evidence
 
@@ -4956,6 +5227,10 @@ No EX8-061-specific IR or type defect remains after removing the suppression. Th
 
 ### EX8-062 — Piedmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-062`, direct `apps/api/src/cards/EX8/EX8-062.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-062.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-062 — Piedmon
 
@@ -4983,17 +5258,17 @@ Peer evidence was checked against EX8-060/EX8-059 for Purple/NSo evolution stack
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple/Yellow level-5 evolution for 4 | Catalog `evoCosts` contains Purple and Yellow level-5 entries at 4 | A BT1-059 Yellow level-5 source evolves into Piedmon for exactly 4 and retains the source stack. |
-| Alternate level-5 NSo evolution for 3 | `digivolutionRequirement: { level: 5, traits: ["NSo"], cost: 3, isAlternate: true }` | The alternate requirement is asserted and the legal NSo Blast Digivolve stack is exercised from EX8-060. |
-| Hand/Counter Blast Digivolve | `Counter`, `isFromHand: true`, empty actions, `keywords: [{ keyword: "BlastDigivolve" }]` | An attack opens a counter window, Piedmon is an eligible counter from hand, and it Blast Digivolves onto a legal NSo level-5 base. |
-| Activate the reduction effect four times | Four ordered `ModifyDP` actions on both OnPlay and WhenDigivolving | Structural exact-action proof and live tests show four sequential -2000 activations. |
-| One opponent Digimon gets -2000 DP for the turn | Each action targets `{ controller: "opponent", kind: ["Digimon"] }`, `count: 1`, `amount: -2000`, `duration: "forTheTurn"` | The same target can reach -8000 (Q3948), different targets can be selected (Q3949), and the modifier expires on the next turn. |
-| Delay 0-DP deletion until all four activations finish | Four separate actions resolve before state-based deletion | Q3950 fixture records the target at 0 DP during the fourth-action sequence, then confirms deletion only after all four choices resolve. |
-| All Turns, Once Per Turn, when another Digimon is deleted | `AllTurns`, `frequency: "OncePerTurn"`, `SubTrigger` `onDeletionOf`, source filter `controllerDefault: "any"`, `excludeSelf: true` | Deleting an opposing Digimon plays an eligible NSo from trash; deleting Piedmon itself does not self-trigger; a second same-turn deletion does not repeat the response. |
-| You may play one level-4-or-lower NSo from trash for free | Optional `PlayWithoutCost`, own Digimon/NSo filter, `levelComparison: lte 4`, `from: ["trash"]`, `payCost: false` | BT26-062 is played from trash by the deletion response, while the once-per-turn and self-deletion negatives keep the other cards in trash. Q3951 delayed-deletion behavior is reproduced by the EX8-064 peer stack. |
-| ACE and Overflow -4 | Catalog `isAce: true`, `overflowMemory: 4` | Exact catalog identity assertion covers the ACE metadata; no separate printed effect is invented. |
+| Printed clause                                            | Compiled IR                                                                                                                        | Focused proof                                                                                                                                                                                                       |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple/Yellow level-5 evolution for 4                     | Catalog `evoCosts` contains Purple and Yellow level-5 entries at 4                                                                 | A BT1-059 Yellow level-5 source evolves into Piedmon for exactly 4 and retains the source stack.                                                                                                                    |
+| Alternate level-5 NSo evolution for 3                     | `digivolutionRequirement: { level: 5, traits: ["NSo"], cost: 3, isAlternate: true }`                                               | The alternate requirement is asserted and the legal NSo Blast Digivolve stack is exercised from EX8-060.                                                                                                            |
+| Hand/Counter Blast Digivolve                              | `Counter`, `isFromHand: true`, empty actions, `keywords: [{ keyword: "BlastDigivolve" }]`                                          | An attack opens a counter window, Piedmon is an eligible counter from hand, and it Blast Digivolves onto a legal NSo level-5 base.                                                                                  |
+| Activate the reduction effect four times                  | Four ordered `ModifyDP` actions on both OnPlay and WhenDigivolving                                                                 | Structural exact-action proof and live tests show four sequential -2000 activations.                                                                                                                                |
+| One opponent Digimon gets -2000 DP for the turn           | Each action targets `{ controller: "opponent", kind: ["Digimon"] }`, `count: 1`, `amount: -2000`, `duration: "forTheTurn"`         | The same target can reach -8000 (Q3948), different targets can be selected (Q3949), and the modifier expires on the next turn.                                                                                      |
+| Delay 0-DP deletion until all four activations finish     | Four separate actions resolve before state-based deletion                                                                          | Q3950 fixture records the target at 0 DP during the fourth-action sequence, then confirms deletion only after all four choices resolve.                                                                             |
+| All Turns, Once Per Turn, when another Digimon is deleted | `AllTurns`, `frequency: "OncePerTurn"`, `SubTrigger` `onDeletionOf`, source filter `controllerDefault: "any"`, `excludeSelf: true` | Deleting an opposing Digimon plays an eligible NSo from trash; deleting Piedmon itself does not self-trigger; a second same-turn deletion does not repeat the response.                                             |
+| You may play one level-4-or-lower NSo from trash for free | Optional `PlayWithoutCost`, own Digimon/NSo filter, `levelComparison: lte 4`, `from: ["trash"]`, `payCost: false`                  | BT26-062 is played from trash by the deletion response, while the once-per-turn and self-deletion negatives keep the other cards in trash. Q3951 delayed-deletion behavior is reproduced by the EX8-064 peer stack. |
+| ACE and Overflow -4                                       | Catalog `isAce: true`, `overflowMemory: 4`                                                                                         | Exact catalog identity assertion covers the ACE metadata; no separate printed effect is invented.                                                                                                                   |
 
 #### Changes
 
@@ -5048,6 +5323,10 @@ No EX8-062-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-063 — Barbamon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-063`, direct `apps/api/src/cards/EX8/EX8-063.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-063.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-063 — Barbamon (X Antibody)
 
@@ -5070,17 +5349,17 @@ Applicable ruling:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Purple level-5 evolution for 4 | Catalog standard `evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }]` | Purple EX8-060 evolves into Barbamon (X Antibody) for exactly 4 memory and preserves the source stack. |
-| `[Digivolve][Barbamon]: Cost 1` | `digivolutionRequirement: [{ names: ["Barbamon"], cost: 1, isAlternate: true }]` | EX6-059 Barbamon evolves legally into EX8-063 for 1 memory; the requirement is structurally asserted. |
-| `[When Digivolving] [When Attacking] [Once Per Turn]` | Two effects with the corresponding triggers, `frequency: "OncePerTurn"`, and shared key `opponent-discard-or-fallen-angel`. | Both timing branches trash an opponent hand card; the Q4739 decline path consumes the shared once-per-turn use so a subsequent attack opens no decisions. |
-| `Your opponent may trash 1 card in their hand` | First action is optional `Trash`, `chooser: "opponent"`, target opponent hand count 1. | Digivolving and attacking positives observe the opponent's selected card in trash; Q4739 explicitly responds with an empty selection. |
-| `If this effect didn't trash` | Second action is optional `PlayWithoutCost` gated by `condition: { kind: "ifThisEffectDidNotAct" }`. | With no opponent hand card, the fallback plays EX8-059; when both opponent and controller decline, no fallback plays and the once-per-turn use is still consumed. |
-| `play 1 [Fallen Angel] trait Digimon card with a play cost of 7 or less from your trash without paying the cost` | Fallback target is mine-controlled Digimon, Fallen Angel trait, `playCostLte: 7`, count 1, source trash, `payCost: false`. | Cost-7 BT11-083 is played while cost-8 Fallen Angel BT17-068 remains in trash; no-hand fallback also plays cost-5 EX8-059. |
-| `[All Turns] [Once Per Turn] When cards are trashed from your opponent's hand` | `AllTurns` once-per-turn effect installs `SubTrigger(event: "whenHandTrashed", handTrashedController: "opponent")`. | Opponent-hand trash removes the top Security card; own-hand trash does not. A second same-turn opponent-hand event is suppressed, and a later turn resets the watcher. |
-| `if [Barbamon]/[X Antibody] is in this Digimon's digivolution cards` | `anyOf` stack gate checks a source matching Barbamon by name or a source with X Antibody trait. | Both an EX6-059 Barbamon source and a BT10-080 X Antibody source activate the security watcher; an EX8-060 nonmatching source does not. |
-| `trash their top security card` | SubTrigger action is `SecurityManipulation` with `op: "trashTop"`, `controller: "opponent"`, `amount: 1`. | The top security instance moves to trash while the second security card remains until the next valid turn event. |
+| Printed clause                                                                                                   | Compiled IR                                                                                                                 | Focused proof                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Purple level-5 evolution for 4                                                                                   | Catalog standard `evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }]`                                                 | Purple EX8-060 evolves into Barbamon (X Antibody) for exactly 4 memory and preserves the source stack.                                                                 |
+| `[Digivolve][Barbamon]: Cost 1`                                                                                  | `digivolutionRequirement: [{ names: ["Barbamon"], cost: 1, isAlternate: true }]`                                            | EX6-059 Barbamon evolves legally into EX8-063 for 1 memory; the requirement is structurally asserted.                                                                  |
+| `[When Digivolving] [When Attacking] [Once Per Turn]`                                                            | Two effects with the corresponding triggers, `frequency: "OncePerTurn"`, and shared key `opponent-discard-or-fallen-angel`. | Both timing branches trash an opponent hand card; the Q4739 decline path consumes the shared once-per-turn use so a subsequent attack opens no decisions.              |
+| `Your opponent may trash 1 card in their hand`                                                                   | First action is optional `Trash`, `chooser: "opponent"`, target opponent hand count 1.                                      | Digivolving and attacking positives observe the opponent's selected card in trash; Q4739 explicitly responds with an empty selection.                                  |
+| `If this effect didn't trash`                                                                                    | Second action is optional `PlayWithoutCost` gated by `condition: { kind: "ifThisEffectDidNotAct" }`.                        | With no opponent hand card, the fallback plays EX8-059; when both opponent and controller decline, no fallback plays and the once-per-turn use is still consumed.      |
+| `play 1 [Fallen Angel] trait Digimon card with a play cost of 7 or less from your trash without paying the cost` | Fallback target is mine-controlled Digimon, Fallen Angel trait, `playCostLte: 7`, count 1, source trash, `payCost: false`.  | Cost-7 BT11-083 is played while cost-8 Fallen Angel BT17-068 remains in trash; no-hand fallback also plays cost-5 EX8-059.                                             |
+| `[All Turns] [Once Per Turn] When cards are trashed from your opponent's hand`                                   | `AllTurns` once-per-turn effect installs `SubTrigger(event: "whenHandTrashed", handTrashedController: "opponent")`.         | Opponent-hand trash removes the top Security card; own-hand trash does not. A second same-turn opponent-hand event is suppressed, and a later turn resets the watcher. |
+| `if [Barbamon]/[X Antibody] is in this Digimon's digivolution cards`                                             | `anyOf` stack gate checks a source matching Barbamon by name or a source with X Antibody trait.                             | Both an EX6-059 Barbamon source and a BT10-080 X Antibody source activate the security watcher; an EX8-060 nonmatching source does not.                                |
+| `trash their top security card`                                                                                  | SubTrigger action is `SecurityManipulation` with `op: "trashTop"`, `controller: "opponent"`, `amount: 1`.                   | The top security instance moves to trash while the second security card remains until the next valid turn event.                                                       |
 
 #### Shared seam and lifecycle evidence
 
@@ -5134,6 +5413,10 @@ No EX8-063-specific IR or type defect remains after removing the suppression and
 
 ### EX8-064 — Boltboutamon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-064`, direct `apps/api/src/cards/EX8/EX8-064.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-064.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-064 — Boltboutamon
 
@@ -5156,15 +5439,15 @@ Applicable ruling:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Piedmon plus Myotismon DNA for 0 | `dnaDigivolveRequirement: { cost: 0, materials: [{ names: ["Piedmon"] }, { names: ["Myotismon"] }] }` | Legal Piedmon + Myotismon DNA evolves into Boltboutamon at memory 0; Piedmon + non-Myotismon EX8-061 is rejected. |
-| `[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimon` | `DeDigivolve` target is opponent Digimon count 1, amount 3. | An opposing stack with three sources is reduced by exactly three, promoting its bottom card before the global DP modifier. |
-| `for the turn, all of their Digimon get -6000 DP` | `ModifyDP` target is all opponent Digimon, amount -6000, duration `forTheTurn`. | Both opposing Digimon receive -6000 DP; running the opponent's turn restores their original DP. |
-| `Then, if DNA digivolving` | `PlayWithoutCost` condition is `isDnaDigivolving` with the raw DNA text. | The total-cost playback is observed only in the legal DNA proof; the ordinary structural When Digivolving path has the condition explicitly asserted. |
-| `you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost` | Optional no-cost play from trash, mine Digimon, NSo trait, `count: "all"`, `totalPlayCostBudget: 10`, `payCost: false`. | DNA playback selects the exact total-cost NSo set; the newly played EX8-062 then observes the delayed 0-DP deletion of the opposing Digimon (Q3951). |
-| `[All Turns] [Once Per Turn] When other Digimon are deleted` | All-turns once-per-turn effect installs `SubTrigger(event: "onDeletionOf")` with `controllerDefault: "any"` (both-controller source scope), `excludeSelf: true`, and kind Digimon. | Deleting an opposing Digimon trims the opponent's top Security; deleting a second opposing Digimon in the same turn leaves the second Security card in place. |
-| `trash your opponent's top security card` | SubTrigger action is `Trash` from opponent Security, `position: "top"`, count 1. | The first Security instance moves to trash and the second remains, proving top ordering and count. |
+| Printed clause                                                                                                 | Compiled IR                                                                                                                                                                        | Focused proof                                                                                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Piedmon plus Myotismon DNA for 0                                                                               | `dnaDigivolveRequirement: { cost: 0, materials: [{ names: ["Piedmon"] }, { names: ["Myotismon"] }] }`                                                                              | Legal Piedmon + Myotismon DNA evolves into Boltboutamon at memory 0; Piedmon + non-Myotismon EX8-061 is rejected.                                                                                                                                                 |
+| `[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimon`                                            | `DeDigivolve` target is opponent Digimon count 1, amount 3.                                                                                                                        | An opposing stack with three sources is reduced by exactly three, promoting its bottom card before the global DP modifier.                                                                                                                                        |
+| `for the turn, all of their Digimon get -6000 DP`                                                              | `ModifyDP` target is all opponent Digimon, amount -6000, duration `forTheTurn`.                                                                                                    | Both opposing Digimon receive -6000 DP; running the opponent's turn restores their original DP.                                                                                                                                                                   |
+| `Then, if DNA digivolving`                                                                                     | `PlayWithoutCost` condition is `isDnaDigivolving` with the raw DNA text.                                                                                                           | The total-cost playback is observed only in the legal DNA proof; the ordinary structural When Digivolving path has the condition explicitly asserted.                                                                                                             |
+| `you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost` | Optional no-cost play from trash, mine Digimon, NSo trait, `count: "all"`, `upTo: true`, `totalPlayCostBudget: 10`, `payCost: false`.                                              | DNA playback selects the legal 7+3 subset from a 7+3+5 pool; an explicit zero-card response plays none; a response containing all three is clamped to 7+3 and preserves the 5-cost instance. The newly played EX8-062 observes the delayed 0-DP deletion (Q3951). |
+| `[All Turns] [Once Per Turn] When other Digimon are deleted`                                                   | All-turns once-per-turn effect installs `SubTrigger(event: "onDeletionOf")` with `controllerDefault: "any"` (both-controller source scope), `excludeSelf: true`, and kind Digimon. | Deleting an opposing Digimon trims the opponent's top Security; deleting a second opposing Digimon in the same turn leaves the second Security card in place.                                                                                                     |
+| `trash your opponent's top security card`                                                                      | SubTrigger action is `Trash` from opponent Security, `position: "top"`, count 1.                                                                                                   | The first Security instance moves to trash and the second remains, proving top ordering and count.                                                                                                                                                                |
 
 #### Shared seam and lifecycle evidence
 
@@ -5176,6 +5459,7 @@ The DNA material matcher enforces the exact Piedmon/Myotismon pair and zero cost
 - Corrected the DNA playback target field from invalid `totalPlayCost` to the supported `totalPlayCostBudget: 10`.
 - Corrected the deletion watcher controller field from invalid `controllerDefault: "both"` to the supported `controllerDefault: "any"`, preserving both-controller matching.
 - Strengthened `EX8-064.test.ts` with complete catalog identity/text and no-Security assertions, exact DNA/de-digivolution/DP/playback/security filters, DP expiry, DNA legality/refusal, Q3951 delayed deletion ordering, and same-turn security watcher suppression.
+- Corrected the DNA playback target to `upTo: true`, allowing the printed zero-to-ten total-cost choice while preserving the aggregate budget; focused tests cover exact physical IDs for legal subsets, explicit zero selection, and over-budget candidates.
 - Replaced the illegal Digi-Egg Security fixture (`BT1-001`) with inert main-deck Digimon (`BT1-010`). No Digi-Egg appears in deck or Security fixtures.
 - No engine, shared, catalog, or other-card files were changed.
 
@@ -5184,9 +5468,9 @@ The DNA material matcher enforces the exact Piedmon/Myotismon pair and zero cost
 Focused serialized test:
 
 ```text
-pnpm --filter @aegis/api exec vitest run src/cards/EX8/EX8-064.test.ts --maxWorkers=1 --no-file-parallelism
+NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX8/EX8-064.test.ts --maxWorkers=1 --no-file-parallelism
 Test Files  1 passed (1)
-Tests  9 passed (9)
+Tests  11 passed (11)
 ```
 
 Scoped checks:
@@ -5211,7 +5495,7 @@ No broad tests, collection tests, repository-wide typecheck, or git write comman
 
 #### Defects and remaining gaps
 
-The correction lane fixed the two typed IR errors without changing printed behavior: `PlayWithoutCost.target.totalPlayCostBudget: 10` is the supported aggregate-cost field, and the both-controller `onDeletionOf` source filter is represented by `controllerDefault: "any"`. Targeted tsc reports no EX8-064 diagnostic; its exit 2 is caused by unrelated pre-existing transitive errors named above. The implementation matches the committed catalog and Q3951. Every printed DNA, de-digivolution, global modifier, budgeted playback, delayed deletion, Security endpoint, count, duration, and once-per-turn clause has direct structural and behavioral evidence.
+The correction lane fixed the two typed IR errors without changing printed behavior: `PlayWithoutCost.target.totalPlayCostBudget: 10` is the supported aggregate-cost field, and the both-controller `onDeletionOf` source filter is represented by `controllerDefault: "any"`. The DNA playback target now carries `upTo: true`, so the optional action accepts zero through the legal subset within the printed total budget. The focused proof covers the aggregate boundary, explicit zero selection, individual over-budget exclusion, and exact physical remainders. Targeted tsc reports no EX8-064 diagnostic; its exit 2 is caused by unrelated pre-existing transitive errors named above. The implementation matches the committed catalog and Q3951. No full-card 10/10 claim is made from this bounded correction.
 
 #### Score
 
@@ -5223,6 +5507,10 @@ The correction lane fixed the two typed IR errors without changing printed behav
 - Worker score: **8/10** (delivery-gated maximum)
 
 ### EX8-065 — Ryutaro Williams
+
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-065`, direct `apps/api/src/cards/EX8/EX8-065.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-065.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
 
 Date: 2026-09-10
 Card: EX8-065 — Ryutaro Williams
@@ -5247,15 +5535,15 @@ Peer evidence was checked against P-202's Tyrannomon/Dinosaur cost-reduction rep
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| Start of Your Main Phase, if opponent has a Digimon, gain 1 memory | `StartOfYourMainPhase` → `GainMemory`, amount 1, condition `opponentHas` own opponent Digimon filter | Positive and empty-opponent fixtures prove the exact condition boundary. |
-| Your Turn, when one of your Tyrannomon-named Digimon attacks | `YourTurn` → `SubTrigger` `whenAttacking`, source filter own Digimon with `nameOrTrait: Tyrannomon/name` | Tyrannomon positive and non-Tyrannomon negative attacks prove the name gate. |
-| By suspending this Tamer | Digivolve action cost `{ kind: "suspend", target: isSelfRef, isSelf: true }`, `abortOnDecline: true` | Accepted evolution suspends the Tamer; refusal leaves it unsuspended and does not evolve. |
-| That Digimon may digivolve from hand | Optional `Digivolve`, own Digimon target, `from: ["hand"]`, `payCost: true` | BT1-024 is evolved from hand by the attacking Tyrannomon; refusal retains it in hand. |
-| Destination has Tyrannomon in its name or Dinosaur trait | `into.nameOrTrait` contains Tyrannomon/name and Dinosaur/trait alternatives | BT1-024 proves Tyrannomon-name selection; EX7-035 proves Dinosaur-trait selection; a non-matching attacker is rejected. |
-| Digivolution cost reduced by 1 | `reduceCost: 1` on the Digivolve action | Positive routes pay exactly 2 for printed cost-3 evolutions (memory 10→8 and 3→1). Q5194's additional P-202 reduction is recorded in peer evidence. |
-| Security: play this card without paying its cost | `Security`, `isSecurity: true` → self-targeted `PlayWithoutCost`, `payCost: false` | A real security check moves the exact face-up EX8-065 instance into the battle area without changing memory. |
+| Printed clause                                                     | Compiled IR                                                                                              | Focused proof                                                                                                                                       |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start of Your Main Phase, if opponent has a Digimon, gain 1 memory | `StartOfYourMainPhase` → `GainMemory`, amount 1, condition `opponentHas` own opponent Digimon filter     | Positive and empty-opponent fixtures prove the exact condition boundary.                                                                            |
+| Your Turn, when one of your Tyrannomon-named Digimon attacks       | `YourTurn` → `SubTrigger` `whenAttacking`, source filter own Digimon with `nameOrTrait: Tyrannomon/name` | Tyrannomon positive and non-Tyrannomon negative attacks prove the name gate.                                                                        |
+| By suspending this Tamer                                           | Digivolve action cost `{ kind: "suspend", target: isSelfRef, isSelf: true }`, `abortOnDecline: true`     | Accepted evolution suspends the Tamer; refusal leaves it unsuspended and does not evolve.                                                           |
+| That Digimon may digivolve from hand                               | Optional `Digivolve`, own Digimon target, `from: ["hand"]`, `payCost: true`                              | BT1-024 is evolved from hand by the attacking Tyrannomon; refusal retains it in hand.                                                               |
+| Destination has Tyrannomon in its name or Dinosaur trait           | `into.nameOrTrait` contains Tyrannomon/name and Dinosaur/trait alternatives                              | BT1-024 proves Tyrannomon-name selection; EX7-035 proves Dinosaur-trait selection; a non-matching attacker is rejected.                             |
+| Digivolution cost reduced by 1                                     | `reduceCost: 1` on the Digivolve action                                                                  | Positive routes pay exactly 2 for printed cost-3 evolutions (memory 10→8 and 3→1). Q5194's additional P-202 reduction is recorded in peer evidence. |
+| Security: play this card without paying its cost                   | `Security`, `isSecurity: true` → self-targeted `PlayWithoutCost`, `payCost: false`                       | A real security check moves the exact face-up EX8-065 instance into the battle area without changing memory.                                        |
 
 #### Changes
 
@@ -5311,6 +5599,10 @@ No EX8-065-specific implementation, type, or behavioral defect was found. All pr
 
 ### EX8-066 — Suzune Kazuki
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-066`, direct `apps/api/src/cards/EX8/EX8-066.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-066.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-066 — Suzune Kazuki
 
@@ -5329,17 +5621,17 @@ KB result: no card-specific entries; therefore no Q&A IDs, errata, restrictions,
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| `[Start of Your Main Phase]` | `StartOfYourMainPhase` trigger. | The production timing seam is fired on the live Tamer. |
-| `If your opponent has a Digimon` | `opponentHas` condition scoped to `controllerDefault: "opponent"`, `kind: ["Digimon"]`. | With an opposing Digimon the Tamer gains memory; with no opposing Digimon memory remains unchanged. |
-| `gain 1 memory` | `GainMemory` amount 1. | The opponent-present proof observes memory increasing from 0 to 1. |
-| `[All Turns] When your Digimon are played` | `AllTurns` → `SubTrigger(event: "whenPlayed")`, source filter mine Digimon with Ice-Snow trait. | Playing Ice-Snow EX8-019 suspends the Tamer and trashes one source from an opposing stack. |
-| `or digivolve` | Second `SubTrigger(event: "whenOneOfYoursDigivolves")` with the same Ice-Snow source filter and action. | A real Ice-Snow evolution triggers the watcher and trashes one opposing digivolution card. |
-| `if any of them have the [Ice-Snow] trait` | Source filter is `controller: "mine"`, `kind: ["Digimon"]`, and trait match `Ice-Snow`. | The live play/evolution fixtures use Ice-Snow Digimon; the structural assertion verifies the complete filter. |
-| `by suspending this Tamer` | `TrashDigivolution` cost suspends self with count 1, `isSelf: true`, and `abortOnDecline: true`. | Both live triggers leave the Tamer suspended and remove exactly one opposing source; declining the play trigger leaves the Tamer unsuspended and the source intact. |
-| `trash any 1 digivolution card from your opponent's Digimon` | Target is opponent Digimon with `digivolutionCards: "hasAny"`, count 1, amount 1. | The selected source moves to the opponent's trash while the remaining stack endpoint is observable. |
-| `[Security] Play this card without paying the cost` | Security trigger is marked `isSecurity: true`; self-targeted `PlayWithoutCost`, count 1, `payCost: false`. | Revealing EX8-066 from Security during an attack places that same Tamer instance in the opponent's battle area without changing memory. |
+| Printed clause                                               | Compiled IR                                                                                                | Focused proof                                                                                                                                                       |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[Start of Your Main Phase]`                                 | `StartOfYourMainPhase` trigger.                                                                            | The production timing seam is fired on the live Tamer.                                                                                                              |
+| `If your opponent has a Digimon`                             | `opponentHas` condition scoped to `controllerDefault: "opponent"`, `kind: ["Digimon"]`.                    | With an opposing Digimon the Tamer gains memory; with no opposing Digimon memory remains unchanged.                                                                 |
+| `gain 1 memory`                                              | `GainMemory` amount 1.                                                                                     | The opponent-present proof observes memory increasing from 0 to 1.                                                                                                  |
+| `[All Turns] When your Digimon are played`                   | `AllTurns` → `SubTrigger(event: "whenPlayed")`, source filter mine Digimon with Ice-Snow trait.            | Playing Ice-Snow EX8-019 suspends the Tamer and trashes one source from an opposing stack.                                                                          |
+| `or digivolve`                                               | Second `SubTrigger(event: "whenOneOfYoursDigivolves")` with the same Ice-Snow source filter and action.    | A real Ice-Snow evolution triggers the watcher and trashes one opposing digivolution card.                                                                          |
+| `if any of them have the [Ice-Snow] trait`                   | Source filter is `controller: "mine"`, `kind: ["Digimon"]`, and trait match `Ice-Snow`.                    | The live play/evolution fixtures use Ice-Snow Digimon; the structural assertion verifies the complete filter.                                                       |
+| `by suspending this Tamer`                                   | `TrashDigivolution` cost suspends self with count 1, `isSelf: true`, and `abortOnDecline: true`.           | Both live triggers leave the Tamer suspended and remove exactly one opposing source; declining the play trigger leaves the Tamer unsuspended and the source intact. |
+| `trash any 1 digivolution card from your opponent's Digimon` | Target is opponent Digimon with `digivolutionCards: "hasAny"`, count 1, amount 1.                          | The selected source moves to the opponent's trash while the remaining stack endpoint is observable.                                                                 |
+| `[Security] Play this card without paying the cost`          | Security trigger is marked `isSecurity: true`; self-targeted `PlayWithoutCost`, count 1, `payCost: false`. | Revealing EX8-066 from Security during an attack places that same Tamer instance in the opponent's battle area without changing memory.                             |
 
 #### Shared seam and lifecycle evidence
 
@@ -5392,6 +5684,10 @@ No EX8-066-specific IR or type defect remains after removing the suppression and
 
 ### EX8-067 — Close
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-067`, direct `apps/api/src/cards/EX8/EX8-067.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-067.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-067 — Close
 
@@ -5412,15 +5708,15 @@ Applicable ruling:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| `[Start of Your Turn]` | `StartOfYourTurn` trigger. | The production timing seam is fired on live Close. |
-| `If you have 2 memory or less, set your memory to 3` | `SetMemory` value 3 with `memoryAtMost` value 2, controller mine. | Memory 2 becomes 3; memory 4 remains 4, proving the boundary. |
-| `[Your Turn] When any of your Digimon digivolve into a [Mineral]/[Rock] trait Digimon` | `YourTurn` → `SubTrigger(event: "whenOneOfYoursDigivolves")` with mine Digimon source filter and Mineral/Rock trait match. | A real EX8-047 → EX8-048 evolution triggers placement; structural proof verifies the event and complete trait/kind/controller filter. |
-| `by suspending this Tamer` | `PlaceUnder` cost suspends self, count 1, `isSelf: true`, raw cost text, optional and `abortOnDecline`. | The positive path suspends Close; the refusal path leaves it unsuspended. |
-| `place up to 2 cards with the [Mineral]/[Rock] trait from your trash` | Target is mine trash with Mineral/Rock trait, count 2, `upTo: true`, source trash. | Two Mineral/Rock cards are placed; a nonmatching BT1-010 remains in trash. Q3953 is proven with Rock Digi-Egg BT9-005 plus Rock Digimon BT13-061. |
-| `as that Digimon's bottom digivolution cards` | `underFilter: { isTriggerSource: true }`, `position: "bottom"`. | Exact source stack assertions show the selected cards at the bottom beneath the Digimon that just evolved. |
-| `[Security] Play this card without paying the cost` | Security trigger is marked `isSecurity: true`; self-targeted `PlayWithoutCost`, count 1, `payCost: false`. | A revealed Close is played into the battle area as the same instance without changing memory. |
+| Printed clause                                                                         | Compiled IR                                                                                                                | Focused proof                                                                                                                                     |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[Start of Your Turn]`                                                                 | `StartOfYourTurn` trigger.                                                                                                 | The production timing seam is fired on live Close.                                                                                                |
+| `If you have 2 memory or less, set your memory to 3`                                   | `SetMemory` value 3 with `memoryAtMost` value 2, controller mine.                                                          | Memory 2 becomes 3; memory 4 remains 4, proving the boundary.                                                                                     |
+| `[Your Turn] When any of your Digimon digivolve into a [Mineral]/[Rock] trait Digimon` | `YourTurn` → `SubTrigger(event: "whenOneOfYoursDigivolves")` with mine Digimon source filter and Mineral/Rock trait match. | A real EX8-047 → EX8-048 evolution triggers placement; structural proof verifies the event and complete trait/kind/controller filter.             |
+| `by suspending this Tamer`                                                             | `PlaceUnder` cost suspends self, count 1, `isSelf: true`, raw cost text, optional and `abortOnDecline`.                    | The positive path suspends Close; the refusal path leaves it unsuspended.                                                                         |
+| `place up to 2 cards with the [Mineral]/[Rock] trait from your trash`                  | Target is mine trash with Mineral/Rock trait, count 2, `upTo: true`, source trash.                                         | Two Mineral/Rock cards are placed; a nonmatching BT1-010 remains in trash. Q3953 is proven with Rock Digi-Egg BT9-005 plus Rock Digimon BT13-061. |
+| `as that Digimon's bottom digivolution cards`                                          | `underFilter: { isTriggerSource: true }`, `position: "bottom"`.                                                            | Exact source stack assertions show the selected cards at the bottom beneath the Digimon that just evolved.                                        |
+| `[Security] Play this card without paying the cost`                                    | Security trigger is marked `isSecurity: true`; self-targeted `PlayWithoutCost`, count 1, `payCost: false`.                 | A revealed Close is played into the battle area as the same instance without changing memory.                                                     |
 
 #### Shared seam and lifecycle evidence
 
@@ -5473,6 +5769,10 @@ The original module omitted an explicit bottom-placement position; the engine de
 
 ### EX8-068 — Deep Savers
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-068`, direct `apps/api/src/cards/EX8/EX8-068.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-068.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-068 — Deep Savers
 
@@ -5500,13 +5800,13 @@ Applicable rulings:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| “While you have no face-up security cards, you may ignore this card's color requirements.” | `Static` → `WaiveColorRequirement`, self-targeted, conditional on `noFaceUpSecurity`. | A red board plays the blue Option successfully with no face-up security; a face-up security card blocks the same play. |
-| `[Security] [All Turns] While you have 1 or more memory, none of your [DS] trait Digimon can be deleted in battle.` | Security-marked `AllTurns` → `Aura` over all own Digimon with the `[DS]` trait, restriction `beDeletedInBattle`, while `memoryAtLeast: 1`. | A face-up EX8-068 prevents battle deletion of an own suspended DS Digimon at memory 1; memory 0 allows deletion. |
-| `[Main] Add your bottom security card to the hand.` | `Main` → `SecurityManipulation` `toHand`, own controller, amount 1, `toTop: false`. | With two security cards, only the exact bottom instance moves to hand and the top instance remains in place. Empty security is also covered by the Q3955 path. |
-| “Then, place this card face up as the bottom security card.” | `Main` → `SecurityManipulation` `placeAsSecurity`, own controller, `toTop: false`, `faceUp: true`. | The exact Option instance is placed at the new bottom and remains face-up; the empty-security path places it as the sole face-up security card. |
-| `[Security] You may play 1 level 5 or lower Digimon with the [DS] trait from your hand without paying the cost.` | Security-marked optional `PlayWithoutCost`, one own Digimon from hand, level `lte 5`, DS trait, `payCost: false`. | A face-up security check plays the eligible DS card, leaves the level-6 DS and non-DS cards in hand, and does not change memory. |
+| Printed clause                                                                                                      | Compiled IR                                                                                                                                | Focused proof                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| “While you have no face-up security cards, you may ignore this card's color requirements.”                          | `Static` → `WaiveColorRequirement`, self-targeted, conditional on `noFaceUpSecurity`.                                                      | A red board plays the blue Option successfully with no face-up security; a face-up security card blocks the same play.                                         |
+| `[Security] [All Turns] While you have 1 or more memory, none of your [DS] trait Digimon can be deleted in battle.` | Security-marked `AllTurns` → `Aura` over all own Digimon with the `[DS]` trait, restriction `beDeletedInBattle`, while `memoryAtLeast: 1`. | A face-up EX8-068 prevents battle deletion of an own suspended DS Digimon at memory 1; memory 0 allows deletion.                                               |
+| `[Main] Add your bottom security card to the hand.`                                                                 | `Main` → `SecurityManipulation` `toHand`, own controller, amount 1, `toTop: false`.                                                        | With two security cards, only the exact bottom instance moves to hand and the top instance remains in place. Empty security is also covered by the Q3955 path. |
+| “Then, place this card face up as the bottom security card.”                                                        | `Main` → `SecurityManipulation` `placeAsSecurity`, own controller, `toTop: false`, `faceUp: true`.                                         | The exact Option instance is placed at the new bottom and remains face-up; the empty-security path places it as the sole face-up security card.                |
+| `[Security] You may play 1 level 5 or lower Digimon with the [DS] trait from your hand without paying the cost.`    | Security-marked optional `PlayWithoutCost`, one own Digimon from hand, level `lte 5`, DS trait, `payCost: false`.                          | A face-up security check plays the eligible DS card, leaves the level-6 DS and non-DS cards in hand, and does not change memory.                               |
 
 #### Shared seam and lifecycle evidence
 
@@ -5560,6 +5860,10 @@ The original module was suppression-covered and under-specified in its targets; 
 
 ### EX8-069 — Nature Spirits
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-069`, direct `apps/api/src/cards/EX8/EX8-069.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-069.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-069 — Nature Spirits
 
@@ -5588,14 +5892,14 @@ Peer evidence was checked against EX9-072 and BT19 Option implementations for th
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| No face-up Security cards allow ignoring this Option's color requirements | Static `WaiveColorRequirement` on self, condition `noFaceUpSecurity` | An off-color play succeeds with no face-up Security (including zero Security); the same play is rejected with a face-up Security card. Q3962/Q3963 boundaries are covered. |
-| Security/All Turns: all own NSp Digimon gain Alliance | `AllTurns`, `isSecurity: true`, self-owned NSp Digimon target `count: "all"`, `GainKeyword Alliance`, `duration: "permanent"` | A face-up Security copy grants Alliance to EX7-015; a non-NSp Digimon does not gain it. A real Alliance attack suspends the selected ally. |
-| Security play may play one level-5-or-lower NSp from hand for free | `Security`, `isSecurity: true`, optional `PlayWithoutCost`, own-hand NSp Digimon, `levelComparison: lte 5`, `payCost: false` | A face-up Security check plays EX7-015 without changing memory; optional refusal leaves the NSp in hand. Q3966 is exercised by the face-up check. |
-| Main adds bottom Security to hand | Main `SecurityManipulation` `{ op: "toHand", controller: "mine", amount: 1, toTop: false }` | Ordered Main fixture moves the original bottom Security instance to hand. |
-| Then places this card face up as bottom Security | Main `SecurityManipulation` `{ op: "placeAsSecurity", controller: "mine", toTop: false, faceUp: true }` | The Main fixture asserts exact bottom ordering and `faceUp: true`; zero-Security fixture confirms placement still occurs when no card can be added (Q3963). |
-| Face-up/persistent duration and Security interactions | `isSecurity: true` on the Security/All Turns effect, `duration: "permanent"` for gained Alliance | Face-up Security Alliance is observable and persists through the live attack; Q3964–Q3968 are recorded, with Q3968's post-removal modifier-retention behavior covered by the committed Alliance peer evidence. |
+| Printed clause                                                            | Compiled IR                                                                                                                   | Focused proof                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No face-up Security cards allow ignoring this Option's color requirements | Static `WaiveColorRequirement` on self, condition `noFaceUpSecurity`                                                          | An off-color play succeeds with no face-up Security (including zero Security); the same play is rejected with a face-up Security card. Q3962/Q3963 boundaries are covered.                                     |
+| Security/All Turns: all own NSp Digimon gain Alliance                     | `AllTurns`, `isSecurity: true`, self-owned NSp Digimon target `count: "all"`, `GainKeyword Alliance`, `duration: "permanent"` | A face-up Security copy grants Alliance to EX7-015; a non-NSp Digimon does not gain it. A real Alliance attack suspends the selected ally.                                                                     |
+| Security play may play one level-5-or-lower NSp from hand for free        | `Security`, `isSecurity: true`, optional `PlayWithoutCost`, own-hand NSp Digimon, `levelComparison: lte 5`, `payCost: false`  | A face-up Security check plays EX7-015 without changing memory; optional refusal leaves the NSp in hand. Q3966 is exercised by the face-up check.                                                              |
+| Main adds bottom Security to hand                                         | Main `SecurityManipulation` `{ op: "toHand", controller: "mine", amount: 1, toTop: false }`                                   | Ordered Main fixture moves the original bottom Security instance to hand.                                                                                                                                      |
+| Then places this card face up as bottom Security                          | Main `SecurityManipulation` `{ op: "placeAsSecurity", controller: "mine", toTop: false, faceUp: true }`                       | The Main fixture asserts exact bottom ordering and `faceUp: true`; zero-Security fixture confirms placement still occurs when no card can be added (Q3963).                                                    |
+| Face-up/persistent duration and Security interactions                     | `isSecurity: true` on the Security/All Turns effect, `duration: "permanent"` for gained Alliance                              | Face-up Security Alliance is observable and persists through the live attack; Q3964–Q3968 are recorded, with Q3968's post-removal modifier-retention behavior covered by the committed Alliance peer evidence. |
 
 #### Changes
 
@@ -5651,6 +5955,10 @@ No EX8-069-specific implementation, type, or behavioral defect was found. All pr
 
 ### EX8-070 — Zofr Kabus
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-070`, direct `apps/api/src/cards/EX8/EX8-070.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-070.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-070 — Zofr Kabus
 
@@ -5672,14 +5980,14 @@ Peer evidence was checked against EX8-047, EX8-048, EX8-049, and EX8-050 for Min
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
+| Printed clause                                                      | Compiled IR                                                                                                                                      | Focused proof                                                                                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Trash any one digivolution card of one of your Mineral/Rock Digimon | Optional `SelectBind` target requires own Digimon, Mineral/Rock trait, `digivolutionCards: "hasAny"`; cost trashes one card from the bound stack | Mineral stack test trashes EX8-047 from beneath EX8-048; refusal leaves the stack unchanged. Structural proof verifies both accepted traits and exact bound zone. |
-| Until end of opponent's turn | All five grants use `duration: "untilOpponentTurnEnd"` | Live grant test confirms DP/keywords/restriction disappear after the opponent's turn. |
-| Gain Collision, Piercing, and Reboot | Three ordered `GainKeyword` actions target `fromSelectionRef: "thatDigimon"`, count 1, with exact keyword refs | Observer sees Collision, Piercing, and Reboot on the selected Mineral host. |
-| Opponent effects can't return it to hands or decks | `Restrict` target uses the selected Digimon, `restriction: "cannotReturnToHandOrDeck"`, `byOpponentEffectsOnly: true`, same duration | An opponent effect-resolution attempt to return the host to hand is blocked; the host remains in the battle area. |
-| Gets +3000 DP | `ModifyDP` selected host, amount 3000, same duration | Live state asserts exact base DP +3000 and expiry. |
-| Security: delete one opponent Digimon with the lowest play cost | `Security`, `isSecurity: true` → `Delete` opponent Digimon, `superlative: "lowestPlayCost"`, count 1 | Security check deletes the cost-3 BT1-010 while retaining the cost-5 AD1-001 peer. |
+| Until end of opponent's turn                                        | All five grants use `duration: "untilOpponentTurnEnd"`                                                                                           | Live grant test confirms DP/keywords/restriction disappear after the opponent's turn.                                                                             |
+| Gain Collision, Piercing, and Reboot                                | Three ordered `GainKeyword` actions target `fromSelectionRef: "thatDigimon"`, count 1, with exact keyword refs                                   | Observer sees Collision, Piercing, and Reboot on the selected Mineral host.                                                                                       |
+| Opponent effects can't return it to hands or decks                  | `Restrict` target uses the selected Digimon, `restriction: "cannotReturnToHandOrDeck"`, `byOpponentEffectsOnly: true`, same duration             | An opponent effect-resolution attempt to return the host to hand is blocked; the host remains in the battle area.                                                 |
+| Gets +3000 DP                                                       | `ModifyDP` selected host, amount 3000, same duration                                                                                             | Live state asserts exact base DP +3000 and expiry.                                                                                                                |
+| Security: delete one opponent Digimon with the lowest play cost     | `Security`, `isSecurity: true` → `Delete` opponent Digimon, `superlative: "lowestPlayCost"`, count 1                                             | Security check deletes the cost-3 BT1-010 while retaining the cost-5 AD1-001 peer.                                                                                |
 
 #### Changes
 
@@ -5734,6 +6042,10 @@ No EX8-070-specific implementation, type, or behavioral defect was found. All pr
 
 ### EX8-071 — Nightmare Soldiers
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-071`, direct `apps/api/src/cards/EX8/EX8-071.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-071.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-071 — Nightmare Soldiers
 
@@ -5759,13 +6071,13 @@ Applicable rulings:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| “While you have no face-up security cards, you may ignore this card's color requirements.” | `Static` → `WaiveColorRequirement`, self-targeted, conditional on `noFaceUpSecurity`. | A colorless/blue-absent play with an empty security stack succeeds and places the Option face-up; a red play while another security card is face-up is rejected. |
-| `[Security] [All Turns] All of your [NSo] trait Digimon gain ＜Scapegoat＞.` | Security-marked `AllTurns` → `GainKeyword` `Scapegoat`, permanent duration, over all own Digimon with the exact NSo trait. | A live NSo peer gains Scapegoat while a non-NSo Digimon does not; a losing battle accepts the Scapegoat sacrifice, while a declined choice permits deletion. |
-| `[Main] Add your bottom security card to the hand.` | `Main` → `SecurityManipulation` `toHand`, own controller, amount 1, `toTop: false`. | With a two-card stack, the exact bottom instance moves to hand and the top instance remains. |
-| “Then, place this card face up as the bottom security card.” | `Main` → `SecurityManipulation` `placeAsSecurity`, own controller, `toTop: false`, `faceUp: true`. | The exact Option instance is appended at the new bottom face-up; the empty-stack path proves Q3970. |
-| `[Security] You may play 1 level 5 or lower Digimon with the [NSo] trait from your hand without paying the cost.` | Security-marked optional `PlayWithoutCost`, one own Digimon from hand, level `lte 5`, NSo trait, `payCost: false`. | A face-up security check plays the eligible level-5 NSo peer, leaves a level-6 NSo and non-NSo card in hand, and does not spend memory; the optional play can be declined. |
+| Printed clause                                                                                                    | Compiled IR                                                                                                                | Focused proof                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| “While you have no face-up security cards, you may ignore this card's color requirements.”                        | `Static` → `WaiveColorRequirement`, self-targeted, conditional on `noFaceUpSecurity`.                                      | A colorless/blue-absent play with an empty security stack succeeds and places the Option face-up; a red play while another security card is face-up is rejected.           |
+| `[Security] [All Turns] All of your [NSo] trait Digimon gain ＜Scapegoat＞.`                                      | Security-marked `AllTurns` → `GainKeyword` `Scapegoat`, permanent duration, over all own Digimon with the exact NSo trait. | A live NSo peer gains Scapegoat while a non-NSo Digimon does not; a losing battle accepts the Scapegoat sacrifice, while a declined choice permits deletion.               |
+| `[Main] Add your bottom security card to the hand.`                                                               | `Main` → `SecurityManipulation` `toHand`, own controller, amount 1, `toTop: false`.                                        | With a two-card stack, the exact bottom instance moves to hand and the top instance remains.                                                                               |
+| “Then, place this card face up as the bottom security card.”                                                      | `Main` → `SecurityManipulation` `placeAsSecurity`, own controller, `toTop: false`, `faceUp: true`.                         | The exact Option instance is appended at the new bottom face-up; the empty-stack path proves Q3970.                                                                        |
+| `[Security] You may play 1 level 5 or lower Digimon with the [NSo] trait from your hand without paying the cost.` | Security-marked optional `PlayWithoutCost`, one own Digimon from hand, level `lte 5`, NSo trait, `payCost: false`.         | A face-up security check plays the eligible level-5 NSo peer, leaves a level-6 NSo and non-NSo card in hand, and does not spend memory; the optional play can be declined. |
 
 #### Shared seam and lifecycle evidence
 
@@ -5819,6 +6131,10 @@ The original module was suppression-covered; its IR already represented the four
 
 ### EX8-072 — Seventh Jewelrize
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-072`, direct `apps/api/src/cards/EX8/EX8-072.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-072.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-072 — Seventh Jewelrize
 
@@ -5843,14 +6159,14 @@ Peer evidence was checked against EX8-063 Barbamon (X Antibody), EX8-064 Boltbou
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| [Trash] [Your Turn] when your Digimon digivolves into [Barbamon (X Antibody)] | `YourTurn`, `isFromTrash: true` → `SubTrigger` `whenOneOfYoursDigivolves`, own Digimon source filter with exact `nameExact` Barbamon (X Antibody) | Legal EX6-059 → EX8-063 evolution activates the watcher; a copy in hand does not arm it. Q5730 boundary is covered. |
+| Printed clause                                                                      | Compiled IR                                                                                                                                          | Focused proof                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Trash] [Your Turn] when your Digimon digivolves into [Barbamon (X Antibody)]       | `YourTurn`, `isFromTrash: true` → `SubTrigger` `whenOneOfYoursDigivolves`, own Digimon source filter with exact `nameExact` Barbamon (X Antibody)    | Legal EX6-059 → EX8-063 evolution activates the watcher; a copy in hand does not arm it. Q5730 boundary is covered.                                                                                             |
 | By returning this card to the bottom of the deck, activate this card's Main effects | Optional `Return` cost from trash, self-targeted, `to: "deckBottom"`, followed by `ActivateMain`; `abortOnDecline` preserves the card and skips Main | Positive stack test asserts the exact instance leaves trash for deck bottom and Main deletes; refusal leaves it in trash and does not delete. Q5731 ordering is recorded by the real simultaneous trigger path. |
-| If opponent has 5 or more cards, they trash 1 card in hand | Main `Trash`, opponent chooser, exact opponent hand filter/count 1, `zoneCount` condition `gte 5` | Six-card hand becomes five after one opposing card is trashed; a hand below five is unchanged while the following delete still resolves. |
-| Then delete 1 opponent's level 7 or lower Digimon | Main `Delete`, opponent Digimon filter, `levelComparison: lte 7`, count 1 | Level-6 target is deleted at the reduced ceiling; no target is offered when all opposing Digimon are below the current ceiling. |
-| For every 3 cards in opponent's hand, remove 1 from this effect level maximum | Delete scaling `{ per: 3, unit: "cards", filter: opponent hand, levelCeilingAdd: -1 }` | Post-trash hand count is used: five cards reduce the ceiling from 7 to 6, deleting level 6 but not level 7; exact level-7 boundary is structurally asserted. |
-| [Security] activate this card's Main effect | Security effect marked `isSecurity: true` with `ActivateMain` | A Security reveal activates the Main delete without playing the Option; opposing Digimon deletion is observed. |
+| If opponent has 5 or more cards, they trash 1 card in hand                          | Main `Trash`, opponent chooser, exact opponent hand filter/count 1, `zoneCount` condition `gte 5`                                                    | Six-card hand becomes five after one opposing card is trashed; a hand below five is unchanged while the following delete still resolves.                                                                        |
+| Then delete 1 opponent's level 7 or lower Digimon                                   | Main `Delete`, opponent Digimon filter, `levelComparison: lte 7`, count 1                                                                            | Level-6 target is deleted at the reduced ceiling; no target is offered when all opposing Digimon are below the current ceiling.                                                                                 |
+| For every 3 cards in opponent's hand, remove 1 from this effect level maximum       | Delete scaling `{ per: 3, unit: "cards", filter: opponent hand, levelCeilingAdd: -1 }`                                                               | Post-trash hand count is used: five cards reduce the ceiling from 7 to 6, deleting level 6 but not level 7; exact level-7 boundary is structurally asserted.                                                    |
+| [Security] activate this card's Main effect                                         | Security effect marked `isSecurity: true` with `ActivateMain`                                                                                        | A Security reveal activates the Main delete without playing the Option; opposing Digimon deletion is observed.                                                                                                  |
 
 #### Changes
 
@@ -5907,6 +6223,10 @@ No EX8-072-specific implementation or type defect remains. All printed clauses a
 
 ### EX8-073 — Gallantmon (X Antibody)
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-073`, direct `apps/api/src/cards/EX8/EX8-073.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-073.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-073 — Gallantmon (X Antibody)
 
@@ -5936,13 +6256,13 @@ Applicable rulings:
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| `[Digivolve][Gallantmon]: Cost 1` | `digivolutionRequirement` alternate route with `names: ["Gallantmon"]`, cost 1. | A legal BT2-020 Gallantmon stack evolves into EX8-073 for one memory; the final stack and memory are asserted. |
-| `[When Digivolving] [When Attacking]` if Gallantmon/X Antibody is in the stack, self +4000 and one opposing Digimon -4000 until opponent turn end. | Separate `WhenDigivolving` and `WhenAttacking` modifier pairs guarded by an `anyOf` stack gate matching Gallantmon name or X Antibody trait; both modifiers last `untilOpponentTurnEnd`. | Gallantmon and X Antibody stack paths are proven structurally; a real player attack applies +4000/-4000, and the modifiers expire after the opponent's turn. |
-| `[When Digivolving] [End of Attack] [Once Per Turn] Delete 1 opposing Digimon with 10000 DP or less.` | Separate `WhenDigivolving` and `EndOfAttack` delete sequences, each `frequency: "OncePerTurn"`, sharing `sharedUseKey: "ir-shared-0"`; opponent Digimon target has DP `lte 10000`, count 1. | A 10000-DP target is mandatorily deleted; the shared timing test proves the second trigger cannot reuse the effect in the same turn and can use it again after a turn reset. |
-| “If this didn't delete, trash your opponent's top security card and this Digimon unsuspends.” | Fallback `trashSecurityTop` and self `Unsuspend`, both conditioned by `ifThisEffectDidNotDelete`. | With no eligible target, top security is trashed and the suspended source unsuspends; Q3977's Barrier-protected target also takes the fallback. |
-| `[All Turns] If you have 0 or less memory, this Digimon isn't affected by the effects of your opponent's Digimon.` | `AllTurns` → self `GrantStatic` `immuneToOpponentDigimonEffects`, permanent grant, condition `memoryAtMost: 0` for the owning controller. | Public restriction observation is true at memory 0 and false at memory 1; an actual opposing Digimon-granted On Deletion effect is ignored at memory 0. |
+| Printed clause                                                                                                                                     | Compiled IR                                                                                                                                                                                 | Focused proof                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[Digivolve][Gallantmon]: Cost 1`                                                                                                                  | `digivolutionRequirement` alternate route with `names: ["Gallantmon"]`, cost 1.                                                                                                             | A legal BT2-020 Gallantmon stack evolves into EX8-073 for one memory; the final stack and memory are asserted.                                                               |
+| `[When Digivolving] [When Attacking]` if Gallantmon/X Antibody is in the stack, self +4000 and one opposing Digimon -4000 until opponent turn end. | Separate `WhenDigivolving` and `WhenAttacking` modifier pairs guarded by an `anyOf` stack gate matching Gallantmon name or X Antibody trait; both modifiers last `untilOpponentTurnEnd`.    | Gallantmon and X Antibody stack paths are proven structurally; a real player attack applies +4000/-4000, and the modifiers expire after the opponent's turn.                 |
+| `[When Digivolving] [End of Attack] [Once Per Turn] Delete 1 opposing Digimon with 10000 DP or less.`                                              | Separate `WhenDigivolving` and `EndOfAttack` delete sequences, each `frequency: "OncePerTurn"`, sharing `sharedUseKey: "ir-shared-0"`; opponent Digimon target has DP `lte 10000`, count 1. | A 10000-DP target is mandatorily deleted; the shared timing test proves the second trigger cannot reuse the effect in the same turn and can use it again after a turn reset. |
+| “If this didn't delete, trash your opponent's top security card and this Digimon unsuspends.”                                                      | Fallback `trashSecurityTop` and self `Unsuspend`, both conditioned by `ifThisEffectDidNotDelete`.                                                                                           | With no eligible target, top security is trashed and the suspended source unsuspends; Q3977's Barrier-protected target also takes the fallback.                              |
+| `[All Turns] If you have 0 or less memory, this Digimon isn't affected by the effects of your opponent's Digimon.`                                 | `AllTurns` → self `GrantStatic` `immuneToOpponentDigimonEffects`, permanent grant, condition `memoryAtMost: 0` for the owning controller.                                                   | Public restriction observation is true at memory 0 and false at memory 1; an actual opposing Digimon-granted On Deletion effect is ignored at memory 0.                      |
 
 #### Shared seam and lifecycle evidence
 
@@ -6002,6 +6322,10 @@ The original module was suppression-covered; the final typecheck correction adds
 
 ### EX8-074 — MedievalGallantmon
 
+#### Fresh revalidation — 2026-09-13
+
+Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-074`, direct `apps/api/src/cards/EX8/EX8-074.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-074.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
 Date: 2026-09-10
 Card: EX8-074 — MedievalGallantmon
 
@@ -6032,14 +6356,14 @@ Peer evidence was checked against BT8-071 Psychemon for cost-reduction refusal, 
 
 #### Clause → IR → behavioral proof
 
-| Printed clause | Compiled IR | Focused proof |
-| --- | --- | --- |
-| When this card would be played, by suspending 2 Digimon, reduce the play cost by 4 | Static Replacement on wouldBePlayed, self source filter, nested optional reduceCost amount 4 with suspend cost targeting exactly 2 Digimon controlled by either player | Two Digimon are suspended and the card is played for 7; one available Digimon or one unaffected target cannot satisfy the fixed count. Q3986/Q4442/Q4443/Q6721 cases assert refusal/original-cost behavior. |
-| ＜Alliance＞ and ＜Vortex＞ | Two Static keyword entries with exact keyword/raw text | Live EX8-074 exposes both keywords through observe. |
-| You may suspend 1 Digimon | When Digivolving first action is optional Suspend, count 1, any-controller Digimon | The real evolution and reactivation tests suspend the selected Digimon; Q3985's either-player boundary is covered by opponent-target fixtures. |
-| Then, you may delete one opponent Digimon with 8,000 DP or lower | Optional Delete opponent Digimon with dp lte 8000, count 1 | Real evolution/reactivation tests delete exactly one eligible 8,000-DP opponent and leave noneligible survivors. |
-| For each other suspended Digimon, add 3,000 to this DP deletion maximum | CostModifier raises dpDeletion ceiling by 3,000 per suspended, kind-Digimon, any-controller filter excluding the source | Evolution with two pre-suspended peers deletes a 14,000-DP opposing Digimon, proving the fixed 8,000 ceiling plus two 3,000 increments and excludeSelf. |
-| All Turns Once Per Turn when Digimon are played, activate one When Digivolving effect | AllTurns, frequency OncePerTurn → SubTrigger whenPlayed for Digimon played by either controller → optional self-targeted ActivateEffect of WhenDigivolving | Own and opponent plays trigger the effect; two own plays in one turn produce only one activation, and the opponent-play case proves cross-turn/controller coverage. |
+| Printed clause                                                                        | Compiled IR                                                                                                                                                            | Focused proof                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When this card would be played, by suspending 2 Digimon, reduce the play cost by 4    | Static Replacement on wouldBePlayed, self source filter, nested optional reduceCost amount 4 with suspend cost targeting exactly 2 Digimon controlled by either player | Two Digimon are suspended and the card is played for 7; one available Digimon or one unaffected target cannot satisfy the fixed count. Q3986/Q4442/Q4443/Q6721 cases assert refusal/original-cost behavior. |
+| ＜Alliance＞ and ＜Vortex＞                                                           | Two Static keyword entries with exact keyword/raw text                                                                                                                 | Live EX8-074 exposes both keywords through observe.                                                                                                                                                         |
+| You may suspend 1 Digimon                                                             | When Digivolving first action is optional Suspend, count 1, any-controller Digimon                                                                                     | The real evolution and reactivation tests suspend the selected Digimon; Q3985's either-player boundary is covered by opponent-target fixtures.                                                              |
+| Then, you may delete one opponent Digimon with 8,000 DP or lower                      | Optional Delete opponent Digimon with dp lte 8000, count 1                                                                                                             | Real evolution/reactivation tests delete exactly one eligible 8,000-DP opponent and leave noneligible survivors.                                                                                            |
+| For each other suspended Digimon, add 3,000 to this DP deletion maximum               | CostModifier raises dpDeletion ceiling by 3,000 per suspended, kind-Digimon, any-controller filter excluding the source                                                | Evolution with two pre-suspended peers deletes a 14,000-DP opposing Digimon, proving the fixed 8,000 ceiling plus two 3,000 increments and excludeSelf.                                                     |
+| All Turns Once Per Turn when Digimon are played, activate one When Digivolving effect | AllTurns, frequency OncePerTurn → SubTrigger whenPlayed for Digimon played by either controller → optional self-targeted ActivateEffect of WhenDigivolving             | Own and opponent plays trigger the effect; two own plays in one turn produce only one activation, and the opponent-play case proves cross-turn/controller coverage.                                         |
 
 #### Changes
 
@@ -6090,7 +6414,13 @@ The original module had two type-invalid controllerDefault: "both" literals; the
 
 ## Mechanisms
 
-No mechanism report was produced for EX8.
+### Distinct-color loose-card selection
+
+The fresh wide gate exposed an existing shared selector defect: a normal two-card different-color effect aborted when two red candidates allowed only one legal selection. The serialized Luna engine lane corrected the feasible minimum under CR 1-3-2, 15-10-2-1 and 4-25-2 while retaining exact-count cost atomicity and forged under-minimum rejection. See [mechanism evidence](engine/loose-card-distinct-color-selection.md). Interpreter, relevant consumers and all broad closing gates passed; delivered by `4826e2f4c`.
+
+### Borrowed-effect KB coverage
+
+The candidate gate also found `comprehensive-0206` simultaneously cited and marked unsupported. Existing public borrowed-effect tests already prove this clause; the engine lane removed only the obsolete exclusion. See [coverage evidence](engine/borrowed-effect-conformance-coverage.md). Runtime behavior is unchanged; delivered by `ffd0e21e1`.
 
 ### Review notes and closed investigations
 
@@ -6132,91 +6462,91 @@ One module-to-catalog discrepancy was corrected in executable IR: EX8-048 was mi
 
 ## Knowledge base index
 
-Workers must run `node tools/kb/query.mjs card <ID>` and record all returned Q&A identifiers in the card report. This index will be consolidated from accepted reports.
+Fresh local KB queries were executed for all 74 cards on 2026-09-13 with `node tools/kb/query.mjs card <ID>`. The current index replaces historical “None returned” entries for EX8-031, EX8-038, EX8-050 and EX8-053. Per-card historical reports below retain their dated context.
 
-| Card | Q&A identifiers | Evidence |
-| --- | --- | --- |
-| EX8-001 | None returned | [EX8-001 report](EX8-001.md) |
-| EX8-002 | None returned | [EX8-002 report](EX8-002.md) |
-| EX8-003 | None returned | [EX8-003 report](EX8-003.md) |
-| EX8-004 | None returned | [EX8-004 report](EX8-004.md) |
-| EX8-005 | None returned | [EX8-005 report](EX8-005.md) |
-| EX8-006 | None returned | [EX8-006 report](EX8-006.md) |
-| EX8-007 | None returned | [EX8-007 report](EX8-007.md) |
-| EX8-008 | None returned | [EX8-008 report](EX8-008.md) |
-| EX8-009 | Q3874 | [EX8-009 report](EX8-009.md) |
-| EX8-010 | None returned | [EX8-010 report](EX8-010.md) |
-| EX8-011 | None returned | [EX8-011 report](EX8-011.md) |
-| EX8-012 | Q3875 | [EX8-012 report](EX8-012.md) |
-| EX8-013 | None returned | [EX8-013 report](EX8-013.md) |
-| EX8-014 | Q3876; Q3952; Comprehensive Rules 16-27 | [EX8-014 report](EX8-014.md) |
-| EX8-015 | None returned | [EX8-015 report](EX8-015.md) |
-| EX8-016 | Q3877; Q3878; Q3879; Q3880 | [EX8-016 report](EX8-016.md) |
-| EX8-017 | Comprehensive Rules 16-5; 16-9 | [EX8-017 report](EX8-017.md) |
-| EX8-018 | None returned | [EX8-018 report](EX8-018.md) |
-| EX8-019 | Q3881 | [EX8-019 report](EX8-019.md) |
-| EX8-020 | None returned | [EX8-020 report](EX8-020.md) |
-| EX8-021 | None returned | [EX8-021 report](EX8-021.md) |
-| EX8-022 | None returned | [EX8-022 report](EX8-022.md) |
-| EX8-023 | Q3882-Q3888; Q6042 | [EX8-023 report](EX8-023.md) |
-| EX8-024 | Q3891 | [EX8-024 report](EX8-024.md) |
-| EX8-025 | None returned | [EX8-025 report](EX8-025.md) |
-| EX8-026 | Q3893 | [EX8-026 report](EX8-026.md) |
-| EX8-027 | Q3894; Q3895; Q3896 | [EX8-027 report](EX8-027.md) |
-| EX8-028 | Q3897 | [EX8-028 report](EX8-028.md) |
-| EX8-029 | Q3898-Q3912 | [EX8-029 report](EX8-029.md) |
-| EX8-030 | Q3913; Q3914 | [EX8-030 report](EX8-030.md) |
-| EX8-031 | None returned | [EX8-031 report](EX8-031.md) |
-| EX8-032 | None returned | [EX8-032 report](EX8-032.md) |
-| EX8-033 | None returned | [EX8-033 report](EX8-033.md) |
-| EX8-034 | None returned | [EX8-034 report](EX8-034.md) |
-| EX8-035 | Q3915-Q3920 | [EX8-035 report](EX8-035.md) |
-| EX8-036 | None returned | [EX8-036 report](EX8-036.md) |
-| EX8-037 | Q3923; Q4737; Q4738 | [EX8-037 report](EX8-037.md) |
-| EX8-038 | None returned | [EX8-038 report](EX8-038.md) |
-| EX8-039 | None returned | [EX8-039 report](EX8-039.md) |
-| EX8-040 | Q3925 | [EX8-040 report](EX8-040.md) |
-| EX8-041 | Q3926 | [EX8-041 report](EX8-041.md) |
-| EX8-042 | Q3927 | [EX8-042 report](EX8-042.md) |
-| EX8-043 | Q3928; Q3929 | [EX8-043 report](EX8-043.md) |
-| EX8-044 | Q3930 | [EX8-044 report](EX8-044.md) |
-| EX8-045 | Q3931; Q3932; Q6043 | [EX8-045 report](EX8-045.md) |
-| EX8-046 | None returned | [EX8-046 report](EX8-046.md) |
-| EX8-047 | None returned | [EX8-047 report](EX8-047.md) |
-| EX8-048 | None returned | [EX8-048 report](EX8-048.md) |
-| EX8-049 | None returned | [EX8-049 report](EX8-049.md) |
-| EX8-050 | None returned | [EX8-050 report](EX8-050.md) |
-| EX8-051 | None returned | [EX8-051 report](EX8-051.md) |
-| EX8-052 | Q3934; Q3935 | [EX8-052 report](EX8-052.md) |
-| EX8-053 | None returned | [EX8-053 report](EX8-053.md) |
-| EX8-054 | None returned | [EX8-054 report](EX8-054.md) |
-| EX8-055 | Q3938; Q3940 | [EX8-055 report](EX8-055.md) |
-| EX8-056 | None returned | [EX8-056 report](EX8-056.md) |
-| EX8-057 | None returned | [EX8-057 report](EX8-057.md) |
-| EX8-058 | None returned | [EX8-058 report](EX8-058.md) |
-| EX8-059 | None returned | [EX8-059 report](EX8-059.md) |
-| EX8-060 | Q3941-Q3944 | [EX8-060 report](EX8-060.md) |
-| EX8-061 | Q3945-Q3947 | [EX8-061 report](EX8-061.md) |
-| EX8-062 | Q3948-Q3951 | [EX8-062 report](EX8-062.md) |
-| EX8-063 | Q4739 | [EX8-063 report](EX8-063.md) |
-| EX8-064 | Q3951 | [EX8-064 report](EX8-064.md) |
-| EX8-065 | Q3952; Q4274; Q5194 | [EX8-065 report](EX8-065.md) |
-| EX8-067 | Q3953 | [EX8-067 report](EX8-067.md) |
-| EX8-068 | Q3954-Q3961 | [EX8-068 report](EX8-068.md) |
-| EX8-069 | Q3962-Q3968 | [EX8-069 report](EX8-069.md) |
-| EX8-070 | None returned | [EX8-070 report](EX8-070.md) |
-| EX8-071 | Q3969-Q3974 | [EX8-071 report](EX8-071.md) |
-| EX8-072 | Q4740; Q5730; Q5731 | [EX8-072 report](EX8-072.md) |
-| EX8-073 | Q3975 | [EX8-073 report](EX8-073.md) |
-| EX8-074 | Q3985-Q3988; Q4442; Q4443; Q6721 | [EX8-074 report](EX8-074.md) |
-| EX8-066 | None returned | [EX8-066 report](EX8-066.md) |
+| Card    | Q&A identifiers                                                                                         | Evidence                                                     |
+| ------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| EX8-001 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-001.test.ts) |
+| EX8-002 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-002.test.ts) |
+| EX8-003 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-003.test.ts) |
+| EX8-004 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-004.test.ts) |
+| EX8-005 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-005.test.ts) |
+| EX8-006 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-006.test.ts) |
+| EX8-007 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-007.test.ts) |
+| EX8-008 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-008.test.ts) |
+| EX8-009 | Q3874                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-009.test.ts) |
+| EX8-010 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-010.test.ts) |
+| EX8-011 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-011.test.ts) |
+| EX8-012 | Q3875                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-012.test.ts) |
+| EX8-013 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-013.test.ts) |
+| EX8-014 | Q3876; Q3952                                                                                            | [Focused test](../../apps/api/src/cards/EX8/EX8-014.test.ts) |
+| EX8-015 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-015.test.ts) |
+| EX8-016 | Q3877; Q3878; Q3879; Q3880                                                                              | [Focused test](../../apps/api/src/cards/EX8/EX8-016.test.ts) |
+| EX8-017 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-017.test.ts) |
+| EX8-018 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-018.test.ts) |
+| EX8-019 | Q3881                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-019.test.ts) |
+| EX8-020 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-020.test.ts) |
+| EX8-021 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-021.test.ts) |
+| EX8-022 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-022.test.ts) |
+| EX8-023 | Q3882; Q3883; Q3884; Q3885; Q3886; Q3887; Q3888; Q6042                                                  | [Focused test](../../apps/api/src/cards/EX8/EX8-023.test.ts) |
+| EX8-024 | Q3891                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-024.test.ts) |
+| EX8-025 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-025.test.ts) |
+| EX8-026 | Q3892; Q3893                                                                                            | [Focused test](../../apps/api/src/cards/EX8/EX8-026.test.ts) |
+| EX8-027 | Q3894; Q3895; Q3896                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-027.test.ts) |
+| EX8-028 | Q3897                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-028.test.ts) |
+| EX8-029 | Q3898; Q3899; Q3900; Q3901; Q3902; Q3903; Q3904; Q3905; Q3906; Q3907; Q3908; Q3909; Q3910; Q3911; Q3912 | [Focused test](../../apps/api/src/cards/EX8/EX8-029.test.ts) |
+| EX8-030 | Q3913; Q3914                                                                                            | [Focused test](../../apps/api/src/cards/EX8/EX8-030.test.ts) |
+| EX8-031 | Q5511; Q5512; Q5513; Q5514; Q5515                                                                       | [Focused test](../../apps/api/src/cards/EX8/EX8-031.test.ts) |
+| EX8-032 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-032.test.ts) |
+| EX8-033 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-033.test.ts) |
+| EX8-034 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-034.test.ts) |
+| EX8-035 | Q3915; Q3916; Q3917; Q3918; Q3919; Q3920                                                                | [Focused test](../../apps/api/src/cards/EX8/EX8-035.test.ts) |
+| EX8-036 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-036.test.ts) |
+| EX8-037 | Q3923; Q4737; Q4738                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-037.test.ts) |
+| EX8-038 | Q3924                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-038.test.ts) |
+| EX8-039 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-039.test.ts) |
+| EX8-040 | Q3925                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-040.test.ts) |
+| EX8-041 | Q3926                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-041.test.ts) |
+| EX8-042 | Q3927                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-042.test.ts) |
+| EX8-043 | Q3928; Q3929                                                                                            | [Focused test](../../apps/api/src/cards/EX8/EX8-043.test.ts) |
+| EX8-044 | Q3930                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-044.test.ts) |
+| EX8-045 | Q3931; Q3932; Q6043                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-045.test.ts) |
+| EX8-046 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-046.test.ts) |
+| EX8-047 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-047.test.ts) |
+| EX8-048 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-048.test.ts) |
+| EX8-049 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-049.test.ts) |
+| EX8-050 | Q3933                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-050.test.ts) |
+| EX8-051 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-051.test.ts) |
+| EX8-052 | Q3934; Q3935                                                                                            | [Focused test](../../apps/api/src/cards/EX8/EX8-052.test.ts) |
+| EX8-053 | Q3936                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-053.test.ts) |
+| EX8-054 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-054.test.ts) |
+| EX8-055 | Q3937; Q3938; Q3939; Q3940                                                                              | [Focused test](../../apps/api/src/cards/EX8/EX8-055.test.ts) |
+| EX8-056 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-056.test.ts) |
+| EX8-057 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-057.test.ts) |
+| EX8-058 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-058.test.ts) |
+| EX8-059 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-059.test.ts) |
+| EX8-060 | Q3941; Q3942; Q3943; Q3944                                                                              | [Focused test](../../apps/api/src/cards/EX8/EX8-060.test.ts) |
+| EX8-061 | Q3945; Q3946; Q3947                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-061.test.ts) |
+| EX8-062 | Q3948; Q3949; Q3950; Q3951                                                                              | [Focused test](../../apps/api/src/cards/EX8/EX8-062.test.ts) |
+| EX8-063 | Q4739                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-063.test.ts) |
+| EX8-064 | Q3951                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-064.test.ts) |
+| EX8-065 | Q3952; Q4274; Q5194                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-065.test.ts) |
+| EX8-066 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-066.test.ts) |
+| EX8-067 | Q3953                                                                                                   | [Focused test](../../apps/api/src/cards/EX8/EX8-067.test.ts) |
+| EX8-068 | Q3954; Q3955; Q3956; Q3957; Q3958; Q3959; Q3960; Q3961                                                  | [Focused test](../../apps/api/src/cards/EX8/EX8-068.test.ts) |
+| EX8-069 | Q3962; Q3963; Q3964; Q3965; Q3966; Q3967; Q3968                                                         | [Focused test](../../apps/api/src/cards/EX8/EX8-069.test.ts) |
+| EX8-070 | None returned                                                                                           | [Focused test](../../apps/api/src/cards/EX8/EX8-070.test.ts) |
+| EX8-071 | Q3969; Q3970; Q3971; Q3972; Q3973; Q3974                                                                | [Focused test](../../apps/api/src/cards/EX8/EX8-071.test.ts) |
+| EX8-072 | Q4740; Q5730; Q5731                                                                                     | [Focused test](../../apps/api/src/cards/EX8/EX8-072.test.ts) |
+| EX8-073 | Q3975; Q3976; Q3977; Q3978; Q3979; Q3980; Q3981; Q3982; Q3983; Q3984                                    | [Focused test](../../apps/api/src/cards/EX8/EX8-073.test.ts) |
+| EX8-074 | Q3985; Q3986; Q3987; Q3988; Q4442; Q4443; Q6721                                                         | [Focused test](../../apps/api/src/cards/EX8/EX8-074.test.ts) |
 
 ## Open items
 
-- No card is below 10/10 and no shared engine seam remains open from this collection audit (`docs/audits/EX8-reaudit/REVIEW-NOTES.md`, `193c8972c`).
+- No card-specific ambiguity, unsupported clause, suppression or delivery gate remains open in the fresh EX8 audit. Missing production turn/reset proof was added for EX8-027, EX8-028, EX8-031, EX8-032, EX8-034, EX8-037, EX8-042, EX8-043, EX8-044, EX8-050, EX8-052, EX8-055, EX8-056, EX8-058, EX8-061, EX8-062, EX8-064, EX8-065, EX8-073 and EX8-074; earlier cards reused adequate existing tests.
 - Carried-over minor observation from the 2026-08-27 runtime audit: the `suspend`/`beSuspended` alias added to `ContinuousEffectLedger.hasRestriction` is not mirrored for player-scoped restrictions. There is no current player-scoped producer for this vocabulary, so it does not affect EX8 behaviour, but it stays open as an engine consistency item (`internal-docs/audits/EX8-runtime-2026-08-27.md`).
 - Known-green diagnostic: the expected AD1-002 unsupported-effect logger path emits a diagnostic during the collection gate while its own regression stays green.
-- Contradiction, resolved in favour of the newer source: the 2026-08-27 runtime audit reports the EX8 focused collection at 74 files / 455 tests, while the 2026-09-10 re-audit's combined gate reports 210 files / 2,766 tests over a wider scope. These measure different scopes rather than the same one; the 2026-09-10 numbers are current.
+- Contradiction, resolved in favour of the newer source: the 2026-08-27 runtime audit reports the EX8 focused collection at 74 files / 455 tests, while the 2026-09-10 re-audit's combined gate reports 210 files / 2,766 tests over a wider scope. These measure different scopes rather than the same one; the fresh 2026-09-13 closing counts above supersede both historical checkpoints.
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX8-AUDIT.md` (2026-09-05, `03b7cc52a`) states its revalidation ran from base `53616a8e464dacbcb4e73dd31deb043ae59f88e0`, the runtime audit from `c0ee1a4ba190c0ce40902913cc6e29eca9da1115`, and the winning re-audit from `2c851acd73948611728b9c7e2c3c785d98b1087a`. Only the last base applies to the scores recorded above.
 - Recorded in `docs/audits/EX8-AUDIT.md` and left unaddressed here: the sequential audit queue after EX8 is EX9, EX10, EX11 and EX12. Those sets are out of scope for this document.
 

@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: "all",
+            upTo: true,
             totalPlayCostBudget: 10,
           },
           from: ["trash"],

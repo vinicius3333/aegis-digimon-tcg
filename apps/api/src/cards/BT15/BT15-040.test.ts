@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { definitionMatches } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-040.js";
@@ -48,13 +49,18 @@ describe("BT15-040", () => {
       {
         0: {
           battleArea: [{ card: "BT15-040", as: "monzaemon" }],
-          hand: [{ card: "BT1-009", as: "other" }],
+          hand: [
+            { card: "BT1-009", as: "other" },
+            { card: "BT1-010", as: "nextTurnOther" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: {
           battleArea: [
             { card: "BT1-009", dp: 7000, as: "chosen" },
             { card: "BT1-009", dp: 7000, as: "unchosen" },
           ],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -67,5 +73,22 @@ describe("BT15-040", () => {
 
     expect(s.perm("chosen").currentDP).toBe(3000);
     expect(s.perm("unchosen").currentDP).toBe(7000);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeSecondPlay = s.perm("chosen").currentDP;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnOther").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chosen").currentDP === beforeSecondPlay - 6000, 1_500);
+    expect(s.perm("chosen").currentDP).toBe(beforeSecondPlay - 6000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

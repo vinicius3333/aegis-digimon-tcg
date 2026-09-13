@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-017.js";
+import "../BT1/BT1-060.js";
+import "./EX6-020.js";
 
 describe("EX6-017 Luxmon", () => {
   it("reveals three and adds up to Angel/Archangel and Three Great Angels cards", () => {
@@ -26,27 +27,94 @@ describe("EX6-017 Luxmon", () => {
   it("draws once when its Angel-family stack host attacks", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-017"] }],
-        deck: [{ card: "BT1-009", as: "drawn" }],
+        battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-017", "EX6-020"] }],
+        deck: [{ card: "BT1-009", as: "drawn" }, { card: "BT1-010", as: "nextDraw" }, ...Array(8).fill("BT1-011")],
       },
+      1: { deck: Array(10).fill("BT1-010"), security: Array(6).fill("BT1-010") },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const deckBefore = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 5 &&
+        s.state.players[0]!.deck.length === deckBefore - 1 &&
+        s.state.pendingDecision === undefined,
+    );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    const deckAfterFirst = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 4 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.deck).toHaveLength(deckAfterFirst);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    const deckBeforeResetAttack = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.deck).toHaveLength(deckBeforeResetAttack - 1);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not draw from the inherited effect when the host lacks the required trait", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-017"] }],
-        deck: [{ card: "BT1-009", as: "drawn" }],
+        battleArea: [{ card: "EX6-020", as: "host", under: ["EX6-017"] }],
+        deck: [{ card: "BT1-009", as: "drawn" }, ...Array(9).fill("BT1-010")],
       },
+      1: { deck: Array(10).fill("BT1-010"), security: Array(5).fill("BT1-010") },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 4 && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("publicly resolves both reveal buckets and bottoms the remaining card", async () => {

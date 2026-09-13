@@ -27,11 +27,16 @@ import { compiled } from "./BT11-093.js";
 //   BT11-093  — Yuuya Kuga (the Tamer, Black; playCost 4)
 //   ST15-11   — MetalGreymon (Black Lv.5; evoCost: Black Lv.4 @ 3) — digivolve base
 //   BT2-065   — WarGreymon (Black Lv.6; evoCost: Black Lv.5 @ 3) — digivolves on top (Greymon in name)
-//   BT1-001   — filler
+//   BT1-009   — neutral filler
 
 describe("BT11-093 Yuuya Kuga", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-093")).toMatchObject({ cardId: "BT11-093", colors: ["Black"], kinds: ["Tamer"], playCost: 4 });
+    expect(getCardDefinition("BT11-093")).toMatchObject({
+      cardId: "BT11-093",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 4,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3 }] },
       { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }] },
@@ -52,11 +57,11 @@ describe("BT11-093 Yuuya Kuga", () => {
           // Yuuya on the battle area.
           battleArea: [{ card: "BT11-093", dp: 0 }],
           // Deck fodder for the draw phase.
-          deck: Array.from({ length: 5 }, () => "BT1-001"),
+          deck: Array.from({ length: 5 }, () => "BT1-009"),
           // A playable hand card prevents the engine from auto-ending Main phase.
           hand: ["AD1-001"],
         },
-        1: { deck: Array.from({ length: 5 }, () => "BT1-001") },
+        1: { deck: Array.from({ length: 5 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -91,7 +96,7 @@ describe("BT11-093 Yuuya Kuga", () => {
             // Yuuya's +2000 boost makes currentDP = 13000.
             { card: "ST15-11", dp: 8000, as: "metalGreymon" },
           ],
-          deck: ["BT1-001"], // fodder for the digivolve draw
+          deck: ["BT1-009"], // neutral fodder for the digivolve draw
           // WarGreymon (Black Lv.6, Greymon-named) in hand. evoCost: Black Lv.5 @ 3.
           hand: [{ card: "BT2-065", as: "warGreymon" }],
         },
@@ -130,7 +135,7 @@ describe("BT11-093 Yuuya Kuga", () => {
             { card: "BT5-010", as: "greymon" },
           ],
           hand: [{ card: "BT11-064", as: "greymonX" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

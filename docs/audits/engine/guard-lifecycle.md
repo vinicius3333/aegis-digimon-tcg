@@ -2,10 +2,12 @@
 
 ## Status and contract
 
-In progress: bounded per-holder correction implemented; mechanism certification
-remains open. Reproduction base: 987110990; reproduction delivery: c80383292.
-Correction base: c80383292. Full simultaneous exceptions, source races through
-public producers and payment-replacement behavior are not yet certified.
+EX12 consumer revalidation (2026-09-13) now proves public source loss/re-entry,
+failed Evade-interrupted payment and simultaneous/refused-holder cases; see
+the dated section below and `../EX12.md` for collection gates. Broader mechanism
+certification remains open for additional producer/ordering combinations.
+Historical reproduction base: 987110990; reproduction delivery: c80383292;
+correction base: c80383292.
 
 The exact EX13-063 catalog and direct module were read. PrinceMamemon grants
 Blocker and Guard to all own Mamemon-named Digimon, including itself.
@@ -183,14 +185,58 @@ The broad count above predates these test corrections; the final full gate
 covers the complete corrected source/test state. Scoped style, the 66-set
 index, layout and diff checks are required before delivery.
 
+## EX12 consumer revalidation (2026-09-13)
+
+Fresh collection review reconciles all 77 EX12 catalog contracts, direct compiled
+modules, KB rulings, peer/stack tests and shared actions. The previously missing
+reachable Guard payment/source/grouping proofs now have public-intent cases in
+`keyword-guard-lifecycle.test.ts`:
+
+- Two eligible printed holders: explicitly target the independent Digimon,
+  choose a replacement, refuse the first holder, accept the second and assert
+  exact physical payer/survivor identities.
+- Both printed holders are original targets of one Iron-Fisted Onslaught:
+  one pays exactly once and the other remains; the departed payer's original
+  queued leave does not remove the survivor.
+- Face-up EX12-072 is exchanged to hand by EX12-074; observe Guard before and
+  after source loss, then use opposing Gaia through natural turn progression.
+- The same physical EX12-072 returns from security to hand and is publicly
+  used again; observe the grant disappear/reappear, then pay Guard against
+  opposing Gaia. This uses a neutral ME host without a Start of Main cost.
+- Real EX12-035 Evade interrupts its own Guard payment: accept the exact
+  holder's Evade prompt, observe suspension and failed self-deletion, and
+  confirm the original opposing deletion proceeds. CR §16-22 permits this
+  own-effect interruption; the synthetic zero-return adapter proof is now
+  paired with an actual EX12 producer.
+
+The focused Guard suite passes 21/21 tests. Combined with both original-red
+compound-cost conformance suites, 3 files / 41 tests pass with one worker and
+`TEST_HEAP_MB=3072`. Final EX12/mechanism/affected-peer/layout regression passes
+276 files / 3317 tests after main integration, with the same worker/heap bounds; serialized typecheck
+passes with 4096 MB. No Guard production change is needed. Collection delivery
+gates and current scores are recorded exclusively in `../EX12.md`.
+
+Fresh official EX12-056 reconciliation confirms plural protection, supporting
+the existing event-wide `affectsAll` behavior. Adapter races still explicitly
+test identity, zone, top-card, controller and keyword invalidation before
+payment, plus effect-owner restoration after rejected payment. They do not
+claim public concurrent mutations: ordinary play/evolution/effect intents are
+rejected while a decision is pending, and resolver processing is serialized.
+Future producers that change these properties during legal immediate-effect
+ordering require their own public proof. These engine-wide provider obligations
+are distinct from the current EX12 consumer certification.
+
 ## Open items
 
-Complete simultaneous payment/grouping exceptions; public keyword/source loss,
-control/top changes during eligible ordering, removal and re-entry; failed costs
-that prevent or replace self-deletion; security grant removal while active; all
-legal initial evolution lines and distinct grant stacks. Preserve any normative
-singular/plural ambiguity rather than awarding certainty from a green group test.
-No full keyword, whole-card, collection or whole-engine certificate is claimed.
+Additional cross-set producers of control/top changes during legal eligible
+ordering, payment replacement beyond Evade and distinct grant-stack interactions
+still need public evidence before a whole-keyword or whole-engine certificate.
+The dated EX12 section supersedes the previous queued source-loss/re-entry,
+security-removal, prevented-payment and observed simultaneous-holder obligations.
+The official plural reminder supports the certified EX12 event-wide behavior;
+unobserved ordering combinations must retain their own evidence denominator.
+This engine document does not award collection scores; current EX12 scores and
+delivery gates live in `../EX12.md`.
 EX13-063 executable coverage/residual metadata now closes its declared
 expressibility gap, but its historical score stays provisionally below ten.
 The generic engine plan remains active across all phases.

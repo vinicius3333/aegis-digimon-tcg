@@ -82,14 +82,17 @@ describe("EX8-032", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-057", dp: 5000, as: "attacker", under: ["EX8-032"] }] },
+        0: {
+          battleArea: [{ card: "BT1-057", dp: 5000, as: "attacker", under: ["EX8-032"] }],
+          deck: ["BT1-045", "BT1-045", "BT1-045"],
+        },
         1: {
           battleArea: [
             { card: "AD1-001", as: "target" },
             { card: "AD1-001", as: "other" },
           ],
           security: 2,
-          deck: ["BT1-045"],
+          deck: ["BT1-045", "BT1-045", "BT1-045"],
         },
       },
       { autoSelectCards: true, preferInstanceIds },
@@ -131,5 +134,22 @@ describe("EX8-032", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(target.currentDP).toBe(before);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([attacker.permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => target.currentDP === before - 2000);
+    expect(target.currentDP).toBe(before - 2000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

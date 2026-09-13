@@ -244,6 +244,60 @@ describe("EX8-073", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+  it("resets the shared End of Attack once-per-turn effect on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first", dp: 10000 },
+            { card: "BT1-011", as: "second", dp: 10000 },
+          ],
+          security: ["BT1-009", "BT1-010"],
+          deck: Array(12).fill("BT1-012"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("first").instanceId));
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("second").instanceId),
+    ).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("source").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+  });
 
   it("ignores an actual opponent-granted On Deletion effect at memory 0 (Q3984)", async () => {
     const s = setupEngine(

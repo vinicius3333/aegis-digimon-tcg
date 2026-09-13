@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-045.js";
@@ -36,8 +37,11 @@ describe("BT15-045", () => {
         hand: [
           { card: "BT1-088", as: "firstTamer" },
           { card: "BT1-088", as: "secondTamer" },
+          { card: "BT1-088", as: "nextTurnTamer" },
         ],
+        deck: ["BT1-009", "BT1-010", "BT1-009"],
       },
+      1: { deck: ["BT1-009", "BT1-010"] },
     });
     s.state.memory = 10;
     await s.ready();
@@ -57,6 +61,23 @@ describe("BT15-045", () => {
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondTamer").instanceId),
     );
     expect(s.state.memory).toBe(7);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const before = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === before - 1);
+    expect(s.state.memory).toBe(before - 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("digivolves legally from a green level-2 Digi-Egg and preserves the source stack", async () => {

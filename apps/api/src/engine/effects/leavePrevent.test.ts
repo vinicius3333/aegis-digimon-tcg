@@ -231,6 +231,48 @@ function selfSuspendPrevent(cause: LeaveCause): CompiledCard {
   };
 }
 
+function selfLeaveRestriction(): CompiledCard {
+  return {
+    effects: [
+      {
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Restrict",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            restriction: "leaveBattleAreaExceptByDeletion",
+            duration: "permanent",
+          },
+        ],
+      },
+    ],
+    coverage: "full",
+    residual: [],
+  };
+}
+
+function selfDeletionOnlyPrevent(): CompiledCard {
+  return {
+    effects: [
+      {
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldBeDeleted",
+            mode: "prevent",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+            raw: "prevent deletion only",
+          },
+        ],
+      },
+    ],
+    coverage: "full",
+    residual: [],
+  };
+}
+
 describe("leave-area prevent: self-protect, suspend cost", () => {
   it("skips an except-DigiXros replacement only during DigiXros material relocation", async () => {
     const h = harness();
@@ -639,6 +681,98 @@ describe("leave-area prevent: cause gating + bounce coverage", () => {
     expect(h.state.players[0]!.battleArea.some((p) => p.permanentId === "p1")).toBe(false);
     expect(h.state.players[0]!.hand.length).toBe(1);
     expect(self.isSuspended).toBe(false);
+  });
+
+  it("prevents placing a permanent under another permanent and preserves both physical identities", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const sourceTopId = source.topCard!.instanceId;
+    const sourceStackId = source.stack[0]!.instanceId;
+    await h.installPrevent(source, selfSuspendPrevent("any"));
+
+    await expect(h.fx.relocatePermanentByEffect!(destination.permanentId, source.permanentId)).resolves.toBe(false);
+
+    expect(h.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toEqual(["destination", "source"]);
+    expect(destination.stack).toHaveLength(0);
+    expect(source.topCard!.instanceId).toBe(sourceTopId);
+    expect(source.stack.map((sourceCard) => sourceCard.instanceId)).toEqual([sourceStackId]);
+    expect(source.isSuspended).toBe(true);
+  });
+
+  it("prevents moving a permanent to breeding and preserves the battle-area zone", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const sourceTopId = source.topCard!.instanceId;
+    const sourceStackId = source.stack[0]!.instanceId;
+    await h.installPrevent(source, selfSuspendPrevent("any"));
+
+    await expect(h.fx.movePermanentZone!(source.permanentId, "toBreeding")).resolves.toBe(false);
+
+    expect(h.state.players[0]!.breeding).toBeUndefined();
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+    expect(h.state.players[0]!.battleArea[0]!.permanentId).toBe("source");
+    expect(source.topCard!.instanceId).toBe(sourceTopId);
+    expect(source.stack.map((sourceCard) => sourceCard.instanceId)).toEqual([sourceStackId]);
+    expect(source.isSuspended).toBe(true);
+  });
+
+  it("does not apply a deletion-only replacement to place-under", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const source = putPermanent(h.state, 0, "source");
+    await h.installPrevent(source, selfDeletionOnlyPrevent());
+
+    await expect(h.fx.relocatePermanentByEffect!(destination.permanentId, source.permanentId)).resolves.toBe(true);
+    expect(h.state.players[0]!.battleArea.some((perm) => perm.permanentId === source.permanentId)).toBe(false);
+    expect(destination.stack.some((entry) => entry.instanceId === source.topCard!.instanceId)).toBe(true);
+    expect(source.isSuspended).toBe(false);
+  });
+
+  it("does not apply a deletion-only replacement to a move to breeding", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    await h.installPrevent(source, selfDeletionOnlyPrevent());
+
+    await expect(h.fx.movePermanentZone!(source.permanentId, "toBreeding")).resolves.toBe(true);
+    expect(h.state.players[0]!.battleArea).toHaveLength(0);
+    expect(h.state.players[0]!.breeding?.topCard?.instanceId).toBe(source.topCard!.instanceId);
+    expect(source.isSuspended).toBe(false);
+  });
+
+  it("preflights a restricted place-under before offering a replacement cost", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const source = putPermanent(h.state, 0, "source");
+    await h.installPrevent(source, selfSuspendPrevent("any"));
+    await h.installPrevent(source, selfLeaveRestriction());
+
+    await expect(h.fx.relocatePermanentByEffect!(destination.permanentId, source.permanentId)).resolves.toBe(false);
+    expect(source.isSuspended).toBe(false);
+    expect(destination.stack).toHaveLength(0);
+  });
+
+  it("preflights a restricted move to breeding before offering a replacement cost", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    await h.installPrevent(source, selfSuspendPrevent("any"));
+    await h.installPrevent(source, selfLeaveRestriction());
+
+    await expect(h.fx.movePermanentZone!(source.permanentId, "toBreeding")).resolves.toBe(false);
+    expect(source.isSuspended).toBe(false);
+    expect(h.state.players[0]!.breeding).toBeUndefined();
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("preflights a missing place-under destination before offering a replacement cost", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    await h.installPrevent(source, selfSuspendPrevent("any"));
+
+    await expect(h.fx.relocatePermanentByEffect!("missing", source.permanentId)).resolves.toBe(false);
+    expect(source.isSuspended).toBe(false);
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+    expect(h.state.players[0]!.battleArea[0]!.permanentId).toBe(source.permanentId);
   });
 });
 

@@ -108,7 +108,7 @@ describe("BT15-065", () => {
             },
           ],
           hand: [{ card: "BT15-065", as: "waruMonzaemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [

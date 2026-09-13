@@ -8,7 +8,12 @@ import { compiled } from "./BT11-083.js";
 describe("BT11-083 LadyDevimon", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-083")).toMatchObject({
-      cardId: "BT11-083", colors: ["Purple"], level: 5, playCost: 7, dp: 6000, types: ["Fallen Angel"],
+      cardId: "BT11-083",
+      colors: ["Purple"],
+      level: 5,
+      playCost: 7,
+      dp: 6000,
+      types: ["Fallen Angel"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "WhenDigivolving", actions: [{ kind: "Trash" }, { kind: "Return", to: "hand" }] },
@@ -70,10 +75,16 @@ describe("BT11-083 LadyDevimon", () => {
         instanceId: s.inst("lady").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("discarded-fallen-angel").instanceId));
+    await settle(() =>
+      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("discarded-fallen-angel").instanceId),
+    );
 
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("discarded-fallen-angel").instanceId);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("discarded-fallen-angel").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("discarded-fallen-angel").instanceId,
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("discarded-fallen-angel").instanceId,
+    );
   });
 
   it("does not return a card when the optional hand trash is declined", async () => {
@@ -105,23 +116,55 @@ describe("BT11-083 LadyDevimon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("mirei").instanceId);
   });
 
-  it("gains 1 memory only once per turn when Angewomon or Mirei is played", async () => {
+  it("gains 1 memory once for public Mirei plays, then resets on the next own turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT11-083", as: "lady" },
-          { card: "BT2-037", as: "angewomon" },
-          { card: "BT11-094", as: "mirei" },
+        battleArea: [{ card: "BT11-083", as: "lady" }],
+        hand: [
+          { card: "BT11-094", as: "firstMirei" },
+          { card: "BT11-094", as: "secondMirei" },
+          { card: "BT11-094", as: "thirdMirei" },
         ],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
       },
+      1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
     });
-    s.state.memory = 0;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
+    const firstId = s.inst("firstMirei").instanceId;
+    const secondId = s.inst("secondMirei").instanceId;
+    const thirdId = s.inst("thirdMirei").instanceId;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("angewomon").permanentId });
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("mirei").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: firstId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === firstId));
+    expect(s.state.memory).toBe(6);
 
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === secondId));
     expect(s.state.memory).toBe(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const resetTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: thirdId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === thirdId));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual(
+      expect.arrayContaining([firstId, secondId, thirdId]),
+    );
+    expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await resetTurn;
   });
 
   it("inherits an opponent-turn Retaliation aura for allied Angel-family Digimon while a yellow Digimon is in play", async () => {

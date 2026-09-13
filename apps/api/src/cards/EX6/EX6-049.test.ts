@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-049.js";
+import "./EX6-051.js";
 
 describe("EX6-049 Devimon", () => {
   it("deletes a level 3 opponent Digimon when their hand has five or fewer cards and trashes their hand at seven or more", () =>
@@ -16,18 +17,44 @@ describe("EX6-049 Devimon", () => {
         { kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "zoneCount", op: "lte", value: 6 } },
       ],
     }));
-  it("publicly deletes an opposing level 3 Digimon on play", async () => {
+  it("publicly plays Devimon, pays 5 memory, and deletes an opposing level 3 at five cards", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-049", as: "devimon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        0: { hand: [{ card: "EX6-049", as: "devimon" }] },
+        1: { hand: Array.from({ length: 5 }, () => "BT1-010"), battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("devimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("devimon") !== undefined);
+    expect(s.state.memory).toBe(5);
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("applies the inherited DP aura at six cards and only on the owner's Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-051", as: "devimon", under: ["EX6-049"] }] },
+      1: { hand: Array.from({ length: 6 }, () => "BT1-010") },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.perm("devimon").currentDP).toBe(8000);
+    s.state.turnSeat = 1;
+    expect(s.perm("devimon").currentDP).toBe(8000);
+  });
+
+  it("does not apply the inherited DP aura at seven opponent cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-051", as: "devimon", under: ["EX6-049"] }] },
+      1: { hand: Array.from({ length: 7 }, () => "BT1-010") },
+    });
+    await s.ready();
+    expect(s.perm("devimon").currentDP).toBe(7000);
   });
   it("publicly takes the seven-card branch instead of deleting at the high boundary", async () => {
     const s = setupEngine(

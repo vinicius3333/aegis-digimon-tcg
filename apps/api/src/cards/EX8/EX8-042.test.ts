@@ -86,16 +86,22 @@ describe("EX8-042", () => {
   });
   it("trashes the top opposing security once when the host deletes in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-042"] }] },
+      0: {
+        battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-042"] }],
+        deck: ["BT1-009", "BT1-009"],
+      },
       1: {
         battleArea: [
           { card: "BT1-016", as: "defender", dp: 1000, suspended: true },
           { card: "BT1-016", as: "second", dp: 1000, suspended: true },
+          { card: "BT1-016", as: "third", dp: 1000, suspended: true },
         ],
         security: [
           { card: "BT1-010", as: "top" },
           { card: "BT1-011", as: "bottom" },
+          { card: "BT1-012", as: "next" },
         ],
+        deck: ["BT1-009"],
       },
     });
 
@@ -106,11 +112,11 @@ describe("EX8-042", () => {
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.players[1]!.security.length === 2);
 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-012"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -119,9 +125,33 @@ describe("EX8-042", () => {
         target: { kind: "permanent", permanentId: s.perm("second").permanentId },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-012"]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("third").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("third").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("replays itself through Fortitude when deleted with a digivolution card", async () => {

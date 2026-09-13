@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-015.js";
 
@@ -31,18 +29,32 @@ describe("EX6-015 Xiangpengmon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX6-015", as: "xiangpengmon" },
             { card: "BT12-021", as: "blueOne" },
             { card: "BT12-021", as: "blueTwo" },
           ],
+          hand: [{ card: "EX6-015", as: "xiangpengmon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponentLevel3" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentLevel3" }],
+          security: Array(5).fill("BT1-009"),
+          deck: Array(10).fill("BT1-009"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("xiangpengmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xiangpengmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("xiangpengmon") !== undefined &&
+        s.perm("xiangpengmon").stack.length === 2 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
 
     const host = s.perm("xiangpengmon");
     expect(host.stack.map((card) => card.instanceId)).toEqual(
@@ -67,11 +79,26 @@ describe("EX6-015 Xiangpengmon", () => {
 
   it("publicly plays an Aquatic stack card when one is added beneath itself", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-015", as: "host" }], hand: [{ card: "BT1-033", as: "added" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-015", as: "host", under: [{ card: "BT1-033", as: "added" }, "EX6-014"] },
+            { card: "BT12-021", as: "placer" },
+          ],
+        },
+        1: { security: Array(5).fill("BT1-009"), deck: Array(10).fill("BT1-009") },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("added").instanceId]);
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId),
     );

@@ -13,7 +13,7 @@ describe("BT22-003 Tapmon", () => {
           { card: "BT21-009", as: "gatchmon" },
           { card: "BT22-008", as: "invalidAgumon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.phase = Phase.Breeding;
@@ -148,9 +148,9 @@ describe("BT22-003 Tapmon", () => {
         0: {
           battleArea: [{ card: "BT21-009", under: ["BT22-003"], as: "host" }],
           hand: [{ card: "BT21-009", as: "link" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-003", "BT1-004"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

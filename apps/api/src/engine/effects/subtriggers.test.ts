@@ -281,6 +281,46 @@ describe("SubTriggerRegistry", () => {
     ).resolves.toBe(0);
     expect(activations).toBe(1);
   });
+
+  it("keeps an amount-choice reducer installed after refusal until the later accepted play", async () => {
+    const registry = new SubTriggerRegistry();
+    let activationCount = 0;
+    let spent = false;
+    registry.subscribeReplacement({
+      event: "wouldBePlayed",
+      sourcePermanentId: "P1",
+      controllerSeat: 0,
+      oncePerTurnKey: "EX6-006/test",
+      mode: "reduceCost",
+      amountChoices: [{ amount: 3 }, { amount: 4 }],
+      consumeOnActivate: true,
+      description: "amount-choice reducer",
+      activate: async () => {
+        activationCount += 1;
+        return activationCount === 1 ? false : 4;
+      },
+    });
+    const ledger = {
+      hasFired: () => spent,
+      markFired: () => {
+        spent = true;
+      },
+    };
+    const target = { permanentId: "P1" } as never;
+    const into = { cardId: "EX10-074" } as never;
+
+    await expect(
+      registry.activateInteractiveReductionsFor("wouldBePlayed", 0, target, into, undefined, () => fakeCtx, ledger),
+    ).resolves.toBe(0);
+    expect(registry.hasInteractiveReductionsFor("wouldBePlayed", 0)).toBe(true);
+    expect(spent).toBe(false);
+
+    await expect(
+      registry.activateInteractiveReductionsFor("wouldBePlayed", 0, target, into, undefined, () => fakeCtx, ledger),
+    ).resolves.toBe(4);
+    expect(spent).toBe(true);
+    expect(registry.hasInteractiveReductionsFor("wouldBePlayed", 0)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

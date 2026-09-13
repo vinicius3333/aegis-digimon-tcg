@@ -68,10 +68,14 @@ describe("BT3-043 Kentaurosmon", () => {
     ).toEqual({ ok: true });
     const opponents = ["a", "b", "c", "d", "e", "f"];
     await settle(
-      () => opponents.filter((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -2).length === 5,
+      () =>
+        opponents.filter((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -2).length ===
+        5,
     );
 
-    expect(opponents.filter((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -2)).toHaveLength(5);
+    expect(
+      opponents.filter((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -2),
+    ).toHaveLength(5);
     expect(observe(s.engine).hasKeyword(s.perm("own"), "SecurityAttack")).toBe(false);
   });
 

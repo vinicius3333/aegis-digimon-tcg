@@ -2,7 +2,7 @@ import type { Action, CardEffect, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // EX13-061 Gankoomon (Digimon, Black/White, Lv.6 Mega [Holy Warrior]/[Royal Knight], Data,
-// 12000 DP, play cost 12, printed EvoCost Black Lv.5 for 5).
+// 13000 DP, play cost 13, printed EvoCost Black Lv.5 for 5).
 //
 // Printed main text:
 //   [Digivolve] Lv.5 w/[Huckmon] in text: Cost 4

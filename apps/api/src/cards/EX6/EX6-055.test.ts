@@ -38,19 +38,20 @@ describe("EX6-055 DanDevimon", () => {
   it("publicly trashes one opponent hand card when no qualifying Digimon can be deleted", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-055", as: "host" }] },
+        0: { hand: [{ card: "EX6-055", as: "host" }] },
         1: { hand: [{ card: "BT1-010", as: "opponentCard" }], battleArea: [{ card: "EX6-043", as: "ineligible" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host") !== undefined && s.state.players[1]!.hand.length === 0);
     await settle(() => s.state.players[1]!.hand.length === 0);
     expect(s.state.players[1]!.hand).toHaveLength(0);
   });
 
-  it("publicly grants Rush only at the five-card hand boundary", async () => {
+  it("publicly grants Rush and Security Attack +1 only at the five-card hand boundary", async () => {
     const active = setupEngine({
       0: { battleArea: [{ card: "EX6-055", as: "host" }] },
       1: { hand: Array.from({ length: 5 }, () => "BT1-010") },
@@ -58,6 +59,7 @@ describe("EX6-055 DanDevimon", () => {
     active.state.turnSeat = 0;
     await active.ready();
     expect(observe(active.engine).hasKeyword(active.perm("host"), "Rush")).toBe(true);
+    expect(observe(active.engine).keywordAmount(active.perm("host"), "SecurityAttack")).toBe(1);
     const inactive = setupEngine({
       0: { battleArea: [{ card: "EX6-055", as: "host" }] },
       1: { hand: Array.from({ length: 6 }, () => "BT1-010") },
@@ -65,6 +67,7 @@ describe("EX6-055 DanDevimon", () => {
     inactive.state.turnSeat = 0;
     await inactive.ready();
     expect(observe(inactive.engine).hasKeyword(inactive.perm("host"), "Rush")).toBe(false);
+    expect(observe(inactive.engine).keywordAmount(inactive.perm("host"), "SecurityAttack")).toBe(0);
   });
 
   it("legally evolves from a purple level 5, pays 3 memory, and deletes through When Digivolving", async () => {

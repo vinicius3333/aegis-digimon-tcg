@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-076.js";
 
 describe("BT22-076 ShinMonzaemon", () => {
@@ -154,5 +156,167 @@ describe("BT22-076 ShinMonzaemon", () => {
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(targetId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("places a qualifying Digimon into security from the public attack trigger", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-076", as: "shin", under: [{ card: "BT22-037", faceUp: false }] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "target" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+          security: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    const targetId = s.perm("target").topCard!.instanceId;
+    preferInstanceIds.push(targetId);
+    const bottomSourceId = s.perm("shin").stack[0]!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === targetId));
+
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(targetId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("shares the Once Per Turn use between digivolving and attacking, then resets next turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-038",
+              as: "host",
+              under: [
+                { card: "BT22-037", faceUp: false },
+                { card: "BT22-037", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT22-076", as: "shin" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "firstTarget" },
+            { card: "BT1-013", as: "secondTarget" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.perm("firstTarget").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("shin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT22-076");
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT22-037")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.perm("secondTarget").topCard!.instanceId);
+    const secondTargetId = s.perm("secondTarget").topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.filter((card) => card.cardId === "BT22-037").length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === secondTargetId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("settles an attack-trigger refusal without trashing a source or moving a target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-076", as: "shin", under: [{ card: "BT22-037", faceUp: false }] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-013", as: "target" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+          security: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").topCard!.instanceId;
+    const sourceId = s.perm("shin").stack[0]!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const prompt = s.state.pendingDecision;
+    expect(prompt).toBeDefined();
+    expect(
+      s.engine.applyIntent(prompt!.seat, {
+        type: "respondDecision",
+        decisionId: prompt!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("shin").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 });

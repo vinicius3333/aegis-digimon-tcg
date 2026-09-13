@@ -5,7 +5,12 @@ import { compiled } from "./BT11-109.js";
 
 describe("BT11-109 Astral Snatcher", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-109")).toMatchObject({ cardId: "BT11-109", colors: ["Purple"], kinds: ["Option"], playCost: 7 });
+    expect(getCardDefinition("BT11-109")).toMatchObject({
+      cardId: "BT11-109",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 7,
+    });
     expect(compiled.effects).toMatchObject([
       {
         trigger: "Main",
@@ -61,6 +66,8 @@ describe("BT11-109 Astral Snatcher", () => {
       s.inst("moved").instanceId,
       s.inst("destination-source").instanceId,
     ]);
-    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("moved-source").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("moved-source").instanceId)).toBe(
+      true,
+    );
   });
 });

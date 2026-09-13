@@ -6,7 +6,12 @@ import { compiled } from "./BT11-107.js";
 
 describe("BT11-107 Hades Force", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-107")).toMatchObject({ cardId: "BT11-107", colors: ["Black", "Red"], kinds: ["Option"], playCost: 7 });
+    expect(getCardDefinition("BT11-107")).toMatchObject({
+      cardId: "BT11-107",
+      colors: ["Black", "Red"],
+      kinds: ["Option"],
+      playCost: 7,
+    });
     expect(compiled.effects).toMatchObject([
       {
         trigger: "Static",

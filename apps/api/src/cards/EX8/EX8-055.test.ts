@@ -88,6 +88,35 @@ describe("EX8-055", () => {
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-005")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-053")).toBe(false);
   });
+  it("resets the optional end-turn placement on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-055", as: "pyramid" }],
+          trash: ["EX8-053", "EX8-005", "EX8-053", "EX8-005"],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: { deck: Array(12).fill("BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).runTurn(0);
+    const firstCount = s.perm("pyramid").stack.length;
+    expect(firstCount).toBeGreaterThan(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+    expect(s.perm("pyramid").stack.length).toBeGreaterThan(firstCount);
+  });
   it("trashes three Mineral digivolution cards to unsuspend and gain Security Attack +1 when digivolving", async () => {
     const s = setupEngine(
       {

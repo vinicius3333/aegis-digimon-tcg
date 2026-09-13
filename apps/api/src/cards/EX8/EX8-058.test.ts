@@ -61,13 +61,18 @@ describe("EX8-058", () => {
   it("deletes an exact opposing level 3 target but not a level 4 target", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-058"] }] },
+        0: {
+          battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-058"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "level3" },
             { card: "BT1-009", as: "secondLevel3" },
             { card: "EX8-058", as: "level4" },
           ],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019", "BT1-020"],
         },
       },
       { autoSelectCards: true },
@@ -105,6 +110,31 @@ describe("EX8-058", () => {
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === remainingLevel3Id),
     ).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === remainingLevel3Id));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === remainingLevel3Id)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("evolves from an off-color DS base and carries its inherited effect into a legal level-5 stack", async () => {

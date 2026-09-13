@@ -6,6 +6,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { compiled } from "./BT11-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 
 /**
@@ -92,31 +93,121 @@ describe("BT11-059 battle deletion trigger", () => {
       0: {
         battleArea: [
           { card: "BT11-059", as: "rust", suspended: true },
-          { card: "BT1-075", as: "other", suspended: true },
+          { card: "BT1-075", as: "other" },
         ],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "otherVictim", suspended: true },
+          { card: "BT1-009", as: "rustVictim", suspended: true },
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
     });
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("other").permanentId,
-    });
+    const otherVictimId = s.perm("otherVictim").permanentId;
+    const rustVictimId = s.perm("rustVictim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "permanent", permanentId: otherVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === otherVictimId));
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("rust").isSuspended).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("rust").permanentId]);
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("rust").permanentId,
-    });
-    expect(s.perm("rust").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rust").permanentId,
+        target: { kind: "permanent", permanentId: rustVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === rustVictimId) && !s.perm("rust").isSuspended,
+    );
+    await settle(() => !observe(s.engine).isAttacking());
   });
 
   it("uses its battle-deletion trigger only once per turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-059", as: "rust", suspended: true }] } });
-    const payload = { attackerPermanentId: s.perm("rust").permanentId };
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-059", as: "rust" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "firstVictim", suspended: true },
+          { card: "BT1-009", as: "secondVictim", suspended: true },
+          { card: "BT1-075", as: "nextTurnVictim", dp: 5000 },
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+    });
+    const firstVictimId = s.perm("firstVictim").permanentId;
+    const secondVictimId = s.perm("secondVictim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rust").permanentId,
+        target: { kind: "permanent", permanentId: firstVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstVictimId));
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("rust").isSuspended).toBe(false);
 
-    s.perm("rust").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rust").permanentId,
+        target: { kind: "permanent", permanentId: secondVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondVictimId));
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("rust").isSuspended).toBe(true);
+
+    // The next victim survives a real opponent attack to the player and is left suspended
+    // for RustTyrannomon's next own turn.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const nextTurnVictimId = s.perm("nextTurnVictim").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: nextTurnVictimId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.permanentId === nextTurnVictimId && p.isSuspended));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("rust").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rust").permanentId,
+        target: { kind: "permanent", permanentId: nextTurnVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === nextTurnVictimId) && !s.perm("rust").isSuspended,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

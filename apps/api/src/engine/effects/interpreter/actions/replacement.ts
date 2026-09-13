@@ -211,26 +211,23 @@ export async function runReplacement(
   ) {
     amount *= scaleFactor(ctx, costScaling);
   }
-  // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
-  // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
-  // active reduceCost subscription anchored to this permanent, so two simultaneously-installed
-  // amounts would silently stack.
-  if (mode === "reduceCost" && action.amountChoices && action.amountChoices.length > 0) {
-    const eligible = action.amountChoices.filter(
-      (choice) => choice.condition === undefined || evaluateCondition(ctx, choice.condition),
-    );
-    if (eligible.length === 0) return;
-    if (eligible.length === 1) {
-      amount = eligible[0]!.amount;
-    } else {
-      const chosen = await ctx.ask.chooseOption(
-        ctx,
-        eligible.map((choice) => choice.raw ?? `Reduce the play cost by ${choice.amount}.`),
-      );
-      amount = eligible[chosen]!.amount;
-    }
-  }
+  // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead") are
+  // selected when the replacement activates. Installing a snapshot here would make a declined
+  // optional activation leave a stale amount behind for a later play.
+  const amountChoices = mode === "reduceCost" && action.amountChoices?.length ? action.amountChoices : undefined;
   const preventCost = action.cost ?? nestedPrevent?.cost;
+  const withReplacementSource = async <T>(subCtx: EffectContext, body: () => Promise<T>): Promise<T> => {
+    subCtx.fx.enterEffectResolution?.(
+      subCtx.source.ownerSeat,
+      [...(subCtx.source.definition.kinds ?? [])],
+      subCtx.source.permanent()?.permanentId,
+    );
+    try {
+      return await body();
+    } finally {
+      subCtx.fx.leaveEffectResolution?.();
+    }
+  };
   // A "prevent" leave/delete reaction: install a protects-predicate (which permanents it
   // guards) + a preventCheck (prompt + pay the cost; true => the removal is prevented). The
   // engine's leave-prevention consult runs these when a permanent would be deleted/leave.
@@ -439,6 +436,21 @@ export async function runReplacement(
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
+      ...(amountChoices !== undefined ? { amountChoices } : {}),
+      ...(amountChoices !== undefined
+        ? {
+            potentialAmount: (target: Permanent) => {
+              const projectionCtx = {
+                ...ctx,
+                trigger: { ...ctx.trigger, subjectPermanentId: target.permanentId },
+              } as EffectContext;
+              const eligible = amountChoices.filter(
+                (choice) => choice.condition === undefined || evaluateCondition(projectionCtx, choice.condition!),
+              );
+              return Math.max(0, ...eligible.map((choice) => choice.amount));
+            },
+          }
+        : {}),
       ...(scalesIntoColors
         ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length }
         : {}),
@@ -465,7 +477,7 @@ export async function runReplacement(
                 permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
             }
           : {}),
-      ...(interactiveCosts.length > 0 || interactiveOptional
+      ...(interactiveCosts.length > 0 || interactiveOptional || amountChoices !== undefined
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
@@ -500,6 +512,7 @@ export async function runReplacement(
                 ]);
               }
               if (interactiveCosts.some((cost) => !canPayCost(runtimeCtx, cost))) return false;
+              let selectedAmount = amount ?? 0;
               if (
                 interactiveCost?.kind === "suspend" &&
                 (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true) &&
@@ -513,6 +526,20 @@ export async function runReplacement(
                   action.raw ?? nestedCostModifier?.raw ?? "Pay the cost to reduce the cost?",
                 );
                 if (!accepted) return false;
+              }
+              if (amountChoices !== undefined) {
+                const eligible = amountChoices.filter(
+                  (choice) => choice.condition === undefined || evaluateCondition(runtimeCtx, choice.condition),
+                );
+                if (eligible.length === 0) return false;
+                const chosen =
+                  eligible.length === 1
+                    ? 0
+                    : await runtimeCtx.ask.chooseOption(
+                        runtimeCtx,
+                        eligible.map((choice) => choice.raw ?? `Reduce the play cost by ${choice.amount}.`),
+                      );
+                selectedAmount = eligible[chosen]!.amount;
               }
               if (nestedCostModifier?.dynamicFrom === "deletedDigimonPlayCost") {
                 if (interactiveCost?.kind !== "deleteOwn" || interactiveCost.target === undefined) return false;
@@ -555,7 +582,7 @@ export async function runReplacement(
                     : await payCost(runtimeCtx, cost);
                 if (!paid) return false;
               }
-              return true;
+              return amountChoices === undefined ? true : selectedAmount;
             },
             consumeOnActivate: true,
           }
@@ -622,7 +649,8 @@ export async function runReplacement(
           },
         }
       : {}),
-    apply: async (subCtx) => {
+    apply: (subCtx) =>
+      withReplacementSource(subCtx, async () => {
       const tracksDigiXrosExpansion = (action.actions ?? []).some(
         (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
       );
@@ -654,6 +682,16 @@ export async function runReplacement(
       if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
         return false;
       }
+      const replacementCost = action.cost;
+      // CR §15-7-5 permits an optional processing payment to resolve even when its optional
+      // payload has no legal target; payload legality is checked by the nested action itself.
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !canPayCost(subCtx, replacementCost)
+      ) {
+        return false;
+      }
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
@@ -673,6 +711,13 @@ export async function runReplacement(
       ) {
         return false;
       }
+      if (
+        replacementCost !== undefined &&
+        typeof replacementCost !== "number" &&
+        !(await payCost(subCtx, replacementCost))
+      ) {
+        return false;
+      }
       for (const a of nestedActions) {
         const abort = await runAction(subCtx, a);
         if (abort) break;
@@ -686,7 +731,7 @@ export async function runReplacement(
         );
       }
       return true;
-    },
+      }),
   });
 }
 

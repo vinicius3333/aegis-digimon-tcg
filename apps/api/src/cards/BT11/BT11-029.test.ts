@@ -58,15 +58,28 @@ describe("BT11-029 AeroVeedramon", () => {
   it("suspends itself, adds all revealed blue Tamers and bottoms the rest", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT11-029", as: "aero" }],
+        battleArea: [
+          { card: "BT11-029", as: "aero" },
+          { card: "BT1-009", as: "spare" },
+        ],
         deck: [
+          "BT1-009", // first-turn draw
           { card: "BT11-090", as: "blue1" },
           { card: "BT11-112", as: "blue2" },
           { card: "BT1-009", as: "rest" },
+          "BT1-009", // second-turn draw
+          { card: "BT11-090", as: "blue3" },
+          { card: "BT11-112", as: "blue4" },
+          { card: "BT1-009", as: "rest2" },
+          "BT1-009",
         ],
       },
+      1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"], security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
     });
-    await s.ready();
+    s.state.memory = 10;
+    s.state.isFirstPlayersFirstTurn = false;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     const effect = observe(s.engine).activatableEffects(s.perm("aero")) as { effectKey: string }[];
 
     expect(
@@ -76,7 +89,11 @@ describe("BT11-029 AeroVeedramon", () => {
         effectKey: effect[0]!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.length === 1);
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("blue1").instanceId) &&
+        s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("blue2").instanceId),
+    );
 
     expect(s.perm("aero").isSuspended).toBe(true);
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
@@ -92,26 +109,98 @@ describe("BT11-029 AeroVeedramon", () => {
         effectKey: effect[0]!.effectKey,
       }).ok,
     ).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const nextEffect = observe(s.engine).activatableEffects(s.perm("aero")) as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("aero").topCard!.instanceId,
+        effectKey: nextEffect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("blue3").instanceId) &&
+        s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("blue4").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("blue3").instanceId, s.inst("blue4").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("rest2").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("inherited effect activates a Rina Shinomiya On Play effect when its host attacks", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT11-033", as: "host", under: ["BT11-029"] },
+            { card: "ST2-10", as: "host", under: ["BT11-029"] },
             { card: "BT11-112", as: "rina" },
             { card: "BT11-023", as: "veemon" },
+            { card: "BT11-023", as: "veemonNext" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("host").permanentId });
+    const hostId = s.perm("host").permanentId;
+    preferred.push(s.inst("veemon").instanceId, s.inst("veemonNext").instanceId);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(observe(s.engine).hasKeyword(s.perm("veemon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("veemon"), "Evade")).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([hostId]);
+    preferred.splice(0, 1);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).hasKeyword(s.perm("veemonNext"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("veemonNext"), "Evade")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).hasKeyword(s.perm("veemonNext"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("veemonNext"), "Evade")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not activate Rina for another Digimon's attack", async () => {

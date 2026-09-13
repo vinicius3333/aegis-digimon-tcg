@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -37,17 +36,26 @@ describe("EX6-057 Lilithmon", () => {
   it("publicly deletes the granted target at the end of the controller's turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-057", as: "lilith" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        0: { hand: [{ card: "EX6-057", as: "lilith" }], deck: Array.from({ length: 10 }, () => "BT1-010") },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], deck: Array.from({ length: 10 }, () => "BT1-011") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lilith"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilith").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lilith").topCard?.cardId === "EX6-057" && s.state.pendingDecision === undefined);
     const victimId = s.perm("victim").permanentId;
     s.state.turnSeat = 1;
-    await advance(s.engine).runTurn(1);
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
   });
 
   it("prevents one non-battle leave per turn by deleting a level-5-or-lower Digimon, then refuses a second leave", async () => {

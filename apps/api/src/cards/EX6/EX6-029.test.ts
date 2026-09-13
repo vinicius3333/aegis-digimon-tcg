@@ -50,13 +50,16 @@ describe("EX6-029 Mastemon", () => {
     });
     expect(action).not.toHaveProperty("underFilter");
   });
-  it("publicly plays an Angel-family Digimon from trash on play", async () => {
+  it("publicly plays Mastemon, pays seven memory, then free-plays an Angel-family Digimon from trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-029", as: "mast" }], trash: [{ card: "EX6-019", as: "angel" }] } },
+      { 0: { hand: [{ card: "EX6-029", as: "mast" }], trash: [{ card: "EX6-019", as: "angel" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mast"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mast").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("mast") !== undefined);
+    expect(s.state.memory).toBe(3);
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId),
     );

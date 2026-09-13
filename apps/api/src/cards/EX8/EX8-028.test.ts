@@ -279,6 +279,7 @@ describe("EX8-028", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.security).toHaveLength(1);
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("secondSource").permanentId);
 
     expect(
       s.engine.applyIntent(0, {
@@ -293,6 +294,33 @@ describe("EX8-028", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("secondSource").instanceId,
       ),
     ).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("skadimon").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skadimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("secondSource").instanceId)).toBe(
+      true,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it.each([["own", 0] as const, ["opponent", 1] as const])(

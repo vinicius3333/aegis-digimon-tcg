@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           controller: "opponent",
+          chooser: "opponent",
           condition: {
             kind: "zoneCount",
             seat: "opponent",
@@ -77,6 +78,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           controller: "opponent",
+          chooser: "opponent",
           condition: {
             kind: "zoneCount",
             seat: "opponent",
@@ -102,6 +104,7 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           controller: "opponent",
+          chooser: "opponent",
         },
         {
           kind: "PlayWithoutCost",

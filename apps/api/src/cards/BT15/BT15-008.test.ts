@@ -24,14 +24,18 @@ describe("BT15-008", () => {
       0: {
         battleArea: [
           { card: "BT15-008", as: "muchomon", under: ["BT15-001"] },
-          { card: "BT1-009", as: "redAttacker" },
+          { card: "BT1-009", as: "redAttacker", dp: 3000 },
         ],
         deck: [
-          { card: "BT1-001", as: "drawn" },
-          { card: "BT1-002", as: "left" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-010", as: "left" },
+          { card: "BT1-009", as: "nextTurn" },
+          { card: "BT1-010", as: "ownerTurnDraw" },
+          { card: "BT1-009", as: "ownerNextTurnDraw" },
+          { card: "BT1-010", as: "reserve" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-010"] },
     });
     await s.ready();
 
@@ -51,10 +55,31 @@ describe("BT15-008", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("redAttacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("redAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 3);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nextTurn").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("does not draw for a non-red attacker or an attack targeting a Digimon", async () => {
@@ -65,11 +90,11 @@ describe("BT15-008", () => {
             { card: "BT15-008", as: "muchomon", under: ["BT15-001"] },
             { card: attackPlayer ? "BT1-045" : "BT1-009", as: "attacker" },
           ],
-          deck: [{ card: "BT1-001", as: "top" }],
+          deck: [{ card: "BT1-009", as: "top" }],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       });
       await s.ready();

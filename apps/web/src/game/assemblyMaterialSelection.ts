@@ -1,3 +1,4 @@
+import { nameIncludesToken } from "@aegis/shared";
 import type { AssemblyMaterial, AssemblyRequirement, CardDefinition } from "@aegis/shared";
 
 /*
@@ -34,9 +35,9 @@ function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): bo
           text?.toLocaleLowerCase().includes(folded),
         );
       case "any":
-        return name.includes(folded) || includesFolded(traits, token);
+        return nameIncludesToken(definition.nameEn, token) || includesFolded(traits, token);
       default:
-        return name.includes(folded);
+        return nameIncludesToken(definition.nameEn, token);
     }
   });
 }
@@ -51,11 +52,7 @@ export function assemblyMaterialMatchesSlot(definition: CardDefinition, slot: As
   if (!hasNameOrTrait) return false;
   if (slot.kinds?.length && !slot.kinds.some((kind) => definition.kinds.includes(kind as never))) return false;
   if (slot.colors?.length && !slot.colors.some((color) => definition.colors.includes(color as never))) return false;
-  if (
-    slot.names?.length &&
-    !slot.names.some((name) => definition.nameEn.toLocaleLowerCase().includes(name.toLocaleLowerCase()))
-  )
-    return false;
+  if (slot.names?.length && !slot.names.some((name) => nameIncludesToken(definition.nameEn, name))) return false;
   if (slot.namesExact?.length && !slot.namesExact.includes(definition.nameEn)) return false;
   if (slot.traits?.length && !slot.traits.some((trait) => includesFolded(traitsOf(definition), trait))) return false;
   if (slot.nameOrTrait?.length && !slot.nameOrTrait.some((ref) => matchesNameOrTrait(definition, ref))) return false;

@@ -47,6 +47,15 @@ without remaining blockers in this bounded reconciliation change.
   `d2753b28e`. Reviewed pilot obligations pin both local §15-7 chunks.
 - Citation counts still do not establish obligation coverage. Retain honest
   residual reporting until a complete classified denominator exists.
+- The conformance directory currently contains 76 chapter `*.test.ts` files
+  (excluding `_kb.meta.test.ts`); three have neither `cite()` nor
+  `markNotTestable()`: `activation-cost-and-borrowed-gates.test.ts`,
+  `keyword-link-parameters.test.ts`, and
+  `keyword-security-attack-lifecycle.test.ts`. Because the meta-test's
+  observed-file guard requires every chapter file to register, its coverage
+  report is skipped for the current suite. Add an appropriate source citation
+  or an explicitly justified `markNotTestable()` call in each file before
+  treating the report as a complete file-level check.
 - Official comprehensive version 4.2 was downloaded and extracted (27559 words,
   286 provisional chunks before fixing history separation). Multi-source refresh
   failed on the removed glossary URL, then on ambiguous illustrated-manual OCR
@@ -100,15 +109,68 @@ without remaining blockers in this bounded reconciliation change.
 - One edit accidentally removed adjacent loop-fixture helpers with the invalid
   exclusion: 2 failed / 419 passed. The helpers were restored unchanged from
   baseline. Final conformance: 30 files / 421 tests passed.
-- Added 64 literal fingerprint arguments for reviewed topic/obligation citations;
-  current literal pins total 73 calls over 41 chunks. This is integrity coverage,
-  not a behavioral denominator or completion score.
+- The earlier migration added 64 literal fingerprint arguments and recorded 73
+  fingerprinted calls over 41 chunks at that checkpoint. The reproducible
+  read-only scan from the repository root is the following embedded Node
+  recipe; it uses a balanced-parenthesis scan, recognizes the first string
+  argument of each `cite(...)`, and resolves file-local 64-hex constants:
+
+  ```sh
+  node --input-type=module <<'NODE'
+  import { readdirSync, readFileSync } from "node:fs";
+  import { join } from "node:path";
+  const dir = "apps/api/src/engine/conformance";
+  const files = readdirSync(dir).filter((n) => n.endsWith(".test.ts") && n !== "_kb.meta.test.ts");
+  const idRe = /^(?:comprehensive|manual|glossary)-\d{4}$/;
+  const hashRe = /^[0-9a-f]{64}$/;
+  const split = (s) => { const out = []; let start = 0, depth = 0, quote = "";
+    for (let i = 0; i < s.length; i++) { const c = s[i], p = s[i - 1];
+      if (quote) { if (c === quote && p !== "\\") quote = ""; continue; }
+      if (["'", '"', "`"] .includes(c)) quote = c;
+      else if ("([{".includes(c)) depth++;
+      else if (")]}".includes(c)) depth--;
+      else if (c === "," && depth === 0) { out.push(s.slice(start, i)); start = i + 1; }
+    } out.push(s.slice(start)); return out; };
+  const calls = (s) => { const out = [], re = /\bcite\s*\(/g; let m;
+    while ((m = re.exec(s))) { let i = re.lastIndex, depth = 1, quote = "";
+      for (; i < s.length; i++) { const c = s[i], p = s[i - 1];
+        if (quote) { if (c === quote && p !== "\\") quote = ""; continue; }
+        if (["'", '"', "`"] .includes(c)) quote = c;
+        else if (c === "(") depth++;
+        else if (c === ")" && --depth === 0) { out.push(s.slice(re.lastIndex, i)); re.lastIndex = i + 1; break; }
+      }
+    } return out; };
+  let recognized = 0, pinned = 0; const ids = new Set(), pinnedIds = new Set();
+  for (const file of files) { const text = readFileSync(join(dir, file), "utf8"), constants = new Map();
+    for (const m of text.matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*["']([0-9a-f]{64})["']/g)) constants.set(m[1], m[2]);
+    for (const body of calls(text)) { const args = split(body), id = args[0]?.trim().match(/^["']([^"']+)["']$/)?.[1];
+      if (!idRe.test(id ?? "")) continue; recognized++; ids.add(id);
+      const third = args[2]?.trim().replace(/[;,]\s*$/, "").replace(/["']/g, "");
+      if (hashRe.test(third ?? "") || constants.has(third)) { pinned++; pinnedIds.add(id); }
+    }
+  }
+  console.log({ files: files.length, recognized, pinned, unpinned: recognized - pinned, ids: ids.size, pinnedIds: pinnedIds.size });
+  NODE
+  # expected: files 76, recognized 431, pinned 149, unpinned 282, pinnedIds 88
+  ```
+
+  Before the three missing files were covered, the same scan reported 424
+  recognized calls and 142 fingerprinted calls over 82 chunk IDs. The current
+  scan reports 431 recognized calls, 149 fingerprinted calls over 88 chunk IDs,
+  and 282 legacy two-argument calls.
+  `cite` deliberately permits those unpinned calls: `_kb.ts` compares text only
+  when `expectedFingerprint` is supplied, and `kb-citation-drift.test.ts`
+  preserves two-argument compatibility. The 282 calls are therefore an
+  integrity residual to pin before claiming drift protection, not a failed
+  helper contract. These counts are integrity coverage, not a behavioral
+  denominator or completion score.
 - Affected broad regression: 425 files / 4627 tests passed across conformance,
   combat, effects, engine cards, BT26, EX10, BT14 and audit layout. The expected
   unsupported-effect logger receipt belongs to its negative regression test.
-- Current tool gate: 30/30 passed, including malformed/archived CLI source
-  rejection. Independent review found no weakened behavioral assertions or
-  semantic blocker, with stale narrative references subsequently corrected.
+- At the historical checkpoint, the tool gate was 30/30 passed, including
+  malformed/archived CLI source rejection. Independent review found no weakened
+  behavioral assertions or semantic blocker, with stale narrative references
+  subsequently corrected.
 - Oxlint: zero new findings against an isolated HEAD snapshot; the same 23
   pre-existing conformance warnings remain. Final API typecheck passed. Formatter, audit layout
   (4/4), generated index and diff checks passed. Repeated reconciliation preserves

@@ -33,8 +33,9 @@ describe("EX3-012 Volcanicdramon", () => {
     });
   });
 
-  it("publishes the deletion, conditional play lock, and inherited security clause as complete IR", () => {
-    expect(getCompiledCard("EX3-012")).toMatchObject({
+  it("publishes the deletion, conditional play lock, and security clause as complete IR", () => {
+    const compiled = getCompiledCard("EX3-012");
+    expect(compiled).toMatchObject({
       coverage: "full",
       residual: [],
       effects: [
@@ -60,7 +61,6 @@ describe("EX3-012 Volcanicdramon", () => {
         },
         {
           trigger: "WhenAttacking",
-          isInherited: true,
           actions: [
             {
               kind: "SecurityManipulation",
@@ -73,6 +73,7 @@ describe("EX3-012 Volcanicdramon", () => {
         },
       ],
     });
+    expect(compiled?.effects[1]?.isInherited).not.toBe(true);
   });
 
   it.each([
@@ -261,7 +262,7 @@ describe("EX3-012 Volcanicdramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-021", under: ["EX3-012"], as: "attacker" },
+          { card: "EX3-012", as: "attacker" },
           { card: "EX3-065", as: "hina" },
         ],
       },
@@ -291,6 +292,30 @@ describe("EX3-012 Volcanicdramon", () => {
     const normalCheckIndex = s.events.findIndex((event) => event.kind === "securityChecked");
     expect(effectTrashIndex).toBeGreaterThanOrEqual(0);
     expect(normalCheckIndex).toBeGreaterThan(effectTrashIndex);
+  });
+
+  it("does not trigger the security clause from an inherited EX3-012 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-021", under: ["EX3-012"], as: "attacker" },
+          { card: "EX3-065", as: "hina" },
+        ],
+      },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 
   it("does not trash extra security when attacking without a Tamer", async () => {

@@ -84,7 +84,7 @@ describe("BT22-095 Akemi Suedou", () => {
         0: {
           battleArea: [{ card: "BT22-095", as: "akemi" }],
           hand: [{ card: "BT22-079", as: "eater" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -97,7 +97,7 @@ describe("BT22-095 Akemi Suedou", () => {
 
     expect(s.perm("akemi").isSuspended).toBe(true);
     expect(s.state.memory).toBe(3); // 5 - 3 play + 1 trigger; the hand remains <= 7 so Draw 1 also resolves.
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("publicly places this Tamer under the Mother Eater in breeding", async () => {

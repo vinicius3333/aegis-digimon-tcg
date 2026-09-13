@@ -48,7 +48,7 @@ describe("BT22-005 Tsumemon", () => {
         0: {
           battleArea: [{ card: "BT22-053", under: ["BT22-005"], as: "host" }],
           hand: [{ card: "BT17-053", as: "unidentified" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -73,7 +73,7 @@ describe("BT22-005 Tsumemon", () => {
             { card: "BT22-043", as: "cs" },
             { card: "BT17-053", as: "unidentified" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -101,9 +101,9 @@ describe("BT22-005 Tsumemon", () => {
             { card: "BT22-043", as: "firstCs" },
             { card: "BT22-043", as: "secondCs" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
-        1: { deck: ["BT1-005", "BT1-006"] },
+        1: { deck: ["BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -134,7 +134,7 @@ describe("BT22-005 Tsumemon", () => {
         0: {
           battleArea: [{ card: "BT22-053", under: ["BT22-005"], as: "host" }],
           hand: [{ card: "BT1-009", as: "nonmatch" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
         1: { hand: [{ card: "BT22-043", as: "opponentCs" }] },
       },
@@ -160,7 +160,7 @@ describe("BT22-005 Tsumemon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT22-053", under: ["BT22-005"], as: "host" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
       1: { battleArea: [{ card: "BT22-043", as: "opponentSubject" }] },
     });

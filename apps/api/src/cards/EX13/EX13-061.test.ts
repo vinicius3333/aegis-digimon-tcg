@@ -45,8 +45,8 @@ describe("EX13-061 Gankoomon", () => {
       colors: ["Black", "White"],
       kinds: ["Digimon"],
       level: 6,
-      playCost: 12,
-      dp: 12000,
+      playCost: 13,
+      dp: 13000,
       forms: ["Mega"],
       attributes: ["Data"],
       types: ["Holy Warrior", "Royal Knight"],
@@ -201,7 +201,7 @@ describe("EX13-061 Gankoomon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
-    expect(s.perm("base").currentDP).toBe(12000);
+    expect(s.perm("base").currentDP).toBe(13000);
     // The card left the hand; the one card there is the digivolution bonus draw.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("gankoomon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(1);
@@ -237,7 +237,7 @@ describe("EX13-061 Gankoomon", () => {
     // 4, not 5: the base is RED, so the printed Black Lv.5 EvoCost cannot have been the route used.
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([baseInstanceId]);
-    expect(s.perm("base").currentDP).toBe(12000);
+    expect(s.perm("base").currentDP).toBe(13000);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
@@ -342,8 +342,8 @@ describe("EX13-061 Gankoomon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
-    // Printed play cost 12 reduced by 5 = 7: the whole gauge is spent.
-    expect(s.state.memory).toBe(0);
+    // Printed play cost 13 reduced by 5 = 8: crossing zero passes the turn.
+    expect(s.state.memory).toBe(-1);
     expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST12-08", "ST12-06", "ST12-04"]));
     expect(played.stack).toHaveLength(3);
     // Comprehensive §7-3: the materials come OUT of the trash.
@@ -395,7 +395,7 @@ describe("EX13-061 Gankoomon", () => {
     expect(played.stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["ST12-04", "BT23-076", "BT7-082"]),
     );
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
@@ -490,7 +490,7 @@ describe("EX13-061 Gankoomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
-    // 2000 DP attacker against 12000 DP, and the security stack is never checked.
+    // 2000 DP attacker against 13000 DP, and the security stack is never checked.
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
@@ -526,7 +526,7 @@ describe("EX13-061 Gankoomon", () => {
     expect(observe(s.engine).hasKeyword(token, "Blocker")).toBe(true);
     // Gankoomon plus the token: nothing else entered, and the token costs nothing.
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -562,7 +562,7 @@ describe("EX13-061 Gankoomon", () => {
   it("makes a chosen white Digimon immune to the opponent's DIGIMON effects only", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "gankoomon", dp: 12000 }], deck: DECK },
+        0: { battleArea: [{ card: CARD_ID, as: "gankoomon", dp: 13000 }], deck: DECK },
         1: { deck: DECK },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -585,19 +585,19 @@ describe("EX13-061 Gankoomon", () => {
     advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
     await advance(s.engine).verb.modifyDP(permanentId, 1000, EffectDuration.UntilOpponentTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("gankoomon").currentDP).toBe(13000);
+    expect(s.perm("gankoomon").currentDP).toBe(14000);
 
     // An OPPONENT Digimon effect does not.
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     await advance(s.engine).verb.modifyDP(permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("gankoomon").currentDP).toBe(13000);
+    expect(s.perm("gankoomon").currentDP).toBe(14000);
 
     // An opponent OPTION effect does.
     advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
     await advance(s.engine).verb.modifyDP(permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("gankoomon").currentDP).toBe(10000);
+    expect(s.perm("gankoomon").currentDP).toBe(11000);
   });
 
   it("refuses a non-white Digimon as the immunity recipient", async () => {

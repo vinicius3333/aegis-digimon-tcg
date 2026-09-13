@@ -9,6 +9,7 @@ import type { Primitives, SubTriggerEventName, TriggerInfo } from "../effects/Ef
 import type { SecurityDpLedger } from "../security/securityDp.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { CardInstance, EffectTiming, GameState, Permanent, Seat } from "@aegis/shared";
+import type { EffectContext } from "../effects/EffectContext.js";
 
 /**
  * The Test Seam's one reach-through. `GameEngine`'s collaborators are private: callers
@@ -43,6 +44,7 @@ export interface EngineInternals {
   fireTimingForInstance(timing: EffectTiming, instanceId: string, trigger?: TriggerInfo): Promise<void>;
   fireSubTrigger(event: SubTriggerEventName, payload?: TriggerInfo): Promise<void>;
   cardSourceOf(instance: CardInstance): CardSource;
+  buildEffectContext(source: CardSource, trigger: TriggerInfo): EffectContext;
   drawCards(seat: Seat, count: number): Promise<CardInstance[]>;
   beginResolvingWindow(): boolean;
   endResolvingWindow(wasOutermost: boolean): void;

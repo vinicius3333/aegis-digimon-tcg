@@ -94,13 +94,14 @@ content and unpinned citations before trusting a green conformance run.
 ## Coverage reporting is a proxy, not proof
 
 `_kb.meta.test.ts`'s coverage report (chunks that are neither cited nor
-marked not-testable) is `console.log` output today, not an assertion. Chapter suites now exist; citation presence still does not establish complete
-behavioral coverage of every obligation within a chunk. Per the
-honesty contract in the repo root `AGENTS.md`: **this report is not proof of
-coverage and must not be read as such.** It becomes meaningful, and should be
-flipped to an enforcing `expect(...)`, once chapter test files exist and
-citations accumulate — see the one-line change documented directly above the
-report in `_kb.meta.test.ts`.
+marked not-testable) is `console.log` output today, not an assertion. Chapter
+suites now exist; citation presence still does not establish complete
+behavioral coverage of every obligation within a chunk. Per the honesty
+contract in the repo root `AGENTS.md`: **this report is not proof of coverage
+and must not be read as such.** It may be flipped to an enforcing `expect(...)`
+only after the existing chapter files have complete classified source coverage
+and the single-fork run proves that every file registered — see the one-line
+change documented directly above the report in `_kb.meta.test.ts`.
 
 ### The vacuous-cite-set hazard
 

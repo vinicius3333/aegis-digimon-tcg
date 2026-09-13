@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST1/ST1-16.js";
 import { compiled } from "./EX6-062.js";
 
 describe("EX6-062 UltimateChaosmon", () => {
@@ -65,6 +66,15 @@ describe("EX6-062 UltimateChaosmon", () => {
     expect(observe(s.engine).hasPierce(s.perm("chaos"))).toBe(true);
   });
 
+  it("does not expose threshold keywords with only three level 6 stack cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["EX6-056", "EX6-057", "EX6-058"] }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("chaos"), "SecurityAttack")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("chaos"))).toBe(false);
+  });
+
   it("DNA digivolves the legal Yellow + Green pair, places two trash sources, and bottom-returns per level-6 card", async () => {
     const s = setupEngine(
       {
@@ -103,6 +113,51 @@ describe("EX6-062 UltimateChaosmon", () => {
     expect(merged.stack.filter((card) => ["ST3-10", "BT1-080", "BT1-062"].includes(card.cardId))).toHaveLength(4);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(4);
+  });
+
+  it("replays the legal Yellow and Green level-6 sources after an opposing effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["ST3-10", "BT1-080"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["ST3-10", "BT1-080"]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX6-062")).toBe(true);
+    expect(s.state.players[0]!.battleArea.every((perm) => perm.stack.length === 0)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Q3807: does not Partition two level 6 sources from the same Yellow/Black group", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["ST3-10", "BT2-064"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX6-062"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX6-062", "ST3-10", "BT2-064"]),
+    );
   });
 
   it("rejects the illegal Yellow + Black DNA pairing required by Q3806", async () => {
@@ -159,5 +214,27 @@ describe("EX6-062 UltimateChaosmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unusedLv6").instanceId)).toBe(true);
+  });
+
+  it("does not activate Partition when UltimateChaosmon loses a battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["ST3-10", "BT1-080"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "quietOpponent", suspended: true, dp: 20_000 }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chaos").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("quietOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX6-062", "ST3-10", "BT1-080"]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

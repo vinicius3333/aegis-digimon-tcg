@@ -65,24 +65,72 @@ describe("BT11-017 Marsmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("marsmon"), "Blitz")).toBe(true);
   });
 
-  it("Q2062: unsuspends and gains memory once when an attack target switches", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT11-017", as: "marsmon", suspended: true }, "BT1-085", "BT12-092"],
+  it("Q2062: public Raid switches the target, unsuspends Marsmon, and gains memory once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-017", as: "marsmon" }, "BT1-085", "BT1-013"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget", dp: 6000 },
+            { card: "BT1-010", as: "secondTarget", dp: 5000 },
+            { card: "BT1-009", as: "thirdTarget", dp: 4000 },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
-    });
-    s.state.memory = 0;
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    const thirdTargetId = s.perm("thirdTarget").permanentId;
+    const marsmonId = s.perm("marsmon").permanentId;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("marsmon").permanentId,
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== firstTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("marsmon").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(4);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("marsmon").permanentId,
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
     });
-    expect(s.state.memory).toBe(2);
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== secondTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("marsmon").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== thirdTargetId));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("also reacts to another friendly Digimon's switch, but not on the opponent's turn", async () => {

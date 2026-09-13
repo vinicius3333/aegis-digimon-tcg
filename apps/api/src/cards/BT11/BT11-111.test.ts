@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -28,7 +28,10 @@ describe("BT11-111 Galacticmon", () => {
         {
           cost: {
             kind: "return",
-            target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, from: ["digivolutionCards"] },
+            target: {
+              filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
+              from: ["digivolutionCards"],
+            },
             to: "deckBottom",
           },
         },
@@ -38,12 +41,28 @@ describe("BT11-111 Galacticmon", () => {
 
   it("trashes the opponent's top security at start of main", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-111", as: "galactic" }] },
-      1: { security: ["BT1-001", "BT1-002"] },
+      0: {
+        battleArea: [{ card: "BT11-111", as: "galactic" }, "BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
+        security: ["BT1-012", "BT1-013"],
+      },
+      1: {
+        deck: ["BT1-014", "BT1-015"],
+        security: [
+          { card: "BT1-016", as: "topSecurity" },
+          { card: "BT1-017", as: "remainingSecurity" },
+        ],
+      },
     });
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("galactic"));
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.security[0]?.instanceId).toBe(s.inst("remainingSecurity").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("places four trash Vemmon under the evolved Galacticmon at stack bottom and deletes at eight", async () => {
@@ -63,7 +82,7 @@ describe("BT11-111 Galacticmon", () => {
             { card: "BT11-061", as: "trashVemmon4" },
             { card: "BT11-061", as: "trashVemmon5" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }] },
       },
@@ -87,13 +106,16 @@ describe("BT11-111 Galacticmon", () => {
         instanceId: s.inst("galactic").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("base").topCard?.cardId === "BT11-111" && s.state.players[1]!.battleArea.length === 0,
-    );
+    await settle(() => s.perm("base").topCard?.cardId === "BT11-111" && s.state.players[1]!.battleArea.length === 0);
 
     const galacticmon = s.perm("base");
     expect(galacticmon.stack.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(8);
-    expect(galacticmon.stack.slice(0, 4).map(({ instanceId }) => instanceId).sort()).toEqual(trashVemmonIds);
+    expect(
+      galacticmon.stack
+        .slice(0, 4)
+        .map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual(trashVemmonIds);
     expect(s.perm("neighbor").stack.map(({ cardId }) => cardId)).toEqual(["BT11-061"]);
     expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(cappedTrashVemmonId);
@@ -113,7 +135,7 @@ describe("BT11-111 Galacticmon", () => {
             { card: "BT11-061", as: "declinedVemmon3" },
             { card: "BT11-061", as: "declinedVemmon4" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }] },
       },
@@ -156,15 +178,16 @@ describe("BT11-111 Galacticmon", () => {
             },
             { card: "BT1-009", as: "neighbor", under: [{ card: "BT11-061", as: "neighborVemmon" }] },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const galacticmonId = s.perm("galactic").permanentId;
-    const returnedVemmonIds = s.perm("galactic").stack
-      .filter(({ cardId }) => cardId === "BT11-061")
+    const returnedVemmonIds = s
+      .perm("galactic")
+      .stack.filter(({ cardId }) => cardId === "BT11-061")
       .map(({ instanceId }) => instanceId)
       .sort();
     const neighborVemmonId = s.inst("neighborVemmon").instanceId;
@@ -180,7 +203,11 @@ describe("BT11-111 Galacticmon", () => {
     expect(s.perm("galactic").stack.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(0);
     expect(s.perm("galactic").stack.map(({ cardId }) => cardId)).toEqual(["BT11-066"]);
     expect(s.perm("neighbor").stack.map(({ cardId }) => cardId)).toEqual(["BT11-061"]);
-    expect(s.state.players[0]!.deck.slice(-4).map(({ instanceId }) => instanceId).sort()).toEqual(returnedVemmonIds);
+    expect(
+      s.state.players[0]!.deck.slice(-4)
+        .map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual(returnedVemmonIds);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).not.toContain(neighborVemmonId);
   });
 });

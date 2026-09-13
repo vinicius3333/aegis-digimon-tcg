@@ -1,10 +1,34 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { CardColor, compiledEffects, getCardDefinition, Phase } from "@aegis/shared";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registeredCompiledCards, registeredIrModules } from "../../engine/effects/interpreter/compiledCards.js";
+import { unregisterCard } from "../../engine/effects/registry.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-002.js";
 import "../index.js";
+
+// The serial worker may already have loaded an engine bound to real lookups.
+// Reload its module graph before installing this file's test-only lookup overlay.
+vi.hoisted(() => vi.resetModules());
+vi.mock("@aegis/shared", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@aegis/shared")>();
+  const { syntheticCardLookups, syntheticDefinitions: fixtures } =
+    await import("../../engine/testkit/syntheticDefinitions.js");
+  return { ...actual, ...syntheticCardLookups(actual, fixtures) };
+});
+
+afterEach(() => {
+  for (const id of syntheticDefinitions.keys()) {
+    unregisterCard(id);
+    delete compiledEffects[id];
+    registeredCompiledCards.delete(id);
+    registeredIrModules.delete(id);
+  }
+  syntheticDefinitions.clear();
+});
 
 /** A board whose only moving part is the seeded host and the Tamer in hand. */
 function hostBoard(host: { card: string; as: string }) {
@@ -364,9 +388,108 @@ describe("EX13-002 DemiVeemon", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  // Printed name exclusion, including the official universal Veemon reference rule.
-  // No printed [Vee] consumer can select this Digi-Egg today: BT2-086 requires
-  // Digimon. Probe the production matcher; do not claim a public producer path.
+  it.each(["Vee", "Veemon"])(
+    "enforces the %s exclusion through a synthetic IR consumer and public evolution",
+    async (token) => {
+      const consumer = `TEST-EX13-002-${token}`;
+      const control = "TEST-EX13-002-CONTROL";
+      const exactConsumer = "TEST-EX13-002-EXACT";
+      const egg = getCardDefinition("EX13-002")!;
+      syntheticDefinitions.set(control, {
+        ...egg,
+        cardId: control,
+        nameEn: "Veemon Control",
+        effectText: undefined,
+        inheritedEffectText: undefined,
+      });
+      for (const id of [consumer, exactConsumer]) {
+        syntheticDefinitions.set(id, {
+          ...getCardDefinition("BT1-009")!,
+          cardId: id,
+          nameEn: "Synthetic Name Consumer",
+          colors: [CardColor.Blue],
+          evoCosts: [],
+        });
+        registerIrCard(id, {
+          effects: [],
+          coverage: "full",
+          residual: [],
+          digivolutionRequirement: [
+            {
+              level: 2,
+              ...(id === consumer ? { names: [token] } : { namesExact: ["DemiVeemon"] }),
+              cost: 0,
+              isAlternate: true,
+            },
+          ],
+        });
+      }
+
+      for (const eggId of ["EX13-002", control]) {
+        const s = setupEngine({
+          0: {
+            eggDeck: [{ card: eggId, as: "egg" }],
+            hand: [
+              { card: consumer, as: "consumer" },
+              { card: exactConsumer, as: "exact" },
+            ],
+            deck: [{ card: "BT1-009", as: "evolutionDraw" }, "BT1-010", "BT1-011", "BT1-012"],
+          },
+          1: { security: ["BT1-009"], deck: ["BT1-009", "BT1-010"] },
+        });
+        s.state.memory = 10;
+        await s.ready();
+        const turn = s.engine.runOneTurn();
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        try {
+          const beforeMemory = s.state.memory;
+          const beforeHand = s.state.players[0]!.hand.map((card) => card.instanceId);
+          const result = s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("egg").permanentId,
+            instanceId: s.inst("consumer").instanceId,
+          });
+          const excluded = eggId === "EX13-002";
+          if (result.ok) {
+            await settle(() =>
+              s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId),
+            );
+          }
+          expect(result).toEqual(expect.objectContaining({ ok: !excluded }));
+          expect(s.perm("egg").topCard.cardId).toBe(excluded ? eggId : consumer);
+          expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(excluded ? [] : [eggId]);
+          expect(s.state.memory).toBe(beforeMemory);
+          expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+            excluded ? beforeHand : [s.inst("exact").instanceId, s.inst("evolutionDraw").instanceId],
+          );
+          const accepted = excluded
+            ? s.engine.applyIntent(0, {
+                type: "digivolve",
+                permanentId: s.perm("egg").permanentId,
+                instanceId: s.inst("exact").instanceId,
+              })
+            : result;
+          expect(accepted).toEqual({ ok: true });
+          await settle(
+            () =>
+              s.perm("egg").topCard.cardId === (excluded ? exactConsumer : consumer) &&
+              s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId),
+          );
+          expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual([eggId]);
+          expect(s.state.memory).toBe(beforeMemory);
+          expect(s.state.players[0]!.hand).toHaveLength(beforeHand.length);
+          assertNoLoudGap(s);
+        } finally {
+          advance(s.engine).endMainPhaseIfOpen(0);
+          await turn;
+        }
+      }
+    },
+  );
+
+  // Supplemental matcher boundaries; public synthetic-consumer proof is above.
   it("does not treat DemiVeemon's name as including [Vee]", () => {
     const definition = getCardDefinition("EX13-002")!;
     expect(matchNameOrTrait(definition, { tokens: ["Vee"], match: "name" })).toBe(false);

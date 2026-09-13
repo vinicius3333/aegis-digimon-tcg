@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-041.js";
+import "./EX6-043.js";
 
 describe("EX6-041 Infermon", () => {
   it("offers free Diaboromon evolution from hand by deleting a Diaboromon", () =>
@@ -75,5 +76,48 @@ describe("EX6-041 Infermon", () => {
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("infermon").instanceId),
     ).toBe(true);
+  });
+
+  it("does not treat Diaboromon (X Antibody) as the exact Diaboromon target", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT17-059", as: "sacrifice" }],
+        hand: [
+          { card: "EX6-041", as: "infermon" },
+          { card: "BT24-065", as: "nearMatch" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("infermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-041"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMatch").instanceId)).toBe(true);
+  });
+
+  it("publicly de-digivolves one opposing stack when another Diaboromon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-043", as: "infermon", under: ["EX6-040", "EX6-041"] }],
+          hand: [{ card: "EX6-043", as: "diaboromon" }],
+        },
+        1: { battleArea: [{ card: "EX6-043", as: "target", under: ["EX6-040", "EX6-041"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diaboromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").topCard?.cardId === "EX6-041" && s.state.pendingDecision === undefined);
+    expect(s.perm("target").topCard?.cardId).toBe("EX6-041");
+    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX6-043")).toBe(true);
+    expect(s.perm("infermon").topCard?.cardId).toBe("EX6-043");
+    expect(s.perm("infermon").stack.map((card) => card.cardId)).toEqual(["EX6-040", "EX6-041"]);
   });
 });
