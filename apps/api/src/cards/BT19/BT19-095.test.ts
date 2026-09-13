@@ -8,18 +8,16 @@ import "../index.js";
 
 // BT19-095 Knight Device — Green Option, [Device] trait, use cost 3.
 //   While you don't have [Knight Device], you may ignore this card's color requirements.
-//   When an effect trashes this card in your battle area, 1 of your Digimon gains ＜Piercing＞
-//     and gets +4000 DP until the end of your opponent's turn.
-//   [Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP until the end of your
-//     opponent's turn. Then, place this card in the battle area.
+//   When this card is trashed from the battle area, 1 of your Digimon gains ＜Piercing＞
+//     and gets +4000 DP for the turn.
+//   [Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn. Then, place
+//     this card in the battle area.
 //   [Security] Suspend 2 of your opponent's Digimon or Tamers. Then, add this card to the hand.
 //
 // KB Q3170 (2024-09-20): "If this card is in the battle area and is trashed during my
 // opponent's turn, how long does its 2nd effect last?" — "The 2nd effect will last until the
-// end of your opponent's turn." BT19-093 carries the same question as Q3166 and PRINTS that
-// duration, as do BT19-098 and P-159. The catalog record was corrected to the cycle wording
-// (SOURCE-RECONCILIATION.md), so BOTH grant clauses are `untilOpponentTurnEnd`: the grant
-// survives the controller's own turn end and expires at the opponent's turn end.
+// end of your opponent's turn." The printed text itself says "for the turn"; Q3170 clarifies
+// that wording when the card is trashed during the opponent's turn.
 //
 // Fixture vocabulary:
 //   BT19-093 Queen Device — Yellow Option, [Device] trait: the NAME near-miss for the
@@ -50,7 +48,7 @@ describe("BT19-095 Knight Device — catalog and IR", () => {
       types: ["Device"],
       maxCountInDeck: 4,
       effectText:
-        "While you don't have [Knight Device], you may ignore this card's color requirements.When an effect trashes this card in your battle area, 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn.\n[Main] 1 of your Digimon gains ＜Piercing＞and gets +4000 DP until the end of your opponent's turn. Then, place this card in the battle area.",
+        "While you don't have [Knight Device] in the battle area, you may ignore this card's color requirements.\nWhen this card is trashed from the battle area, 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn.\n[Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn. Then, place this card in the battle area.",
       securityEffectText: "[Security] Suspend 2 of your opponent's Digimon or Tamers. Then, add this card to the hand.",
     });
   });
@@ -68,7 +66,11 @@ describe("BT19-095 Knight Device — catalog and IR", () => {
             condition: {
               kind: "youHaveNone",
               // Bracketed `[Knight Device]` is an EXACT-name reference.
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Knight Device"], match: "nameExact" }] },
+              filter: {
+                controllerDefault: "mine",
+                zone: "battleArea",
+                nameOrTrait: [{ tokens: ["Knight Device"], match: "nameExact" }],
+              },
             },
           },
         ],
@@ -80,13 +82,13 @@ describe("BT19-095 Knight Device — catalog and IR", () => {
             kind: "ModifyDP",
             target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
             amount: 4000,
-            duration: "untilOpponentTurnEnd",
+            duration: "forTheTurn",
           },
           {
             kind: "GainKeyword",
             target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, sameTarget: true },
             keyword: { keyword: "Piercing" },
-            duration: "untilOpponentTurnEnd",
+            duration: "forTheTurn",
           },
           { kind: "PlaceInBattleAreaSelf" },
         ],
@@ -94,8 +96,8 @@ describe("BT19-095 Knight Device — catalog and IR", () => {
       {
         trigger: "whenTrashedFromBattleArea",
         actions: [
-          { kind: "ModifyDP", amount: 4000, duration: "untilOpponentTurnEnd" },
-          { kind: "GainKeyword", keyword: { keyword: "Piercing" }, duration: "untilOpponentTurnEnd" },
+          { kind: "ModifyDP", amount: 4000, duration: "forTheTurn" },
+          { kind: "GainKeyword", keyword: { keyword: "Piercing" }, duration: "forTheTurn" },
         ],
       },
       {
@@ -243,7 +245,7 @@ describe("BT19-095 Knight Device — [Main] ＜Piercing＞ + 4000 DP, then place
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("the [Main] grant survives your own turn end and expires at the opponent's turn end", async () => {
+  it("the [Main] grant expires at the end of the current turn", async () => {
     const s = setupEngine(
       {
         0: {
@@ -275,12 +277,11 @@ describe("BT19-095 Knight Device — [Main] ＜Piercing＞ + 4000 DP, then place
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // FAILS-WHEN-REVERTED (`untilOpponentTurnEnd` -> `forTheTurn`): a "for the turn" grant is
-    // swept at seat 0's own turn end and would read 3000 here.
-    expect(s.perm("host").currentDP).toBe(7000);
-    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    // "For the turn" expires at seat 0's own turn end.
+    expect(s.perm("host").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
 
-    // The opponent's turn ends: the grant expires at exactly that boundary.
+    // It remains expired through the opponent's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
@@ -340,7 +341,7 @@ describe("BT19-095 Knight Device — when this card is trashed in your battle ar
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 
-  it("KB Q3170: the grant survives the controller's own turn end and lasts through the opponent's turn", async () => {
+  it("a trash during the controller's turn expires at that turn's end", async () => {
     const s = setupEngine(trashBoard, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
     await s.ready();
@@ -353,15 +354,72 @@ describe("BT19-095 Knight Device — when this card is trashed in your battle ar
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    // FAILS-WHEN-REVERTED (`untilOpponentTurnEnd` -> `forTheTurn`): the grant would already be
-    // swept at seat 0's turn end and read 3000 here. This is the KB Q3170 window.
-    expect(s.perm("host").currentDP).toBe(7000);
-    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    // The trash occurs during seat 0's turn, so "for the turn" expires at seat 0's turn end.
+    expect(s.perm("host").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
 
-    // The opponent's turn ends: the grant expires at exactly that boundary.
+    // It remains expired through the opponent's turn.
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
 
+    expect(s.perm("host").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("Q3170: a trash during the opponent's turn lasts through that turn only", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-064", as: "host", dp: 3000 },
+            { card: "BT19-095", as: "knight" },
+          ],
+          deck: [...inertDeck],
+          security: [...inertSecurity],
+        },
+        1: {
+          battleArea: [{ card: "BT11-073", as: "base" }],
+          hand: [{ card: "BT19-064", as: "justi" }],
+          deck: [...inertDeck],
+          security: [...inertSecurity],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").isSuspended);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("justi").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("knight").instanceId));
+    await settle(() => s.perm("host").currentDP === 7000 && observe(s.engine).hasPierce(s.perm("host")));
+    expect(s.perm("host").currentDP).toBe(7000);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").currentDP).toBe(3000);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
 
