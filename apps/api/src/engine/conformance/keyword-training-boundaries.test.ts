@@ -81,4 +81,95 @@ describe("Training public boundaries", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("does not advertise Training from a suspended source or accept it from the opponent", async () => {
+    citeTraining();
+    const suspended = setupEngine({
+      0: { battleArea: [{ card: "EX9-008", as: "trainer", suspended: true, under: ["EX9-001"] }], deck: ["BT1-010"] },
+    });
+    await suspended.ready();
+    const suspendedTrainer = suspended.perm("trainer");
+    expect(observe(suspended.engine).activatableEffects(suspendedTrainer)).toEqual([]);
+
+    const ready = setupEngine({
+      0: { battleArea: [{ card: "EX9-008", as: "trainer", under: ["EX9-001"] }], deck: ["BT1-010"] },
+    });
+    await ready.ready();
+    const readyTrainer = ready.perm("trainer");
+    const entry = observe(ready.engine).activatableEffects(readyTrainer)[0];
+    expect(entry).toBeDefined();
+    expect(
+      suspended.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: suspendedTrainer.topCard.instanceId,
+        effectKey: entry!.effectKey,
+      }).ok,
+    ).toBe(false);
+
+    const wrongController = setupEngine({
+      0: { battleArea: [{ card: "EX9-008", as: "trainer", under: ["EX9-001"] }], deck: ["BT1-010"] },
+      1: { deck: ["BT1-009"] },
+    });
+    await wrongController.ready();
+    const trainer = wrongController.perm("trainer");
+    const wrongEntry = observe(wrongController.engine).activatableEffects(trainer)[0];
+    expect(wrongEntry).toBeDefined();
+    expect(
+      wrongController.engine.applyIntent(1, {
+        type: "activateEffect",
+        sourceInstanceId: trainer.topCard.instanceId,
+        effectKey: wrongEntry!.effectKey,
+      }).ok,
+    ).toBe(false);
+    expect(trainer.isSuspended).toBe(false);
+    expect(wrongController.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("can repeat Training after a natural full turn boundary", async () => {
+    citeTraining();
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX9-008", as: "trainer", under: ["EX9-001"] }],
+        deck: ["BT1-010", "BT1-048", "BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-009", "BT1-009"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const first = observe(s.engine).activatableEffects(s.perm("trainer"))[0];
+      expect(first).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: first!.instanceId,
+          effectKey: first!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("trainer").stack.length === 2);
+      const endResult = s.state.turnSeat === 0 ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
+      expect(endResult).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.perm("trainer").isSuspended).toBe(false);
+      const secondTopId = s.state.players[0]!.deck[0]!.instanceId;
+      const second = observe(s.engine).activatableEffects(s.perm("trainer"))[0];
+      expect(second).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: second!.instanceId,
+          effectKey: second!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("trainer").stack.length === 3);
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+      expect(s.perm("trainer").stack[0]?.instanceId).toBe(secondTopId);
+      expect(s.perm("trainer").stack[0]?.faceUp).toBe(false);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
+  });
 });
