@@ -216,7 +216,7 @@ Queries of all sixteen IDs were repeated on 2026-09-13. ST2-01–06, ST2-10 and 
 
 ## Open items
 
-None in card fidelity, rules or behavioral proof. All sixteen cards are 10/10 and final focused/collection/mechanism, type and effect synchronization gates are green. Orca workspace completion remains pending because its desktop/runtime is unavailable; no completed workspace status is claimed. Historical claims of complete Tsunomon proof and correct Cocytus/Kaiser execution are superseded by the counterfactuals and corrections above; historical green gates alone did not establish those paths.
+None in card fidelity, rules or behavioral proof. All sixteen cards are 10/10 and final focused/collection/mechanism, type and effect synchronization gates are green. Orca confirmed workspace status `completed` with the required collection-completion comment on 2026-09-13. Historical claims of complete Tsunomon proof and correct Cocytus/Kaiser execution are superseded by the counterfactuals and corrections above; historical green gates alone did not establish those paths.
 
 ## Delivery closeout
 
@@ -230,13 +230,13 @@ Final ledger/index/layout gate: `pnpm audit:index`, `pnpm audit:index --check`, 
 
 Branch `audit-ST2-20260913` is delivered through normal pushes to `origin`; [PR #4755](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4755) holds the implementation and final ledger/index delivery. No merge is performed.
 
-Pending external workspace operation: the Orca runtime returned `runtime_timeout`; `orca status --json` reports the app process running with runtime/graph `starting` and unreachable. The public recovery attempt `orca open --json` terminated with `runtime_open_timeout` (no desktop window). No other agent/session was stopped. Once the runtime is reachable, execute and verify:
+Orca recovered and the required public CLI operation succeeded on 2026-09-13 (`ok: true`, workspace status `completed`, runtime `e3e87932-710b-4701-a471-11725969431a`):
 
 ```sh
 orca worktree set --worktree active --workspace-status completed --comment "COLLECTION COMPLETE: ST2; 100% 10/10; branch pushed" --json
 ```
 
-The technical collection certification is complete; the Orca child-worktree closeout and the overall task remain pending until that required operation succeeds.
+The complete collection and Orca child-worktree closeout are verified.
 
 ## History
 
