@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, Phase, Zone, requireCardDefinition, type Permanent, type Seat } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance } from "../testkit/harness.js";
 import { applyMoveFromBreeding, applyHatchEgg } from "../actions/breeding.js";
@@ -28,72 +28,84 @@ import "../../cards/index.js";
  * documented yet.
  */
 
-markNotTestable(
-  "manual-0000",
-  "Table of contents + 'About the Game' flavor intro. The one normative sentence " +
-    "('Digi-Egg cards and Digimon cards are treated as Digimon while on the field') " +
-    "restates comprehensive-0286, already behaviorally proven at ch04-basic-terminology" +
-    ".test.ts §4-3 (comprehensive-0286, 4-3-1).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0000",
+//   "Table of contents + 'About the Game' flavor intro. The one normative sentence " +
+//     "('Digi-Egg cards and Digimon cards are treated as Digimon while on the field') " +
+//     "restates comprehensive-0286, already behaviorally proven at ch04-basic-terminology" +
+//     ".test.ts §4-3 (comprehensive-0286, 4-3-1).",
+// );
 
-markNotTestable(
-  "manual-0001",
-  "OCR-DAMAGED: this chunk interleaves a card-anatomy diagram's callout labels with " +
-    "unrelated printed card text from two different real cards, mid-sentence, e.g. " +
-    "'wins. During battles, the Digimon with the higher DP Lv.2 • •Digivolution " +
-    "Requirements: The requirements to be able to digivolve into this card and the " +
-    "digivolution cost. - •Effects: Special abilities the card possesses. - •Card " +
-    "Name •Color: The 7 colors include red, blue, yellow, green, black, purple, and " +
-    "white.' and 'iercing (When this Digimon deletes your ...ment's Digimon in hattle " +
-    "while attaddina' (broken mid-word by a figure caption). The identifiable normative " +
-    "fragments (color list, play cost/DP/digivolution-requirement field definitions) " +
-    "restate comprehensive-0034..0045 (ch02-card-information.test.ts, already covering " +
-    "Name/Traits/Digivolution Requirements/Color/DP).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0001",
+//   "OCR-DAMAGED: this chunk interleaves a card-anatomy diagram's callout labels with " +
+//     "unrelated printed card text from two different real cards, mid-sentence, e.g. " +
+//     "'wins. During battles, the Digimon with the higher DP Lv.2 • •Digivolution " +
+//     "Requirements: The requirements to be able to digivolve into this card and the " +
+//     "digivolution cost. - •Effects: Special abilities the card possesses. - •Card " +
+//     "Name •Color: The 7 colors include red, blue, yellow, green, black, purple, and " +
+//     "white.' and 'iercing (When this Digimon deletes your ...ment's Digimon in hattle " +
+//     "while attaddina' (broken mid-word by a figure caption). The identifiable normative " +
+//     "fragments (color list, play cost/DP/digivolution-requirement field definitions) " +
+//     "restate comprehensive-0034..0045 (ch02-card-information.test.ts, already covering " +
+//     "Name/Traits/Digivolution Requirements/Color/DP).",
+// );
 
-markNotTestable(
-  "manual-0002",
-  "OCR-DAMAGED: real card text from an unrelated printed card ('Start of Your Main " +
-    "Phase On Play Yo may place the p card ... opponent has a Digimon, gain 1 m mory') " +
-    "is interleaved mid-sentence with the Tamer/Option card-anatomy field list, and " +
-    "'Tomoro Tenma & Kyo Sawes hir' is a garbled card name. The identifiable normative " +
-    "content ('Tamer cards are treated as Tamers while on the field'; the Security " +
-    "Effect / Inherited Effect field definition) restates comprehensive-0287 (ch04 " +
-    "§4-4, already tested) and the Security Digimon rule already tested at " +
-    "comprehensive-0288 (ch04 §4-5) / comprehensive-0221 (ch16a §16-1..16-4-3).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0002",
+//   "OCR-DAMAGED: real card text from an unrelated printed card ('Start of Your Main " +
+//     "Phase On Play Yo may place the p card ... opponent has a Digimon, gain 1 m mory') " +
+//     "is interleaved mid-sentence with the Tamer/Option card-anatomy field list, and " +
+//     "'Tomoro Tenma & Kyo Sawes hir' is a garbled card name. The identifiable normative " +
+//     "content ('Tamer cards are treated as Tamers while on the field'; the Security " +
+//     "Effect / Inherited Effect field definition) restates comprehensive-0287 (ch04 " +
+//     "§4-4, already tested) and the Security Digimon rule already tested at " +
+//     "comprehensive-0288 (ch04 §4-5) / comprehensive-0221 (ch16a §16-1..16-4-3).",
+// );
 
-markNotTestable(
-  "manual-0003",
-  "OCR-DAMAGED: a card's Main-effect and Security-effect text ('Use Req. «[BEATBKEAK] " +
-    "trait» ... DOOr 02' — a page-footer OCR artifact) is interleaved with the color-" +
-    "list boilerplate and the start of the 'Game Areas' section. The identifiable " +
-    "normative content (7 printed colors + multicolor; Security Stack as the security-" +
-    "check defensive wall; a shared Memory Gauge; the Battle Area) restates " +
-    "comprehensive-0045 (ch02 §2-4/2-5, colors), comprehensive-0066 (ch03 §3-7, " +
-    "Security Stack), comprehensive-0068 (ch04 §4-1, Memory), and comprehensive-0060 " +
-    "(ch03 §3-4, Field/Battle Area) — all already tested.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0003",
+//   "OCR-DAMAGED: a card's Main-effect and Security-effect text ('Use Req. «[BEATBKEAK] " +
+//     "trait» ... DOOr 02' — a page-footer OCR artifact) is interleaved with the color-" +
+//     "list boilerplate and the start of the 'Game Areas' section. The identifiable " +
+//     "normative content (7 printed colors + multicolor; Security Stack as the security-" +
+//     "check defensive wall; a shared Memory Gauge; the Battle Area) restates " +
+//     "comprehensive-0045 (ch02 §2-4/2-5, colors), comprehensive-0066 (ch03 §3-7, " +
+//     "Security Stack), comprehensive-0068 (ch04 §4-1, Memory), and comprehensive-0060 " +
+//     "(ch03 §3-4, Field/Battle Area) — all already tested.",
+// );
 
-markNotTestable(
-  "manual-0004",
-  "Deck (exactly 50, ≤4 copies) / Digi-Egg Deck (0-5, ≤4 copies) construction restates " +
-    "comprehensive-0027..0029, already tested with real decklists at ch01-game-overview.test.ts " +
-    "§1-4-1-2-1 (deckValidation.ts's validateDecklist). The precedence clause ('if there are any " +
-    "discrepancies between the rule manual and the card text, the card text should take " +
-    "precedence') is an editorial/authoring instruction about how HUMANS resolve conflicting " +
-    "RULE TEXT — it has no GameState/ServerEvent counterpart (the engine reads compiled card IR " +
-    "at runtime, never the rule manual itself), so it carries no behavior to assert on, the same " +
-    "way `not-testable.ts`'s own seeded entries carry no rule content.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0004",
+//   "Deck (exactly 50, ≤4 copies) / Digi-Egg Deck (0-5, ≤4 copies) construction restates " +
+//     "comprehensive-0027..0029, already tested with real decklists at ch01-game-overview.test.ts " +
+//     "§1-4-1-2-1 (deckValidation.ts's validateDecklist). The precedence clause ('if there are any " +
+//     "discrepancies between the rule manual and the card text, the card text should take " +
+//     "precedence') is an editorial/authoring instruction about how HUMANS resolve conflicting " +
+//     "RULE TEXT — it has no GameState/ServerEvent counterpart (the engine reads compiled card IR " +
+//     "at runtime, never the rule manual itself), so it carries no behavior to assert on, the same " +
+//     "way `not-testable.ts`'s own seeded entries carry no rule content.",
+// );
 
-markNotTestable(
-  "manual-0005",
-  "Token Cards intro (non-game cards, prepared in advance, can't be included in a deck/Digi-Egg " +
-    "deck, must show orientation) restates comprehensive-0307 (4-21-1) and comprehensive-0100/" +
-    "0101, already tested at ch04-basic-terminology.test.ts §4-21 and ch05-game-preparation.test." +
-    "ts §5-1/§5-2 (which specifically proves token cards can never appear in a legal decklist).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0005",
+//   "Token Cards intro (non-game cards, prepared in advance, can't be included in a deck/Digi-Egg " +
+//     "deck, must show orientation) restates comprehensive-0307 (4-21-1) and comprehensive-0100/" +
+//     "0101, already tested at ch04-basic-terminology.test.ts §4-21 and ch05-game-preparation.test." +
+//     "ts §5-1/§5-2 (which specifically proves token cards can never appear in a legal decklist).",
+// );
 
 describe("manual-0006 — Token sub-rules: can a token digivolve?", () => {
   it("NOW MET: a Digimon card should not be able to digivolve onto a token permanent", async () => {
@@ -154,23 +166,27 @@ describe("manual-0006 — Token sub-rules: can a token digivolve?", () => {
 // Linking has no player-facing Intent at all — the same unimplemented seam this file would
 // otherwise have to reach through); the digivolve half IS driven above.
 
-markNotTestable(
-  "manual-0007",
-  "The 'Paying Costs' worked example (moving the memory counter 3 spaces right for a cost of 3; " +
-    "a cost of 13 being unaffordable but becoming payable once a reduction effect brings it to " +
-    "10) restates the MemoryGauge mechanics already tested at comprehensive-0068 (ch04 §4-1, " +
-    "MemoryGauge.pay/gainMemory) and the cost-affordability gate already tested throughout " +
-    "ch07-playing-a-card.test.ts (a card can't be played/declared without enough memory; a cost " +
-    "reduction that brings it within reach makes it legal).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0007",
+//   "The 'Paying Costs' worked example (moving the memory counter 3 spaces right for a cost of 3; " +
+//     "a cost of 13 being unaffordable but becoming payable once a reduction effect brings it to " +
+//     "10) restates the MemoryGauge mechanics already tested at comprehensive-0068 (ch04 §4-1, " +
+//     "MemoryGauge.pay/gainMemory) and the cost-affordability gate already tested throughout " +
+//     "ch07-playing-a-card.test.ts (a card can't be played/declared without enough memory; a cost " +
+//     "reduction that brings it within reach makes it legal).",
+// );
 
-markNotTestable(
-  "manual-0008",
-  "Card Orientation (unsuspended vs. suspended, 'suspending'/'unsuspending') restates " +
-    "comprehensive-0299, already tested at ch04-basic-terminology.test.ts §4-13 " +
-    "(GameStateAccess.suspend/unsuspend). The Unsuspend/Draw/Breeding/Main phase list restates " +
-    "comprehensive-0103..0110, already tested at ch06-game-procedures.test.ts.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0008",
+//   "Card Orientation (unsuspended vs. suspended, 'suspending'/'unsuspending') restates " +
+//     "comprehensive-0299, already tested at ch04-basic-terminology.test.ts §4-13 " +
+//     "(GameStateAccess.suspend/unsuspend). The Unsuspend/Draw/Breeding/Main phase list restates " +
+//     "comprehensive-0103..0110, already tested at ch06-game-procedures.test.ts.",
+// );
 
 describe("manual-0009 — Breeding Phase: moving isn't playing, and a moved Digimon can attack same-turn", () => {
   it(
@@ -232,67 +248,81 @@ describe("manual-0009 — Breeding Phase: moving isn't playing, and a moved Digi
   );
 });
 
-markNotTestable(
-  "manual-0010",
-  "Main Phase action list (A-G) restates comprehensive-0108 (ch06 §6-5, already tested). The " +
-    "digivolution-rules intro ('you can declare a digivolution if a card on the field meets the " +
-    "digivolution requirements...') restates comprehensive-0124/0125 (ch08 §8-1/§8-1-2, already " +
-    "tested with real cards).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0010",
+//   "Main Phase action list (A-G) restates comprehensive-0108 (ch06 §6-5, already tested). The " +
+//     "digivolution-rules intro ('you can declare a digivolution if a card on the field meets the " +
+//     "digivolution requirements...') restates comprehensive-0124/0125 (ch08 §8-1/§8-1-2, already " +
+//     "tested with real cards).",
+// );
 
-markNotTestable(
-  "manual-0011",
-  "The digivolve declare/pay/place procedure and its worked cost examples (Lv.2 blue -> Lv.3 " +
-    "[ADVENTURE] cost 0; Lv.3 -> Lv.4 [ADVENTURE] cost 2) restate comprehensive-0124..0126, " +
-    "already behaviorally proven with real cards at ch08-digivolution.test.ts §8-1/§8-1-2 " +
-    "(exact-requirement matching, cost payment, placement, draw-1 on resolve).",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0011",
+//   "The digivolve declare/pay/place procedure and its worked cost examples (Lv.2 blue -> Lv.3 " +
+//     "[ADVENTURE] cost 0; Lv.3 -> Lv.4 [ADVENTURE] cost 2) restate comprehensive-0124..0126, " +
+//     "already behaviorally proven with real cards at ch08-digivolution.test.ts §8-1/§8-1-2 " +
+//     "(exact-requirement matching, cost payment, placement, draw-1 on resolve).",
+// );
 
-markNotTestable(
-  "manual-0012",
-  "'A digivolution card ... isn't considered to be a card on the field'; digivolution cards " +
-    "carrying inherited effects; <De-Digivolve> carrying over display format — restates " +
-    "comprehensive-0293/0294 (ch04 §4-7-8/§4-8, already tested: stacked cards are trashed " +
-    "together, digivolution cards live in permanent.stack not battleArea). The Option-card use " +
-    "procedure restates comprehensive-0137/0138, already tested at ch09-using-cards.test.ts.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0012",
+//   "'A digivolution card ... isn't considered to be a card on the field'; digivolution cards " +
+//     "carrying inherited effects; <De-Digivolve> carrying over display format — restates " +
+//     "comprehensive-0293/0294 (ch04 §4-7-8/§4-8, already tested: stacked cards are trashed " +
+//     "together, digivolution cards live in permanent.stack not battleArea). The Option-card use " +
+//     "procedure restates comprehensive-0137/0138, already tested at ch09-using-cards.test.ts.",
+// );
 
-markNotTestable(
-  "manual-0013",
-  "Color Requirements (need a same-color Digimon/Tamer on the field; a multicolor Option needs " +
-    "ALL its colors present) restates comprehensive-0308, already tested at " +
-    "ch04-basic-terminology.test.ts §4-22 (GameEngine.printedColorRequirementMet now falls " +
-    "back to an ordinary Option's own printed `colors` when it carries no " +
-    "`optionColorRequirements`). The Linking intro restates comprehensive-0140, already tested " +
-    "at ch10-link.test.ts §10-1.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0013",
+//   "Color Requirements (need a same-color Digimon/Tamer on the field; a multicolor Option needs " +
+//     "ALL its colors present) restates comprehensive-0308, already tested at " +
+//     "ch04-basic-terminology.test.ts §4-22 (GameEngine.printedColorRequirementMet now falls " +
+//     "back to an ordinary Option's own printed `colors` when it carries no " +
+//     "`optionColorRequirements`). The Linking intro restates comprehensive-0140, already tested " +
+//     "at ch10-link.test.ts §10-1.",
+// );
 
-markNotTestable(
-  "manual-0014",
-  "'The link DP value shown on a linked Digimon's link card is added to that Digimon's total " +
-    "DP' is the SAME divergence already documented at comprehensive-0286's it.fails (ch04 §4-3, " +
-    "'a Digimon with a Link card should get the printed link DP bonus added to its DP' — " +
-    "ModifierLedger.baseDpOf/recomputeDP never read `permanent.linked` or `linkDp`). The link " +
-    "declare/pay/plug procedure restates comprehensive-0140/0141, already tested at " +
-    "ch10-link.test.ts.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0014",
+//   "'The link DP value shown on a linked Digimon's link card is added to that Digimon's total " +
+//     "DP' is the SAME divergence already documented at comprehensive-0286's it.fails (ch04 §4-3, " +
+//     "'a Digimon with a Link card should get the printed link DP bonus added to its DP' — " +
+//     "ModifierLedger.baseDpOf/recomputeDP never read `permanent.linked` or `linkDp`). The link " +
+//     "declare/pay/plug procedure restates comprehensive-0140/0141, already tested at " +
+//     "ch10-link.test.ts.",
+// );
 
-markNotTestable(
-  "manual-0015",
-  "'When a Digimon is linked, it gains the link effects on the link card' and the link-limit " +
-    "replace-oldest rule restate comprehensive-0141, already tested at ch10-link.test.ts " +
-    "§10-1-2 (link rules, link cap). The interleaved Piercing card-text fragment ('checks " +
-    "security before the attack ends') restates comprehensive-0225, already tested at " +
-    "ch16a-security-blocker-draw.test.ts §16-7.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0015",
+//   "'When a Digimon is linked, it gains the link effects on the link card' and the link-limit " +
+//     "replace-oldest rule restate comprehensive-0141, already tested at ch10-link.test.ts " +
+//     "§10-1-2 (link rules, link cap). The interleaved Piercing card-text fragment ('checks " +
+//     "security before the attack ends') restates comprehensive-0225, already tested at " +
+//     "ch16a-security-blocker-draw.test.ts §16-7.",
+// );
 
-markNotTestable(
-  "manual-0016",
-  "OCR-DAMAGED tail: 'Raid' card-text fragments repeat verbatim from manual-0014/0015 " +
-    "(duplicate OCR extraction of the same figure caption). The one new normative sentence — " +
-    "linked cards not meeting their link requirements are trashed at the rule-check timing — " +
-    "restates the link-requirement-mismatch rule check already tested at ch17-rule-checks.test." +
-    "ts (§17-1-3-2-6/§17-1-3-2-7, 'link requirement / link category mismatch'). The Attack " +
-    "section heading/timing list (1-5) restates comprehensive-0143, already tested at " +
-    "ch11-attacking.test.ts §11-1.",
-);
+// Historical cross-reference only: normative content is not a not-testable exclusion.
+// Old divergence labels below are not current defect findings; see the current engine ledgers.
+// markNotTestable(
+//   "manual-0016",
+//   "OCR-DAMAGED tail: 'Raid' card-text fragments repeat verbatim from manual-0014/0015 " +
+//     "(duplicate OCR extraction of the same figure caption). The one new normative sentence — " +
+//     "linked cards not meeting their link requirements are trashed at the rule-check timing — " +
+//     "restates the link-requirement-mismatch rule check already tested at ch17-rule-checks.test." +
+//     "ts (§17-1-3-2-6/§17-1-3-2-7, 'link requirement / link category mismatch'). The Attack " +
+//     "section heading/timing list (1-5) restates comprehensive-0143, already tested at " +
+//     "ch11-attacking.test.ts §11-1.",
+// );

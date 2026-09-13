@@ -42,12 +42,8 @@ type RuntimeProof = { set: AuditSet; cardIds: readonly string[]; testFile: strin
 const cardsDirectory = fileURLToPath(new URL(".", import.meta.url));
 const auditDirectory = fileURLToPath(new URL("../../../../docs/audits/", import.meta.url));
 
-// Sets consolidated under docs/audits/<SET>.md carry per-card evidence as narrative
-// "#### Rubric"/"#### Worker score" blocks with drifting labels and, for a real subset
-// of cards, no citation of their own module/test file at all. That drift (and those
-// missing citations) is a genuine documentation gap, not a parsing quirk, so this
-// cluster is checked more loosely (module/test refs plus at least four "2/2" component
-// scores) than the other clusters, whose per-card ledger entries are uniform.
+// Narrative ledgers preserve historical worker rubrics separately from coordinator
+// closeout. Validate their category identity and arithmetic without awarding delivery.
 const NARRATIVE_RUBRIC_SETS = new Set<AuditSet>(["EX3", "EX4"]);
 
 function escapeRegExp(value: string): string {
@@ -87,11 +83,90 @@ function countMatches(source: string, pattern: RegExp): number {
 
 // Worker rubric blocks score four 2/2 components and leave "Delivery gates" at 0/2,
 // awarded collection-wide by the coordinator once every card clears 8/8.
-function assertNarrativeRubricScore(cardId: string, body: string): void {
-  expect(countMatches(body, /2\/2/g) >= 4, `${cardId} four component scores`).toBe(true);
-  const deliveryGatesLine = body.split("\n").find((line) => /Delivery gates/.test(line) && /\d\/2/.test(line)) ?? "";
-  expect(deliveryGatesLine, `${cardId} delivery gates line present`).not.toBe("");
-  expect(deliveryGatesLine, `${cardId} delivery gates at 0/2`).toMatch(/0\/2/);
+export function assertNarrativeRubricScore(cardId: string, body: string): void {
+  const plain = body.replace(/\*/g, "");
+  const compact =
+    plain.match(/Worker score:\s*([a-z][^\n.]*\/2[^\n.]*)(?:\.|$)/im) ??
+    plain.match(/Worker score:\s*[^\s]+\/10\s*\(([^)]*\/2[^)]*)\)/im);
+  let rubric: string;
+  const components: { category: string; value: number }[] = [];
+  if (compact !== null) {
+    rubric = compact[0];
+    for (const rating of compact[1]!.matchAll(/([^,;]+?)\s+([^\s]+)\/2\b(?!\/|[.,]\d)/g)) {
+      const label = rating[1]!.replace(/\([^)]*\)/g, "").trim();
+      if (/^reproducibility$/i.test(label)) {
+        if (!/reproducibility\s+[^\s]+\/2[^.]*\bunscored\b/i.test(compact[1]!)) {
+          throw new Error(`${cardId} reproducibility must be explicitly unscored`);
+        }
+        continue;
+      }
+      if (!/^\d+$/.test(rating[2]!)) throw new Error(`${cardId} invalid rubric rating`);
+      components.push({ category: rubricCategory(label), value: Number(rating[2]) });
+    }
+    const claim = plain.match(/Worker claim:\s*([^\s]+)\/10\b/);
+    if (claim !== null) rubric += `\nWorker total: ${claim[1]}/10`;
+  } else {
+    const firstRating = plain.match(/^(?:- [^:\n]+:\s*[^\s]+\/2\b|\|[^|\n]+\|\s*[^\s|]+\/2\b)/m);
+    if (firstRating === null) throw new Error(`${cardId} missing narrative rubric`);
+    const prefix = plain.slice(0, firstRating.index);
+    const lastHeading = [...prefix.matchAll(/^#{2,4} .*$/gm)].at(-1);
+    rubric = plain.slice(lastHeading?.index ?? firstRating.index).split(/\n#{2,4} /)[0]!;
+    for (const line of rubric.split("\n")) {
+      const rating =
+        line.match(/^\|\s*([^|]+)\|\s*([^\s|]+)\/2\b(?!\/|[.,]\d)/) ??
+        line.match(/^-\s*([^:]+):\s*([^\s]+)\/2\b(?!\/|[.,]\d)/);
+      if (rating !== null) {
+        if (!/^\d+$/.test(rating[2]!)) throw new Error(`${cardId} invalid rubric rating`);
+        components.push({ category: rubricCategory(rating[1]!), value: Number(rating[2]) });
+      }
+    }
+  }
+  try {
+    assertRubricCategories(components.map(({ category }) => category));
+  } catch (error) {
+    throw new Error(`${cardId}: ${String(error)}`, { cause: error });
+  }
+  const sum = components.reduce((total, { value }) => total + value, 0);
+  const totals = [
+    ...rubric.matchAll(/(?:Worker (?:total|score)|Total|Score)\s*(?:\||:)\s*([^\s|]+)\/10\b(?!\/|[.,]\d)/gi),
+  ];
+  if (
+    components.some(({ value }) => value > 2) ||
+    totals.some((total) => !/^\d+$/.test(total[1]!) || Number(total[1]) !== sum)
+  ) {
+    throw new Error(`${cardId} worker total must equal five integer component ratings`);
+  }
+  if (components.find(({ category }) => category === "delivery")?.value !== 0) {
+    throw new Error(`${cardId} historical worker delivery gates must remain zero`);
+  }
+}
+
+function rubricCategory(label: string): string {
+  const normalized = label
+    .trim()
+    .replace(/^\.\s*/, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (/^catalog(?:\s*\/\s*| and )rules\b/.test(normalized)) return "catalogRules";
+  if (/^catalog\b/.test(normalized)) return "catalog";
+  if (/^(?:kb|rules)\b/.test(normalized)) return "rules";
+  if (/^(?:compiled )?ir\b/.test(normalized)) return "ir";
+  if (/^(?:focused )?behavior(?:al)?\b/.test(normalized)) return "behavior";
+  if (/^(?:peer(?:\s*\/\s*| and )(?:evolution[- ]?)?stack|stack)\b/.test(normalized)) return "stack";
+  if (/^(?:delivery|gates)\b/.test(normalized)) return "delivery";
+  throw new Error(`Unknown rubric category: ${label.trim()}`);
+}
+
+function assertRubricCategories(categories: string[]): void {
+  const key = [...categories].sort().join(",");
+  const schemas = [
+    ["catalogRules", "ir", "behavior", "stack", "delivery"],
+    ["catalog", "rules", "ir", "behavior", "delivery"],
+    ["catalog", "rules", "ir", "behavior", "stack"],
+  ];
+  if (!schemas.some((schema) => schema.sort().join(",") === key)) {
+    throw new Error(`Ledger must contain five distinct rubric categories in a documented schema (${key})`);
+  }
 }
 
 /** Read the authoritative current score, never a superseded score in its history. */
@@ -118,6 +193,24 @@ export function standardLedgerScore({ body, verified = false }: { body: string; 
     throw new Error("Ledger score must equal five component ratings out of two");
   }
   if (verified && score !== 10) throw new Error("Verified collection contains an incomplete card score");
+  const ratings = [...componentText.matchAll(/([^\s*·;:()]+)\/2\b(?!\/|[.,]\d)/g)];
+  let previousEnd = 0;
+  const categories = ratings.map((rating) => {
+    const prefix =
+      componentText
+        .slice(previousEnd, rating.index)
+        .split(/[\n·;,()—|]/)
+        .at(-1) ?? "";
+    previousEnd = rating.index! + rating[0].length;
+    return rubricCategory(
+      prefix
+        .replace(/^\s*-\s*/, "")
+        .replace(/^Clause scores:\s*/, "")
+        .replace(/[:*]/g, "")
+        .trim(),
+    );
+  });
+  assertRubricCategories(categories);
   return score;
 }
 
