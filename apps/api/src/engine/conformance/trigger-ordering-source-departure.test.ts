@@ -8,12 +8,14 @@ import "../../cards/index.js";
 const SIMULTANEOUS_SHA256 = "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494";
 const PENDING_ACTIVATION_SHA256 = "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0";
 const DERIVED_TRIGGER_SHA256 = "c12a72babb8fa25e11755af5c32e4d0efccdb4e812e15d3b2dd8cc2e2df1ee50";
+const IMMEDIATE_TYPE_SHA256 = "50033be9509953fb2b00c56799e11cee1838740d4c5c06a962969a748a6fcdde";
 
 describe("bounded trigger ordering and pending source departure", () => {
   beforeEach(() => {
     cite("comprehensive-0164", "§15-4-3 Simultaneous Triggering", SIMULTANEOUS_SHA256);
     cite("comprehensive-0165", "§15-4-4 Pending Activation", PENDING_ACTIVATION_SHA256);
     cite("comprehensive-0166", "§15-4-5 Derived Triggering", DERIVED_TRIGGER_SHA256);
+    cite("comprehensive-0177", "§15-8-5 Immediate-Type Effects", IMMEDIATE_TYPE_SHA256);
   });
 
   it("offers simultaneous optional deletion triggers to the owning controllers in turn-player order", async () => {
@@ -266,5 +268,185 @@ describe("bounded trigger ordering and pending source departure", () => {
     const surrender = s.state.gameOver ? undefined : s.engine.applyIntent(0, { type: "surrender" });
     expect(surrender === undefined || surrender.ok).toBe(true);
     await loop;
+  });
+
+  it("drops an enemy Bacchusmon watcher when its source is deleted before activation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-065", as: "turnMachine" },
+            { card: "BT25-077", as: "ownBacchus" },
+          ],
+          trash: [{ card: "BT20-073", as: "metalPhantomon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-065", as: "opponentMachine", suspended: true },
+            { card: "BT25-077", as: "opponentBacchus" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const turnMachineId = s.inst("turnMachine").instanceId;
+      const opponentMachineId = s.inst("opponentMachine").instanceId;
+      const opponentBacchusId = s.inst("opponentBacchus").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("turnMachine").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("opponentMachine").permanentId },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === turnMachineId));
+      expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(opponentMachineId);
+
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const play = s.state.pendingDecision!;
+      expect(play.seat).toBe(0);
+      expect(s.decisions.find(({ req }) => req.decisionId === play.decisionId)?.req.sourceCardId).toBe("BT19-065");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: play.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const ownWatcher = s.state.pendingDecision!;
+      expect(ownWatcher.seat).toBe(0);
+      expect(s.decisions.find(({ req }) => req.decisionId === ownWatcher.decisionId)?.req.sourceCardId).toBe(
+        "BT25-077",
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ownWatcher.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const suspend = s.state.pendingDecision!;
+      expect(suspend.seat).toBe(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: suspend.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("ownBacchus").permanentId] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === opponentBacchusId));
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(
+        opponentBacchusId,
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-073");
+      expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+        expect.arrayContaining([opponentMachineId, opponentBacchusId]),
+      );
+      expect(s.state.players[1]!.security.length).toBe(0);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
+  });
+
+  it("shows the pending enemy Bacchusmon watcher when a smaller Agumon survives", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-065", as: "turnMachine" },
+            { card: "BT25-077", as: "ownBacchus" },
+          ],
+          trash: [{ card: "BT20-073", as: "metalPhantomon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-065", as: "opponentMachine", suspended: true },
+            { card: "BT25-077", as: "opponentBacchus" },
+            { card: "BT1-009", as: "opponentAgumon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("turnMachine").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("opponentMachine").permanentId },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const play = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === play.decisionId)?.req.sourceCardId).toBe("BT19-065");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: play.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const metalCost = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === metalCost.decisionId)?.req.sourceCardId).toBe("BT20-073");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: metalCost.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const ownWatcher = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === ownWatcher.decisionId)?.req.sourceCardId).toBe(
+        "BT25-077",
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ownWatcher.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const suspend = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: suspend.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm("ownBacchus").permanentId] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const enemyWatcher = s.state.pendingDecision!;
+      expect(enemyWatcher.seat).toBe(1);
+      expect(s.decisions.find(({ req }) => req.decisionId === enemyWatcher.decisionId)?.req.sourceCardId).toBe(
+        "BT25-077",
+      );
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: enemyWatcher.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT25-077"]);
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
   });
 });

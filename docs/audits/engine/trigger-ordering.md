@@ -43,31 +43,30 @@ is still pending, the newly generated BT19-020 On Deletion request is offered fi
 the test then observes the older BT19-065 request and declines both. This is bounded
 proof of non-turn-player derived-trigger precedence with exact request source IDs.
 
+The fifth case proves pending-source departure with a public card flow. In seat 0's
+Main Phase, equal-DP BT19-065 Machinedramon cards delete each other; seat 0's
+Machinedramon plays BT20-073 MetalPhantomon from trash, creating both BT25-077
+Bacchusmon “when played by an effect” watchers. Seat 0's watcher is accepted first
+and deletes the only remaining enemy Digimon, seat 1's Bacchusmon. The enemy watcher
+is pending at that moment, but no seat 1 decision follows and the attack resolves to
+completion. A paired control adds lower-DP BT1-009 Agumon; seat 0's watcher deletes
+Agumon instead, and the enemy Bacchusmon watcher is offered to seat 1 and declined.
+This establishes both eligibility and source identity before departure.
+
 ## Current source and ordering classes
 
-| Class | Current public consumer/provider | Executable proof | Status |
-| --- | --- | --- | --- |
-| Same-timing optional effects owned by both controllers | BT25-040 Ascension | First case above, with exact seat order and physical trash IDs | Proven for this native shape |
-| Simultaneous pending sources that depart after order selection | EX7-061 Lilithmon (X Antibody) with two EX7-072 Seventh Fascination cards | Second case above, with one `orderTriggers` request and both exact source IDs reaching deck | Proven for this trash-trigger shape |
-| Derived trigger while an older trigger remains pending | BT19-065, BT20-073, BT19-020 | Fourth case above, with exact source IDs and derived request precedence | Proven for this chain |
-| A pending source leaving or changing before that same source activates | No current printed consumer found in the committed effects scan | No legal public provider/test currently exercises this transition | N/A for current catalog; remains an engine contract gap |
+| Class                                                                  | Current public consumer/provider                                                                 | Executable proof                                                                                                      | Status                                     |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Same-timing optional effects owned by both controllers                 | BT25-040 Ascension                                                                               | First case above, with exact seat order and physical trash IDs                                                        | Proven for this native shape               |
+| Simultaneous pending sources that depart after order selection         | EX7-061 Lilithmon (X Antibody) with two EX7-072 Seventh Fascination cards                        | Second case above, with one `orderTriggers` request and both exact source IDs reaching deck                           | Proven for this trash-trigger shape        |
+| Derived trigger while an older trigger remains pending                 | BT19-065, BT20-073, BT19-020                                                                     | Fourth case above, with exact source IDs and derived request precedence                                               | Proven for this chain                      |
+| A pending source leaving or changing before that same source activates | BT25-077 Bacchusmon watcher created by effect-play, then deleted by the turn player's Bacchusmon | Fifth case deletes the enemy source before its pending watcher can activate; paired Agumon control proves eligibility | Proven for this public play/deletion shape |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining
 source then resolves. The fourth class demonstrates pending/derived precedence, not
-source identity mutation. A future legal consumer is required before this transition
-can be certified without a synthetic card or direct primitive invocation.
-
-The catalog scan used for the N/A row recursively walks `packages/shared/src/effects/effects.json`
-(`python3`, visiting every `effects` node and counting `kind: "SubTrigger"`). It found
-4,455 card records, 1,419 SubTrigger records across 1,383 card/event pairs, and 200
-SubTrigger records across 185 cards whose immediate action lists contain a movement
-kind (`Delete`, `Return`, `PlaceUnder`, `PlaceInBattleAreaSelf`, `TrashDigivolution`,
-`DeDigivolve`, or `Trash`). Reviewing those movement providers against the public
-conformance consumers found no current legal pair in which one same-event effect moves
-the physical source of another still-pending effect before that second source activates.
-This is an inventory boundary, not a claim that arbitrary future combinations are
-impossible.
+source identity mutation. Other trigger consumers and source movement shapes remain
+outside this bounded proof.
 
 ## Future plan
 
