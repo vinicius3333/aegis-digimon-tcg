@@ -774,11 +774,24 @@ export async function pickLoose(
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
   const min = target.upTo ? Math.min(target.minimum ?? 0, candidates.length) : Math.min(want, candidates.length);
+  // CR 15-10-2-1 requires X targets or as many as possible; when different-color
+  // matching makes only a smaller subset feasible, that feasible cardinality is the
+  // fixed-count minimum. A forged response below it still aborts the action.
+  const minimumDistinctColors = requireDifferentColors
+    ? Math.min(
+        want,
+        filterToDistinctColors(
+          candidates,
+          (candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors ?? [],
+        ).length,
+      )
+    : min;
+  const selectionMin = target.upTo ? min : minimumDistinctColors;
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {
     candidates: ids,
-    min,
+    min: selectionMin,
     max,
     differentColors: requireDifferentColors,
     ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
@@ -787,7 +800,7 @@ export async function pickLoose(
   });
 
   // Enforce differentColors: if violated, filter to a valid subset.
-  // Per CR 4-24-2 a multicolor card only needs ONE color no other pick uses, so two
+  // Per CR 4-25-2 a multicolor card only needs ONE color no other pick uses, so two
   // Red/Blue cards are a legal "different colors" pair (one read as red, one as blue).
   if (requireDifferentColors && chosen.length > 1) {
     chosen = filterToDistinctColors(
@@ -810,5 +823,5 @@ export async function pickLoose(
       return true;
     });
   }
-  return !target.upTo && chosen.length < min ? [] : chosen;
+  return !target.upTo && chosen.length < selectionMin ? [] : chosen;
 }
