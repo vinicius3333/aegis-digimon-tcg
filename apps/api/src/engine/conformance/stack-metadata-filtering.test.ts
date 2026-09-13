@@ -29,6 +29,8 @@ describe("public permanent matching and concealed stack information", () => {
     });
     await s.ready();
     const securityIds = s.state.players[1]!.security.map((card) => card.instanceId);
+    const hiddenSourceId = s.perm("hiddenAttacker").stack[0]!.instanceId;
+    const visibleSourceId = s.perm("visibleAttacker").stack[0]!.instanceId;
     expect(s.perm("hiddenAttacker").stack[0]!.faceUp).toBe(false);
     expect(
       s.engine.applyIntent(0, {
@@ -39,7 +41,9 @@ describe("public permanent matching and concealed stack information", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.decisions.some(({ req }) => req.sourceCardId === "P-062")).toBe(false);
+    expect(s.perm("hiddenAttacker").stack[0]!.instanceId).toBe(hiddenSourceId);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(1));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(securityIds[0]);
 
     expect(
       s.engine.applyIntent(0, {
@@ -59,7 +63,9 @@ describe("public permanent matching and concealed stack information", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.perm("hiro").isSuspended).toBe(true);
+    expect(s.perm("visibleAttacker").stack[0]!.instanceId).toBe(visibleSourceId);
     expect(observe(s.engine).keywordAmount(s.perm("visibleAttacker"), "SecurityAttack")).toBe(1);
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(3));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(securityIds.slice(0, 3));
   });
 });
