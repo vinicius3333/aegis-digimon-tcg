@@ -181,15 +181,15 @@ describe("BT13-025 GaoGamon", () => {
 
   it("gains the inherited 1000 DP exactly when the opponent reaches eight cards in hand", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "gaogamon", dp: 5000, under: ["BT13-025"] }] },
+      0: { battleArea: [{ card: "BT1-041", as: "gaogamon", under: ["BT13-025"] }] },
       1: { hand: Array.from({ length: 7 }, (_, index) => ({ card: "BT13-021", as: `opponent-${index}` })) },
     });
     await s.ready();
-    expect(s.perm("gaogamon").currentDP).toBe(5000);
+    expect(s.perm("gaogamon").currentDP).toBe(6000);
 
-    s.give(1, Zone.Hand, "BT1-002");
+    s.give(1, Zone.Hand, "BT1-010");
     await s.engine.recomputeContinuousEffects();
     expect(s.state.players[1]!.hand).toHaveLength(8);
-    expect(s.perm("gaogamon").currentDP).toBe(6000);
+    expect(s.perm("gaogamon").currentDP).toBe(7000);
   });
 });
