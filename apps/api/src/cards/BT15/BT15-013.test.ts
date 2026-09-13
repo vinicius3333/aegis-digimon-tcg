@@ -44,7 +44,7 @@ describe("BT15-013", () => {
             { card: "BT10-060", as: "blackBird" },
             { card: "BT1-009", as: "redNonMatch" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -73,8 +73,8 @@ describe("BT15-013", () => {
 
   it("gains memory from an actual player attack removing the opponent's security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-013"] }] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      0: { battleArea: [{ card: "BT15-015", as: "host", under: ["BT15-013"] }] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 0;
@@ -94,7 +94,7 @@ describe("BT15-013", () => {
 
   it("gains memory once only for opposing security removed during its owner's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-013"] }] },
+      0: { battleArea: [{ card: "BT15-015", as: "host", under: ["BT15-013"] }] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 0;
@@ -109,5 +109,56 @@ describe("BT15-013", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     expect(s.state.memory).toBe(1);
+  });
+
+  it("caps inherited security memory to once this turn and resets on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-015", as: "host", under: ["BT15-013"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.memory).toBe(1);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.memory).toBe(1);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });
