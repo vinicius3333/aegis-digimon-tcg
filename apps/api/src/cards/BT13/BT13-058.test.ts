@@ -1,6 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-058.js";
+import "./BT13-056.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -76,7 +76,11 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
 
   it("suspends one opponent and independently locks a second opponent Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-058", as: "leopardMode" }] },
+      0: {
+        battleArea: [{ card: "BT13-056", as: "leopardMode" }],
+        hand: [{ card: "BT13-058", as: "mode" }],
+        deck: [{ card: "BT1-010", as: "bonus" }],
+      },
       1: {
         battleArea: [
           { card: "BT1-015", as: "suspendTarget" },
@@ -86,7 +90,17 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
     });
     await s.ready();
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("leopardMode"));
+    s.state.memory = 10;
+    const baseId = s.perm("leopardMode").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("leopardMode").permanentId,
+        instanceId: s.inst("mode").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const lockDecision = s.state.pendingDecision!;
     expect(JSON.parse(lockDecision.payloadJson).candidateInstanceIds).toContain(s.perm("lockTarget").permanentId);
@@ -97,7 +111,11 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("lockTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(() => observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend"));
+    await settle();
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("leopardMode").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
 
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(s.perm("lockTarget").isSuspended).toBe(true);
@@ -110,16 +128,25 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       {
         0: {
           battleArea: [
-            { card: "BT13-058", as: "leopardMode", suspended: true },
+            { card: "BT13-058", as: "leopardMode", under: ["BT13-056"] },
             { card: "BT1-015", as: "costDigimon" },
           ],
         },
+        1: { security: [{ card: "BT1-010", as: "checked" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("leopardMode"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("leopardMode").permanentId,
+        target: { kind: "player", seat: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("checked").instanceId);
 
     expect(s.perm("leopardMode").isSuspended).toBe(false);
     expect(s.perm("costDigimon").isSuspended).toBe(true);
@@ -132,12 +159,27 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
           { card: "BT13-058", as: "leopardMode", suspended: true, under: ["BT13-056"] },
           { card: "BT1-015", as: "ally", suspended: true },
         ],
+        deck: ["BT1-010", "BT1-010"],
       },
+      1: { security: ["BT1-010", "BT1-010"] },
     });
     const topId = s.perm("leopardMode").topCard!.instanceId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("leopardMode"));
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player", seat: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("ally").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === topId)).toBe(true);
     expect(s.perm("leopardMode").topCard?.cardId).toBe("BT13-056");
