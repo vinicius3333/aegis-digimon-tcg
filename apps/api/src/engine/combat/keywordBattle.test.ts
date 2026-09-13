@@ -9,6 +9,7 @@ import {
   type EngineSetup,
 } from "../testkit/harness.js";
 import "../../cards/index.js";
+import { cite } from "../conformance/_kb.js";
 
 /**
  * A3 behavioral proofs for the two gaps documented in combat/resolve.ts and
@@ -77,6 +78,11 @@ async function playNoBattleDeletion(s: EngineSetup): Promise<void> {
 
 describe("<Iceclad> (Comprehensive Rules §16-35) — compare digivolution-card counts instead of DP", () => {
   it("DP-vs-digivolution-count DISAGREEMENT: the Iceclad Digimon wins on count despite losing on DP", async () => {
+    cite(
+      "comprehensive-0254",
+      "16-35 Iceclad count comparison in ordinary battles; Security battles excluded",
+      "01186c00073c1b8e41772a9f13647b23310df9f738f731d17b48b3d2b123e23c",
+    );
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
@@ -312,6 +318,11 @@ describe('beDeletedInBattle restriction — a granted "can\'t be deleted in batt
 
 describe("<Collision> (Comprehensive Rules §16-30) — grants Blocker and forces the opponent to block when able", () => {
   it("grants a non-Blocker opponent Digimon eligibility to block, and rejects a decline while it can", async () => {
+    cite(
+      "comprehensive-0249",
+      "16-30 Collision grants opposing Blocker and forces an available block",
+      "effe40c75f6c8f5deb3da41986917e76b21b7decf174245cf2463d5b956ea9f7",
+    );
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
