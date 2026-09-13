@@ -25,13 +25,14 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
     (filter.nameOrTrait?.length ?? 0) > 0 || (filter.or?.length ?? 0) > 0 || (filter.and?.length ?? 0) > 0;
   if (!hasPredicate) return false;
   const self = ctx.source.permanent();
-  if (self !== undefined) return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  if (self !== undefined)
+    return self.stack.some((card) => card.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card)));
   const deletedStackIds = ctx.trigger.deletedWasStackInstanceIds;
   if (deletedStackIds === undefined || deletedStackIds.length === 0) return false;
   const trash = ctx.game.player(ctx.source.ownerSeat).trash;
   return deletedStackIds.some((instanceId) => {
     const card = trash.find((candidate) => candidate.instanceId === instanceId);
-    return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+    return card?.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card));
   });
 }
 
@@ -735,6 +736,7 @@ export function permanentMatchesFilter(
   if (filter.printedTextOnly !== true && filter.nameOrTrait?.some((reference) => reference.match === "text")) {
     const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
     const inheritedText = permanent.stack
+      .filter((card) => card.faceUp === true)
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
       .join("\n")
       .toLowerCase();
@@ -848,8 +850,9 @@ export function permanentMatchesFilter(
         liveKeyword === true ||
         granted.has(token) ||
         printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true && printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };
@@ -866,8 +869,9 @@ export function permanentMatchesFilter(
         liveKeyword === true ||
         granted.has(token) ||
         printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true && printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };
