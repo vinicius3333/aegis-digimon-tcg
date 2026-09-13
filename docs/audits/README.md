@@ -126,7 +126,7 @@ build when it is stale.
 | EX11 | 74    | verified    | 2026-09-09  | [EX11.md](EX11.md) |
 | EX12 | 77    | incomplete  | 2026-09-08  | [EX12.md](EX12.md) |
 | EX13 | 60    | incomplete  | 2026-09-11  | [EX13.md](EX13.md) |
-| LM   | 62    | verified    | 2026-09-10  | [LM.md](LM.md)     |
+| LM   | 62    | complete    | 2026-09-12  | [LM.md](LM.md)     |
 | P    | 249   | verified    | 2026-09-12  | [P.md](P.md)       |
 | RB1  | 33    | verified    | 2026-09-10  | [RB1.md](RB1.md)   |
 | ST1  | 16    | verified    | 2026-09-05  | [ST1.md](ST1.md)   |

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-005.js";
+import "./LM-004.js";
+import "./LM-003.js";
 
 describe("LM-005 Amphimon", () => {
   it("blast-digivolves from hand in the counter window without paying the cost", async () => {
@@ -43,8 +45,8 @@ describe("LM-005 Amphimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-005", as: "amphimon" }],
           hand: [
+            { card: "LM-005", as: "amphimon" },
             { card: "BT1-029", as: "blueA" },
             { card: "BT1-029", as: "blueB" },
           ],
@@ -58,9 +60,11 @@ describe("LM-005 Amphimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("amphimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("amphimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.length === 2, 2000);
 
     // One stack card came off each opposing permanent, not the permanents themselves.
@@ -71,14 +75,23 @@ describe("LM-005 Amphimon", () => {
   it("returns an opposing permanent with no cards under it to the hand", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-005", as: "amphimon" }], hand: [{ card: "BT1-029", as: "blue" }] },
+        0: {
+          battleArea: [{ card: "LM-004", as: "base" }],
+          hand: [{ card: "LM-005", as: "amphimon" }, "BT1-029", "BT1-029"],
+        },
         1: { battleArea: [{ card: "BT1-080", as: "bare" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("amphimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("amphimon").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -88,14 +101,20 @@ describe("LM-005 Amphimon", () => {
   it("leaves a stacked opposing permanent in play when nothing was trashed from under it", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-005", as: "amphimon" }] },
+        0: { battleArea: [{ card: "LM-004", as: "base" }], hand: [{ card: "LM-005", as: "amphimon" }] },
         1: { battleArea: [{ card: "BT1-080", as: "stacked", under: ["BT1-027"] }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("amphimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("amphimon").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -106,17 +125,23 @@ describe("LM-005 Amphimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-005", as: "amphimon" }],
+          battleArea: [{ card: "LM-005", as: "amphimon", under: ["LM-004"] }],
+          hand: [{ card: "LM-002", as: "jellyCost" }],
           trash: ["LM-002", "LM-003", "LM-004"],
           deck: ["BT1-027"],
         },
-        1: { security: 3 },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"], deck: ["BT1-012", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("amphimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("amphimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 0, 2000);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -128,21 +153,67 @@ describe("LM-005 Amphimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-005", as: "amphimon" }],
+          battleArea: [
+            { card: "LM-005", as: "amphimon", under: ["LM-004"] },
+            { card: "LM-003", as: "driver" },
+          ],
           trash: ["LM-002", "LM-003", "LM-004", "LM-002", "LM-003", "LM-004"],
+          hand: [{ card: "LM-002", as: "jellyCost" }, "BT1-027"],
           deck: ["BT1-027"],
         },
-        1: { security: 3 },
+        1: {
+          security: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+          ],
+          deck: ["BT1-012", "BT1-013"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("amphimon"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("amphimon"));
-    await settle(() => s.state.players[0]!.trash.length === 0, 2000);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("amphimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("driver").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("amphimon").isSuspended);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("amphimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("amphimon"), "SecurityAttack") === 2, 2000);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("jellyCost").instanceId]);
 
     expect(observe(s.engine).keywordAmount(s.perm("amphimon"), "SecurityAttack")).toBe(2);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(observe(s.engine).keywordAmount(s.perm("amphimon"), "SecurityAttack")).toBe(0);
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

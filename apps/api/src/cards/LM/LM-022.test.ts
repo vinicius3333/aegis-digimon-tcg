@@ -13,8 +13,8 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "zero" },
-            { card: "BT1-010", as: "one", under: ["BT1-001"] },
-            { card: "BT1-011", as: "over", under: ["BT1-001", "BT1-002", "BT1-003"] },
+            { card: "BT1-010", as: "one", under: ["BT1-009"] },
+            { card: "BT1-011", as: "over", under: ["BT1-009", "BT1-010", "BT1-011"] },
           ],
         },
       },
@@ -35,19 +35,29 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
   it("returns two once its own stack is deep enough", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-022", as: "bond", under: ["BT1-001", "BT1-002"] }] },
+        0: {
+          battleArea: [{ card: "AD1-014", as: "base", under: ["BT1-009", "BT1-010"] }],
+          hand: [{ card: "LM-022", as: "bond" }],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "zero" },
-            { card: "BT1-010", as: "one", under: ["BT1-001"] },
+            { card: "BT1-010", as: "one", under: ["BT1-009"] },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bond"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bond").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -123,6 +133,47 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("bond").isSuspended).toBe(true);
+  });
+
+  it("refreshes its attack once-per-turn effect on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-022", as: "bond" }, "BT1-085"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bond").permanentId,
+        target: { kind: "player" },
+      });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => !s.perm("bond").isSuspended, 2000);
+    await settle(() => s.state.pendingDecision == null);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.perm("bond").isSuspended, 2000);
+    await settle(() => s.state.pendingDecision == null);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => !s.perm("bond").isSuspended, 2000);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => !s.perm("bond").isSuspended, 2000);
+    await settle(() => s.state.pendingDecision == null);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

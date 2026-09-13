@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -51,16 +51,18 @@ describe("LM-006 Cthyllamon", () => {
   it("trashes the bottom three digivolution cards of one opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-006", as: "cthyllamon" }] },
+        0: { hand: [{ card: "LM-006", as: "cthyllamon" }] },
         1: {
           battleArea: [{ card: "BT1-080", as: "stacked", under: ["BT1-027", "BT1-028", "BT1-045", "BT1-047"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 12;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cthyllamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cthyllamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("stacked").stack.length === 1, 2000);
 
     // The bottom three go; the top-most digivolution card stays.
@@ -71,7 +73,7 @@ describe("LM-006 Cthyllamon", () => {
   it("stops every opposing Digimon with no digivolution cards from attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-006", as: "cthyllamon" }] },
+        0: { hand: [{ card: "LM-006", as: "cthyllamon" }] },
         1: {
           battleArea: [
             { card: "BT1-080", as: "bareA" },
@@ -82,9 +84,11 @@ describe("LM-006 Cthyllamon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 12;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cthyllamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cthyllamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("bareA").permanentId, "attack"), 2000);
 
     expect(observe(s.engine).isRestricted(s.perm("bareA").permanentId, "attack")).toBe(true);
@@ -95,26 +99,41 @@ describe("LM-006 Cthyllamon", () => {
   it("releases a Digimon that gains digivolution cards afterwards, per Q3996", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-006", as: "cthyllamon" }] },
+        0: { hand: [{ card: "LM-006", as: "cthyllamon" }] },
         1: {
-          battleArea: [{ card: "BT1-080", as: "bare" }],
-          hand: [{ card: "BT1-081", as: "evolution" }],
+          battleArea: [{ card: "BT1-009", as: "bare" }],
+          hand: [{ card: "BT1-015", as: "evolution" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 8;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cthyllamon"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cthyllamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("bare").permanentId, "attack"), 2000);
     expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "attack")).toBe(true);
 
-    // The restriction re-derives from the live board: give the Digimon a stack and it is no
-    // longer "a Digimon with no digivolution cards".
-    s.perm("bare").stack.push(s.inst("evolution"));
-    await advance(s.engine).recompute();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("bare").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("bare").topCard?.cardId === "BT1-015");
+    expect(s.perm("bare").stack.map((card) => card.cardId)).toEqual(["BT1-009"]);
 
     expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "attack")).toBe(false);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

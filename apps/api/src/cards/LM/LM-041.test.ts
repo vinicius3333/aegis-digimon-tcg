@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -12,24 +12,30 @@ describe("LM-041 Regalecusmon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX12-030", as: "ds", suspended: true },
-            { card: "LM-041", as: "regalecusmon" },
+            { card: "EX12-028", as: "ds", suspended: true },
+            { card: "EX12-030", as: "base" },
           ],
+          hand: [{ card: "LM-041", as: "regalecusmon" }],
         },
         1: { security: [{ card: "BT1-009" }], battleArea: [{ card: "BT1-085", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1;
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("regalecusmon"));
-    await settle(
-      () =>
-        s.state.players[1]!.hand.length === 1 &&
-        !s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "EX12-030")!.isSuspended,
-    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("regalecusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 1 && !s.perm("ds").isSuspended);
 
     expect(s.perm("ds").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.hand).toHaveLength(1);
     const opponent = s.state.players[1]!.battleArea[0];
     expect(opponent).toBeDefined();
@@ -40,14 +46,21 @@ describe("LM-041 Regalecusmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-041", as: "regalecusmon" }] },
-        1: { security: [{ card: "BT1-009" }], battleArea: [{ card: "BT1-085", as: "opponent" }] },
+        1: { security: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT1-085", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("regalecusmon"));
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regalecusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
@@ -66,7 +79,14 @@ describe("LM-041 Regalecusmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("regalecusmon"));
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regalecusmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.length === 1, 2000);
 
     expect(s.state.players[1]!.hand).toHaveLength(1);
@@ -77,20 +97,83 @@ describe("LM-041 Regalecusmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX12-030", as: "ds", suspended: true },
-            { card: "LM-041", as: "regalecusmon" },
-          ],
+          battleArea: [{ card: "EX12-030", as: "ds", suspended: true }],
+          hand: [{ card: "LM-041", as: "regalecusmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("regalecusmon"));
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regalecusmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("ds").isSuspended, 2000);
 
     expect(s.perm("ds").isSuspended).toBe(false);
+  });
+
+  it("shares the Once Per Turn security clause and resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-028", as: "ds", suspended: true },
+            { card: "EX12-030", as: "base" },
+          ],
+          hand: [{ card: "LM-041", as: "regalecusmon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "opponent" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-009", "BT1-010"],
+          hand: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("regalecusmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 2);
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 4);
+    expect(s.state.players[1]!.hand).toHaveLength(4);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

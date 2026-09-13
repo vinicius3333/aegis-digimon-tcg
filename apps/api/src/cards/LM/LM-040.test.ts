@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -10,7 +10,7 @@ describe("LM-040 Vikemon", () => {
   it("trashes any four opposing digivolution cards across the opponent's Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-040", as: "vikemon" }] },
+        0: { battleArea: [{ card: "BT1-041", as: "base" }], hand: [{ card: "LM-040", as: "vikemon" }] },
         1: {
           battleArea: [
             { card: "BT1-041", as: "first", under: ["BT1-009", "BT1-009"] },
@@ -21,7 +21,15 @@ describe("LM-040 Vikemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("vikemon"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vikemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.length === 4, 2000);
 
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(4);
@@ -31,14 +39,27 @@ describe("LM-040 Vikemon", () => {
   it("unsuspends itself when no opposing Digimon matches its stack depth", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-040", as: "vikemon", suspended: true, under: ["BT1-009", "BT1-009"] }] },
-        1: { battleArea: [{ card: "BT1-041", as: "shallow", under: ["BT1-009"] }], security: 2 },
+        0: { battleArea: [{ card: "LM-040", as: "vikemon", under: ["BT1-009", "BT1-009"] }] },
+        1: {
+          battleArea: [{ card: "BT1-041", as: "shallow", under: ["BT1-009"] }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("vikemon").isSuspended, 2000);
 
     expect(s.perm("vikemon").isSuspended).toBe(false);
@@ -47,14 +68,27 @@ describe("LM-040 Vikemon", () => {
   it("stays suspended while the opponent matches its stack depth", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-040", as: "vikemon", suspended: true, under: ["BT1-009"] }] },
-        1: { battleArea: [{ card: "BT1-041", as: "deep", under: ["BT1-009", "BT1-009"] }], security: 2 },
+        0: { battleArea: [{ card: "LM-040", as: "vikemon", under: ["BT1-009"] }] },
+        1: {
+          battleArea: [{ card: "BT1-041", as: "deep", under: ["BT1-009", "BT1-009"] }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.perm("vikemon").isSuspended).toBe(true);
@@ -63,35 +97,91 @@ describe("LM-040 Vikemon", () => {
   it("still applies -6000 to the opponent's Security Digimon when the unsuspend condition fails, per Q4843", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-040", as: "vikemon", suspended: true, under: ["BT1-009"] }] },
-        1: { battleArea: [{ card: "BT1-041", as: "deep", under: ["BT1-009", "BT1-009"] }], security: 2 },
+        0: { battleArea: [{ card: "LM-040", as: "vikemon", under: ["BT1-009"] }] },
+        1: {
+          battleArea: [{ card: "BT1-041", as: "deep", under: ["BT1-009", "BT1-009"] }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).securityDp(1) === -6000, 2000);
 
     expect(observe(s.engine).securityDp(1)).toBe(-6000);
   });
 
-  it("spends the attacking clause only once per turn", async () => {
+  it("spends the attacking clause once per turn and resets on the next own turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-040", as: "vikemon", suspended: true, under: ["BT1-009"] }] },
-        1: { battleArea: [{ card: "BT1-041", as: "deep", under: ["BT1-009", "BT1-009"] }], security: 2 },
+        0: {
+          hand: ["BT1-009"],
+          battleArea: [{ card: "LM-040", as: "vikemon", under: ["BT1-009"] }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-041", as: "shallow" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).securityDp(1) === -6000, 2000);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("vikemon"));
-    await settle(() => s.state.pendingDecision == null);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(observe(s.engine).securityDp(1)).toBe(-6000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).securityDp(1)).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vikemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).securityDp(1) === -6000, 2000);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).securityDp(1)).toBe(-6000);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -11,7 +11,7 @@ describe("LM-024 Shivamon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { hand: [{ card: "LM-024", as: "shivamon" }], security: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: { hand: [{ card: "LM-024", as: "shivamon" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -33,7 +33,7 @@ describe("LM-024 Shivamon", () => {
   it("at two security returns an already-suspended opposing Digimon and does not buff", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "LM-024", as: "shivamon" }], security: ["BT1-001", "BT1-002"] },
+        0: { hand: [{ card: "LM-024", as: "shivamon" }], security: ["BT1-009", "BT1-010"] },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,15 +53,18 @@ describe("LM-024 Shivamon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-024", as: "shivamon" }], security: 4 },
+        0: { hand: [{ card: "LM-024", as: "shivamon" }], security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shivamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shivamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").isSuspended, 2000);
 
     expect(s.perm("target").isSuspended).toBe(true);
@@ -74,19 +77,20 @@ describe("LM-024 Shivamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "LM-024", as: "shivamon" },
-            { card: "BT1-024", as: "mine" },
-          ],
-          security: 4,
+          battleArea: [{ card: "BT1-024", as: "mine" }],
+          hand: [{ card: "LM-024", as: "shivamon" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("mine").permanentId);
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shivamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shivamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("mine").isSuspended, 2000);
 
     expect(s.perm("mine").isSuspended).toBe(true);

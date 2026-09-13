@@ -5,6 +5,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./LM-026.js";
+import "./LM-021.js";
+import "../BT17/BT17-018.js";
 // BT17-010 supplies the numeric DP-based deletion this inherited modifier raises.
 import "../BT17/BT17-010.js";
 // AD1-002 supplies the DP-relative deletion Q4032 says this modifier must not raise.
@@ -57,12 +59,21 @@ describe("LM-026 Megidramon", () => {
   it("replaces its own leave with a Guilmon host", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-026", as: "megidramon" }], trash: ["BT2-009"] },
+        0: { battleArea: [{ card: "LM-026", as: "megidramon", suspended: true }], trash: ["BT2-009"] },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 13000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("megidramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT2-009")).toBe(true);
     expect(
       s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT2-009")!.stack.map(
@@ -74,12 +85,21 @@ describe("LM-026 Megidramon", () => {
   it("can play the Guilmon from its own digivolution cards for the replacement", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-026", under: ["BT2-009"], as: "megidramon" }] },
+        0: { battleArea: [{ card: "LM-026", under: ["BT2-009"], as: "megidramon", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 13000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("megidramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
     const guilmon = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT2-009");
     expect(guilmon?.stack.map((card) => card.cardId)).toEqual(["LM-026"]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -93,6 +113,103 @@ describe("LM-026 Megidramon", () => {
     await s.ready();
 
     expect(observe(s.engine).effectiveNames(s.perm("megidramon"))).toContain("chaosgallantmon");
+  });
+
+  it("allows the printed Growlmon alternate evolution for cost 3", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-003", as: "growlmon" }], hand: [{ card: "LM-026", as: "megidramon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("growlmon").permanentId,
+        instanceId: s.inst("megidramon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("growlmon").topCard?.cardId === "LM-026", 2000);
+    expect(s.perm("growlmon").topCard.cardId).toBe("LM-026");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("raises a numeric deletion cap for a legal Gallantmon host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-026", as: "megidramon" }],
+          hand: [{ card: "BT17-018", as: "crimson" }],
+        },
+        1: { battleArea: [{ card: "BT1-081", as: "target", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("megidramon").permanentId,
+        instanceId: s.inst("crimson").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-081"), 2000);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-081")).toBe(true);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("megidramon").topCard.cardId).toBe("BT17-018");
+    expect(s.perm("megidramon").stack.map((card) => card.cardId)).toEqual(["LM-026"]);
+  });
+
+  it("does not raise a deletion cap that uses the host's own DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-026", as: "megidramon" }],
+          hand: [{ card: "LM-021", as: "bond" }],
+        },
+        1: { battleArea: [{ card: "BT1-081", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("megidramon").permanentId,
+        instanceId: s.inst("bond").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision == null, 2000);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-081")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("leaves the same 20000 DP target with no Megidramon modifier", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-008", as: "gallantmon" }], hand: [{ card: "BT17-018", as: "crimson" }] },
+        1: { battleArea: [{ card: "BT1-081", as: "target", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gallantmon").permanentId,
+        instanceId: s.inst("crimson").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision == null, 2000);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-081")).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
   it("raises its host's own numeric deletion ceiling by 5000, per Q4031", async () => {

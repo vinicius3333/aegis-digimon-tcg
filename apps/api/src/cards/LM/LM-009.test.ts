@@ -113,7 +113,7 @@ describe("LM-009 Airdramon", () => {
             { card: "LM-011", as: "symbare", enteredThisTurn: true },
           ],
         },
-        1: { security: 2 },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
