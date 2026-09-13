@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../testkit/advance.js";
 import { observe } from "../testkit/observe.js";
 import { setupEngine, settle } from "../testkit/harness.js";

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
 import { cite } from "./_kb.js";
