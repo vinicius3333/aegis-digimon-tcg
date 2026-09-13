@@ -91,7 +91,8 @@ Peer acceptance: BT14-090 and the object-host BT25-096 suites passed 23/23 tests
 with one worker and a 3072 MB heap. Both original-red conformance suites now pass
 20/20 tests; combined with the Guard lifecycle suite, 3 files / 41 tests pass.
 Final broad acceptance passed: EX12, conformance, combat, effects, engine card
-suites, BT14-090/BT25-096 and audit-document layout — 274 files / 3300 tests.
+suites, all four ordered-cost consumer cards and audit-document layout —
+276 files / 3317 tests after integration of origin/main e423e12a223a67f5a0808cf46cdf96352edb3834.
 Serialized shared/API/web typecheck passed with a 4096 MB heap. This section
 does not certify unobserved compound consumer shapes.
 
@@ -122,6 +123,28 @@ The finite consumer table and compound sections below are authoritative for the
 expected-failure paragraphs are historical checkpoints superseded by the later
 public proofs; they do not reopen those corrected classes. This remains a
 bounded engine contract review, not whole-card or whole-catalog certification.
+
+### BT14-090 ordered-placement regression closure (2026-09-13)
+
+Parallel main-branch provenance follows. The EX12 integration preserves the
+previous object-host prompt order; target-host material selection and atomic
+revalidation match both corrections. Current integration acceptance is recorded
+in the ordered loose-compound section above.
+
+The merged BT25 placement preflight briefly required the first ordered-placement
+host to be an object filter. That rejected the existing compiled `host:
+"target"` plus `underFilter` form used by BT14-090, BT17-085, and ST17-10,
+while BT25-096 uses the object-host form. Commit
+`66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` restores the compiled target-bound
+form without loosening object-host validation. Host resolution follows unpaid
+material selection and is revalidated before atomic ordered placement, preserving
+exact host and material identities.
+
+The focused regression suite covered all four current ordered-placement
+consumers and the interpreter: **260/260 tests passed**, with API typecheck,
+scoped Oxlint/Oxfmt, and `git diff --check` green. This closes the observed
+consumer-shape regression; it does not certify unobserved card permutations or
+the whole card catalog.
 
 ## Targetless paid payload checkpoint (2026-09-13)
 

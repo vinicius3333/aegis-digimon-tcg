@@ -212,7 +212,7 @@ reachable Guard payment/source/grouping proofs now have public-intent cases in
 The focused Guard suite passes 21/21 tests. Combined with both original-red
 compound-cost conformance suites, 3 files / 41 tests pass with one worker and
 `TEST_HEAP_MB=3072`. Final EX12/mechanism/affected-peer/layout regression passes
-274 files / 3300 tests with the same worker/heap bounds; serialized typecheck
+276 files / 3317 tests after main integration, with the same worker/heap bounds; serialized typecheck
 passes with 4096 MB. No Guard production change is needed. Collection delivery
 gates and current scores are recorded exclusively in `../EX12.md`.
 
