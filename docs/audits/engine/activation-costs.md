@@ -97,6 +97,23 @@ expected-failure paragraphs are historical checkpoints superseded by the later
 public proofs; they do not reopen those corrected classes. This remains a
 bounded engine contract review, not whole-card or whole-catalog certification.
 
+### BT14-090 ordered-placement regression closure (2026-09-13)
+
+The merged BT25 placement preflight briefly required the first ordered-placement
+host to be an object filter. That rejected the existing compiled `host:
+"target"` plus `underFilter` form used by BT14-090, BT17-085, and ST17-10,
+while BT25-096 uses the object-host form. Commit
+`66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` restores the compiled target-bound
+form without loosening object-host validation. Host resolution follows unpaid
+material selection and is revalidated before atomic ordered placement, preserving
+exact host and material identities.
+
+The focused regression suite covered all four current ordered-placement
+consumers and the interpreter: **260/260 tests passed**, with API typecheck,
+scoped Oxlint/Oxfmt, and `git diff --check` green. This closes the observed
+consumer-shape regression; it does not certify unobserved card permutations or
+the whole card catalog.
+
 ## Targetless paid payload checkpoint (2026-09-13)
 
 `comprehensive-0170` §15-7-5 permits an optional processing condition to be
