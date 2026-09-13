@@ -213,3 +213,15 @@
     min-height: var(--ds-touch-target);
   }
 }
+
+.bug-report__match-id label {
+  display: grid;
+  gap: var(--ds-space-2, 0.5rem);
+}
+.bug-report__match-id input {
+  min-width: 0;
+  font-family: monospace;
+}
+.bug-report__match-id button {
+  align-self: start;
+}

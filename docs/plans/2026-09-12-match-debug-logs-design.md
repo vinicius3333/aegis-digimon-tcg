@@ -1,6 +1,6 @@
 # Local match diagnostics
 
-The API writes structured JSONL records to `apps/api/logs` (or `AEGIS_LOG_DIR`). Every room receives a UUID in `GameState.matchLogId`, stable through reconnection and independent of reusable private room codes. The game displays a selectable ID with a copy button.
+The API writes structured JSONL records to `apps/api/logs` (or `AEGIS_LOG_DIR`). Every room receives a UUID in `GameState.matchLogId`, stable through reconnection and independent of reusable private room codes. The battle bug-report modal displays a selectable ID with a copy button.
 
 Daily file segments preserve today and the previous six UTC calendar days; cleanup runs at startup, rotation and every minute. Size rotation starts a unique segment after 64 MiB and never renames a file with pending writes. Graceful shutdown waits for all streams to close. Tests do not write production logs.
 

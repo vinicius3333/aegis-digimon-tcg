@@ -1,4 +1,3 @@
-import { MatchLogId } from "./MatchLogId";
 /* The in-game board — the design's letterboxed board layout, driven entirely by
    the synchronized GameState and wired to the server through typed intents. The
    client owns zero rules: every action is an intent the server validates, and the
@@ -2263,7 +2262,6 @@ export function GameScreen({
         <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
       ) : null}
 
-      <MatchLogId id={state.matchLogId} />
       {historyOpen ? (
         <PlayLogSidebar log={log} onClose={() => setHistoryOpen(false)} onOpenCard={setZoomCardId} />
       ) : null}
@@ -2272,7 +2270,9 @@ export function GameScreen({
 
       {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} onClose={() => setZoomCardId(null)} /> : null}
 
-      {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
+      {bugReportOpen ? (
+        <BugReportDialog signedIn={signedIn} matchLogId={state.matchLogId} onClose={() => setBugReportOpen(false)} />
+      ) : null}
 
       {state.gameOver ? (
         <GameOverOverlay
