@@ -230,6 +230,51 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
 });
 
 describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
+  it("observes an opponent's normal digivolution without paying the watcher cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-088", as: "bagramon" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT3-067", as: "base" }],
+          hand: [{ card: "BT6-063", as: "digivolver" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    const baseId = s.inst("base").instanceId;
+    const digivolverId = s.inst("digivolver").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: digivolverId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() => s.perm("base").topCard.cardId === "BT6-063");
+    await settleEngine();
+
+    expect(s.perm("base").topCard.cardId).toBe("BT6-063");
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === digivolverId)).toBe(false);
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.perm("bagramon").stack).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     { mode: "play", stacked: true },
     { mode: "play", stacked: false },
