@@ -17,14 +17,18 @@ describe("BT13-035 PawnChessmon", () => {
             expect.objectContaining({
               kind: "PlayWithoutCost",
               optional: true,
-              target: expect.objectContaining({ filter: expect.objectContaining({ levelComparison: { op: "lte", value: 5 } }) }),
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ levelComparison: { op: "lte", value: 5 } }),
+              }),
             }),
           ],
           ifFalse: [
             expect.objectContaining({
               kind: "PlayWithoutCost",
               optional: true,
-              target: expect.objectContaining({ filter: expect.objectContaining({ levelComparison: { op: "lte", value: 3 } }) }),
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ levelComparison: { op: "lte", value: 3 } }),
+              }),
             }),
           ],
         }),
@@ -104,7 +108,8 @@ describe("BT13-035 PawnChessmon", () => {
 
   it("inherited Reboot unsuspends its host during the opponent's active phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-035"], suspended: true }] },
+      0: { battleArea: [{ card: "BT1-051", as: "host", under: ["BT13-035"], suspended: true }] },
+      1: { deck: ["BT1-010", "BT1-010"] },
     });
     s.state.turnSeat = 1;
     s.state.memory = 1;
@@ -118,7 +123,7 @@ describe("BT13-035 PawnChessmon", () => {
     for (const baseCardId of ["BT1-006", "BT10-005"]) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCardId, as: "base" }],
+          breeding: { card: baseCardId, as: "base" },
           hand: [{ card: "BT13-035", as: "pawn" }],
         },
       });
