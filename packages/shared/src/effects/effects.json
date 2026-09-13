@@ -167988,9 +167988,9 @@
                 "levels": [3]
               },
               "count": 1,
-              "from": ["hand"],
-              "underFilter": { "isSelfRef": true }
+              "from": ["hand"]
             },
+            "underFilter": { "isSelfRef": true },
             "position": "bottom",
             "optional": true
           }
@@ -168507,7 +168507,7 @@
             "kind": "DisableSecurityEffect",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "sourceKind": "any",
-            "duration": "untilEachTurnEnd",
+            "duration": "forTheTurn",
             "condition": {
               "kind": "selfHasName",
               "names": ["RagnaLoardmon"],
@@ -169141,7 +169141,7 @@
             "cost": {
               "kind": "securityToHand",
               "controller": "mine",
-              "position": "topOrBottom",
+              "position": "choice",
               "raw": "By adding the top or bottom card of your security stack to the hand"
             },
             "optional": true,
@@ -169181,7 +169181,7 @@
             "cost": {
               "kind": "securityToHand",
               "controller": "mine",
-              "position": "topOrBottom",
+              "position": "choice",
               "raw": "By adding the top or bottom card of your security stack to the hand"
             },
             "optional": true,
@@ -169817,7 +169817,8 @@
                 "kind": "GainKeyword",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1 (Deck)＞" },
-                "condition": { "kind": "isOpponentsTurn", "raw": "it's your opponent's turn" }
+                "condition": { "kind": "isOpponentsTurn", "raw": "it's your opponent's turn" },
+                "duration": "permanent"
               }
             ]
           }
@@ -169990,7 +169991,7 @@
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -7000,
-            "duration": "untilEachTurnEnd"
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -170948,7 +170949,6 @@
                 "kind": "ActivateEffect",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "effectType": "WhenDigivolving",
-                "inherited": false,
                 "optional": true
               }
             ]
@@ -171850,8 +171850,7 @@
                 "count": 1,
                 "source": "thisDigimon"
               },
-              "destination": "deck",
-              "position": "bottom",
+              "to": "deckBottom",
               "raw": "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck"
             },
             "actions": [
@@ -172077,7 +172076,6 @@
             "mode": "prevent",
             "sourceFilter": { "isSelfRef": true },
             "leaveCause": "otherThanBattle",
-            "frequency": "OncePerTurn",
             "actions": [
               {
                 "kind": "Delete",
@@ -172104,8 +172102,7 @@
             "kind": "SubTrigger",
             "event": "onDeletionOf",
             "sourceFilter": { "controller": "any", "kind": ["Digimon"], "excludeSelf": true },
-            "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }],
-            "frequency": "OncePerTurn"
+            "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
         "frequency": "OncePerTurn"
@@ -172746,7 +172743,6 @@
           {
             "kind": "SubTrigger",
             "event": "whenDigimonWouldLeave",
-            "delayArmedIntrinsic": true,
             "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
@@ -172767,7 +172763,8 @@
               }
             ]
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay" }]
       },
       { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
@@ -172873,7 +172870,8 @@
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1 (Deck)＞" }
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1 (Deck)＞" },
+            "duration": "permanent"
           },
           { "kind": "AddToHandSelf" }
         ],
@@ -172914,7 +172912,6 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "delayArmedIntrinsic": true,
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -172936,7 +172933,8 @@
               { "kind": "SecurityManipulation", "op": "shuffle", "controller": "mine" }
             ]
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay" }]
       },
       { "trigger": "Security", "actions": [{ "kind": "PlaceInBattleAreaSelf" }], "isSecurity": true }
     ],
@@ -172976,7 +172974,6 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "delayArmedIntrinsic": true,
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -173001,12 +172998,12 @@
                 },
                 "from": ["digivolutionCards"],
                 "payCost": false,
-                "optional": true,
-                "source": "breeding"
+                "optional": true
               }
             ]
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay" }]
       },
       { "trigger": "Security", "actions": [{ "kind": "PlaceInBattleAreaSelf" }], "isSecurity": true }
     ],
@@ -173308,6 +173305,7 @@
                   "nameOrTrait": [{ "tokens": ["Angewomon", "LadyDevimon"], "match": "nameExact" }]
                 },
                 "from": ["trash"],
+                "payCost": true,
                 "reduceCost": 1,
                 "optional": true
               }
