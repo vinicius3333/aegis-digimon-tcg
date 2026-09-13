@@ -30,12 +30,12 @@ DNA result, even though Machinedramon prints no DNA recipe.
 
 ## Results
 
-| | Count |
-| --- | --- |
-| `DnaDigivolve` `into` filters total | 74 |
-| Carrying the flag | 19 (16 already + 3 fixed here) |
-| Missing the flag, pool contains cards without a DNA recipe | 54 filters / 42 cards |
-| Missing the flag, harmless (pool is fully DNA-gated) | 1 (EX11-070) |
+|                                                            | Count                          |
+| ---------------------------------------------------------- | ------------------------------ |
+| `DnaDigivolve` `into` filters total                        | 74                             |
+| Carrying the flag                                          | 19 (16 already + 3 fixed here) |
+| Missing the flag, pool contains cards without a DNA recipe | 54 filters / 42 cards          |
+| Missing the flag, harmless (pool is fully DNA-gated)       | 1 (EX11-070)                   |
 
 Fixed in this pass: **EX12-003, EX12-001, EX12-017**.
 
