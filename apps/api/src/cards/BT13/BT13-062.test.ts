@@ -1,5 +1,5 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT13-062.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -80,7 +80,9 @@ describe("BT13-062 Chuumon", () => {
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("costOther").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("returned").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("returnedOther").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("returnedOther").instanceId)).toBe(
+      true,
+    );
   });
 
   it("declining the optional processing condition moves neither exact instance", async () => {
@@ -107,32 +109,39 @@ describe("BT13-062 Chuumon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("returned").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("costOther").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("returnedOther").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("returnedOther").instanceId)).toBe(
+      true,
+    );
   });
 
   it("offers the deleted exact Chuumon source, excludes near-name ChuuChuumon, and plays the selected instance suspended", async () => {
-    const exact = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "BT11-040",
-              as: "sukamon",
-              under: [{ card: "BT13-062", as: "source" }],
-            },
-          ],
-          trash: [
-            { card: "BT3-061", as: "otherExact" },
-            { card: "BT12-060", as: "near" },
-          ],
-        },
+    const exact = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT11-040",
+            as: "sukamon",
+            under: [{ card: "BT13-062", as: "source" }],
+          },
+        ],
+        trash: [
+          { card: "BT3-061", as: "otherExact" },
+          { card: "BT12-060", as: "near" },
+        ],
       },
-    );
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+    });
     await exact.ready();
     const sourceId = exact.inst("source").instanceId;
     const otherExactId = exact.inst("otherExact").instanceId;
     const nearId = exact.inst("near").instanceId;
-    const deletion = advance(exact.engine).verb.deletePermanent([exact.perm("sukamon").permanentId]);
+    expect(
+      exact.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: exact.perm("sukamon").permanentId,
+        target: { kind: "permanent", permanentId: exact.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => exact.decisions.some(({ req }) => req.kind === "optional"));
     const optional = exact.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(
@@ -157,7 +166,6 @@ describe("BT13-062 Chuumon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await deletion;
     await settle(() => exact.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sourceId));
     const played = exact.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === sourceId)!;
     expect(played.isSuspended).toBe(true);

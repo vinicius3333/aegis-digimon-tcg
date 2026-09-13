@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-068.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST1/ST1-10.js";
 
 describe("BT13-068 KnightChessmon", () => {
   it("keeps Blocker, evolution cost 2, and opponent-turn Chessmon play", () => {
@@ -40,14 +40,36 @@ describe("BT13-068 KnightChessmon", () => {
 
   it("plays a level-4 Chessmon from hand after deletion during the opponent's turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-068", as: "knight" }], hand: ["BT13-039"] }, 1: { security: ["BT1-009"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-068", as: "knight", suspended: true }],
+          hand: [{ card: "BT13-039", as: "replacement" }],
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const knightId = s.perm("knight").topCard!.instanceId;
+    const replacementId = s.inst("replacement").instanceId;
+    const knightPermanentId = s.perm("knight").permanentId;
     s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("knight").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039"), 3000);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "permanent", permanentId: knightPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === knightId) &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === replacementId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === replacementId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(replacementId);
+    expect(s.state.memory).toBe(3);
   });
 
   it("alternately digivolves from a level-3 Chessmon for 2 memory", async () => {

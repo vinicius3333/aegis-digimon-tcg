@@ -1,6 +1,6 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-065.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-065 PlatinumSukamon", () => {
@@ -60,13 +60,25 @@ describe("BT13-065 PlatinumSukamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-069", as: "host", under: ["BT13-065"] }] },
-        1: { battleArea: [{ card: "BT11-040", as: "opponent-sukamon" }] },
+        1: {
+          battleArea: [
+            { card: "BT11-040", as: "opponent-sukamon" },
+            { card: "ST1-10", as: "phoenix", suspended: true },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const opponentSukamonId = s.perm("opponent-sukamon").permanentId;
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentSukamonId));
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentSukamonId)).toBe(false);
   });
@@ -74,13 +86,19 @@ describe("BT13-065 PlatinumSukamon", () => {
   it("de-digivolves one opposing stack on deletion", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-065", as: "platinum" }] },
-      1: { battleArea: [{ card: "BT13-031", as: "target", under: ["BT13-066"] }] },
+      1: { battleArea: [{ card: "BT13-072", as: "target", under: ["BT13-066"], suspended: true }] },
     });
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("platinum").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("platinum").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard?.cardId === "BT13-066");
 
     expect(s.perm("target").topCard?.cardId).toBe("BT13-066");
-    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT13-031")).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT13-072")).toBe(true);
   });
 });

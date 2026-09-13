@@ -1,5 +1,5 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-073.js";
 import "./BT13-042.js";
@@ -38,15 +38,28 @@ describe("BT13-073 QueenChessmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT13-073", as: "queen" },
-          { card: "BT13-070", as: "pawn" },
+          { card: "BT13-073", as: "queen", suspended: true },
+          { card: "BT13-070", as: "pawn", suspended: true },
         ],
       },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix" }] },
     });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const queenId = s.perm("queen").topCard.instanceId;
+    const deletedId = s.perm("pawn").topCard.instanceId;
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("queen").permanentId]);
-    await advance(s.engine).verb.deletePermanent([s.perm("pawn").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("pawn").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("queen").isSuspended);
+    expect(s.perm("queen").topCard.instanceId).toBe(queenId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(deletedId);
 
     expect(s.perm("queen").isSuspended).toBe(false);
   });
