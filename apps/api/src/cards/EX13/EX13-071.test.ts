@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-071.js";
 import "./EX13-071.js";
 import "../index.js";
@@ -283,7 +284,15 @@ describe("EX13-071 Richard Sampson", () => {
     const kudamonTopId = s.perm("kudamon").topCard.instanceId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("sampson"));
+    const [mainEffect] = observe(s.engine).activatableEffects(s.perm("sampson")) as { effectKey: string }[];
+    expect(mainEffect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("sampson").topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("kudamon").topCard.cardId === "BT3-043");
     await settle();
 

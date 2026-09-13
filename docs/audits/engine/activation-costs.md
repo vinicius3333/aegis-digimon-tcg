@@ -220,7 +220,9 @@ self-suspend plus stack-top rotation (`EX5-064`); self-suspend plus saved-card p
 (`EX10-067`); self-suspend plus hand/stack trash (`BT25-092`); Tamer-source payment plus
 named-pair placement (`EX13-071`); and ordered three-return (`EX3-035`). The public tests for
 these providers exercise the shared all-or-nothing compound transaction, while retaining
-provider-specific filters and destinations as bounded obligations. `BT17-085`, `BT25-096`,
+provider-specific filters and destinations as bounded obligations. `EX13-071.test.ts` now
+drives the Tamer's Main ability through public `activateEffect` and completes the Kudamon →
+Kentaurosmon route with exact trash/source-stack identities. `BT17-085`, `BT25-096`,
 `ST17-10`, and `EX13-071` retain their distinct multi-placement ordering/filter cases. No
 additional current compound shape was found beyond the persisted 19 occurrences; arbitrary
 future overlap and unnamed variants are outside the current consumer scope.
