@@ -41,9 +41,11 @@ A recursive scan of committed persisted IR found ten literal `totalPlayCostBudge
 | EX7-047  | 2                 | Reveal-add/play NSp maximum seven                                                           | Separate path; not certified                          |
 | EX4-049  | 1                 | Permanent return maximum six                                                                | Separate path; not certified                          |
 | EX8-029  | 1                 | Permanent return maximum fourteen                                                           | Separate path; not certified                          |
-| EX8-064  | 1                 | Permanent NSo return maximum ten                                                            | Separate path; not certified                          |
+| EX8-064  | 1                 | Loose DNA NSo play, count all/upTo, aggregate maximum ten                                   | Direct module and 11 focused tests; card remains delivery-gated |
 
 The new payment fixtures contain four Chuumon, four Sukamon and two PlatinumSukamon instead of ten identical copies. Quiet recipient cards introduce no OnPlay decision. The mixed hand/trash base fixture proves pool integration; the paid fixture proves exact returned physical identities and final unplayed hand cards. Deck-bottom permutation order is not newly certified by comparing the returned ID set.
+
+EX8-064's DNA playback is a loose-card `PlayWithoutCost` with `count: "all"`, `upTo: true`, and a total printed play-cost budget of 10. Its focused public proof uses exact instance aliases: a 7+3+5 pool selects the legal 7+3 subset, an explicit empty response leaves both affordable cards untouched, and a response containing legal 7+3+5 is clamped to 7+3 while the 5-cost card remains in trash. An individual cost-11 NSo candidate is excluded before the prompt. This is bounded consumer evidence for EX8-064 only; it does not certify the full budget mechanism or the card's delivery score.
 
 ## Gates and history
 

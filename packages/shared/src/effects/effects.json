@@ -180516,6 +180516,7 @@
                 "nameOrTrait": [{ "tokens": ["NSo"], "match": "trait" }]
               },
               "count": "all",
+              "upTo": true,
               "totalPlayCostBudget": 10
             },
             "from": ["trash"],
