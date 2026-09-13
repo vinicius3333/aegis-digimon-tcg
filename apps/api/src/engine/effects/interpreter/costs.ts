@@ -564,18 +564,14 @@ export async function payCost(
         // selections before asking the controller for their bottom-stack order.
         if (first.targetIsPermanent !== true) {
           const hostTarget =
-            first.host === "target"
-              ? first.underFilter === undefined
-                ? undefined
-                : { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }
-              : typeof first.host === "object" && first.host !== null
-                ? { filter: first.host.filter, orFilters: first.host.orFilters, count: first.host.count }
+            typeof first.host === "object" && first.host !== null
+              ? first.host
+              : first.host === "target" && first.underFilter !== undefined
+                ? { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }
                 : undefined;
           if (hostTarget === undefined) return false;
-          const hosts = await resolvePermanentTargets(paymentCtx, hostTarget);
-          const hostId = hosts.length === 1 ? hosts[0] : undefined;
-          if (hostId === undefined) return false;
-          paymentCtx.selections.set(first.bindHostAs, hostId);
+          let hosts: string[] = [];
+          let hostId: string | undefined;
           const chosen: string[] = [];
           const looseSelections: { cost: Cost; id: string }[] = [];
           for (const [index, nested] of cost.costs.entries()) {
@@ -598,7 +594,18 @@ export async function payCost(
               return false;
             chosen.push(picked[0]!);
             looseSelections.push({ cost: nested, id: picked[0]! });
+            if (index === 0) {
+              hosts = await resolvePermanentTargets(paymentCtx, {
+                filter: hostTarget.filter,
+                orFilters: hostTarget.orFilters,
+                count: hostTarget.count,
+              });
+              hostId = hosts.length === 1 ? hosts[0] : undefined;
+              if (hostId !== undefined) paymentCtx.selections.set(first.bindHostAs, hostId);
+            }
           }
+          if (hostId === undefined) return false;
+          paymentCtx.selections.set(first.bindHostAs, hostId);
           const ordered = await ctx.ask.orderCards(paymentCtx, {
             candidates: chosen,
             visibleCards: chosen.map((instanceId) => {
@@ -623,7 +630,11 @@ export async function payCost(
           )
             return false;
           if (
-            !candidatePermanents(ctx, hostTarget).some((permanent) => permanent.permanentId === hostId) ||
+            !candidatePermanents(ctx, {
+              filter: hostTarget.filter,
+              orFilters: hostTarget.orFilters,
+              count: hostTarget.count,
+            }).some((permanent) => permanent.permanentId === hostId) ||
             looseSelections.some(
               ({ cost: nested, id }) =>
                 !candidateLooseInstances(

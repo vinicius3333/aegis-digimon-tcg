@@ -97,6 +97,23 @@ expected-failure paragraphs are historical checkpoints superseded by the later
 public proofs; they do not reopen those corrected classes. This remains a
 bounded engine contract review, not whole-card or whole-catalog certification.
 
+### BT14-090 ordered-placement regression closure (2026-09-13)
+
+The merged BT25 placement preflight briefly required the first ordered-placement
+host to be an object filter. That rejected the existing compiled `host:
+"target"` plus `underFilter` form used by BT14-090, BT17-085, and ST17-10,
+while BT25-096 uses the object-host form. Commit
+`66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` restores the compiled target-bound
+form without loosening object-host validation. Host resolution follows unpaid
+material selection and is revalidated before atomic ordered placement, preserving
+exact host and material identities.
+
+The focused regression suite covered all four current ordered-placement
+consumers and the interpreter: **260/260 tests passed**, with API typecheck,
+scoped Oxlint/Oxfmt, and `git diff --check` green. This closes the observed
+consumer-shape regression; it does not certify unobserved card permutations or
+the whole card catalog.
+
 ## Targetless paid payload checkpoint (2026-09-13)
 
 `comprehensive-0170` §15-7-5 permits an optional processing condition to be
@@ -553,7 +570,7 @@ added. The isolated `git archive b88aeb69f` replay reproduced both failures: two
 files, 18 passing / two failing tests (39.54 seconds), using
 `TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/engine/conformance/activation-processing-costs.test.ts src/engine/conformance/activation-cost-compound-assignment.test.ts --maxWorkers=1 --no-file-parallelism`.
 The corrected BT14-090 focus passes **one file / 11 tests** (7.47 seconds).
-Its existing same-host case now selects the host before materials, observes
+Its existing same-host case selects the first material before the host, observes
 both materials still in trash until its manual `orderCards` response, asserts
 exact ordered identities on the chosen host, refuses BT14-101's subsequent
 optional attack and waits for the Option to finish resolving into trash.
@@ -561,7 +578,7 @@ The unused second host stays unchanged; final memory is 6 after the printed
 4-cost Option. The auxiliary Tai fixture was removed because its legitimate
 Greymon-evolution memory gain would obscure this payment assertion.
 
-Final corrected regression passes **276 files / 3,433 tests** (22.71 seconds):
+Final corrected regression passes **276 files / 3,433 tests** (15.32 seconds), after integrating main `e423e12a223a67f5a0808cf46cdf96352edb3834`:
 EX9 **78 files / 992 tests**, engine mechanisms **192 files / 2,397 tests**,
 five affected peer card files / 40 tests and audit layout / four tests. The
 exact serialized command is recorded in [EX9.md](../EX9.md#gates). This
@@ -573,3 +590,8 @@ using Codex/Luna reports no accepted/actionable findings. This proves the
 bounded normalization and named providers; other compound shapes and the
 pre-existing permanent-host OR-filter precheck boundary remain outside this
 certificate. No EX9 card uses `underOrFilters`.
+
+The final integrated interpreter adopts the published normalization from main
+commit `66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` byte for byte. The strengthened
+BT14-090 case follows its material-first decision sequence and retains the
+unpaid-batch, manual-order, same-host, exact-identity and final-resolution proof.
