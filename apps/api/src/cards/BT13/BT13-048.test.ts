@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT13-048.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -21,10 +19,10 @@ describe("BT13-048 Salamon", () => {
               to: "hand",
               filter: {
                 kind: ["Digimon"],
-                excludeNameOrTrait: [{ match: "trait", tokens: ["Sea Animal"] }],
+                excludeNameOrTrait: [{ match: "traitContains", tokens: ["Sea Animal"] }],
                 nameOrTrait: [
-                  { match: "trait", tokens: ["Beast", "Animal"] },
-                  { match: "trait", tokens: ["Sovereign"] },
+                  { match: "traitContains", tokens: ["Beast", "Animal"] },
+                  { match: "traitContains", tokens: ["Sovereign"] },
                 ],
               },
             },
@@ -51,13 +49,13 @@ describe("BT13-048 Salamon", () => {
     });
   });
 
-  it("adds one Beast and one Royal Knight while bottoming an excluded Sea Animal", async () => {
+  it("publicly adds one Beastkin and one Royal Knight while bottoming an excluded Sea Animal", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-048", as: "salamon" }],
+          hand: [{ card: "BT13-048", as: "salamon" }],
           deck: [
-            { card: "BT13-047", as: "beast" },
+            { card: "BT13-052", as: "beast" },
             { card: "BT13-046", as: "royal-knight" },
             { card: "BT1-033", as: "sea-animal" },
             { card: "BT1-009", as: "remainder" },
@@ -66,8 +64,11 @@ describe("BT13-048 Salamon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("salamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("salamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("beast").instanceId, s.inst("royal-knight").instanceId].sort(),
@@ -77,7 +78,7 @@ describe("BT13-048 Salamon", () => {
 
   it("gives an inherited Beast or Royal Knight host +2000 only on its controller's turn", async () => {
     for (const [host, baseDP] of [
-      ["BT13-047", 1000],
+      ["BT13-052", 5000],
       ["BT13-046", 13000],
     ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-048"] }] } });
@@ -92,7 +93,7 @@ describe("BT13-048 Salamon", () => {
   it("does not boost a Sea Animal or unrelated host", async () => {
     for (const [host, baseDP] of [
       ["BT1-033", 4000],
-      ["BT13-049", 1000],
+      ["BT1-071", 6000],
     ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-048"] }] } });
       await s.ready();
@@ -105,6 +106,7 @@ describe("BT13-048 Salamon", () => {
       0: { breeding: { card: "BT13-004", as: "base" }, hand: [{ card: "BT13-048", as: "salamon" }] },
     });
     s.state.memory = 1;
+    const baseId = s.inst("base").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -114,5 +116,6 @@ describe("BT13-048 Salamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-048");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

@@ -1,3 +1,4 @@
+import "../BT16/BT16-083.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-050.js";
 import { EffectTiming } from "@aegis/shared";
@@ -22,7 +23,11 @@ describe("BT13-050 Sunflowmon", () => {
           optional: true,
           abortOnDecline: true,
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Fairy"] }] },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ match: "traitContains", tokens: ["Fairy"] }],
+          },
           payCost: true,
           reduceCost: 2,
           cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
@@ -50,24 +55,25 @@ describe("BT13-050 Sunflowmon", () => {
     });
   });
 
-  it("suspends itself and evolves an own Digimon into a hand Fairy for 2 less", async () => {
+  it("suspends itself and evolves an own Digimon into a hand Ancient Fairy for 2 less", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT13-051", as: "target" },
+            { card: "BT13-053", as: "target" },
             { card: "BT13-050", as: "sunflow" },
           ],
-          hand: [{ card: "BT13-054", as: "lilamon" }],
+          hand: [{ card: "BT16-083", as: "bigUkkomon" }],
           deck: [{ card: "BT1-009", as: "bonusDraw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 3;
+    s.state.memory = 5;
     const targetInstanceId = s.perm("target").topCard.instanceId;
     const effect = observe(s.engine).activatableEffects(s.perm("sunflow"))[0]!;
+    expect(effect).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -75,7 +81,7 @@ describe("BT13-050 Sunflowmon", () => {
         effectKey: effect.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").topCard.cardId === "BT13-054");
+    await settle(() => s.perm("target").topCard.cardId === "BT16-083");
     expect(s.perm("target").stack.some((card) => card.instanceId === targetInstanceId)).toBe(true);
     expect(s.perm("sunflow").isSuspended).toBe(true);
     expect(s.state.memory).toBe(2);
@@ -100,6 +106,7 @@ describe("BT13-050 Sunflowmon", () => {
     );
     await s.ready();
     const effect = observe(s.engine).activatableEffects(s.perm("sunflow"))[0]!;
+    expect(effect).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",

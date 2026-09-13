@@ -50,10 +50,10 @@ describe("BT13-051 Mikemon", () => {
 
   it("gives an inherited Beast or Royal Knight host +2000 only on its controller's turn", async () => {
     for (const [host, baseDP] of [
-      ["BT13-055", 8000],
+      ["BT13-053", 7000],
       ["BT13-046", 13000],
     ] as const) {
-      // Lamortmon is a legal Lv.5 host for the inherited Lv.4 Mikemon source.
+      // Mihiramon is a legal Holy Beast Lv.5 host for the inherited Lv.4 Mikemon source.
       // The Royal Knight case intentionally seeds the source under the host to
       // exercise the typed-trait aura independently of an evolution route.
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-051"] }] } });
@@ -81,6 +81,7 @@ describe("BT13-051 Mikemon", () => {
       0: { battleArea: [{ card: "BT13-049", as: "base" }], hand: [{ card: "BT13-051", as: "mike" }] },
     });
     s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -90,5 +91,6 @@ describe("BT13-051 Mikemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-051");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

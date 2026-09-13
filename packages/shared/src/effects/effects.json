@@ -22668,12 +22668,12 @@
             "add": [
               {
                 "filter": {
-                  "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
+                  "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }],
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
-                    { "tokens": ["Beast", "Animal"], "match": "trait" },
-                    { "tokens": ["Sovereign"], "match": "trait" }
+                    { "tokens": ["Beast", "Animal"], "match": "traitContains" },
+                    { "tokens": ["Sovereign"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -22708,13 +22708,15 @@
                   "conditions": [
                     {
                       "kind": "selfHasTrait",
-                      "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] }
+                      "filter": {
+                        "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }]
+                      }
                     },
                     {
                       "kind": "not",
                       "condition": {
                         "kind": "selfHasTrait",
-                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] }
+                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }] }
                       }
                     }
                   ]
@@ -22748,8 +22750,8 @@
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
-                    { "tokens": ["Vegetation", "Plant"], "match": "trait" },
-                    { "tokens": ["Fairy"], "match": "trait" }
+                    { "tokens": ["Vegetation", "Plant"], "match": "traitContains" },
+                    { "tokens": ["Fairy"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -22809,7 +22811,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Fairy"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Fairy"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -22882,13 +22884,15 @@
                   "conditions": [
                     {
                       "kind": "selfHasTrait",
-                      "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] }
+                      "filter": {
+                        "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }]
+                      }
                     },
                     {
                       "kind": "not",
                       "condition": {
                         "kind": "selfHasTrait",
-                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] }
+                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }] }
                       }
                     }
                   ]
@@ -24882,8 +24886,8 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Bird"], "match": "trait" },
-                  { "tokens": ["Avian"], "match": "trait" }
+                  { "tokens": ["Bird"], "match": "traitContains" },
+                  { "tokens": ["Avian"], "match": "traitContains" }
                 ]
               }
             }
@@ -25167,7 +25171,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "raw": "you have a Digimon with [Avian] or [Bird] in one of its traits"
             }

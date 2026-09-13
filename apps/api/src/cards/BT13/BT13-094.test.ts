@@ -39,7 +39,7 @@ describe("BT13-094 BT13-094", () => {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }],
+              nameOrTrait: [{ match: "traitContains", tokens: ["Avian", "Bird"] }],
             },
           },
         },
@@ -71,12 +71,12 @@ describe("BT13-094 BT13-094", () => {
     expect(s.perm("card").topCard?.cardId).toBe("BT13-094");
   });
 
-  it("gains memory on real entry to the main phase when an Avian is present", async () => {
+  it("gains memory on real main-phase entry with a Mysterious Bird present", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT13-094", as: "kristy" },
-          { card: "BT13-079", as: "falcomon" },
+          { card: "BT13-085", as: "crowmon" },
         ],
         hand: ["BT1-012"],
       },

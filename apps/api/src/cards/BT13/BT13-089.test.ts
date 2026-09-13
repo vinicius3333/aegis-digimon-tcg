@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-089.js";
 import "./BT13-092.js";
+import "./BT13-085.js";
 
 describe("BT13-089 BT13-089", () => {
   it("matches the delayed and deletion play clauses", () => {
@@ -51,8 +52,8 @@ describe("BT13-089 BT13-089", () => {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
           nameOrTrait: [
-            { match: "trait", tokens: ["Bird"] },
-            { match: "trait", tokens: ["Avian"] },
+            { match: "traitContains", tokens: ["Bird"] },
+            { match: "traitContains", tokens: ["Avian"] },
           ],
         },
       },
@@ -65,21 +66,35 @@ describe("BT13-089 BT13-089", () => {
     expect(s.perm("card").topCard?.cardId).toBe("BT13-089");
   });
 
-  it("naturally deletes an eligible Ravemon at own end and plays one from trash next opponent end", async () => {
+  it("naturally deletes Ravemon with a Mysterious Bird source and plays it next opponent end", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-089", under: ["BT13-082"], as: "source" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        0: {
+          battleArea: [{ card: "BT13-089", under: [{ card: "BT13-085", as: "birdSource" }], as: "source" }],
+          hand: ["BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+        1: { hand: ["BT1-010"], deck: Array.from({ length: 8 }, () => "BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
     const sourceId = s.perm("source").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === sourceId));
+    const ravemonId = s.inst("source").instanceId;
+    const birdId = s.inst("birdSource").instanceId;
+    preferred.push(ravemonId);
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === sourceId)).toBe(false);
-
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([ravemonId, birdId]),
+    );
     s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-089"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-089")).toBe(true);
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ravemonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === birdId)).toBe(true);
   });
 
   it("plays an exact Falcomon from hand when deleted", async () => {
@@ -92,7 +107,7 @@ describe("BT13-089 BT13-089", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-079")).toBe(true);
   });
 
-  it("does not arm the delayed effect while Ravemon: Burst Mode is the end-of-turn top card (Q2335)", async () => {
+  it("[Supplemental] does not arm the delayed effect while Ravemon: Burst Mode is the end-of-turn top card (Q2335)", async () => {
     const s = setupEngine(
       {
         0: {

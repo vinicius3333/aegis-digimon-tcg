@@ -21,8 +21,8 @@ describe("BT13-049 Lalamon", () => {
               filter: {
                 kind: ["Digimon"],
                 nameOrTrait: [
-                  { match: "trait", tokens: ["Vegetation", "Plant"] },
-                  { match: "trait", tokens: ["Fairy"] },
+                  { match: "traitContains", tokens: ["Vegetation", "Plant"] },
+                  { match: "traitContains", tokens: ["Fairy"] },
                 ],
               },
             },
@@ -52,13 +52,13 @@ describe("BT13-049 Lalamon", () => {
     });
   });
 
-  it("adds one Vegetation Digimon and Yoshino while bottoming the nonmatch", async () => {
+  it("adds one Carnivorous Plant Digimon and Yoshino while bottoming the nonmatch", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
-            { card: "BT13-050", as: "vegetation" },
+            { card: "BT1-071", as: "vegetation" },
             { card: "BT13-100", as: "yoshino" },
             { card: "BT13-047", as: "nonmatch" },
             "BT1-009",
