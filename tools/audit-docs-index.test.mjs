@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
@@ -10,6 +10,14 @@ const repoRoot = resolve(import.meta.dirname, "..");
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), "aegis-audit-index-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
+  // build-index invokes `pnpm exec oxfmt` from its discovered project root. Give
+  // the isolated fixture the same formatter dependency without copying the repo.
+  writeFileSync(join(root, "package.json"), '{"name":"audit-index-fixture","private":true}\n');
+  symlinkSync(
+    join(repoRoot, "node_modules"),
+    join(root, "node_modules"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
   mkdirSync(join(root, "tools/audit-docs"), { recursive: true });
   mkdirSync(join(root, "docs/audits"), { recursive: true });
   const script = join(root, "tools/audit-docs/build-index.mjs");

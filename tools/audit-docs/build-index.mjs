@@ -101,7 +101,9 @@ const formatted = spawnSync(
   { cwd: root, encoding: "utf8", input: unformatted, timeout: 30_000 },
 );
 if (formatted.error || formatted.status !== 0) {
-  throw new Error(`Could not format audit index: ${formatted.error?.message ?? formatted.stderr ?? formatted.stdout}`);
+  throw new Error(
+    `Could not format audit index: ${formatted.error?.message ?? (formatted.stderr || formatted.stdout || "formatter exited without diagnostics")}`,
+  );
 }
 const updated = formatted.stdout;
 
