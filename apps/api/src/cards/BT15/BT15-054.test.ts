@@ -1,5 +1,6 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-054.js";
@@ -97,23 +98,56 @@ describe("BT15-054", () => {
   });
 
   it("naturally suspends a played opposing Digimon during the opponent's turn", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-054", as: "rosemon" }] },
-        1: { hand: [{ card: "BT1-009", as: "played" }] },
+        0: { battleArea: [{ card: "BT15-054", as: "rosemon" }], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          hand: [
+            { card: "BT1-009", as: "played" },
+            { card: "BT1-009", as: "playedAgain" },
+            { card: "BT1-009", as: "playedNextTurn" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
 
     s.state.turnSeat = 1;
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("played").isSuspended);
 
     expect(s.perm("played").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("playedAgain").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("playedAgain").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+    expect(s.state.turnSeat).toBe(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    preferInstanceIds.push(s.inst("playedNextTurn").instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("playedNextTurn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("playedNextTurn").isSuspended);
+    expect(s.perm("playedNextTurn").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("naturally reacts to an opposing breeding move when X Antibody is in its stack", async () => {

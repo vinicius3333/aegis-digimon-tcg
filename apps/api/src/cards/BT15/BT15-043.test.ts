@@ -36,7 +36,7 @@ describe("BT15-043", () => {
             { card: "BT15-047", as: "otherInsectoid", dp: 5000 },
           ],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -52,22 +52,68 @@ describe("BT15-043", () => {
 
   it("preserves the inherited battle trigger through a legal evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-078", as: "host", dp: 12000, under: ["BT15-043"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      0: {
+        battleArea: [{ card: "BT1-073", as: "host", under: ["BT15-043"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "target", dp: 1000, suspended: true },
+          { card: "BT1-009", as: "secondTarget", dp: 1000, suspended: true },
+          { card: "BT1-009", as: "thirdTarget", dp: 1000, suspended: true },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
     });
     s.state.memory = 0;
+    const firstTargetId = s.perm("target").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    const thirdTargetId = s.perm("thirdTarget").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        target: { kind: "permanent", permanentId: firstTargetId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstTargetId));
 
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT15-043"]);
     expect(s.state.memory).toBe(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: secondTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondTargetId));
+    expect(s.state.memory).toBe(1);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.suspend([thirdTargetId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: thirdTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === thirdTargetId));
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("digivolves legally from a green level-2 Digi-Egg in the breeding area", async () => {

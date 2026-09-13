@@ -56,7 +56,7 @@ describe("BT15-024", () => {
             { card: "ST2-12", as: "handMatt" },
           ],
           deck: [
-            { card: "BT1-001", as: "normalDraw" },
+            { card: "BT1-009", as: "normalDraw" },
             { card: "BT1-009", as: "effectDraw" },
           ],
         },
@@ -90,7 +90,7 @@ describe("BT15-024", () => {
             { card: "BT15-024", as: "garurumon" },
             { card: "BT1-086", as: "matt" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -107,7 +107,7 @@ describe("BT15-024", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-086"));
 
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
   it("can decline the optional reduced-cost Matt play after a legal evolution", async () => {
@@ -119,7 +119,7 @@ describe("BT15-024", () => {
             { card: "BT15-024", as: "garurumon" },
             { card: "BT1-086", as: "matt" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -136,7 +136,7 @@ describe("BT15-024", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-024"));
 
     expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086", "BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086", "BT1-009"]);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-086")).toHaveLength(
       0,
     );
@@ -149,7 +149,7 @@ describe("BT15-024", () => {
           battleArea: [{ card: "BT15-027", as: "host", under: ["BT15-024"] }],
           deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -175,5 +175,49 @@ describe("BT15-024", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("draws again from an attack after the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-027", as: "host", under: ["BT15-024"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

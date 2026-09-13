@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT15-029.js";
 
@@ -81,6 +83,7 @@ describe("BT15-029", () => {
   });
 
   it("the inherited effect pays with another blue Digimon, unsuspends its host, and is once per turn", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -95,12 +98,20 @@ describe("BT15-029", () => {
             },
             { card: "BT15-025", as: "firstCost" },
             { card: "BT15-025", as: "secondCost" },
+            { card: "BT15-025", as: "thirdCost" },
           ],
+          hand: [{ card: "BT1-010", as: "spare" }],
+          deck: ["BT1-009", "BT1-010", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true }], security: ["BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", suspended: true }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-009", "BT1-010"],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.inst("firstCost").instanceId);
     await s.ready();
 
     expect(
@@ -110,7 +121,7 @@ describe("BT15-029", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended === false);
+    await settle(() => s.perm("host").isSuspended === false && !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("host").stack).toHaveLength(3);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("firstCost").instanceId);
@@ -122,12 +133,36 @@ describe("BT15-029", () => {
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended);
+    await settle(() => s.perm("host").isSuspended && !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.perm("host").stack).toHaveLength(3);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("secondCost").permanentId,
     );
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    preferInstanceIds.length = 0;
+    preferInstanceIds.push(s.inst("thirdCost").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("thirdCost").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("When Digivolving uses the placed Digimon's exact level as the return ceiling", async () => {

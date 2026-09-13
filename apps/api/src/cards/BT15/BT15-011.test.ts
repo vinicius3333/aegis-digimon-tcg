@@ -62,7 +62,7 @@ describe("BT15-011", () => {
             { card: "BT15-011", as: "tyrannomon" },
             { card: "BT1-009", as: "kept" },
           ],
-          deck: ["BT1-009", "BT12-092", "BT1-097", "BT1-001"],
+          deck: ["BT1-009", "BT12-092", "BT1-097", "BT1-010"],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -84,7 +84,7 @@ describe("BT15-011", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "base" }],
           hand: [{ card: "BT15-011", as: "tyrannomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -106,8 +106,8 @@ describe("BT15-011", () => {
 
   it("can suspend to block an opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT15-011", as: "tyrannomon", dp: 4000 }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT15-011", as: "tyrannomon", dp: 4000 }], security: ["BT1-009"] },
     });
     s.state.turnSeat = 0;
     await s.ready();
