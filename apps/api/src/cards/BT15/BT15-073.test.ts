@@ -86,29 +86,42 @@ describe("BT15-073", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("naturally deletes its battle opponent as a digivolution card", async () => {
+  it("naturally deletes its battle opponent while inherited under a legal host", async () => {
     const s = setupEngine(
       {
-        // BT2-059 is a vanilla host, so the only [On Deletion] reaction in play is the
-        // inherited retaliation clause printed on BT15-073 underneath it.
+        // ST6-09 is a legal Purple Lv.5 host over BT15-073 (Purple Lv.4). Its printed
+        // effects are irrelevant here; the inherited retaliation clause is the subject.
         0: {
-          battleArea: [{ card: "BT2-059", as: "host", under: ["BT15-073"], suspended: true }],
+          battleArea: [{ card: "ST6-09", as: "host", under: ["BT15-073"], suspended: true }],
           security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT13-019", as: "attacker" }],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-009"],
+        },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const attackerId = s.perm("attacker").permanentId;
+    const hostCardId = s.perm("host").topCard.instanceId;
+    const sourceId = s.perm("host").stack.find((card) => card.cardId === "BT15-073")!.instanceId;
+    const attackerCardId = s.perm("attacker").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: hostId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sourceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(hostCardId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerCardId);
   });
 });

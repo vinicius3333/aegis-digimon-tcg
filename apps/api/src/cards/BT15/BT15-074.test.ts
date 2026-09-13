@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-074.js";
 import "../index.js";
 
@@ -17,8 +19,8 @@ describe("BT15-074", () => {
   it("naturally lets the opponent trash a Digimon card from hand on play", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-074", as: "gesomon" }], security: ["BT1-001"] },
-        1: { hand: [{ card: "BT1-009", as: "opponentCard" }], security: ["BT1-001"] },
+        0: { hand: [{ card: "BT15-074", as: "gesomon" }], security: ["BT1-009"] },
+        1: { hand: [{ card: "BT1-009", as: "opponentCard" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -38,8 +40,8 @@ describe("BT15-074", () => {
   it("naturally gains the fallback memory when the opponent has no Digimon card to trash", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-074", as: "gesomon" }], security: ["BT1-001"] },
-        1: { security: ["BT1-001"] },
+        0: { hand: [{ card: "BT15-074", as: "gesomon" }], security: ["BT1-009"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -76,9 +78,9 @@ describe("BT15-074", () => {
       {
         0: {
           battleArea: [{ card: "BT15-078", as: "attacker", under: ["BT15-074"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { trash: [{ card: "BT1-009", as: "playedByEffect" }], security: ["BT1-001"] },
+        1: { trash: [{ card: "BT1-009", as: "playedByEffect" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -101,8 +103,8 @@ describe("BT15-074", () => {
   it("does not gain memory when the opponent manually plays a Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-074", as: "watcher" }], security: ["BT1-001"] },
-        1: { hand: [{ card: "BT1-009", as: "manual" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT15-074", as: "watcher" }], security: ["BT1-009"] },
+        1: { hand: [{ card: "BT1-009", as: "manual" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -116,5 +118,87 @@ describe("BT15-074", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009"));
 
     expect(s.state.memory).toBe(8);
+  });
+
+  it("gains inherited memory once for same-turn effect plays and resets next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-078", as: "attacker", under: ["BT15-074"] }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          trash: [
+            { card: "BT1-009", as: "playedByEffect" },
+            { card: "BT1-009", as: "secondPlayedByEffect" },
+            { card: "BT1-009", as: "nextPlayedByEffect" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.memory === 1 && !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined,
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("playedByEffect").instanceId),
+    ).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("secondPlayedByEffect").instanceId),
+    ).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.memory === 4 && !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined,
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("nextPlayedByEffect").instanceId),
+    ).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

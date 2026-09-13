@@ -1,5 +1,6 @@
 import { effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-060.js";
@@ -97,15 +98,32 @@ describe("BT15-060", () => {
   });
 
   it("naturally de-digivolves the opponent on attack through the inherited effect", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-063", as: "attacker", under: ["BT15-060"] }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT15-058", as: "target", under: ["BT1-009"] }] },
+        0: {
+          battleArea: [{ card: "BT15-063", as: "attacker", under: ["BT15-060"] }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-058", as: "target", under: ["BT15-055"] },
+            { card: "BT15-058", as: "targetAgain", under: ["BT15-055"] },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
 
+    preferInstanceIds.push(s.perm("target").topCard!.instanceId);
+    s.state.memory = 10;
     await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -113,9 +131,60 @@ describe("BT15-060", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").topCard?.cardId === "BT1-009");
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("target").topCard?.cardId === "BT15-055" &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
 
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT15-058");
-    expect(s.perm("target").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("target").topCard?.cardId).toBe("BT15-055");
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    preferInstanceIds.push(s.perm("targetAgain").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.security.length === 3,
+    );
+    expect(s.perm("targetAgain").topCard?.cardId).toBe("BT15-058");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("targetAgain").topCard?.cardId === "BT15-055" &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("targetAgain").topCard?.cardId).toBe("BT15-055");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

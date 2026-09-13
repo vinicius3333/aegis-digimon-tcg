@@ -22,7 +22,7 @@ describe("BT15-069", () => {
       {
         0: {
           battleArea: [{ card: "BT15-069", as: "candlemon", dp: 2000, suspended: true }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
       },

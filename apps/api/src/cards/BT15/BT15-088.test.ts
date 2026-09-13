@@ -49,7 +49,7 @@ describe("BT15-088", () => {
             { card: "BT15-082", as: "sora" },
           ],
           trash: [{ card: "BT1-010", as: "returnedRed" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -75,7 +75,7 @@ describe("BT15-088", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "attacker" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
