@@ -107284,7 +107284,8 @@
                   "position": "bottom",
                   "host": { "filter": { "boundRef": "gaomonHost" }, "count": 1 }
                 }
-              ]
+              ],
+              "orderPlacedCards": true
             },
             "optional": true,
             "abortOnDecline": true,
@@ -107301,7 +107302,10 @@
                   "count": 1,
                   "fromSelectionRef": "gaomonHost"
                 },
-                "into": { "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "nameExact" }] },
+                "into": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "nameExact" }]
+                },
                 "from": ["hand"],
                 "payCost": false,
                 "ignoreRequirements": true,
@@ -107318,9 +107322,17 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }]
+              },
               "orFilters": [
-                { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "nameExact" }] }
+                {
+                  "controller": "mine",
+                  "kind": ["Tamer"],
+                  "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "nameExact" }]
+                }
               ],
               "count": 1,
               "upTo": true

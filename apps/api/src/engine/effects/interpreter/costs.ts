@@ -430,7 +430,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       // check until payCost, after that binding exists (BT26-098's two named materials).
       if (cost.host.filter.boundRef !== undefined && ctx.selections?.has(cost.host.filter.boundRef) !== true)
         return true;
-      return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+      return (
+        candidatePermanents(ctx, { filter: cost.host.filter, orFilters: cost.host.orFilters, count: cost.host.count })
+          .length > 0
+      );
     }
     return (
       ctx.source.permanent() !== undefined ||
@@ -547,88 +550,80 @@ export async function payCost(
       if (!canPayCost(ctx, cost)) return false;
       if (cost.orderPlacedCards === true) {
         const first = cost.costs[0]!;
-        const allLoose = cost.costs.every(
+        if (ctx.fx.placeMixedMaterialsUnder === undefined || ctx.ask.orderCards === undefined || first.kind !== "place")
+          return false;
+        const allBottomPlacements = cost.costs.every(
           (nested) =>
-            nested.kind === "place" &&
-            nested.target !== undefined &&
-            nested.targetIsPermanent !== true &&
-            nested.destination === "digivolutionStack" &&
-            nested.position === "bottom" &&
-            zoneList((nested.target.from ?? ["hand"]) as ZoneRef | ZoneRef[]).every((zone) => zone === "trash") &&
-            nested.target.upTo !== true &&
-            nested.target.count !== "all" &&
-            (nested.target.count ?? 1) === 1,
+            nested.kind === "place" && nested.destination === "digivolutionStack" && nested.position === "bottom",
         );
-        if (
-          allLoose &&
-          ctx.fx.placeMixedMaterialsUnder !== undefined &&
-          ctx.ask.orderCards !== undefined &&
-          first.kind === "place" &&
-          first.target !== undefined &&
-          first.underFilter !== undefined &&
-          first.bindHostAs !== undefined &&
-          cost.costs
-            .slice(1)
-            .every(
-              (nested) =>
-                typeof nested.host === "object" &&
-                nested.host !== null &&
-                nested.host.filter.boundRef === first.bindHostAs,
-            )
-        ) {
-          // All-loose placement costs select the first material, bind the destination,
-          // then select the remaining materials and commit the ordered batch atomically.
-          const paymentCtx = { ...ctx, selections: new Map(ctx.selections) };
+        if (!allBottomPlacements || first.target === undefined || first.bindHostAs === undefined) return false;
+        const paymentCtx = { ...ctx, selections: new Map(ctx.selections) };
+
+        // A compound cost can contain several loose cards (for example BT25-096's
+        // Gaogamon and MachGaogamon). They leave simultaneously, so collect all
+        // selections before asking the controller for their bottom-stack order.
+        if (first.targetIsPermanent !== true) {
+          if (typeof first.host !== "object" || first.host === null) return false;
+          const hosts = await resolvePermanentTargets(paymentCtx, {
+            filter: first.host.filter,
+            orFilters: first.host.orFilters,
+            count: first.host.count,
+          });
+          const hostId = hosts.length === 1 ? hosts[0] : undefined;
+          if (hostId === undefined) return false;
+          paymentCtx.selections.set(first.bindHostAs, hostId);
           const chosen: string[] = [];
           const looseSelections: { cost: Cost; id: string }[] = [];
-          let hostId: string | undefined;
           for (const [index, nested] of cost.costs.entries()) {
+            if (nested.kind !== "place" || nested.target === undefined || nested.targetIsPermanent === true)
+              return false;
+            if (
+              index > 0 &&
+              (typeof nested.host !== "object" ||
+                nested.host === null ||
+                nested.host.filter.boundRef !== first.bindHostAs)
+            )
+              return false;
             const candidates = candidateLooseInstances(
               paymentCtx,
-              nested.target!,
-              zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+              nested.target,
+              zoneList((nested.target.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
             ).filter((candidate) => !chosen.includes(candidate.instanceId));
-            const picked = await pickLoose(paymentCtx, nested.target!, candidates);
+            const picked = await pickLoose(paymentCtx, nested.target, candidates);
             if (picked.length !== 1 || !candidates.some((candidate) => candidate.instanceId === picked[0]))
               return false;
             chosen.push(picked[0]!);
             looseSelections.push({ cost: nested, id: picked[0]! });
-            if (index === 0) {
-              const hosts = await resolvePermanentTargets(paymentCtx, {
-                filter: first.underFilter,
-                orFilters: first.underOrFilters,
-                count: 1,
-              });
-              if (hosts.length !== 1) return false;
-              hostId = hosts[0]!;
-              paymentCtx.selections.set(first.bindHostAs, hostId);
-            }
           }
-          if (hostId === undefined) return false;
-          const visibleCards = chosen.map((instanceId) => {
-            const card = looseSelections
-              .flatMap(({ cost: nested }) =>
-                candidateLooseInstances(
-                  paymentCtx,
-                  nested.target!,
-                  zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
-                ),
-              )
-              .find((candidate) => candidate.instanceId === instanceId);
-            return { instanceId, cardId: card?.cardId ?? instanceId };
-          });
           const ordered = await ctx.ask.orderCards(paymentCtx, {
             candidates: chosen,
-            visibleCards,
+            visibleCards: chosen.map((instanceId) => {
+              const candidate = looseSelections
+                .map(({ cost: nested }) =>
+                  candidateLooseInstances(
+                    paymentCtx,
+                    nested.target!,
+                    zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+                  ),
+                )
+                .flat()
+                .find((entry) => entry.instanceId === instanceId);
+              return { instanceId, cardId: candidate?.cardId ?? instanceId };
+            }),
             destination: "stackBottom",
           });
           if (
             ordered.length !== chosen.length ||
             new Set(ordered).size !== chosen.length ||
-            ordered.some((id) => !chosen.includes(id)) ||
-            !candidatePermanents(ctx, { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }).some(
-              (permanent) => permanent.permanentId === hostId,
-            ) ||
+            ordered.some((id) => !chosen.includes(id))
+          )
+            return false;
+          if (
+            !candidatePermanents(ctx, {
+              filter: first.host.filter,
+              orFilters: first.host.orFilters,
+              count: first.host.count,
+            }).some((permanent) => permanent.permanentId === hostId) ||
             looseSelections.some(
               ({ cost: nested, id }) =>
                 !candidateLooseInstances(
@@ -649,21 +644,7 @@ export async function payCost(
           if (out) out.paidCount = ordered.length;
           return true;
         }
-        if (
-          ctx.fx.placeMixedMaterialsUnder === undefined ||
-          ctx.ask.orderCards === undefined ||
-          first.kind !== "place" ||
-          first.targetIsPermanent !== true ||
-          first.target === undefined ||
-          first.underFilter === undefined ||
-          first.bindHostAs === undefined ||
-          cost.costs.some(
-            (nested) =>
-              nested.kind !== "place" || nested.destination !== "digivolutionStack" || nested.position !== "bottom",
-          )
-        )
-          return false;
-        const paymentCtx = { ...ctx, selections: new Map(ctx.selections) };
+        if (first.underFilter === undefined) return false;
         const sources = await resolvePermanentTargets(paymentCtx, first.target);
         if (sources.length !== 1) return false;
         const hosts = await resolvePermanentTargets(paymentCtx, {
