@@ -1239,6 +1239,14 @@ export function describeEvent(
         cardIds: [event.sourceCardId],
       };
     case "cardsMoved": {
+      if (event.turnEndDeletion !== undefined) {
+        const { sourceCardId, deletedCardId } = event.turnEndDeletion;
+        return {
+          text: t("log.turnEndDeletion", { card: cardName(deletedCardId), source: cardName(sourceCardId) }),
+          kind: "sys",
+          cardIds: [deletedCardId, sourceCardId],
+        };
+      }
       const from = logZoneLabel(event.from, t);
       const to = logZoneLabel(event.to, t);
       // A single move is the case worth naming; several cards would push the names past

@@ -653,6 +653,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "log.effectResolved": "O efeito de {card} foi resolvido",
   "log.cardMoved": "{count} carta movida: {from} → {to}",
   "log.cardMovedNamed": "{card} movida: {from} → {to}",
+  "log.turnEndDeletion": "{card} foi excluída no fim do turno pelo efeito de {source}",
   "log.cardsMoved": "{count} cartas movidas: {from} → {to}",
   "log.zone.deck": "baralho",
   "log.zone.deckBottom": "fundo do baralho",

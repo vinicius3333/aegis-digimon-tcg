@@ -27,7 +27,8 @@ type TamerBaseColor = NonNullable<DigivolutionRequirement["baseColors"]>[number]
 export function trainingActivatedEffect(isBreeding = false): CardEffect {
   return {
     trigger: "Main",
-    description: "＜Training＞: by suspending this Digimon during the main phase, place the top card of your deck at the bottom of this Digimon's digivolution cards.",
+    description:
+      "＜Training＞: by suspending this Digimon during the main phase, place the top card of your deck at the bottom of this Digimon's digivolution cards.",
     ...(isBreeding ? { isBreeding: true } : {}),
     actions: [
       {
@@ -133,6 +134,9 @@ export function overclockActivatedEffect(trait: string): CardEffect {
         kind: "Attack",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         attackPlayer: true,
+        attackPlayerOnly: true,
+        attackMechanic: "Overclock",
+        drainTimingWindowDuringAttack: true,
         withoutSuspending: true,
         optional: true,
         abortOnDecline: true,

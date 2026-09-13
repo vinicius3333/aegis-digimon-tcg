@@ -168,6 +168,7 @@ export function sidePanelFromEvent(
 ): SidePanel | null {
   switch (event.kind) {
     case "cardsMoved": {
+      if (event.from === "deck" && event.to === "hand" && event.drawReason === "digivolution") return null;
       const titleKey = titleForMovement(event.from, event.to);
       if (!titleKey) return null;
       // The event's own identities first: the index can be one state patch behind

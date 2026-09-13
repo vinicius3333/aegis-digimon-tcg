@@ -1138,6 +1138,7 @@ export class GameEngine {
         const pausedDepth = this.effectResolutionDepth;
         this.effectResolutionDepth = 0;
         try {
+          await this.settleBetweenEffects();
           await drain();
         } finally {
           this.effectResolutionDepth = pausedDepth;

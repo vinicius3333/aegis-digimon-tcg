@@ -95,6 +95,19 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       ? trigger.map((singleTrigger) => ({ ...effect, trigger: singleTrigger }) as CardEffect)
       : [effect];
   });
+  // Explicit legacy Overclock bodies obey the same contract as synthesized ones.
+  for (let i = 0; i < effects.length; i++) {
+    const effect = effects[i]!;
+    if (effect.trigger !== "EndOfYourTurn" || !effect.keywords?.some((k) => k.keyword === "Overclock")) continue;
+    effects[i] = {
+      ...effect,
+      actions: effect.actions.map((action) =>
+        action.kind === "Attack"
+          ? { ...action, attackPlayerOnly: true, attackMechanic: "Overclock", drainTimingWindowDuringAttack: true }
+          : action,
+      ),
+    };
+  }
   const rootKeywords = (compiled as CompiledCard & { keywords?: CardEffect["keywords"] }).keywords ?? [];
   // Resident markers are separate keyword effects so a selective copy can omit one
   // without dropping sibling keywords or their numerical values.

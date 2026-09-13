@@ -1095,7 +1095,11 @@ export interface Primitives {
    * deletion-immune permanent contributes 0 — KB BT23-069 Q5338). The interpreter binds this on
    * `ctx.lastDeleteCount` so a subsequent "if this effect didn't delete" Condition can gate.
    */
-  deletePermanent(permanentIds: string[], cause?: RemovalCause, opts?: { mechanic?: "Overclock" }): Promise<number>;
+  deletePermanent(
+    permanentIds: string[],
+    cause?: RemovalCause,
+    opts?: { mechanic?: "Overclock"; turnEndDeletion?: { sourceCardId: string; deletedCardId: string } },
+  ): Promise<number>;
   /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
   trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
@@ -1285,6 +1289,7 @@ export interface Primitives {
   delayedDeletePlayed?(
     playedPermanentId: string,
     timing?: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn",
+    sourceCardId?: string,
   ): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of

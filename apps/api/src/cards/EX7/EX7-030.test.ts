@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -130,6 +130,11 @@ describe("EX7-030 Cendrillmon", () => {
       s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: cendrillId }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Familiar-Token"));
+    expect(s.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "cardsMoved", instanceIds: [drawnId], drawReason: "digivolution" }),
+      ]),
+    );
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").topCard.instanceId).toBe(cendrillId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
@@ -193,6 +198,100 @@ describe("EX7-030 Cendrillmon", () => {
     );
     expect(s.perm("cendrill").isSuspended).toBe(false);
   });
+
+  it.each([false, true])(
+    "respects same-turn attack legality after playing and evolving Karakurumon (Rush: %s)",
+    async (rush) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "TOKEN-Familiar-Token", as: "fodder" }],
+            hand: [
+              { card: "EX11-022", as: "base" },
+              { card: "EX7-030", as: "evolution" },
+            ],
+            deck: ["BT1-009", "BT1-011"],
+          },
+          1: { deck: ["BT1-012"], security: ["BT1-013", "BT1-014"] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 10;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX11-022"));
+      if (rush)
+        advance(s.engine).ledgers.continuous.addKeywordGrant(
+          s.perm("base").permanentId,
+          "Rush",
+          EffectDuration.UntilEachTurnEnd,
+        );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(rush ? 1 : 0);
+      expect(s.state.players[1]!.security).toHaveLength(rush ? 1 : 2);
+    },
+  );
+
+  it.each([12000, 9000])(
+    "Overclock targets only the player and resolves DP effects before security (DP: %s)",
+    async (dp) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX7-030", as: "cendrill" },
+              { card: "TOKEN-Familiar-Token", as: "familiar" },
+            ],
+            hand: ["BT1-009"],
+            deck: ["BT1-011"],
+          },
+          1: {
+            battleArea: [{ card: "EX7-014", as: "target", dp, suspended: true }],
+            deck: ["BT1-012"],
+            security: ["BT1-013", "BT1-014"],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await turn;
+      const attack = s.events.find((e) => e.kind === "attackDeclared");
+      expect(attack).toMatchObject({ target: { kind: "player" } });
+      const targetDecision = s.decisions.find(
+        ({ req }) => req.promptText === "Choose the attack target for the forced attack.",
+      );
+      expect(targetDecision?.req.options?.candidateInstanceIds).toEqual(["player"]);
+      const securityIndex = s.events.findIndex((e) => e.kind === "securityRevealed");
+      const dpIndex = s.events.findIndex(
+        (e) => e.kind === "effectResolved" && e.sourceCardId === "EX7-030" && e.timing === "OnUseAttack",
+      );
+      const familiarIndex = s.events.findIndex(
+        (e) => e.kind === "effectResolved" && e.sourceCardId === "TOKEN-Familiar-Token",
+      );
+      expect(securityIndex).toBeGreaterThan(dpIndex);
+      expect(dpIndex).toBeGreaterThanOrEqual(0);
+      expect(familiarIndex).toBeGreaterThanOrEqual(0);
+      expect(securityIndex).toBeGreaterThan(familiarIndex);
+      const deletionIndex = s.events.findIndex(
+        (e) => e.kind === "cardsMoved" && e.to === "trash" && e.instanceIds.includes(s.inst("target").instanceId),
+      );
+      expect(deletionIndex >= 0).toBe(dp === 9000);
+      expect(securityIndex).toBeGreaterThan(deletionIndex);
+      expect(s.state.players[1]!.battleArea).toHaveLength(dp === 9000 ? 0 : 1);
+    },
+  );
 
   it("rejects evolution from a non-yellow level 5 without payment, draw, or stack mutation", async () => {
     const s = setupEngine({

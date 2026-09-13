@@ -949,9 +949,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : await resolvePermanentTargets(ctx, action.target);
       for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
-          ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
+          ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn", ctx.source.cardId);
         } else {
-          ctx.fx.delayedDeletePlayed?.(permanentId);
+          ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOwnerTurn", ctx.source.cardId);
         }
       }
       return false;
@@ -969,6 +969,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
               : action.timing === "endOfOpponentTurn"
                 ? "endOfOpponentTurn"
                 : "endOfOwnerTurn",
+            ctx.source.cardId,
           );
       } else {
         const self = ctx.source.permanent();
@@ -980,6 +981,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
               : action.timing === "endOfOpponentTurn"
                 ? "endOfOpponentTurn"
                 : "endOfOwnerTurn",
+            ctx.source.cardId,
           );
       }
       return false;

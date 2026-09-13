@@ -80,6 +80,17 @@ describe("sidePanelFromEvent", () => {
     expect(result?.side).toBe("opp");
   });
 
+  it.each([0, 1] as const)("does not announce the automatic digivolution draw for seat %s", (seat) => {
+    const event: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["a"],
+      from: "deck",
+      to: "hand",
+      drawReason: "digivolution",
+    };
+    expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: seat }), "id", 0)).toBeNull();
+  });
+
   it("opens a hand panel for an effect that added cards to a hand", () => {
     const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["a"], from: "deck", to: "hand" };
     expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, { a: 0 }), "id", 0)?.titleKey).toBe(

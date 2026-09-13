@@ -589,14 +589,23 @@ export class GameStateAccess {
    * deletion path in the engine — a battle death, a rule process, an effect — moves its cards
    * through this class, so callers add no `cardsMoved` of their own.
    */
-  private narrateDeletion(moves: readonly DeletionMove[]): void {
+  private narrateDeletion(
+    moves: readonly DeletionMove[],
+    turnEndDeletion?: { sourceCardId: string; deletedCardId: string },
+  ): void {
     if (this.emit === undefined) return;
     for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
       const trashedInstanceIds = moves
         .filter((move) => move.from === from)
         .flatMap((move) => move.cards.map((card) => card.instanceId));
       if (trashedInstanceIds.length > 0)
-        this.emit({ kind: "cardsMoved", instanceIds: trashedInstanceIds, from, to: Zone.Trash });
+        this.emit({
+          kind: "cardsMoved",
+          instanceIds: trashedInstanceIds,
+          from,
+          to: Zone.Trash,
+          ...(turnEndDeletion ? { turnEndDeletion } : {}),
+        });
     }
   }
 
@@ -636,11 +645,14 @@ export class GameStateAccess {
    * gauge clamps at ±10). Returns each permanent id's moved instance ids (empty for an id that
    * was not found / already off the field), in the SAME order as `permanentIds`.
    */
-  deletePermanentsBatched(permanentIds: readonly string[]): string[][] {
+  deletePermanentsBatched(
+    permanentIds: readonly string[],
+    turnEndDeletion?: { sourceCardId: string; deletedCardId: string },
+  ): string[][] {
     const perPermanent = permanentIds.map((id) => this.moveDeletedPermanentCards(id));
     const allCards = perPermanent.flatMap((move) => move.cards);
     applyOverflow(this.memory, allCards, this.state.turnSeat);
-    this.narrateDeletion(perPermanent);
+    this.narrateDeletion(perPermanent, turnEndDeletion);
     return perPermanent.map((move) => move.cards.map((c) => c.instanceId));
   }
 

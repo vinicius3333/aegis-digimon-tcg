@@ -209,6 +209,14 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     await loop;
 
     expect(onField(s, puppet.instanceId)).toBe(false);
+    expect(s.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "cardsMoved",
+          turnEndDeletion: { sourceCardId: "EX11-022", deletedCardId: "BT13-035" },
+        }),
+      ]),
+    );
     // Both simultaneous effects resolved, in the order the turn player chose.
     expect(s.perm("otherEndOfTurn").isSuspended).toBe(false);
     assertNoLoudGap(s);

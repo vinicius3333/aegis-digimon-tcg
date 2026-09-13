@@ -659,7 +659,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const draw = async (
     seat: Seat,
     n: number,
-    opts?: { excludeInstanceIds?: readonly string[] },
+    opts?: { excludeInstanceIds?: readonly string[]; drawReason?: "digivolution" },
   ): Promise<CardInstance[]> => {
     const p = player(seat);
     const drawn: CardInstance[] = [];
@@ -678,6 +678,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: drawn.map((c) => c.instanceId),
         from: Zone.Deck,
         to: Zone.Hand,
+        ...(opts?.drawReason ? { drawReason: opts.drawReason } : {}),
       });
       // An effect Draw is an effect-driven hand addition ("when an effect adds cards to
       // your opponent's hand"/"...your hand"). The normal draw-phase draw routes through
@@ -1506,7 +1507,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // CR 7-1-4-1: every digivolution draws its digivolution bonus unless a caller
     // explicitly suppresses it. Effect-driven digivolution is still digivolution; making
     // the undefined default false silently skipped the bonus for nearly every card module.
-    if (opts?.draw !== false) await draw(seat, 1);
+    if (opts?.draw !== false) await draw(seat, 1, { drawReason: "digivolution" });
     await opts?.beforeWhenDigivolving?.();
     if (opts?.processRulesBeforeWhenDigivolving) {
       await engine.processRulesBeforeWhenDigivolving?.();
@@ -1712,7 +1713,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
     // CR 8-2-3-3: the DNA digivolution procedure itself draws 1 card — unconditional, part of
     // the placement procedure (mirrors applyDigivolve step 6), not an optional card effect.
-    await draw(seat, 1);
+    await draw(seat, 1, { drawReason: "digivolution" });
     // The DNA-digivolved card's OWN [When Digivolving] fires (it was digivolved BY AN EFFECT), with
     // `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate) and
     // `isDnaDigivolve` set so an `isDnaDigivolving` condition resolves its DNA-only branch.
@@ -1890,7 +1891,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     engine.emit({ kind: "cardsMoved", instanceIds: [instance.instanceId], from: "various", to: Zone.BattleArea });
     // CR 8-4-3-3: the app fusion procedure itself draws 1 card — unconditional, part of the
     // placement procedure (mirrors applyDigivolve step 6 / dnaDigivolveInto).
-    await draw(seat, 1);
+    await draw(seat, 1, { drawReason: "digivolution" });
     // The fusion result is now the permanent's live top card. Re-derive its printed
     // continuous effects before opening the [When Digivolving] window, matching the
     // ordinary digivolution path (BT24-077's printed Blocker is immediately active).
@@ -3568,7 +3569,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
-    opts?: { mechanic?: "Overclock" },
+    opts?: { mechanic?: "Overclock"; turnEndDeletion?: { sourceCardId: string; deletedCardId: string } },
   ): Promise<number> => {
     // Snapshot the producer before prevention/replacement bodies can open nested effect frames.
     // A rule or battle deletion is not attributed to the currently resolving card effect here;
@@ -4059,7 +4060,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         .listOnDeletionAtEndOfAttackProjections()
         .map((projection) => projection.permanentId),
     };
-    const movedByPermanent = access.deletePermanentsBatched(toDelete);
+    const movedByPermanent = access.deletePermanentsBatched(toDelete, opts?.turnEndDeletion);
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     for (let i = 0; i < toDelete.length; i++) {
       const permanentId = toDelete[i]!;
@@ -5457,6 +5458,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const delayedDeletePlayed = (
     playedPermanentId: string,
     timing: "endOfOwnerTurn" | "endOfOpponentTurn" | "endOfCurrentTurn" = "endOfOwnerTurn",
+    sourceCardId?: string,
   ): void => {
     // A one-shot `endOfTurn` watcher anchored on the affected permanent. Most cards delete at
     // their owner's turn end; BT23-048 explicitly schedules the opponent's turn end (Q5567/Q5568).
@@ -5492,7 +5494,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             ? "[End of Your Opponent's Turn] Delete this Digimon."
             : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
-        await deletePermanent([playedPermanentId], "byEffect");
+        const deletedCardId = access.permanentById(playedPermanentId)?.topCard.cardId;
+        await deletePermanent(
+          [playedPermanentId],
+          "byEffect",
+          sourceCardId && deletedCardId ? { turnEndDeletion: { sourceCardId, deletedCardId } } : undefined,
+        );
       },
     });
   };

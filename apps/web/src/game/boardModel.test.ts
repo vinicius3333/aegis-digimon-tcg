@@ -1146,6 +1146,23 @@ describe("match log combat responses", () => {
     );
   });
 
+  it("names Shoemon and Karakurumon for a scheduled deletion without a state patch", () => {
+    const event: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["shoemon"],
+      from: "battleArea",
+      to: "trash",
+      turnEndDeletion: { deletedCardId: "ST19-03", sourceCardId: "EX11-022" },
+    };
+    expect(describeEvent(event, 0, new Map(), t)).toMatchObject({
+      text: "Shoemon was deleted at turn end by Karakurumon's effect",
+      cardIds: ["ST19-03", "EX11-022"],
+    });
+    expect(describeEvent(event, 0, new Map(), translator("pt-BR"))?.text).toBe(
+      "Shoemon foi excluída no fim do turno pelo efeito de Karakurumon",
+    );
+  });
+
   it("keeps a permanent record of a triggered effect resolving", () => {
     const resolved: ServerEvent = {
       kind: "effectResolved",

@@ -1845,7 +1845,7 @@ describe("DelayedDelete action dispatch", () => {
 
     expect(recorder.calls.filter((c) => c.verb === "playInstances")).toHaveLength(1);
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: ["PLAYED#1"] },
+      { verb: "delayedDeletePlayed", args: ["PLAYED#1", "endOfOwnerTurn", "X-DELAYED-DELETE"] },
     ]);
   });
 });
@@ -7133,7 +7133,7 @@ describe("cards that delete the Digimon this effect played", () => {
     expect(recorder.calls.filter((c) => c.verb === "playInstances")).toHaveLength(1);
 
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: [PLAYED] },
+      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn", "EX10-061"] },
     ]);
     // ...and no board-wide endOfTurn watcher is installed in its place.
     expect(recorder.calls.filter((c) => c.verb === "subscribeSubTrigger")).toHaveLength(0);
@@ -7178,7 +7178,7 @@ describe("cards that delete the Digimon this effect played", () => {
     expect(sub.event).toBe("whenOneOfYoursDigivolves");
     await sub.run(ctx);
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: [PLAYED] },
+      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn", "EX11-061"] },
     ]);
   });
 
@@ -7210,7 +7210,7 @@ describe("cards that delete the Digimon this effect played", () => {
     await delayEffect.resolve(ctx);
 
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn"] },
+      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn", "EX10-072"] },
     ]);
     // The played Digimon is NOT deleted on the spot (only the ＜Delay＞ cost's own trash runs).
     expect(

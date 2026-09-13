@@ -211,6 +211,10 @@ export type ServerEvent =
       // that lands the cards in their destination, so a client cannot reliably
       // resolve `instanceIds` against its own zone index at delivery time.
       kind: "cardsMoved";
+      /** A scheduled turn-end deletion, attributed to the card that installed it. */
+      turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
+      /** Automatic bonus draw from digivolution, rather than a card effect. */
+      drawReason?: "digivolution";
       instanceIds: string[];
       from: string;
       to: string;

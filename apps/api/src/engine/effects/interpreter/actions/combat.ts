@@ -32,7 +32,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
         vortex: action.vortex,
-        ignoreSummoningSickness: true,
+        ignoreSummoningSickness: action.attackMechanic !== "Overclock",
         attackPlayer:
           action.attackPlayer ??
           (action.target !== undefined &&
