@@ -395,54 +395,54 @@ The command reports 4,455 persisted IR entries, 46 canonical names, and the
 following reconciliation (columns are declaration cards, all structured
 reference cards, and distinct structured shapes):
 
-| Keyword | Declarations | References | Shapes |
-| --- | ---: | ---: | ---: |
-| Blocker | 300 | 461 | 2 |
-| Piercing | 99 | 183 | 2 |
-| Rush | 36 | 105 | 2 |
-| Raid | 73 | 94 | 1 |
-| Reboot | 89 | 141 | 2 |
-| Jamming | 71 | 111 | 2 |
-| Retaliation | 62 | 93 | 1 |
-| Barrier | 61 | 68 | 1 |
-| Evade | 22 | 25 | 1 |
-| Save | 47 | 47 | 1 |
-| Delay | 132 | 135 | 1 |
-| Alliance | 57 | 88 | 1 |
-| Fortitude | 28 | 29 | 1 |
-| Blitz | 14 | 25 | 2 |
-| Collision | 25 | 43 | 1 |
-| Vortex | 15 | 18 | 1 |
-| Decoy | 9 | 12 | 2 |
-| Scapegoat | 12 | 17 | 1 |
-| Execute | 6 | 15 | 2 |
-| Progress | 9 | 10 | 1 |
-| IceClad | 12 | 13 | 1 |
-| Training | 19 | 21 | 1 |
-| Armor Purge | 46 | 46 | 1 |
-| Mind Link | 6 | 6 | 1 |
-| Ascension | 4 | 6 | 1 |
-| BlastDigivolve | 75 | 75 | 1 |
-| BlastDNADigivolve | 7 | 7 | 1 |
-| Draw | 2 | 2 | 1 |
-| SecurityAttack | 93 | 317 | 7 |
-| DeDigivolve | 0 | 0 | 0 |
-| Recovery | 11 | 23 | 1 |
-| DigiBurst | 27 | 28 | 5 |
-| Digisorption | 10 | 10 | 2 |
-| MaterialSave | 12 | 13 | 4 |
-| DigiXrosSubstitute | 0 | 1 | 1 |
-| Link | 9 | 11 | 3 |
-| LinkMax | 0 | 1 | 1 |
-| Fragment | 10 | 11 | 2 |
-| Partition | 13 | 13 | 1 |
-| Decode | 27 | 28 | 1 |
-| Overclock | 11 | 11 | 2 |
-| UseReq | 0 | 0 | 0 |
-| Engage | 3 | 5 | 1 |
-| Guard | 4 | 6 | 1 |
-| Detach | 4 | 7 | 1 |
-| Succession | 0 | 4 | 1 |
+| Keyword            | Declarations | References | Shapes |
+| ------------------ | -----------: | ---------: | -----: |
+| Blocker            |          300 |        461 |      2 |
+| Piercing           |           99 |        183 |      2 |
+| Rush               |           36 |        105 |      2 |
+| Raid               |           73 |         94 |      1 |
+| Reboot             |           89 |        141 |      2 |
+| Jamming            |           71 |        111 |      2 |
+| Retaliation        |           62 |         93 |      1 |
+| Barrier            |           61 |         68 |      1 |
+| Evade              |           22 |         25 |      1 |
+| Save               |           47 |         47 |      1 |
+| Delay              |          132 |        135 |      1 |
+| Alliance           |           57 |         88 |      1 |
+| Fortitude          |           28 |         29 |      1 |
+| Blitz              |           14 |         25 |      2 |
+| Collision          |           25 |         43 |      1 |
+| Vortex             |           15 |         18 |      1 |
+| Decoy              |            9 |         12 |      2 |
+| Scapegoat          |           12 |         17 |      1 |
+| Execute            |            6 |         15 |      2 |
+| Progress           |            9 |         10 |      1 |
+| IceClad            |           12 |         13 |      1 |
+| Training           |           19 |         21 |      1 |
+| Armor Purge        |           46 |         46 |      1 |
+| Mind Link          |            6 |          6 |      1 |
+| Ascension          |            4 |          6 |      1 |
+| BlastDigivolve     |           75 |         75 |      1 |
+| BlastDNADigivolve  |            7 |          7 |      1 |
+| Draw               |            2 |          2 |      1 |
+| SecurityAttack     |           93 |        317 |      7 |
+| DeDigivolve        |            0 |          0 |      0 |
+| Recovery           |           11 |         23 |      1 |
+| DigiBurst          |           27 |         28 |      5 |
+| Digisorption       |           10 |         10 |      2 |
+| MaterialSave       |           12 |         13 |      4 |
+| DigiXrosSubstitute |            0 |          1 |      1 |
+| Link               |            9 |         11 |      3 |
+| LinkMax            |            0 |          1 |      1 |
+| Fragment           |           10 |         11 |      2 |
+| Partition          |           13 |         13 |      1 |
+| Decode             |           27 |         28 |      1 |
+| Overclock          |           11 |         11 |      2 |
+| UseReq             |            0 |          0 |      0 |
+| Engage             |            3 |          5 |      1 |
+| Guard              |            4 |          6 |      1 |
+| Detach             |            4 |          7 |      1 |
+| Succession         |            0 |          4 |      1 |
 
 Structured names outside the canonical union are `EndOfAttack` and
 `OnDeletion` (BT16-015) plus `Unblockable` (EX4-042). These are timing or
@@ -537,3 +537,47 @@ keyword inventory.
 
 History: current reconciliation and focused proof snapshot recorded
 2026-09-12; no completion credit awarded.
+
+## Blocker inventory checkpoint
+
+Comprehensive §16-5 defines `<Blocker>` as a persistent keyword that permits
+blocking, and limits a Digimon to one block per attack even when it has
+multiple instances. The blocking rules in §12-1 further require a blocker to
+be in the battle area, able to suspend, and different from the attack target.
+The canonical keyword union has one spelling, `Blocker`; the printed matcher
+accepts the Japanese or ASCII angle brackets and does not define a second
+alias.
+
+The current catalog discovery join finds **464 of 4,454 catalog cards** with
+a literal Blocker mention: 398 in `effectText`, 84 in
+`inheritedEffectText`, and 5 in `securityEffectText`. These are overlapping
+field-specific sets, so their distinct-card union is 464 rather than their
+sum. They are mentions, including conditional grants and target filters,
+rather than 464 intrinsic providers. The persisted IR contains
+**304 declaration cards** and **461 distinct cards with any structured
+Blocker reference** across 4,455 persisted entries. Within that structured
+union, **111 cards** use a `GainKeyword` Blocker grant. Their observed grant
+durations are `untilOpponentTurnEnd` (106 actions), `forTheTurn` (3),
+`permanent` (35), `endOfOpponentTurn` (4), and `untilYourTurnEnd` (2).
+These are 150 grant action occurrences across 111 providers; providers can
+have more than one duration. `untilOpponentTurnEnd` is a continuous grant
+expiry duration, while `endOfOpponentTurn` is a separate effect/timing enum
+used by the interpreter and is not normalized as an alias here.
+
+The behaviorally distinct shapes requiring separate proof are: native static
+main-text Blocker; inherited static Blocker; security-text or security-state
+mentions; runtime `GainKeyword` grants, including BT19-064's
+`untilOpponentTurnEnd` grant on both On Play and When Digivolving; and generic
+runtime `conferStackEffects`/copy capability. The current persisted IR scan
+found no Blocker-specific `copyEffectsFromDigivolution` payload, so copied
+Blocker remains an inventory unknown rather than a zero-case certification.
+The literal-only remainder contains 29 catalog cards with Blocker prose but
+no matching structured Blocker object in persisted IR; examples include
+BT1-023 and BT2-103, whose text uses Blocker only as a target filter, and
+EX12-034/ST22-05, whose text grants Blocker to a generated token. These are
+concrete reconciliation cases, not proof of missing implementations. The
+304/461 counts also do not establish source departure, top-card turnover,
+duration expiry, duplicate-instance collapse, controller changes, or actual
+block-declaration legality. Blocker behavioral proof and the complete
+printed/inherited/security provider denominator remain open for the owner
+document [blocker-lifecycle.md](blocker-lifecycle.md).
