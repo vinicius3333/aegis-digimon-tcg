@@ -40,7 +40,7 @@ describe("BT22-055 Recomon", () => {
             { card: "BT22-055", as: "recomon" },
             { card: "BT22-058", as: "cost" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,7 +53,7 @@ describe("BT22-055 Recomon", () => {
     await settle();
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-058")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
   });
 
   it("links to an Appmon for 2 and grants Blocker to the host", async () => {

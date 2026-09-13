@@ -675,6 +675,10 @@ export class GameEngine {
 
   private async flushDeferredTimingWindows(): Promise<void> {
     if (this.flushingDeferredTimingWindows) return;
+    // Deferred windows belong between effect bodies. A nested entry seam can reach this
+    // helper while its enclosing card body is still resolving; keep that queue parked until
+    // the genuine between-effects boundary.
+    if (this.effectResolutionDepth > 0) return;
     this.flushingDeferredTimingWindows = true;
     try {
       while (this.deferredTimingWindows.length > 0) {
@@ -1156,6 +1160,18 @@ export class GameEngine {
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
+      processRulesBeforeWhenDigivolving: async () => {
+        await this.recomputeContinuousEffects();
+        if (this.ruleProcessing || this.ruleTriggerPool !== undefined) {
+          // A trash replacement is entered from the active rule pass. Run only the DP
+          // movement processes: the outer pass owns the pooled reactions and its latch.
+          await this.trashNoDpPermanents();
+          await this.deleteZeroDpDigimon();
+        } else {
+          const pool = await this.collectRuleProcessMovements();
+          if (!this.state.gameOver) await this.flushRuleTriggerPool(pool);
+        }
+      },
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         // A selected security card can still be face down in its origin zone.
         // Locate only this instance; do not expose hidden security to timing scans.
@@ -2600,6 +2616,8 @@ export class GameEngine {
       return;
     }
     const wasOutermostWindow = this.beginResolvingWindow();
+    const excludedNestedPending =
+      this.effectResolutionDepth === 0 ? new Set(this.pendingNestedTimingEffects) : undefined;
     try {
       await this.recomputeContinuousEffects();
       // A phase-boundary event has one fixed set of card sources: a Tamer played by an
@@ -2659,7 +2677,10 @@ export class GameEngine {
             runTiming(
               timing,
               this.effectEnvironment(trigger),
-              this.resolutionDeps(listWindowCandidates, { outermost: wasOutermostWindow }),
+              this.resolutionDeps(listWindowCandidates, {
+                outermost: wasOutermostWindow,
+                excludeNestedPending: excludedNestedPending,
+              }),
             ),
           );
           if (wasOutermostWindow) {
@@ -4250,6 +4271,8 @@ export class GameEngine {
       return;
     }
     const wasOutermostWindow = this.beginResolvingWindow();
+    const excludedNestedPending =
+      this.effectResolutionDepth === 0 ? new Set(this.pendingNestedTimingEffects) : undefined;
     try {
       await this.recomputeContinuousEffects();
       await this.withPendingPoolDrain(wasOutermostWindow, () =>
@@ -4259,6 +4282,7 @@ export class GameEngine {
           this.resolutionDeps(() => this.instancesById([sourceInstanceId]), {
             outermost: wasOutermostWindow,
             extraPending,
+            excludeNestedPending: excludedNestedPending,
           }),
         ),
       );
@@ -5107,21 +5131,33 @@ export class GameEngine {
    */
   private resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
-    opts: { outermost?: boolean; extraPending?: readonly CollectedEffect[] } = {},
+    opts: {
+      outermost?: boolean;
+      extraPending?: readonly CollectedEffect[];
+      excludeNestedPending?: ReadonlySet<CollectedEffect>;
+    } = {},
   ): ResolutionDeps {
+    const excludeNestedPending = opts.excludeNestedPending;
     return {
-      // Only the outermost loop settles the deferred queues between effects: at a nested one
-      // the effect that parked them is still running its body (see ResolutionEnv.betweenEffects).
-      // The pending watchers belong to the windows the event opened, not to a window a
-      // resolving effect opens from inside its own body: a nested (cut-in) resolution must not
-      // reach into the pool and resolve a sibling trigger mid-body. Both are the same test —
-      // only the outermost loop runs with no card body on the stack.
+      // The outermost loop settles deferred queues between effects. A nested resolver normally
+      // cannot reach into the enclosing pool while its card body is still running; a settlement
+      // window that starts at effect depth zero may opt into only entries added after its opening
+      // snapshot, leaving the parent's older pending group to the outermost resolver.
       ...(opts.outermost === true
         ? {
             betweenEffects: () => this.settleBetweenEffects(),
             collectPending: () => [...this.pendingWindowCollected(), ...(opts.extraPending ?? [])],
           }
-        : { collectPending: () => this.parkedEntryCollected() }),
+        : {
+            collectPending: () => [
+              ...(excludeNestedPending === undefined
+                ? []
+                : this.pendingNestedTimingEffects.filter(
+                    (pending) => !excludeNestedPending.has(pending) && this.nestedTriggerSourceStillResident(pending),
+                  )),
+              ...this.parkedEntryCollected(),
+            ],
+          }),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
       ruleProcess: () =>

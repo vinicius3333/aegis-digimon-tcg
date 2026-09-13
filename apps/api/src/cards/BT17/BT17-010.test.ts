@@ -69,7 +69,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "rookie", under: ["BT17-001"] }],
           hand: [{ card: "BT17-010", as: "growlmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000 }] },
       },
@@ -103,7 +103,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "rookie", under: ["BT17-001"] }],
           hand: [{ card: "BT17-010", as: "growlmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
       },
@@ -132,7 +132,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT17-010", as: "growlmon", under: ["BT17-001"] }],
           hand: [{ card: "BT17-013", as: "wargrowlmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
       },
@@ -161,7 +161,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "rookie", under: ["BT17-001"] }],
           hand: [{ card: "BT17-010", as: "growlmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT14-062", as: "protected", dp: 4000 }] },
       },
@@ -193,7 +193,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT17-010", as: "growlmon", under: ["BT17-001"] }],
           hand: [{ card: "BT17-013", as: "wargrowlmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
       },
@@ -224,7 +224,7 @@ describe("BT17-010", () => {
         0: {
           battleArea: [{ card: "BT17-013", as: "wargrowlmon", under: ["BT17-010"] }],
           hand: [{ card: "BT17-017", as: "ancient" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: {
           battleArea: [

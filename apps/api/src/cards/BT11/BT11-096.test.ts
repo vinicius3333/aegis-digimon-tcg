@@ -5,7 +5,12 @@ import { compiled } from "./BT11-096.js";
 
 describe("BT11-096 Magma Bomb", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-096")).toMatchObject({ cardId: "BT11-096", colors: ["Red"], kinds: ["Option"], playCost: 6 });
+    expect(getCardDefinition("BT11-096")).toMatchObject({
+      cardId: "BT11-096",
+      colors: ["Red"],
+      kinds: ["Option"],
+      playCost: 6,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
       { trigger: "Main", actions: [{ kind: "Delete" }] },

@@ -36,7 +36,7 @@ describe("BT15-020", () => {
             { card: "BT15-020", as: "gabumon" },
             { card: "BT1-086", as: "matt" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -65,7 +65,7 @@ describe("BT15-020", () => {
             { card: "BT15-020", as: "gabumon" },
             { card: "BT15-082", as: "sora" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -84,7 +84,7 @@ describe("BT15-020", () => {
         0: {
           breeding: { card: "BT1-003", as: "base" },
           hand: [{ card: "BT15-020", as: "gabumon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -112,9 +112,9 @@ describe("BT15-020", () => {
             { card: "BT15-020", as: "gabumon" },
             { card: "BT1-086", as: "matt" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
-        1: { deck: ["BT1-003"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -138,10 +138,11 @@ describe("BT15-020", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-020"] }],
-          deck: ["BT1-001", "BT1-001"],
+          battleArea: [{ card: "BT1-034", as: "host", dp: 5000, under: ["BT15-020"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -165,7 +166,52 @@ describe("BT15-020", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
 
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("draws again from an attack after the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-034", as: "host", dp: 5000, under: ["BT15-020"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

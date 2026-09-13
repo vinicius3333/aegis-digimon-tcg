@@ -105,7 +105,7 @@ describe("BT15-026", () => {
             { card: "BT1-009", as: "keptTwo" },
           ],
           deck: [
-            { card: "BT1-001", as: "normalDraw" },
+            { card: "BT1-009", as: "normalDraw" },
             { card: "BT1-009", as: "effectDraw" },
           ],
         },
@@ -140,8 +140,8 @@ describe("BT15-026", () => {
         1: {
           battleArea: [{ card: "BT15-025", as: "base" }],
           hand: [{ card: "BT15-026", as: "wereGarurumon" }],
-          deck: ["BT1-001", "BT1-009"],
-          security: ["BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true },

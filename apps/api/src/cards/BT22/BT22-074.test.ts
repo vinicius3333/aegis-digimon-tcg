@@ -86,7 +86,7 @@ describe("BT22-074 SkullMeramon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-074", as: "skull", dp: 1000, suspended: true }],
-          deck: ["BT22-001", "BT22-002"],
+          deck: ["BT1-009", "BT1-010"],
           hand: ["BT22-003"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
@@ -106,9 +106,7 @@ describe("BT22-074 SkullMeramon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT22-003"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT22-001", "BT22-002"]),
-    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-003")).toBe(true);
   });
 });

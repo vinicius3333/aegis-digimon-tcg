@@ -44,7 +44,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
-      isInherited: true,
       actions: [
         {
           kind: "SecurityManipulation",

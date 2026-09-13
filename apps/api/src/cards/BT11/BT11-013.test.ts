@@ -65,18 +65,36 @@ describe("BT11-013 Garudamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-013"] }],
+          battleArea: [{ card: "BT1-025", as: "host", under: ["BT11-013"] }],
           hand: [
             { card: "BT1-085", as: "tai" },
             { card: "BT13-095", as: "tooExpensive" },
             { card: "BT1-086", as: "wrongColor" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "titan", dp: 13000, suspended: true }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("titan").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId),
+    );
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085"));
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085")).toBe(true);

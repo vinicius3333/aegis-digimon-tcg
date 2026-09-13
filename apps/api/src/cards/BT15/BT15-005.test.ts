@@ -28,8 +28,8 @@ describe("BT15-005", () => {
           { card: "BT1-009", as: "second", suspended: true },
         ],
         deck: [
-          { card: "BT1-001", as: "drawn" },
-          { card: "BT1-001", as: "leftInDeck" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-010", as: "leftInDeck" },
         ],
       },
     });
@@ -51,7 +51,7 @@ describe("BT15-005", () => {
           { card: "BT13-061", as: "host", under: ["BT15-005"] },
           { card: "BT1-009", as: "mine", suspended: true },
         ],
-        deck: [{ card: "BT1-001", as: "top" }],
+        deck: [{ card: "BT1-009", as: "top" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "theirs", suspended: true }] },
     });
@@ -72,9 +72,9 @@ describe("BT15-005", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT13-061", as: "host", under: ["BT15-005"] }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "theirs", suspended: true }], deck: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT1-009", as: "theirs", suspended: true }], deck: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();
@@ -82,5 +82,57 @@ describe("BT15-005", () => {
     await advance(s.engine).runTurn(1);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+
+  it("draws once for a production unsuspend batch and again on the next opponent turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-061", as: "host", under: ["BT15-005"] }],
+        security: ["BT1-010", "BT1-010"],
+        deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", suspended: true },
+          { card: "BT1-009", as: "second", suspended: true },
+        ],
+        security: ["BT1-010", "BT1-010"],
+        deck: ["BT1-009", "BT1-010", "BT1-009"],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("first").isSuspended && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const secondOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.hand.length === 3);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondOpponentTurn;
   });
 });

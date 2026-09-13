@@ -210,9 +210,9 @@ describe("BT15-082 Sora Takenouchi", () => {
             { card: "BT15-008", as: "bird" },
           ],
           trash: [{ card: "BT1-012", as: "returnedRed" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-001", "BT1-001"], deck: ["BT1-001"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );

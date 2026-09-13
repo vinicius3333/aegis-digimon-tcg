@@ -8,7 +8,12 @@ import { compiled } from "./BT11-082.js";
 describe("BT11-082 Tuwarmon", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-082")).toMatchObject({
-      cardId: "BT11-082", colors: ["Purple", "Black"], level: 4, playCost: 7, dp: 6000, types: ["Mutant", "Bagra Army", "Twilight"],
+      cardId: "BT11-082",
+      colors: ["Purple", "Black"],
+      level: 4,
+      playCost: 7,
+      dp: 6000,
+      types: ["Mutant", "Bagra Army", "Twilight"],
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Decoy" }] },

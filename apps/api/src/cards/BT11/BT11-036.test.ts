@@ -54,7 +54,7 @@ describe("BT11-036 Chuumon", () => {
       0: {
         battleArea: [{ card: "BT11-036", as: "chuumon" }],
         hand: [{ card: "BT11-040", as: "sukamon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 5;
@@ -77,7 +77,7 @@ describe("BT11-036 Chuumon", () => {
       0: {
         battleArea: [{ card: "BT11-036", as: "chuumon" }],
         hand: [{ card: "BT11-038", as: "angemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 5;

@@ -4,6 +4,7 @@ import { effectiveCopyLimit } from "../../engine/banlistRestrictions.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-033.js";
+import "../BT15/BT15-090.js";
 
 describe("BT11-033 MirageGaogamon", () => {
   it("matches the catalog, current restriction, and both complete executable contracts", () => {
@@ -60,7 +61,7 @@ describe("BT11-033 MirageGaogamon", () => {
         0: {
           battleArea: [{ card: "BT11-028", as: "base" }],
           hand: [{ card: "BT11-033", as: "mirage" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT11-028", as: "level5" }],
@@ -93,7 +94,7 @@ describe("BT11-033 MirageGaogamon", () => {
         0: {
           battleArea: [{ card: "BT11-028", as: "base" }],
           hand: [{ card: "BT11-033", as: "mirage" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "AD1-025", as: "level7" }],
@@ -146,16 +147,50 @@ describe("BT11-033 MirageGaogamon", () => {
     await advance(direction.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 0 });
     expect(direction.state.memory).toBe(0);
 
-    const frequency = setupEngine({
-      0: { battleArea: [{ card: "BT11-033", as: "mirage" }], deck: ["BT1-001", "BT1-002"] },
-      1: { hand: Array.from({ length: 8 }, () => "BT1-010"), deck: ["BT1-001", "BT1-002"] },
-    });
-    frequency.state.memory = 3;
+    const preferred: string[] = [];
+    const frequency = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-033", as: "mirage" },
+            { card: "BT1-028", as: "blue" },
+          ],
+          hand: ["BT15-090", "BT15-090", "BT15-090"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstVictim" },
+            { card: "BT1-010", as: "secondVictim" },
+            { card: "BT1-010", as: "thirdVictim" },
+          ],
+          hand: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    frequency.state.memory = 10;
     const firstTurn = frequency.engine.runOneTurn();
     await advance(frequency.engine).waitForMainPhase(0);
-    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
-    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
-    expect(frequency.state.memory).toBe(5);
+    const foxFires = frequency.state.players[0]!.hand.map((card) => card.instanceId);
+    const victimIds = [
+      frequency.inst("firstVictim").instanceId,
+      frequency.inst("secondVictim").instanceId,
+      frequency.inst("thirdVictim").instanceId,
+    ];
+    for (const [index, optionId] of foxFires.slice(0, 2).entries()) {
+      preferred.push(victimIds[index]!);
+      expect(frequency.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" })).toEqual({
+        ok: true,
+      });
+      await settle(() => frequency.state.players[1]!.hand.length === 4 + index);
+      expect(frequency.state.players[0]!.trash.map((card) => card.instanceId)).toContain(optionId);
+      expect(frequency.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimIds[index]);
+    }
+    expect(frequency.state.memory).toBe(3);
     advance(frequency.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
@@ -163,9 +198,23 @@ describe("BT11-033 MirageGaogamon", () => {
     frequency.state.memory = 3;
     const nextTurn = frequency.engine.runOneTurn();
     await advance(frequency.engine).waitForMainPhase(1);
-    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
-    expect(frequency.state.memory).toBe(1);
     advance(frequency.engine).endMainPhaseIfOpen(1);
     await nextTurn;
+
+    frequency.state.turnSeat = 0;
+    frequency.state.memory = 3;
+    const laterTurn = frequency.engine.runOneTurn();
+    await advance(frequency.engine).waitForMainPhase(0);
+    const finalOptionId = frequency.state.players[0]!.hand.find((card) => card.cardId === "BT15-090")!.instanceId;
+    preferred.push(victimIds[2]!);
+    expect(frequency.engine.applyIntent(0, { type: "playCard", instanceId: finalOptionId, useAs: "option" })).toEqual({
+      ok: true,
+    });
+    await settle(() => frequency.state.players[1]!.hand.length === 7);
+    expect(frequency.state.players[0]!.trash.map((card) => card.instanceId)).toContain(finalOptionId);
+    expect(frequency.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimIds[2]);
+    expect(frequency.state.memory).toBe(0);
+    advance(frequency.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
   });
 });

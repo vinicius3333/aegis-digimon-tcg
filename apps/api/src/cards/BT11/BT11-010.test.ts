@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-010.js";
+import "./BT11-017.js";
 
 describe("BT11-010 Grizzlymon", () => {
   it("matches the catalog and carries both complete printed contracts", () => {
@@ -117,22 +118,86 @@ describe("BT11-010 Grizzlymon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("gives its host +3000 DP when that host's attack target is switched", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", under: ["BT11-010"] }] },
-    });
-    const before = s.perm("host").currentDP;
+  it("adds +3000 only on the first public Raid switch, then resets next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-017", as: "marsmon", under: ["BT1-009", "BT11-010", "BT1-020"] },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "victim6000", dp: 6000 },
+            { card: "BT1-013", as: "victim5000", dp: 5000 },
+            { card: "BT1-013", as: "victim4000", dp: 4000 },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const marsmonId = s.perm("marsmon").permanentId;
+    const victimIds = [
+      s.perm("victim6000").permanentId,
+      s.perm("victim5000").permanentId,
+      s.perm("victim4000").permanentId,
+    ];
+    const victimInstanceIds = [
+      s.inst("victim6000").instanceId,
+      s.inst("victim5000").instanceId,
+      s.inst("victim4000").instanceId,
+    ];
+    expect(s.perm("marsmon").topCard.cardId).toBe("BT11-017");
+    expect(s.perm("marsmon").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT11-010", "BT1-020"]);
+    expect(s.perm("marsmon").currentDP).toBe(12000);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    for (const [index, victimId] of victimIds.slice(0, 2).entries()) {
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+      ).toEqual({
+        ok: true,
+      });
+      await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId));
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.perm("marsmon").currentDP).toBe(15000);
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+        victimInstanceIds.slice(0, index + 1),
+      );
+      expect(s.perm("marsmon").isSuspended).toBe(index === 1);
+    }
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    expect(s.perm("host").currentDP).toBe(before + 3000);
-
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("marsmon").currentDP).toBe(12000);
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
     });
-    expect(s.perm("host").currentDP).toBe(before + 3000);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimIds[2]));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("marsmon").currentDP).toBe(15000);
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(victimInstanceIds);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not boost its host for another Digimon's target switch", async () => {

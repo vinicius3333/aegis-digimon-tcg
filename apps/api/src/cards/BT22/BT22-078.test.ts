@@ -44,7 +44,7 @@ describe("BT22-078 Boltmon", () => {
             },
           ],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoDeclineOptional: true },
     );

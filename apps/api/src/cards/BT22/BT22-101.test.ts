@@ -112,7 +112,7 @@ describe("BT22-101 Kyoko Kuremi", () => {
       {
         0: {
           battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
           hand: [{ card: "BT22-063", as: "alphamon" }],
           security: 3,
         },

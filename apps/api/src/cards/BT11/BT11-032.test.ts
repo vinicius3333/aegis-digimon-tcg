@@ -46,7 +46,7 @@ describe("BT11-032 UlforceVeedramon", () => {
             { card: "BT11-032", as: "ulforce" },
             { card: "BT11-090", as: "tamer" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -76,7 +76,7 @@ describe("BT11-032 UlforceVeedramon", () => {
             { card: "BT11-032", as: "ulforce" },
             { card: "BT11-090", as: "tamer" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -194,7 +194,7 @@ describe("BT11-032 UlforceVeedramon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -202,7 +202,7 @@ describe("BT11-032 UlforceVeedramon", () => {
             { card: "BT11-023", as: "second" },
             { card: "BT11-023", as: "third" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },

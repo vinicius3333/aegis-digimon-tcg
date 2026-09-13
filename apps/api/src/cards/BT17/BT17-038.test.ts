@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../EX2/EX2-066.js";
 import { compiled } from "./BT17-038.js";
@@ -222,6 +223,46 @@ describe("BT17-038 Sakuyamon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("sakuyamon"), "beReturned")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("actually prevents an opponent bounce, then expires at the end of that opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-038", under: ["BT17-035"], as: "sakuyamon" }],
+          hand: [
+            { card: "BT1-102", as: "option" },
+            { card: "BT1-011", as: "spare" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-102"));
+
+    const sakuyamonId = s.perm("sakuyamon").topCard!.instanceId;
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.returnToHand([sakuyamonId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("sakuyamon").permanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sakuyamonId)).toBe(false);
+
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    await advance(s.engine).verb.returnToHand([sakuyamonId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === sakuyamonId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sakuyamonId)).toBe(true);
   });
 
   it("does not lock itself when the used Option costs less than 2", async () => {

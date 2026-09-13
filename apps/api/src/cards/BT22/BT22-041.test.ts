@@ -52,7 +52,7 @@ describe("BT22-041 Kentaurosmon", () => {
     const s = setupEngine(
       {
         0: {
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
           battleArea: [{ card: "BT22-037", as: "chirinmon" }],
           hand: [
             { card: "BT22-041", as: "kentaurosmon" },
@@ -85,7 +85,7 @@ describe("BT22-041 Kentaurosmon", () => {
       [6, 4],
       [7, -2],
     ] as const) {
-      const ownSecurity = Array.from({ length: securityCount }, () => "BT1-001");
+      const ownSecurity = Array.from({ length: securityCount }, () => "BT1-009");
       const s = setupEngine({
         0: { security: ownSecurity, hand: [{ card: "BT22-041", as: "kentaurosmon" }] },
       });
@@ -104,7 +104,7 @@ describe("BT22-041 Kentaurosmon", () => {
   it("does not reduce another card's play cost at the six-security boundary", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT22-041", as: "kentaurosmon" }], hand: [{ card: "BT22-043", as: "other" }] },
-      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
     });
     await s.ready();
     s.state.memory = 0;
@@ -118,7 +118,7 @@ describe("BT22-041 Kentaurosmon", () => {
   it("trashes one top security to unsuspend, but only on the first suspension each turn", async () => {
     const s = setupEngine({
       0: {
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-010"],
         battleArea: [{ card: "BT22-041", as: "kentaurosmon" }],
       },
     });

@@ -6,7 +6,12 @@ import { compiled } from "./BT11-103.js";
 
 describe("BT11-103 Poison Powder", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-103")).toMatchObject({ cardId: "BT11-103", colors: ["Green"], kinds: ["Option"], playCost: 3 });
+    expect(getCardDefinition("BT11-103")).toMatchObject({
+      cardId: "BT11-103",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 3,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
       { trigger: "Main", actions: [{ kind: "GrantAuraToOpponents", event: "whenSuspended" }] },

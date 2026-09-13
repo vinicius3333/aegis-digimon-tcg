@@ -180,3 +180,34 @@ The real BT13-007 King Drasil_7D6 producer was exercised through `advance.runTur
 `king-drasil-batch-placement-events.test.ts` produces three public addition records, one for each physical added identity (egg and the two Royal Knight tops), each with the host, effect seat, bottom position, and exact identity. The resulting stack contains all four face-up sources under the existing host. The focused result is **1 test passed**.
 
 This establishes the legal producer event and documents the current event granularity: the grouped physical action emits one addition event per moved identity. A legal downstream positive reaction remains open; native EX6-007 is not an inherited clause and is not used as a consumer proof when seeded under the breeding host. BT22-006's stricter top-card-rotation filter, copied-source cases, other batch producers, and the complete dynamic consumer denominator remain open; this test does not certify whole-card or collection completion.
+
+## Inherited placement under a converted Tamer, 2026-09-13
+
+Local Q2114 requires a placed GeoGreymon BT12-038 to provide inherited text
+while its Marcus host is treated as a Digimon, and to lose it when that
+treatment ends. The target filter already uses effective kinds, but
+`passesPlacementGuard` used only printed kinds and rejected the inherited
+source under the converted Tamer. The guard now uses the existing effective-kind
+reader while preserving the breeding and DP-bearing Digi-Egg exceptions.
+
+The public BT11-088 Q2114 case plays BT17-087 Marcus to grant its Digimon
+treatment, then plays Bagramon to put the exact GeoGreymon at Marcus's bottom.
+A named observer calls the same production placement guard at the actual
+`onAddDigivolutionCards` event; it observes eligibility before Bagramon's
+negative payment ends the turn and verifies ineligibility after grant expiry.
+The scoped event observer accepts a synchronous read callback without changing
+the original dispatcher, event, payload or decisions.
+
+This identical test and observer, copied into the pristine baseline archive
+`b88aeb69f22995641622ab4388086ff771b23dc0` with its original kernel, fails the
+eligibility assertion. It passes with the corrected guard. The six-file
+coordinator run passed BT12-038 and BT17-087 and all 14 BT11-088 cases; its two
+other failures were unrelated Rush recipient/deck-draw fixtures subsequently
+repaired and passed.
+
+The FAQ's GeoGreymon suspension payload cannot naturally fire in this
+arrangement: its controller's next Your Turn begins after Marcus's
+`untilOpponentTurnEnd` grant has expired. This proof covers the public
+placement/kind/eligibility boundary; the existing BT12-038 public suspension
+test covers its payload separately. It does not claim an impossible
+simultaneous timing window or certify the complete placement subsystem.

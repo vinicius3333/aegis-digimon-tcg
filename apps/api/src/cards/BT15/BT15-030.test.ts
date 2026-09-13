@@ -128,7 +128,7 @@ describe("BT15-030", () => {
 
   it("suspends at blocker timing to redirect an opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-030", as: "pukumon" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT15-030", as: "pukumon" }], security: ["BT1-010"] },
       1: { battleArea: [{ card: "BT15-025", as: "attacker" }] },
     });
     s.state.turnSeat = 1;

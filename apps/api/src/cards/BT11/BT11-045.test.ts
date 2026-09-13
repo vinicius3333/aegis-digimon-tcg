@@ -6,10 +6,23 @@ import { compiled } from "./BT11-045.js";
 
 describe("BT11-045 ClavisAngemon", () => {
   it("maps its yellow level-six catalog facts and both executable clauses", () => {
-    expect(getCardDefinition("BT11-045")).toMatchObject({ cardId: "BT11-045", colors: ["Yellow"], level: 6, playCost: 12, dp: 12000, types: ["Virtue"] });
+    expect(getCardDefinition("BT11-045")).toMatchObject({
+      cardId: "BT11-045",
+      colors: ["Yellow"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      types: ["Virtue"],
+    });
     expect(compiled.effects).toHaveLength(2);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "SecurityManipulation", op: "addTop", condition: { kind: "zoneCount", value: 5 } }] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved" }] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [{ kind: "SecurityManipulation", op: "addTop", condition: { kind: "zoneCount", value: 5 } }],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "OpponentsTurn",
+      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved" }],
+    });
   });
 
   it("recovers from the deck when digivolving with 5 or fewer security cards", async () => {
@@ -18,10 +31,10 @@ describe("BT11-045 ClavisAngemon", () => {
         battleArea: [{ card: "BT11-042", as: "base" }],
         hand: [{ card: "BT11-045", as: "clavis" }],
         deck: [
-          { card: "BT1-001", as: "digivolveDraw" },
-          { card: "BT1-001", as: "recovery" },
+          { card: "BT1-009", as: "digivolveDraw" },
+          { card: "BT1-009", as: "recovery" },
         ],
-        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        security: ["BT1-085", "BT1-085", "BT1-085", "BT1-085", "BT1-085"],
       },
     });
     s.state.memory = 10;
@@ -43,8 +56,8 @@ describe("BT11-045 ClavisAngemon", () => {
       0: {
         battleArea: [{ card: "BT11-042", as: "base" }],
         hand: [{ card: "BT11-045", as: "clavis" }],
-        deck: [{ card: "BT1-001", as: "top" }],
-        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        deck: [{ card: "BT1-009", as: "top" }],
+        security: ["BT1-085", "BT1-085", "BT1-085", "BT1-085", "BT1-085", "BT1-085"],
       },
     });
     s.state.memory = 10;
@@ -67,7 +80,7 @@ describe("BT11-045 ClavisAngemon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-045", as: "clavis" }],
-          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-085", "BT1-085", "BT1-085", "BT1-085", "BT1-085"],
         },
         1: {
           battleArea: [{ card: "BT1-114", as: "attacker" }],

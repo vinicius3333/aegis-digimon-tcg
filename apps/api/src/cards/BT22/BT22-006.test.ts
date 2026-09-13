@@ -63,7 +63,7 @@ describe("BT22-006 Moonmon", () => {
   it("does not draw for an ordinary card placement, another stack, or the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
         hand: [{ card: "BT1-009", as: "placed" }],
         battleArea: [
           { card: "BT22-046", as: "host", under: ["BT22-006", "BT22-043"] },
@@ -122,7 +122,7 @@ describe("BT22-006 Moonmon", () => {
             { card: "BT22-069", as: "host", under: ["BT22-006"] },
           ],
           hand: [{ card: "BT22-069", as: "evolving" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },

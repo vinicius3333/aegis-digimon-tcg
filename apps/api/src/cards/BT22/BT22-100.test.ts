@@ -44,8 +44,8 @@ describe("BT22-100 Cyberspace EDEN", () => {
         hand: [{ card: "BT22-100", as: "eden" }],
         battleArea: ["BT22-091"],
         security: [
-          { card: "BT1-001", as: "top" },
-          { card: "BT1-002", as: "bottom" },
+          { card: "BT1-009", as: "top" },
+          { card: "BT1-010", as: "bottom" },
         ],
       },
     });

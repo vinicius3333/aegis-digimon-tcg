@@ -32,6 +32,7 @@ describe("BT15-010", () => {
             { card: "BT15-010", as: "akatorimon", under: ["BT1-009"] },
             { card: "BT1-009", as: "attacker", dp: 5000 },
           ],
+          hand: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -39,7 +40,7 @@ describe("BT15-010", () => {
             { card: "BT1-009", as: "secondSmall", dp: 3000 },
             { card: "BT1-009", as: "large", dp: 4000 },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -98,5 +99,65 @@ describe("BT15-010", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
+  it("reopens the inherited deletion trigger on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-010", as: "akatorimon", under: ["BT1-009"] },
+            { card: "BT1-009", as: "attacker", dp: 5000 },
+          ],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstSmall", dp: 3000 },
+            { card: "BT1-009", as: "secondSmall", dp: 3000 },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const attackerId = s.perm("attacker").permanentId;
+    const firstSmallId = s.perm("firstSmall").permanentId;
+    const secondSmallId = s.perm("secondSmall").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstSmallId));
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondSmallId)).toBe(true);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondSmallId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

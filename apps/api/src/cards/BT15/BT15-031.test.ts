@@ -58,7 +58,7 @@ describe("BT15-031", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT15-031", as: "metalSeadramon" }] },
-        1: { battleArea: [{ card: "BT15-029", as: "target" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT15-029", as: "target" }], security: ["BT1-010"] },
       },
       { autoSelectCards: true },
     );
@@ -134,7 +134,7 @@ describe("BT15-031", () => {
           battleArea: [{ card: "BT15-031", as: "metalSeadramon" }],
           hand: [{ card: "BT15-052", as: "puppetmon" }],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -152,10 +152,10 @@ describe("BT15-031", () => {
 
   it("grants inherited Blocker to its host and redirects a player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-025", as: "attacker" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT15-025", as: "attacker" }], security: ["BT1-010"] },
       1: {
         battleArea: [{ card: "BT15-025", as: "host", under: ["BT15-031"] }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();

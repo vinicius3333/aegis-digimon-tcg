@@ -85,11 +85,11 @@ describe("BT15-050", () => {
             { card: "BT15-050", as: "cherrymon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT15-025", as: "onPlayTarget" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

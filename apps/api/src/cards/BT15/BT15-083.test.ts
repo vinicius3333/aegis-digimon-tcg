@@ -154,7 +154,7 @@ describe("BT15-083 Matt Ishida", () => {
       const source = makeSource();
       const recorder: { calls: Call[] } = { calls: [] };
       const ctx = makeRevealContext(recorder, source, [
-        { instanceId: "i1", cardId: "BT1-001", nameEn: "Koromon" },
+        { instanceId: "i1", cardId: "BT1-009", nameEn: "Monodramon" },
         { instanceId: "i2", cardId: "BT2-001", nameEn: "Gabumon" },
         { instanceId: "i3", cardId: "BT3-001", nameEn: "SomeName" },
       ]);
@@ -172,7 +172,7 @@ describe("BT15-083 Matt Ishida", () => {
       const source = makeSource();
       const recorder: { calls: Call[] } = { calls: [] };
       const ctx = makeRevealContext(recorder, source, [
-        { instanceId: "i1", cardId: "BT1-001", nameEn: "Koromon" },
+        { instanceId: "i1", cardId: "BT1-009", nameEn: "Monodramon" },
         { instanceId: "i2", cardId: "BT2-001", nameEn: "Gabumon" },
         { instanceId: "i3", cardId: "BT3-001", nameEn: "SomeName" },
       ]);
@@ -189,7 +189,7 @@ describe("BT15-083 Matt Ishida", () => {
       const source = makeSource();
       const recorder: { calls: Call[] } = { calls: [] };
       const ctx = makeRevealContext(recorder, source, [
-        { instanceId: "i1", cardId: "BT1-001", nameEn: "Koromon" },
+        { instanceId: "i1", cardId: "BT1-009", nameEn: "Monodramon" },
         { instanceId: "i2", cardId: "BT2-001", nameEn: "Gabumon" },
         { instanceId: "i3", cardId: "BT3-001", nameEn: "SomeName" },
       ]);
@@ -210,7 +210,7 @@ describe("BT15-083 Matt Ishida", () => {
       const source = makeSource();
       const recorder: { calls: Call[] } = { calls: [] };
       const ctx = makeRevealContext(recorder, source, [
-        { instanceId: "i1", cardId: "BT1-001", nameEn: "Koromon" },
+        { instanceId: "i1", cardId: "BT1-009", nameEn: "Monodramon" },
         { instanceId: "i2", cardId: "BT2-001", nameEn: "Agumon" },
         { instanceId: "i3", cardId: "BT3-001", nameEn: "SomeName" },
       ]);
@@ -340,7 +340,7 @@ describe("BT15-083 Matt Ishida", () => {
         0: {
           battleArea: [{ card: "BT15-083", as: "matt" }],
           hand: [{ card: "BT1-010", as: "agumon" }],
-          deck: ["BT15-082", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT15-082", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
