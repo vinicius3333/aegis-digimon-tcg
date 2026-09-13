@@ -3,12 +3,38 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-076.js";
+import "./BT13-069.js";
+import "../BT14/BT14-038.js";
 
 describe("BT13-076 KingEtemon", () => {
-  it("records the alternate Etemon/Sukamon evolution path as source-name matching", () => {
+  it("accepts legal level-5 Etemon and Sukamon evolution sources for four memory", async () => {
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 5, names: ["Etemon", "Sukamon"], cost: 4, isAlternate: true },
     ]);
+    for (const source of ["BT14-038", "BT13-069"]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: source, as: "source" }],
+          hand: [{ card: "BT13-076", as: "king" }],
+          deck: [{ card: "BT1-009", as: "bonus" }],
+        },
+      });
+      await s.ready();
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("source").permanentId,
+          instanceId: s.inst("king").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("source").topCard.instanceId === s.inst("king").instanceId);
+      await settle();
+      expect(s.state.memory).toBe(6);
+      expect(s.perm("source").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
+    }
   });
 
   it("debuffs one opposing Digimon when an Etemon or Sukamon is deleted", () => {
