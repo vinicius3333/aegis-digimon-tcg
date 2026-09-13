@@ -56,6 +56,7 @@ describe("BT13-073 QueenChessmon", () => {
       0: { battleArea: [{ card: "BT13-042", as: "bishop" }], hand: [{ card: "BT13-073", as: "queen" }] },
     });
     valid.state.memory = 4;
+    const sourceId = valid.inst("bishop").instanceId;
     await valid.ready();
     expect(
       valid.engine.applyIntent(0, {
@@ -67,6 +68,8 @@ describe("BT13-073 QueenChessmon", () => {
     ).toEqual({ ok: true });
     await settle(() => valid.perm("bishop").topCard?.cardId === "BT13-073");
     expect(valid.perm("bishop").topCard?.cardId).toBe("BT13-073");
+    expect(valid.state.memory).toBe(1);
+    expect(valid.perm("bishop").stack.map((card) => card.instanceId)).toEqual([sourceId]);
 
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT13-043", as: "nonChessmon" }], hand: [{ card: "BT13-073", as: "queen" }] },

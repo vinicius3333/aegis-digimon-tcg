@@ -55,6 +55,7 @@ describe("BT13-070 RookChessmon", () => {
       0: { battleArea: [{ card: "BT13-068", as: "knight" }], hand: [{ card: "BT13-070", as: "rook" }] },
     });
     s.state.memory = 5;
+    const sourceId = s.inst("knight").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -65,6 +66,7 @@ describe("BT13-070 RookChessmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("knight").topCard?.cardId === "BT13-070");
     expect(s.state.memory).toBe(2);
+    expect(s.perm("knight").stack.map((card) => card.instanceId)).toEqual([sourceId]);
   });
 
   it("rejects the alternate evolution from a non-Chessmon level 4", () => {
