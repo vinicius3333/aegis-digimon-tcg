@@ -46,6 +46,7 @@ import {
 import { normalizeCompiledCard } from "./normalize.js";
 import { CardKind, compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 
 function containsPlayCostReduction(actions: Action[]): boolean {
   return actions.some((action) => {
@@ -54,6 +55,28 @@ function containsPlayCostReduction(actions: Action[]): boolean {
     // Cost-gated bodies execute now; subscriptions and granted effects execute later.
     return action.kind === "CostGatedBlock" && containsPlayCostReduction(action.actions);
   });
+}
+
+function potentialPlayCostReduction(
+  actions: Action[],
+  ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0],
+  target?: import("@aegis/shared").Permanent,
+): number {
+  return actions.reduce((total, action) => {
+    if (action.kind !== "Replacement" || action.event !== "wouldBePlayed" || action.mode !== "reduceCost") return total;
+    if (
+      target === undefined ||
+      action.sourceFilter === undefined ||
+      !permanentMatchesFilter(ctx, target, action.sourceFilter, ctx.source)
+    )
+      return total;
+    const choices = action.amountChoices;
+    if (choices === undefined || action.cost !== undefined) return total;
+    const eligible = choices.filter(
+      (choice) => choice.condition === undefined || evaluateCondition(ctx, choice.condition),
+    );
+    return total + Math.max(0, ...eligible.map((choice) => choice.amount));
+  }, 0);
 }
 
 /** Preserve a collected conferral key while still giving nested effects their own identity. */
@@ -165,6 +188,16 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       return {
         ...built,
         ...(containsPlayCostReduction(effect.actions) ? { isPlayCostReduction: true } : {}),
+        ...(effect.actions.some(
+          (action) => action.kind === "Replacement" && action.event === "wouldBePlayed" && action.mode === "reduceCost",
+        )
+          ? {
+              potentialPlayCostReduction: (
+                ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0],
+                target?: import("@aegis/shared").Permanent,
+              ) => potentialPlayCostReduction(effect.actions, ctx, target),
+            }
+          : {}),
         ...(effect.keywordEffect !== undefined ? { keywordEffect: effect.keywordEffect } : {}),
       };
     };

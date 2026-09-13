@@ -4732,7 +4732,43 @@ export class GameEngine {
         },
         originZone,
       );
-      return Math.max(0, baseCost - selfReduction - interactiveReduction);
+      const turnBudget = {
+        hasFired: (key: string) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key: string) => this.tracker.register(key, "replacement"),
+      };
+      const prospectiveBreedingReduction = breedingResidentEffects.reduce(
+        (total, { effect, source: residentSource }) => {
+          if (effect.potentialPlayCostReduction === undefined) return total;
+          if (
+            effect.maxPerTurn > 0 &&
+            this.tracker.count(`${residentSource.instanceId}/${effect.effectKey}`, "replacement") > 0
+          )
+            return total;
+          if (
+            this.subTriggers.hasInteractiveReductionForSource(
+              "wouldBePlayed",
+              source.ownerSeat,
+              residentSource.instanceId,
+              effect.effectKey,
+              turnBudget,
+            )
+          )
+            return total;
+          const residentCtx: EffectContext = {
+            ...this.buildEffectContext(residentSource, {
+              wouldBePlayedInstanceId: instance.instanceId,
+              wouldBePlayedCardId: instance.cardId,
+              wouldBePlayedAsOption: useAsOption,
+            }),
+            selections: new Map(),
+          };
+          if (!canTrigger(effect, residentCtx, this.tracker) || !canActivate(effect, residentCtx, this.tracker))
+            return total;
+          return total + effect.potentialPlayCostReduction(residentCtx, playTarget);
+        },
+        0,
+      );
+      return Math.max(0, baseCost - selfReduction - interactiveReduction - prospectiveBreedingReduction);
     }
     // Everything below actually PAYS the reducers' costs. Mark the window so a cost deletion's
     // [On Deletion] joins this play's trigger batch instead of resolving in its own window.
