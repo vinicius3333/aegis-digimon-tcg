@@ -165,6 +165,21 @@ test("requires byte-for-byte stability outside the requested set", () => {
   assert.equal(outsideSetBytesMatch(base, outsideWhitespace, "BT10"), false);
 });
 
+test("permits newly revealed set records while retaining other sets' exact bytes", () => {
+  const base = '{\n  "EX13-001": { "effects": [] },\n  "BT13-001": {  "effects": [] }\n}\n';
+  const updated = replaceTopLevelEntries(
+    base,
+    new Map([
+      ["EX13-016", '{ "effects": [{ "trigger": "OnPlay" }] }'],
+      ["EX13-067", '{ "effects": [{ "trigger": "Security" }] }'],
+    ]),
+  );
+
+  assert.equal(outsideSetBytesMatch(base, updated, "EX13"), true);
+  assert.equal(outsideSetBytesMatch(base, updated.replace('{  "effects": [] }', '{ "effects": [] }'), "EX13"), false);
+  assert.equal(outsideSetBytesMatch(base, updated.replace('"BT13-001":', '"BT13-002":'), "EX13"), false);
+});
+
 test("rebases scoped entries while restoring bytes outside the requested set", () => {
   const base = `{
   "BT10-001": { "effects": [] },

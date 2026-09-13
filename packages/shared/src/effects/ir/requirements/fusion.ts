@@ -63,6 +63,8 @@ export interface AssemblyMaterial {
   differentLevels?: boolean;
   /** Cross-material constraint: no two placed materials may share a name (EX12-060, EX12-076). */
   differentNames?: boolean;
+  /** Cross-material constraint for a repeated single slot: each placed material must be assigned a distinct color. */
+  differentColors?: boolean;
 }
 
 /**
