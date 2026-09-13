@@ -118,7 +118,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     s.state.turnSeat = 1; // "[Opponent's Turn]" relative to seat 0's watcher
 
     const watcher = digimon(0, 8000, "BT15-054");
-    watcher.stack.push(instance("BT1-082", 0, false)); // [Rosemon] in the digivolution cards
+    watcher.stack.push(instance("BT1-082", 0, true)); // [Rosemon] in the face-up digivolution cards
     p0.battleArea.push(watcher);
 
     const suspendCandidate = digimon(1, 4000);
