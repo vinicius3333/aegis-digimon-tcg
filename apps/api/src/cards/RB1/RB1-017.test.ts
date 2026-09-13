@@ -27,4 +27,15 @@ describe("RB1-017 Numemon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
+
+  it("puts all three revealed cards back when none match", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-017", as: "numemon" }], deck: ["BT1-009", "BT1-014", "BT1-015"] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("numemon").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-014", "BT1-015"]);
+  });
 });

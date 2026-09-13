@@ -41,10 +41,6 @@ const compiled: CompiledCard = {
           controller: "mine",
           amount: 1,
           optional: false,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if you placed a [Gammamon] card for this effect",
-          },
         },
       ],
     },

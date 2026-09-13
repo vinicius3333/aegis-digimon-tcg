@@ -83,4 +83,59 @@ describe("RB1-025 Diarbbitmon", () => {
     ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045")).toBe(false);
   });
+
+  it("allows Ruli to unsuspend a suspended Diarbbitmon before its end-turn attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-034", as: "ruli" },
+            { card: "RB1-025", as: "diarbbit" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX2-045", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("diarbbit").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045"));
+
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045")).toBe(true);
+  });
+
+  it("resolves only one end-turn attack when two Diarbbitmon effects trigger together", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-025", as: "first" },
+            { card: "RB1-025", as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "EX2-045", as: "target" },
+            { card: "BT1-009", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045"));
+
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "EX2-045")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
+  });
 });

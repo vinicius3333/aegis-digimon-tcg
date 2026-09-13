@@ -687,7 +687,11 @@ function stackGatesSatisfied(req: DigivolutionRequirement, base: Permanent): boo
 
   if (req.minNameStackNames !== undefined) {
     const matching = stackDefs.filter(
-      (def) => def && req.minNameStackNames!.some((n) => def.nameEn.includes(n)),
+      (def) =>
+        def &&
+        req.minNameStackNames!.some((n) =>
+          req.minNameStackMatch === "contains" ? def.nameEn.includes(n) : def.nameEn === n,
+        ),
     ).length;
     if (matching < (req.minNameStackCount ?? 1)) return false;
   }

@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          position: "bottom",
           target: {
             filter: {
               zone: "trash",
@@ -32,7 +33,6 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             filter: {
-              controllerDefault: "opponent",
               kind: ["Digimon"],
               levelComparison: {
                 op: "lte",
@@ -73,7 +73,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Proximamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -90,7 +90,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Siriusmon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

@@ -23,8 +23,18 @@ const compiled: CompiledCard = {
             amount: 2000,
           },
           while: {
-            kind: "youHave",
-            filter: { kind: ["Tamer"] },
+            kind: "anyOf",
+            conditions: [
+              { kind: "zoneCount", seat: "mine", zone: "battleArea", filter: { kind: ["Tamer"] }, op: "gte", value: 1 },
+              {
+                kind: "zoneCount",
+                seat: "opponent",
+                zone: "battleArea",
+                filter: { kind: ["Tamer"] },
+                op: "gte",
+                value: 1,
+              },
+            ],
             raw: "there's a Tamer",
           },
         },

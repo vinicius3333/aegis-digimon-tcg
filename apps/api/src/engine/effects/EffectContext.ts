@@ -1507,6 +1507,7 @@ export interface Primitives {
    * no face-down security card. `fromTop` (default) scans from index 0.
    */
   flipSecurityFaceUp(seat: Seat, opts?: { fromTop?: boolean }): boolean;
+  flipSecurityFaceDown?(seat: Seat, instanceId: string): boolean;
 
   // --- combat (attack-and-block subsystem) -----------------------------------
   /**

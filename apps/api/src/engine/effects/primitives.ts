@@ -1363,7 +1363,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           ignoreLevel: true,
           ...(sourceZone === undefined ? {} : { sourceZone }),
         });
-        const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
+        const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
         baseCost = opts.costOverride ?? matched;
@@ -1394,12 +1394,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
             : undefined;
-        const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
+        const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;
           const matches = permanent.stack.filter((card) => {
             const stackDef = requireCardDefinition(card.cardId);
-            return alternate.minNameStackNames!.some((name) => stackDef.nameEn.includes(name));
+            return alternate.minNameStackNames!.some((name) =>
+              alternate.minNameStackMatch === "contains" ? stackDef.nameEn.includes(name) : stackDef.nameEn === name,
+            );
           }).length;
           if (matches < required) return undefined;
         }
@@ -1442,6 +1444,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
+      const printed = matchingDigivolveCost(definition, baseDef);
+      const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+        ...(sourceZone === undefined ? {} : { sourceZone }),
+      });
+      if (printed === undefined && alternate !== undefined && !opts?.ignoreRequirements) {
+        if (alternate.minNameStackNames !== undefined) {
+          const required = alternate.minNameStackCount ?? 1;
+          const matches = permanent.stack.filter((card) => {
+            const stackDef = requireCardDefinition(card.cardId);
+            return alternate.minNameStackNames!.some((name) =>
+              alternate.minNameStackMatch === "contains" ? stackDef.nameEn.includes(name) : stackDef.nameEn === name,
+            );
+          }).length;
+          if (matches < required) return undefined;
+        }
+      }
       if (
         baseDef.level !== undefined &&
         !canDigivolveOntoWithAlternates(definition, baseDef) &&
@@ -5769,6 +5787,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return false;
   };
 
+  const flipSecurityFaceDown = (seat: Seat, instanceId: string): boolean => {
+    const card = player(seat).security.find((candidate) => candidate.instanceId === instanceId);
+    if (card === undefined || !card.faceUp) return false;
+    card.faceUp = false;
+    engine.emit({ kind: "cardsMoved", instanceIds: [instanceId], from: Zone.Security, to: Zone.Security });
+    return true;
+  };
+
   // --- combat ----------------------------------------------------------------
 
   /**
@@ -6179,6 +6205,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     recoverToSecurity,
     flipTopSecurity,
     flipSecurityFaceUp,
+    flipSecurityFaceDown,
     forceAttack,
     isAttackResolving,
     redirectAttack,

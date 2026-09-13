@@ -17,6 +17,7 @@ describe("RB1-008 BetelGammamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    const baseTopId = s.perm("base").topCard.instanceId;
     s.state.memory = 10;
     await s.ready();
     expect(
@@ -29,6 +30,8 @@ describe("RB1-008 BetelGammamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "RB1-032"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "RB1-032")).toBe(true);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.filter((card) => card.instanceId === baseTopId)).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
@@ -61,5 +64,22 @@ describe("RB1-008 BetelGammamon", () => {
       1,
     );
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("rejects BetelGammamon as a base for the exact Gammamon alternate requirement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-008", as: "base" }], hand: [{ card: "RB1-008", as: "target" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("target").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

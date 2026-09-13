@@ -372,7 +372,9 @@ function alternateRequirementAvailable(
     const requiredNames = requirement.minNameStackNames ?? [];
     const matching = permanent.stack.filter((card) => {
       const name = definitionOf(card.cardId).nameEn;
-      return requiredNames.some((required) => name === required);
+      return requiredNames.some((required) =>
+        requirement.minNameStackMatch === "contains" ? name.includes(required) : name === required,
+      );
     }).length;
     if (matching < requirement.minNameStackCount) return false;
   }
@@ -611,7 +613,9 @@ export function validateDigivolve(
     const requiredCount = altRequirement!.minNameStackCount ?? 1;
     const matching = permanent.stack.filter((card) => {
       const stackDef = definitionOf(card.cardId);
-      return wantedNames.some((n) => stackDef.nameEn === n);
+      return wantedNames.some((n) =>
+        altRequirement!.minNameStackMatch === "contains" ? stackDef.nameEn.includes(n) : stackDef.nameEn === n,
+      );
     }).length;
     if (matching < requiredCount) {
       return { ok: false, reason: "invalid-evolution" };

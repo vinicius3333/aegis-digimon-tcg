@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,16 +47,17 @@ describe("RB1-034 Ruli Tsukiyono", () => {
         0: {
           battleArea: [
             { card: "RB1-034", as: "ruli" },
-            { card: "RB1-022", as: "angoramon", suspended: true },
+            { card: "RB1-025", as: "diarbbitmon", suspended: true },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("ruli"));
-
-    expect(s.perm("angoramon").isSuspended).toBe(false);
+    expect(s.perm("diarbbitmon").isSuspended).toBe(false);
   });
 });

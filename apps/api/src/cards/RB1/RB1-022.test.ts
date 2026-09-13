@@ -64,4 +64,14 @@ describe("RB1-022 SymbareAngoramon", () => {
       1,
     );
   });
+
+  it("gets +1000 DP while the opponent has no unsuspended Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-025", as: "host", under: [{ card: "RB1-022" }] }] },
+      1: { battleArea: [{ card: "RB1-024", as: "opponent", suspended: true }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(13000);
+  });
 });

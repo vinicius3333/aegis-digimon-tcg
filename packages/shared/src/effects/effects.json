@@ -202667,6 +202667,9 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
+            "sourceFilter": { "isSelfRef": true },
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ],
@@ -202745,7 +202748,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -202784,7 +202787,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -202793,7 +202799,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
               },
               "raw": "you don't have [Hiro Amanokawa]"
             },
@@ -202804,7 +202810,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-009": {
     "effects": [
@@ -202815,6 +202821,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -202826,6 +202833,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -202883,6 +202891,7 @@
             "actions": [
               {
                 "kind": "Unsuspend",
+                "preserveOncePerTurnOnDecline": true,
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "optional": true
               }
@@ -202913,7 +202922,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -202926,7 +202935,13 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenTrashedFromHand", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromHand",
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -202939,7 +202954,7 @@
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Evade", "raw": "＜Evade＞" }] }],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-013": {
     "effects": [
@@ -202951,7 +202966,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -202961,7 +202976,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "raw": "you don't have [Kiyoshiro Higashimitarai]"
             },
@@ -202972,7 +202987,13 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenTrashedFromHand", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromHand",
+            "requireByEffect": true,
+            "fireCondition": { "kind": "triggerByYourEffect" },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -203093,6 +203114,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -203104,6 +203126,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -203497,7 +203520,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -203531,7 +203554,7 @@
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-022": {
     "effects": [
@@ -203541,7 +203564,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -203550,7 +203576,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
               },
               "raw": "you don't have [Ruli Tsukiyono]"
             },
@@ -203612,6 +203638,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -203623,6 +203650,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ],
@@ -203736,7 +203764,8 @@
           {
             "kind": "Attack",
             "target": { "filter": {}, "count": 1, "fromSelectionRef": "angoramonAttacker" },
-            "attackPlayer": false
+            "attackPlayer": false,
+            "drainTimingWindowDuringAttack": true
           }
         ]
       }
@@ -203753,7 +203782,28 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "modifyDP", "amount": 2000 },
-            "while": { "kind": "youHave", "filter": { "kind": ["Tamer"] }, "raw": "there's a Tamer" }
+            "while": {
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
+              "raw": "there's a Tamer"
+            }
           }
         ],
         "isInherited": true
@@ -203836,12 +203886,25 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } },
             "while": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "battleArea",
-              "filter": { "kind": ["Tamer"] },
-              "op": "gte",
-              "value": 1,
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
               "raw": "there's a Tamer"
             }
           },
@@ -203852,12 +203915,25 @@
             "byOpponentEffectsOnly": true,
             "duration": "permanent",
             "while": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "battleArea",
-              "filter": { "kind": ["Tamer"] },
-              "op": "gte",
-              "value": 1,
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                },
+                {
+                  "kind": "zoneCount",
+                  "seat": "opponent",
+                  "zone": "battleArea",
+                  "filter": { "kind": ["Tamer"] },
+                  "op": "gte",
+                  "value": 1
+                }
+              ],
               "raw": "there's a Tamer"
             }
           }
@@ -203931,7 +204007,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
@@ -203943,7 +204019,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gammamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gammamon"], "cost": 2, "isAlternate": true }]
   },
   "RB1-030": {
     "effects": [
@@ -204004,6 +204080,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -204016,6 +204093,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
+            "excludeInherited": true,
             "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] }
           }
         ]
@@ -204032,6 +204110,7 @@
         "actions": [
           {
             "kind": "PlaceUnder",
+            "position": "bottom",
             "target": {
               "filter": {
                 "zone": "trash",
@@ -204048,7 +204127,6 @@
             "kind": "Delete",
             "target": {
               "filter": {
-                "controllerDefault": "opponent",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 0, "scaling": { "per": 1, "unit": "digivolutionCards" } }
               },
@@ -204070,7 +204148,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -204081,7 +204159,7 @@
                 "filter": {
                   "zone": "hand",
                   "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Siriusmon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Siriusmon"], "match": "nameExact" }]
                 },
                 "count": 1
               },
@@ -204146,13 +204224,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          {
-            "kind": "Draw",
-            "controller": "mine",
-            "amount": 1,
-            "optional": false,
-            "condition": { "kind": "ifThisEffectActed", "raw": "if you placed a [Gammamon] card for this effect" }
-          }
+          { "kind": "Draw", "controller": "mine", "amount": 1, "optional": false }
         ]
       },
       {
@@ -204485,7 +204557,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Siriusmon"],
+        "namesExact": ["Siriusmon"],
         "cost": 3,
         "isAlternate": true,
         "minNameStackCount": 1,
