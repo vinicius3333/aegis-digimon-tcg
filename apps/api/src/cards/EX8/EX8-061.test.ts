@@ -136,8 +136,12 @@ describe("EX8-061", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-061", as: "source" }], trash: ["EX8-018", "BT14-021"] },
-        1: { security: ["BT1-010", "BT1-010"] },
+        0: {
+          battleArea: [{ card: "EX8-061", as: "source" }],
+          trash: ["EX8-018", "BT14-021"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-011"], deck: ["BT1-013", "BT1-014", "BT1-015"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -151,7 +155,7 @@ describe("EX8-061", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-018")).toBe(true);
 
     await advance(s.engine).verb.unsuspend([s.perm("source").permanentId]);
@@ -162,12 +166,37 @@ describe("EX8-061", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT14-021");
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId !== "EX8-061")).toHaveLength(
       1,
     );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("source").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-021"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-021")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("uses Scapegoat against an opponent effect but not against its controller's effect", async () => {

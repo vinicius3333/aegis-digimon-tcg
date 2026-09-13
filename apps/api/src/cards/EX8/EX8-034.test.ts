@@ -158,8 +158,15 @@ describe("EX8-034", () => {
   it("applies the inherited -4000 DP on a real attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST3-10", as: "host", under: ["EX8-034"] }] },
-        1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-045", "BT1-045"] },
+        0: {
+          battleArea: [{ card: "ST3-10", as: "host", under: ["EX8-034"] }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "EX8-029", as: "target" }],
+          security: ["BT1-045", "BT1-045"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoSelectCards: true },
     );
@@ -187,8 +194,28 @@ describe("EX8-034", () => {
     expect(s.perm("target").currentDP).toBe(before - 4000);
     s.state.memory = 0;
     s.state.turnSeat = 1;
-    await advance(s.engine).runTurn(1);
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.perm("target").currentDP).toBe(before);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === before - 4000);
+    expect(s.perm("target").currentDP).toBe(before - 4000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("can decline the optional NSo play without consuming the card", async () => {

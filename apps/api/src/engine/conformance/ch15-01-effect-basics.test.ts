@@ -265,17 +265,6 @@ markNotTestable(
     "this chunk describes — substituting a different card for the one named in a DigiXros " +
     "bracket requirement — has no producing action kind or consuming card to drive.",
 );
-// §15-15-7 Effects That Activate Other Effects (comprehensive-0206)
-markNotTestable(
-  "comprehensive-0206",
-  "No compiled card in the corpus implements 'activate 1 of that card's [When " +
-    "Digivolving] effects as an effect of this Digimon' (searched cards.json effectText for " +
-    "the rule's own phrasing and the interpreter for an 'ActivateOtherEffect'/'ActivateAsSelf' " +
-    "action kind — neither exists). This is distinct from the stack-effect CONFERRAL exercised " +
-    "at comprehensive-0191 above (a standing grant that a stacked card's OWN effects fire as " +
-    "the host's): this chunk is a one-shot 'run 1 of THAT card's timing-window bodies right " +
-    "now, then continue this effect' primitive, which has no producing action kind to drive.",
-);
 // §15-1-9/15-1-10 Effects (comprehensive-0158)
 markNotTestable(
   "comprehensive-0158",

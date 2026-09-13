@@ -160,12 +160,18 @@ describe("EX8-062", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-062", as: "source" }], trash: ["BT26-062", "EX8-057"] },
+        0: {
+          battleArea: [{ card: "EX8-062", as: "source" }],
+          trash: ["BT26-062", "EX8-057"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "firstVictim" },
             { card: "BT1-011", as: "secondVictim" },
+            { card: "BT1-012", as: "thirdVictim" },
           ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -175,12 +181,29 @@ describe("EX8-062", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("firstVictim").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-062"));
-    await advance(s.engine).verb.deletePermanent([s.perm("secondVictim").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("thirdVictim").permanentId], "byEffect");
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX8-057");
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId !== "EX8-062")).toHaveLength(
       1,
     );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.deletePermanent([s.perm("secondVictim").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-057"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-057")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not trigger its play response from Piedmon's own deletion", async () => {

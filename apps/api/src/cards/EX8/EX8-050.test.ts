@@ -156,14 +156,16 @@ describe("EX8-050", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-081", as: "host", under: ["EX8-050"], dp: 10000 }],
+          battleArea: [{ card: "BT1-081", as: "host", under: ["EX8-050"], dp: 20000 }],
           security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-045", "BT1-045"],
         },
         1: {
           battleArea: [
             { card: "BT1-016", as: "attacker", dp: 1000 },
-            { card: "BT1-016", as: "second", dp: 1000 },
+            { card: "BT1-016", as: "second", dp: 10000 },
           ],
+          deck: ["BT1-045", "BT1-045"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -193,6 +195,39 @@ describe("EX8-050", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.perm("host").isSuspended).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const resetTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const secondAttackerId = s.inst("second").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === secondAttackerId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === secondAttackerId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await resetTurn;
   });
 
   it("can decline the optional inherited redirect", async () => {

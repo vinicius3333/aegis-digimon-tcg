@@ -120,6 +120,33 @@ describe("EX8-056", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondVictimId)).toBe(
       true,
     );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === secondVictimId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondVictimId)).toBe(
+      false,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("digivolves for 0 from an off-color level-2 DS stack", async () => {
