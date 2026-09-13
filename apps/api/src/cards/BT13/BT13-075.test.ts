@@ -6,7 +6,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-075.js";
 import "./BT13-077.js";
 
-describe("BT13-075 BT13-075", () => {
+describe("BT13-075 Alphamon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -80,32 +80,53 @@ describe("BT13-075 BT13-075", () => {
   it("places a qualifying trash card and restricts opposing high-cost Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-075", as: "alphamon" }], trash: ["BT9-055"] },
+        0: { hand: [{ card: "BT13-075", as: "alphamon" }], trash: [{ card: "BT9-055", as: "source" }] },
         1: { battleArea: [{ card: "BT13-077", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alphamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("alphamon").instanceId,
+      ),
+    );
+    await settle();
+    expect(s.state.memory).toBe(-2);
 
-    expect(s.perm("alphamon").stack.map((card) => card.cardId)).toContain("BT9-055");
+    expect(s.perm("alphamon").stack.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(true);
   });
 
   it("does not install the restriction when the optional placement cost is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-075", as: "alphamon" }], trash: ["BT9-055"] },
+        0: { hand: [{ card: "BT13-075", as: "alphamon" }], trash: [{ card: "BT9-055", as: "source" }] },
         1: { battleArea: [{ card: "BT13-077", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alphamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("alphamon").instanceId,
+      ),
+    );
+    await settle();
+    expect(s.state.memory).toBe(-2);
 
-    expect(s.perm("alphamon").stack.map((card) => card.cardId)).not.toContain("BT9-055");
+    expect(s.perm("alphamon").stack.map((card) => card.instanceId)).not.toContain(s.inst("source").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(false);
   });
 
