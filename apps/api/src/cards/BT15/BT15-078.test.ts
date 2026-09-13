@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT15-078.js";
 import "../index.js";
@@ -34,10 +35,10 @@ describe("BT15-078", () => {
   it("naturally plays the opposing trash Digimon, suppresses its On Play, and redirects into it", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-078", as: "waruSeadramon" }] },
+        0: { battleArea: [{ card: "BT15-078", as: "waruSeadramon" }], deck: ["BT1-009", "BT1-009"] },
         1: {
           trash: [{ card: "BT15-070", as: "playedDigimon" }],
-          deck: ["BT15-098", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT15-098", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -62,5 +63,68 @@ describe("BT15-078", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(4);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("fires the opponent-played deletion watcher once per turn across two natural attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-078", as: "waruSeadramon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          trash: [
+            { card: "BT15-070", as: "firstPlayed" },
+            { card: "BT15-070", as: "secondPlayed" },
+            { card: "BT15-070", as: "thirdPlayed" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const attackerId = s.perm("waruSeadramon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("waruSeadramon").isSuspended);
+    expect(s.state.memory).toBe(4);
+
+    const turnAfterSecondAttack = s.state.turnCount;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.turnCount).toBeGreaterThan(turnAfterSecondAttack);
+
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("waruSeadramon").isSuspended);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("thirdPlayed").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

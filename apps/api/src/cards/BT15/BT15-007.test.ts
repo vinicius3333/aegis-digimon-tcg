@@ -99,7 +99,7 @@ describe("BT15-007", () => {
   it("gains memory through a natural attack that removes opposing security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT15-009", as: "host", under: ["BT15-007"] }] },
-      1: { security: [{ card: "BT1-001", as: "opponentSecurity" }] },
+      1: { security: [{ card: "BT1-009", as: "opponentSecurity" }] },
     });
     await s.ready();
     s.state.memory = 0;
@@ -114,5 +114,56 @@ describe("BT15-007", () => {
     await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
+  });
+
+  it("caps inherited security memory to once this turn and resets on the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-009", as: "host", under: ["BT15-007"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.memory).toBe(1);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.memory).toBe(1);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

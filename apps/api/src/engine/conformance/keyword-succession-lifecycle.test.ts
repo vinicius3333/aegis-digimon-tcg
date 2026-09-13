@@ -77,6 +77,241 @@ describe("Succession committed consumer evolution", () => {
     assertNoLoudGap(s);
   });
 
+  it.each([
+    {
+      card: "BT26-032",
+      lower: "BT25-059",
+      upper: "BT3-056",
+      securityAttack: 0,
+      piercing: false,
+      engage: false,
+    },
+    {
+      card: "BT26-080",
+      lower: "BT25-077",
+      upper: "BT26-080",
+      securityAttack: 2,
+      piercing: false,
+      engage: false,
+    },
+    {
+      card: "BT26-060",
+      lower: "BT26-016",
+      upper: "BT26-016",
+      securityAttack: 1,
+      piercing: false,
+      engage: true,
+    },
+    {
+      card: "BT26-103",
+      lower: "BT24-101",
+      upper: "BT26-033",
+      securityAttack: 0,
+      piercing: true,
+      engage: true,
+      engageAfter: false,
+    },
+  ])("publicly removes the current $upper provider and exposes the lower $lower source for $card", async (scenario) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: scenario.card,
+              as: "host",
+              under: [
+                { card: scenario.lower, as: "lowerProvider" },
+                { card: scenario.upper, as: "upperProvider" },
+                { card: NEUTRAL, as: "nonMatchingFiller" },
+              ],
+            },
+          ],
+        },
+        1: { hand: [{ card: "BT24-022", as: "removal" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const lowerId = s.inst("lowerProvider").instanceId;
+    const upperId = s.inst("upperProvider").instanceId;
+    const fillerId = s.inst("nonMatchingFiller").instanceId;
+    const removalId = s.inst("removal").instanceId;
+    const hostId = s.perm("host").permanentId;
+
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(scenario.securityAttack);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(scenario.piercing);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Engage")).toBe(scenario.engage);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: removalId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([lowerId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([upperId, fillerId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(lowerId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(removalId);
+    expect(s.state.memory).toBe(4);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-022")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(
+      scenario.card === "BT26-080" ? 1 : scenario.securityAttack,
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(scenario.piercing);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Engage")).toBe(
+      "engageAfter" in scenario ? scenario.engageAfter : scenario.engage,
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("publicly removes BT3-056, then the exposed BT25-059 reaction fires on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-032",
+              as: "host",
+              under: [
+                { card: "BT25-059", as: "lowerProvider" },
+                { card: "BT3-056", as: "upperProvider" },
+                { card: NEUTRAL, as: "nonMatchingFiller" },
+              ],
+            },
+          ],
+          deck: [NEUTRAL, NEUTRAL, "BT1-010", "BT1-010", "BT1-010"],
+          security: [NEUTRAL],
+        },
+        1: {
+          hand: [{ card: "BT24-022", as: "removal" }],
+          battleArea: [{ card: "BT1-082", as: "reactionTarget" }],
+          deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-010", "BT1-010", "BT1-010"],
+          security: [NEUTRAL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("reactionTarget").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("reactionTarget").currentDP).toBe(11000);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.length === 1 && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const playerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("lowerProvider").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("reactionTarget").currentDP).toBe(5000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await playerTurn;
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("publicly loses a live copied redirector when its granted host returns to hand", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "host", suspended: true, under: [{ card: "BT3-056", as: "source" }] },
+            { card: "BT1-077", as: "evolutionBase", suspended: true },
+          ],
+          hand: [{ card: "BT2-050", as: "evolution" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-011", "BT1-011", "BT1-011"],
+          security: [NEUTRAL],
+        },
+        1: {
+          hand: [{ card: "ST2-16", as: "returnOption" }],
+          battleArea: [
+            { card: "BT1-027", as: "blueSource" },
+            { card: NEUTRAL, as: "opponentPayment" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013"],
+          security: [NEUTRAL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.inst("host").instanceId;
+    const sourceId = s.inst("source").instanceId;
+    preferred.push(s.perm("host").permanentId);
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returnOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === hostId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === sourceId) &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("evolutionBase").instanceId,
+        ),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(hostId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sourceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("evolutionBase").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("evolutionBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolutionBase").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolutionBase").topCard.instanceId === s.inst("evolution").instanceId);
+    expect(s.perm("opponentPayment").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+    assertNoLoudGap(s);
+  });
+
   it.each([true, false])("public Chronomon attack resolves the gained effect, acceptance %s", async (accept) => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -306,6 +541,132 @@ describe("Succession committed consumer evolution", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("uses two independent copied Digisorption redirectors for two public payments", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "firstRedirector", suspended: true, under: [{ card: "BT3-056" }] },
+            { card: "BT26-032", as: "secondRedirector", suspended: true, under: [{ card: "BT3-056" }] },
+            { card: "BT1-077", as: "firstBase", suspended: true },
+            { card: "BT1-077", as: "secondBase", suspended: true },
+            { card: NEUTRAL, as: "ownPayment" },
+          ],
+          hand: [
+            { card: "BT2-050", as: "firstEvolution" },
+            { card: "BT2-050", as: "secondEvolution" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-011", "BT1-011", "BT1-011"],
+          security: [NEUTRAL],
+        },
+        1: {
+          battleArea: [
+            { card: NEUTRAL, as: "firstOpponentPayment" },
+            { card: "BT1-010", as: "secondOpponentPayment" },
+          ],
+          deck: [NEUTRAL, NEUTRAL],
+          security: [NEUTRAL],
+        },
+      },
+      { autoDeclineOptional: false, autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("firstOpponentPayment").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstBase").permanentId,
+        instanceId: s.inst("firstEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstBase").topCard.instanceId === s.inst("firstEvolution").instanceId);
+    preferred.splice(0, preferred.length, s.inst("secondOpponentPayment").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondBase").topCard.instanceId === s.inst("secondEvolution").instanceId);
+    expect(s.perm("firstOpponentPayment").isSuspended).toBe(true);
+    expect(s.perm("secondOpponentPayment").isSuspended).toBe(true);
+    expect(s.perm("ownPayment").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("resets a copied BT3-056 redirector across a real next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "host", suspended: true, under: [{ card: "BT3-056", as: "source" }] },
+            { card: "BT1-077", as: "firstBase", suspended: true },
+            { card: "BT1-077", as: "secondBase", suspended: true },
+          ],
+          hand: [
+            { card: "BT2-050", as: "firstEvolution" },
+            { card: "BT2-050", as: "secondEvolution" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-011", "BT1-011", "BT1-011"],
+          security: [NEUTRAL],
+        },
+        1: {
+          battleArea: [
+            { card: NEUTRAL, as: "firstOpponentPayment" },
+            { card: "BT1-010", as: "secondOpponentPayment" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013"],
+          security: [NEUTRAL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("firstOpponentPayment").instanceId);
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstBase").permanentId,
+        instanceId: s.inst("firstEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstBase").topCard.instanceId === s.inst("firstEvolution").instanceId);
+    expect(s.perm("firstOpponentPayment").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    preferred.splice(0, preferred.length, s.inst("secondOpponentPayment").instanceId);
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondBase").topCard.instanceId === s.inst("secondEvolution").instanceId);
+    expect(s.perm("secondOpponentPayment").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 

@@ -1,6 +1,6 @@
 ---
 title: Activation costs audit
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 # Activation costs audit
@@ -69,6 +69,33 @@ compound costs, replacements, and borrowed-effect overrides with their public
 proofs. Provider-specific variants outside the observed 22 kinds and 19
 compound classes remain outside this bounded denominator.
 
+## Ordered loose compound placement target host (2026-09-13)
+
+During EX12 delivery gates, BT14-090's existing public Option-use proofs failed:
+accepted compound payment left both required trash cards outside Agumon's stack.
+Both failures reproduce on pristine `git archive HEAD` sources at
+`b88aeb69f22995641622ab4388086ff771b23dc0`; the focused two-file baseline has
+18 passing and 2 failing tests. Installed dependencies and the unchanged shared
+build were reused; card/engine sources were pristine.
+
+`canPayCost` accepts a loose placement's `host: "target"` with `underFilter`,
+but `payCost`'s ordered compound loose-card branch accepted only an object host.
+The correction derives a canonical host target from either representation.
+Object-host choices retain their existing order; target-host choices preserve
+the loose-material-first sequence expected by BT14-090. Components still bind
+one host, exclude already chosen physical cards, collect/order the entire
+payment, and revalidate host and loose materials before moving anything.
+Refusal and unpayable compound processing remain atomic.
+
+Peer acceptance: BT14-090 and the object-host BT25-096 suites passed 23/23 tests
+with one worker and a 3072 MB heap. Both original-red conformance suites now pass
+20/20 tests; combined with the Guard lifecycle suite, 3 files / 41 tests pass.
+Final broad acceptance passed: EX12, conformance, combat, effects, engine card
+suites, all four ordered-cost consumer cards and audit-document layout —
+276 files / 3317 tests after integration of origin/main e423e12a223a67f5a0808cf46cdf96352edb3834.
+Serialized shared/API/web typecheck passed with a 4096 MB heap. This section
+does not certify unobserved compound consumer shapes.
+
 ## Gates
 
 - Initial conformance baseline: 28 files / 398 tests passed.
@@ -96,6 +123,28 @@ The finite consumer table and compound sections below are authoritative for the
 expected-failure paragraphs are historical checkpoints superseded by the later
 public proofs; they do not reopen those corrected classes. This remains a
 bounded engine contract review, not whole-card or whole-catalog certification.
+
+### BT14-090 ordered-placement regression closure (2026-09-13)
+
+Parallel main-branch provenance follows. The EX12 integration preserves the
+previous object-host prompt order; target-host material selection and atomic
+revalidation match both corrections. Current integration acceptance is recorded
+in the ordered loose-compound section above.
+
+The merged BT25 placement preflight briefly required the first ordered-placement
+host to be an object filter. That rejected the existing compiled `host:
+"target"` plus `underFilter` form used by BT14-090, BT17-085, and ST17-10,
+while BT25-096 uses the object-host form. Commit
+`66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` restores the compiled target-bound
+form without loosening object-host validation. Host resolution follows unpaid
+material selection and is revalidated before atomic ordered placement, preserving
+exact host and material identities.
+
+The focused regression suite covered all four current ordered-placement
+consumers and the interpreter: **260/260 tests passed**, with API typecheck,
+scoped Oxlint/Oxfmt, and `git diff --check` green. This closes the observed
+consumer-shape regression; it does not certify unobserved card permutations or
+the whole card catalog.
 
 ## Targetless paid payload checkpoint (2026-09-13)
 
@@ -528,10 +577,53 @@ paths.
 | No duplicate optional consent / no pending decision leak | Both cases use `autoAcceptOptional: false` and assert zero optional requests and empty pending state | Focused green           |
 | Other borrowed cost kinds and force assignments          | No additional current printed `forceCostProcessing` assignment found                                 | Open discovery boundary |
 
-## Ordered compound loose-card target host — 2026-09-13
+## Ordered loose-material target-host normalization (2026-09-13)
 
-Baseline `b88aeb69f22995641622ab4388086ff771b23dc0` reproduced two failures in a pristine source archive: `activation-cost-compound-assignment.test.ts` / `assigns distinct physical trash cards to both placement components`, and `activation-processing-costs.test.ts` / targetless BT14-090 Option acceptance. The ordered loose-card branch rejected a first placement using `host: "target"` before resolving its `underFilter`, so no payment materials moved. The archive run had 2 failed / 18 passed; the collection audit itself had not changed card IR or catalog.
+The EX9 restart at `b88aeb69f` exposed two existing BT14-090 failures in
+`activation-cost-compound-assignment.test.ts` (distinct physical trash cards)
+and `activation-processing-costs.test.ts` (targetless Option use, accepted
+processing). The unchanged baseline broad gate passed 269 files / 3,390 tests
+and failed those two assertions: the Agumon stack remained empty. No EX9
+module uses `CostGatedBlock`; this is an independent shared payment defect
+found while validating the required mechanism gate.
 
-The resolver now derives a one-permanent host target from `underFilter`/`underOrFilters` when the first placement uses `host: "target"`. Explicit object hosts keep their existing target/count. Both paths retain the same local host binding, distinct physical-material selection, exact order permutation, refreshed host/material eligibility, and atomic mixed-placement call. Successful payment commits the parent binding only after all material movement succeeds. No registration or generated effects change.
+The ordered all-loose compound path in `payCost` only accepted an object-shaped
+first host. BT14-090 instead encodes `host: "target"`, an Agumon `underFilter`
+and `bindHostAs`, followed by another loose placement bound to that host.
+The first host check returned false before payment. The correction normalizes
+that target-host form through `underFilter`/`underOrFilters`, retaining the
+object-host form. Selection and final host revalidation use the same normalized
+target. Distinct identities, subsequent bound-host checks, player ordering and
+atomic placement remain intact. No card IR or serialized catalog change is
+needed for this seam.
 
-The existing two suites subsequently passed together in the focused seven-file run (20 mechanism tests). These tests retain impossible-payment refusal, targetless Option processing refusal, distinct duplicate Greymon instances, exact remaining trash and four-memory payment. Ordered-placement peer consumers BT14-090, BT17-085, BT25-096 and ST17-10 all pass in the closing BT22/engine regression: 303 files / 3143 tests, 10.29s, one worker. The BT14 manual peer fixture explicitly disables automatic ordering to observe and answer the real host → material → order → evolution decisions while retaining exact physical placements and same-host evolution. Serial workspace typecheck and the final API typecheck pass. Collection evidence and the reproducible closing command are in [BT22.md](../BT22.md).
+Existing tests supply the red-capable regression signal; no redundant test was
+added. The isolated `git archive b88aeb69f` replay reproduced both failures: two
+files, 18 passing / two failing tests (39.54 seconds), using
+`TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/engine/conformance/activation-processing-costs.test.ts src/engine/conformance/activation-cost-compound-assignment.test.ts --maxWorkers=1 --no-file-parallelism`.
+The corrected BT14-090 focus passes **one file / 11 tests** (7.47 seconds).
+Its existing same-host case selects the first material before the host, observes
+both materials still in trash until its manual `orderCards` response, asserts
+exact ordered identities on the chosen host, refuses BT14-101's subsequent
+optional attack and waits for the Option to finish resolving into trash.
+The unused second host stays unchanged; final memory is 6 after the printed
+4-cost Option. The auxiliary Tai fixture was removed because its legitimate
+Greymon-evolution memory gain would obscure this payment assertion.
+
+Final corrected regression passes **276 files / 3,433 tests** (15.32 seconds), after integrating main `e423e12a223a67f5a0808cf46cdf96352edb3834`:
+EX9 **78 files / 992 tests**, engine mechanisms **192 files / 2,397 tests**,
+five affected peer card files / 40 tests and audit layout / four tests. The
+exact serialized command is recorded in [EX9.md](../EX9.md#gates). This
+includes both baseline-red conformance cases, primitives, interpreter binding/
+atomic-failure proof, Training, public deck-top placement and object-host peers.
+Serial shared/API/web typecheck with a 4096-MB heap passed; changed-code
+Oxlint, Oxfmt and `git diff --check` passed. Final structured Auto Review
+using Codex/Luna reports no accepted/actionable findings. This proves the
+bounded normalization and named providers; other compound shapes and the
+pre-existing permanent-host OR-filter precheck boundary remain outside this
+certificate. No EX9 card uses `underOrFilters`.
+
+The final integrated interpreter adopts the published normalization from main
+commit `66d0f960f7ea657adfecd7cd4ed45c5791dcf57d` byte for byte. The strengthened
+BT14-090 case follows its material-first decision sequence and retains the
+unpaid-batch, manual-order, same-host, exact-identity and final-resolution proof.

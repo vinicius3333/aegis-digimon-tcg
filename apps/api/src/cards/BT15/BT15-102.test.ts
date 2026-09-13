@@ -136,6 +136,7 @@ describe("BT15-102", () => {
     await s.ready();
     s.state.turnSeat = 0;
 
+    s.state.memory = 3;
     await advance(s.engine).runTurn(0);
 
     expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-031", "BT15-066"]);
@@ -163,6 +164,36 @@ describe("BT15-102", () => {
     expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-066"]);
     expect(s.state.players[1]!.deck).toHaveLength(3);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("does not repeat its end-of-turn processing in the same turn, then processes again next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-102", as: "apocalymon", under: ["BT15-066"] }],
+          trash: [
+            { card: "BT15-031", as: "firstSource" },
+            { card: "BT15-052", as: "secondSource" },
+          ],
+          deck: ["AD1-001", "AD1-001"],
+        },
+        1: { deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-031", "BT15-066"]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-052", "BT15-031", "BT15-066"]);
   });
 
   it("ends the turn automatically when digivolving into it pushes memory across", async () => {

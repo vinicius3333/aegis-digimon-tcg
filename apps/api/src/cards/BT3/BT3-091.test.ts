@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./BT3-091.js";
 import "./BT3-109.js";
 
@@ -57,5 +58,45 @@ describe("BT3-091 Lilithmon", () => {
 
     // The Option costs 2 memory, then Lilithmon's watcher refunds 2.
     expect(s.state.memory).toBe(5);
+  });
+
+  it("refunds only the first Option each turn and resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-091", as: "lilithmon" }],
+          hand: [
+            { card: "BT3-109", as: "first" },
+            { card: "BT3-109", as: "second" },
+            { card: "BT3-109", as: "third" },
+          ],
+          deck: Array(10).fill("BT1-010"),
+        },
+        1: { deck: Array(10).fill("BT1-010") },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    const thirdId = s.inst("third").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: firstId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === firstId));
+    expect(s.state.memory).toBe(10);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === secondId));
+    expect(s.state.memory).toBe(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeThird = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: thirdId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === thirdId));
+    expect(s.state.memory).toBe(beforeThird);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

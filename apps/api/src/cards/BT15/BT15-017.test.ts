@@ -48,7 +48,7 @@ describe("BT15-017", () => {
             { card: "BT1-009", as: "lowest", dp: 3000 },
             { card: "BT1-009", as: "higher", dp: 4000 },
           ],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -72,7 +72,7 @@ describe("BT15-017", () => {
         0: { battleArea: [{ card: "BT15-017", as: "phoenixmon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
-          security: [{ card: "BT1-001", as: "top" }, "BT1-001", "BT1-001", { card: "BT1-001", as: "bottom" }],
+          security: [{ card: "BT1-009", as: "top" }, "BT1-009", "BT1-009", { card: "BT1-009", as: "bottom" }],
         },
       },
       { autoSelectCards: true },
@@ -96,7 +96,7 @@ describe("BT15-017", () => {
             { card: "BT15-017", as: "phoenixmon" },
             { card: "BT15-009", as: "freeDigimon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -117,6 +117,6 @@ describe("BT15-017", () => {
       "BT15-017",
       "BT15-009",
     ]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 });

@@ -77,7 +77,7 @@ describe("BT15-014", () => {
             { card: "BT15-014", as: "garudamon" },
             { card: "BT15-082", as: "sora" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -103,7 +103,7 @@ describe("BT15-014", () => {
       1: {
         battleArea: [{ card: "BT15-013", as: "base" }],
         hand: [{ card: "BT15-014", as: "garudamon" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     s.state.memory = 0;
@@ -143,5 +143,56 @@ describe("BT15-014", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId));
 
     expect(s.state.memory).toBe(-3);
+  });
+
+  it("deletes one Blocker for a Tamer this turn and again after the next owner turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT15-014", as: "garudamon" },
+            { card: "BT15-082", as: "firstTamer" },
+            { card: "BT15-082", as: "secondTamer" },
+            { card: "BT15-082", as: "thirdTamer" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-072", as: "firstBlocker" },
+            { card: "BT1-072", as: "secondBlocker" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const firstBlockerId = s.perm("firstBlocker").permanentId;
+    const secondBlockerId = s.perm("secondBlocker").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garudamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstBlockerId));
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondBlockerId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondBlockerId)).toBe(true);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondBlockerId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

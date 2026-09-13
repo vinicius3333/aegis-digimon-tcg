@@ -1,25 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
-import "./BT15-046.js";
 import { compiled } from "./BT15-046.js";
-
-const source = {
-  instanceId: "source",
-  cardId: "BT15-046",
-  ownerSeat: 0,
-  definition: {},
-  permanent: () => undefined,
-  isOnBattleArea: () => true,
-  isOwnersTurn: () => true,
-  hasColor: () => true,
-} as never;
 
 describe("BT15-046", () => {
   it("registers the once-per-turn watcher for your Digimon suspending", async () => {
-    const { compiled } = await import("./BT15-046.js");
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
@@ -47,10 +33,11 @@ describe("BT15-046", () => {
           battleArea: [
             { card: "BT15-046", as: "woodmon" },
             { card: "BT1-009", as: "attacker" },
+            { card: "BT1-009", as: "secondAttacker" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-010"] },
       },
       { autoSelectCards: true },
     );
@@ -61,8 +48,38 @@ describe("BT15-046", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId), 1_500);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    await settle(() => s.state.players[0]!.hand.length === 1, 1_500);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    await advance(s.engine).verb.unsuspend([s.perm("secondAttacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 3);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("digivolves legally from a green level-3 Digimon and preserves the source stack", async () => {
