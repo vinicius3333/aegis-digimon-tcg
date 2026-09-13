@@ -383,7 +383,9 @@ describe("EX13-071 Richard Sampson", () => {
     s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("sampson"));
+    // Public activation eligibility must reject the incomplete compound before any component
+    // can move; this is deliberately observed without firing a primitive timing seam.
+    expect(observe(s.engine).activatableEffects(s.perm("sampson"))).toHaveLength(0);
     await settle();
 
     expect(s.perm("kudamon").topCard.cardId).toBe("BT1-046");

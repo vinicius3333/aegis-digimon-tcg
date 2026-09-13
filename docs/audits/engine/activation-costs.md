@@ -229,9 +229,9 @@ future overlap and unnamed variants are outside the current consumer scope.
 
 The EX13-071 source-zone edge was checked separately: with the level-4 and level-5 Holy Beast
 cards face-down under Sampson and no matching cards initially in trash, public `activateEffect`
-is not offered. This is correct for the activation-type compound: comprehensive-0169 §15-7-3
-(SHA `255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b`) prohibits performing
-only part of a multi-component optional processing condition, so the first trashing component
+is not offered. Applying comprehensive-0169 §15-7-3 to this activation-type compound means that
+the player cannot perform only part of the multi-component optional processing condition (SHA
+`255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b`), so the first trashing component
 cannot manufacture candidates for the second component after declaration. The ordinary public
 positive instead starts with both placement candidates in trash and completes all components.
 
