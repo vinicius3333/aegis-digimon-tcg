@@ -109,7 +109,7 @@ describe("AD1-009 BlitzGreymon", () => {
 
   it("may attack at end of turn even when DNA digivolution is unavailable (Q6075)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "AD1-009", as: "blitz" }] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "AD1-009", as: "blitz" }] }, 1: { security: ["BT1-009"] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
 
@@ -127,7 +127,7 @@ describe("AD1-009 BlitzGreymon", () => {
           ],
           hand: [{ card: "EX4-060", as: "alter-s" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -148,7 +148,7 @@ describe("AD1-009 BlitzGreymon", () => {
             { card: "BT1-010", as: "ally", dp: 3000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 13000, suspended: true }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 13000, suspended: true }], security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );

@@ -25,9 +25,9 @@ describe("AD1-025 Omnimon", () => {
           battleArea: [
             { card: "BT1-019", as: "no-sources" },
             { card: "BT1-020", as: "with-sources", under: ["BT1-010", "BT1-015"] },
-            { card: "BT9-103", as: "option" },
+            { card: "P-039", as: "option" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-012"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -40,13 +40,13 @@ describe("AD1-025 Omnimon", () => {
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
         s.state.players[1]!.security.length === 1 &&
-        s.state.players[1]!.trash.some((card) => card.cardId === "BT9-103"),
+        s.state.players[1]!.trash.some((card) => card.cardId === "P-039"),
     );
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-019");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([]);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT9-103")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.security[0]?.cardId).toBe("BT1-002");
+    expect(s.state.players[1]!.security[0]?.cardId).toBe("BT1-012");
   });
 
   it("returns every opposing Digimon within its source-count ceiling before deleting one survivor", async () => {
@@ -119,21 +119,88 @@ describe("AD1-025 Omnimon", () => {
       1: {
         battleArea: [
           { card: "BT1-010", as: "leaving" },
-          { card: "BT9-103", as: "option" },
+          { card: "P-039", as: "option" },
         ],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-012"],
       },
     });
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect")).toBe(1);
     await settle();
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT9-103")).toBe(true);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(true);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
 
     s.putOnBoard(1, { card: "BT1-010", as: "second" });
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect")).toBe(1);
     await settle();
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
+  });
+
+  it("resets the opposing-leave watcher on the next real turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-025", as: "omnimon" }],
+        hand: ["BT1-009", "BT1-010"],
+        deck: [
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "first" },
+          { card: "P-039", as: "option-1" },
+        ],
+        security: ["BT1-009", "BT1-012", "BT1-013"],
+        deck: [
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+          "BT1-009",
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(true);
+
+    s.putOnBoard(1, { card: "BT1-010", as: "same-turn" });
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("same-turn").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    s.putOnBoard(1, { card: "BT1-010", as: "next-turn" });
+    s.putOnBoard(1, { card: "P-039", as: "option-2" });
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("next-turn").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "P-039")).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

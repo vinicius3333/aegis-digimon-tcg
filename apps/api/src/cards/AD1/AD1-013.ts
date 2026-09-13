@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          exceptDigiXros: true,
           sourceFilter: {
             isSelfRef: true,
           },

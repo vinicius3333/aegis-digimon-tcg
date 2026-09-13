@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -21,7 +21,22 @@ describe("AD1-008 Gallantmon", () => {
   it("deletes multiple Digimon totaling 10000 DP, then deletes the remaining lowest-DP Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT9-014", as: "base" }], hand: [{ card: "AD1-008", as: "gallantmon" }] },
+        0: {
+          battleArea: [{ card: "BT9-014", as: "base" }],
+          hand: [{ card: "AD1-008", as: "gallantmon" }, "BT1-009"],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "budget-a", dp: 5000 },
@@ -82,7 +97,7 @@ describe("AD1-008 Gallantmon", () => {
     expect(qualified.perm("qualified").currentDP).toBe(17000);
 
     const unqualified = setupEngine({
-      0: { battleArea: [{ card: "AD1-008", as: "unqualified", under: ["BT1-001"] }] },
+      0: { battleArea: [{ card: "AD1-008", as: "unqualified", under: ["BT1-009"] }] },
     });
     await unqualified.ready();
     expect(unqualified.perm("unqualified").currentDP).toBe(12000);
@@ -107,7 +122,7 @@ describe("AD1-008 Gallantmon", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "AD1-008", as: "gallantmon" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "raid-target", dp: 6000 }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", as: "raid-target", dp: 6000 }], security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -128,5 +143,52 @@ describe("AD1-008 Gallantmon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("consumes lowest-DP Once Per Turn deletion on evolution attack and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-014", as: "base" }], hand: [{ card: "AD1-008", as: "gallantmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 12000, as: "lowest" },
+            { card: "BT1-010", dp: 13000, as: "next" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      // Accepts the optional evolution attack target automatically while declining Raid redirection.
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    for (const seat of [0, 1] as const) {
+      for (let n = 0; n < 10; n += 1) {
+        s.give(seat, Zone.Deck, "BT1-009");
+        s.give(seat, Zone.Security, "BT1-009");
+      }
+      s.give(seat, Zone.Hand, "BT1-010");
+    }
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const baseId = s.perm("base").permanentId;
+    const nextId = s.perm("next").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: baseId, instanceId: s.inst("gallantmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === nextId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: baseId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === nextId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

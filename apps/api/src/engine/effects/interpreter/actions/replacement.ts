@@ -254,6 +254,7 @@ export async function runReplacement(
       sourceInstanceId: ctx.source.instanceId,
       activationIdentity,
       mode: "prevent",
+      exceptDigiXros: action.exceptDigiXros,
       affectsAll: action.affectsAll,
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       causeAllows: (cause, resolvingSeat, isBounce) => {
@@ -572,6 +573,7 @@ export async function runReplacement(
     sourceInstanceId: ctx.source.instanceId,
     activationIdentity,
     mode: "instead",
+    exceptDigiXros: action.exceptDigiXros,
     description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,
     causeAllows: (cause, resolvingSeat) => {

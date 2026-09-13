@@ -1387,7 +1387,7 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean },
+    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
   ): Promise<Set<string>> {
     // Immediate reactions must observe the rebuilt continuous registry, never its
     // clear-before-refill interval during an overlapping effect-resolution flow.
@@ -1476,6 +1476,7 @@ export class GameEngine {
       {
         isBounce: opts?.isBounce,
         playerAction: opts?.playerAction,
+        isDigiXros: opts?.isDigiXros,
         insteadOnly: opts?.insteadOnly,
         reentryGuard: this.preventReentryGuard,
       },
@@ -7426,6 +7427,7 @@ export class GameEngine {
       relocatePermanentForDigiXros: async (destPermanentId, sourcePermanentId, opts) => {
         const prevented = await this.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
           playerAction: true,
+          isDigiXros: true,
         });
         if (prevented.has(sourcePermanentId)) return false;
         return this.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);

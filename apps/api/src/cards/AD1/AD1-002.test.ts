@@ -40,9 +40,9 @@ describe("AD1-002 Aldamon", () => {
         0: {
           battleArea: [{ card: "AD1-020", as: "takuya", under: ["BT12-009", "BT12-009"] }],
           hand: [{ card: "AD1-002", as: "aldamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -100,11 +100,11 @@ describe("AD1-002 Aldamon", () => {
             { card: "BT12-088", as: "takuya" },
           ],
           deck: [
-            { card: "BT1-001", as: "draw1" },
-            { card: "BT1-001", as: "draw2" },
+            { card: "BT1-009", as: "draw1" },
+            { card: "BT1-009", as: "draw2" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,9 +130,9 @@ describe("AD1-002 Aldamon", () => {
         0: {
           battleArea: [{ card: "AD1-002", as: "aldamon" }],
           trash: [{ card: "BT12-088", as: "takuya" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -157,7 +157,7 @@ describe("AD1-002 Aldamon", () => {
           battleArea: [{ card: "AD1-002", as: "aldamon", suspended: true }],
           hand: [{ card: "BT12-009", as: "hybrid" }],
           trash: [{ card: "BT12-088", as: "takuya" }],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 9000 }] },
       },
