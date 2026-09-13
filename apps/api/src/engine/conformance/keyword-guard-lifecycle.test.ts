@@ -488,9 +488,10 @@ describe("Guard departure lifecycle", () => {
         },
       },
       {
-        autoAcceptOptional: true,
+        autoAcceptOptional: false,
         autoSelectCards: true,
         autoChooseOption: true,
+        autoOrderTriggers: false,
         preferInstanceIds: preferred,
         preferTriggerKeys: preferredKeys,
       },
@@ -504,13 +505,64 @@ describe("Guard departure lifecycle", () => {
     preferred.push(targetId);
     preferredKeys.push(chosen === "Guard" ? guardId : targetId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.state.pendingDecision!;
+    const orderPayload = JSON.parse(order.payloadJson ?? "{}") as {
+      triggerKeys?: string[];
+      triggerCardIds?: string[];
+    };
+    const triggerKeys = orderPayload.triggerKeys ?? [];
+    const triggerCardIds = orderPayload.triggerCardIds ?? [];
+    const chosenCardId = chosen === "Guard" ? "EX13-052" : "BT26-019";
+    const chosenKey = triggerKeys.find(
+      (key, index) => triggerCardIds[index] === chosenCardId || key.includes(chosenCardId),
+    );
+    expect(chosenKey).toBeDefined();
+    expect(order.seat).toBe(1);
+    const unauthorized = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: order.decisionId,
+      response: { kind: "orderTriggers", order: [chosenKey!] },
+    });
+    expect(unauthorized.ok).toBe(false);
+    expect(unauthorized.reason).toBe("decision-pending");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [chosenKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const selected = s.state.pendingDecision!;
+    const selectedRequest = s.decisions.at(-1)!.req;
+    expect(selectedRequest.sourceCardId).toBe("EX13-052");
+    expect(selectedRequest.options?.effectText).toContain("Guard");
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT26-019")).toBe(
+      chosen === "Detach",
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: selected.decisionId,
+        response: {
+          kind: "optional",
+          accept: chosen === "Guard",
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    );
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId).sort()).toEqual(
       (chosen === "Guard" ? [targetId] : [guardId, targetId]).sort(),
     );
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([chosen === "Guard" ? guardId : linkId]);
-    expect(s.perm("target").linked.map((card) => card.instanceId)).toEqual(chosen === "Guard" ? [linkId] : []);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      (chosen === "Guard" ? [guardId, linkId] : [linkId]).sort(),
+    );
+    expect(s.perm("target").linked.map((card) => card.instanceId)).toEqual([]);
     const choices = s.decisions
       .filter(({ req }) => req.kind === "orderTriggers")
       .flatMap(({ req }) => req.options?.triggerKeys ?? [])
