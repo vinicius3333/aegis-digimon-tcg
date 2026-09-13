@@ -509,10 +509,10 @@ export async function pickLoose(
   visible?: string[],
 ): Promise<string[]> {
   const maxTotalPlayCost = target.totalPlayCostBudget;
+  const playCostOf = (candidate: LooseCandidate): number =>
+    ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost ?? 0;
   if (maxTotalPlayCost !== undefined) {
-    candidates = candidates.filter(
-      (candidate) => (ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost ?? 0) <= maxTotalPlayCost,
-    );
+    candidates = candidates.filter((candidate) => playCostOf(candidate) <= maxTotalPlayCost);
   }
   if (candidates.length === 0) return [];
   const visibleCards = visible
@@ -534,11 +534,15 @@ export async function pickLoose(
   if (requiredNamesExact.length > 0) {
     const chosen: string[] = [];
     const used = new Set<string>();
+    let spent = 0;
     for (const requiredName of requiredNamesExact) {
       const matching = candidates.filter((candidate) => {
         if (used.has(candidate.instanceId)) return false;
         const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-        return def.nameEn === requiredName;
+        return (
+          def.nameEn === requiredName &&
+          (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
+        );
       });
       if (matching.length === 0) return [];
       let picked: string | undefined;
@@ -558,16 +562,21 @@ export async function pickLoose(
       if (picked === undefined || used.has(picked)) return [];
       used.add(picked);
       chosen.push(picked);
+      spent += playCostOf(candidates.find((candidate) => candidate.instanceId === picked)!);
     }
     return chosen;
   }
   if (requiredNamesExactUpTo.length > 0) {
     const chosen: string[] = [];
     const used = new Set<string>();
+    let spent = 0;
     for (const requiredName of requiredNamesExactUpTo) {
       const matching = candidates.filter((candidate) => {
         if (used.has(candidate.instanceId)) return false;
-        return ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === requiredName;
+        return (
+          ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === requiredName &&
+          (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
+        );
       });
       if (matching.length === 0) continue;
       const picked =
@@ -585,6 +594,7 @@ export async function pickLoose(
       if (picked !== undefined && !used.has(picked)) {
         used.add(picked);
         chosen.push(picked);
+        spent += playCostOf(candidates.find((candidate) => candidate.instanceId === picked)!);
       }
     }
     return chosen;
@@ -608,37 +618,52 @@ export async function pickLoose(
         candidates: ids,
         min: 0,
         max: distinctWant,
+        ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
         visible,
         visibleCards,
       });
       const chosen: string[] = [];
       const seenNames = new Set<string>();
+      let spent = 0;
       for (const instanceId of picked) {
         const candidate = candidates.find((c) => c.instanceId === instanceId);
         if (candidate === undefined) continue;
         const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
         const key = (def.nameEn ?? candidate.cardId).toLowerCase();
         if (seenNames.has(key)) continue;
+        if (maxTotalPlayCost !== undefined && spent + playCostOf(candidate) > maxTotalPlayCost) continue;
         seenNames.add(key);
         chosen.push(instanceId);
+        spent += playCostOf(candidate);
       }
       return chosen;
     }
     const chosen: string[] = [];
+    let spent = 0;
     for (const group of groupList.slice(0, distinctWant)) {
-      if (group.length === 1) {
-        chosen.push(group[0]!.instanceId);
+      const eligibleGroup =
+        maxTotalPlayCost === undefined
+          ? group
+          : group.filter((candidate) => spent + playCostOf(candidate) <= maxTotalPlayCost);
+      if (eligibleGroup.length === 0) return [];
+      if (eligibleGroup.length === 1) {
+        chosen.push(eligibleGroup[0]!.instanceId);
+        spent += playCostOf(eligibleGroup[0]!);
         continue;
       }
       const picked = await asker.selectCards(ctx, {
-        candidates: group.map((c) => c.instanceId),
+        candidates: eligibleGroup.map((c) => c.instanceId),
         min: 1,
         max: 1,
+        ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost: maxTotalPlayCost - spent }),
         visible,
         visibleCards,
       });
       const id = picked[0];
-      if (id !== undefined) chosen.push(id);
+      if (id !== undefined) {
+        chosen.push(id);
+        spent += playCostOf(eligibleGroup.find((candidate) => candidate.instanceId === id)!);
+      }
     }
     return chosen;
   }
@@ -657,16 +682,20 @@ export async function pickLoose(
       min: target.upTo ? 0 : distinctWant,
       max: distinctWant,
       distinctCardIds: true,
+      ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
       visible,
       visibleCards,
     });
     const chosen: string[] = [];
     const seenCardIds = new Set<string>();
+    let spent = 0;
     for (const instanceId of picked) {
       const candidate = candidates.find((item) => item.instanceId === instanceId);
       if (candidate === undefined || seenCardIds.has(candidate.cardId)) continue;
+      if (maxTotalPlayCost !== undefined && spent + playCostOf(candidate) > maxTotalPlayCost) continue;
       seenCardIds.add(candidate.cardId);
       chosen.push(instanceId);
+      spent += playCostOf(candidate);
     }
     return chosen;
   }
@@ -683,13 +712,22 @@ export async function pickLoose(
     while (chosen.length < distinctWant) {
       const eligible = candidates.filter((candidate) => {
         const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
-        return level !== undefined && !usedLevels.has(level) && !chosen.includes(candidate.instanceId);
+        return (
+          level !== undefined &&
+          !usedLevels.has(level) &&
+          !chosen.includes(candidate.instanceId) &&
+          (maxTotalPlayCost === undefined ||
+            chosen.reduce((sum, id) => sum + playCostOf(candidates.find((item) => item.instanceId === id)!), 0) +
+              playCostOf(candidate) <=
+              maxTotalPlayCost)
+        );
       });
       if (eligible.length === 0) break;
       const picked = await asker.selectCards(ctx, {
         candidates: eligible.map((candidate) => candidate.instanceId),
         min: target.upTo ? 0 : 1,
         max: 1,
+        ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
         visible,
         visibleCards,
       });

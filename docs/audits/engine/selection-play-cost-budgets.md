@@ -12,9 +12,9 @@ The individual `playCostLte` filter is necessary but cannot establish the total 
 
 EX13-035 registers only `registerIrCard(cardId, compiled)`. Its exclusive optional Modal selects one base or paid PlayWithoutCost action. The normal play path resolves hand/trash candidates and calls `targeting/loose.ts::pickLoose`. Previously this selector ignored `Target.totalPlayCostBudget`, so `decisionApi.selectCards` never received its supported `maxTotalPlayCost`.
 
-The selector now removes candidates individually above the aggregate cap, prevents both ordinary automatic selection shortcuts when a cap is present, and forwards the aggregate maximum to the existing decision API. The API publishes the maximum and clamps received selections in their given order to a valid subset. An over-budget response is accepted under this existing protocol but cannot play the discarded IDs; this correction does not change the response contract into rejection.
+The selector now removes candidates individually above the aggregate cap, prevents both ordinary automatic selection shortcuts when a cap is present, and forwards the aggregate maximum to the existing decision API. The API publishes the maximum and clamps received selections in their given order to a valid subset. An over-budget response is accepted under this existing protocol but cannot play the discarded IDs; this correction does not change the response contract into rejection. The same remaining-budget check now covers the specialized required-name, distinct-name, distinct-card-number, and distinct-level branches, including their nested prompts, so no branch can return a combination above the aggregate cap.
 
-Specialized required-name, distinct-name/card-number/level branches and selection-reference-derived loose budgets remain outside this normal-path repair. No current combined consumer was found in the bounded persisted-field inventory below. They are not certified by these tests.
+Selection-reference-derived permanent budgets and specialized consumer combinations remain outside this loose-card proof. No current combined consumer was found in the bounded persisted-field inventory below. They are not certified by these tests.
 
 ## Obligation ledger
 
