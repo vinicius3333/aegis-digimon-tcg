@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-075.js";
 import "./BT13-077.js";
 import "../ST1/ST1-16.js";
+import "./BT13-066.js";
+import "./BT13-072.js";
 
 describe("BT13-075 Alphamon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
@@ -194,8 +196,8 @@ describe("BT13-075 Alphamon", () => {
               card: "BT13-075",
               as: "alphamon",
               under: [
-                { card: "BT9-055", as: "source" },
-                { card: "BT9-055", as: "unusedSource" },
+                { card: "BT13-066", as: "source" },
+                { card: "BT13-072", as: "unusedSource" },
               ],
             },
           ],
@@ -226,7 +228,7 @@ describe("BT13-075 Alphamon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT9-055"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT13-066"]);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("source").instanceId);
 
     expect(s.state.memory).toBe(2);
@@ -251,8 +253,8 @@ describe("BT13-075 Alphamon", () => {
               card: "BT13-075",
               as: "alphamon",
               under: [
-                { card: "BT9-055", as: "firstSource" },
-                { card: "BT9-055", as: "secondSource" },
+                { card: "BT13-066", as: "firstSource" },
+                { card: "BT13-072", as: "secondSource" },
               ],
             },
           ],

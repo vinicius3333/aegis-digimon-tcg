@@ -140,7 +140,7 @@ describe("BT13-007 King Drasil_7D6", () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "BT13-007", as: "drasil", under: ["BT1-010"] },
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT1-001"] },
           hand: [
             { card: "BT13-040", as: "firstKnight" },
             { card: "BT13-040", as: "sameTurnKnight" },
