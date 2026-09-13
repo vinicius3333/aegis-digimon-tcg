@@ -5,6 +5,8 @@ import { revealedDefinition } from "../../engine/effects/interpreter/actions/rev
 import { CardInstance, getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT17-068.js";
 import "../BT3/BT3-051.js";
+import "../BT15/BT15-079.js";
+import "./BT17-017.js";
 import "./index.js";
 
 const MEPHISTOMON = "BT17-068";
@@ -49,6 +51,63 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     // Mephistomon was deleted in battle; [On Deletion] fired and played Gulfmon.
     const gulfInBattle = p0?.battleArea.some((p) => p.topCard?.instanceId === gulfId);
     expect(gulfInBattle).toBe(true);
+  });
+
+  it("[On Deletion] plays a level-6 Dark Masters Digimon from hand after an effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
+          hand: [{ card: "BT15-079", as: "darkMasters" }],
+        },
+        1: { hand: [{ card: "BT17-017", as: "remover" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    const mephPermId = s.perm("meph").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === mephPermId));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-079"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-079")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT15-079")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("[On Deletion] plays a level-6 Dark Masters Digimon from trash after an effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
+          trash: [{ card: "BT15-079", as: "darkMasters" }],
+        },
+        1: { hand: [{ card: "BT17-017", as: "remover" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    const mephPermId = s.perm("meph").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === mephPermId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-079") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-079")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT15-079")).toBe(false);
   });
 
   it("does not play Gulfmon after a natural battle deletion", async () => {

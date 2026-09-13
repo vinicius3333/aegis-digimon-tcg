@@ -51,9 +51,22 @@ describe("BT15-063", () => {
             { card: "BT15-102", as: "host", under: ["BT15-063"] },
             { card: "BT15-058", as: "ally", suspended: true },
           ],
-          hand: [{ card: "BT15-094", as: "superShocker" }],
+          hand: [
+            { card: "BT15-094", as: "superShocker" },
+            { card: "BT15-094", as: "secondShocker" },
+            { card: "BT15-094", as: "nextShocker" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT15-052", as: "opposingTarget" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-019", as: "opposingTarget" },
+            { card: "BT1-019", as: "secondTarget" },
+            { card: "BT1-019", as: "nextTarget" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -69,6 +82,31 @@ describe("BT15-063", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.perm("opposingTarget").isSuspended).toBe(true);
+    await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
+    preferred.length = 0;
+    preferred.push(s.perm("secondTarget").topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondShocker").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("secondTarget").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.perm("ally").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
+    preferred.length = 0;
+    preferred.push(s.perm("nextTarget").topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextShocker").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("nextTarget").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.perm("ally").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

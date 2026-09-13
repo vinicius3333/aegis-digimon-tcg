@@ -24,7 +24,7 @@ describe("BT15-019", () => {
       {
         0: {
           hand: [{ card: "BT15-019", as: "crabmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: {
           battleArea: [
@@ -56,7 +56,7 @@ describe("BT15-019", () => {
       {
         0: {
           hand: [{ card: "BT15-019", as: "crabmon" }],
-          deck: [{ card: "BT1-001", as: "deckCard" }],
+          deck: [{ card: "BT1-009", as: "deckCard" }],
         },
         1: {
           battleArea: [
@@ -84,7 +84,7 @@ describe("BT15-019", () => {
       {
         0: {
           hand: [{ card: "BT15-019", as: "crabmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
@@ -104,7 +104,7 @@ describe("BT15-019", () => {
       0: {
         breeding: { card: "BT1-003", as: "base" },
         hand: [{ card: "BT15-019", as: "crabmon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 3;

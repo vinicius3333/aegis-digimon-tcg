@@ -147,7 +147,7 @@ describe("BT22-036 Chaperomon", () => {
             { card: "ST19-03", as: "fodder" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );

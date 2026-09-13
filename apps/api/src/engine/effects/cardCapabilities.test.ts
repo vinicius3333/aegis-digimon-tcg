@@ -142,7 +142,10 @@ function source(cardId: string, p?: Permanent): CardSource {
 
 async function runMain(cardId: string, actions: unknown[], ctx: EffectContext, src: CardSource): Promise<void> {
   const card = { coverage: "full", residual: [], effects: [{ trigger: "Main", actions }] } as never as CompiledCard;
-  const effects = irCardModule(cardId, card).effectsForTiming(EffectTiming.OnUseOption, src);
+  // Capability probes are synthetic modules. Keep their registry key separate from the real
+  // card: irCardModule also updates global Blast Digivolve metadata, so probing BT17-041 with a
+  // Main-only fake would otherwise clear its production Counter keyword for later card tests.
+  const effects = irCardModule(`${cardId}/capability-test`, card).effectsForTiming(EffectTiming.OnUseOption, src);
   await effects[0]!.resolve(ctx);
 }
 

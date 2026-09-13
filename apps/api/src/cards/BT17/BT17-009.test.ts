@@ -70,7 +70,7 @@ describe("BT17-009", () => {
         0: {
           battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"], suspended: true }],
           hand: [{ card: "BT17-083", as: "inheritedTamer" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT17-013", as: "attacker" }] },
       },
@@ -178,7 +178,7 @@ describe("BT17-009", () => {
           battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"], suspended: true }],
           // Tai Kamiya is a Tamer with no inherited effect, so it is not a legal free play.
           hand: [{ card: "BT1-085", as: "securityTamer" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT17-013", as: "attacker" }] },
       },

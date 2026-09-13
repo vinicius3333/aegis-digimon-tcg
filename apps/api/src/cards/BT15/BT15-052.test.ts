@@ -77,7 +77,7 @@ describe("BT15-052", () => {
         0: { battleArea: [{ card: "BT15-052", as: "puppetmon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },

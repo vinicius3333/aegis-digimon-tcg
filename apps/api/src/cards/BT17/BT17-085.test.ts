@@ -219,6 +219,88 @@ describe("BT17-085 Rika Nonaka", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not return an Option when the payable placement resolves without an evolution destination", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIKA, as: "rika" },
+            { card: "BT17-031", as: "renamon" },
+          ],
+          trash: [
+            { card: "BT17-032", as: "kyubimon" },
+            { card: "BT17-035", as: "taomon" },
+            { card: "BT1-097", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rika").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("renamon").stack.length === 3);
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-097"]);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-097")).toBe(false);
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+    expect(s.state.memory).toBe(4);
+    assertNoLoudGap(s);
+  });
+
+  it("does not return an Option when the paid placement is followed by an evolution refusal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIKA, as: "rika" },
+            { card: "BT17-031", as: "renamon" },
+          ],
+          hand: [{ card: "BT17-038", as: "sakuyamon" }],
+          trash: [
+            { card: "BT17-032", as: "kyubimon" },
+            { card: "BT17-035", as: "taomon" },
+            { card: "BT1-097", as: "option" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rika").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const evolution = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolution.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("renamon").stack.length === 3);
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-097"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT17-038"]);
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+    expect(s.state.memory).toBe(4);
+    assertNoLoudGap(s);
+  });
+
   it("does not treat an unrelated Digimon as Sakuyamon for the named evolution", async () => {
     const s = setupEngine(
       {

@@ -1,14 +1,16 @@
 ---
 title: Detach lifecycle audit
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 # Detach lifecycle audit
 
 ## Status
 
-In progress. The opponent-effect departure gap is reproduced and corrected.
-This is not full keyword or BT26 collection certification.
+The wider engine keyword audit remains in progress. The opponent-effect departure
+and link-trash subject-lifetime gaps are corrected. BT26's applicable printed
+denominator is closed by the 2026-09-13 evidence and fresh gates in BT26.md;
+this is not certification of additional granted/inherited keyword forms.
 Baseline: `50454b210` on `audit/engine-mechanisms-20260912`.
 
 ## Sources and contract
@@ -48,24 +50,24 @@ printed consumer tests.
 
 ## Obligation ledger
 
-| Obligation                                                          | Public proof                                                                           | Status |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------ |
-| Opponent effect deletion may be prevented                           | Gaia Force against every printed Detach holder                                         | green  |
-| Hand departure may be prevented                                     | ST2-16 public Option play                                                              | green  |
-| Deck departure may be prevented                                     | BT2-102 public Option play                                                             | green  |
-| Security departure may be prevented                                 | BT10-101 at zero own security                                                          | green  |
-| Owner's deletion cost is not prevented                              | ST6-15; sole eligible sacrifice, purple source in breeding                             | green  |
-| Controller may refuse; opponent cannot answer                       | manual seat-addressed response; both target and link go to trash                       | green  |
-| Ineligible linked trait cannot pay                                  | BT21-009 link under Mailmon; original deletion proceeds                                | green  |
-| Battle tie saves only the paying holder and removes linked Piercing | existing Q6964 public attack test                                                      | green  |
-| Both tied holders may pay separately                                | existing public attack with one eligible link each                                     | green  |
-| Payment request identifies source, chooser and trait                | manual refusal request asserts seat, sourceCardId and options.effectText               | green  |
-| Choice when no payment is possible                                  | accepted/refused no-link and wrong-trait cases; chooser, text and final trash verified | green  |
-| Multiple eligible links and distinct traits                         | exact-selection and multi-parameter fixtures                                           | open   |
-| Granted/inherited parameter fidelity and expiry                     | live provenance implemented; public comparative/stack proof missing                    | open   |
-| Competing replacements and reentry                                  | shared seam used; Detach-specific ordering proof missing                               | open   |
-| DP rule deletion and security battles                               | direct lifecycle proofs missing                                                        | open   |
-| Nested link-trash reactions and overflow                            | primitive reused; Detach-specific receipts unproved                                    | open   |
+| Obligation                                                          | Public proof                                                                                         | Status                             |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Opponent effect deletion may be prevented                           | Gaia Force against every printed Detach holder                                                       | green                              |
+| Hand departure may be prevented                                     | ST2-16 public Option play                                                                            | green                              |
+| Deck departure may be prevented                                     | BT2-102 public Option play                                                                           | green                              |
+| Security departure may be prevented                                 | BT10-101 at zero own security                                                                        | green                              |
+| Owner's deletion cost is not prevented                              | ST6-15; sole eligible sacrifice, purple source in breeding                                           | green                              |
+| Controller may refuse; opponent cannot answer                       | manual seat-addressed response; both target and link go to trash                                     | green                              |
+| Ineligible linked trait cannot pay                                  | BT21-009 link under Mailmon; original deletion proceeds                                              | green                              |
+| Battle tie saves only the paying holder and removes linked Piercing | existing Q6964 public attack test                                                                    | green                              |
+| Both tied holders may pay separately                                | existing public attack with one eligible link each                                                   | green                              |
+| Payment request identifies source, chooser and trait                | manual refusal request asserts seat, sourceCardId and options.effectText                             | green                              |
+| Choice when no payment is possible                                  | accepted/refused no-link and wrong-trait cases; chooser, text and final trash verified               | green                              |
+| Multiple eligible links and distinct traits                         | No eligible capacity grant; all seven holders have one legal Seven Code link                         | not applicable to BT26; wider open |
+| Granted/inherited parameter fidelity and expiry                     | No printed/granted/inherited Detach source outside the seven BT26 holders                            | no BT26 form; wider open           |
+| Competing replacements and reentry                                  | Retained public Guard/Detach order pair; Medicmon Barrier pair; shared mixed-mode/reentry controls   | green for BT26                     |
+| DP rule deletion and security battles                               | Public BT1-106 zero-DP reprocessing; equal-DP security attack                                        | green                              |
+| Nested link-trash reactions and overflow                            | EX10-062 live observer after host loss, EX10-070 Delay, P-234 timing pair; no eligible Overflow link | green for BT26                     |
 
 ## Consumers
 
@@ -76,6 +78,52 @@ survives, its link disappears, and that exact link reaches its owner's trash.
 Other departure shapes use Mailmon; this distinction matters when assessing coverage.
 Existing BT26 collection tests provide comparative battle cases but do not prove
 all open obligations above.
+
+## BT26 restart denominator, 2026-09-13
+
+The committed catalog's complete legal Seven Code Link inventory is BT26-010,
+019, 028, 037, 051, 063 and 084. Each permits an Appmon recipient at Link cost 3. BT26-102 is a Seven Code Option with no Link requirement. None of the seven
+eligible payment cards is ACE or carries Overflow; this inventory, rather than
+base link capacity alone, excludes an Overflow payment case for these holders.
+All seven printed holders specify the same Seven Code payment trait. Generic
+TS-restricted Link capacity grants do not apply to these Appmon holders. No
+printed or granted Detach source outside these seven was found in the committed
+catalog, so distinct inherited/granted parameter shapes remain wider-engine
+obligations rather than demonstrated BT26 consumers.
+
+The real committed link-trash observers include EX10-001, EX10-030, EX10-043,
+EX10-062, EX10-070, EX10-073 and P-234. Their applicability must be checked by
+source placement, controller and timing; self-hosted observers cannot be counted
+as generic third-party reactions. EX10-062 is an applicable All Turns Tamer,
+EX10-070 supplies a Delay relink, and P-234 supplies a Your Turn relink. The latter
+two Detach interactions are being proved in their existing peer suites. Existing
+P-234 primitive-trash tests do not reproduce a public Detach producer.
+
+BT26-086's root Link +6 is self-scoped to Dantemon; it is not a Link effect or
+an external grant to these holders. BT25-075 is also self-scoped, and BT25-102's
+external Link +1 grant requires a red/black TS recipient. Thus no catalog producer
+makes multiple eligible payment links legal on the seven BT26 Detach holders.
+Distinct parameter/multiple-link examples remain outside this printed denominator.
+
+The retained `keyword-guard-lifecycle.test.ts` public Guard/Detach pair lets the
+controller choose either replacement first, rejects the wrong chooser and checks
+exact final target/guard/link identities. Medicmon's public Barrier pair covers
+the separate battle-prevention window. The shared `leavePrevent.test.ts` mixed-mode
+and reentry tests exercise the unchanged unified replacement consult. These
+existing proofs are retained rather than duplicating ordering tests. Bagramon can
+legally place Dragomon under a holder to supply an authored inherited replacement;
+this restart relies on that existing unified seam proof and does not claim a fresh
+public Dragomon/Bagramon combination test.
+
+The restart adds public DP-zero and security-battle proof and a real Medicmon
+Barrier acceptance/refusal comparison. A public zero-DP Detach payment exposed
+loss of EX10-062's already-triggered event when its subject later left; the
+correction in `46c0f3431` preserves the subject while rechecking the observer's
+live source. `c33a4c702` uses the schema-aware deep clone. The discarded cached
+full-context draft is not the delivered implementation. Focused post-repair
+validation passes 5 files / 174 tests, and API semantic typecheck passes; fresh
+collection gates pass 307 files / 3594 tests; BT26.md records the fresh 104/104
+10/10 recalculation.
 
 ## Verification
 
@@ -117,7 +165,9 @@ No persisted card IR changed in this engine correction.
 
 ## Open items
 
-Resolve every open row with source-backed public proof. Refresh the missing KB
-source without silently updating reviewed fingerprints. Recalculate the affected
-BT26 card evidence after complete mechanism proof and delivery gates. Historical
-10/10 scores cannot certify the corrected departure contract on their own.
+Resolve the remaining wider-engine parameter and granted/inherited rows with
+source-backed public proof. The reviewed §16-46 import and fingerprints are
+already pinned; do not silently retarget citations. The current BT26 printed
+consumer denominator has no remaining applicable open row, and its fresh
+recalculation is in BT26.md. This does not certify hypothetical additional
+capacity, distinct trait parameters or grant encodings.

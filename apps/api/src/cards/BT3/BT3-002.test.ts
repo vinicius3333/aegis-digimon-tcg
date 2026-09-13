@@ -14,7 +14,6 @@ describe("BT3-002 DemiVeemon", () => {
       },
       1: { security: ["BT1-011"] },
     });
-
     await s.engine.recomputeContinuousEffects();
     expect(
       s.engine.applyIntent(0, {
@@ -52,10 +51,13 @@ describe("BT3-002 DemiVeemon", () => {
         deck: [
           { card: "BT1-012", as: "first" },
           { card: "BT1-013", as: "second" },
+          { card: "BT1-014", as: "nextTurn" },
         ],
       },
-      1: { security: ["BT1-011", "BT1-012"] },
+      1: { security: ["BT1-011", "BT1-012", "BT1-013"], deck: ["BT1-014", "BT1-015", "BT1-016"] },
     });
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -75,8 +77,26 @@ describe("BT3-002 DemiVeemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    await settle(() => s.state.players[1]!.security.length === 1, 5000);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("first").instanceId]);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nextTurn").instanceId),
+      5000,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nextTurn").instanceId)).toBe(true);
   });
 });

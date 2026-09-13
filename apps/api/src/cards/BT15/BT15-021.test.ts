@@ -103,7 +103,7 @@ describe("BT15-021", () => {
             { card: "BT15-027", as: "more", under: ["BT15-002", "BT15-019", "BT15-023"] },
           ],
           hand: [{ card: "BT1-009", as: "addedSource" }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -135,5 +135,58 @@ describe("BT15-021", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(observe(s.engine).isRestricted(s.perm("fewer"), "attack")).toBe(false);
+  });
+
+  it("restricts one opposing attacker per turn and resets after the next owner turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-023", as: "host", under: ["BT15-002", "BT15-021"] }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-023", as: "firstTarget" },
+            { card: "BT15-023", as: "secondTarget" },
+            { card: "BT15-023", as: "thirdTarget" },
+          ],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("firstTarget"), "attack"));
+    expect(observe(s.engine).isRestricted(s.perm("firstTarget"), "attack")).toBe(true);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "attack")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.push(s.perm("thirdTarget").topCard.instanceId);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("thirdTarget"), "attack"));
+    expect(observe(s.engine).isRestricted(s.perm("thirdTarget"), "attack")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
   });
 });

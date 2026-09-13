@@ -30,8 +30,8 @@ describe("BT15-006", () => {
             { card: "BT10-074", as: "level4" },
           ],
           deck: [
-            { card: "BT1-001", as: "firstDraw" },
-            { card: "BT1-002", as: "secondDraw" },
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-010", as: "secondDraw" },
           ],
         },
       },
@@ -53,8 +53,8 @@ describe("BT15-006", () => {
           battleArea: [{ card: "BT10-071", as: "host", dp: 1000, suspended: true, under: ["BT15-006"] }],
           hand: [{ card: "BT10-012", as: "level5" }],
           deck: [
-            { card: "BT1-001", as: "firstDraw" },
-            { card: "BT1-002", as: "secondDraw" },
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-010", as: "secondDraw" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
@@ -85,8 +85,8 @@ describe("BT15-006", () => {
             battleArea: [{ card: "BT10-071", as: "host", under: ["BT15-006"] }],
             hand: [{ card: autoAcceptOptional ? "BT10-074" : "BT10-012", as: "candidate" }],
             deck: [
-              { card: "BT1-001", as: "firstDraw" },
-              { card: "BT1-002", as: "secondDraw" },
+              { card: "BT1-009", as: "firstDraw" },
+              { card: "BT1-010", as: "secondDraw" },
             ],
           },
         },

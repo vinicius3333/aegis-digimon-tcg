@@ -14,7 +14,7 @@ describe("BT22-002 Kyaromon", () => {
           { card: "BT22-029", as: "shoemon" },
           { card: "BT22-008", as: "invalidAgumon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.phase = Phase.Breeding;
@@ -47,7 +47,7 @@ describe("BT22-002 Kyaromon", () => {
         0: {
           battleArea: [{ card: "BT22-032", under: ["BT22-002"], as: "host" }],
           hand: [{ card: "BT22-040", as: "cendrillmon" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -71,7 +71,7 @@ describe("BT22-002 Kyaromon", () => {
           { card: "BT2-055", as: "firstPuppet" },
           { card: "BT2-055", as: "secondPuppet" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();
@@ -90,9 +90,9 @@ describe("BT22-002 Kyaromon", () => {
           { card: "BT2-055", as: "firstPuppet" },
           { card: "BT2-055", as: "secondPuppet" },
         ],
-        deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
-      1: { deck: ["BT1-005", "BT1-006"] },
+      1: { deck: ["BT1-013", "BT1-014"] },
     });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("firstPuppet").permanentId], "byEffect");
@@ -117,7 +117,7 @@ describe("BT22-002 Kyaromon", () => {
           { card: "BT1-010", as: "nonPuppet" },
           { card: "BT2-055", as: "wrongTurnPuppet" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
       1: { battleArea: [{ card: "BT2-055", as: "opponentPuppet" }] },
     });
@@ -138,7 +138,7 @@ describe("BT22-002 Kyaromon", () => {
           { card: "BT6-030", under: ["BT22-002"], as: "host" },
           { card: "BT2-055", as: "ownedPuppet" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();

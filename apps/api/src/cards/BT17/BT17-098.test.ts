@@ -63,7 +63,7 @@ describe("BT17-098 Hacker Pride", () => {
         0: {
           battleArea: ["BT17-036"],
           hand: [{ card: "BT17-098", as: "option" }],
-          deck: [{ card: "BT17-069", as: "match" }, "BT1-001", "BT1-011"],
+          deck: [{ card: "BT17-069", as: "match" }, "BT1-011", "BT1-012"],
         },
       },
       { autoSelectCards: true },
@@ -122,7 +122,7 @@ describe("BT17-098 Hacker Pride", () => {
       {
         0: {
           security: [{ card: "BT17-098", as: "securityOption" }],
-          deck: [{ card: "BT17-069", as: "match" }, "BT1-001", "BT1-011"],
+          deck: [{ card: "BT17-069", as: "match" }, "BT1-011", "BT1-012"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },

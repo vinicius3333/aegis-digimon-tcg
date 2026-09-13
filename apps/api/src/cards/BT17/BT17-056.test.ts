@@ -185,6 +185,46 @@ describe("BT17-056 Locomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("places a revealed Parasitemon in the bottom stack slot through the name branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-056", under: ["BT1-010"], as: "locomon" },
+            { card: "BT17-059", as: "switcher" },
+          ],
+          deck: [
+            { card: "BT17-050", as: "parasitemon" },
+            { card: "BT1-087", as: "remainderOne" },
+            { card: "BT1-102", as: "remainderTwo" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT17-052", as: "attacker" }],
+          security: [{ card: "BT1-009" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const parasitemonId = s.inst("parasitemon").instanceId;
+    const priorSourceId = s.perm("locomon").stack[0]!.instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("locomon").stack.some((card) => card.instanceId === parasitemonId));
+
+    expect(s.perm("locomon").stack.map((card) => card.instanceId)).toEqual([parasitemonId, priorSourceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-087", "BT1-102"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("reveals only once per turn and resets on the next turn", async () => {
     const s = setupEngine(
       {
@@ -203,8 +243,10 @@ describe("BT17-056 Locomon", () => {
             { card: "BT17-052", as: "firstEligible" },
             { card: "BT1-087", as: "firstRest" },
             { card: "BT1-102", as: "secondRest" },
+            "BT1-087",
             { card: "BT17-053", as: "secondEligible" },
             "BT1-087",
+            "BT1-102",
             "BT1-102",
           ],
         },
@@ -215,6 +257,7 @@ describe("BT17-056 Locomon", () => {
           ],
           hand: [{ card: "BT1-102", as: "opponentSpare" }],
           security: [{ card: "BT1-009" }, { card: "BT1-010" }],
+          deck: ["BT1-087", "BT1-102", "BT1-087", "BT1-102"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -232,7 +275,7 @@ describe("BT17-056 Locomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("locomon").stack.some((card) => card.instanceId === firstEligibleId));
-    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
 
     // Second switch in the SAME turn: [Once Per Turn] refuses, so no further reveal.
     expect(
@@ -242,19 +285,21 @@ describe("BT17-056 Locomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.trash.length >= 0);
-    expect(s.state.players[0]!.deck).toHaveLength(3);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("attackerTwo").isSuspended);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
     expect(s.perm("locomon").stack.some((card) => card.instanceId === secondEligibleId)).toBe(false);
 
     // Next own turn resets the once-per-turn gate: a switch reveals again.
-    const attackPhase = s.state.phase;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;
     s.state.memory = 3;
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 3;
-    s.state.phase = attackPhase;
-    await advance(s.engine).verb.unsuspend([s.perm("attackerOne").permanentId, s.perm("switcherThree").permanentId]);
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -263,7 +308,9 @@ describe("BT17-056 Locomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("locomon").stack.some((card) => card.instanceId === secondEligibleId));
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("grants inherited Collision to a Machine host and withholds it from a non-Machine host", async () => {

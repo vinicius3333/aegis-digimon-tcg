@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-065.js";
 import "./index.js";
+import "../ST3/ST3-16.js";
 
 describe("BT17-065 DexDorugamon", () => {
   it("matches the catalog printed text, requirement and coverage", () => {
@@ -197,7 +198,7 @@ describe("BT17-065 DexDorugamon", () => {
         0: {
           battleArea: [{ card: "BT7-062", as: "dorugamon" }],
           trash: [{ card: "BT17-065", as: "dexDorugamon" }],
-          hand: [{ card: "BT1-001", as: "discarded" }],
+          hand: [{ card: "BT1-009", as: "discarded" }],
           deck: [{ card: "BT1-011", as: "bonusDraw" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
@@ -213,7 +214,52 @@ describe("BT17-065 DexDorugamon", () => {
     const protectedDigimon = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === dorugamonId);
     expect(protectedDigimon?.topCard.cardId).toBe("BT17-065");
     expect(protectedDigimon?.stack.some((card) => card.cardId === "BT7-062")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("Q2818/Q2819: carries a DP-zero deletion through the trash digivolution and never activates When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-062", as: "dorugamon", dp: 10000 }],
+          trash: [{ card: "BT17-065", as: "dexDorugamon" }],
+          hand: [{ card: "BT1-009", as: "discarded" }],
+        },
+        1: {
+          hand: [{ card: "ST3-16", as: "sevenHeavens" }],
+          battleArea: [{ card: "ST3-10", as: "opponentTarget", dp: 10000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 8;
+
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("sevenHeavens").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT17-065")).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "cardsMoved",
+        instanceIds: expect.arrayContaining([s.inst("dexDorugamon").instanceId]),
+        from: "various",
+        to: "battleArea",
+      }),
+    );
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "BT17-065" && event.timing === "WhenDigivolving",
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT7-062")).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("allows Dorugamon's deletion when DexDorugamon is unavailable in trash", async () => {

@@ -1,6 +1,7 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-067.js";
 import "./index.js";
 
@@ -48,7 +49,7 @@ describe("BT22-067 LordKnightmon", () => {
           hand: [{ card: "BT22-067", as: "lordknightmon" }],
           deck: ["BT1-009", "BT1-090", "EX5-007"],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -65,5 +66,43 @@ describe("BT22-067 LordKnightmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT1-090", "EX5-007"]),
     );
+  });
+
+  it("runs the reveal after Raid switches the player attack to the highest-DP target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-067", as: "lordknightmon", dp: 12000 }],
+          deck: ["BT1-009", "BT1-090", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 4000 },
+            { card: "BT1-010", as: "high", dp: 8000 },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const highId = s.perm("high").permanentId;
+    const lordId = s.perm("lordknightmon").permanentId;
+    const eligibleId = s.state.players[0]!.deck[0]!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: lordId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-090", "BT1-010"]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.perm("lordknightmon").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

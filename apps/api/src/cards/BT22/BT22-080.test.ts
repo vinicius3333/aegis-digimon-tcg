@@ -98,7 +98,7 @@ describe("BT22-080 Eater (Human Form)", () => {
           battleArea: [{ card: "BT22-080", as: "human" }],
           hand: [{ card: "BT22-089", as: "cs-tamer" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

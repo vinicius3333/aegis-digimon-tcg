@@ -76,7 +76,7 @@ describe("BT15-084", () => {
             { card: "BT1-009", as: "attacker", dp: 12000, under: ["BT15-003"] },
             { card: "BT15-084", as: "kari" },
           ],
-          security: [{ card: "BT1-001", as: "removed" }],
+          security: [{ card: "BT1-009", as: "removed" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
       },

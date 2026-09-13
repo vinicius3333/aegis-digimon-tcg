@@ -56,7 +56,7 @@ describe("BT15-039", () => {
       {
         0: {
           battleArea: [{ card: "BT15-039", as: "bomber", under: ["BT8-008"] }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [

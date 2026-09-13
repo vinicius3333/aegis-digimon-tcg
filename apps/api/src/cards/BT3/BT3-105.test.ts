@@ -11,7 +11,10 @@ describe("BT3-105 Breath of the Gods", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT3-059", as: "target" }, { card: "BT3-070", as: "untouched" }],
+          battleArea: [
+            { card: "BT3-059", as: "target" },
+            { card: "BT3-070", as: "untouched" },
+          ],
           hand: [{ card: "BT3-105", as: "option" }],
         },
       },

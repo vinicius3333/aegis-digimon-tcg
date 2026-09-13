@@ -53,7 +53,10 @@ describe("BT15-101", () => {
 
   it("suspends to prevent a natural deletion, then unsuspends once from that suspension", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT15-101", as: "metalGarurumon" }] } },
+      {
+        0: { battleArea: [{ card: "BT15-101", as: "metalGarurumon" }], deck: ["BT1-009", "BT1-009"] },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
       { autoAcceptOptional: true },
     );
     const permanentId = s.perm("metalGarurumon").permanentId;
@@ -78,5 +81,32 @@ describe("BT15-101", () => {
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some(({ permanentId: id }) => id === permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT15-101")).toBe(true);
+  });
+
+  it("unsuspends only once for two natural suspensions in a turn, then resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-101", as: "metalGarurumon" }], deck: ["BT1-009", "BT1-009"] },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    const permanentId = s.perm("metalGarurumon").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([permanentId]);
+    await settle(() => s.perm("metalGarurumon").isSuspended === false);
+    await advance(s.engine).verb.suspend([permanentId]);
+    await settle(() => s.perm("metalGarurumon").isSuspended === true);
+
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    await advance(s.engine).verb.unsuspend([permanentId]);
+    await advance(s.engine).verb.suspend([permanentId]);
+    await settle(() => s.perm("metalGarurumon").isSuspended === false);
   });
 });
