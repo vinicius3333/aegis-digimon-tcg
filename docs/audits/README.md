@@ -100,12 +100,12 @@ build when it is stale.
 | BT11 | 112   | incomplete  | 2026-09-10  | [BT11.md](BT11.md) |
 | BT12 | 112   | verified    | 2026-09-10  | [BT12.md](BT12.md) |
 | BT13 | 112   | incomplete  | 2026-09-10  | [BT13.md](BT13.md) |
-| BT14 | 102   | in-progress | 2026-09-10  | [BT14.md](BT14.md) |
+| BT14 | 102   | complete    | 2026-09-13  | [BT14.md](BT14.md) |
 | BT15 | 102   | in-progress | 2026-09-10  | [BT15.md](BT15.md) |
 | BT16 | 102   | verified    | 2026-09-10  | [BT16.md](BT16.md) |
 | BT17 | 102   | in-progress | 2026-09-09  | [BT17.md](BT17.md) |
 | BT18 | 102   | verified    | 2026-09-10  | [BT18.md](BT18.md) |
-| BT19 | 102   | in-progress | 2026-09-09  | [BT19.md](BT19.md) |
+| BT19 | 102   | verified    | 2026-09-13  | [BT19.md](BT19.md) |
 | BT20 | 102   | verified    | 2026-09-10  | [BT20.md](BT20.md) |
 | BT21 | 102   | verified    | 2026-09-06  | [BT21.md](BT21.md) |
 | BT22 | 102   | incomplete  | 2026-09-07  | [BT22.md](BT22.md) |
@@ -130,7 +130,7 @@ build when it is stale.
 | P    | 249   | verified    | 2026-09-12  | [P.md](P.md)       |
 | RB1  | 33    | verified    | 2026-09-12  | [RB1.md](RB1.md)   |
 | ST1  | 16    | verified    | 2026-09-05  | [ST1.md](ST1.md)   |
-| ST2  | 16    | in-progress | 2026-09-05  | [ST2.md](ST2.md)   |
+| ST2  | 16    | verified    | 2026-09-13  | [ST2.md](ST2.md)   |
 | ST3  | 16    | verified    | 2026-09-05  | [ST3.md](ST3.md)   |
 | ST4  | 16    | verified    | 2026-09-05  | [ST4.md](ST4.md)   |
 | ST5  | 16    | verified    | 2026-09-05  | [ST5.md](ST5.md)   |
@@ -144,7 +144,7 @@ build when it is stale.
 | ST14 | 12    | verified    | 2026-09-05  | [ST14.md](ST14.md) |
 | ST15 | 16    | verified    | 2026-09-05  | [ST15.md](ST15.md) |
 | ST16 | 16    | verified    | 2026-09-05  | [ST16.md](ST16.md) |
-| ST17 | 13    | in-progress | 2026-09-05  | [ST17.md](ST17.md) |
+| ST17 | 13    | verified    | 2026-09-13  | [ST17.md](ST17.md) |
 | ST18 | 15    | verified    | 2026-09-05  | [ST18.md](ST18.md) |
 | ST19 | 15    | verified    | 2026-09-05  | [ST19.md](ST19.md) |
 | ST20 | 15    | verified    | 2026-09-05  | [ST20.md](ST20.md) |

@@ -80,4 +80,56 @@ describe("BT14-044", () => {
     await settle(() => s.perm("host").topCard?.cardId === "BT14-050");
     expect(s.state.memory).toBe(8);
   });
+
+  it("resets the inherited evolution discount after a complete opposing turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT14-045", as: "host", under: ["BT14-044"] },
+          { card: "BT1-089", as: "mimi" },
+        ],
+        hand: [{ card: "BT3-053", as: "firstEvolution" }, { card: "BT10-055", as: "secondEvolution" }, "BT1-009"],
+        deck: Array(8).fill("BT1-009"),
+      },
+      1: { hand: ["BT1-009"], deck: Array(8).fill("BT1-009") },
+    });
+    const hostId = s.perm("host").permanentId;
+    s.state.memory = 10;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("firstEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT3-053");
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT14-044", "BT14-045"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT10-055");
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT14-044", "BT14-045", "BT3-053"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondEvolution").instanceId)).toBe(
+      false,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+  });
 });

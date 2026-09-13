@@ -79,7 +79,7 @@ it("keeps the effect-play restriction on a legal Koromon-to-Gotsumon stack", asy
         { card: "BT14-009", as: "gotsumon" },
         { card: "BT14-010", as: "effectDigimon" },
       ],
-      deck: ["BT1-001"],
+      deck: ["BT1-009"],
     },
   });
   s.state.memory = 5;

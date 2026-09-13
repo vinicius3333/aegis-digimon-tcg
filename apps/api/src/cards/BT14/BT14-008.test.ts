@@ -16,7 +16,7 @@ describe("BT14-008", () =>
 it("deletes one opposing Digimon at 3000 DP or less when the host attacks", async () => {
   const s = setupEngine(
     {
-      0: { battleArea: [{ card: "BT14-007", as: "attacker", under: ["BT14-008"] }] },
+      0: { battleArea: [{ card: "BT1-014", as: "attacker", under: ["BT14-008"] }] },
       1: {
         battleArea: [
           { card: "BT1-009", as: "low" },
@@ -48,7 +48,7 @@ it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack
           { card: "BT14-008", as: "gizamon" },
           { card: "BT1-015", as: "greymon" },
         ],
-        deck: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009"],
       },
       1: {
         battleArea: [
@@ -56,7 +56,7 @@ it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack
           { card: "BT1-009", as: "secondBoundary", dp: 3000 },
           { card: "BT1-009", as: "overBoundary", dp: 4000 },
         ],
-        security: ["BT1-001", "BT1-001"],
+        security: ["BT1-009", "BT1-009"],
       },
     },
     { autoSelectCards: true },
@@ -102,5 +102,68 @@ it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack
   await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("egg"));
   await settle();
   expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondBoundaryId)).toBe(true);
+  assertNoLoudGap(s);
+});
+
+it("resets the inherited deletion trigger on the next natural turn", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT1-014", under: ["BT14-008"], as: "attacker" }],
+        deck: Array(8).fill("BT1-009"),
+      },
+      1: {
+        hand: ["BT1-009"],
+        battleArea: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-009", as: "second" },
+        ],
+        security: ["BT1-091", "BT1-091"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+
+  const firstTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const firstId = s.perm("first").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId));
+  expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await firstTurn;
+
+  s.state.turnSeat = 1;
+  s.state.memory = 3;
+  await advance(s.engine).runTurn(1);
+  s.state.turnSeat = 0;
+  s.state.memory = 3;
+
+  const secondTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const secondId = s.perm("second").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId));
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await secondTurn;
   assertNoLoudGap(s);
 });

@@ -26,7 +26,7 @@ describe("BT14-072", () => {
         0: {
           hand: [
             { card: "BT14-072", as: "fangmon" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
           trash: [{ card: "BT14-071", as: "returned" }],
         },
@@ -37,9 +37,9 @@ describe("BT14-072", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("Q2442: still trashes a hand card when no purple Dark Animal can be returned", async () => {
@@ -48,9 +48,9 @@ describe("BT14-072", () => {
         0: {
           hand: [
             { card: "BT14-072", as: "fangmon" },
-            { card: "BT1-001", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
-          trash: ["BT1-001"],
+          trash: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -59,10 +59,10 @@ describe("BT14-072", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
 
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-001")).toHaveLength(2);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("returns a purple Dark Animal and then trashes a hand card from a natural attack", async () => {
@@ -70,7 +70,7 @@ describe("BT14-072", () => {
       {
         0: {
           battleArea: [{ card: "BT14-072", as: "fangmon" }],
-          hand: [{ card: "BT1-001", as: "discard" }],
+          hand: [{ card: "BT1-009", as: "discard" }],
           trash: [{ card: "BT14-071", as: "returned" }],
         },
       },
@@ -84,8 +84,8 @@ describe("BT14-072", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

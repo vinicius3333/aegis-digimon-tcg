@@ -63,7 +63,7 @@ describe("BT14-017", () => {
       0: {
         battleArea: [{ card: "BT14-016", as: "base" }],
         hand: [{ card: "BT14-017", as: "dino" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { security: ["BT1-085"] },
     });
@@ -87,7 +87,7 @@ describe("BT14-017", () => {
       0: {
         battleArea: [{ card: "BT14-016", as: "base" }],
         hand: [{ card: "BT14-017", as: "dino" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { security: ["BT1-085"] },
     });

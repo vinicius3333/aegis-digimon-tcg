@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -47,7 +48,7 @@ describe("BT14-028", () => {
       0: {
         battleArea: [{ card: "BT14-024", as: "base" }],
         hand: [{ card: "BT14-028", as: "shogun" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-020", as: "attacker", dp: 3000 }] },
     });
@@ -147,6 +148,59 @@ describe("BT14-028", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT14-028"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-028")).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT11-079");
+    assertNoLoudGap(s);
+  });
+
+  it("resets source-trash protection on the next natural turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-028", as: "shogun", under: ["BT14-024"] }],
+          hand: [{ card: "BT1-099", as: "firstOption" }, { card: "BT1-099", as: "secondOption" }, "BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          hand: ["BT1-009"],
+          battleArea: [
+            { card: "BT1-037", as: "firstTarget", under: ["BT1-028"] },
+            { card: "BT1-037", as: "secondTarget", under: ["BT1-028"] },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("firstTarget").topCard.instanceId);
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("shogun"), "beDeletedInBattle"));
+    expect(s.perm("shogun").stack).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("shogun"), "beDeletedInBattle")).toBe(false);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("secondTarget").topCard.instanceId);
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("shogun"), "beDeletedInBattle"));
+    expect(s.perm("shogun").stack).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

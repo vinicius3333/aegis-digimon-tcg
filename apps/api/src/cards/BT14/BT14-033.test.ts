@@ -53,7 +53,7 @@ describe("BT14-033", () => {
           battleArea: [{ card: "BT14-033", as: "patamon" }],
           security: [
             { card: "BT14-035", as: "vaccine" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
           hand: [{ card: "BT14-037", as: "handVaccine" }],
         },
@@ -64,7 +64,7 @@ describe("BT14-033", () => {
     await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("patamon").topCard.cardId === "BT14-033");
     expect(s.perm("patamon").topCard.cardId).toBe("BT14-033");
-    expect(s.state.players[0]!.security.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT14-035"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT14-035"]);
     expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT14-037");
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -79,10 +79,10 @@ describe("BT14-033", () => {
           battleArea: [{ card: "BT14-033", as: "patamon" }],
           security: [
             { card: "BT14-035", as: "vaccine" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
           hand: [{ card: "BT14-037", as: "handVaccine" }],
-          deck: [{ card: "BT1-002", as: "bonusDraw" }],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -93,7 +93,7 @@ describe("BT14-033", () => {
     await settle(() => s.perm("patamon").topCard.cardId === "BT14-035");
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-037"));
     expect(s.perm("patamon").stack.map((card) => card.cardId)).toEqual(["BT14-033"]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-002");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT14-037");
     expect(s.state.memory, JSON.stringify(s.events.filter((event) => event.kind === "memoryChanged"))).toBe(1);
@@ -109,6 +109,48 @@ describe("BT14-033", () => {
     if (childIndex >= 0) expect(childIndex).toBeGreaterThan(parentIndex);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
+    assertNoLoudGap(s);
+  });
+
+  it("resets the inherited recovery-memory trigger on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "reppamon", under: ["BT14-033"] }],
+          hand: [{ card: "BT1-107", as: "firstWave" }, { card: "BT1-107", as: "secondWave" }, "BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: { hand: ["BT1-009"], deck: Array(8).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstWave").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWave").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

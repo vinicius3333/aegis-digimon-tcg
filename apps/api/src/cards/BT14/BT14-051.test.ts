@@ -27,7 +27,7 @@ describe("BT14-051 runtime suspend cost", () => {
           hand: [{ card: "BT14-051", as: "okuwamon" }],
           deck: ["BT14-044", "BT14-044", "BT14-044", "BT14-082", "BT14-089"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -53,9 +53,9 @@ describe("BT14-051 runtime suspend cost", () => {
       {
         0: {
           battleArea: [{ card: "BT14-051", as: "okuwamon" }],
-          deck: ["BT14-044", "BT14-044", "BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT14-044", "BT14-044", "BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -66,5 +66,75 @@ describe("BT14-051 runtime suspend cost", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("okuwamon").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
+  });
+
+  it("resets the end-of-opponent-turn reveal on the next natural opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-051", as: "okuwamon", under: ["BT14-047"] }],
+          hand: [{ card: "BT1-009", as: "ownHand" }],
+          deck: [
+            "BT14-044",
+            "BT14-045",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT14-047",
+            "BT14-050",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          security: ["BT1-091", "BT1-091"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          deck: Array(8).fill("BT1-009"),
+          security: ["BT1-091", "BT1-091"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+    expect(s.perm("okuwamon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT14-044", "BT14-045"]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(8);
+    expect(s.state.players[0]!.deck.slice(0, 5).map(({ cardId }) => cardId)).toEqual([
+      "BT14-047",
+      "BT14-050",
+      "BT1-009",
+      "BT1-009",
+      "BT1-009",
+    ]);
+    expect(s.state.players[0]!.deck.slice(-3).every(({ cardId }) => cardId === "BT1-009")).toBe(true);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("okuwamon").isSuspended).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
+    expect(s.perm("okuwamon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT14-044", "BT14-045", "BT14-047", "BT14-050"]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(s.state.players[0]!.deck).toHaveLength(6);
+    expect(s.state.players[0]!.deck.every(({ cardId }) => cardId === "BT1-009")).toBe(true);
   });
 });

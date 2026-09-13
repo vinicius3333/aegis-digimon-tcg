@@ -536,6 +536,7 @@ const RESULT_BINDING_KEYS = [
   "lastSuspendedPermanentIds",
   "lastRevealedCards",
   "lastDeletedByThisEffectIds",
+  "lastDeletedPermanentSnapshots",
   "namedCounts",
   "boundPlayed",
   "playCostDelta",

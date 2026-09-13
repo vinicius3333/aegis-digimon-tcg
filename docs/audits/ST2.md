@@ -1,466 +1,246 @@
 ---
 set: ST2
 cards: 16
-status: in-progress
-verified_at: 2026-09-05
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+status: verified
+verified_at: 2026-09-13
+catalog_commit: f2a2ea89e498a48235cd9121ee8bdf4f59c43ea5
+evidence_commit: 00c0d5be7a611a27507d47040a934fee9b2b356d
 ---
 
 # ST2 audit
 
 ## Status
 
-The 2026-09-05 closeout reported all 16 committed ST2 cards at 10/10. The 2026-09-12 public Marsmon effect-battle reproduction contradicts ST2-01's historical certification: its attack/block subscriptions omit a direct battle. ST2 is reopened and is not currently certified. ST2-01 is capped at 8/10 pending complete public evolution-line and peer/stack proof; other card scores below retain their historical scope. Every card has a direct compiled IR module registered exclusively through `registerIrCard`, a colocated focused test, reviewed printed-clause evidence and applicable KB rulings. The winning source is the starter-deck reaudit closeout of 2026-09-05 (`ST-REAUDIT-RESULTS.md` and the per-card `ST-REAUDIT-EVIDENCE.json` ledger), backed by `ST2-PROOF-AUDIT.md` of the same date. Earlier reports are historical: the `ST2-AUDIT.md` ledger (2026-08-31) and the provisional `ST1-8-LUNA-REAUDIT.md` checkpoint. For historical disagreements the closeout wins; the newer direct-battle evidence supersedes its ST2-01 claim. Every disagreement is listed under Open items. The reviewed batch for this set was pushed as `e4cae2ca2`.
+Complete sixteen-card contract/KB/IR/peer review on branch `audit-ST2-20260913`, an Orca worktree created from `origin/main` at `59825151d658436e70c3b9749612a3f491a089ad`. Three Luna lanes performed the card work and independent review. The 2026-09-13 evidence supersedes historical tens and the 2026-09-12 reopening. Tsunomon now has the missing public full-line proof. Cocytus Breath’s unprinted friendly-source discard and Kaiser Nail’s unprinted refusal/ineligible host choice are corrected with direct IR. All sixteen modules register exclusively through `registerIrCard`; none had or retains `@ts-nocheck`. All sixteen cards are recalculated at 10/10 with reproducible focused/collection/mechanism proof, green types and synchronized snapshots. Code is delivered in atomic commits; ledger/index delivery and the successful Orca workspace completion are recorded below.
 
 ## Gates
 
-### Current continuous-battle correction, 2026-09-12
+- Exact catalog and module inventory: sixteen matching IDs, zero legacy card registrations and zero `@ts-nocheck` across ST2.
+- Every card was queried with `node tools/kb/query.mjs card <ID>` on 2026-09-13; identifiers are recorded below. “No entries” means no card-specific local Q&A, not no applicable comprehensive rules.
+- `pnpm install --frozen-lockfile` passed. Heavy processes were serialized: tests used `TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048`, one fork and `--no-file-parallelism`. API emit needed 4096 MB after the isolated 2048-MB attempt hit its explicit heap ceiling; the retry passed. No agents ran simultaneous test suites.
+- Focused Tsunomon: nine tests passed in 46.23 seconds. Focused Zudomon: three tests passed. Initial intermediate failures (draw-deck omissions, target unsuspension and signed Security memory) were corrected rather than accepted as card behavior.
+- Cocytus counterfactual: `vitest run src/cards/ST2/ST2-16.test.ts -t 'returns an opposing' --maxWorkers=1`, with its old registered IR temporarily restored, failed the friendly-source preservation assertion (2.20 seconds). Corrected IR was restored after the reproduction.
+- Kaiser counterfactual: `vitest run src/cards/ST2/ST2-15.test.ts -t 'chooses an identical host' --maxWorkers=1`, with its old registered IR temporarily restored, failed because an unprinted optional decision blocked the expected mandatory source selection (3.21 seconds). Corrected IR was restored afterward; the fixture also compares eligible hosts with a Tamer-only host.
+- Final closing regression, after both Option corrections, passed 212 files / 2457 tests in 9.11 seconds: zero failed or skipped. This includes all sixteen focused card suites, the collection inventory/registration gate, the public deck gauntlet and shared mechanisms. The earlier 10.87-second run was superseded by this repeated acceptance after the Kaiser correction.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm -r --workspace-concurrency=1 typecheck` passed shared/API/web serially after the final Kaiser correction. All card/test edits were complete before this final typecheck.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm effects:sync:set -- --set ST2 --base 59825151d658436e70c3b9749612a3f491a089ad` passed: two semantic changes, sixteen synchronized records, zero semantic or byte changes outside ST2. Final `effects:check:set` with the same set/base and heap passed: sixteen records already synchronized; two semantic changes against baseline; zero out-of-set semantic or byte changes.
+- Complete ST2 `oxlint`, `oxfmt --check` and `git diff --check` passed. Final document layout/index validation and delivery are recorded in the closeout below.
 
-Baseline `1873b797d`. Tsunomon's public direct-battle reproduction reopened
-the historical collection certification. The corrected card/Alliance/EX13-076
-selection passed three files and 27 tests. Broader ST2/combat/IR registration,
-resolution, conformance and direct-Piercing regression passed 155 files and
-1378 tests. Final full default API passed 5108 files / 42256 tests, with four declared
-expected failures (42260 total), in 180.30 seconds. Shared, API and web
-typecheck passed. The broader ST2 prefix also includes ST20–ST23; it is
-not an exact ST2-only file count. Final card/layout checks passed two files and twelve tests; scoped lint,
-changed-file formatting, the current 66-set index, diff checks and independent
-read-only review passed.
+The closing behavioral command covers the exact ST2 directory (the trailing slash excludes ST20–ST23), all protocol mechanism directories and the immediate-return/replacement/continuous peer regressions:
 
-Effects sync reported three semantic changes and sixteen synchronized records
-with zero out-of-set semantic or byte changes. Besides Tsunomon's new
-continuous condition, pre-existing ST2-08 aura and ST2-14 filter/duration
-snapshots were aligned with their unchanged direct modules. Their catalog
-contracts and modules were inspected, and their existing tests are included
-in the broader regression. This does not recalculate their historical scores.
-No whole-card or collection completion is claimed.
-
-Final combined serial run (`ST-REAUDIT-RESULTS.md`, `ST-REAUDIT-EVIDENCE.json`, 2026-09-05):
-
-```text
-TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/ST src/engine/conformance src/engine/combat src/engine/effects/kernel.test.ts src/engine/useOption.test.ts src/engine/continuousColor.test.ts src/engine/effects/overclock.test.ts src/cards/BT26/BT26-045.test.ts src/cards/EX7/EX7-064.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism
+```sh
+TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/cards/ST2/ src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/engine/immediateReturnReaction.test.ts src/engine/replacementRecomputeBarrier.test.ts src/engine/continuousLifecycle.test.ts --maxWorkers=1 --no-file-parallelism
 ```
-
-440 files / 1955 tests passed, 0 failed, 0 skipped, 61.61 seconds. ST2 contributed 18 files / 53 tests to that run (`ST-REAUDIT-EVIDENCE.json`).
-
-Workspace typecheck (`ST-REAUDIT-EVIDENCE.json`, 2026-09-05):
-
-```text
-NODE_OPTIONS=--max-old-space-size=3072 pnpm -r --workspace-concurrency=1 typecheck
-```
-
-The shared, API and web projects passed serially.
-
-`ST-REAUDIT-PLAN.md` (2026-09-05) records the engine conformance baseline `pnpm --filter @aegis/api exec vitest run src/engine/conformance --pool=forks --maxWorkers=1 --no-file-parallelism` as passing 28 files / 387 tests, and records changed-file lint, changed-file format check and `git diff --check` as required and satisfied for the final closeout.
-
-### Earlier collection gates (`ST2-AUDIT.md`, 2026-08-31)
-
-Date: 2026-08-30. Scope: all 16 catalog cards in ascending order. Printed
-contracts were read from `packages/shared/src/cards/data/cards.json`, every
-card was queried with the local KB, and each module/test/shared primitive was
-traced. The audit corrected nine legacy generated modules to bind a local
-`compiled` value before their exclusive `registerIrCard` call.
-
-#### Verification commands
-
-- All 16 focused card tests were run serially, one process per card, with `--pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism`; all passed.
-- Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST2/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3 tests passed).
-- The gate derives all 16 IDs/names, verifies every index import and colocated proof, and enforces exclusive `registerIrCard(cardId, compiled)`, full coverage, empty residuals, and no `RawUnparsed` nodes.
-
-ST2-12 now proves both start-of-turn memory and Security play through the production turn and
-attack operations, including the exact memory result and card identity.
-
-### Proof review notes (`ST2-PROOF-AUDIT.md`, 2026-09-05)
-
-Date: 2026-09-05. All 16 starter cards retain exclusive direct IR registration.
-The current review covers committed catalog clauses, local rulings and observable
-test outcomes. This supersedes historical completion claims for this collection.
-
-The new evolution-line proof evolves Gabumon through Garurumon and WereGarurumon
-into MetalGarurumon, paying 2/3/4 memory and drawing three exact instances. Two
-completed attacks strip both opposing sources, apply the extra security check only
-after the last source leaves, and respect MetalGarurumon's once-per-turn unsuspend.
-
-Tsunomon's `whenBlocked` watcher previously matched the original attacker as an
-opponent and checked the wrong battle participant. It now binds its own attacking
-host and checks the source-less opposing blocker. Real printed 7000-DP combat
-proves the inherited +1000 changes the outcome; on the opponent's turn the tied
-battle instead deletes both Digimon.
-
-Kaiser Nail pays exactly its printed cost of 4. The new Digimon has printed DP and
-does not inherit the old host's temporary +4000 DP. Egg/Tamer sources remain under
-the host, and the selected physical Digimon instance enters play unsuspended.
-
-Serial validation (`--pool=forks --maxWorkers=1 --no-file-parallelism`):
-
-- Full ST2: 18 files, 53 tests passed.
-- Tsunomon plus affected Vortex/mechanism regression: 10 files, 79 tests passed.
-- Changed-file lint, format and diff checks passed at integration.
-
-The overall 343-card audit and pending shared-engine changes remain incomplete.
-
-### Luna checkpoint notes (`ST1-8-LUNA-REAUDIT.md`, 2026-09-05, covers ST1–ST8 jointly)
-
-Coordinator status: retained as a Luna checkpoint, not final collection certification. Per-card scores and claimed coverage remain subject to direct assertion review. Later ST18/ST19 proof ledgers identify gaps that passing existing tests did not establish.
-
-Date: 2026-09-05. Scope: all 120 catalog cards in ST1–ST8.
-
-#### Checkpoint evidence
-
-- Catalog inventory: 16 cards each in ST1–ST6 and 12 cards each in ST7–ST8 (120 total), verified against `packages/shared/src/cards/data/cards.json`.
-- Local KB: `node tools/kb/query.mjs card <CARD-ID>` completed successfully for every card ID; no unresolved ambiguity, errata, or restriction output was reported.
-- Registration scan: every assigned module uses an exclusive `registerIrCard("<CARD-ID>", compiled)` registration; no `registerCard` calls were found under ST1–ST8.
-- Collection gates: ST1–ST8 collection audit tests pass with Vitest 5 using `--pool=forks --no-file-parallelism`.
-
-Focused card tests are being run serially. The final ledger below will record every card's catalog clauses, module mapping, negative/optional/boundary proof, peer or evolution-stack evidence where applicable, and exact focused/mechanism/collection/typecheck/diff results.
-
-#### Per-card clause and proof ledger
-
-The following ledger records the catalog/KB result, direct module, and the named focused proof for every card. “Vanilla contract” rows are backed by focused catalog stat/name/registration assertions; effect rows identify the tested boundary, optionality, duration, or zone behavior. Comparative stack coverage is listed below.
-
-#### Comparative and evolution-stack evidence
-
-Serial mechanism tests passed for the shared risks: ST1 wargreymon-historical-deck.test.ts (multi-step red evolution, inherited source count, security and attack effects); ST2 source-strip-metalgarurumon-deck.test.ts (source stripping and once-per-turn unsuspend); ST3 seraphimon-dp-control-deck.test.ts (stacked DP control and attack timing); ST4 herculeskabuterimon-suspend-deck.test.ts (Digi-Burst suspension, Piercing and battle reward); ST5 machinedramon-reboot-blocker-deck.test.ts and reboot-blocker-historical-deck.test.ts (trait peer selection, up-to-two Reboot, Blocker duration and stack transitions); ST6 cresgarurumon-historical-deck.test.ts and purple-deletion-revival-toolbox-deck.test.ts (Digi-Burst, deletion/revival, source and On Play handling); ST7 gallantmon-deletion-deck.test.ts (alternate Guilmon/Growlmon/Gallantmon stack and deletion boundaries); ST8 ulforce-hand-threshold-deck.test.ts (Veemon line evolution, hand threshold, once-per-turn unsuspend and source visibility).
-
-#### Exact verification results
-
-- Focused tests: all 120 card test files, run serially with Vitest 5 and --pool=forks --maxWorkers=1 --no-file-parallelism; 120/120 passed.
-- Mechanism/evolution tests: the 10 files listed above, each run serially with the same flags; 10/10 passed (18 tests total).
-- Collection gates: ST1–ST8 each passed 3/3 with --pool=forks --maxWorkers=1 --no-file-parallelism.
-- Registration and catalog scans: 120/120 modules matched exclusive registerIrCard registration, all catalog IDs/names were present, and no registerCard call was found under the assigned sets.
-- git diff --check: passed at checkpoint; final run required after report completion.
-- Remaining ambiguity or unsupported behavior: none identified in the local catalog/KB/module/test review.
 
 ## Card ledger
 
+Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery gates, each 0–2. Vanilla cards have no additional effect/trait-filter risks requiring duplicate tests; their printed identity/metadata and empty IR are checked against effect-bearing peers and the shared mechanism gates. The public ST2 source-strip gauntlet supplies cross-card inheritance/evolution proof. Final delivery credit is 2/2 for the green gates and pushed atomic delivery described below.
+
 ### ST2-01 — Tsunomon
 
-- Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 1/2 · stack 1/2.
-- Current score: capped at 8/10, provisional. The direct-battle defect is corrected in the working implementation, but public evolution-line and remaining peer/stack proof remain pending. The full default API gate is green; this does not certify the whole card.
-- Contract: exact catalog inherited text, Your Turn, plus 1000 DP while battling an opponent field Digimon with zero sources. No main or Security effect is printed.
-- Sources: local card query found no rulings; comprehensive §14 battle procedure and current manual security-type distinction were read. Complete source identities and boundary obligations are in [the engine duration ledger](engine/battle-duration-boundaries.md).
-- Trace: continuous inherited YourTurn condition `selfBattlesOpponentMatching` reads the active battle opponent and exact zero-source filter. It modifies only its own host, and is re-derived when the field battle opens/closes. Exclusive `registerIrCard` is preserved.
-- Public proof: Marsmon's public play costs seven (twelve minus five), leaving three memory; Elecmon's three thousand plus Marsmon's three thousand plus Tsunomon's one thousand defeats neutral Gorillamon's six thousand in the generated battle. The exact egg remains under Elecmon and DP returns to six thousand after the battle. A one-source opponent instead produces a tie and exact physical cards are trashed.
-- Duration proof: a legal seeded blue egg/rookie/champion/ultimate/Gryphon line wins a source-less eleven-thousand-DP battle at twelve thousand, then loses a Piercing security tie at eleven thousand. All five exact owner cards and both opponent cards reach their respective trash. This seeded line does not prove public evolution through every step.
-- Counterfactual: restoring the old direct module fails the no-source public battle at the missing surviving host; one-source control passes. Omitting context removal fails postbattle DP and security battle verdict, while one-source control passes. Both mutations were restored in finally.
-- Historical score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05; superseded for current certification.
-- Module: `apps/api/src/cards/ST2/ST2-01.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-01.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Exact battle bonus against source-less opponents, blocked attack survival, opponent-turn negative; corrected blocker event subjects
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-01.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-01.test.ts): no-source battle +1000 owner turn; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-01.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-01.test.ts): no-source battle +1000 owner turn; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-01` in `packages/shared/src/cards/data/cards.json`: DigiEgg; Blue; printed play/use cost -1; DP 0; level 2; traits Lesser. Evolution requirements: `[]`.
+- Printed clauses: Inherited: [Your Turn] This Digimon gets +1000 DP when battling an opponent's Digimon that has no digivolution cards.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Inherited YourTurn + selfBattlesOpponentMatching → self-only ModifyDP +1000; live field-battle context opens/closes the bonus and excludes security. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-01.test.ts`. Nine focused tests cover public direct attack, Blocker redirection, opponent-turn exclusion, no-source versus one-source effect battles, exact source identity and lapse before Piercing security battle. The new public hatch → Gomamon → Garurumon → WereGarurumon → MetalGarurumon line pays 0/2/3/4 memory, retains the exact egg/source instances, and defeats printed 11000-DP Breakdramon at 12000 DP while an unrelated friendly peer remains intact.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-02 — Gomamon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-02.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-02.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Vanilla identity and printed costs
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-02.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-02.test.ts): exact vanilla contract; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-02.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-02.test.ts): exact vanilla contract; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-02` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 2; DP 3000; level 3; traits Sea Beast. Evolution requirements: `[{"color":"Blue","level":2,"memoryCost":0}]`.
+- Printed clauses: vanilla; no main, inherited or Security effects.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-02.test.ts`. Existing vanilla test observes exact identity, printed level/color/trait/cost and base/current DP, with no printed or executable effect. Public egg-to-Gomamon evolution is also exercised in ST2-01.test.ts.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-03 — Gabumon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-03.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-03.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Bottom-source removal and level boundary
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-03.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-03.test.ts): bottom-source trash level boundary; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-03.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-03.test.ts): bottom-source trash level boundary; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-03` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 3; DP 2000; level 3; traits Reptile. Evolution requirements: `[{"color":"Blue","level":2,"memoryCost":0}]`.
+- Printed clauses: Inherited: [When Attacking] Trash the digivolution card at the bottom of 1 of your opponent's Digimon with a level of 5 or less.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Inherited WhenAttacking → TrashDigivolution amount 1/fromTop false, opponent Digimon level ≤5. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-03.test.ts`. Existing attacks remove exactly the bottom opposing source and exclude a level-6 opponent. The public MetalGarurumon gauntlet distinguishes this level-5 ceiling from Garurumon’s unrestricted source removal across real evolution and attacks.
+- Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-04 — Bearmon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-04.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-04.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Vanilla identity and printed costs
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-04.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-04.test.ts): exact vanilla contract; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-04.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-04.test.ts): exact vanilla contract; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-04` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 3; DP 4000; level 3; traits Beast. Evolution requirements: `[{"color":"Blue","level":2,"memoryCost":0}]`.
+- Printed clauses: vanilla; no main, inherited or Security effects.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-04.test.ts`. Existing vanilla test observes catalog identity, level, color, Beast trait, printed cost and base/current DP; no main, inherited or Security clause is printed. Compared with Gomamon/Ikkakumon’s empty IR and Gabumon’s inherited IR; no trait-filter or inherited-stack behavior exists to duplicate.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-05 — Ikkakumon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-05.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-05.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Vanilla identity and printed costs
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-05.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-05.test.ts): exact vanilla contract; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-05.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-05.test.ts): exact vanilla contract; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-05` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 4; DP 5000; level 4; traits Sea Beast. Evolution requirements: `[{"color":"Blue","level":3,"memoryCost":2}]`.
+- Printed clauses: vanilla; no main, inherited or Security effects.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-05.test.ts`. Existing vanilla test observes catalog identity, level, color, Sea Beast trait, printed cost and base/current DP, and residual-free empty IR. Compared with Gomamon’s same trait and neighboring Garurumon’s inherited implementation; this card has no trait filter or effect.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-06 — Garurumon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-06.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-06.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Exact bottom-source attack removal
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-06.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-06.test.ts): bottom-source trash; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-06.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-06.test.ts): bottom-source trash; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-06` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 5; DP 4000; level 4; traits Beast. Evolution requirements: `[{"color":"Blue","level":3,"memoryCost":2}]`.
+- Printed clauses: Inherited: [When Attacking] Trash the digivolution card at the bottom of 1 of your opponent's Digimon.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Inherited WhenAttacking → TrashDigivolution amount 1/fromTop false, opponent Digimon without a level ceiling. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-06.test.ts`. Existing public attacks discard the exact bottom source from a multi-source opponent and safely handle a source-less opponent. The public gauntlet proves that Garurumon strips level 6 where Gabumon is excluded, then enables WereGarurumon during the same attack.
+- Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-07 — Grizzlymon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-07.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-07.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Blocker combat and attack memory cost
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q610; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-07.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-07.test.ts): Blocker and -2 memory; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-07.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-07.test.ts): Blocker and -2 memory; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-07` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 5; DP 6000; level 4; traits Beast. Evolution requirements: `[{"color":"Blue","level":3,"memoryCost":2}]`.
+- Printed clauses: Main: ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.)[When Attacking] Lose 2 memory.
+- KB/rules: Q610; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Static Blocker keyword plus mandatory WhenAttacking → GainMemory -2. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-07.test.ts`. Public attack pays the mandatory two-memory loss across zero (1 → -1); public declareBlock redirects the attack and preserves security. Shared combat/attackIntegration.test.ts separately proves public declineBlock and security completion for the same registered Blocker keyword; no card-specific refusal body exists.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-08 — WereGarurumon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-08.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-08.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Source-less opponent gate; actual extra security check after stripping the final source
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q611–Q614; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-08.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-08.test.ts): no-source opponent gate and Security Attack; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-08.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-08.test.ts): no-source opponent gate and Security Attack; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-08` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 7; DP 7000; level 5; traits Beastkin. Evolution requirements: `[{"color":"Blue","level":4,"memoryCost":3}]`.
+- Printed clauses: Inherited: [Your Turn] While your opponent has a Digimon with no digivolution cards, this Digimon gains ＜Security Attack +1＞. (This Digimon checks 1 additional security card.)
+- KB/rules: Q611–Q614; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Inherited YourTurn → self Aura(SecurityAttack +1), while an opposing battle-area Digimon has zero sources. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-08.test.ts`. Existing conditional aura tests distinguish source-less battle-area Digimon from sourced Digimon, breeding and an empty board. The public evolution/attack gauntlet strips the last source, enables Security Attack +1 during that attack, checks twice, then proves MetalGarurumon’s second-attack limit.
+- Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-09 — Zudomon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-09.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-09.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Exact two-bottom-source evolution removal
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q615; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-09.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-09.test.ts): exact two bottom cards; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-09.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-09.test.ts): exact two bottom cards; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-09` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 6; DP 7000; level 5; traits Sea Beast. Evolution requirements: `[{"color":"Blue","level":4,"memoryCost":3}]`.
+- Printed clauses: Main: [When Digivolving] Trash 2 digivolution cards at the bottom of 1 of your opponent's Digimon.
+- KB/rules: Q615; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: WhenDigivolving → TrashDigivolution amount 2/fromTop false, one opposing Digimon. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-09.test.ts`. Both existing public digivolutions now prove memory 5 → 2, the exact Zudomon top, the exact former Garurumon source and the evolution draw. They discard exactly the two bottom opposing sources while preserving the remaining top source, or discard the only source when fewer than two exist.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-10 — Plesiomon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-10.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-10.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Vanilla identity and printed costs
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-10.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-10.test.ts): exact vanilla contract; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-10.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-10.test.ts): exact vanilla contract; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-10` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 10; DP 12000; level 6; traits Plesiosaur. Evolution requirements: `[{"color":"Blue","level":5,"memoryCost":2}]`.
+- Printed clauses: vanilla; no main, inherited or Security effects.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-10.test.ts`. Existing vanilla test observes identity, level 6, Blue/Plesiosaur metadata, 12000 base/current DP, printed costs and empty full IR. Kaiser Nail additionally uses Plesiomon as a host and proves that source play retains the host identity and isolates host modifiers.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-11 — MetalGarurumon
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-11.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-11.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Real attack unsuspend, second-attack once-per-turn restriction, legal evolution stack
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q616–Q618; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-11.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-11.test.ts): once-per-turn attack unsuspend; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-11.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-11.test.ts): once-per-turn attack unsuspend; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-11` in `packages/shared/src/cards/data/cards.json`: Digimon; Blue; printed play/use cost 12; DP 11000; level 6; traits Cyborg. Evolution requirements: `[{"color":"Blue","level":5,"memoryCost":4}]`.
+- Printed clauses: Main: [When Attacking][Once Per Turn] Unsuspend this Digimon.
+- KB/rules: Q616–Q618; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: WhenAttacking → Unsuspend self, frequency OncePerTurn. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-11.test.ts`. The existing public attack test now checks three legal security cards: first attack unsuspends, second attack stays suspended, and an opponent turn plus the controller’s next production turn restore the once-per-turn effect for a third attack. The production turn promise is ended and awaited. The shared gauntlet proves the same effect in an evolved inherited stack.
+- Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-12 — Matt Ishida
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-12.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-12.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Start-turn memory and actual Security play
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q619–Q622; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-12.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-12.test.ts): start-turn conditional memory/security play; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-12.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-12.test.ts): start-turn conditional memory/security play; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-12` in `packages/shared/src/cards/data/cards.json`: Tamer; Blue; printed play/use cost 2; DP 0. Evolution requirements: `[]`.
+- Printed clauses: Main: [Start of Your Turn] If your opponent has a Digimon with no digivolution cards, gain 1 memory. | Security: [Security] Play this card without paying its memory cost.
+- KB/rules: Q619–Q622; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: StartOfYourTurn → gain 1 memory when opponent has a source-less battle-area Digimon; Security → free self play. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-12.test.ts`. Existing start-turn tests distinguish no-source, sourced, breeding-only and empty opposing boards, and observe one memory per copy across multiple Tamers. An actual opponent attack reveals and plays the exact Security Tamer for free.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-13 — Hammer Spark
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-13.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-13.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Main and Security memory outcomes
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q623/Q881/Q1081/Q1088/Q1098/Q1416; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-13.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-13.test.ts): main +1 and security +2 memory; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-13.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-13.test.ts): main +1 and security +2 memory; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-13` in `packages/shared/src/cards/data/cards.json`: Option; Blue; printed play/use cost 0; DP 0. Evolution requirements: `[]`.
+- Printed clauses: Main: [Main] Gain 1 memory. | Security: [Security] Gain 2 memory.
+- KB/rules: Q623, Q881, Q1081, Q1088, Q1098, Q1416; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Main → GainMemory 1; Security → GainMemory 2. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-13.test.ts`. Existing Main intent gains one memory; the strengthened Security test uses an actual opponent attack, waits for security/attack completion and observes signed active-seat memory -2 for the owner’s gain of two.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-14 — Sorrow Blue
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-14.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-14.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Source-less target, retained restrictions after source addition, separate duration boundaries
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q624/Q625; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-14.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-14.test.ts): no-source target and opponent-turn duration; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-14.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-14.test.ts): no-source target and opponent-turn duration; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-14` in `packages/shared/src/cards/data/cards.json`: Option; Blue; printed play/use cost 2; DP 0. Evolution requirements: `[]`.
+- Printed clauses: Main: [Main] Choose 1 of your opponent's Digimon with no digivolution cards. That Digimon can't attack or block until the end of your opponent's next turn. | Security: [Security] Choose 1 of your opponent's Digimon with no digivolution cards. That Digimon can't attack or block until the end of your next turn.
+- KB/rules: Q624–Q625; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Main/Security → Restrict attackOrBlock on one source-less opposing Digimon; untilOpponentTurnEnd / untilYourTurnEnd respectively. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-14.test.ts`. Existing Main proof restricts attack/block on a source-less opponent, retains the restriction after that target gains a source, and expires at the opponent turn boundary. Strengthened Security proof uses an actual attack and expires at the owner’s next turn end. All draw/security fixtures are legal non-Egg cards.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-15 — Kaiser Nail
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-15.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-15.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Exact host/source identity, printed Option cost, free source play, DP isolation, unsuspended entry, attack prohibition, Security
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: Q626–Q629; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-15.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-15.test.ts): source-card play and zone/stack boundary; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-15.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-15.test.ts): source-card play and zone/stack boundary; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-15` in `packages/shared/src/cards/data/cards.json`: Option; Blue; printed play/use cost 4; DP 0. Evolution requirements: `[]`.
+- Printed clauses: Main: [Main] Choose a Digimon digivolution card placed under 1 of your Digimon and play it as another Digimon without paying its memory cost. | Security: [Security] Activate this card's [Main] effect.
+- KB/rules: Q626–Q629; comprehensive play/evolution/battle/target/zone rules apply. Mandatory processing and target count were also confirmed against the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf), §15-9-1-2 and §15-10-2-1.
+- IR trace: Direct SelectBind requires a friendly Digimon host with a Digimon source; mandatory PlayWithoutCost selects only a Digimon source under that exact bound host. Security → ActivateMain. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-15.test.ts`. Existing Main proof pays the Option’s four memory, plays the exact Digimon source free and unsuspended, excludes Egg/Tamer sources, preserves the host and isolates its temporary DP modifier, and rejects an attack on the played turn. Manual selection distinguishes identical hosts by permanent ID, excludes the Tamer-only host and proceeds directly to mandatory source selection. No valid-source case resolves without a new Digimon. Security now resolves through an actual opponent attack.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ### ST2-16 — Cocytus Breath
 
-- Score: 10/10 (catalog 2/2, rules 2/2, compiled IR 2/2, behavior 2/2, gates 2/2) — ST-REAUDIT-EVIDENCE.json, 2026-09-05.
-- Module: `apps/api/src/cards/ST2/ST2-16.ts`
-- Focused test: `apps/api/src/cards/ST2/ST2-16.test.ts`
-- Proof review (ST2-PROOF-AUDIT.md, 2026-09-05):
-  - Reviewed evidence: Opponent return-to-hand and source trash
-  - Score: 10/10
-- Original ledger row (ST2-AUDIT.md):
-  - Catalog contract: 2/2
-  - KB/rules: none; 2/2
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-16.ts); 2/2
-  - Behavioral proof: [test](../../apps/api/src/cards/ST2/ST2-16.test.ts): opponent return to hand and source trash; 2/2
-  - Gates: focused + gate + type/lint/format/diff; 2/2
-  - Total: 10/10
-- Luna checkpoint (ST1-8-LUNA-REAUDIT.md, 2026-09-05):
-  - Direct module: [module](../../apps/api/src/cards/ST2/ST2-16.ts); 2/2
-  - Focused clause evidence: [test](../../apps/api/src/cards/ST2/ST2-16.test.ts): opponent return to hand and source trash; 2/2
+- Current score: 10/10 (2026-09-13). Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2.
+- Catalog: `ST2-16` in `packages/shared/src/cards/data/cards.json`: Option; Blue; printed play/use cost 7; DP 0. Evolution requirements: `[]`.
+- Printed clauses: Main: [Main] Return 1 of your opponent's Digimon to its owner's hand. (Trash all of the digivolution cards of that Digimon.) | Security: [Security] Activate this card's [Main] effect.
+- KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
+- IR trace: Direct Main → Return one opposing Digimon to hand; returnToHand already trashes that target’s sources. Security → ActivateMain. The unprinted friendly Trash action is removed. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Reproducible proof: `apps/api/src/cards/ST2/ST2-16.test.ts`. Strengthened Main proof pays 10 → 3 memory, returns the exact opposing top to its owner’s hand, trashes exactly its source instances and leaves the friendly host/source unchanged, with only the Option in its owner’s trash. Actual Security attack proves exact target/source/Option destinations and preserves the other attacker.
+- Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
 ## Mechanisms
 
-No `*-MECHANISM.md` file exists for ST2; this set has no reaudit directory. The shared engine seams that the starter-deck reaudit changed are recorded in `ST-REAUDIT-RESULTS.md` (2026-09-05): play-cost reduction prohibitions that block reduction activation costs, granted deletion effects that keep the departing host's identity, and printed or granted Vortex attacks scheduled at the real end of the owner's turn.
+### Continuous field-battle bonus
+
+ST2-01 uses the already committed `selfBattlesOpponentMatching` condition and live battle context. Public direct/effect/Blocker battle and Piercing Security lapse evidence is retained in its focused tests; the public full evolution-line test closes the missing stack proof. No engine change was required in this worktree. The prior cross-set reasoning remains in [battle duration boundaries](engine/battle-duration-boundaries.md).
+
+### Option source isolation and mandatory targeting
+
+ST2-16’s corrected direct IR delegates return/source cleanup to `returnToHand` (`effects/primitives.ts:4455`) and removes the trailing friendly-field Trash (`interpreter/actions/removal.ts:611`). ST2-15 uses the existing `digivolutionStackKind` matcher (`interpreter/matching/permanent.ts:578`) to require a Digimon source and removes its unprinted optional play. Host binding, loose source selection and free-play entry continue through existing engine primitives. No shared engine code changed.
 
 ## Knowledge base index
 
-No `KB-INDEX.md` file exists for ST2. The applicable KB Q&A identifiers are recorded per card in the Card ledger above; they were produced with `node tools/kb/query.mjs card <CARD-ID>`.
+Queries of all sixteen IDs were repeated on 2026-09-13. ST2-01–06, ST2-10 and ST2-16 have no card-specific entries. ST2-07: Q610; ST2-08: Q611–Q614; ST2-09: Q615; ST2-11: Q616–Q618; ST2-12: Q619–Q622; ST2-13: Q623/Q881/Q1081/Q1088/Q1098/Q1416; ST2-14: Q624–Q625; ST2-15: Q626–Q629.
 
 ## Open items
 
-- ST2-01 is reopened below 10/10 after the 2026-09-12 direct-battle reproduction. The old results JSON reported no card below 10/10, but did not prove this path. Public full evolution-line and complete peer interactions remain pending; green delivery gates do not restore a whole-card ten.
-- `ST1-8-LUNA-REAUDIT.md` (2026-09-05) says it is a checkpoint and not a collection certification; `ST2-PROOF-AUDIT.md` (2026-09-05) says it supersedes historical completion claims. The proof audit and the final results ledger win.
-- `ST2-AUDIT.md` (2026-08-31) records the serial flag `--poolOptions.forks.singleFork=true`, which `ST-REAUDIT-PLAN.md` (2026-09-05) records as rejected by the installed Vitest 5.
+None in card fidelity, rules or behavioral proof. All sixteen cards are 10/10 and final focused/collection/mechanism, type and effect synchronization gates are green. Orca confirmed workspace status `completed` with the required collection-completion comment on 2026-09-13. Historical claims of complete Tsunomon proof and correct Cocytus/Kaiser execution are superseded by the counterfactuals and corrections above; historical green gates alone did not establish those paths.
+
+## Delivery closeout
+
+Atomic implementation/proof commits:
+
+- `fa28aa66c`: Cocytus Breath direct IR, synchronized snapshot and exact source-isolation regression.
+- `7da060ea6`: Kaiser Nail mandatory eligible-source selection, synchronized snapshot and comparative/public Security proof.
+- `00c0d5be7`: public full evolution-line, paid evolution/source/draw proof, turn reset and legal/public Security fixtures for the rest of ST2.
+
+Final ledger/index/layout gate: `pnpm audit:index`, `pnpm audit:index --check`, scoped `oxlint`, `oxfmt --check` on ST2 plus both audit documents, and `git diff --check`. The audit-doc layout suite passes one file / four tests. The generated status index covers 66 sets and records ST2 as verified on 2026-09-13.
+
+Branch `audit-ST2-20260913` is delivered through normal pushes to `origin`; [PR #4755](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4755) holds the implementation and final ledger/index delivery. No merge is performed.
+
+Orca recovered and the required public CLI operation succeeded on 2026-09-13 (`ok: true`, workspace status `completed`, runtime `e3e87932-710b-4701-a471-11725969431a`):
+
+```sh
+orca worktree set --worktree active --workspace-status completed --comment "COLLECTION COMPLETE: ST2; 100% 10/10; branch pushed" --json
+```
+
+The complete collection and Orca child-worktree closeout are verified.
 
 ## History
+
+- Previous `docs/audits/ST2.md` at `538ef381f785d4e073ca37953a6625219d53a066` (2026-09-12) consolidated historical reports and reopened ST2-01 for missing public full-line proof; this complete 2026-09-13 recalculation supersedes its scores and open items.
 
 - `docs/audits/ST2-AUDIT.md` — last commit `68b539ae2`, 2026-08-31. First per-card ledger for the set; merged into Gates and the Card ledger.
 - `docs/audits/ST2-PROOF-AUDIT.md` — last commit `e4cae2ca2`, 2026-09-05. Coordinator proof review that superseded the first ledger; merged into Gates and the Card ledger.

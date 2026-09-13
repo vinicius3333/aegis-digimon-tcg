@@ -38,7 +38,7 @@ describe("BT14-047", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT14-047", as: "dokugumon" }] },
-        1: { battleArea: [{ card: "BT14-042", as: "target" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT14-042", as: "target" }], deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );

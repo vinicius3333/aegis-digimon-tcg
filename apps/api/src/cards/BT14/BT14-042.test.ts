@@ -15,7 +15,7 @@ describe("BT14-042", () =>
 
 it("adds the revealed green card and suspends itself", async () => {
   const s = setupEngine(
-    { 0: { hand: [{ card: "BT14-042", as: "source" }], deck: ["BT14-044", "BT1-001", "BT1-002"] } },
+    { 0: { hand: [{ card: "BT14-042", as: "source" }], deck: ["BT14-044", "BT1-009", "BT1-009"] } },
     { autoSelectCards: true, autoAcceptOptional: true },
   );
   s.state.memory = 10;
@@ -29,7 +29,7 @@ it("adds the revealed green card and suspends itself", async () => {
 
 it("stays unsuspended and adds nothing when the suspend cost is declined", async () => {
   const s = setupEngine(
-    { 0: { hand: [{ card: "BT14-042", as: "source" }], deck: ["BT14-044", "BT1-001", "BT1-002"] } },
+    { 0: { hand: [{ card: "BT14-042", as: "source" }], deck: ["BT14-044", "BT1-009", "BT1-009"] } },
     { autoSelectCards: true, autoDeclineOptional: true },
   );
   s.state.memory = 10;

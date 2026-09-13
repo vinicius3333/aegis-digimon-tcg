@@ -47,7 +47,7 @@ describe("BT14-032", () => {
             { card: "BT14-032", as: "chuumon" },
             { card: "BT14-034", as: "sukamon" },
           ],
-          security: [{ card: "BT1-001", as: "privateCard" }],
+          security: [{ card: "BT1-009", as: "privateCard" }],
         },
       },
       { autoDeclineOptional: true },

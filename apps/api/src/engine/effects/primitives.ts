@@ -2686,7 +2686,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // separately so refreshing those values does not depend on emitting a subtrigger.
     const linkedHostsToRefresh = new Set<string>();
     const linkedHostByInstance = new Map<string, string>();
-    const optionBattleAreaTrashed: string[] = [];
+    const optionBattleAreaTrashed: { instanceId: string; permanentId: string }[] = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
     for (const instanceId of instanceIds) {
@@ -2743,7 +2743,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             card.faceUp = false;
             insertCard(player(card.ownerSeat), Zone.Trash, card);
           }
-          optionBattleAreaTrashed.push(instanceId);
+          optionBattleAreaTrashed.push({ instanceId, permanentId: extracted.permanentId });
           break;
         }
       }
@@ -2793,8 +2793,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
     }
-    for (const instanceId of optionBattleAreaTrashed) {
+    for (const { instanceId } of optionBattleAreaTrashed) {
       await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: instanceId });
+    }
+    // Battle-area Options paid through a generic `trash` cost leave as whole permanents, but
+    // this is still a trash event rather than a deletion. Publish the typed batch timing after
+    // movement so printed `When this card is trashed in your battle area` effects resolve with
+    // the same post-move identity/owner semantics as deletePermanent (BT19-095 / Q3170).
+    if (optionBattleAreaTrashed.length > 0 && opts?.byRule !== true && engine.fireTiming) {
+      await engine.fireTiming(EffectTiming.WhenTrashedFromBattleArea, {
+        deletedPermanentId: optionBattleAreaTrashed[0]!.permanentId,
+        deletedInstanceIds: optionBattleAreaTrashed.map(({ instanceId }) => instanceId),
+      });
     }
     const discardedFromSecurity = fromSecurity.filter((id) => movedIds.has(id));
     if (discardedFromSecurity.length > 0) {

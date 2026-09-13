@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-081.js";
 import { Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -31,7 +32,7 @@ describe("BT14-081", () => {
         },
         1: {
           battleArea: [{ card: "BT14-069", as: "target" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -121,5 +122,65 @@ describe("BT14-081", () => {
     });
     await turn;
     expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0 }));
+  });
+
+  it("resets the attack deletion cost and unsuspend on the next own turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-081", as: "host", under: ["BT3-085"] }],
+          hand: ["BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-009", as: "secondCost" },
+          ],
+          security: Array(3).fill("BT1-091"),
+          hand: ["BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const firstId = s.perm("firstCost").permanentId;
+    const secondId = s.perm("secondCost").permanentId;
+    const remains = (id: string) => s.state.players[1]!.battleArea.some((p) => p.permanentId === id);
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      });
+    preferred.push(s.perm("firstCost").topCard.instanceId);
+    s.state.memory = 10;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !s.perm("host").isSuspended);
+    expect(remains(firstId)).toBe(false);
+    expect(remains(secondId)).toBe(true);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(remains(secondId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    preferred.splice(0, preferred.length, s.perm("secondCost").topCard.instanceId);
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !s.perm("host").isSuspended);
+    expect(remains(secondId)).toBe(false);
+    expect(s.state.players[1]!.trash.filter((c) => c.cardId === "BT1-009")).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });

@@ -15,6 +15,7 @@ describe("BT14-090", () => {
           abortOnDecline: true,
           cost: {
             kind: "compound",
+            orderPlacedCards: true,
             costs: [
               { kind: "place", bindHostAs: "bt14090Agumon" },
               { kind: "place", host: { filter: { boundRef: "bt14090Agumon" } } },
@@ -72,6 +73,51 @@ describe("BT14-090", () => {
     );
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-012")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-014")).toBe(false);
+  });
+
+  it("lets the player choose the simultaneous bottom-card order", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-007", as: "agumon" }],
+          hand: [
+            { card: "BT14-090", as: "option" },
+            { card: "BT14-101", as: "wargreymon" },
+          ],
+          trash: [
+            { card: "BT14-012", as: "greymon" },
+            { card: "BT14-014", as: "metalgreymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.state.pendingDecision!;
+    expect(orderDecision.kind).toBe("orderCards");
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("agumon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("metalgreymon").instanceId]),
+    );
+    const metalGreymonId = s.inst("metalgreymon").instanceId;
+    const greymonId = s.inst("greymon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order: [metalGreymonId, greymonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard?.cardId === "BT14-101");
+
+    expect(s.perm("agumon").stack.map(({ cardId }) => cardId)).toEqual(["BT14-014", "BT14-012", "BT14-007"]);
   });
 
   it("Q2466: may decline the evolution only after placing both required trash cards", async () => {

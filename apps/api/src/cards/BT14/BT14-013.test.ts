@@ -53,7 +53,7 @@ describe("BT14-013", () => {
             { card: "BT14-016", as: "triceramon" },
             { card: "BT14-017", as: "dinorexmon" },
           ],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -125,7 +125,7 @@ describe("BT14-013", () => {
       {
         0: {
           battleArea: [{ card: "BT1-024", under: ["BT14-013"], as: "metalTyrannomon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { security: ["BT1-085", "BT1-085"] },
       },
@@ -138,6 +138,43 @@ describe("BT14-013", () => {
     expect(s.perm("metalTyrannomon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the inherited end-of-turn attack on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-024", under: ["BT14-013"], as: "metalTyrannomon" }],
+          hand: ["BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          hand: ["BT1-009"],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).runTurn(0);
+    const firstAttackCount = s.events.filter((event) => event.kind === "attackDeclared").length;
+    expect(firstAttackCount).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    await advance(s.engine).runTurn(0);
+    const secondAttackCount = s.events.filter((event) => event.kind === "attackDeclared").length;
+    expect(secondAttackCount).toBe(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("metalTyrannomon").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
