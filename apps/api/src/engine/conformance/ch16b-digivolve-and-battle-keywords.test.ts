@@ -2,7 +2,7 @@ import { beforeEach, describe, it, expect } from "vitest";
 import type { PlayerState, Seat } from "@aegis/shared";
 import { advance } from "../testkit/advance.js";
 import { observe } from "../testkit/observe.js";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import {
   setupEngine as setup,
@@ -119,19 +119,6 @@ describe("§16-11 <Reboot> (comprehensive-0229)", () => {
     expect(plain.isSuspended).toBe(true); // unchanged — only the turn player's OWN permanents unsuspend
   });
 });
-
-markNotTestable(
-  "comprehensive-0230",
-  "16-12-1 <De-Digivolve N>: trash up to N cards from the top of the chosen digivolution " +
-    "stack(s), mandatorily once activated. The generic consume seam is real (EffectContext." +
-    "deDigivolve / interpreter.ts's DeDigivolve case, confirmed by direct reading — it resolves " +
-    "the target and calls ctx.fx.deDigivolve(id, amount) with no additional decision needed). " +
-    "Driving it through a real printed-<De-Digivolve> card's [On Play] (AD1-009, played via " +
-    "playCard) did not observably trash the opponent's stacked cards in this suite's harness " +
-    "within the time available to root-cause it (multiple plausible fixes — satisfying every " +
-    "OnPlay clause's optional target filter, autoSelectCards/autoAcceptOptional — did not " +
-    "resolve it), so this chunk is left honestly unverified rather than asserted on a guess.",
-);
 
 describe("§16-13 <Retaliation> (comprehensive-0231)", () => {
   it("a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon", async () => {
