@@ -785,7 +785,7 @@ export async function pickLoose(
     : 0;
   // Ordinary different-color processing requires the largest feasible subset (CR
   // 15-10-2-1); budgeted processing costs retain their all-or-nothing minimum.
-  const selectionMin = requireDifferentColors && maxTotalPlayCost === undefined
+  const selectionMin = !target.upTo && requireDifferentColors && maxTotalPlayCost === undefined
     ? Math.min(want, feasibleDifferentColors)
     : min;
   const max = Math.min(want, candidates.length);
