@@ -91,6 +91,24 @@ Resolve every queued/unresolved obligation, inspect all cost consumer shapes,
 run final gates, and identify the delivery commit. No 10/10 or mechanism
 completion is claimed from this checkpoint.
 
+## Targetless paid payload checkpoint (2026-09-13)
+
+`comprehensive-0170` §15-7-5 permits an optional processing condition to be
+paid even when the subsequent payload has no eligible target. The executable
+pin is SHA-256 `6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97`.
+
+`activation-cost-targetless-payload.test.ts` drives the real public Main effect
+of BT19-086 with four actual `[Device]` Options in the battle area and no
+Cyberdramon in hand or trash. The compound suspend-plus-trash cost is paid,
+all four captured physical Option instance IDs reach the trash, the Tamer and
+host retain their original permanent identities and the host's DP, and the
+optional play payload makes no board change. Focused result: **1 test passed**.
+This closes the targetless payload case for BT19-086's compound
+`CostGatedBlock`; other cost kinds, providers, and targetless shapes remain
+open. The separate EX9-025/EX9-061 public deck-payment cases in
+`digivolution-card-placement.test.ts` provide the same §15-7-5 boundary for a
+different set and cost shape; they are referenced rather than duplicated here.
+
 ## Compound assignment checkpoint (2026-09-12)
 
 BT14-090 Dragon of Courage is the reviewed printed consumer for this bounded
