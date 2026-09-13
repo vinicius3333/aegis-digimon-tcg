@@ -1,6 +1,6 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-043.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -31,14 +31,21 @@ describe("BT13-043 LoaderLeomon", () => {
         battleArea: [{ card: "BT13-043", as: "loader" }],
         security: [{ card: "BT1-009", as: "top-security" }],
       },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("loader").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("loader").permanentId, accept: true }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("top-security").instanceId)).toBe(
       true,
@@ -48,14 +55,21 @@ describe("BT13-043 LoaderLeomon", () => {
   it("declining printed Barrier deletes LoaderLeomon and preserves security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-043", as: "loader" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("loader").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("loader").permanentId, accept: false }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
@@ -66,23 +80,40 @@ describe("BT13-043 LoaderLeomon", () => {
         battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-043"] }],
         security: ["BT1-009"],
       },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: true }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("with no security, Barrier cannot prevent deletion", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-043", as: "loader" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-043", as: "loader" }] },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+    });
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("loader").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.events.some(({ kind }) => kind === "barrierPrompt")).toBe(false);
   });
