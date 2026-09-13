@@ -1,11 +1,26 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { settle, setupEngine } from "../testkit/harness.js";
 import "../../cards/index.js";
 
+const COMPOUND_COST_SHA256 = "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b";
+const ACTIVATION_DECLARATION_SHA256 = "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182";
+
 describe("BT14-090 compound activation-cost assignment", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0169",
+      "§15-7-3 compound processing conditions cannot be paid only in part",
+      COMPOUND_COST_SHA256,
+    );
+    cite(
+      "comprehensive-0176",
+      "§15-8-4-4-1 activation-type effects require a performable condition before declaration",
+      ACTIVATION_DECLARATION_SHA256,
+    );
+  });
+
   it("assigns distinct physical trash cards to both placement components", async () => {
-    cite("comprehensive-0169", "15-7-3: compound processing conditions cannot be paid only in part");
     const s = setupEngine(
       {
         0: {
@@ -41,11 +56,6 @@ describe("BT14-090 compound activation-cost assignment", () => {
   });
 
   it("does not declare an impossible activation-type compound payment", async () => {
-    cite("comprehensive-0169", "15-7-3: compound processing conditions cannot be paid only in part");
-    cite(
-      "comprehensive-0176",
-      "15-8-4-4-1: activation-type effects require a performable condition before declaration",
-    );
     const s = setupEngine(
       {
         0: {

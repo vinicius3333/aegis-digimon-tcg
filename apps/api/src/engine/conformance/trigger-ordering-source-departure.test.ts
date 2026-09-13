@@ -1,13 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
 
+const SIMULTANEOUS_SHA256 = "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494";
+const PENDING_ACTIVATION_SHA256 = "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0";
+const DERIVED_TRIGGER_SHA256 = "c12a72babb8fa25e11755af5c32e4d0efccdb4e812e15d3b2dd8cc2e2df1ee50";
+
 describe("bounded trigger ordering and pending source departure", () => {
+  beforeEach(() => {
+    cite("comprehensive-0164", "§15-4-3 Simultaneous Triggering", SIMULTANEOUS_SHA256);
+    cite("comprehensive-0165", "§15-4-4 Pending Activation", PENDING_ACTIVATION_SHA256);
+    cite("comprehensive-0166", "§15-4-5 Derived Triggering", DERIVED_TRIGGER_SHA256);
+  });
+
   it("offers simultaneous optional deletion triggers to the owning controllers in turn-player order", async () => {
-    cite("comprehensive-0164", "simultaneous effects activate one at a time, with the turn player resolving first");
     const s = setupEngine(
       {
         0: {
@@ -65,12 +74,6 @@ describe("bounded trigger ordering and pending source departure", () => {
   });
 
   it("offers two real trash triggers together, then drops only the source that departed", async () => {
-    cite(
-      "comprehensive-0164",
-      "simultaneous triggers are pending together and the player chooses their activation order",
-    );
-    cite("comprehensive-0165", "a pending effect whose source no longer meets its trigger conditions cannot activate");
-
     const s = setupEngine(
       {
         0: {
@@ -124,7 +127,6 @@ describe("bounded trigger ordering and pending source departure", () => {
   });
 
   it("keeps the public deletion priority turn-player-first with valid optional payloads", async () => {
-    cite("comprehensive-0164", "the turn player resolves simultaneous triggered effects before the non-turn player");
     const s = setupEngine(
       {
         0: {
@@ -169,10 +171,6 @@ describe("bounded trigger ordering and pending source departure", () => {
   });
 
   it("prioritizes a public derived deletion trigger over an older pending trigger", async () => {
-    cite(
-      "comprehensive-0166",
-      "a derived triggering effect activates before previously triggered effects that remain pending, including for the non-turn player",
-    );
     const s = setupEngine(
       {
         0: {

@@ -58,6 +58,17 @@ source then resolves. The fourth class demonstrates pending/derived precedence, 
 source identity mutation. A future legal consumer is required before this transition
 can be certified without a synthetic card or direct primitive invocation.
 
+The catalog scan used for the N/A row recursively walks `packages/shared/src/effects/effects.json`
+(`python3`, visiting every `effects` node and counting `kind: "SubTrigger"`). It found
+4,455 card records, 1,419 SubTrigger records across 1,383 card/event pairs, and 200
+SubTrigger records across 185 cards whose immediate action lists contain a movement
+kind (`Delete`, `Return`, `PlaceUnder`, `PlaceInBattleAreaSelf`, `TrashDigivolution`,
+`DeDigivolve`, or `Trash`). Reviewing those movement providers against the public
+conformance consumers found no current legal pair in which one same-event effect moves
+the physical source of another still-pending effect before that second source activates.
+This is an inventory boundary, not a claim that arbitrary future combinations are
+impossible.
+
 ## Future plan
 
 - Add public fixtures for opposing-controller simultaneous pools and explicit
