@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectDuration, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -36,7 +36,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
           {
             kind: "SelectBind",
             target: {
-              filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              filter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Digimon"] },
               count: 1,
               bindAs: "chosenHost",
             },
@@ -54,7 +54,6 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
             },
             from: ["digivolutionCards"],
             payCost: false,
-            optional: true,
           },
         ],
       },
@@ -146,6 +145,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
             ],
           },
           { card: "BT1-027", as: "blueSource" },
+          { card: "BT1-009", as: "invalidHost", under: [{ card: "ST2-12", as: "invalidSource" }] },
         ],
         hand: [{ card: "ST2-15", as: "kaiserNail" }],
       },
@@ -181,25 +181,6 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
           kind: "chooseTargets",
           instanceIds: [s.perm("secondHost").permanentId],
         },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return (
-        latest !== undefined &&
-        latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "optional" &&
-        latest.sourceCardId === "ST2-15"
-      );
-    });
-
-    const optionalDecision = s.state.pendingDecision;
-    expect(optionalDecision?.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optionalDecision!.decisionId,
-        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(() => {
@@ -275,14 +256,29 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       {
         0: {
           battleArea: [{ card: "BT1-009", under: [{ card: "BT10-074", as: "digiCard" }] }],
-          security: [{ card: "ST2-15", as: "securityOption", faceUp: true }],
+          security: [{ card: "ST2-15", as: "securityOption" }],
+          deck: ["BT1-009"],
         },
+        1: { battleArea: ["BT1-009"], deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const playedId = s.inst("digiCard").instanceId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 0 &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
   });

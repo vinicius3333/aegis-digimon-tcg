@@ -1,5 +1,38 @@
-import { compiledEffects, type CompiledCard } from "@aegis/shared";
+import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = compiledEffects["ST2-15"] as CompiledCard;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SelectBind",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Digimon"] },
+            count: 1,
+            bindAs: "chosenHost",
+          },
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              zone: "digivolutionCards",
+              controller: "mine",
+              kind: ["Digimon"],
+              hostFilter: { boundRef: "chosenHost" },
+            },
+            count: 1,
+          },
+          from: ["digivolutionCards"],
+          payCost: false,
+        },
+      ],
+    },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
+};
 registerIrCard("ST2-15", compiled);

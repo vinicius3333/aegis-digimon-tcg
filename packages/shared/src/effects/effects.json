@@ -209741,7 +209741,7 @@
           {
             "kind": "SelectBind",
             "target": {
-              "filter": { "controller": "mine", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+              "filter": { "controller": "mine", "kind": ["Digimon"], "digivolutionStackKind": ["Digimon"] },
               "count": 1,
               "bindAs": "chosenHost"
             }
@@ -209758,8 +209758,7 @@
               "count": 1
             },
             "from": ["digivolutionCards"],
-            "payCost": false,
-            "optional": true
+            "payCost": false
           }
         ]
       },
