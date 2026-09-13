@@ -25,12 +25,12 @@ The initial full run found six failures (42353 passes): four old tests incorrect
 | Stack placement and position metadata                                                        | BT26-055, BT13-007 and EX6-006 placement providers              | `digivolution-card-placement.md` records exact physical IDs, bottom position, face state, and final stacks for the demonstrated public producers; it does not certify information readers                                                                       |
 | Raw/fallback, off-field snapshots, native keyword scans, dynamic names and numerical readers | EX9-054 Negamon scaling plus EX8-045 source-color scaling       | EX9-054 filters face-down stack cards for its named `[Negamon]` scaling predicate, while EX8-045 counts only face-up source colors after EX9-043 places a real trash card face down; paired red and green controls retain exact stack IDs and resolve fully     |
 
-The highest-risk remaining gap is comprehensive rule §15-4-4-4: a triggered effect
-losing its source effect before activation. The eighth and ninth cases in
-`trigger-ordering-source-departure.test.ts` publicly cover a copied stack effect losing its
-source before activation, with a control where the source remains in place. Quantity-only
-stack counts remain valid; the correction applies only when a filter asks for card information
-such as name, trait, kind, level or color.
+The paired eighth and ninth cases in `trigger-ordering-source-departure.test.ts`
+cover comprehensive rule §15-4-4-4: a copied stack effect loses its source
+before activation, with a control where the source remains in place. This closes
+that copied-source turnover class for the demonstrated public ordering path.
+Quantity-only stack counts remain valid; other hidden-reader/provider classes
+remain outside this finite contract scope.
 
 The new `stack-metadata-filtering.test.ts` uses the public P-062 attack path: a hidden
 Gammamon source does not trigger its `digivolutionStackNameOrTrait` watcher, while a visible
