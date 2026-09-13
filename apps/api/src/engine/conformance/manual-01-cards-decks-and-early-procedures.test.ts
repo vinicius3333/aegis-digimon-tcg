@@ -102,6 +102,7 @@ describe("manual-0006 — Token sub-rules: can a token digivolve?", () => {
       "'Cards can't be stacked with tokens.' / 'Tokens can't get linked. (They can't digivolve " +
         "or have cards placed under them by an effect)' / 'A Token played as a Digimon will be " +
         "treated the same as a normal Digimon.'",
+      "6c753d654d6c62ac4a910a60d568291c88685b5e01e85605ee218b71f3208685",
     );
 
     // DIVERGENCE (documented, not fixed — file ownership excludes engine code): neither
@@ -182,6 +183,7 @@ describe("manual-0009 — Breeding Phase: moving isn't playing, and a moved Digi
         "'Moving Digimon from the breeding area to the battle area isn't considered playing the " +
           "Digimon, so On Play effects won't activate. In addition, this isn't considered playing " +
           "a Digimon, therefore a Digimon can attack on the same turn it was moved.'",
+        "253c4689c58d85b3623cab25bb04c703958e9a446561a424370ca3f89b3269fc",
       );
 
       // AD1-001 has no [On Play] of its own; use a real card with one so a fired On Play is

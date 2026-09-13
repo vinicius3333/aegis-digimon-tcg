@@ -42,7 +42,11 @@ function activatableEffects(s: EngineSetup, perm: { activatableEffectsJson?: str
 
 describe("§16-20 <Save> (comprehensive-0238)", () => {
   it("16-20-1: on deletion, the card may be placed under 1 of the controller's Tamers instead of trashed", async () => {
-    cite("comprehensive-0238", "16-20-1 <Save>: allows placing this card under 1 of your Tamers (on deletion)");
+    cite(
+      "comprehensive-0238",
+      "16-20-1 <Save>: allows placing this card under 1 of your Tamers (on deletion)",
+      "5a8d58c66ffaaad726bd3cdaa5ae2dc35758fae0c7aad6c6fc60e7f7cdab6536",
+    );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
@@ -86,8 +90,13 @@ describe("§16-21/16-21-6 <Material Save> (comprehensive-0239/0240)", () => {
         "self-unsuspend-by-cost ability), and no OnDeletion action implements Material Save's " +
         'described placement at all. An engine-wide grep for hasKeyword(...,"MaterialSave") ' +
         "returns zero consumption sites.",
+      "4027cd3c1ccbcae22b1af6d72fe235bfc8903c9ab7b8a9e2224320aeee9af19a",
     );
-    cite("comprehensive-0240", "16-21-6 (a stacking-order sub-rule of the same, unimplemented, mechanic)");
+    cite(
+      "comprehensive-0240",
+      "16-21-6 (a stacking-order sub-rule of the same, unimplemented, mechanic)",
+      "79ff27d489362dce2d549edf91834566d980dd47798e8cf810f4df8a3f4fd2db",
+    );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
@@ -127,6 +136,7 @@ describe("§16-23 <Raid> (comprehensive-0242)", () => {
         "it anywhere, and no generic engine-level 'Raid' auto-redirect exists (confirmed by " +
         'grepping the engine for hasKeyword(...,"Raid")) — unlike ＜Collision＞/＜Vortex＞, ' +
         "which ARE read generically from printed text in combat/legality.ts.",
+      "3fc3398eb955b3c6e0d902b4e6a8719d1b767d125d2df06f233802288c3f6b12",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true }); // <Raid> is a MAY: an unanswered prompt means no redirect
@@ -164,6 +174,7 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
       "comprehensive-0243",
       "16-24-1 <Alliance>: when this Digimon attacks, by suspending 1 of your other Digimon, " +
         "add its DP to the attacking Digimon for the attack",
+      "e44a7d2f8998a34292f9974cbca448cd81f2fbf538af8c3db0e1def0b7b44f2b",
     );
 
     const s = setup();
@@ -211,6 +222,7 @@ describe("§16-25 <Barrier> (comprehensive-0244)", () => {
       "comprehensive-0244",
       "16-25-1 <Barrier>: by trashing the top card of your security stack when this Digimon " +
         "would be deleted in battle, prevent that deletion",
+      "d57e2d1c92ac3b2789a94e2828d297819f09e54b39b0122fccfc7cf7e20b438f",
     );
 
     const s = setup({ autoAcceptOptional: true });
@@ -269,6 +281,7 @@ describe("§16-26 <Blast Digivolve> (comprehensive-0245)", () => {
         "'Counter'-trigger keyword marker; the memory-cost waiver is consumed at the digivolve " +
         "verb (DigivolveDeps.costWaived, sourced from hasBlastDigivolveKeyword's compiled-IR " +
         "registry), not through the marker's own IR routing.",
+      "a8f5302d1d7921d23a272be3d364452f991eb6a7657cbe6452cfcbecabe3347b",
     );
 
     const s = setup();
@@ -336,6 +349,7 @@ describe("§16-27 <Fortitude> (comprehensive-0246)", () => {
         "AllTurns effects are an unrelated digivolve-activation restriction and a once-per-turn " +
         "security trash on battle wins — no PlayWithoutCost/replay action ever fires on this " +
         "card's own deletion.",
+      "79508c128de4730714cb40180cfd07443ea4a5b2995b18c6cbab617df4f5a17f",
     );
 
     const s = setup();
@@ -371,6 +385,7 @@ describe("§16-28 <Mind Link> (comprehensive-0247)", () => {
       "comprehensive-0247",
       "16-28-1 <Mind Link>: places a Tamer with this effect in the digivolution cards of a " +
         "Digimon that has no Tamer cards among its own digivolution cards",
+      "40b7489c5fee5659b483448f6a0f627602c208034e95125c3ec57a9985121078",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -400,6 +415,7 @@ describe("§16-29 <Partition> (comprehensive-0248)", () => {
       "16-29-1 <Partition>: when the holder and one of each specified card in its digivolution " +
         "cards would leave the battle area other than by the controller's own effect or a battle, " +
         "the specified cards may be played from the digivolution cards without paying their costs",
+      "f3a4c3a202523e7afca233dc4222472180f4b733c4fd77067cde081cd5acbaec",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -434,6 +450,7 @@ describe("§16-30 <Collision> (comprehensive-0249) — verified in combat/keywor
         "the opponent is forced to block whenever possible — full behavioral proof (grant + the " +
         "forced-block chokepoint) lives in combat/keywordBattle.test.ts; this is a structural " +
         "confirmation from the rules angle, not a re-litigation",
+      "effe40c75f6c8f5deb3da41986917e76b21b7decf174245cf2463d5b956ea9f7",
     );
     const attacker = digimon(0, 5000, "BT16-032"); // printed <Collision>
     expect(hasCollision(attacker, undefined)).toBe(true);
@@ -445,6 +462,7 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
     cite(
       "comprehensive-0250",
       "16-31-1: Blast DNA uses one specified field Digimon and one hand card; it resolves optionally during Counter timing.",
+      "ec9da1f563847efe4dfee871cf63d9a84b02fe13512f2826d59ac86e48f2a421",
     );
     const s = setup(
       {
@@ -560,6 +578,7 @@ describe("§16-32 <Scapegoat> (comprehensive-0251)", () => {
         "empty-actions Static marker; its real effects (a free-replay-on-digivolve and a " +
         "conditional security trash) are unrelated — no Prevent/Replacement keyed on " +
         "Scapegoat's own deletion trigger exists.",
+      "277f5623c77994bee5dbc71b1f2a4f31767ccd0ce7f44b9173f6ca5e590ff6c2",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -593,6 +612,7 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
     cite(
       "comprehensive-0252",
       "16-33-1 <Vortex>: allows this Digimon to attack an opponent's Digimon, unsuspended included",
+      "8c22c20a35de0e99fda6f0d9557c5f6ef178d32d9de0e47ee2aed70127b1aa5c",
     );
 
     const s = setup();
@@ -627,6 +647,7 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
         "because the Rush-only gate rejects it first. A printed-<Vortex>-only Digimon (no " +
         "Rush) that entered THIS turn cannot declare a Vortex attack, contradicting 16-33-1's " +
         "own explicit grant.",
+      "8c22c20a35de0e99fda6f0d9557c5f6ef178d32d9de0e47ee2aed70127b1aa5c",
     );
 
     const s = setup();
@@ -650,6 +671,7 @@ describe("§16-35 <Iceclad> (comprehensive-0254) — verified in combat/keywordB
       "16-35-1 <Iceclad>: compares digivolution-card counts instead of DP in battle (other than " +
         "against Security Digimon) — full behavioral proof lives in combat/keywordBattle.test.ts; " +
         "this is a structural confirmation, not a re-litigation",
+      "01186c00073c1b8e41772a9f13647b23310df9f738f731d17b48b3d2b123e23c",
     );
     const def = digimon(0, 5000, "BT18-026"); // printed <Iceclad>
     expect(def.topCard?.cardId).toBe("BT18-026");
@@ -665,6 +687,7 @@ describe("§16-37 <Fragment> (comprehensive-0256)", () => {
         "deleted.' BT22-061 (printed <Fragment (3)>) compiles the keyword to an empty-actions " +
         "Static marker; its real WhenDigivolving/WhenAttacking effects (DeDigivolve + Return) " +
         "are unrelated — no Prevent/Replacement keyed on Fragment's own deletion exists.",
+      "5bf7c10072656e2545ecf9f85c35456884341ca803fda443a83c5252dced82a3",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -703,6 +726,7 @@ describe("§16-38 <Execute> (comprehensive-0257)", () => {
       "comprehensive-0257",
       "16-38-1 <Execute>: at the end of your turn the Digimon may attack, it may attack an " +
         "opponent's unsuspended Digimon, and at the end of the attack it is deleted",
+      "5c658ed9c22510cf864a100b7cd55942c1109a0ceb63e0d432650f8214d68fcb",
     );
 
     // Keep one security card on the defending side so the Execute attack completes its
@@ -735,6 +759,7 @@ describe("§16-39 <Progress> (comprehensive-0258)", () => {
         "empty-actions Static marker; its real effects (an attack-target-switch trash reaction " +
         "and a security-removed free-play reaction) are unrelated — no GrantImmunity/beAffected " +
         "restriction scoped to 'while attacking' exists for this card.",
+      "2fa0950f448b106aeb8bd953b8c02488f3a276133f598714afe0454dc0cedbec",
     );
 
     const s = setup();
@@ -772,7 +797,11 @@ describe("§16-39 <Progress> (comprehensive-0258)", () => {
 
 describe("§16-40 <Link +> (comprehensive-0259)", () => {
   it("16-40-1: adds the specified number to the maximum link cards a Digimon may carry", () => {
-    cite("comprehensive-0259", "16-40-1 <Link +N>: adds N to the maximum link cards of this Digimon");
+    cite(
+      "comprehensive-0259",
+      "16-40-1 <Link +N>: adds N to the maximum link cards of this Digimon",
+      "ab93a63ae9090421af7be36348d5d9b8411f6fe6325313b51f9344a8019f9f2a",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -804,6 +833,7 @@ describe("§16-41 <Training> (comprehensive-0260)", () => {
       "comprehensive-0260",
       "16-41-1 <Training>: by suspending this Digimon during the main phase, place the top " +
         "card of your deck at the bottom of this Digimon's digivolution cards",
+      "b7603283456371a6ab6f29c64ef1a78e2afe6094bf01b1706c0f3fa73f927cf7",
     );
 
     const s = setup();
@@ -845,6 +875,7 @@ describe("§16-42 <Use Req.> (comprehensive-0261) — NOW MET: compiles to, and 
       "comprehensive-0261",
       "§16-42-1 <Use Req. (X)>: 'allows a player to ignore the color requirements with the " +
         "specified cards.' BT25-093 prints <Use Req. ([TS] trait)>.",
+      "bea2acb41142c08a4ce511f19dd3e0c0b2069a500a9a419267b553f3685e8b8a",
     );
     const { getCompiledCard } = await import("@aegis/shared");
     const compiled = getCompiledCard("BT25-093");
@@ -883,6 +914,7 @@ describe("§16-42 <Use Req.> (comprehensive-0261) — NOW MET: compiles to, and 
       "§16-42-1 <Use Req. (X)>: 'allows a player to ignore the color requirements with the " +
         "specified cards.' With a [TS] trait card in play, BT25-093 (printed <Use Req. ([TS] " +
         "trait)>, mono-Red) now plays with no Red source anywhere on the board.",
+      "bea2acb41142c08a4ce511f19dd3e0c0b2069a500a9a419267b553f3685e8b8a",
     );
 
     const s = setup({ autoAcceptOptional: true });
@@ -953,6 +985,7 @@ describe("§16-43 <Ascension> (comprehensive-0262)", () => {
         "<Ascension>) compiles the keyword to an empty-actions Static marker; its real effect " +
         "(a whenTrashedFromSecurity reaction) is unrelated — no OnDeletion PlaceAsSecurity " +
         "action exists for this card's OWN deletion.",
+      "76ebf45a33b0f32ac2d60968e7026e86ac27ce1ae59daa902cde5ad628c98dd4",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -985,6 +1018,7 @@ describe("§16-43 <Ascension> (comprehensive-0262)", () => {
       "§16-43-1 <Ascension> only redirects the trashing of the card it's printed on; every " +
         "other permanent simultaneously deleted keeps its own [On Deletion] reaction, since " +
         "resolveDeletionReactions opens ONE OnDestroyedAnyone window over the whole batch.",
+      "76ebf45a33b0f32ac2d60968e7026e86ac27ce1ae59daa902cde5ad628c98dd4",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });

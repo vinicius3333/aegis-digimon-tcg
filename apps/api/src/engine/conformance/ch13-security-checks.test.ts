@@ -75,6 +75,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     cite(
       "comprehensive-0153",
       "13-1-1 a security check performs a check on the opponent's security stack; 13-1-4 it is mandatory",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const card = makeSecurityCard(1, 0, "OPTION-X");
@@ -91,6 +92,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
       "comprehensive-0153",
       "13-1-2 only 1 security check is performed per attack, unless the checked-card count is " +
         "modified by an effect on the attacker",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1)];
@@ -106,6 +108,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
       "comprehensive-0153",
       "13-1-2 if the number of cards that can be checked is modified by an effect on the " +
         "attacking Digimon, the modified number is checked in a single security check",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1), makeSecurityCard(1, 2)];
@@ -119,7 +122,11 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-3: a security check is performed one card at a time — each is fully resolved before the next begins", async () => {
-    cite("comprehensive-0153", "13-1-3 a security check is performed one card at a time");
+    cite(
+      "comprehensive-0153",
+      "13-1-3 a security check is performed one card at a time",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
+    );
 
     const order: string[] = [];
     const cards = [makeSecurityCard(1, 0, "AD1-001"), makeSecurityCard(1, 1, "AD1-002")];
@@ -136,7 +143,11 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-3: re-evaluates the live check count after each resolved card", async () => {
-    cite("comprehensive-0153", "13-1-3 each card is fully resolved before the next security card is checked");
+    cite(
+      "comprehensive-0153",
+      "13-1-3 each card is fully resolved before the next security card is checked",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
+    );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1)];
     let liveStrike = 2;
@@ -160,6 +171,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     cite(
       "comprehensive-0153",
       "13-1-5 if the Digimon performing the security check is removed from the battle area, it can't check any more",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1)];
@@ -185,6 +197,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     cite(
       "comprehensive-0153",
       "13-1-6 a checked card is removed from the security stack and treated as not being in any particular area",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const card = makeSecurityCard(1, 0, "AD1-002");
@@ -214,6 +227,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     cite(
       "comprehensive-0153",
       "13-1-6 a checked card is removed from the security stack and treated as not being in any particular area",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const card = makeSecurityCard(1, 0, "AD1-002");
@@ -240,6 +254,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
       "comprehensive-0153",
       "13-1-7 a checked Digimon card is treated as a Security Digimon; 13-1-8-3-1 a battle " +
         "occurs between the Security Digimon and the checking Digimon",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const card = makeSecurityCard(1, 0, "AD1-002");
@@ -256,10 +271,12 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
       "comprehensive-0216",
       "15-16-10-2 a triggered [Security] effect activates immediately without pending activation, " +
         "so it takes precedence even over effects that triggered simultaneously (KB Q6085/Q2221)",
+      "9c1db9844c7c6d99b1b29ab9bb4f83559e17bc60055475956322c306f88bf74b",
     );
     cite(
       "comprehensive-0153",
       "13-1-8-2-1 an effect triggered by a security check is resolved before the next action begins",
+      "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60",
     );
 
     const order: (EffectTiming | string)[] = [];

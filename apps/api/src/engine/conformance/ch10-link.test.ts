@@ -275,6 +275,7 @@ describe("§10-1 Link (comprehensive-0140)", () => {
       "comprehensive-0140",
       "10-1-1 a card can be linked to a Digimon by paying the cost as part of main phase " +
         "actions; 10-1-3-2 the specified link cost is paid",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
     );
 
     const result = await runPlainMainLink();
@@ -295,6 +296,7 @@ describe("§10-1 Link (comprehensive-0140)", () => {
         "the battle area and its top card becomes the link card. Proven directly here on the " +
         "bare case (no stack, no own link card); see the next test for what happens to a source " +
         "that HAS a stack and its own link card.",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
     );
 
     const { state, fx } = fixture();
@@ -330,6 +332,7 @@ describe("§10-1 Link (comprehensive-0140)", () => {
           "any cards under it are trashed') — the same shape `relocatePermanent`'s " +
           "`shedOwnCards` already applies for DigiXros placement — not a direct citation for " +
           "this exact mechanic. Re-verify if a ruling on link surfaces.",
+        "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
       );
 
       const { state, fx } = fixture();
@@ -371,6 +374,7 @@ describe("§10-1 Link (comprehensive-0140)", () => {
         "reads a permanent's `topCard` — so a top-card id passed to `trash()` is silently " +
         "skipped, exactly as documented on that verb ('A card sitting as the TOP card of a " +
         "permanent cannot be trashed in isolation by this verb').",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
     );
 
     const { state, fx } = fixture();
@@ -395,6 +399,7 @@ describe("§10-1 Link (comprehensive-0140)", () => {
         "where `source` is EX11-027's OWN already-on-field permanent — exactly the branch the " +
         "primitive-level tests above exercise directly. Driving the real card's own effect end " +
         "to end (not just the `link` primitive) is the point of this test.",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
     );
 
     const { recipient, host, p0 } = await runEx11027Link();
@@ -410,6 +415,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
       "comprehensive-0141",
       "10-1-2-2 a card plugged in sideways for a link becomes a link card (distinct from a " +
         "stacked/digivolution card)",
+      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
     );
 
     const { state, fx } = fixture();
@@ -438,6 +444,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
       "comprehensive-0141",
       "10-1-2-3 if an immediate-type effect triggers when linking would occur, it triggers " +
         "immediately after the card is revealed and the Digimon to be linked is chosen",
+      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
     );
 
     const subTriggerLog: string[] = [];
@@ -473,6 +480,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
         "digivolution-count compare and de-digivolve's top-card removal). A second link card " +
         "is simply appended after the first; nothing in the engine ever reads `linked` " +
         "positionally, so 'plugged in at the bottom' has no observable effect either way.",
+      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
     );
 
     const { state, fx } = fixture();
@@ -521,6 +529,7 @@ describe("§4-9-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
       "17-1-3-2-5: 'Link cards for a Digimon that has exceeded the link limit (only the cards " +
         "that exceed link limit are trashed)' — the trim is a rule-check sweep, run after the " +
         "link lands.",
+      "579c4f4ad3acf21c4b443e84664dd884ef2360322294dca0d3124d57ca9f1bb3",
     );
 
     // --- Path 1: the player-facing linkCard verb (actions/link.ts / GameEngine.handleLinkCard) ---

@@ -195,3 +195,59 @@ Three baseline behavioral-oracle failures were corrected in the existing tests, 
 Final serialized full engine regression: **328 files / 7,856 tests passed**, using `TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072` and `--no-file-parallelism`. The earlier four baseline failures are resolved by the classification/oracle corrections above; the expected unsupported AD1-002 logger receipt remains part of its passing negative test. Shared, API and web typechecks passed in sequence. Scoped Oxlint reports no new findings after removing the newly unused exclusion imports; nine existing warnings remain in the changed chapter files. Scoped Oxfmt passes for changed code, tooling and documents. The generated `effects.json` retains a pre-existing formatter mismatch: read-only stdin formatting differs both at `2debe592c` and after synchronization. Its authoritative scoped serializer and 74-record parity check pass, and outside-EX6 bytes are preserved; whole-file reformatting is not claimed green. Audit layout, the generated 66-set index and `git diff --check` pass. These receipts certify the bounded infrastructure and regression contracts, not exhaustive normative rule execution or whole-collection 10/10 status.
 
 Delivery commits: `1b8291557` (declaration consistency, normative classification and existing behavioral oracles), `711aa637d` (real-formatter fixtures and primary-source deviations), `df8f0317c` (scoped EX6 persisted IR). Read-only Luna review approved the bounded changes without material blockers. No complete collection certification or fresh-source denominator is inferred from these commits.
+
+## Scoped 282-reference reconciliation (2026-09-13)
+
+Branch `audit-scoped-four-fronts-282-refs`, baseline `85a465314`. A TypeScript
+AST inventory of the baseline finds **431 chapter calls: 149 pinned and 282
+unpinned**, excluding `_kb.meta.test.ts` and the deliberate
+`kb-citation-drift.test.ts` infrastructure probes. Including the latter's
+literal compatibility citation gives 432 calls / 283 unpinned; that extra call
+intentionally remains unpinned. The older balanced-text recipe above is a
+historical receipt, not the current authoritative declaration inventory.
+
+All 282 chapter calls now carry literal SHA-256 fingerprints of their exact
+committed chunk text, across 32 changed files. A separate structural AST
+comparison against `85a465314`, ignoring only the third `cite` argument,
+confirmed all 32 files retain the same assertion bodies, citation IDs and
+notes. No rule-index text, full normative citation note, not-testable
+classification or catalog record was removed or replaced by this migration.
+
+The new finite placement mechanism fixture adds five pinned declarations.
+Current chapter inventory is therefore **436 / 436 pinned calls**, with zero
+missing, unresolved or mismatched references. Its 76 files exclude both helper
+files; the historical 76-file scan included the drift helper and predates the
+new placement file, so equal file counts do not imply equal membership.
+
+Reproduce the integrity and provenance check from the repository root:
+
+```sh
+node tools/kb/check-conformance-citations.mjs
+node tools/kb/check-conformance-citations.mjs --json
+node --test tools/kb/check-conformance-citations.test.mjs
+```
+
+The JSON stdout report retains each declaration's file, line, ID, original
+note, literal fingerprint, source title, section and chunk title. Full
+normative text and primary-source URLs remain in `data/kb/rules-index.json`;
+no per-reference audit file or JSON evidence ledger is generated. Pins must
+be reviewed after source drift; the checker has no automatic repinning mode.
+It rejects missing IDs, absent/dynamic/invalid pins, changed text and ambiguous
+shadowed constants. Only immutable top-level literal constants are resolved;
+unsupported expressions are reported rather than evaluated.
+
+Fingerprint protection is **source identity evidence**, not proof that every
+subclause in a chunk is behaviorally exercised. The checker reports one known
+partial-note warning: `ch15-03-targeting-and-selection.test.ts`'s
+`comprehensive-0184` note states the fixed-X case without its largest-feasible,
+unique-target and overall-processing clauses. That test proves its demonstrated
+fixed-X witness; it does not certify the full chunk. The corrected ordinary
+different-color subset oracle and retained atomic-cost controls are recorded
+in [the current four-front consumer reconciliation](mechanism-inventory.md#current-four-front-consumer-reconciliation-2026-09-13).
+The warning is a reviewed example, not an exhaustive semantic note validator.
+
+The manual remains unrefreshed, the glossary archived, and Q&A provenance
+retains the earlier recorded scan/date/failure boundaries. No fresh-source,
+whole-KB normative execution or whole-catalog coverage claim follows from
+436 protected declarations. Final regression, review and delivery receipts
+are recorded in the four-front owner section after those gates complete.

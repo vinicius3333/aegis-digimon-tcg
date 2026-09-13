@@ -36,7 +36,11 @@ import "../../cards/index.js";
 
 describe("§15-10-1 Effect Targets - Players (comprehensive-0183)", () => {
   it("15-10-1-3-1: \"both players\" affects BOTH players' own zones, not just the activating player's", async () => {
-    cite("comprehensive-0183", '15-10-1-3-1 if text includes "players" or "both players," it affects both players');
+    cite(
+      "comprehensive-0183",
+      '15-10-1-3-1 if text includes "players" or "both players," it affects both players',
+      "12e38b1941090c53341642c2d013e82346a465cdcf2de142fbe741c1b19a0641",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -66,6 +70,7 @@ describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
       "comprehensive-0184",
       '15-10-2-1 "X Digimon"/"X cards" written on a card: X cards must be chosen; ' +
         "individual processing is performed on those cards",
+      "394081fad7013ea5ff26975dc302fb0483dcd7e9c6d73bf11b5618e2a67d20af",
     );
 
     const s = setup();
@@ -107,6 +112,7 @@ describe("§15-11-1 Individual Processing (comprehensive-0186)", () => {
         "of your opponent's Digimon with no digivolution cards. That Digimon can't attack or " +
         "block until the end of your opponent's next turn,' which still can't attack even after " +
         "later getting a digivolution card",
+      "893b60b03887de260d79fb94f5a4ecb22aecf5d2d36f55c99665061efe353551",
     );
 
     const s = setup();
@@ -151,6 +157,7 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
         "now reads a bare, unquantified restriction subject ('their Digimon with X', 'none of " +
         "X can Y') as this §15-11-2 overall-processing shape instead of defaulting it to a " +
         "single chosen target.",
+      "985869ad843bd4472470143f075a6f057656da6b38b23551e82acc53353ddeb3",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -184,6 +191,7 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
     cite(
       "comprehensive-0188",
       "15-11-2-3-3 overall processing dynamically re-affects a target as soon as it meets the condition again",
+      "529c021402752d0442ce647e57c6a21124fdb874781c5d95da8864c107c063ba",
     );
     // resolveTargetPermanents' own count==="all" branch (interpreter.ts) returns EVERY
     // matching candidate with no chooseTargets prompt at all — the same overall-
@@ -203,6 +211,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203
       "15-15-3-1/2 a card being revealed doesn't change the count of cards in its " +
         "original area; the count changes only once the revealed cards' final placement " +
         "increases or decreases it",
+      "54891248872417cbd74c674c64811a89398e35ba638dcc723da72da04cc5c8e2",
     );
     cite(
       "comprehensive-0280",
@@ -258,6 +267,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203
       "comprehensive-0202",
       "15-15-3-6 when returning multiple revealed cards, the player who owns the card " +
         "that caused the action chooses the order they're placed",
+      "5069d2bb4ad006c559542353daad72646c64713edfc87dd69c5fb051d0677b34",
     );
     cite(
       "comprehensive-0320",
@@ -288,6 +298,7 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
         "isOpponentEffect/relevantSourceKinds check) rather than including it as choosable-but-" +
         "unaffected — so with 3 opponent Digimon (1 immune, 2 not) and a 'suspend 1' effect, " +
         "the immune one is never even OFFERED as a choice.",
+      "e3e45c5e068535d40b94ece55cde7d7e3d989a81bb7be8a38381b7f4a4a83497",
     );
 
     const s = setup();
@@ -329,6 +340,7 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
         "Digimon' still asks the player to choose it; the effect then does nothing to it. " +
         "Target.allowUnaffectableChoice keeps resolvePermanentTargets from silently " +
         "auto-resolving a pool that holds only unaffectable permanents.",
+      "e3e45c5e068535d40b94ece55cde7d7e3d989a81bb7be8a38381b7f4a4a83497",
     );
 
     const s = setup();

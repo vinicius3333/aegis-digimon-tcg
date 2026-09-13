@@ -71,7 +71,11 @@ function collected(seat: Seat, instanceId: string, effect: Effect): CollectedEff
 
 describe("§15-4-1 Activation (comprehensive-0162)", () => {
   it("15-4-1-1: activation is the effect being EXECUTED — the use ledger records a use only once resolve() has run", async () => {
-    cite("comprehensive-0162", "15-4-1-1 activation refers to an effect being executed");
+    cite(
+      "comprehensive-0162",
+      "15-4-1-1 activation refers to an effect being executed",
+      "078db10cf83465a8ce4959d57abec4eeaf472a719fd7eec52457787b8b6744d7",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -102,6 +106,7 @@ describe("§15-4-2 Triggering (comprehensive-0163)", () => {
       "comprehensive-0163",
       "15-4-2-3 effects pending activation must be activated 1 at a time; multiple " +
         "triggered effects can't be activated at the same time",
+      "7522030f36eed2b3e119b50e1e61bcaa81f17ec521bd21b84fa972c38977119e",
     );
 
     const log: string[] = [];
@@ -145,6 +150,7 @@ describe("§15-4-3 Simultaneous Triggering (comprehensive-0164)", () => {
       "comprehensive-0164",
       "15-4-3-5-1/2 1 effect is chosen from the turn player's simultaneously-triggered " +
         "effects, repeated until none remain; only then does the non-turn player's bucket begin",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
     );
 
     const log: string[] = [];
@@ -169,7 +175,11 @@ describe("§15-4-3 Simultaneous Triggering (comprehensive-0164)", () => {
   });
 
   it("orderTurnPlayerFirst is stable within each side (doesn't reorder same-seat effects)", () => {
-    cite("comprehensive-0164", "15-4-3-1 simultaneous triggering: multiple effects trigger at the same timing");
+    cite(
+      "comprehensive-0164",
+      "15-4-3-1 simultaneous triggering: multiple effects trigger at the same timing",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
+    );
 
     const seed = [
       collected(1, "opp1", fakeEffect("opp1")),
@@ -188,6 +198,7 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
       "comprehensive-0165",
       "15-4-4-5 when a card with a pending-activation effect no longer meets that " +
         "effect's trigger conditions before it activates, the effect can no longer be activated",
+      "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0",
     );
 
     const log: string[] = [];
@@ -227,6 +238,7 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
         "DNA digivolves it into BT16-012 in the SAME resolution: the [On Play] is parked while " +
         "that effect is still running, and by the time the parked list is drained Angemon is a " +
         "digivolution card of another permanent, so it never activates.",
+      "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0",
     );
 
     const dnaMaterials: string[] = [];
@@ -283,6 +295,7 @@ describe("§15-4-5 Derived Triggering (comprehensive-0166)", () => {
         "triggered while turn-player effects are still pending, so it cuts the line.' A newly " +
         "collected opponent effect is appended to the SAME non-turn-player bucket and waits " +
         "behind every remaining turn-player pending effect, contradicting 15-4-5-3.",
+      "c12a72babb8fa25e11755af5c32e4d0efccdb4e812e15d3b2dd8cc2e2df1ee50",
     );
 
     const log: string[] = [];
@@ -360,6 +373,7 @@ describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {
       "comprehensive-0167",
       "15-5-2 a triggering from 1 trigger condition is considered to only trigger once, " +
         "even if it occurred multiple times at the same time",
+      "6833093207ae30f62d832ec8605eae546ffbc36cc1d21650e06b65d34d9b8fc6",
     );
 
     // BT1-070's [On Play] is a single trigger condition ("this card was played"); playing
@@ -390,7 +404,11 @@ describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {
 
 describe("§15-6 Processing Conditions (comprehensive-0168)", () => {
   it("15-6-3: an effect can't be activated when none of its processing conditions are met", async () => {
-    cite("comprehensive-0168", "15-6-3 an effect can't be activated when none of its processing conditions are met");
+    cite(
+      "comprehensive-0168",
+      "15-6-3 an effect can't be activated when none of its processing conditions are met",
+      "6b258194071394780c617c1fbfe9af2363b7b844f6528746f028d91d6aa977cc",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -414,6 +432,7 @@ describe("§15-6 Processing Conditions (comprehensive-0168)", () => {
       "comprehensive-0168",
       "15-6-3 an effect can't be activated when none of its processing conditions are met " +
         "(a met condition must NOT be blocked)",
+      "6b258194071394780c617c1fbfe9af2363b7b844f6528746f028d91d6aa977cc",
     );
 
     const s = setup();
@@ -686,6 +705,7 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
       "comprehensive-0173",
       "15-8-3-1 a trigger-type effect will always trigger as soon as its trigger " +
         "conditions are met, then the effect will activate",
+      "8591423c545be03c90aa350157893da9538e16a3fbbb42459c031ea2258d6932",
     );
 
     // The suspend still asks WHICH Digimon; the rule under test is that the effect triggers
@@ -705,7 +725,11 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
   });
 
   it("15-8-3-4: a trigger-type effect does NOT trigger when its condition is never met", async () => {
-    cite("comprehensive-0173", "15-8-3-4 trigger-type effects won't trigger when their trigger conditions aren't met");
+    cite(
+      "comprehensive-0173",
+      "15-8-3-4 trigger-type effects won't trigger when their trigger conditions aren't met",
+      "8591423c545be03c90aa350157893da9538e16a3fbbb42459c031ea2258d6932",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -735,6 +759,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "rules' OWN worked example: '[Main] [Once Per Turn] By paying 2 cost, delete 1 of your " +
         "opponent's Digimon with DP less than or equal to this Digimon's DP.' " +
         "15-8-4-2 declared during the main phase when there is no unresolved processing",
+      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
     const s = setup();
@@ -764,6 +789,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "the 2-cost activation can't be paid and declaring it is rejected outright by " +
         "`canActivateEffect`'s cost gate (effects/interpreter.ts), which `validateActivateEffect` " +
         "(actions/activateEffect.ts) calls via `canActivate` before returning `{ ok: true }`.",
+      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
     const s = setup();
@@ -787,6 +813,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       "comprehensive-0176",
       "15-8-4-3-1 (a payable cost must NOT be blocked): BT15-009's 2-cost activation is " +
         "declared successfully once memory can cover it.",
+      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
     const s = setup();
@@ -810,6 +837,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       "comprehensive-0176",
       "15-8-4-3-1 an activation-type effect can be declared only while its processing " +
         "conditions are met; EX2-051's deletion clause has no legal target above its DP ceiling",
+      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
     const s = setup({
@@ -835,6 +863,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "BT15-009's cost is 2, seat 0 is the turn player (memoryFor(0) == state.memory), so " +
         "state.memory == -8 makes maxCostFor(0) == 2 exactly (payable) and state.memory == -9 " +
         "makes it 1 (one short, unpayable).",
+      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
     );
 
     // Two independent setups — BT15-009 is [Once Per Turn], so reusing one engine across

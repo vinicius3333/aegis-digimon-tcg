@@ -35,7 +35,11 @@ import "../../cards/index.js";
 
 describe("§1-1 Number of Players (comprehensive-0020)", () => {
   it("1-1-1: a match seats exactly two players, seat 0 and seat 1", () => {
-    cite("comprehensive-0020", "played by two players in a match");
+    cite(
+      "comprehensive-0020",
+      "played by two players in a match",
+      "9daeb86332f2cd361270b61b6893499891b4fec820728434c00008fc84bd09b1",
+    );
 
     const s = setup();
     expect(s.state.players.length).toBe(2);
@@ -46,7 +50,11 @@ describe("§1-1 Number of Players (comprehensive-0020)", () => {
 
 describe("§1-2 Game Victory/Loss (comprehensive-0021)", () => {
   it("1-2-1/1-2-2: the game is not over until a player wins or loses; declareLoss ends it", () => {
-    cite("comprehensive-0021", "the game ends when one player wins or loses");
+    cite(
+      "comprehensive-0021",
+      "the game ends when one player wins or loses",
+      "502d05dbc7d0b4fc07867002d10b38e5f11a324c909cc10e57fbebc9333ee91f",
+    );
 
     const state = new GameState();
     for (const seat of [0, 1] as Seat[]) {
@@ -115,7 +123,11 @@ describe("§1-2-3 Victory conditions (comprehensive-0022)", () => {
   }
 
   it("1-2-3-1: an attack with >=1 security check landing on 0 security cards wins the game", async () => {
-    cite("comprehensive-0022", "1-2-3-1 victory: successful attack into 0 security");
+    cite(
+      "comprehensive-0022",
+      "1-2-3-1 victory: successful attack into 0 security",
+      "6fb2a0c3b1c9d7f7f3e40f5cfe3bbe5878bd102c33b4767d4e5ecc36af0d8ae7",
+    );
 
     const { state, win, deps, events } = securityHarness();
     const attacker: SecurityCheckAttacker = { permanentId: ATTACKER_ID };
@@ -146,7 +158,11 @@ describe("§1-2-3 Victory conditions (comprehensive-0022)", () => {
 
 describe("§1-3 Fundamental Principles (comprehensive-0023)", () => {
   it("1-3-1: card text overrides the rules — <Rush> lets a just-played Digimon attack immediately", () => {
-    cite("comprehensive-0023", "1-3-1 card text overrides rules; example: <Rush> attacking the turn it's played");
+    cite(
+      "comprehensive-0023",
+      "1-3-1 card text overrides rules; example: <Rush> attacking the turn it's played",
+      "191cf9d4f8091cf801d7af79ff97d807530c384ee9cd7f108581bc2790d820e3",
+    );
 
     const s = setup();
     s.state.turnCount = 1;
@@ -186,7 +202,11 @@ describe("§1-3 Fundamental Principles (comprehensive-0023)", () => {
 
 describe("§1-3-7..1-3-11-3 Fundamental Principles, cont'd (comprehensive-0024)", () => {
   it("1-3-7: a numerical value modified by a rule/effect is always truncated to an integer", () => {
-    cite("comprehensive-0024", "1-3-7 modified numerical values are always integers");
+    cite(
+      "comprehensive-0024",
+      "1-3-7 modified numerical values are always integers",
+      "2eb57197533e83205f87e9e06b2efcb7bc41ec703c866eb39b722e3fa0be6869",
+    );
 
     const state = new GameState();
     state.turnSeat = 0;
@@ -232,7 +252,11 @@ describe("§1-3-7..1-3-11-3 Fundamental Principles, cont'd (comprehensive-0024)"
 
 describe("§1-4-1 Deck and Digi-Egg deck (comprehensive-0027)", () => {
   it("1-4-1-2-1: a legal main deck must be exactly 50 cards, not more or fewer", () => {
-    cite("comprehensive-0027", "1-4-1-2-1 deck must have exactly 50 cards");
+    cite(
+      "comprehensive-0027",
+      "1-4-1-2-1 deck must have exactly 50 cards",
+      "0b8890885acb0147caf9e8e069757ea927012b6a2cc7f3b0ff5466ca937d43c9",
+    );
     expect(MAIN_DECK_SIZE).toBe(50);
 
     const oneShort = { mainDeck: Array(MAIN_DECK_SIZE - 1).fill("BT1-010"), eggDeck: [] };
@@ -272,7 +296,11 @@ describe("§1-4-1 Deck and Digi-Egg deck (comprehensive-0027)", () => {
 
 describe("§1-4-2 The Memory Gauge (comprehensive-0028)", () => {
   it("1-4-2-2: the gauge is shared and clamped to 10 on both sides, never exceeding it", () => {
-    cite("comprehensive-0028", "1-4-2-2 memory gauge maxes at 10 on both sides");
+    cite(
+      "comprehensive-0028",
+      "1-4-2-2 memory gauge maxes at 10 on both sides",
+      "577d6e1fc541b7731a40341a36f290fe759a9e8072d097adb1f7ba8456701c28",
+    );
 
     const state = new GameState();
     state.turnSeat = 0;
@@ -318,7 +346,11 @@ markNotTestable(
 
 describe("§1-4-4 Token Cards (comprehensive-0030)", () => {
   it("1-4-4-1/1-4-4-2: token cards are non-deck cards used by effects", () => {
-    cite("comprehensive-0030", "1-4-4 token cards can't be included in a deck");
+    cite(
+      "comprehensive-0030",
+      "1-4-4 token cards can't be included in a deck",
+      "577ab6988b1aed3f64c723e83e59ee4192c20b8db94971c38aff35f9a291a793",
+    );
 
     // Every token in the registry is a spawned-only card (isToken), and a deck built with a
     // token's id is rejected as an unknown-for-deck card (tokens are not addressable by their

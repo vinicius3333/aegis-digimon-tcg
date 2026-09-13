@@ -75,7 +75,11 @@ function recordingHooks(overrides?: Partial<TurnFlowHooks>): { hooks: TurnFlowHo
 
 describe("§6-1 Turn Procedures (comprehensive-0103)", () => {
   it("6-1-2: a turn proceeds through Active, Draw, Breeding, and Main in that fixed order", async () => {
-    cite("comprehensive-0103", "6-1-2 phase order: unsuspend (active), draw, breeding, main");
+    cite(
+      "comprehensive-0103",
+      "6-1-2 phase order: unsuspend (active), draw, breeding, main",
+      "c20428cb99b3e8de70ea00e3deeb4a5e1401d9155c53a0eec5f7d8119565ec5f",
+    );
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = false; // so the draw phase actually calls draw (not the skip path)
@@ -111,7 +115,11 @@ describe("§6-1 Turn Procedures (comprehensive-0103)", () => {
 
 describe("§6-1-4 Turn End Conditions (comprehensive-0104)", () => {
   it("6-1-4-1: the turn ends once the opponent's memory reaches the 1-or-more default threshold", () => {
-    cite("comprehensive-0104", "6-1-4-1 turn ends when the opponent's memory is at 1 or more");
+    cite(
+      "comprehensive-0104",
+      "6-1-4-1 turn ends when the opponent's memory is at 1 or more",
+      "d94d1d5c841a651e772fa13261f22b524f01def6ffdf27c16a58417c9de98250",
+    );
 
     const state = twoPlayerState();
     const gauge = new MemoryGauge(state);
@@ -129,7 +137,11 @@ describe("§6-1-4 Turn End Conditions (comprehensive-0104)", () => {
 
 describe("§6-2 Unsuspend Phase (comprehensive-0105)", () => {
   it("6-2-1: the Active phase unsuspends the turn player's permanents at the start of the turn", async () => {
-    cite("comprehensive-0105", "6-2-1 the turn starts by unsuspending all of the turn player's Digimon/Tamers");
+    cite(
+      "comprehensive-0105",
+      "6-2-1 the turn starts by unsuspending all of the turn player's Digimon/Tamers",
+      "a4360d67a992a646c8e1ea74472de1131e7fff61d18ab84778342a96a33d16ff",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -150,7 +162,11 @@ describe("§6-2 Unsuspend Phase (comprehensive-0105)", () => {
   });
 
   it("6-2-1-1: a start-of-turn rule/effect window (OnStartTurn) fires BEFORE the unsuspending processing", async () => {
-    cite("comprehensive-0105", "6-2-1-1 rules/effects to process at turn start run before unsuspending");
+    cite(
+      "comprehensive-0105",
+      "6-2-1-1 rules/effects to process at turn start run before unsuspending",
+      "a4360d67a992a646c8e1ea74472de1131e7fff61d18ab84778342a96a33d16ff",
+    );
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = false;
@@ -167,7 +183,11 @@ describe("§6-2 Unsuspend Phase (comprehensive-0105)", () => {
 
 describe("§6-3 Draw Phase (comprehensive-0106)", () => {
   it("6-3-1-1: the first player skips the draw on their own first turn, but draws normally afterward", async () => {
-    cite("comprehensive-0106", "6-3-1-1 the first player's first draw phase is skipped");
+    cite(
+      "comprehensive-0106",
+      "6-3-1-1 the first player's first draw phase is skipped",
+      "c3ec12bfc72e82b717a655f8863de0fa7ac058bed0f4f2c37a04a585216caa5e",
+    );
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = true;
@@ -195,7 +215,11 @@ describe("§6-3 Draw Phase (comprehensive-0106)", () => {
 
 describe("§6-4 Breeding Phase (comprehensive-0107)", () => {
   it("6-4-1: the turn player gets exactly ONE breeding action — a second hatch/move attempt in the same window is rejected", () => {
-    cite("comprehensive-0107", "6-4-1 hatch OR move OR do nothing — exactly one action per breeding phase");
+    cite(
+      "comprehensive-0107",
+      "6-4-1 hatch OR move OR do nothing — exactly one action per breeding phase",
+      "cbeea161b86c44c2cf337286f07bea995cdec3432b4bf09a15e1111f66387cb4",
+    );
 
     const state = twoPlayerState();
     state.phase = Phase.Breeding;
@@ -236,7 +260,11 @@ describe("§6-4 Breeding Phase (comprehensive-0107)", () => {
 
 describe("§6-5 Main Phase (comprehensive-0108)", () => {
   it("6-5-1-1-1 / 6-5-1-2-1: playing a Digimon card and digivolving are both legal Main-phase verbs", async () => {
-    cite("comprehensive-0108", "6-5-1-1/6-5-1-2 play a Digimon/Tamer card, or digivolve, from the hand");
+    cite(
+      "comprehensive-0108",
+      "6-5-1-1/6-5-1-2 play a Digimon/Tamer card, or digivolve, from the hand",
+      "6ffe7a26f38f9b23959d708c52ee648ee9b235f43c442f6b8e870972d8f81ce0",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -264,7 +292,11 @@ describe("§6-5 Main Phase (comprehensive-0108)", () => {
 
 describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   it("6-5-1-7-1: declaring a pass immediately moves memory to 3 in the INCOMING turn player's favor", async () => {
-    cite("comprehensive-0109", "6-5-1-7-1 passing moves the memory gauge to 3 on the opponent's side");
+    cite(
+      "comprehensive-0109",
+      "6-5-1-7-1 passing moves the memory gauge to 3 on the opponent's side",
+      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+    );
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = false;
@@ -296,6 +328,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
         "carries a 'linkCard' case (actions/link.ts) covering the HAND half of this action, " +
         "wired onto the existing Link primitive (effects/primitives.ts) that already performs " +
         "the actual plug-in.",
+      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
     );
 
     const s = setup();
@@ -319,7 +352,11 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   });
 
   it("6-5-1-4/§10-1-3: linkCard is rejected outside the Main phase", () => {
-    cite("comprehensive-0109", "6-5-1-4 linking is a Main phase turn-player action.");
+    cite(
+      "comprehensive-0109",
+      "6-5-1-4 linking is a Main phase turn-player action.",
+      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+    );
 
     const s = setup();
     s.state.phase = Phase.End;
@@ -338,7 +375,11 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   });
 
   it("6-5-1-4/§10-1-3: linkCard is rejected for a seat that is not the turn player", () => {
-    cite("comprehensive-0109", "6-5-1-4 lists linking among the TURN PLAYER's Main phase actions.");
+    cite(
+      "comprehensive-0109",
+      "6-5-1-4 lists linking among the TURN PLAYER's Main phase actions.",
+      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+    );
 
     const s = setup();
     s.state.turnSeat = 0;
@@ -357,7 +398,11 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   });
 
   it("§10-1-3-1: linkCard is rejected when the chosen Digimon doesn't meet the link requirement", () => {
-    cite("comprehensive-0140", "10-1-3-1 the player chooses 1 of their Digimon that meets the [Link] requirement.");
+    cite(
+      "comprehensive-0140",
+      "10-1-3-1 the player chooses 1 of their Digimon that meets the [Link] requirement.",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -377,7 +422,11 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   });
 
   it("§10-1-3-2: linkCard is rejected when the printed link cost isn't affordable", () => {
-    cite("comprehensive-0140", "10-1-3-2 the specified link cost is paid.");
+    cite(
+      "comprehensive-0140",
+      "10-1-3-2 the specified link cost is paid.",
+      "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -401,7 +450,11 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
 
 describe("§6-6 End of Turn (comprehensive-0110)", () => {
   it("6-6-3: once end-of-turn processing resolves, the non-turn player's turn begins", async () => {
-    cite("comprehensive-0110", "6-6-3 once end-of-turn processing resolves, the non-turn player's turn begins");
+    cite(
+      "comprehensive-0110",
+      "6-6-3 once end-of-turn processing resolves, the non-turn player's turn begins",
+      "f9f5cfa75ac379673e9728afe910b1d8fb6c69c088fc27db80dc43203515bdba",
+    );
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = false;
@@ -432,6 +485,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
         "MemoryGauge.hasCrossedToOpponent() after the OnEndTurn window: the gauge has to have " +
         "been on the opponent's side going IN and be back on the turn player's side coming OUT " +
         "(§6-6-4 is a MOVE), at which point the Main phase re-runs and the window re-opens.",
+      "f9f5cfa75ac379673e9728afe910b1d8fb6c69c088fc27db80dc43203515bdba",
     );
 
     const state = twoPlayerState();
@@ -471,6 +525,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
       "6-6-4 read together with 6-1-4-1: the turn end condition is the memory reaching 1 or more " +
         "on the opponent's side. A turn that ends without the gauge ever being over there has " +
         "nothing to move BACK, so no postponement applies and the End phase follows directly.",
+      "f9f5cfa75ac379673e9728afe910b1d8fb6c69c088fc27db80dc43203515bdba",
     );
 
     const state = twoPlayerState();

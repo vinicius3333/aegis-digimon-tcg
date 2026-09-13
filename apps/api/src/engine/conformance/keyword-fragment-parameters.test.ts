@@ -8,6 +8,7 @@ describe("bounded Fragment parameters", () => {
     cite(
       "comprehensive-0256",
       "Fragment chooses and trashes its specified number of digivolution cards to prevent deletion",
+      "5bf7c10072656e2545ecf9f85c35456884341ca803fda443a83c5252dced82a3",
     );
     const s = setupEngine(
       {

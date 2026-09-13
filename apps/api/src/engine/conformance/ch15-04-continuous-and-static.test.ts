@@ -38,6 +38,7 @@ describe("§15-8-2 Persistent Effects (comprehensive-0172)", () => {
         "deactivate as soon as it no longer is — the rules' OWN worked example: '[Your Turn] " +
         "All of your Digimon get +1000 DP' is active from the start of your turn, inactive from " +
         "the start of your opponent's turn",
+      "d4b49613685801d2adcd744aeb58471c0a393a33f9f697539d305a9d21e896c6",
     );
 
     const s = setup();
@@ -66,6 +67,7 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       "15-14-1-2 an [X Per Turn] effect won't trigger again once used X times this turn; " +
         "15-14-1-3 uses are counted individually per card copy; 15-14-1-5-1 the count resets " +
         "when the turn changes",
+      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -116,6 +118,7 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       "15-14-1-2 an [X Per Turn] effect stops triggering only once it has been ACTIVATED X " +
         "times this turn; §15-5-1 an effect triggers only when its trigger conditions are met, " +
         "so an event the clause rejects consumes none of its budget",
+      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
     );
 
     // BT11-014's inherited clause: "[Your Turn][Once Per Turn] When this Digimon's attack
@@ -175,6 +178,7 @@ describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
     cite(
       "comprehensive-0194",
       "15-14-2-1 an effect with the {Hand} icon can be activated when you reveal the card from your hand",
+      "79b8abdd9c5911dc5cc79b677c3490008586c2f9ab78dc9068fc778d34acfb82",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true }); // the clause now really activates, so its optional prompt must be answered
@@ -209,6 +213,7 @@ describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
         "isOnBattleArea()`). A {Hand}-triggered effect's whole point (§15-14-2-1) is that its " +
         "source is a LOOSE HAND CARD, which is never on the battle area — so canTrigger's base " +
         "guard is unsatisfiable for the one zone {Hand} effects are defined to fire from.",
+      "79b8abdd9c5911dc5cc79b677c3490008586c2f9ab78dc9068fc778d34acfb82",
     );
 
     const ctx = {
@@ -246,6 +251,7 @@ describe("§15-14-3 {Trash} (comprehensive-0195)", () => {
         "never on the battle area, so the guard must positively confirm trash residency, " +
         "not just the absence of a field guard (the corresponding regression coverage " +
         "eighth gap).",
+      "d72acd9fc0e9a54564c6b39c037197835a837c714dbce7e5285f157236c226ff",
     );
 
     const ctx = {
@@ -280,6 +286,7 @@ describe("§15-14-4 {Breeding} (comprehensive-0196)", () => {
       "15-14-4-1 an effect with the {Breeding} icon can trigger and activate while the " +
         "card with the effect is in the breeding area — real card BT18-086 Lucemon: Larva " +
         "(isBreeding:true clauses)",
+      "d9e82d240359c53d75b058adb5d3d3309df1d33bd043a4f3283219e8632ef344",
     );
 
     const inBreedingCtx = {
@@ -320,6 +327,7 @@ describe("§15-14-5 {Security} (comprehensive-0197)", () => {
       "15-14-5-1 an effect with the {Security} icon can trigger and activate while the " +
         "card is placed face-up in the security stack — real card ST1-12's own '[Security] " +
         "Play this card without paying its memory cost.' clause",
+      "13dd287b041701b64a70059b6eebced5bae28020023ee641c5041510920047fb",
     );
 
     // The `security` builder (dispatched for every isSecurity/'Security'-trigger IR
@@ -351,10 +359,15 @@ describe("§15-14-5 {Security} (comprehensive-0197)", () => {
 
 describe("§15-16 Effect Timings (comprehensive-0207/0208)", () => {
   it("15-16-1/15-16-2: [On Play] fires exactly at the point a card's play completes — BT1-070's own worked example", async () => {
-    cite("comprehensive-0207", "15-16-1 effect timings are shown using bracketed-icon text");
+    cite(
+      "comprehensive-0207",
+      "15-16-1 effect timings are shown using bracketed-icon text",
+      "dfa4388c426305866560ec3696e77409e660c49e4b09db983cca4579c7e4c2ff",
+    );
     cite(
       "comprehensive-0208",
       "15-16-2-1 [On Play] triggers at the point the action of playing a card with " + "that effect completes",
+      "7b89d66385bce9ed817a0ae64c520a4a332a08822f169123aa5b3f22d6ba25e3",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -375,7 +388,11 @@ describe("§15-16 Effect Timings (comprehensive-0207/0208)", () => {
 
 describe("§15-16-3 [When Digivolving] (comprehensive-0209)", () => {
   it("15-16-3-1: [When Digivolving] triggers at the point a digivolve into that card completes", async () => {
-    cite("comprehensive-0209", "15-16-3-1 [When Digivolving] triggers when the digivolve action completes");
+    cite(
+      "comprehensive-0209",
+      "15-16-3-1 [When Digivolving] triggers when the digivolve action completes",
+      "7213a2d3e50c14c6909c4d1ea2f9df62e61fb91c5c6cd4d7e0754200ba10f651",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -393,7 +410,11 @@ describe("§15-16-3 [When Digivolving] (comprehensive-0209)", () => {
 
 describe("§15-16-4 [On Deletion] (comprehensive-0210)", () => {
   it("15-16-4-1: [On Deletion] triggers exactly when the card with the effect is deleted — real card BT1-035 'Gain 2 memory.'", async () => {
-    cite("comprehensive-0210", "15-16-4-1 [On Deletion] triggers at the point the card with that effect is deleted");
+    cite(
+      "comprehensive-0210",
+      "15-16-4-1 [On Deletion] triggers at the point the card with that effect is deleted",
+      "e24eb2b826f21a8fa8a09e42fa4c357c7f46c5f7fcedbb93fe8955b3b00d3afc",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -416,6 +437,7 @@ describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
     cite(
       "comprehensive-0211",
       "15-16-5-1 [When Attacking] triggers when an attack declaration is made for the card with that effect",
+      "fa80af0514c42ce2b52a5d3733966c091e90bf13c7b4a1900b0b34aa98554f52",
     );
 
     const s = setup({ autoAcceptOptional: true });
@@ -441,7 +463,11 @@ describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
 // §15-16-6 [When Linking] (comprehensive-0212)
 describe("§15-16-7 [Main] (comprehensive-0213)", () => {
   it("15-16-7-1: [Main] is exactly the activation-type-effect window — BT15-009 again, cited for its own timing icon this time", () => {
-    cite("comprehensive-0213", "15-16-7-1 [Main] is an effect timing for activation-type effects (§15-8-4)");
+    cite(
+      "comprehensive-0213",
+      "15-16-7-1 [Main] is an effect timing for activation-type effects (§15-8-4)",
+      "370a51d2f864be7cc6f28043acc83630c11b7c093392908e87a0e3b2cc76685c",
+    );
     const def = requireCardDefinition("BT15-009");
     expect(def.effectText).toContain("[Main]");
   });
@@ -453,6 +479,7 @@ describe("§15-16-8 [Your Turn] and [Opponent's Turn] (comprehensive-0214)", () 
       "comprehensive-0214",
       "15-16-8-1 [Your Turn]/[Opponent's Turn] are timings where effects can trigger and " +
         "activate during the respective turns shown in text",
+      "801e5b985e35b40cc543c70ebc57cbb07fa7bcd971fe50e65b2176ccfe59e52a",
     );
 
     const ownerTurnCtx = {
@@ -488,6 +515,7 @@ describe("§15-16-9 [All Turns] (comprehensive-0215)", () => {
     cite(
       "comprehensive-0215",
       "15-16-9-1 [All Turns] effects can be triggered and activated during both your turns and your opponent's turns",
+      "0f02f814bbbe7727332f4c1c3469673baad349369a95916b47e07920b678a12c",
     );
 
     const ctx = {
@@ -526,6 +554,7 @@ describe("§15-16-10 [Security] (comprehensive-0216)", () => {
       "15-16-10-2 a triggered [Security] effect immediately activates without pending " +
         "activation; [Security] effects take precedence even when triggering simultaneously " +
         "with other effects",
+      "9c1db9844c7c6d99b1b29ab9bb4f83559e17bc60055475956322c306f88bf74b",
     );
 
     // The `security` builder's isSecurity:true flag routes it to EffectTiming.SecuritySkill
@@ -555,7 +584,11 @@ describe("§15-16-10 [Security] (comprehensive-0216)", () => {
 
 describe("§15-16-13-1 [Start of Your/Opponent's Main Phase] (comprehensive-0217)", () => {
   it("15-16-13-1: [Start of Your Main Phase] fires at the OnStartMainPhase window — BT22-007's {Breeding} clause, gated to the OWNER's turn", async () => {
-    cite("comprehensive-0217", "15-16-13-1 [Start of Your Main Phase] triggers at the point your main phase arrives");
+    cite(
+      "comprehensive-0217",
+      "15-16-13-1 [Start of Your Main Phase] triggers at the point your main phase arrives",
+      "ff311cf65833b616fb62b1ac11efb0f2d986234f7d934339b4ffbd61aced4987",
+    );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0]!;
@@ -593,6 +626,7 @@ describe("§15-16-16 [When Moving] (comprehensive-0220)", () => {
         "Keramon (X Antibody): '[When Moving] ... you may play 1 [Diaboromon] Token...') is " +
         "therefore NEVER collected when `fireTiming(EffectTiming.OnMove, ...)` runs; its " +
         "compiled effect sits in the continuous bucket instead and never activates from a move.",
+      "ee839d42c2e4a2760e145afbe716706525fa86c7437cac1cc53c2b5d3c7cda12",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -629,11 +663,13 @@ describe("§15-8-5 Immediate-Type Effects, real ＜Barrier＞ (comprehensive-017
         "isn't deleted — real card BT13-041 Chirinmon: '＜Barrier＞ (When this Digimon would be " +
         "deleted in battle, by trashing the top card of your security stack, prevent that " +
         "deletion.)'",
+      "50033be9509953fb2b00c56799e11cee1838740d4c5c06a962969a748a6fcdde",
     );
     cite(
       "comprehensive-0178",
       "15-8-5-5-1/2 an immediate-type effect with processing conditions can activate " +
         "once those conditions are met, even if unmet at the moment it triggered",
+      "0438ec1a29c13d73a39a7d1395f8386b49ecc61d4580c2d77b84743c25ef8317",
     );
 
     const s = setup();

@@ -50,6 +50,7 @@ describe("§16-10 <Digisorption> (comprehensive-0228)", () => {
       "comprehensive-0228",
       "16-10-1 <Digisorption -N>: when digivolving into this card from hand, you may suspend " +
         "1 of your Digimon to reduce the digivolution cost by N",
+      "4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375",
     );
 
     // BT10-052's own printed <Digisorption -2> registers into the side registry the digivolve
@@ -88,6 +89,7 @@ describe("§16-11 <Reboot> (comprehensive-0229)", () => {
     cite(
       "comprehensive-0229",
       "16-11-1 <Reboot>: a Digimon with this effect is unsuspended during the OPPONENT's unsuspend phase",
+      "755d3250951980c2b8d7a31192167c2b74789570c06b57081c2e35679c45e785",
     );
 
     const s = setup();
@@ -126,6 +128,7 @@ describe("§16-13 <Retaliation> (comprehensive-0231)", () => {
       "comprehensive-0231",
       "Retaliation triggers when its holder is deleted in battle and deletes the battled opponent by effect. " +
         "Resolve the holder's optional On Deletion effect before asserting the mandatory Retaliation result.",
+      "9fa675c87ec50b4575c9c464804c403e19fd1247cadf8ed144268d60d23801f7",
     );
 
     const s = setup({ autoDeclineOptional: true });
@@ -160,6 +163,7 @@ describe("§16-14 <Digi-Burst> (comprehensive-0232)", () => {
     cite(
       "comprehensive-0232",
       "16-14-1 <Digi-Burst N>: trash N of this Digimon's digivolution cards to activate the specified effect",
+      "6aef42a5c090e8124386365a9cb8b7035b25ac52979537f770eadd5d54e807f2",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -1299,6 +1303,7 @@ describe("§16-16 <Blitz> (comprehensive-0234)", () => {
       "comprehensive-0234",
       "16-16-1 <Blitz>: this Digimon may attack once your opponent has 1 or more memory (i.e. " +
         "memory has crossed to your side); 16-16-5 it can't be used before that crossing",
+      "9fe75f5a276f342a8031399e8a791a5732762a96378a49931e308f5d72000490",
     );
 
     const s = setup();
@@ -1335,6 +1340,7 @@ describe("§16-17 <Delay> (comprehensive-0235)", () => {
       "comprehensive-0235",
       "16-17-1 <Delay>: while this card is in the battle area, trashing it activates the " +
         "specified effect; 16-17-3 it can't activate the same turn the card entered the battle area",
+      "866991fdeb6c896a2840c30399a87d353e8cbd33d30f706e6729ba46bd4428d2",
     );
 
     const s = setup();
@@ -1377,6 +1383,7 @@ describe("§16-18 <Decoy> (comprehensive-0236)", () => {
         "opponent's effect, by deleting the Digimon with this effect, this effect prevents the " +
         "Digimon specified by this effect from being deleted.' The protection is a one-shot " +
         "cost paid at the deletion consult, never a standing can't-be-deleted restriction.",
+      "311375329fc7791aba6a16b180691e3063bce3bba790f4f92dff802e21987ca1",
     );
 
     const s = setup();
@@ -1412,6 +1419,7 @@ describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
         "no Replacement/Prevent registration exists anywhere in the engine keyed on " +
         "'Armor Purge' (confirmed by an engine-wide grep for hasKeyword(...,\"Armor Purge\")). " +
         "A Digimon that loses a battle is deleted exactly as if it never printed the keyword.",
+      "0f69449930f8024dd94c9302c96ba389660d974c163918f7912049b8797fb473",
     );
 
     const s = setup();

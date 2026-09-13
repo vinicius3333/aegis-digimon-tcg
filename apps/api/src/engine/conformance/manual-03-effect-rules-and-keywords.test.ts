@@ -218,6 +218,7 @@ describe("manual-0059 — Rule Check A: a 0 DP Digimon in the battle area is del
           "comprehensive-0197/0214/0215/0216/0217/0218/0219, already tested at " +
           "ch15-04-continuous-and-static.test.ts; Rule Check B restates the same comprehensive-" +
           "0264 rule-check-gating family, per-clause coverage in src/engine/ruleProcess.test.ts.)",
+        "e418264f16b3b4c250102d83cc3a8089ecc4ee42146bb2ded4812b495acab266",
       );
 
       const s = setup();

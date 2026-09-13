@@ -34,6 +34,7 @@ describe("§17-1-2-1 rule checks aren't performed during rule processing (compre
       "comprehensive-0264",
       "17-1-2-1: rule checks aren't performed during rule processing — a Digimon with 0 DP " +
         "created mid-pass isn't deleted until the NEXT rule check, not the one already running",
+      "6f86884a9b113b9eb877a11c34d2d5311cea8ebb97e33bc45dd83603716ec771",
     );
 
     const s = setup();
@@ -69,6 +70,7 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
         "17-1-2-2: rule checks aren't performed during effect processing — the rule's OWN example " +
           "is a Digimon gaining -3000 DP AND <Security Attack -1> in one instruction; the DP-0 " +
           "Digimon is deleted only AFTER it also gains the keyword, not between the two clauses",
+        "6f86884a9b113b9eb877a11c34d2d5311cea8ebb97e33bc45dd83603716ec771",
       );
       // BT3-101 "Bifrost": "[Main] 1 of your opponent's Digimon gets -3000 DP and <Security
       // Attack -1> ... until the end of your opponent's next turn." This is not an
@@ -127,6 +129,7 @@ describe("§17-1-3-2-2 Option cards in the battle area, except effect-placed one
         "carries no field distinguishing 'placed by an effect' from any other origin, so this " +
         "condition is omitted entirely from doRuleProcess()'s predicate list (no anyOptionInBattleArea " +
         "check exists at all) — not narrowed-but-buggy, simply absent.",
+      "579c4f4ad3acf21c4b443e84664dd884ef2360322294dca0d3124d57ca9f1bb3",
     );
 
     const s = setup();
@@ -163,6 +166,7 @@ describe("§17-1-3-2-6 / §17-1-3-2-7 link requirement / link category mismatch 
         "against it after the link is made — `canLinkToTargetPermanent` only gates a NEW link at " +
         "declaration time. `anyExcessLinkCards` (§17-1-3-2-5, already implemented) checks only the " +
         "COUNT of linked cards, never whether each one's own requirement still holds.",
+      "579c4f4ad3acf21c4b443e84664dd884ef2360322294dca0d3124d57ca9f1bb3",
     );
 
     // BT21-009 (Gatchmon): printed `linkRequirement: "[Link] [Appmon] trait: Cost 1"` — legal
@@ -207,6 +211,7 @@ describe("§17-1-3-2-2 board-laid Option seeding (comprehensive-0265)", () => {
         "that lays an Option onto the battle area is reproducing that legal state, so the " +
         "harness marks it `placedByEffect` by default; the illegal, sweep-eligible state stays " +
         "reachable through an explicit `placedByEffect: false`.",
+      "579c4f4ad3acf21c4b443e84664dd884ef2360322294dca0d3124d57ca9f1bb3",
     );
 
     const s = setup({

@@ -8,6 +8,7 @@ describe("Jamming security battle behavior", () => {
     cite(
       "comprehensive-0227",
       "16-9-1: Jamming prevents deletion from losing a Security Digimon battle, but not deletion by a Security effect",
+      "7ab13077bd9882a27dcb47aa43ddc4d44e1d9a97c7774a75ff99de117fa559cf",
     );
     const s = setupEngine(
       {
