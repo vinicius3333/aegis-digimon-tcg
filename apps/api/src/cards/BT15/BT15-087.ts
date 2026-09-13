@@ -46,7 +46,10 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] },
+            count: 1,
+          },
           fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,

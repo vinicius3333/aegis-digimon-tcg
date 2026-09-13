@@ -31,8 +31,8 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon"],
                   nameOrTrait: [
-                    { tokens: ["Rosemon"], match: "name" },
-                    { tokens: ["Jijimon"], match: "name" },
+                    { tokens: ["Rosemon"], match: "nameExact" },
+                    { tokens: ["Jijimon"], match: "nameExact" },
                   ],
                 },
                 count: 1,

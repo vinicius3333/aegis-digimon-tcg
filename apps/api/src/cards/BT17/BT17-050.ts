@@ -148,7 +148,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Parasitemon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                   zone: "digivolutionCards",

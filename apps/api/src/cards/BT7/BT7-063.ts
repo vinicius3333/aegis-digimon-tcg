@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "nameExact" }],
             },
             requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"],
             from: ["hand", "trash"],
@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "nameExact" }],
                 },
                 requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"],
                 count: 2,

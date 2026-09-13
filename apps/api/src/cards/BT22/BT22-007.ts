@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother Eater"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother Eater"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -66,7 +66,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother Eater"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

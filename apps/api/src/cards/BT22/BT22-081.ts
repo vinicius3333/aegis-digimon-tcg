@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuuko Kamishiro"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -80,7 +80,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuuko Kamishiro"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -119,7 +119,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Yuuko Kamishiro"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

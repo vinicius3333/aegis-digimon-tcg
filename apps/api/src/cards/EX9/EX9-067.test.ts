@@ -194,7 +194,7 @@ describe("EX9-067", () => {
             filter: {
               controller: "mine",
               or: [
-                { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Arisa Kinosaki"], match: "name" }] },
+                { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Arisa Kinosaki"], match: "nameExact" }] },
                 { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
               ],
             },

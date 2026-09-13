@@ -49,7 +49,7 @@ describe("EX2-023 Taomon", () => {
               payCost: false,
               optional: true,
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Rika Nonaka"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Rika Nonaka"], match: "nameExact" }] },
                 count: 1,
               },
             },

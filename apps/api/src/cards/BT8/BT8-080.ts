@@ -22,7 +22,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yukio Oikawa"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -45,7 +45,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yukio Oikawa"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -50,7 +50,7 @@ describe("EX8-048", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
-      target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Close"], match: "name" }] }, count: 1 },
+      target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Close"], match: "nameExact" }] }, count: 1 },
       condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"], countMax: 1 } },
     }));
   it("plays Close from hand without cost when the digivolving condition is met", async () => {

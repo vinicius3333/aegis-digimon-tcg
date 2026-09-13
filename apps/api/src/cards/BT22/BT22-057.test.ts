@@ -10,7 +10,10 @@ describe("BT22-057 Kurisarimon", () => {
       kind: "PlayWithoutCost",
       from: ["hand"],
       optional: true,
-      target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Arata Sanada"], match: "name" }] }, count: 1 },
+      target: {
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }] },
+        count: 1,
+      },
       condition: { kind: "permanentCount", filter: { controller: "mine", kind: ["Tamer"] }, op: "lte", value: 1 },
     });
   });

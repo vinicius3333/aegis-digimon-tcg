@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Takato Matsuki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -65,7 +65,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Takato Matsuki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -119,7 +119,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Takato Matsuki"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -138,7 +138,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Guilmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

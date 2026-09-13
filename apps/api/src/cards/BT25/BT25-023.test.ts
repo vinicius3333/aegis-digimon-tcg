@@ -31,7 +31,7 @@ describe("BT25-023 Gaogamon", () => {
           filter: {
             controller: "mine",
             kind: ["Tamer"],
-            nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }],
           },
           count: 1,
         },

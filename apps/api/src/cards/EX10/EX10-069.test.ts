@@ -160,7 +160,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
           from: ["hand", "trash"],
           payCost: false,
           optional: true,
-          target: { filter: { nameOrTrait: [{ tokens: ["Sunarizamon", "Close"], match: "name" }] } },
+          target: { filter: { nameOrTrait: [{ tokens: ["Sunarizamon", "Close"], match: "nameExact" }] } },
         },
         { kind: "PlaceInBattleAreaSelf" },
       ],
@@ -170,7 +170,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Close"], match: "name" }] },
+          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Close"], match: "nameExact" }] },
           actions: [
             {
               kind: "Digivolve",

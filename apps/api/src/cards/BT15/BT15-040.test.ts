@@ -26,7 +26,7 @@ describe("BT15-040", () => {
     expect(play?.kind).toBe("PlayWithoutCost");
     if (play?.kind !== "PlayWithoutCost") throw new Error("BT15-040 play action is missing");
 
-    expect(play.target.filter.or?.[0]?.nameOrTrait).toEqual([{ tokens: ["Numemon"], match: "name" }]);
+    expect(play.target.filter.or?.[0]?.nameOrTrait).toEqual([{ tokens: ["Numemon"], match: "nameExact" }]);
     expect(definitionMatches(play.target.filter, getCardDefinition("BT14-058")!)).toBe(true);
     expect(definitionMatches(play.target.filter, getCardDefinition("BT14-039")!)).toBe(false);
   });

@@ -49,7 +49,7 @@ describe("EX2-044 Beelzemon", () => {
                     filter: {
                       controller: "mine",
                       zone: "trash",
-                      nameOrTrait: [{ tokens: ["Impmon"], match: "name" }],
+                      nameOrTrait: [{ tokens: ["Impmon"], match: "nameExact" }],
                     },
                   },
                 },

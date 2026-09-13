@@ -22,7 +22,7 @@ describe("BT22-036 Chaperomon", () => {
         kind: "placeFromTrash",
         position: "bottom",
         destination: "digivolutionStack",
-        hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "name" }] },
+        hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "nameExact" }] },
       },
       into: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       cost: 3,

@@ -77,7 +77,7 @@ describe("EX3-052 Jazarichmon", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "nameExact" }],
                 },
                 count: 1,
               },

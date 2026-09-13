@@ -38,7 +38,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Ukkomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
               kind: ["Digimon"],

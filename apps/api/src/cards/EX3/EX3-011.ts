@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Hina Kurihara"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

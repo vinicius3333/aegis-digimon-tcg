@@ -149,7 +149,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marvin Jackson"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

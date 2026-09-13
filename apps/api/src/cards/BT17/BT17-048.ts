@@ -44,14 +44,14 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", levels: [6], nameOrTrait: [{ tokens: ["Argomon"], match: "name" }] },
+            filter: { controller: "mine", levels: [6], nameOrTrait: [{ tokens: ["Argomon"], match: "nameExact" }] },
             count: 1,
           },
           from: ["hand"],
           payCost: false,
           condition: {
             kind: "youHave",
-            filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Argomon"], match: "name" }] },
+            filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Argomon"], match: "nameExact" }] },
             count: 4,
             raw: "you have 4 or more [Argomon] in your trash",
           },

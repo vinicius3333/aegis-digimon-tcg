@@ -56,7 +56,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Loogamon", "Eiji Nagasumi"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

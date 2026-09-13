@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Hacker Judge"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

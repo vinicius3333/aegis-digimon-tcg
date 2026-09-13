@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
               // naming Option is what routes this through the USE path rather than a play.
               kind: ["Option"],
               nameOrTrait: [
-                { tokens: ["God Flame"], match: "name" },
+                { tokens: ["God Flame"], match: "nameExact" },
                 { tokens: ["Four Great Dragons"], match: "trait" },
               ],
             },
@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
               // naming Option is what routes this through the USE path rather than a play.
               kind: ["Option"],
               nameOrTrait: [
-                { tokens: ["God Flame"], match: "name" },
+                { tokens: ["God Flame"], match: "nameExact" },
                 { tokens: ["Four Great Dragons"], match: "trait" },
               ],
             },

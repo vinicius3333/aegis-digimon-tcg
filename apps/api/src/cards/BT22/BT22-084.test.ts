@@ -3,6 +3,40 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-084.js";
 
 describe("BT22-084 Nokia Shiramine", () => {
+  it("excludes Agumon and Gabumon X Antibody from the public hand selection", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-084", as: "nokia" },
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT1-029", as: "gabumon" },
+            { card: "BT9-008", as: "agumonX" },
+            { card: "BT9-020", as: "gabumonX" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const agumonId = s.inst("agumon").instanceId;
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nokia").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds: string[] };
+    expect(payload.candidateInstanceIds).toEqual([agumonId, s.inst("gabumon").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [agumonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === agumonId));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-029", "BT9-008", "BT9-020"]);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("limits both Agumon/Gabumon plays to one or fewer own Digimon", () => {
     for (const trigger of ["StartOfYourMainPhase", "OnPlay"]) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
@@ -10,7 +44,7 @@ describe("BT22-084 Nokia Shiramine", () => {
         from: ["hand"],
         optional: true,
         target: {
-          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Agumon", "Gabumon"], match: "name" }] },
+          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Agumon", "Gabumon"], match: "nameExact" }] },
           count: 1,
         },
         condition: { kind: "permanentCount", filter: { controller: "mine", kind: ["Digimon"] }, op: "lte", value: 1 },

@@ -28,7 +28,10 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Chuumon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Chuumon"], match: "nameExact" }] },
+            count: 1,
+          },
           from: ["trash"],
           payCost: false,
           suspended: true,

@@ -6,7 +6,7 @@ const marcusSelection: Target = {
   filter: {
     controller: "mine",
     kind: ["Tamer"],
-    nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
+    nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }],
   },
   count: 1,
   bindAs: "chosenMarcus",
@@ -51,7 +51,7 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] },
             count: 1,
           },
           from: ["hand", "trash"],

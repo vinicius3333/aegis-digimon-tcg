@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
                 },
                 count: 1,
               },

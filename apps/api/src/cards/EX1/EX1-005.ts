@@ -18,7 +18,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Taiga"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -33,7 +33,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Taiga"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

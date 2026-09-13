@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuu Amano"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuu Amano"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -50,7 +50,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuu Amano"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -65,7 +65,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuu Amano"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

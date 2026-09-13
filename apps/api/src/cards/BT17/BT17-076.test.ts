@@ -16,7 +16,10 @@ describe("BT17-076 Eosmon", () => {
           payCost: false,
           optional: true,
           target: {
-            filter: { levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] },
+            filter: {
+              levelComparison: { op: "lte", value: 5 },
+              nameOrTrait: [{ tokens: ["Eosmon"], match: "nameExact" }],
+            },
           },
         },
       ],
@@ -32,7 +35,7 @@ describe("BT17-076 Eosmon", () => {
     expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] },
+      sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Eosmon"], match: "nameExact" }] },
       actions: [
         { kind: "SelectBind", target: { sourceRef: "triggerSubject", bindAs: "playedEosmon" } },
         {
@@ -56,7 +59,7 @@ describe("BT17-076 Eosmon", () => {
       actions: [
         {
           kind: "Aura",
-          target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } },
+          target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "nameExact" }] } },
           effect: { kind: "modifyDP", amount: 1000 },
           scaling: { unit: "cards", per: 1, filter: { controller: "any", kind: ["Tamer"] } },
         },

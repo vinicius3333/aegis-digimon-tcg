@@ -41,7 +41,7 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
               filter: {
                 controller: "mine",
                 zone: "trash",
-                nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "nameExact" }],
               },
               count: 1,
             },

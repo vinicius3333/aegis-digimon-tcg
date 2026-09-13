@@ -75,7 +75,7 @@ const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "nameExact" }] },
             count: 1,
           },
           from: ["trash"],

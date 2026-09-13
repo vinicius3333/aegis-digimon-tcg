@@ -79,7 +79,7 @@ describe("EX3-061 Dinobeemon", () => {
               optional: true,
               condition: { kind: "isDnaDigivolving" },
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon"], match: "nameExact" }] },
                 count: 1,
               },
             },
@@ -93,7 +93,7 @@ describe("EX3-061 Dinobeemon", () => {
               from: ["trash"],
               optional: true,
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] },
                 count: 1,
               },
             },

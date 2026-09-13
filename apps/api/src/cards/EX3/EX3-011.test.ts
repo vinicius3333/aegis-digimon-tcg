@@ -49,7 +49,7 @@ describe("EX3-011 Lavogaritamon", () => {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "nameExact" }] },
                 count: 1,
               },
               from: ["hand"],

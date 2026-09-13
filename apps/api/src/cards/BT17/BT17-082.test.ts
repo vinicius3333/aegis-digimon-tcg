@@ -26,7 +26,7 @@ describe("BT17-082 Minami Uehara", () => {
           from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
-          target: { filter: { nameOrTrait: [{ tokens: ["Labramon", "Seasarmon"], match: "name" }] } },
+          target: { filter: { nameOrTrait: [{ tokens: ["Labramon", "Seasarmon"], match: "nameExact" }] } },
         },
       ],
     });

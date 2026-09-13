@@ -71,7 +71,7 @@ describe("EX10-044 Damemon", () => {
           from: ["underTamers"],
           payCost: false,
           optional: true,
-          target: { filter: { playCostLte: 7, nameOrTrait: [{ tokens: ["Tuwarmon"], match: "name" }] } },
+          target: { filter: { playCostLte: 7, nameOrTrait: [{ tokens: ["Tuwarmon"], match: "nameExact" }] } },
         },
         {
           kind: "PlaceUnder",

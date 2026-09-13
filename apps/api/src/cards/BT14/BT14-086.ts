@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Satsuki Tamahime"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -17,7 +17,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [{ tokens: ["Paildramon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Paildramon"], match: "nameExact" }],
             },
             count: 1,
           },
@@ -39,7 +39,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [{ tokens: ["Wormmon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }],
             },
             count: 1,
           },

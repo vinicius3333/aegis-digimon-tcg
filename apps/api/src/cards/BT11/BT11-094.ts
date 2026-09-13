@@ -5,7 +5,7 @@ function playCounterpart({ name }: { name: "Angewomon" | "LadyDevimon" }): Actio
   const counterpartFilter = {
     controller: "mine" as const,
     kind: ["Digimon" as const],
-    nameOrTrait: [{ tokens: [name], match: "name" as const }],
+    nameOrTrait: [{ tokens: [name], match: "nameExact" as const }],
   };
   return {
     kind: "PlayWithoutCost",
@@ -42,13 +42,13 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Angewomon"], match: "name" }] },
+          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Angewomon"], match: "nameExact" }] },
           actions: [playCounterpart({ name: "LadyDevimon" })],
         },
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["LadyDevimon"], match: "name" }] },
+          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["LadyDevimon"], match: "nameExact" }] },
           actions: [playCounterpart({ name: "Angewomon" })],
         },
       ],

@@ -19,7 +19,7 @@ describe("BT22-030 Musimon", () => {
           payCost: false,
           condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Torajiro Asuka"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Torajiro Asuka"], match: "nameExact" }] },
             count: 1,
           },
         },

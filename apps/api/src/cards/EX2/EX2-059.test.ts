@@ -34,7 +34,7 @@ describe("EX2-059 Shu-Chong Wong", () => {
             expect.objectContaining({
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Lopmon"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Lopmon"], match: "nameExact" }] },
                 count: 1,
               },
               from: ["hand"],

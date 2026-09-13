@@ -2,8 +2,45 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-088.js";
+import { EffectTiming } from "@aegis/shared";
 
 describe("BT22-088 Arisa Kinosaki", () => {
+  it("offers exact Shoemon from trash after returning Arisa, excluding ShoeShoemon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-088", as: "arisa" }],
+          trash: [
+            { card: "EX7-024", as: "shoemon" },
+            { card: "ST19-03", as: "otherShoemon" },
+            { card: "BT22-032", as: "shoeShoemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const shoemonId = s.inst("shoemon").instanceId;
+    const arisaId = s.inst("arisa").instanceId;
+    await s.ready();
+    const resolving = advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("arisa"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds: string[] };
+    expect(payload.candidateInstanceIds).toEqual([shoemonId, s.inst("otherShoemon").instanceId]);
+    expect(s.state.players[0]!.deck.some((c) => c.instanceId === arisaId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [shoemonId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === shoemonId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((c) => c.cardId)).toEqual(["ST19-03", "BT22-032"]);
+  });
+
   it("requires returning this Tamer before resolving the then clause", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effect?.actions).toHaveLength(1);

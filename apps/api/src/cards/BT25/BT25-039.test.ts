@@ -115,7 +115,7 @@ describe("BT25-039 Sirenmon", () => {
       payCost: true,
       reduceCostBy: 7,
       optional: true,
-      target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] } },
+      target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Ceresmon"], match: "nameExact" }] } },
     });
     expect(place).toMatchObject({
       kind: "PlaceUnder",

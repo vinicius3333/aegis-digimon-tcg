@@ -4,6 +4,53 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-098.js";
 
 describe("BT22-098 Unique Emblem: Fable Waltz", () => {
+  it.each(["hand", "trash"] as const)("offers only exact Shoemon and Arisa names from %s", async (zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-098", as: "emblem" }],
+          battleArea: ["BT22-029"],
+          [zone]: [
+            ...(zone === "hand" ? [{ card: "BT22-098", as: "emblem" }] : []),
+            { card: "BT22-029", as: "shoemon" },
+            { card: "EX7-024", as: "otherShoemon" },
+            { card: "BT22-088", as: "arisa" },
+            { card: "BT22-032", as: "shoeShoemon" },
+            { card: "ST19-08", as: "otherShoeShoemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    const emblemId = s.inst("emblem").instanceId;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    const { candidateInstanceIds: candidates } = JSON.parse(decision.payloadJson) as { candidateInstanceIds: string[] };
+    expect(candidates).toEqual(
+      expect.arrayContaining([
+        s.inst("shoemon").instanceId,
+        s.inst("otherShoemon").instanceId,
+        s.inst("arisa").instanceId,
+      ]),
+    );
+    expect(candidates).toHaveLength(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("arisa").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === emblemId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("arisa").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]![zone].some((c) => c.instanceId === s.inst("shoeShoemon").instanceId)).toBe(true);
+  });
+
   it("requires both Puppet and LIBERATOR traits for the Delay digivolution", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     const watcher = effect?.actions[0] as any;

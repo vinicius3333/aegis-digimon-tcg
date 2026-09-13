@@ -32,7 +32,9 @@ describe("BT8-093 Yukio Oikawa", () => {
             {
               kind: "PlayWithoutCost",
               from: ["trash"],
-              target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["MaloMyotismon"], match: "name" }] } },
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["MaloMyotismon"], match: "nameExact" }] },
+              },
               cost: { kind: "deleteOwn" },
             },
           ],

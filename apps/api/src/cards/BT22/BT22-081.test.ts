@@ -18,7 +18,7 @@ describe("BT22-081 Eater Eve", () => {
         underFilter: { isSelfRef: true },
         condition: { kind: "selfHasNoDigivolutionCards" },
         target: {
-          filter: { nameOrTrait: [{ tokens: ["Yuuko Kamishiro"], match: "name" }] },
+          filter: { nameOrTrait: [{ tokens: ["Yuuko Kamishiro"], match: "nameExact" }] },
           from: ["hand", "trash"],
           count: 1,
         },

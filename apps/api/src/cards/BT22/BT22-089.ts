@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
               playCost: { op: "gte", value: 4 },
               nameOrTrait: [
-                { tokens: ["Mirei Mikagura"], match: "name" },
+                { tokens: ["Mirei Mikagura"], match: "nameExact" },
                 { tokens: ["CS"], match: "trait" },
               ],
             },

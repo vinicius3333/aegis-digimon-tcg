@@ -4,12 +4,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const myotismon: Filter = {
   controller: "mine",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Myotismon"], match: "nameExact" }],
 };
 const venomMyotismon: Filter = {
   controller: "mine",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["VenomMyotismon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["VenomMyotismon"], match: "nameExact" }],
 };
 
 export const compiled: CompiledCard = {

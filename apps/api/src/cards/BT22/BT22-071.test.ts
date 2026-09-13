@@ -11,7 +11,7 @@ describe("BT22-071 Devimon", () => {
       optional: true,
       payCost: false,
       target: {
-        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Jimmy KEN"], match: "name" }] },
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Jimmy KEN"], match: "nameExact" }] },
         count: 1,
       },
       condition: {
