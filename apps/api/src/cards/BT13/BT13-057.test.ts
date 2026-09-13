@@ -1,6 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-057.js";
+import "./BT13-053.js";
+import "./BT13-100.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
@@ -54,6 +56,7 @@ describe("BT13-057 Rosemon", () => {
         0: {
           battleArea: [{ card: "BT13-053", as: "base", suspended: true }],
           hand: [{ card: "BT13-057", as: "rose" }],
+          deck: [{ card: "BT1-010", as: "bonus" }],
         },
         1: {
           battleArea: [
@@ -80,12 +83,20 @@ describe("BT13-057 Rosemon", () => {
     expect(s.perm("base").isSuspended).toBe(false);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("opponentTamer").isSuspended).toBe(true);
+    await settle();
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
   });
 
   it("can decline the optional processing condition without changing Rosemon or either legal target", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-057", as: "rose", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT13-053", as: "rose", suspended: true }],
+          hand: [{ card: "BT13-057", as: "evolution" }],
+          deck: ["BT1-010"],
+        },
         1: {
           battleArea: [
             { card: "BT13-047", as: "opponent" },
@@ -96,41 +107,87 @@ describe("BT13-057 Rosemon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("rose"));
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rose").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rose").topCard.cardId === "BT13-057");
+    await settle();
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("rose").stack.map((card) => card.instanceId)).toEqual([s.inst("rose").instanceId]);
     expect(s.perm("rose").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(false);
     expect(s.perm("opponentTamer").isSuspended).toBe(false);
   });
 
-  it("only reacts once to an opponent suspension, not an own suspension", async () => {
+  it("reacts to public opponent attacks once per turn and resets in the next opponent turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT13-057", as: "rose" },
-            { card: "BT13-047", as: "own" },
-          ],
+          battleArea: [{ card: "BT13-057", as: "rose" }],
+          security: ["BT1-046", "BT1-046", "BT1-046", "BT1-046"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
         1: {
           battleArea: [
-            { card: "BT13-047", as: "firstOpponent" },
-            { card: "BT13-047", as: "secondOpponent" },
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-010", as: "third" },
+            { card: "BT1-010", as: "fourth" },
           ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("own").permanentId });
-    expect(s.perm("firstOpponent").isSuspended).toBe(false);
-    expect(s.perm("secondOpponent").isSuspended).toBe(false);
-
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      subjectPermanentId: s.perm("firstOpponent").permanentId,
-    });
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      subjectPermanentId: s.perm("secondOpponent").permanentId,
-    });
-    expect([s.perm("firstOpponent").isSuspended, s.perm("secondOpponent").isSuspended].filter(Boolean)).toHaveLength(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3 && !observe(s.engine).isAttacking());
+    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.perm("third").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("third").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2 && !observe(s.engine).isAttacking());
+    expect(s.perm("fourth").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("second").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("second").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 });
