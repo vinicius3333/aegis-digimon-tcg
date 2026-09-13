@@ -780,6 +780,32 @@ describe("leave-area prevent: cause gating + bounce coverage", () => {
     expect(destination.stack).toHaveLength(0);
   });
 
+  it("rejects a singular placement when a replacement mutates its selected top during consultation", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const source = putPermanent(h.state, 0, "source");
+    const originalTopId = source.topCard!.instanceId;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      mode: "instead",
+      sourcePermanentId: source.permanentId,
+      appliesTo: () => true,
+      apply: async () => {
+        source.topCard = card(DIGIMON, 0);
+        return false;
+      },
+      description: "test: mutate a singular selected source during replacement consultation",
+    });
+
+    await expect(h.fx.relocatePermanentByEffect!(destination.permanentId, source.permanentId)).resolves.toBe(false);
+    expect(source.topCard!.instanceId).not.toBe(originalTopId);
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      destination.permanentId,
+      source.permanentId,
+    ]);
+    expect(destination.stack).toHaveLength(0);
+  });
+
   it("prevents moving a permanent to breeding and preserves the battle-area zone", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source", { sources: 1 });

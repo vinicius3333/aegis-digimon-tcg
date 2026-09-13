@@ -205,3 +205,52 @@ Run the root's serialized baseline above, then add only the affected public
 consumer files for any newly reproduced seam. Finish with `pnpm typecheck`,
 `git diff --check`, and the audit layout/index checks. Do not claim 10/10 or
 collection completion from this bounded engine inventory.
+
+## Singular identity and DigiXros deletion-only checkpoint, 2026-09-13
+
+The singular effect relocation captured addition IDs before its awaited leave
+consultation but did not revalidate the selected source identity afterwards.
+A minimal existing-harness control mutated the source top during a replacement
+that returned false: the unchanged primitive returned true and moved the
+mutated source (red: 1 failed, 31 filtered). The handler now rejects missing or
+changed source/host tops and restrictions after consultation, then derives the
+addition payload from the validated current source. The whole replacement
+suite passed 32 tests after this correction. This is supplemental mechanism
+proof, not a printed-card lifecycle certificate.
+
+The public DigiXros router passed `isDigiXros` and `playerAction` but omitted
+non-deletion classification, so `wouldBeDeleted` providers entered the material
+leave consultation. A legal BT12-111 DarknessBagramon play used field
+BT10-066 DarkKnightmon with a black level-4 BT7-058 source and hand BT11-088
+Bagramon. At legal memory 10, the accepted play wrongly returned the precursor
+to hand through DarkKnightmon's deletion-only clause (red: 1 failed, 3
+filtered; expected precursor in trash, actual trash empty). Q1989 confirms
+this provider's return clause, while §7-2-2-7 requires DigiXros material sources
+to be trashed. Passing `isBounce: true` now excludes deletion-only reactions
+while retaining any-leave reactions and the DigiXros-specific exclusions.
+
+The serialized existing-suite focus passed **9 files, 252 tests**:
+
+```sh
+TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run \
+  src/engine/cards/ex7VolcanicdramonMechanism.test.ts \
+  src/engine/effects/leavePrevent.test.ts src/engine/effects/primitives.test.ts \
+  src/engine/effects/digiXrosReplacementBudget.test.ts \
+  src/engine/replacementRecomputeBarrier.test.ts \
+  src/engine/breedingInheritedLeaveReplacement.test.ts \
+  src/engine/conformance/ch07-playing-a-card.test.ts \
+  src/engine/conformance/digivolution-card-placement.test.ts \
+  src/cards/EX6/EX6-015.test.ts --maxWorkers=1 --no-file-parallelism
+```
+
+Mixed ordered payment remains separately classified: persisted compound
+`orderPlacedCards` producers are BT14-090, BT15-091, BT17-085, BT25-096 and
+ST17-10. Only BT17-085 and ST17-10 include a battle-area source, which is their
+own Tamer plus two trash Digimon. A legal intersection with printed any-leave
+Tamer protection has not been demonstrated; no Digimon-only provider is
+silently treated as legal Tamer proof, and no speculative mixed-payment fix
+is delivered.
+
+The persisted explicit Tamer-source leave providers found by the same recursive scan are BT23-058 (opponent effect only), BT25-039 (other than your effects, Shaman/Iliad), BT24-101 and BT26-033 (TS trait). BT17-085 and ST17-10 have no TS trait in the committed catalog. The former two providers cannot replace their own effect cost; the latter two require a trait these sources do not have. Trait-grant or copied-provider intersections remain unproven, rather than being counted as closed printed coverage.
+
+Final checkpoint gates: shared/API/web typechecks, scoped Oxlint/Oxfmt, index (66 sets), and diff validation passed. Read-only Luna review approved both fixes and the legal DigiXros witness. Full serialized engine regression passed **325 files / 7,852 tests**, with **3 files / 4 tests failed** (7,856 total, 26.09 seconds). All four failures were reproduced on unchanged `805400f2c`: the three color-related assertions plus the order-dependent `comprehensive-0206` citation/exclusion overlap. The KB overlap reappeared in this run and is reserved for the integrity front; this is not a green whole-engine claim.

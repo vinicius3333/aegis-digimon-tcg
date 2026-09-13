@@ -2332,24 +2332,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     sourcePermanentId,
     opts,
   ) => {
-    const movedSource = access.permanentById(sourcePermanentId);
-    const movedCardIds =
-      movedSource === undefined
-        ? []
-        : (opts?.shedOwnCards
-            ? [movedSource.topCard]
-            : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
-          )
-            .filter((card): card is CardInstance => card !== undefined)
-            .map((card) => card.instanceId);
     const sourceInBattle = access.permanentById(sourcePermanentId);
     const source =
       sourceInBattle ?? state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
     const destination =
       access.permanentById(destPermanentId) ??
       state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    const selectedTopInstanceId = source?.topCard?.instanceId;
+    const selectedDestinationTopInstanceId = destination?.topCard?.instanceId;
     if (
       source === undefined ||
+      source.topCard === undefined ||
       destination?.topCard === undefined ||
       sourcePermanentId === destPermanentId ||
       isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
@@ -2363,6 +2356,27 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       });
       if (prevented?.has(sourcePermanentId)) return false;
     }
+
+    const sourceAfterConsult =
+      access.permanentById(sourcePermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+    const destinationAfterConsult =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (
+      sourceAfterConsult?.topCard === undefined ||
+      sourceAfterConsult?.topCard?.instanceId !== selectedTopInstanceId ||
+      destinationAfterConsult?.topCard?.instanceId !== selectedDestinationTopInstanceId ||
+      isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
+    )
+      return false;
+    const movedCardIds = (
+      opts?.shedOwnCards
+        ? [sourceAfterConsult.topCard]
+        : [sourceAfterConsult.topCard, ...sourceAfterConsult.stack, ...sourceAfterConsult.linked]
+    )
+      .filter((card): card is CardInstance => card !== undefined)
+      .map((card) => card.instanceId);
 
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {

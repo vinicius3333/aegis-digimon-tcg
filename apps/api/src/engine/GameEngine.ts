@@ -6341,7 +6341,7 @@ export class GameEngine {
     mode: PlayMode,
     alsoColors: readonly CardColor[] = [],
   ): boolean {
-    const required = mode === "option" ? (definition.optionColorRequirements ?? (definition.colors ?? [])) : [];
+    const required = mode === "option" ? (definition.optionColorRequirements ?? definition.colors ?? []) : [];
     if (required.length === 0) return true;
     const player = this.state.players[seat];
     if (player === undefined) return false;
@@ -7484,6 +7484,7 @@ export class GameEngine {
         const prevented = await this.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
           playerAction: true,
           isDigiXros: true,
+          isBounce: true,
         });
         if (prevented.has(sourcePermanentId)) return false;
         return this.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);

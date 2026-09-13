@@ -251,3 +251,22 @@ snapshot revalidation, and the whole placement denominator remain open.
 Serialized full engine regression after the count-seam correction: **326 files / 7,851 tests passed**, with **2 files / 3 tests failed** (7,854 total). The failures are the same pre-existing two color-waiver assertions in `mechanic.test.ts` and unused-color selection assertion in `effects/interpreter.test.ts`, already reproduced against unchanged `805400f2c` during this front. No fresh engine failure appeared. A read-only Luna review approved the bounded card parameters, legal fixtures and success-only accounting; full card lifecycle certification remains open.
 
 Changed-file Oxlint/Oxfmt, `pnpm audit:index --check` (66 sets), and `git diff --check` passed. These bounded delivery gates do not override the EX6 full-parity residual or award full-card behavioral credit.
+
+## Remaining acquired-watcher integration boundary, 2026-09-13
+
+Q1604 for BT7-056 permits newly placed Dorumon's inherited watcher to trigger
+its own addition during its owner's turn; Q1603 permits only one memory gain
+for a simultaneous batch. Loose and mixed placement recompute before the
+addition event. Singular and batch permanent relocation do not, and the
+production dispatcher reads the watcher registry before its trailing
+recomputation. This is an open integration contract, not a demonstrated
+printed-producer failure: EX6-015's own-blue filter excludes black Dorumon,
+and the identified Bagramon arrangement puts the source on the wrong owner's
+turn. Existing public relocation witnesses cover watchers already on the host.
+No illegal source/color/turn fixture or speculative engine correction is
+introduced. Full acquired-watcher, copied-provider and trait-grant coverage
+remains below whole-subsystem certification.
+
+The singular identity and public DigiXros deletion-only corrections and their
+serialized red/green gates are owned by
+[replacement-effects.md](replacement-effects.md#singular-identity-and-digixros-deletion-only-checkpoint-2026-09-13).
