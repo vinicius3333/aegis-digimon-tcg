@@ -13,7 +13,7 @@ evidence_commit: eabe99351
 
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
-All 74 EX6 cards are verified at 10/10 (aggregate 740/740). The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
+Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740/740). Current placement checkpoints cap EX6-006 and EX6-015 at 8/10; the current aggregate is 736/740, with 72 cards retaining historical ten-point credit. The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
 
 ## Gates
 
@@ -43,7 +43,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX6 --pool=forks --poolOption
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX6-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX6-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, except the current placement caps for EX6-006 and EX6-015.
 
 | Card    | Status   | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report    |
 | ------- | -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | --------- |
@@ -61,7 +61,7 @@ Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card
 | EX6-012 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
 | EX6-013 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
 | EX6-014 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-015 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-015 | Partial  |             2 |        2 |                1 |                1 |              2 |  8/10 | see below |
 | EX6-016 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
 | EX6-017 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
 | EX6-018 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
@@ -282,12 +282,12 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 
 - Catalog contract: blue level-6 Aquatic; On Play/When Digivolving may place up to 3 other blue Digimon under itself, then return all other level 4 or lower Digimon to owners' hands, increasing the return level ceiling by each placed card; your-turn once per turn may play a level 5 or lower Aqua/Sea Animal source when an effect adds a source; Rule trait Aquatic.
 - KB: Q3709 requires returning your own eligible Digimon too; Q3710 returns each card to its owner's hand; Q3711 permits the return clause even when zero cards were placed.
-- IR mapping: On Play and evolution sequence `PlaceUnder(upTo 3, other blue)` then scaled `Return(level 4 + placed count, all other)`; inherited watcher plays level <=5 Aqua/Sea Animal from this stack; Rule grants Aquatic.
-- Behavioral proof: tests cover placement, scaled return including own board, source play, once-per-turn and trait semantics; 4/4 passed.
+- IR mapping: On Play and evolution sequence `PlaceUnder(upTo 3, other blue, bottom, shed own sources)` then scaled `Return(level 4 + successful placed count, all other)`; the own-card Your Turn watcher plays level <=5 Aqua/Sea Animal from this stack; Rule grants Aquatic.
+- Behavioral proof: the new public play and digivolution cases reproduced the stale bottom/source-shedding contract, then passed after adding `position: "bottom"`, `shedOwnCards: true`, and actual successful-placement `trackCount` accounting; the supplemental caller-accounting mechanism test also passed. Existing source-play behavior and IR assertions remain green; complete once-per-turn lifecycle and trait-filter boundary proof remain open.
 - Peer/stack proof: compared with EX6-014 source play and EX6-013 Aquatic rule; tests observe stack relocation before return and owner-specific hand destinations.
-- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-015.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 4 tests passed.
-- Defects/gaps: none; no catalog discrepancy or retained seam.
-- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
+- Command/result: coordinator serialized focus after the staged red runs — 1 file, 6 tests passed; filtered caller-accounting mechanism control — 1 test passed. The serialized collection/mechanism focus passed 78 files and 626 tests, including all EX6 files. Shared/API/web typechecks passed. The full engine regression and final style gates are recorded in the placement owner checkpoint.
+- Defects/gaps: the three reproduced placement defects are corrected in the direct module, synchronized EX6-015 IR record, and shared `PlaceUnder` count seam. This bounded evidence does not certify the full EX6 collection or downstream placement denominator.
+- Current score: capped at 8/10 (catalog/rules 2/2, IR trace 2/2, behavioral 1/2, peer/stack 1/2, delivery gates 2/2). Full once-per-turn, optional refusal and trait-filter boundary proof remain open; this is a placement checkpoint rather than fresh full-card certification.
 
 ### EX6-016 — Salamon
 
@@ -2070,7 +2070,7 @@ Freshly generated with `node tools/kb/query.mjs card <ID>` on 2026-09-09. An em 
 
 ## Open items
 
-- No card is below 10/10; the engine seam queue is empty and `docs/audits/EX6-reaudit/SOURCE-RECONCILIATION.md` recorded no catalog discrepancy (`0c3b8f6a1`).
+- Historical closure claimed no card below 10/10; current EX6-006 and EX6-015 placement checkpoints supersede that claim. Historical `docs/audits/EX6-reaudit/SOURCE-RECONCILIATION.md` recorded no catalog discrepancy (`0c3b8f6a1`).
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`) states that its five card corrections (EX6-001, EX6-004, EX6-005, EX6-057, EX6-074) and the matching test updates were never executed, so it claims no behavioral gate. The 2026-09-09 re-audit executed every EX6 test and is the current evidence.
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`) closes at 74/74 files and 365/365 tests, while the winning re-audit closes at 74/74 files and 404/404 tests. The higher count is the later run, which added the missing public negative, once-per-turn and evolution-stack proofs that report reconciliation found lacking on 15 cards.
 - Investigations closed during the run rather than left open: EX6-018's optional no-target evolution now preserves its mandatory security cost; EX6-031's return-to-hand hang was diagnosed as an incomplete hand fixture with no production engine divergence; EX6-062 now declares the four printed DNA recipes.

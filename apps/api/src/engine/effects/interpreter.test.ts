@@ -3954,6 +3954,62 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(moved[0]!.args[2]).toEqual({ belowTop: false });
   });
 
+  it("PlaceUnder trackCount records only permanent relocations that succeed", async () => {
+    const host = makeFakePermanent({
+      permanentId: "HOST#COUNT",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST-COUNT", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const guestA = makeFakePermanent({
+      permanentId: "GUEST-A",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "GUEST-A-CARD", cardId: "GUEST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const guestB = makeFakePermanent({
+      permanentId: "GUEST-B",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "GUEST-B-CARD", cardId: "GUEST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const source = makeSource({ cardId: "Z-PU-COUNT", instanceId: "SRC-COUNT" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [host, guestA, guestB],
+      definitionOf: (id) => makeFakeDefinition({ cardId: id, nameEn: id === "GUEST" ? "Guest" : "Host" }),
+    });
+    ctx.selections = new Map([["host", host.permanentId]]);
+    ctx.fx.relocatePermanent = (destinationId, sourceId, opts) => {
+      recorder.calls.push({ verb: "relocatePermanent", args: [destinationId, sourceId, opts] });
+      return sourceId === guestB.permanentId;
+    };
+    const module = irCardModule("Z-PU-COUNT", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guest"], match: "name" }] },
+                count: 2,
+              },
+              underSelectionRef: "host",
+              targetIsPermanent: true,
+              position: "bottom",
+              trackCount: "placed",
+            },
+          ],
+        },
+      ],
+    });
+    for (const effect of module.effectsForTiming(EffectTiming.OnDeclaration, source)) await effect.resolve(ctx);
+
+    expect(ctx.namedCounts?.get("placed")).toBe(1);
+  });
+
   it("MindLink relocates the source Tamer under a chosen Digimon", async () => {
     const tamer = makeFakePermanent({
       permanentId: "TAMER#1",

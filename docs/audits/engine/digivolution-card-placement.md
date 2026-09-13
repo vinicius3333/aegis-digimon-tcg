@@ -211,3 +211,43 @@ arrangement: its controller's next Your Turn begins after Marcus's
 placement/kind/eligibility boundary; the existing BT12-038 public suspension
 test covers its payload separately. It does not claim an impossible
 simultaneous timing window or certify the complete placement subsystem.
+
+## EX6-015 bottom placement and count checkpoint, 2026-09-13
+
+The EX6-015 catalog contract places up to three other blue Digimon as the
+host's bottom digivolution cards, then raises the return level ceiling by the
+number actually placed. Q3709 requires own eligible Digimon to return as well,
+Q3710 sends each card to its owner's hand, and Q3711 keeps the return clause
+active when no material is placed. The public official card page and local KB
+agree on these boundaries.
+
+Two legal public cases (On Play and When Digivolving) first failed on the
+unchanged implementation: placement used the default top position and kept a
+moved permanent's own source cards attached. After the direct EX6-015 module
+and synchronized IR record supplied `position: "bottom"` and
+`shedOwnCards: true`, those assertions passed. A second red run then isolated
+the shared `PlaceUnder` caller: it never stored `trackCount`, so a level-5 own
+target remained on the field after two successful placements. The shared
+handler now stores the number of successful relocations; the public focus
+passes **6 tests**. A supplemental interpreter control passes **1 test** with
+one of two selected relocations refused, proving attempted sources are not
+counted.
+
+The serialized collection/mechanism command
+`TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX6 src/engine/effects/leavePrevent.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/digivolution-card-placement.test.ts src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`
+passed **78 files, 626 tests**. Shared/API/web typechecks passed.
+
+The canonical EX6 synchronizer also exposed 13 pre-existing module/persisted-IR
+divergences outside EX6-015: EX6-002, EX6-010, EX6-021, EX6-027, EX6-030,
+EX6-043, EX6-054, EX6-057, EX6-065, EX6-067, EX6-068, EX6-069 and EX6-074.
+Their baseline entries are preserved for the separate integrity front; a full
+EX6 parity gate cannot be claimed green at this checkpoint. Only EX6-015 is
+updated from the canonical generated record.
+
+This is a bounded EX6-015 correction. Complete card certification, all mixed
+material producers, downstream placement reactions, singular replacement
+snapshot revalidation, and the whole placement denominator remain open.
+
+Serialized full engine regression after the count-seam correction: **326 files / 7,851 tests passed**, with **2 files / 3 tests failed** (7,854 total). The failures are the same pre-existing two color-waiver assertions in `mechanic.test.ts` and unused-color selection assertion in `effects/interpreter.test.ts`, already reproduced against unchanged `805400f2c` during this front. No fresh engine failure appeared. A read-only Luna review approved the bounded card parameters, legal fixtures and success-only accounting; full card lifecycle certification remains open.
+
+Changed-file Oxlint/Oxfmt, `pnpm audit:index --check` (66 sets), and `git diff --check` passed. These bounded delivery gates do not override the EX6 full-parity residual or award full-card behavioral credit.
