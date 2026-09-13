@@ -12,6 +12,7 @@ import {
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
 import { compiled } from "./BT11-088.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { cite } from "../../engine/conformance/_kb.js";
 import { assertNoLoudGap, setupEngine, settle as settleEngine } from "../../engine/testkit/harness.js";
@@ -30,7 +31,7 @@ import { assertNoLoudGap, setupEngine, settle as settleEngine } from "../../engi
 //   BT11-088  — Bagramon (Purple Lv.6, playCost 14)
 //   AD1-001   — Greymon (Red Lv.4) — opponent's Digimon
 //   BT1-038   — Monzaemon (Blue Lv.5) — another opponent Digimon for the 2+ test
-//   BT1-001   — filler hand card
+//   BT1-009   — filler hand card
 
 let seq = 0;
 
@@ -166,7 +167,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     p1.battleArea.push(oppDigimon);
 
     // Opponent has 1 card in hand (will be trashed).
-    const oppHandCard = inst("BT1-001", 1);
+    const oppHandCard = inst("BT1-009", 1);
     p1.hand.push(oppHandCard);
 
     // Bagramon in seat 0's hand. playCost = 14, memory needs to cover it.
@@ -202,7 +203,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     const oppDigimon1 = perm("AD1-001", 1, 3000);
     const oppDigimon2 = perm("BT1-038", 1, 5000);
     p1.battleArea.push(oppDigimon1, oppDigimon2);
-    const handCard = inst("BT1-001", 1);
+    const handCard = inst("BT1-009", 1);
     p1.hand.push(handCard);
 
     const bagramon = inst("BT11-088", 0);
@@ -230,7 +231,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
 });
 
 describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
-  it("observes an opponent's normal digivolution without paying the watcher cost", async () => {
+  it("does not pay the watcher cost when an opponent normally digivolves without sources", async () => {
     const s = setupEngine(
       {
         0: {
@@ -250,8 +251,48 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     s.state.turnSeat = 1;
     s.state.memory = 5;
     await s.ready();
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: s.inst("digivolver").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() => s.perm("base").topCard.cardId === "BT6-063" && s.state.pendingDecision === undefined);
+    await settleEngine();
+
+    expect(s.perm("bagramon").stack).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("pays the watcher cost when an opponent normally digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-088", as: "bagramon", under: ["BT2-075"] }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT3-067", as: "base" }],
+          hand: [{ card: "BT6-063", as: "digivolver" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
     const baseId = s.inst("base").instanceId;
     const digivolverId = s.inst("digivolver").instanceId;
+    const sourceId = s.perm("bagramon").stack[0]!.instanceId;
+    const securityId = s.state.players[1]!.security[0]!.instanceId;
 
     expect(
       s.engine.applyIntent(1, {
@@ -260,7 +301,7 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
         permanentId: s.perm("base").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settleEngine(() => s.perm("base").topCard.cardId === "BT6-063");
+    await settleEngine(() => s.perm("base").topCard.cardId === "BT6-063" && s.state.pendingDecision === undefined);
     await settleEngine();
 
     expect(s.perm("base").topCard.cardId).toBe("BT6-063");
@@ -269,10 +310,132 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.perm("bagramon").stack).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(2);
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([securityId]);
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("preserves the source and security when the watcher cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-088", as: "bagramon", under: ["BT2-075"] }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT3-067", as: "base" }],
+          hand: [{ card: "BT6-063", as: "digivolver" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    const sourceId = s.perm("bagramon").stack[0]!.instanceId;
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: s.inst("digivolver").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() => s.perm("base").topCard.cardId === "BT6-063" && s.state.pendingDecision === undefined);
+    await settleEngine();
+
+    expect(s.perm("bagramon").stack.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("shares the watcher budget across real triggers and resets it on the next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-088", as: "originalBag", under: ["BT11-079", "BT2-075"] }],
+          hand: [{ card: "BT11-088", as: "newBag" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-067", as: "tankmonA" },
+            { card: "BT3-067", as: "tankmonB" },
+          ],
+          hand: [
+            { card: "BT6-063", as: "bigMamemonA" },
+            { card: "BT2-064", as: "hiAndromonA" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-028", "BT1-038"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const lowerId = s.perm("originalBag").stack[0]!.instanceId;
+    const upperId = s.perm("originalBag").stack[1]!.instanceId;
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+    const tankmonBId = s.perm("tankmonB").topCard.instanceId;
+    const tankmonBPermanentId = s.perm("tankmonB").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: s.inst("bigMamemonA").instanceId,
+        permanentId: s.perm("tankmonA").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() => s.perm("tankmonA").topCard.cardId === "BT6-063" && s.state.pendingDecision === undefined);
+    await settleEngine();
+    expect(s.perm("originalBag").stack.map(({ instanceId }) => instanceId)).toEqual([upperId]);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(1));
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0]]);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        instanceId: s.inst("hiAndromonA").instanceId,
+        permanentId: s.perm("tankmonA").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() => s.perm("tankmonA").topCard.cardId === "BT2-064" && s.state.pendingDecision === undefined);
+    await settleEngine();
+    expect(s.perm("originalBag").stack.map(({ instanceId }) => instanceId)).toEqual([upperId]);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(1));
+    expect(s.state.memory).toBe(5);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(tankmonBId, tankmonBPermanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("newBag").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleEngine(() => s.perm("tankmonA").stack.some(({ instanceId }) => instanceId === tankmonBId));
+    await settleEngine();
+
+    expect(s.perm("tankmonA").stack.map(({ instanceId }) => instanceId)).toContain(tankmonBId);
+    expect(s.perm("originalBag").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([lowerId, upperId]);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([securityIds[2]]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(0, 2));
+    expect(s.state.memory).toBe(-4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it.each([
