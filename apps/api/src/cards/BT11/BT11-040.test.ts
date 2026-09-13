@@ -104,9 +104,9 @@ describe("BT11-040 Sukamon", () => {
           battleArea: [{ card: "BT11-040", as: "sukamon" }],
           deck: [
             { card: "BT11-036", as: "chuumon" },
-            { card: "BT1-001", as: "nonmatch" },
+            { card: "BT1-009", as: "nonmatch" },
             { card: "BT11-041", as: "etemon" },
-            { card: "BT1-002", as: "below" },
+            { card: "BT1-009", as: "below" },
           ],
         },
       },
@@ -202,7 +202,7 @@ describe("BT11-040 Sukamon", () => {
         0: {
           battleArea: [{ card: base, as: "base" }],
           hand: [{ card: "BT11-040", as: "sukamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 4;

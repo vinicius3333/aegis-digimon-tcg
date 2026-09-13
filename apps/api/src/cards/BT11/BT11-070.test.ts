@@ -23,7 +23,7 @@ describe("BT11-070 Destromon", () => {
 
   it("resolves the reveal-and-trash timing", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-070", as: "destromon" }], deck: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT11-070", as: "destromon" }], deck: ["BT1-009"] } },
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("destromon"));

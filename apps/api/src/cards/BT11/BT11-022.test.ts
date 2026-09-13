@@ -60,7 +60,7 @@ describe("BT11-022 Dracomon", () => {
         // A [Blue Flare] Digimon whose own printed effects never touch the deck, so the
         // expected draw stays on top with the whole catalog registered.
         hand: [{ card: "BT19-022", as: "qualifier" }],
-        deck: [{ card: "BT1-001", as: "drawn" }, "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        deck: [{ card: "BT1-009", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -121,8 +121,8 @@ describe("BT11-022 Dracomon", () => {
           { card: "BT1-009", as: "second" },
         ],
         deck: [
-          { card: "BT1-001", as: "drawn" },
-          { card: "BT1-002", as: "notDrawn" },
+          { card: "BT1-009", as: "drawn" },
+          { card: "BT1-009", as: "notDrawn" },
         ],
       },
     });
