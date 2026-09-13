@@ -403,6 +403,15 @@ processing step. This proves the current BT23-060/BT23-045 consumer shape
 only; it does not certify all borrowed effects or ordinary optional activation
 costs.
 
+The combined focused command
+`pnpm --filter @aegis/api exec vitest run src/cards/BT23/BT23-060.test.ts
+src/engine/conformance/activation-cost-borrowed-effects.test.ts` passed **23
+tests** (2026-09-12). The colocated BT23-060 suite remains the normal-consumer
+comparison and covers the face-up lender, once-per-turn, source-zone, and
+non-Zaxon boundaries; the new two-case proof adds the forced-cost completion
+assertions. Oxfmt, Oxlint, and `git diff --check` also passed for both changed
+paths.
+
 | Reviewed obligation                                      | Current evidence                                                                                     | Status                  |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------- |
 | Borrowed processing cost is paid before payload          | BT23-060 public attack with BT23-043 trash payer                                                     | Focused green           |

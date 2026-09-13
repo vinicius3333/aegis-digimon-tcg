@@ -25,6 +25,7 @@ describe("borrowed effect processing cost", () => {
     );
     const payerId = s.inst("payer").instanceId;
     const victimInstanceId = s.inst("victim").instanceId;
+    const securityTargetId = s.state.players[1]!.security[0]!.instanceId;
     await s.ready();
     const memoryBefore = s.state.memory;
     expect(
@@ -40,6 +41,8 @@ describe("borrowed effect processing cost", () => {
     expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(payerId);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimInstanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityTargetId)).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === securityTargetId)).toBe(false);
     expect(s.perm("machine").topCard.instanceId).toBe(s.inst("machine").instanceId);
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -59,6 +62,7 @@ describe("borrowed effect processing cost", () => {
     );
     const payerId = s.inst("payer").instanceId;
     const victimInstanceId = s.inst("victim").instanceId;
+    const securityTargetId = s.state.players[1]!.security[0]!.instanceId;
     await s.ready();
     const memoryBefore = s.state.memory;
     expect(
@@ -74,6 +78,8 @@ describe("borrowed effect processing cost", () => {
     expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(payerId);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimInstanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityTargetId)).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === securityTargetId)).toBe(false);
     expect(s.perm("machine").topCard.instanceId).toBe(s.inst("machine").instanceId);
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
