@@ -818,6 +818,7 @@ export interface Primitives {
       virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
+      processRulesBeforeWhenDigivolving?: boolean;
       suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined>;
