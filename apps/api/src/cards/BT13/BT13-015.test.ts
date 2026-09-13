@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT13-008.js";
 import "./BT13-015.js";
+import "../ST1/ST1-10.js";
+import "../BT12/BT12-092.js";
 
 describe("BT13-015 RizeGreymon", () => {
   it("uses exact bracketed names for its GeoGreymon evolution and Marcus Damon references", () => {
@@ -132,58 +134,86 @@ describe("BT13-015 RizeGreymon", () => {
     expect(s.state.memory).toBe(7);
   });
 
-  it("places the deleted Marcus Damon itself from trash face down on top of security (Q2274)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT13-015", as: "rize" },
-            { card: "BT13-008", as: "agumon" },
-            { card: "BT12-092", as: "marcus" },
-          ],
-          security: ["BT1-010"],
+  it.each([false, true])(
+    "places the exact deleted Marcus once per turn and resets (inherited=%s)",
+    async (inherited) => {
+      const preferredTargets: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              inherited
+                ? { card: "ST1-10", as: "host", under: [{ card: "BT13-015", as: "source" }] }
+                : { card: "BT13-015", as: "host" },
+              { card: "BT13-008", as: "agumon" },
+              { card: "BT12-092", as: "first" },
+              { card: "BT12-092", as: "second" },
+              { card: "BT12-092", as: "third" },
+            ],
+            security: ["BT1-010"],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+          },
+          1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-010", "BT1-010", "BT1-010"] },
         },
-      },
-      { autoSelectCards: true },
-    );
-    const marcusId = s.perm("marcus").topCard.instanceId;
-    await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("agumon"));
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("agumon").topCard.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("marcus").currentDP === 3000);
-    await settle();
-
-    await advance(s.engine).verb.deletePermanent([s.perm("marcus").permanentId]);
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(marcusId);
-    expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);
-  });
-
-  it("provides the same once-per-turn security placement as an inherited effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-021", as: "host", under: ["BT13-015"] },
-            { card: "BT12-092", as: "firstMarcus" },
-            { card: "BT13-094", as: "kristy" },
-          ],
-          trash: [{ card: "BT12-092", as: "trashMarcus" }],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).verb.deletePermanent([s.perm("firstMarcus").permanentId]);
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    await advance(s.engine).verb.deletePermanent([s.perm("kristy").permanentId]);
-    expect(s.state.players[0]!.security).toHaveLength(1);
-  });
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredTargets },
+      );
+      const firstId = s.inst("first").instanceId;
+      const secondId = s.inst("second").instanceId;
+      const thirdId = s.inst("third").instanceId;
+      preferredTargets.push(firstId, thirdId);
+      const sourceId = inherited ? s.inst("source").instanceId : s.perm("host").topCard.instanceId;
+      s.state.memory = 10;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.perm("first").currentDP === 3000 && s.perm("second").currentDP === 3000);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("first").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[0]!.security[0]!.instanceId).toBe(firstId);
+      expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("second").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(secondId);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      s.state.turnSeat = 1;
+      s.state.memory = -s.state.memory;
+      await advance(s.engine).runTurn(1);
+      s.state.turnSeat = 0;
+      s.state.memory = -s.state.memory;
+      const nextTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.perm("third").currentDP === 3000);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("third").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+      expect(s.state.players[0]!.security).toHaveLength(3);
+      expect(s.state.players[0]!.security[0]!.instanceId).toBe(thirdId);
+      expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+      expect(
+        inherited ? s.perm("host").stack.map((card) => card.instanceId) : [s.perm("host").topCard.instanceId],
+      ).toContain(sourceId);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await nextTurn;
+    },
+  );
 });

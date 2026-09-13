@@ -335,16 +335,19 @@ export async function runSecurityManipulation(
         // Deletion observers are matched while the subject is still live so their printed
         // controller/kind/color filters remain available. A follow-up that places that same
         // card "from trash" (BT13-015 Q2274) therefore resolves one step before the generic
-        // deletion mover has put it there. Admit only the currently-deleting permanent's top
+        // deletion mover has put it there. Admit the currently-deleting permanent's top
         // card as a virtual trash candidate; addSecurity relocates that exact instance, and
-        // the deletion pass then removes only what remains of the permanent.
-        if (candidates.length === 0 && zones.includes("trash") && ctx.trigger.deletedPermanentId !== undefined) {
+        // the deletion pass then removes only what remains of the permanent. Keep any ordinary
+        // trash candidates too so the owner may choose among all eligible cards.
+        if (zones.includes("trash") && ctx.trigger.deletedPermanentId !== undefined) {
           const deleting = ctx.game.permanentById(ctx.trigger.deletedPermanentId);
           if (
             deleting?.topCard !== undefined &&
             permanentMatchesFilter(ctx, deleting, scaledSource.filter, ctx.source)
           ) {
-            candidates = [deleting.topCard];
+            const byInstanceId = new Map(candidates.map((candidate) => [candidate.instanceId, candidate]));
+            byInstanceId.set(deleting.topCard.instanceId, deleting.topCard);
+            candidates = [...byInstanceId.values()];
           }
         }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
