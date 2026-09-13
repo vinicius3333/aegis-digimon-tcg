@@ -279,12 +279,14 @@ describe("bounded trigger ordering and pending source departure", () => {
             { card: "BT25-077", as: "ownBacchus" },
           ],
           trash: [{ card: "BT20-073", as: "metalPhantomon" }],
+          security: [{ card: "BT1-028", as: "turnSecurity" }],
         },
         1: {
           battleArea: [
             { card: "BT19-065", as: "opponentMachine", suspended: true },
             { card: "BT25-077", as: "opponentBacchus" },
           ],
+          security: [{ card: "BT1-028", as: "opponentSecurity" }],
         },
       },
       { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: true },
@@ -293,9 +295,12 @@ describe("bounded trigger ordering and pending source departure", () => {
     const loop = s.engine.startTurnLoop();
     try {
       await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = 3;
       const turnMachineId = s.inst("turnMachine").instanceId;
       const opponentMachineId = s.inst("opponentMachine").instanceId;
       const opponentBacchusId = s.inst("opponentBacchus").instanceId;
+      const turnSecurityId = s.inst("turnSecurity").instanceId;
+      const opponentSecurityId = s.inst("opponentSecurity").instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
@@ -349,7 +354,10 @@ describe("bounded trigger ordering and pending source departure", () => {
       expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
         expect.arrayContaining([opponentMachineId, opponentBacchusId]),
       );
-      expect(s.state.players[1]!.security.length).toBe(0);
+      expect(s.state.players[1]!.security.length).toBe(1);
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([turnSecurityId]);
+      expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([opponentSecurityId]);
     } finally {
       if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
       await loop;
@@ -365,6 +373,7 @@ describe("bounded trigger ordering and pending source departure", () => {
             { card: "BT25-077", as: "ownBacchus" },
           ],
           trash: [{ card: "BT20-073", as: "metalPhantomon" }],
+          security: [{ card: "BT1-028", as: "turnSecurity" }],
         },
         1: {
           battleArea: [
@@ -372,6 +381,7 @@ describe("bounded trigger ordering and pending source departure", () => {
             { card: "BT25-077", as: "opponentBacchus" },
             { card: "BT1-009", as: "opponentAgumon" },
           ],
+          security: [{ card: "BT1-028", as: "opponentSecurity" }],
         },
       },
       { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: true },
@@ -380,6 +390,9 @@ describe("bounded trigger ordering and pending source departure", () => {
     const loop = s.engine.startTurnLoop();
     try {
       await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = 3;
+      const turnSecurityId = s.inst("turnSecurity").instanceId;
+      const opponentSecurityId = s.inst("opponentSecurity").instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
@@ -444,6 +457,9 @@ describe("bounded trigger ordering and pending source departure", () => {
       await settle(() => s.state.pendingDecision === undefined);
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT25-077"]);
       expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([turnSecurityId]);
+      expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([opponentSecurityId]);
     } finally {
       if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
       await loop;
