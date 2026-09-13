@@ -181,17 +181,38 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
             { card: "BT11-081", as: "madleo" },
             { card: "BT11-092", as: "tamer" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker", dp: 15000, suspended: true }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const cardId = s.perm("madleo").topCard.instanceId;
+    const madleoPermanentId = s.perm("madleo").permanentId;
+    const tamerPermanentId = s.perm("tamer").permanentId;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("madleo").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: madleoPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardId));
 
-    expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardId)).toBe(true);
+    expect(s.perm("tamer").permanentId).toBe(tamerPermanentId);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([cardId]);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === madleoPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === cardId)).toBe(false);
+    expect(s.state.memory).toBe(3);
   });
 
   it("gains 1 memory when inherited and trashed by an effect on the opponent's turn", async () => {

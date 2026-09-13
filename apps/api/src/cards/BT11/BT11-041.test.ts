@@ -1,3 +1,4 @@
+import "./BT11-040.js";
 import { compiledEffects, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -107,30 +108,52 @@ describe("BT11-041 Etemon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 
-  it.each([
-    ["a friendly Sukamon", 0],
-    ["an opponent's Sukamon (Q2075)", 1],
-  ])("can delete %s to prevent its host's deletion", async (_label, costSeat) => {
+  it("can delete an own Sukamon during a real losing battle to prevent its host's deletion", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT11-042", as: "host", under: ["BT11-041"] },
-            ...(costSeat === 0 ? ([{ card: "BT11-040", as: "cost" }] as const) : []),
+            { card: "BT11-044", as: "host", dp: 11000, under: ["BT11-041"] },
+            { card: "BT11-040", as: "cost" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: costSeat === 1 ? [{ card: "BT11-040", as: "cost" }] : [] },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", suspended: true }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
     );
-    preferInstanceIds.push(s.inst("cost").instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
     const costPermanentId = s.perm("cost").permanentId;
+    const revealedTrashIds = s.state.players[0]!.deck.slice(0, 3).map((c) => c.instanceId);
+    const costId = s.inst("cost").instanceId;
+    const targetId = s.perm("target").permanentId;
+    preferInstanceIds.push(costId);
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
-    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costPermanentId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([costId, ...revealedTrashIds]);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costPermanentId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([targetId]);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("Q2076: does not recursively reactivate a would-be-deleted prevention during its own resolution", async () => {

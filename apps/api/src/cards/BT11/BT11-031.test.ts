@@ -105,37 +105,88 @@ describe("BT11-031 ZeigGreymon", () => {
             { card: "BT11-095", as: "general" },
             { card: "BT11-095", as: "otherGeneral" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
           trash: [
             { card: "BT10-019", as: "greymon" },
             { card: "BT10-021", as: "mailBirdramon" },
           ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker", dp: 15000, suspended: true }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("zeig").permanentId], "byEffect")).toBe(1);
+    const zeigPermanentId = s.perm("zeig").permanentId;
+    const generalPermanentId = s.perm("general").permanentId;
+    const greymonId = s.inst("greymon").instanceId;
+    const mailBirdramonId = s.inst("mailBirdramon").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: zeigPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("general").stack.length === 3);
 
+    expect(s.perm("general").permanentId).toBe(generalPermanentId);
     expect(s.perm("general").stack.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([zeigInstanceId, s.inst("greymon").instanceId, s.inst("mailBirdramon").instanceId]),
+      expect.arrayContaining([zeigInstanceId, greymonId, mailBirdramonId]),
     );
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === zeigPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("otherGeneral").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
   });
 
   it("inherited effect grants Blocker to a Blue Flare host on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-030", as: "host", under: ["BT11-031"] }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-112", as: "host", under: ["BT11-031"] }, "BT1-009"],
+        security: [
+          { card: "BT1-010", as: "security-one" },
+          { card: "BT1-011", as: "security-two" },
+        ],
+        deck: ["BT1-012", "BT1-013"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-028", as: "attacker", dp: 1000 }],
+        deck: ["BT1-014", "BT1-015"],
+        security: ["BT1-016", "BT1-017"],
+      },
+    });
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("host").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== attackerId));
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("security-one").instanceId,
+      s.inst("security-two").instanceId,
+    ]);
   });
 
   it("inherited Blocker requires both the opponent's turn and a Blue Flare host", async () => {
     for (const [host, turnSeat] of [
-      ["BT11-030", 0],
-      ["BT11-029", 1],
+      ["BT12-112", 0],
+      ["BT1-084", 1],
     ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT11-031"] }] } });
       s.state.turnSeat = turnSeat;
