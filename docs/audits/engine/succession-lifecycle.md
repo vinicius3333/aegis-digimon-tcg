@@ -2,6 +2,8 @@
 
 ## Status
 
+The focused source-priority proof in `engine/conformance/stack-visible-source-priority.test.ts` seeds a real BT26-080 Succession host with a lower face-down BT25-077 and a higher face-up BT25-077, then publicly plays BT25-078. The pending public optional decision exposes the Bacchusmon `[All Turns] [Once Per Turn]` watcher; the matching all-face-down control exposes no watcher. The test asserts the played instance leaves hand, enters the battle area, pays memory, and resolves with no pending decision. A second seeded case puts a visible BT26-080 below a visible BT25-077 and a hidden BT26-080 at the highest physical position; the BT25-077 watcher still appears, demonstrating that face-down sources are filtered before topmost selection. This remains a seeded public-callback seam, not a legal Giromon evolution-chain proof: the decision payload does not expose the selected source identity, so strict provider identity and the legal producer chain remain open. Copied On Play/When Digivolving timing, source departure, and the wider provider matrix remain open.
+
 The next bounded face-down source correction at `3f014c5d7` is owned by [stack-card-information.md](stack-card-information.md). Public Giromon placement exposes the hidden copied Bacchusmon and inherited Meramon leaks; neither remaining source changes nor all hidden information are certified.
 
 Latest bounded correction at baseline `810868b64`: a real Bagramon placement
