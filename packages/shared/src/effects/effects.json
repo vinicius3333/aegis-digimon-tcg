@@ -156551,7 +156551,6 @@
       },
       {
         "trigger": "WhenAttacking",
-        "isInherited": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
