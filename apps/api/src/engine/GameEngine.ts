@@ -6285,7 +6285,7 @@ export class GameEngine {
     mode: PlayMode,
     alsoColors: readonly CardColor[] = [],
   ): boolean {
-    const required = definition.optionColorRequirements ?? (mode === "option" ? (definition.colors ?? []) : []);
+    const required = mode === "option" ? (definition.optionColorRequirements ?? (definition.colors ?? [])) : [];
     if (required.length === 0) return true;
     const player = this.state.players[seat];
     if (player === undefined) return false;

@@ -744,4 +744,23 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
     expect(s.perm("victim").stack).toHaveLength(3);
     expect(trash(s, 1)).toEqual([]);
   });
+
+  it("plays as a Digimon without requiring the Option side's White color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-013", as: "redAlly" }],
+        hand: [{ card: CARD_ID, as: "noir" }],
+      },
+      1: { battleArea: [victim()] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId })).toEqual({ ok: true });
+    await settle(() => board(s, 0).includes(CARD_ID));
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(board(s, 0)).toContain(CARD_ID);
+  });
 });

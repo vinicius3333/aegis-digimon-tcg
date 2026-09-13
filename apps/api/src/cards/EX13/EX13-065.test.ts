@@ -820,4 +820,27 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("target").currentDP).toBe(12_000);
     expect(s.state.memory).toBe(1);
   });
+
+  it("plays as a Digimon without requiring the Option side's White color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: NEUTRAL_LV3, as: "redAlly" }],
+        hand: [{ card: cardId, as: "blancAwakened" }],
+        deck: inertDeck,
+        security: [SENTINEL],
+      },
+      1: { deck: inertDeck, security: [SENTINEL] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blancAwakened").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === cardId));
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain(cardId);
+  });
 });
