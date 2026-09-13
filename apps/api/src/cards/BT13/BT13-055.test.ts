@@ -201,6 +201,7 @@ describe("BT13-055 Lamortmon", () => {
     await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstSecurity").instanceId);
 
+    // Supplemental repeat of the consumed event; public battles above/below prove dispatch and reset.
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("host").permanentId });
     expect(s.state.players[1]!.security).toHaveLength(2);
 

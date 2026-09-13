@@ -142,7 +142,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("leopardMode").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
@@ -173,7 +173,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("ally").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
