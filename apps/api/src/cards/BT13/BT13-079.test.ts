@@ -5,6 +5,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-079.js";
 import "../BT2/BT2-073.js";
+import "../ST1/ST1-10.js";
+import "../ST1/ST1-16.js";
 
 describe("BT13-079 Falcomon", () => {
   it("grants Retaliation to one purple Digimon until the opponent's turn ends", () => {
@@ -31,15 +33,36 @@ describe("BT13-079 Falcomon", () => {
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT2-073", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
+      {
+        0: { battleArea: [{ card: "BT2-073", as: "host", under: ["BT13-079"] }] },
+        1: {
+          battleArea: [{ card: "ST1-10", as: "phoenix" }],
+          hand: [
+            { card: "ST1-16", as: "gaia" },
+            { card: "BT1-009", as: "discard" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const hostId = s.perm("host").permanentId;
+    const gaiaId = s.inst("gaia").instanceId;
+    const discardId = s.inst("discard").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== hostId) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === discardId),
+    );
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([gaiaId, discardId]),
+    );
+    expect(s.state.memory).toBe(2);
   });
 
   it("[Supplemental] grants Retaliation to a real own purple Digimon on play", async () => {

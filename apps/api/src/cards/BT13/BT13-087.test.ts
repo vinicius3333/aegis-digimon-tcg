@@ -1,3 +1,4 @@
+import "./BT13-085.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-087.js";
@@ -69,23 +70,48 @@ describe("BT13-087 Dynasmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT13-081");
   });
 
-  it("naturally reveals four on play, adds both qualifying cards, and trashes the rest", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT13-087", as: "dynasmon" }],
-          deck: ["BT18-034", "BT13-017", "BT1-009", "BT1-009"],
+  it("naturally reveals four through public play and legal evolution, adding matches and trashing the rest", async () => {
+    for (const evolve of [false, true]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: evolve ? [{ card: "BT13-085", as: "crowmon" }] : [],
+            hand: [{ card: "BT13-087", as: "dynasmon" }],
+            deck: [...(evolve ? ["BT1-010"] : []), "BT18-034", "BT13-017", "BT1-009", "BT1-009"],
+          },
         },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT18-034", "BT13-017"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
+        { autoSelectCards: true },
+      );
+      s.state.memory = evolve ? 5 : 10;
+      const materialId = evolve ? s.perm("crowmon").topCard.instanceId : undefined;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(
+          0,
+          evolve
+            ? {
+                type: "digivolve",
+                permanentId: s.perm("crowmon").permanentId,
+                instanceId: s.inst("dynasmon").instanceId,
+              }
+            : {
+                type: "playCard",
+                instanceId: s.inst("dynasmon").instanceId,
+              },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
+      expect(s.state.memory).toBe(evolve ? 2 : 0);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([
+        ...(evolve ? ["BT1-010"] : []),
+        "BT18-034",
+        "BT13-017",
+      ]);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
+      const dynasmon = s.state.players[0]!.battleArea.find(
+        (p) => p.topCard.instanceId === s.inst("dynasmon").instanceId,
+      )!;
+      expect(dynasmon.stack.map((card) => card.instanceId)).toEqual(evolve ? [materialId] : []);
+    }
   });
 });
