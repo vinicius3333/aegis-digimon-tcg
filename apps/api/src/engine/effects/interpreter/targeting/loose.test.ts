@@ -38,7 +38,7 @@ describe("pickLoose aggregate play-cost budgets", () => {
   ] as const)("keeps %s selections within the combined cap", async (_label, shape, expected) => {
     const ctx = context({ A: 4, B: 3 });
     const candidates = [candidate("A", "A"), candidate("B", "B")];
-    const target = { ...shape, filter: { ...shape.filter }, totalPlayCostBudget: 5 } as Target;
+    const target = { ...shape, totalPlayCostBudget: 5 } as Target;
 
     await expect(pickLoose(ctx, target, candidates)).resolves.toEqual(expected.slice(0, 1).map((id) => id));
   });

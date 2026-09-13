@@ -207,19 +207,21 @@ describe("BT21-015 Cyclonemon", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === cyclonemonInstanceId),
     ).toBe(true);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
-    const nestedBattles = s.events.filter((event) => event.kind === "combatResolved" && event.seat === 1);
+    const nestedBattles = s.events.filter(
+      (event): event is Extract<(typeof s.events)[number], { kind: "combatResolved" }> =>
+        event.kind === "combatResolved" && event.seat === 1,
+    );
     const nestedTriggers = s.events.filter(
       (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-058" && event.timing === "whenPlayed",
     );
     expect(nestedTriggers).toHaveLength(2);
     expect(nestedBattles).toHaveLength(1);
-    expect([callismonAId, callismonBId]).toContain(nestedBattles[0]!.attackerPermanentId);
-    expect(nestedBattles[0]!.deletedPermanentIds).toContain(nestedBattles[0]!.attackerPermanentId);
-    expect(
-      nestedBattles.every(
-        (event) => event.kind === "combatResolved" && event.deletedPermanentIds.includes(attackerId) === false,
-      ),
-    ).toBe(true);
+    const nestedBattle = nestedBattles[0];
+    expect(nestedBattle).toBeDefined();
+    if (nestedBattle === undefined) throw new Error("nested battle event was not recorded");
+    expect([callismonAId, callismonBId]).toContain(nestedBattle.attackerPermanentId);
+    expect(nestedBattle.deletedPermanentIds).toContain(nestedBattle.attackerPermanentId);
+    expect(nestedBattles.every((event) => event.deletedPermanentIds.includes(attackerId) === false)).toBe(true);
   });
 
   it("grants inherited +2000 DP only during its controller's turn", async () => {

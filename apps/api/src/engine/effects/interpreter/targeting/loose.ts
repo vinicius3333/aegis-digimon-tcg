@@ -595,8 +595,8 @@ export async function pickLoose(
                 visibleCards,
               })
             )[0];
-      const pickedCandidate =
-        picked === undefined ? undefined : matching.find((candidate) => candidate.instanceId === picked);
+      if (picked === undefined) continue;
+      const pickedCandidate = matching.find((candidate) => candidate.instanceId === picked);
       if (pickedCandidate !== undefined && !used.has(picked)) {
         used.add(picked);
         chosen.push(picked);
