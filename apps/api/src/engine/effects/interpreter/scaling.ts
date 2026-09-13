@@ -22,6 +22,42 @@ import type { Filter, Scaling, Target } from "@aegis/shared";
 export function countMatching(ctx: EffectContext, filter: Filter): number {
   const seats = seatsForController(ctx, filter);
   let n = 0;
+  const hiddenStackCanMatch = (card: { faceUp?: boolean }): boolean => {
+    if (card.faceUp === true) return true;
+    const cardInfoKeys = [
+      "cardId",
+      "isToken",
+      "kind",
+      "forms",
+      "traits",
+      "traitContains",
+      "colors",
+      "colorsAll",
+      "excludeColors",
+      "multicolor",
+      "levels",
+      "levelComparison",
+      "levelLte",
+      "levelEq",
+      "dp",
+      "dpAtMost",
+      "playCostLte",
+      "playCostGte",
+      "playCostOneOf",
+      "nameOrTrait",
+      "keywords",
+      "excludeKeywords",
+      "hasInheritedEffects",
+      "hasLevel",
+      "excludeNames",
+      "excludeCardIds",
+      "excludeNameOrTrait",
+      "excludeCardsNamed",
+      "digivolutionStackNameOrTrait",
+      "stackKeywords",
+    ];
+    return !cardInfoKeys.some((key) => key in filter);
+  };
   // `filter.zone` may name several LOOSE-CARD zones to sum across (e.g. "in your trash
   // or your Digimon's digivolution cards" — EX9-054/EX9-005 Negamon archetype). A single
   // zone is treated as a one-element list so the existing single-zone behavior is
@@ -75,6 +111,7 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
               )
                 continue;
               for (const card of permanent.stack) {
+                if (!hiddenStackCanMatch(card)) continue;
                 if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
               }
             }

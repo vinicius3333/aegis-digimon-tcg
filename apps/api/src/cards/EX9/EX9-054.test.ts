@@ -7,6 +7,29 @@ import "./EX9-051.js";
 import "../index.js";
 
 describe("EX9-054", () => {
+  it("does not count a face-down Negamon source in deletion scaling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-054", as: "source" },
+            { card: "EX9-047", as: "host", under: [{ card: "EX9-047", faceUp: false }] },
+          ],
+          trash: ["EX9-047"],
+          hand: [{ card: "EX9-054", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const candidateId = s.inst("candidate").instanceId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX9-047"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Q4808 combines one trash Negamon and one surviving host's source to play level five but not six", async () => {
     const s = setupEngine(
       {
