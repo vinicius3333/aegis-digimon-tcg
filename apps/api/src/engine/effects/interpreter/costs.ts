@@ -563,11 +563,26 @@ export async function payCost(
         // Gaogamon and MachGaogamon). They leave simultaneously, so collect all
         // selections before asking the controller for their bottom-stack order.
         if (first.targetIsPermanent !== true) {
-          if (typeof first.host !== "object" || first.host === null) return false;
+          // `host: "target"` is the compact encoding for a loose-card placement whose
+          // destination is supplied by `underFilter` (BT14-090). Object hosts carry
+          // their own filter; preserve that path for newer compiled cards.
+          const hostTarget =
+            first.host === "target"
+              ? first.underFilter === undefined
+                ? undefined
+                : { filter: first.underFilter, count: 1 as const }
+              : typeof first.host === "object" && first.host !== null
+                ? {
+                    filter: first.host.filter,
+                    orFilters: first.host.orFilters,
+                    count: first.host.count,
+                  }
+                : undefined;
+          if (hostTarget === undefined) return false;
           const hosts = await resolvePermanentTargets(paymentCtx, {
-            filter: first.host.filter,
-            orFilters: first.host.orFilters,
-            count: first.host.count,
+            filter: hostTarget.filter,
+            orFilters: hostTarget.orFilters,
+            count: hostTarget.count,
           });
           const hostId = hosts.length === 1 ? hosts[0] : undefined;
           if (hostId === undefined) return false;
@@ -620,9 +635,9 @@ export async function payCost(
             return false;
           if (
             !candidatePermanents(ctx, {
-              filter: first.host.filter,
-              orFilters: first.host.orFilters,
-              count: first.host.count,
+              filter: hostTarget.filter,
+              orFilters: hostTarget.orFilters,
+              count: hostTarget.count,
             }).some((permanent) => permanent.permanentId === hostId) ||
             looseSelections.some(
               ({ cost: nested, id }) =>
