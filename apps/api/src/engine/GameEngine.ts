@@ -2311,7 +2311,7 @@ export class GameEngine {
         // Burst's pending processing removes the Burst card itself and promotes its
         // former source. Use the stack-aware physical peel without applying De-Digivolve's
         // keyword restrictions or level floor.
-        await this.primitives.trashStackTops(perm.permanentId, 1, { stackedCards: true });
+        await this.primitives.trashStackTops(perm.permanentId, 1);
       }
     }
   }
