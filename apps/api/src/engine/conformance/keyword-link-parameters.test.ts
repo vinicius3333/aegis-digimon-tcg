@@ -1,9 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
+import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
+const LINK_FINGERPRINT = "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef";
+const LINK_RULES_FINGERPRINT = "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370";
+const LINK_PLUS_FINGERPRINT = "ab93a63ae9090421af7be36348d5d9b8411f6fe6325313b51f9344a8019f9f2a";
+
 describe("Link public cost and Link Max parameters", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0140",
+      "10-1-1: a card from the hand or battle area can link to a specified Digimon by paying the cost",
+      LINK_FINGERPRINT,
+    );
+    cite(
+      "comprehensive-0141",
+      "10-1-3-1/2/3: reveal the link card, choose a qualifying Digimon, pay the specified link cost, and plug the card in sideways",
+      LINK_RULES_FINGERPRINT,
+    );
+    cite(
+      "comprehensive-0259",
+      "16-40-1/2: Link +X increases maximum links as a persistent effect",
+      LINK_PLUS_FINGERPRINT,
+    );
+  });
+
   it("applies printed Link +6 capacity through a public third link", async () => {
     const s = setupEngine(
       {

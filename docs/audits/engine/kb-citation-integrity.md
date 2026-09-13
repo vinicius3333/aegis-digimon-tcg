@@ -111,12 +111,53 @@ without remaining blockers in this bounded reconciliation change.
   baseline. Final conformance: 30 files / 421 tests passed.
 - The earlier migration added 64 literal fingerprint arguments and recorded 73
   fingerprinted calls over 41 chunks at that checkpoint. The reproducible
-  read-only scan from the repository root is:
-  `rg -o '[0-9a-f]{64}' apps/api/src/engine/conformance --glob '*.test.ts' --glob '!_kb.meta.test.ts' | wc -l`
-  for the 142 literal hashes, paired with a balanced-parenthesis scan of the
-  same files that recognizes the first string argument of each `cite(...)` and
-  resolves file-local 64-hex constants. That scan reports 424 recognized calls,
-  142 fingerprinted calls over 82 chunk IDs, and 282 legacy two-argument calls.
+  read-only scan from the repository root is the following embedded Node
+  recipe; it uses a balanced-parenthesis scan, recognizes the first string
+  argument of each `cite(...)`, and resolves file-local 64-hex constants:
+
+  ```sh
+  node --input-type=module <<'NODE'
+  import { readdirSync, readFileSync } from "node:fs";
+  import { join } from "node:path";
+  const dir = "apps/api/src/engine/conformance";
+  const files = readdirSync(dir).filter((n) => n.endsWith(".test.ts") && n !== "_kb.meta.test.ts");
+  const idRe = /^(?:comprehensive|manual|glossary)-\d{4}$/;
+  const hashRe = /^[0-9a-f]{64}$/;
+  const split = (s) => { const out = []; let start = 0, depth = 0, quote = "";
+    for (let i = 0; i < s.length; i++) { const c = s[i], p = s[i - 1];
+      if (quote) { if (c === quote && p !== "\\") quote = ""; continue; }
+      if (["'", '"', "`"] .includes(c)) quote = c;
+      else if ("([{".includes(c)) depth++;
+      else if (")]}".includes(c)) depth--;
+      else if (c === "," && depth === 0) { out.push(s.slice(start, i)); start = i + 1; }
+    } out.push(s.slice(start)); return out; };
+  const calls = (s) => { const out = [], re = /\bcite\s*\(/g; let m;
+    while ((m = re.exec(s))) { let i = re.lastIndex, depth = 1, quote = "";
+      for (; i < s.length; i++) { const c = s[i], p = s[i - 1];
+        if (quote) { if (c === quote && p !== "\\") quote = ""; continue; }
+        if (["'", '"', "`"] .includes(c)) quote = c;
+        else if (c === "(") depth++;
+        else if (c === ")" && --depth === 0) { out.push(s.slice(re.lastIndex, i)); re.lastIndex = i + 1; break; }
+      }
+    } return out; };
+  let recognized = 0, pinned = 0; const ids = new Set(), pinnedIds = new Set();
+  for (const file of files) { const text = readFileSync(join(dir, file), "utf8"), constants = new Map();
+    for (const m of text.matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*["']([0-9a-f]{64})["']/g)) constants.set(m[1], m[2]);
+    for (const body of calls(text)) { const args = split(body), id = args[0]?.trim().match(/^["']([^"']+)["']$/)?.[1];
+      if (!idRe.test(id ?? "")) continue; recognized++; ids.add(id);
+      const third = args[2]?.trim().replace(/[;,]\s*$/, "").replace(/["']/g, "");
+      if (hashRe.test(third ?? "") || constants.has(third)) { pinned++; pinnedIds.add(id); }
+    }
+  }
+  console.log({ files: files.length, recognized, pinned, unpinned: recognized - pinned, ids: ids.size, pinnedIds: pinnedIds.size });
+  NODE
+  # expected: files 76, recognized 431, pinned 149, unpinned 282, pinnedIds 88
+  ```
+
+  Before the three missing files were covered, the same scan reported 424
+  recognized calls and 142 fingerprinted calls over 82 chunk IDs. The current
+  scan reports 431 recognized calls, 149 fingerprinted calls over 88 chunk IDs,
+  and 282 legacy two-argument calls.
   `cite` deliberately permits those unpinned calls: `_kb.ts` compares text only
   when `expectedFingerprint` is supplied, and `kb-citation-drift.test.ts`
   preserves two-argument compatibility. The 282 calls are therefore an
