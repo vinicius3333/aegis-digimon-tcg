@@ -1,3 +1,4 @@
+import { Button } from "../design/primitives";
 import { useState } from "react";
 import { useTranslation } from "../i18n";
 
@@ -6,13 +7,19 @@ export function MatchLogId({ id }: { id: string }) {
   const [message, setMessage] = useState("");
   if (!id) return null;
   return (
-    <div className="match-log-id">
-      <label>
+    <div className="aegis-field bug-report__match-id">
+      <label className="aegis-field__label">
         {t("game.debugId")}{" "}
-        <input aria-label={t("game.debugId")} value={id} readOnly onFocus={(event) => event.currentTarget.select()} />
+        <input
+          className="aegis-field__control"
+          aria-label={t("game.debugId")}
+          value={id}
+          readOnly
+          onFocus={(event) => event.currentTarget.select()}
+        />
       </label>
-      <button
-        type="button"
+      <Button
+        variant="secondary"
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(id);
@@ -23,8 +30,10 @@ export function MatchLogId({ id }: { id: string }) {
         }}
       >
         {t("common.copy")}
-      </button>
-      <span role="status">{message}</span>
+      </Button>
+      <span className="aegis-field__message" role="status">
+        {message}
+      </span>
     </div>
   );
 }

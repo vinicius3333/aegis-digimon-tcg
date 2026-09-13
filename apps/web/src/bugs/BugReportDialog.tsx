@@ -2,6 +2,7 @@
    Everything the client can know on its own — the build, the browser — is captured rather than
    asked, because a typed version number is a wrong version number. */
 
+import { MatchLogId } from "../game/MatchLogId";
 import { useId, useState } from "react";
 import { Alert, Button, Dialog } from "../design/primitives";
 import { useTranslation, type TranslationKey } from "../i18n";
@@ -31,7 +32,15 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   tracker_unavailable: "bugReport.error.unavailable",
 };
 
-export function BugReportDialog({ signedIn, onClose }: { signedIn: boolean; onClose: () => void }) {
+export function BugReportDialog({
+  signedIn,
+  onClose,
+  matchLogId,
+}: {
+  signedIn: boolean;
+  onClose: () => void;
+  matchLogId?: string;
+}) {
   const { t } = useTranslation();
   const titleId = useId();
   const summaryId = useId();
@@ -77,6 +86,8 @@ export function BugReportDialog({ signedIn, onClose }: { signedIn: boolean; onCl
           <li>{t(signedIn ? "bugReport.rule.publicSigned" : "bugReport.rule.publicAnonymous")}</li>
         </ul>
       </header>
+
+      {matchLogId ? <MatchLogId id={matchLogId} /> : null}
 
       {filed ? (
         <Alert tone="success" title={t("bugReport.success")}>
