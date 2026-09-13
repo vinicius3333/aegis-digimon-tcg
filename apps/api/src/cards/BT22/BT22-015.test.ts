@@ -219,7 +219,7 @@ describe("BT22-015 Omnimon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
     const omnimon = s.state.players[0]!.battleArea[0]!;
     expect(omnimon.stack.map((card) => card.cardId)).toEqual(["BT1-070", "BT1-070", "EX9-043", "BT2-065", "BT1-044"]);
@@ -232,6 +232,7 @@ describe("BT22-015 Omnimon", () => {
     expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(target2InstanceId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("deletes exactly one lowest-DP opponent on play", async () => {
