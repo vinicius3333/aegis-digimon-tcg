@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-069.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT13-076.js";
+import "../BT11/BT11-040.js";
+import "../ST1/ST1-16.js";
 
 describe("BT13-069 KingSukamon", () => {
   it("plays a level-4 Sukamon on attack and prevents deletion by deleting another Sukamon", () => {
@@ -79,19 +81,54 @@ describe("BT13-069 KingSukamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT11-040")).toBe(true);
   });
 
-  it("may delete an opponent's other Sukamon to prevent its inherited host's deletion (Q2309)", async () => {
+  it("may delete an opponent's other Sukamon to prevent its legally evolved host's deletion (Q2309)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-040", as: "host", under: ["BT13-069"] }] },
-        1: { battleArea: [{ card: "BT11-040", as: "opponent-sukamon" }] },
+        0: {
+          battleArea: [{ card: "BT13-069", as: "host" }],
+          hand: [{ card: "BT13-076", as: "kingEtemon" }],
+          deck: [{ card: "BT1-010", as: "bonus" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT11-040", as: "opponent-sukamon" },
+            { card: "BT1-010", as: "redSource" },
+          ],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.inst("host").instanceId;
     const opponentSukamonId = s.perm("opponent-sukamon").permanentId;
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+    const opponentSukamonInstanceId = s.inst("opponent-sukamon").instanceId;
+    const gaiaId = s.inst("gaia").instanceId;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("kingEtemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("kingEtemon").instanceId);
+    await settle();
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === gaiaId));
+    await settle();
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([hostId]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceId]);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentSukamonId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(opponentSukamonInstanceId);
   });
 
   it("alternately digivolves from a level-4 Sukamon for 3 memory", async () => {
