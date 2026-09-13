@@ -152475,7 +152475,11 @@
             "actions": [
               {
                 "kind": "Digivolve",
-                "target": { "filter": { "sourceRef": "triggerSubject" }, "count": 1 },
+                "target": {
+                  "sourceRef": "triggerSubject",
+                  "filter": { "controller": "mine", "kind": ["Digimon"] },
+                  "count": 1
+                },
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],

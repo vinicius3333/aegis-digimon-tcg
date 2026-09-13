@@ -71,9 +71,8 @@ const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: {
-                filter: {
-                  sourceRef: "triggerSubject",
-                },
+                sourceRef: "triggerSubject",
+                filter: { controller: "mine", kind: ["Digimon"] },
                 count: 1,
               },
               into: {

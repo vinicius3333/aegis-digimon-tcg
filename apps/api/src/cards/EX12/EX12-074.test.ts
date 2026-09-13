@@ -22,7 +22,7 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
             actions: [
               expect.objectContaining({
                 kind: "Digivolve",
-                target: { filter: { sourceRef: "triggerSubject" }, count: 1 },
+                target: { sourceRef: "triggerSubject", filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
                 from: ["hand"],
                 payCost: true,
                 reduceCost: 1,
@@ -179,6 +179,57 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
         effectText: expect.stringContaining("digivolve into a [Shambala]"),
       },
     });
+  });
+
+  it("offers only the attacking Digimon even with allied and opposing evolution bases", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-006", as: "attacker" },
+            { card: "EX12-006", as: "ally" },
+          ],
+          hand: [
+            { card: "EX12-025", as: "target" },
+            { card: "EX12-025", as: "otherTarget" },
+          ],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: {
+          battleArea: [{ card: "EX12-006", as: "opponent" }],
+          security: ["BT1-101"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards"), 160);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(0);
+    const choice = s.decisions.find(({ req }) => req.kind === "selectCards")!;
+    expect(choice.seat).toBe(0);
+    expect(choice.req.options?.candidateInstanceIds).toEqual([
+      s.inst("target").instanceId,
+      s.inst("otherTarget").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("target").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard?.cardId === "EX12-025", 160);
+    expect(s.perm("ally").topCard?.cardId).toBe("EX12-006");
+    expect(s.perm("opponent").topCard?.cardId).toBe("EX12-006");
+    expect(s.state.memory).toBe(2);
   });
 
   it("uses the face-up security digivolution only once per turn", async () => {
