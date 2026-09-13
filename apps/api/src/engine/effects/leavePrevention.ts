@@ -92,7 +92,14 @@ export async function consultLeavePrevention(
     if (prevented.has(leavingId)) continue;
     const leaving = host.permanentById(leavingId);
     if (leaving === undefined) continue;
-    const eligible: { repl: ReplacementSubscription; ctx: EffectContext; activationKey: string }[] = [];
+    const eligible: {
+      repl: ReplacementSubscription;
+      ctx: EffectContext;
+      activationKey: string;
+      sourceTopInstanceId?: string;
+      sourceRole?: "top" | "stack" | "linked";
+      sourceFaceUp?: boolean;
+    }[] = [];
     for (const repl of replacements) {
       if (repl.mode !== "instead" && repl.mode !== "prevent") continue;
       if (opts.isDigiXros === true && repl.exceptDigiXros === true) continue;
@@ -113,7 +120,35 @@ export async function consultLeavePrevention(
       if (repl.mode === "instead") {
         if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
       } else if (repl.protects && !repl.protects(ctx, leavingId)) continue;
-      eligible.push({ repl, ctx, activationKey });
+      const sourceRole =
+        repl.sourceInstanceId === undefined || srcPerm === undefined
+          ? undefined
+          : srcPerm.topCard?.instanceId === repl.sourceInstanceId
+            ? "top"
+            : srcPerm.stack.some((card) => card.instanceId === repl.sourceInstanceId)
+              ? "stack"
+              : srcPerm.linked.some((card) => card.instanceId === repl.sourceInstanceId)
+                ? "linked"
+                : undefined;
+      const sourceCard =
+        srcPerm === undefined || repl.sourceInstanceId === undefined
+          ? undefined
+          : [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
+              (card) => card?.instanceId === repl.sourceInstanceId,
+            );
+      // A face-down inherited/linked card has no available effect text. Likewise,
+      // reject an instance-anchored subscription whose physical role cannot be found
+      // in the live source; both can occur when an earlier simultaneous body mutates
+      // the source before a later leaving target is collected.
+      if (repl.sourceInstanceId !== undefined && (sourceRole === undefined || sourceCard?.faceUp !== true)) continue;
+      eligible.push({
+        repl,
+        ctx,
+        activationKey,
+        sourceTopInstanceId: srcPerm?.topCard?.instanceId,
+        sourceRole,
+        sourceFaceUp: sourceCard?.faceUp,
+      });
     }
 
     let ordered = eligible;
@@ -135,8 +170,43 @@ export async function consultLeavePrevention(
 
     // The source whose "instead" replacement already replaced this leave event, if any.
     let insteadAppliedBySource: string | undefined;
-    for (const { repl, ctx, activationKey } of ordered) {
+    for (const { repl, ctx, activationKey, sourceTopInstanceId, sourceRole, sourceFaceUp } of ordered) {
       if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
+      // A replacement body may resolve another effect before its sibling is reached. If
+      // that effect removes or evolves the replacement source, the earlier eligibility
+      // snapshot is stale and the sibling must not resolve against its old context. Delayed
+      // instance-anchored reactions (for example a Security card already in trash) have no
+      // permanent source to revalidate and retain their existing lifecycle.
+      if (repl.sourcePermanentId !== undefined) {
+        const liveSource = host.permanentById(repl.sourcePermanentId);
+        if (liveSource === undefined) continue;
+        // A top-card anchored effect is lost when that top becomes a new card. An
+        // inherited/linked effect remains valid only in the same physical role; promotion
+        // to top or detaching a link changes the source card's effect status.
+        if (sourceRole === "top" || repl.sourceInstanceId === undefined) {
+          if (liveSource.topCard?.instanceId !== sourceTopInstanceId) continue;
+        }
+        if (
+          repl.sourceInstanceId !== undefined &&
+          (sourceRole === undefined ||
+            (sourceRole === "stack" && !liveSource.stack.some((card) => card.instanceId === repl.sourceInstanceId)) ||
+            (sourceRole === "linked" && !liveSource.linked.some((card) => card.instanceId === repl.sourceInstanceId)))
+        )
+          continue;
+        if (
+          repl.sourceInstanceId !== undefined &&
+          sourceFaceUp !== undefined &&
+          ![liveSource.topCard, ...liveSource.stack, ...liveSource.linked].some(
+            (card) => card?.instanceId === repl.sourceInstanceId && card.faceUp === sourceFaceUp,
+          )
+        )
+          continue;
+      }
+      // Recheck the event predicate after any earlier sibling has resolved. Immediate
+      // effects are evaluated against the live state at activation; a nested body can
+      // change the leaving card or the protected set before this sibling is reached.
+      if (repl.mode === "instead" && repl.appliesTo !== undefined && !repl.appliesTo(ctx, leavingId)) continue;
+      if (repl.mode === "prevent" && repl.protects !== undefined && !repl.protects(ctx, leavingId)) continue;
       if (repl.mode === "instead") {
         // Exactly ONE replacement applies to one leave event (KB Q5352): once another card's
         // "instead" has replaced it, this one no longer has an event to replace. Sibling

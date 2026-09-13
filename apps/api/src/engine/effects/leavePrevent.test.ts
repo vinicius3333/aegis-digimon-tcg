@@ -883,6 +883,116 @@ describe("leave-area prevent: cause gating + bounce coverage", () => {
 });
 
 describe("immediate replacement activation identity", () => {
+  // Synthetic subscriptions isolate activation lifetime; no printed provider is inferred.
+  it("invalidates a permanent-only sibling when its original top changes", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const victim = putPermanent(h.state, 0, "victim");
+    let activations = 0;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      activationIdentity: "TEST/permanent-only/change",
+      description: "Synthetic activation-lifetime control",
+      mode: "instead",
+      appliesTo: () => true,
+      apply: async () => {
+        source.topCard = card(DIGIMON, 0);
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      activationIdentity: "TEST/permanent-only/sibling",
+      description: "Synthetic activation-lifetime control",
+      mode: "instead",
+      appliesTo: () => true,
+      apply: async () => {
+        activations += 1;
+      },
+    });
+    await h.consult([victim.permanentId]);
+    expect(activations).toBe(0);
+  });
+
+  it("keeps a hidden inherited source ineligible for later targets in one consultation", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const first = putPermanent(h.state, 0, "first");
+    const second = putPermanent(h.state, 0, "second");
+    const inherited = source.stack[0]!;
+    let activations = 0;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/hidden-source/change",
+      description: "Synthetic activation-lifetime control",
+      mode: "instead",
+      appliesTo: () => true,
+      apply: async () => {
+        inherited.faceUp = false;
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: inherited.instanceId,
+      activationIdentity: "TEST/hidden-source/sibling",
+      description: "Synthetic activation-lifetime control",
+      mode: "instead",
+      appliesTo: () => true,
+      apply: async () => {
+        activations += 1;
+      },
+    });
+    await h.consult([first.permanentId, second.permanentId]);
+    expect(activations).toBe(0);
+    expect(inherited.faceUp).toBe(false);
+    // Only the first target offers a competing pair; the later hidden provider is absent.
+    expect(h.offeredReplacementIds).toHaveLength(1);
+    expect(h.offeredReplacementIds[0]).toHaveLength(2);
+  });
+
+  it("does not pay prevention after an earlier body invalidates protection", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const victim = putPermanent(h.state, 0, "victim");
+    let protects = true;
+    let payments = 0;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/protection/change",
+      description: "Synthetic activation-lifetime control",
+      mode: "instead",
+      appliesTo: () => true,
+      apply: async () => {
+        protects = false;
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/protection/sibling",
+      description: "Synthetic activation-lifetime control",
+      mode: "prevent",
+      protects: () => protects,
+      preventCheck: async () => {
+        payments += 1;
+        return true;
+      },
+    });
+    const prevented = await h.consult([victim.permanentId]);
+    expect(payments).toBe(0);
+    expect(prevented.size).toBe(0);
+  });
+
   it("runs distinct actions with identical prose on one source while suppressing same-action nesting", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source");
@@ -922,5 +1032,196 @@ describe("immediate replacement activation identity", () => {
 
     expect(firstActivations).toBe(1);
     expect(secondActivations).toBe(2);
+  });
+
+  it("does not resolve a sibling after its replacement source leaves during the first body", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const victim = putPermanent(h.state, 0, "victim");
+    let siblingActivations = 0;
+
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/source-loss/first",
+      mode: "instead",
+      description: "source loss race",
+      appliesTo: () => true,
+      apply: async () => {
+        // Simulate a nested effect removing the source while this consult is awaiting.
+        source.topCard = undefined as never;
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/source-loss/sibling",
+      mode: "instead",
+      description: "stale sibling",
+      appliesTo: () => true,
+      apply: async () => {
+        siblingActivations += 1;
+      },
+    });
+
+    await h.consult([victim.permanentId]);
+
+    expect(siblingActivations).toBe(0);
+  });
+
+  it("does not resolve an inherited sibling after its source card leaves the stack", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const victim = putPermanent(h.state, 0, "victim");
+    const inherited = source.stack[0]!;
+    let siblingActivations = 0;
+
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/inherited-loss/first",
+      mode: "instead",
+      description: "inherited source loss race",
+      appliesTo: () => true,
+      apply: async () => {
+        h.state.players[0]!.trash.push(...source.stack.splice(0, source.stack.length));
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: inherited.instanceId,
+      activationIdentity: "TEST/inherited-loss/sibling",
+      mode: "instead",
+      description: "stale inherited sibling",
+      appliesTo: () => true,
+      apply: async () => {
+        siblingActivations += 1;
+      },
+    });
+
+    await h.consult([victim.permanentId]);
+
+    expect(siblingActivations).toBe(0);
+  });
+
+  it("rechecks sibling predicates after an earlier replacement changes the live target", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const victim = putPermanent(h.state, 0, "victim");
+    let targetStillEligible = true;
+    let siblingActivations = 0;
+
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/predicate-race/first",
+      mode: "instead",
+      description: "changes target eligibility",
+      appliesTo: () => true,
+      apply: async () => {
+        targetStillEligible = false;
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/predicate-race/sibling",
+      mode: "instead",
+      description: "stale target predicate",
+      appliesTo: () => targetStillEligible,
+      apply: async () => {
+        siblingActivations += 1;
+      },
+    });
+
+    await h.consult([victim.permanentId]);
+
+    expect(siblingActivations).toBe(0);
+  });
+
+  it("keeps an inherited sibling live when only the host top card changes", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const victim = putPermanent(h.state, 0, "victim");
+    const inherited = source.stack[0]!;
+    let siblingActivations = 0;
+
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/inherited-top-change/first",
+      mode: "instead",
+      description: "promotes a new top",
+      appliesTo: () => true,
+      apply: async () => {
+        source.stack.push(source.topCard!);
+        source.topCard = card("NEW-TOP", 0);
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: inherited.instanceId,
+      activationIdentity: "TEST/inherited-top-change/sibling",
+      mode: "instead",
+      description: "inherited effect remains",
+      appliesTo: () => true,
+      apply: async () => {
+        siblingActivations += 1;
+      },
+    });
+
+    // §15-4-4-3 (comprehensive-0165, SHA-256 a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0)
+    // invalidates a pending effect only when the card carrying that effect becomes new;
+    // the inherited source card remains the same physical card in this control.
+    await h.consult([victim.permanentId]);
+
+    expect(siblingActivations).toBe(1);
+  });
+
+  it("drops an inherited sibling when its source card is promoted to the top", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source", { sources: 1 });
+    const victim = putPermanent(h.state, 0, "victim");
+    const inherited = source.stack[0]!;
+    let siblingActivations = 0;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/inherited-promotion/first",
+      mode: "instead",
+      description: "promotes inherited source",
+      appliesTo: () => true,
+      apply: async () => {
+        source.topCard = source.stack.pop()!;
+        return false;
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: inherited.instanceId,
+      activationIdentity: "TEST/inherited-promotion/sibling",
+      mode: "instead",
+      description: "promoted source is no longer inherited",
+      appliesTo: () => true,
+      apply: async () => {
+        siblingActivations += 1;
+      },
+    });
+    await h.consult([victim.permanentId]);
+    expect(siblingActivations).toBe(0);
   });
 });
