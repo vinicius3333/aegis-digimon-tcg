@@ -65,6 +65,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT25-104" && s.perm("target").currentDP === 2000);
+    const burstInstance = s.perm("base").topCard.instanceId;
     // Final Shining Burst applies -15000, then the replayed Marcus suspends and applies
     // its own -3000 reaction. Prove the completed nested chain rather than its 5000-DP
     // intermediate state.
@@ -77,8 +78,12 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId)).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTop)).toBe(true);
+    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnEndTurn,
+    );
+    // §8-3-2-1 trashes the Burst top and promotes the former top.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === burstInstance)).toBe(true);
+    expect(s.perm("base").topCard.instanceId).toBe(priorTop);
   });
 
   it("uses its DATA SQUAD Use Requirement and resolves the Option side Main effect", async () => {

@@ -325,8 +325,10 @@ export async function runReplacement(
           const targetId = subCtx.trigger.deletedPermanentId;
           if (targetId === undefined) return false;
           return (
-            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !==
-            undefined
+            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, {
+              payCost: false,
+              processRulesBeforeWhenDigivolving: true,
+            })) !== undefined
           );
         }
         if (action.playAndRelocateSourceUnder !== undefined) {
@@ -651,86 +653,87 @@ export async function runReplacement(
       : {}),
     apply: (subCtx) =>
       withReplacementSource(subCtx, async () => {
-      const tracksDigiXrosExpansion = (action.actions ?? []).some(
-        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
-      );
-      // A material-zone expansion's "by" payment remains optional even when an older
-      // compiled module omits the outer optional flag (BT19-087, CR 15-7-4).
-      const hasOptionalDigiXrosCost = (action.actions ?? []).some(
-        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion" && nested.cost !== undefined,
-      );
-      if (
-        (action.actions ?? []).some(
-          (nested) =>
-            nested.kind === "DigiXrosMaterialZoneExpansion" &&
-            nested.cost !== undefined &&
-            !canPayCost(subCtx, nested.cost),
-        )
-      )
-        return false;
-      const expansionCountBefore = tracksDigiXrosExpansion
-        ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
-        : undefined;
-      const nestedActions = action.actions ?? [];
-      const dnaDigivolveActions = nestedActions.filter(
-        (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
-      );
-      // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
-      // DNA to offer never replaces the event, so it must not claim the one replacement slot a
-      // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
-      const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
-      if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
-        return false;
-      }
-      const replacementCost = action.cost;
-      // CR §15-7-5 permits an optional processing payment to resolve even when its optional
-      // payload has no legal target; payload legality is checked by the nested action itself.
-      if (
-        replacementCost !== undefined &&
-        typeof replacementCost !== "number" &&
-        !canPayCost(subCtx, replacementCost)
-      ) {
-        return false;
-      }
-      if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-        const delaySource = subCtx.source.permanent();
-        if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+        const tracksDigiXrosExpansion = (action.actions ?? []).some(
+          (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
+        );
+        // A material-zone expansion's "by" payment remains optional even when an older
+        // compiled module omits the outer optional flag (BT19-087, CR 15-7-4).
+        const hasOptionalDigiXrosCost = (action.actions ?? []).some(
+          (nested) => nested.kind === "DigiXrosMaterialZoneExpansion" && nested.cost !== undefined,
+        );
         if (
-          dnaDigivolveActions.length > 0 &&
-          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
+          (action.actions ?? []).some(
+            (nested) =>
+              nested.kind === "DigiXrosMaterialZoneExpansion" &&
+              nested.cost !== undefined &&
+              !canPayCost(subCtx, nested.cost),
+          )
         )
           return false;
-        if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
+        const expansionCountBefore = tracksDigiXrosExpansion
+          ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
+          : undefined;
+        const nestedActions = action.actions ?? [];
+        const dnaDigivolveActions = nestedActions.filter(
+          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+        );
+        // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
+        // DNA to offer never replaces the event, so it must not claim the one replacement slot a
+        // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
+        const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
+        if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
           return false;
         }
-        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
-        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
-      } else if (
-        (action.optional === true || hasOptionalDigiXrosCost) &&
-        !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
-      ) {
-        return false;
-      }
-      if (
-        replacementCost !== undefined &&
-        typeof replacementCost !== "number" &&
-        !(await payCost(subCtx, replacementCost))
-      ) {
-        return false;
-      }
-      for (const a of nestedActions) {
-        const abort = await runAction(subCtx, a);
-        if (abort) break;
-      }
-      // A declined or unresolvable DNA merge left the event unreplaced.
-      if (onlyDnaDigivolves) return subCtx.lastDigivolveResult === true;
-      if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
-        return (
-          (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??
-            expansionCountBefore) > expansionCountBefore
-        );
-      }
-      return true;
+        const replacementCost = action.cost;
+        // CR §15-7-5 permits an optional processing payment to resolve even when its optional
+        // payload has no legal target; payload legality is checked by the nested action itself.
+        if (
+          replacementCost !== undefined &&
+          typeof replacementCost !== "number" &&
+          !canPayCost(subCtx, replacementCost)
+        ) {
+          return false;
+        }
+        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+          const delaySource = subCtx.source.permanent();
+          if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount)
+            return false;
+          if (
+            dnaDigivolveActions.length > 0 &&
+            !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
+          )
+            return false;
+          if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
+            return false;
+          }
+          const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
+          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+        } else if (
+          (action.optional === true || hasOptionalDigiXrosCost) &&
+          !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
+        ) {
+          return false;
+        }
+        if (
+          replacementCost !== undefined &&
+          typeof replacementCost !== "number" &&
+          !(await payCost(subCtx, replacementCost))
+        ) {
+          return false;
+        }
+        for (const a of nestedActions) {
+          const abort = await runAction(subCtx, a);
+          if (abort) break;
+        }
+        // A declined or unresolvable DNA merge left the event unreplaced.
+        if (onlyDnaDigivolves) return subCtx.lastDigivolveResult === true;
+        if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
+          return (
+            (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??
+              expansionCountBefore) > expansionCountBefore
+          );
+        }
+        return true;
       }),
   });
 }

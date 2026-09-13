@@ -11,7 +11,7 @@
     "build": "tsc --noCheck -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run",
+    "test": "pnpm --filter @aegis/shared build && vitest run",
     "test:fast": "FAST=1 vitest run",
     "test:watch": "FAST=1 vitest --passWithNoTests",
     "test:core": "FAST=1 vitest run --passWithNoTests",
