@@ -129,7 +129,10 @@ describe("Training public boundaries", () => {
     citeTraining();
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX9-008", as: "trainer", under: ["EX9-001"] }],
+        battleArea: [
+          { card: "EX9-008", as: "trainer", under: ["EX9-001"] },
+          { card: "EX9-008", as: "spare", under: ["EX9-001"] },
+        ],
         deck: ["BT1-010", "BT1-048", "BT1-009", "BT1-010"],
       },
       1: { deck: ["BT1-009", "BT1-009"] },
@@ -147,8 +150,8 @@ describe("Training public boundaries", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("trainer").stack.length === 2);
-      const endResult = s.state.turnSeat === 0 ? s.engine.applyIntent(0, { type: "endPhase" }) : { ok: true };
-      expect(endResult).toEqual({ ok: true });
+      expect(s.state.turnSeat).toBe(0);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
       await advance(s.engine).waitForMainPhase(1);
       expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
       await advance(s.engine).waitForMainPhase(0);

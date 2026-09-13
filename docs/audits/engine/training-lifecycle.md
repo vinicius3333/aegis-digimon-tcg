@@ -15,7 +15,7 @@
 - Focused proof is bounded to EX9-008's public compiled Training activation and its natural eligibility/repeat boundaries.
 - Exact physical instance identities, face-down placement, stack order, suspend state, deck count, and pending-decision cleanup are asserted.
 - Source contract is `comprehensive-0260` (`b7603283456371a6ab6f29c64ef1a78e2afe6094bf01b1706c0f3fa73f927cf7`); the cited implementation provider is compiled EX9-008, with the public `activateEffect` intent and natural `startTurnLoop` main-phase gate.
-- Focused command: `apps/api/node_modules/.bin/vitest run apps/api/src/engine/conformance/keyword-training-boundaries.test.ts` — 1 file, 4 tests passed. Oxfmt, focused Oxlint, and `git diff --check` are the required follow-up gates for this change.
+- Focused command: `pnpm --filter @aegis/api exec vitest run src/engine/conformance/keyword-training-boundaries.test.ts` — 1 file, 4 tests passed. `pnpm exec oxfmt --write apps/api/src/engine/conformance/keyword-training-boundaries.test.ts docs/audits/engine/training-lifecycle.md`, `pnpm exec oxlint apps/api/src/engine/conformance/keyword-training-boundaries.test.ts`, and scoped `git diff --check` also passed.
 - Current printed/runtime provider inventory includes EX9-008/009/010/015/016/017/022/025/026/029/034/037/038/039/051/059/060/061, BT26-023/040, and P-202; this lane proves EX9-008 only. Copied, granted, source-loss, and broader provider proof remain open.
 
 ## Open classes
