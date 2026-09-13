@@ -1,12 +1,13 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT15/BT15-088.js";
 import { compiled } from "./BT13-010.js";
 import "./BT13-014.js";
+import "./BT13-094.js";
 
 describe("BT13-010 Biyomon", () => {
   it("keeps Garudamon and Kristy Damon bracket references exact", () => {
@@ -36,7 +37,7 @@ describe("BT13-010 Biyomon", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "BT15-088", as: "security", faceUp: true }],
+          security: [{ card: "BT15-088", as: "security" }],
           hand: [
             { card: "BT13-010", as: "biyomon" },
             { card: "BT13-014", as: "garudamon" },
@@ -44,13 +45,28 @@ describe("BT13-010 Biyomon", () => {
           battleArea: [{ card: "BT13-094", as: "kristy" }],
           deck: ["BT1-010"],
         },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "attacker" }],
+          hand: ["BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const kristyId = s.perm("kristy").topCard.instanceId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-014"));
 
     const garudamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT13-014")!;
@@ -58,24 +74,49 @@ describe("BT13-010 Biyomon", () => {
     // Garudamon's registered When Digivolving effect immediately replays the
     // returned 3-cost red Tamer, proving Kristy first left her original permanent.
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === kristyId)).toBe(true);
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(10);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("may return Kristy Damon even without a Garudamon in hand (Q2269)", async () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "BT15-088", as: "security", faceUp: true }],
+          security: [{ card: "BT15-088", as: "security" }],
           hand: [{ card: "BT13-010", as: "biyomon" }],
           battleArea: [{ card: "BT13-094", as: "kristy" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "attacker" }],
+          hand: ["BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT13-094"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-010")).toBe(true);
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(10);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("does not offer the Kristy cost when Biyomon is played normally", async () => {
