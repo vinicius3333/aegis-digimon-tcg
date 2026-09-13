@@ -28,7 +28,7 @@ interface Recorder {
 }
 
 function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
-  return { cardId, instanceId, ownerSeat: 0 as Seat } as never;
+  return { cardId, instanceId, ownerSeat: 0 as Seat, faceUp: true } as never;
 }
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {

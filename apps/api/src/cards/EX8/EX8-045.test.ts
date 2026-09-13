@@ -1,14 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { cite } from "../../engine/conformance/_kb.js";
 import "./index.js";
 import "../BT20/BT20-035.js";
 import "../BT5/BT5-112.js";
+import "../EX9/EX9-043.js";
 import { compiled } from "./EX8-045.js";
 
 describe("EX8-045", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0293",
+      "4-7-9/10: a face-down stacked card has no referenceable card information",
+      "1220b7f0fc0cb6ccc76d4ad371d1f788922a265df857413971108e64da24bc0f",
+    );
+  });
   it("matches the committed catalog identity, evolution, printed clauses, and no Security effect", () => {
     expect(getCardDefinition("EX8-045")).toMatchObject({
       cardId: "EX8-045",
@@ -147,6 +156,62 @@ describe("EX8-045", () => {
     expect(s.perm("callismon").currentDP).toBe(12000);
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
+  });
+
+  it.each([
+    ["BT1-009", "red"],
+    ["BT2-044", "green control"],
+  ])("ignores a face-down %s card placed by MetalTyrannomon when counting source colors (%s)", async (placedCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-070", as: "base" }],
+          hand: [
+            { card: "EX9-043", as: "metal" },
+            { card: "EX8-045", as: "callismon" },
+          ],
+          trash: [placedCard],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    const placedId = s.state.players[0]!.trash[0]!.instanceId;
+    const metalId = s.inst("metal").instanceId;
+    const callismonId = s.inst("callismon").instanceId;
+    s.state.memory = 8;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: metalId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-043");
+    expect(s.perm("base").stack.map((card) => [card.instanceId, card.cardId, card.faceUp])).toEqual([
+      [placedId, placedCard, false],
+      [s.inst("base").instanceId, "BT1-070", true],
+    ]);
+    expect(s.state.memory).toBe(4);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: callismonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-045");
+    expect(s.perm("base").stack.map((card) => [card.instanceId, card.cardId, card.faceUp])).toEqual([
+      [placedId, placedCard, false],
+      [s.inst("base").instanceId, "BT1-070", true],
+      [metalId, "EX9-043", true],
+    ]);
+    expect(s.perm("base").topCard.instanceId).toBe(callismonId);
+    expect(s.perm("base").currentDP).toBe(14000);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("loses both conditional keywords when an opposing Digimon reaches the source DP", async () => {
     const s = setupEngine({

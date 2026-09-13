@@ -74,7 +74,7 @@ describe("P-240 engine behavior", () => {
           battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arcturusmon"));
@@ -91,7 +91,7 @@ describe("P-240 engine behavior", () => {
         0: { battleArea: [{ card: "P-240", as: "arcturusmon" }], trash: ["EX12-007", "EX12-013"] },
         1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arcturusmon"));
@@ -105,7 +105,7 @@ describe("P-240 engine behavior", () => {
       {
         0: { battleArea: [{ card: "P-240", as: "arcturusmon" }], hand: [{ card: "EX12-077", as: "proximamon" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("arcturusmon").permanentId]);
@@ -121,7 +121,7 @@ describe("P-240 engine behavior", () => {
         0: { battleArea: [{ card: "BT1-080", as: "host", under: ["P-240"] }], security: ["BT1-001"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.turnSeat = 1;
     await s.ready();

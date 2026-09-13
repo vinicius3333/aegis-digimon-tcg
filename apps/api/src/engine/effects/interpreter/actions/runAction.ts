@@ -491,6 +491,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "PlayWithoutCost" &&
     (action.requiresEmpty === "breedingArea" || action.breeding === true) &&
+    action.allowCostWithoutTarget !== true &&
     ctx.game.player(ctx.source.ownerSeat).breeding !== undefined
   ) {
     return action.abortOnDecline === true;

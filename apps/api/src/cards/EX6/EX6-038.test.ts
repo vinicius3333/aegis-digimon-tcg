@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -52,7 +51,17 @@ describe("EX6-038 Ludomon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("ludomon"));
+    const effect = JSON.parse(s.inst("ludomon").activatableEffectsJson || "[]").find(
+      (entry: { effectKey: string }) => entry.effectKey.includes("EX6-038"),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("ludomon").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("ludomon").instanceId));
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("ludomon").instanceId)).toBe(true);

@@ -209,15 +209,21 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
 });
 
 describe("BT11-112 IR target ownership", () => {
-  it("binds both On Play keywords and reactivates the suspended permanent's effect", () => {
+  it("binds both On Play keywords and gates reactivation behind the Tamer's optional suspend cost", () => {
     const card = runtimeCompiledCard("BT11-112")!;
     expect(card.effects?.[0]?.actions[1]).toMatchObject({ kind: "GainKeyword", target: { sameTarget: true } });
     expect(card.effects?.[1]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
       actions: [
-        { kind: "Suspend", abortOnDecline: true },
-        { kind: "ActivateEffect", target: { sourceRef: "triggerSubject" } },
+        {
+          kind: "ActivateEffect",
+          target: { sourceRef: "triggerSubject" },
+          effectType: "WhenDigivolving",
+          cost: { kind: "suspend", target: { isSelf: true } },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
     });
   });

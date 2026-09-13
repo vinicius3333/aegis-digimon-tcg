@@ -222,7 +222,7 @@ describe("BT23-084 Erika Mishima", () => {
     await loop;
   });
 
-  it("pays nothing when the breeding area is occupied", async () => {
+  it("pays the optional processing cost even when the breeding destination is occupied", async () => {
     const { s, loop } = await runSeat0Turn(
       turnBoard({
         battleArea: [
@@ -242,8 +242,9 @@ describe("BT23-084 Erika Mishima", () => {
     await advance(s.engine).waitForMainPhase(1);
 
     const me = s.state.players[0]!;
-    expect(s.perm("erika").isSuspended).toBe(false);
-    expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("hudie").instanceId)).toBe(true);
+    expect(s.perm("erika").isSuspended).toBe(true);
+    expect(me.hand.some((card) => card.instanceId === s.inst("hudie").instanceId)).toBe(true);
+    expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("hudie").instanceId)).toBe(false);
     expect(me.hand.some((card) => card.instanceId === s.inst("lopmon").instanceId)).toBe(true);
     expect(me.breeding?.topCard?.instanceId).toBe(s.inst("occupied").instanceId);
 

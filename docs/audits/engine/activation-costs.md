@@ -40,8 +40,9 @@ to the correct player. This does not certify all activation-cost shapes.
 cost → `payCost` → nested `runAction`. Optional payloads assigned to the
 opponent for Delete now use the existing seat-addressed decision API. Recipient
 controller fields on other action kinds do not determine their chooser. Explicit borrowed
-effect `forceCostProcessing` still bypasses the newly honored optional cost
-choice; its dedicated behavior needs regression coverage before certification.
+effect `forceCostProcessing` has a bounded BT23-060/BT23-045 proof below; other
+borrowed cost kinds and force assignments still need separate coverage before
+any broader certification.
 Implementation checkpoint: `7671a3b9f`; citation correction: `c99bcef5c`; citation infrastructure: `d2753b28e`.
 
 ## Obligation ledger
@@ -91,7 +92,148 @@ Resolve every queued/unresolved obligation, inspect all cost consumer shapes,
 run final gates, and identify the delivery commit. No 10/10 or mechanism
 completion is claimed from this checkpoint.
 
+## Targetless paid payload checkpoint (2026-09-13)
+
+`comprehensive-0170` §15-7-5 permits an optional processing condition to be
+paid even when the subsequent payload has no eligible target. The executable
+pin is SHA-256 `6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97`.
+
+`activation-cost-targetless-payload.test.ts` drives the real public Main effect
+of BT19-086 with four actual `[Device]` Options in the battle area and no
+Cyberdramon in hand or trash. The compound suspend-plus-trash cost is paid,
+all four captured physical Option instance IDs reach the trash, the Tamer and
+host retain their original permanent identities and the host's DP, and the
+optional play payload makes no board change. Focused result: **1 test passed**.
+This closes the targetless payload case for BT19-086's compound
+`CostGatedBlock`; other cost kinds, providers, and targetless shapes remain
+open. The separate EX9-025/EX9-061 public deck-payment cases in
+`digivolution-card-placement.test.ts` provide the same §15-7-5 boundary for a
+different set and cost shape; they are referenced rather than duplicated here.
+
+The BT20-073 MetalPhantomon ordering fixture exposed a separate, concrete
+boundary for this rule. Its entry actions have a payable `deleteOwn` condition
+when the controller has a Digimon, but their opponent level-5-or-lower Delete
+payload can have no target (for example, an opponent whose only Digimon is a
+level-6 BT20-076). The IR now marks both entry actions with
+`allowCostWithoutTarget`; the public BT20-073 test accepts the processing
+choice, selects an exact own payment instance, verifies that instance in the
+trash, preserves the level-6 opponent, and leaves no pending decision. The
+ordering conformance case explicitly refuses this targetless condition before
+continuing its other pending watcher. This is a card-scoped use of the
+existing §15-7-5 escape hatch: the cost remains payable only when a real own
+Digimon exists, while the targetless payload no longer suppresses the
+processing choice. Other cost kinds and generated actions still require their
+own targetless review; BT20-073's collection entry remains bounded to its
+recorded entry and inherited cases.
+
+## Compound assignment checkpoint (2026-09-12)
+
+BT14-090 Dragon of Courage is the reviewed printed consumer for this bounded
+compound-cost proof. Its Main clause requires placing one exact [Greymon] and
+one exact [MetalGreymon] from the controller's trash under one exact [Agumon],
+then makes the [WarGreymon] evolution optional. Q2466 confirms that both
+placements resolve before the optional evolution. Comprehensive-0169 §15-7-3
+requires the compound condition to be paid as a whole. Because BT14-090 is an
+activation-type [Main] effect, comprehensive-0176 §15-8-4-4-1 additionally
+requires its condition to be performable before the player declares the effect;
+the §15-7-4 triggered-effect choice rule does not override that declaration gate.
+
+The new `activation-cost-compound-assignment.test.ts` uses only catalog cards
+from BT14-090's printed filters. Its accepting public Option play supplies two
+distinct exact Greymon instances and one MetalGreymon, then verifies that the
+resulting Agumon stack contains exactly one physical instance for each payment
+component and leaves the second Greymon in trash. Its impossible-payment control
+supplies only one Greymon and verifies that the activation-type effect does not
+declare, does not move the available Greymon, leaves the host unchanged, and
+charges only the Option's ordinary play cost. Focused result: **2 tests passed**.
+
+The source contract is satisfied for this activation-type consumer: an
+unperformable compound condition is rejected before declaration. §15-7-4's
+impossible-payment choice remains a separate triggered-effect obligation already
+covered by the earlier ledger entries. The accepting case proves distinct
+physical assignment for this consumer, but general candidate disjointness across
+the 19 compound cost consumers remains open. The exact Greymon/MetalGreymon
+filters here are disjoint by card identity; arbitrary overlapping filters,
+multiple hosts, and other compound component shapes remain open.
+
+The complete persisted inventory contains **20 compound-cost occurrences across
+19 distinct cards**. Direct-module review classifies every component pair by its
+printed zone, kind, exact name/trait, level, host, or self-reference constraints:
+BT14-090, BT15-091, BT17-085, BT25-096, BT26-098, and ST17-10 use distinct
+named material constraints, with the applicable self-reference or bound-host
+constraint preserved; BT16-090, BT19-086, BT23-084, BT23-089, BT23-090,
+BT25-092, EX5-064, and EX10-067 combine a self/permanent or source-class
+component with a different card class; BT17-050, EX6-038, and EX6-042 combine
+memory with a placement; EX3-035 uses three distinct named return classes; and
+EX13-071 separates its level-4 and level-5 Holy Beast placements after a
+face-down-source component. No current printed consumer yields a reproducible
+same-physical-card overlap between two compound components. This is an
+inventory finding, not a generic uniqueness proof: malformed filters, future
+cards, and runtime candidate exclusion still require a reusable seam test.
+
 ## History
+
+## Finite cost-shape reconciliation (2026-09-13)
+
+The persisted discovery table above has 22 top-level kinds. The following map records the
+actual current consumer classes and executable anchors reviewed in this pass. A discovery-only
+row is deliberately not treated as behavioral certification; `raw` has no current consumer and
+is rejected by `canPayCost`.
+
+| Kind                              | Current consumer/class anchor                              | Public executable evidence                                                                  | Status and precise boundary                                                                                    |
+| --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `attack`                          | AD1-020 printed attack payment                             | `cards/AD1/AD1-020.test.ts`                                                                 | sole current structured attack-cost consumer is covered; no second attack-cost form was found in the current scan |
+| `compound`                        | BT14-090 named pair; BT17-050, EX6-038, EX6-042 memory+placement; BT23-060 borrowed; BT23-084/BT23-090 self-suspend + Hudie return; BT16-090 nested delete-own + breeding trash; BT16/19/23/25/EX5/EX10/EX13 other mixed shapes | `activation-cost-compound-assignment.test.ts`, `cards/BT17/BT17-050.test.ts`, `cards/EX6/EX6-038.test.ts`, `cards/EX6/EX6-042.test.ts`, `cards/BT16/BT16-090.test.ts`, `cards/BT23/BT23-084.test.ts`, `cards/BT23/BT23-090.test.ts`, `activation-cost-borrowed-effects.test.ts` | whole-clause, host/payment preflight, borrowed, Hudie self-suspend/return, and BT16 nested breeding-source transaction are publicly covered for these classes; BT23-084/090 and BT16-090 accept/refusal/insufficient-component cases preserve exact physical identities and perform no partial payment. Remaining current consumers are classified by concrete shape below; no same-card overlap is certified |
+| `deleteOwn`                       | BT19-086 suspend + delete-own CostGatedBlock               | `activation-cost-targetless-payload.test.ts`                                                | all-or-nothing targetless payload boundary proved for this shape; other target filters unreviewed              |
+| `digivolve`                       | BT18-100 printed digivolve cost                            | `cards/BT18/BT18-100.test.ts`                                                               | sole current structured digivolve-cost consumer is covered; no alternate cost consumer was found in the current scan |
+| `flipSecurity`                    | BT23-043 / BT23-045 printed security flips                 | `cards/BT23/BT23-043.test.ts`, `cards/BT23/BT23-045.test.ts`                                  | exact physical security identity and face transition are covered; alternate replacement contexts remain bounded |
+| `moveToBattleArea`                | BT20-095 printed Option action cost                        | `cards/BT20/BT20-095.test.ts`                                                               | sole current structured consumer is covered through public Option resolution; no second cost consumer found in the scan |
+| `payMemory`                       | BT10-025 and BT23-053 memory costs                         | `cards/BT10/BT10-025.test.ts`, `cards/BT23/BT23-053.test.ts`                                | ordinary memory affordability/payment paths; compound and borrowed combinations remain bounded                 |
+| `place`                           | BT14-090, BT17-050, EX6-038/042, and ST17-10 ordered placement | `activation-cost-compound-assignment.test.ts`, `cards/BT17/BT17-050.test.ts`, `cards/EX6/EX6-038.test.ts`, `cards/EX6/EX6-042.test.ts`, `keyword-de-digivolve-parameters.test.ts` | exact hand/source and bottom-stack host classes are covered for these consumers; other current placement destinations remain bounded |
+| `placeAsSecurity`                 | BT18-034 / BT19-048 / BT26-033 printed placement           | `cards/BT18/BT18-034.test.ts`, `cards/BT19/BT19-048.test.ts`, `cards/BT26/BT26-033.test.ts` | face-up-bottom and bottom placement providers are covered; alternate face/destination combinations remain bounded |
+| `placeOwnTopAtStackBottom`        | BT26-058 / EX5-016 / EX5-064 source-top payment            | `cards/BT26/BT26-058.test.ts`, `cards/EX5/EX5-016.test.ts`, `cards/EX5/EX5-064.test.ts`      | source-top payment and refusal classes are covered; no separate current cross-stack consumer found             |
+| `playFromDigivolutionCards`       | BT19-102 / BT24-060 / EX5-065                              | `cards/BT19/BT19-102.test.ts`, `cards/BT24/BT24-060.test.ts`, `cards/EX5/EX5-065.test.ts`   | source-stack play and public source movement are covered; targetless/compound forms are open only where a current consumer exists |
+| `raw`                             | no persisted consumer                                      | none                                                                                        | rejected by `canPayCost`; no current behavioral gap                                                            |
+| `reveal`                          | EX4-023 “that revealed card” continuation                  | `cards/EX4/EX4-023.test.ts`                                                                 | sole current structured reveal-cost consumer is covered; no multi-reveal cost consumer found in the current scan |
+| `return`                          | BT19-092 / BT19-101 / EX5-018 / BT24-083 hand or deck-bottom return | `cards/BT19/BT19-092.test.ts`, `cards/BT19/BT19-101.test.ts`, `cards/EX5/EX5-018.test.ts`, `cards/BT24/BT24-083.test.ts` | hand and deck-bottom physical movement classes are covered; source-stack and compound return combinations remain open only for current consumers |
+| `securityToHand`                  | BT23-086 / AD1-023 / BT24-034 top-security payment         | `cards/BT23/BT23-086.test.ts`, `cards/AD1/AD1-023.test.ts`, `cards/BT24/BT24-034.test.ts`     | exact top identity, refusal and empty-security boundary are covered; non-top security payment is not a current consumer |
+| `suspend`                         | BT19-086 and BT23 compound costs                           | `activation-cost-targetless-payload.test.ts`, `activation-cost-compound-assignment.test.ts` | public suspend payment exists; already-suspended and multi-target cost classes remain open                     |
+| `trash`                           | BT19-043 security/trash cost                               | `cards/BT19/BT19-043.test.ts`                                                               | native trash payment path; hand/stack/breeding source permutations remain bounded                              |
+| `trashBothSecurityTop`            | BT19-043 printed two-security cost                         | `cards/BT19/BT19-043.test.ts`                                                               | exact own/opponent top identities and empty-security all-or-nothing boundary are covered; other multi-security counts remain bounded |
+| `trashBottomFaceDownUnderDigimon` | BT26-048 printed source-stack cost                         | `cards/BT26/BT26-048.test.ts`                                                               | exact face-down source, face-up bottom boundary, refusal and source identity are covered; alternate stack owners remain bounded |
+| `trashBottomFaceDownUnderTamer`   | BT25-027 / BT25-041 / BT26-070 printed Tamer source cost   | `cards/BT25/BT25-027.test.ts`, `cards/BT25/BT25-041.test.ts`, `cards/BT26/BT26-070.test.ts`   | bottom-most physical identity, refusal, insufficient count and multi-Tamer selection are covered; other count/destination classes remain bounded |
+| `trashSecurityTop`                | BT15-033 / BT16-080 / BT19-042 printed top-trash cost      | `cards/BT15/BT15-033.test.ts`, `cards/BT16/BT16-080.test.ts`, `cards/BT19/BT19-042.test.ts` | exact top identity and insufficient-security behavior are covered; face-up and compound contexts remain bounded |
+| `unsuspend`                       | BT14-054 / BT21-101 / BT23-024 / EX12-064                  | `cards/BT14/BT14-054.test.ts`, `cards/BT21/BT21-101.test.ts`, `cards/BT23/BT23-024.test.ts`, `cards/EX12/EX12-064.test.ts` | suspended payment, BT14-054 targetless payload, and ready-state rejection are covered; arbitrary multi-target costs remain open |
+| `unsuspendNamed`                  | BT19-090 named unsuspend                                   | `cards/BT19/BT19-090.test.ts`                                                               | Main modal rejects an unavailable exact name or half-payable pair; arbitrary name/trait overlap remains open   |
+
+The first focused closure run for the real `unsuspendNamed`, security-stack, digivolve, and
+borrowed-cost providers passed 7 files / 44 tests. This is a consumer-shape checkpoint, not a
+claim that every persisted card carrying a kind has full public-cost evidence. The remaining
+items above are concrete source/destination, target-selection, refusal, or multi-target classes,
+rather than a generic request to test every card.
+
+The current compound denominator is finite and is grouped by executable shape: named-pair
+placement (`BT14-090`, `BT15-091`); memory plus placement (`BT17-050`, `EX6-038`, `EX6-042`);
+borrowed processing (`BT23-060`); self-suspend plus return (`BT23-084`, `BT23-090`); nested
+delete-own plus breeding trash (`BT16-090`); self-suspend plus delete-own (`BT19-086`);
+self-suspend plus stack-top rotation (`EX5-064`); self-suspend plus saved-card placement
+(`EX10-067`); self-suspend plus hand/stack trash (`BT25-092`); Tamer-source payment plus
+named-pair placement (`EX13-071`); and ordered three-return (`EX3-035`). The public tests for
+these providers exercise the shared all-or-nothing compound transaction, while retaining
+provider-specific filters and destinations as bounded obligations. `EX13-071.test.ts` now
+drives the Tamer's Main ability through public `activateEffect` and completes the Kudamon →
+Kentaurosmon route with exact trash/source-stack identities. `BT17-085`, `BT25-096`,
+`ST17-10`, and `EX13-071` retain their distinct multi-placement ordering/filter cases. No
+additional current compound shape was found beyond the persisted 19 occurrences; arbitrary
+future overlap and unnamed variants are outside the current consumer scope.
+
+The EX13-071 source-zone edge was checked separately: with the level-4 and level-5 Holy Beast
+cards face-down under Sampson and no matching cards initially in trash, public `activateEffect`
+is not offered. Applying comprehensive-0169 §15-7-3 to this activation-type compound means that
+the player cannot perform only part of the multi-component optional processing condition (SHA
+`255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b`), so the first trashing component
+cannot manufacture candidates for the second component after declaration. The ordinary public
+positive instead starts with both placement candidates in trash and completes all components.
 
 - 2026-09-12: initial optional-cost reproduction and correction on
   `audit/engine-mechanisms-20260912`; raw results recorded above.
@@ -154,17 +296,41 @@ Each occurrence below retains its IR path. Component summaries omit filters and 
 
 `canPayCost(compound)` checks each component independently; general payment executes components sequentially. The ordered-return branch collects selections before moving cards but does not currently exclude earlier selections from later candidates. Candidate overlap is a hypothesis to reproduce with an actual printed consumer, not a proven defect.
 
+### BT23-084 and BT23-090 Hudie compound costs
+
+The public end-of-turn route in `cards/BT23/BT23-084.test.ts` and
+`cards/BT23/BT23-090.test.ts` exercises the same current executor shape: the
+controller must accept an optional compound cost, suspend the exact Tamer, and
+return exactly one of that controller's physical [Hudie] Digimon to the hand
+before the free play resolves. Both files also prove voluntary refusal and an
+unpayable component (no eligible [Hudie] Digimon) without suspending the Tamer,
+moving a Digimon, or creating a partial payment. The opponent-[Hudie] control in
+`BT23-090.test.ts` confirms controller filtering. The 32-test focused run passed
+on 2026-09-13. These two providers are equivalent for the compound-cost
+executor, while their free-play destinations and filters remain card-specific.
+
+The existing EX3 ordered-return proof covers its disjoint exact-name case, while
+BT16-090 now has a public nested `deleteOwn` + `trashBreeding` proof in
+`cards/BT16/BT16-090.test.ts`: the accepted route asserts the exact Ukkomon and
+Digi-Egg instance IDs in trash, exact Big Ukkomon in breeding, the Lui source
+remaining ready, no Big Ukkomon in hand, memory 0, and no pending decision. Its
+missing-breeding route rejects before either component moves and preserves the
+exact battle-area IDs, trash, memory, and pending state. The 4-test focused run
+passed on 2026-09-13. These are bounded provider proofs; they do not certify
+general compound assignment or arbitrary overlap, and the remaining current
+compound rows retain their source-specific status below.
+
 ## Exact-name payment boundary, 2026-09-12
 
 BT14-090 uses bracket-only references to Greymon, MetalGreymon, Agumon, and WarGreymon. `comprehensive-0034` §2-3-1-2 requires exact names, while §2-3-1-3 permits substring matches only for explicit “in its name” wording. Reviewed source hash: `c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2`. Q2466 separates payment from optional evolution.
 
 A public Option-play reproduction with only MetalGreymon in trash consumed it as the Greymon component and then failed the second component. After repairing a transient fixture lookup of the resolving Option, the focused reproduction had 2 failed / 5 passed: the payment choice improperly included MetalGreymon, and the missing-Greymon case removed MetalGreymon from trash. Seven bracket-only filters now use `nameExact`; Tai Kamiya's explicit “in its name” filter remains substring matching. The first corrected focused run passed 7/7.
 
-Expanded tests include a duplicate exact Greymon choice, a near-named Agumon host, exact WarGreymon together with X Antibody in hand, and Security refusal of near-named Agumon. The original Q2466 decline-after-payment and same-host proofs remain. The initially added targetless-destination no-payment expectation was removed following independent review: it would have asserted unresolved Main Option payment policy, not merely exact-name matching. CostGatedBlock's targetless payload gating for already played Options remains an explicit open obligation under §15-7-5.
+Expanded tests include a duplicate exact Greymon choice, a near-named Agumon host, exact WarGreymon together with X Antibody in hand, and Security refusal of near-named Agumon. The original Q2466 decline-after-payment and same-host proofs remain. The initially added targetless-destination no-payment expectation was removed following independent review: it would have asserted unresolved Main Option payment policy, not merely exact-name matching. The former CostGatedBlock targetless-payload concern under §15-7-5 is a historical checkpoint; the later BT17-085 and BT14-090 public proofs record its corrected bounded behavior.
 
 BT14 IR synchronization against `e65036cc1`: 102 records synchronized, one semantic card change, zero semantic or byte changes outside BT14. Expanded regression: 175 files / 1815 tests passed across BT14, the chapter 2 and chapter 15 timing conformance files, and engine effects. API typecheck and scoped Oxlint passed. Audit layout tests passed 4/4; generated index and diff checks passed. No whole-card or whole-set completion is claimed.
 
-Inspection of all 20 compound occurrences also found bracket-only substring filters in BT15-091, BT17-085, BT25-096, EX3-035, and ST17-10. BT15-091 and EX3-035 exact-name boundaries and BT17-085's host boundaries are corrected and reproduced below; BT25-096 and ST17-10 still need source-specific correction and public boundary proof. BT16-090, BT26-098, and EX13-071 already encode their relevant exact names. This classification is static inspection, not behavioral certification. General overlap and arbitrary ordering of stack placements remain unproved; EX3-035's specific ordered return is publicly reproduced below.
+Inspection of all 20 compound occurrences also found bracket-only substring filters in BT15-091, BT17-085, BT25-096, EX3-035, and ST17-10. BT15-091, EX3-035, and BT17-085 exact-name/host boundaries are corrected and reproduced below; BT25-096 and ST17-10 retain provider-specific boundaries in the current table rather than an unresolved generic compound claim. BT16-090, BT26-098, and EX13-071 already encode their relevant exact names. This classification is static inspection, not behavioral certification. General overlap outside named consumers remains out of scope; EX3-035's specific ordered return is publicly reproduced below.
 
 ### BT15-091 payment and name boundaries
 
@@ -174,7 +340,7 @@ Public Option/Security actions reproduced six failures with four existing cases 
 
 `pnpm effects:sync:set -- --set BT15 --base 63632cf6a` synchronized 102 records with one semantic card change and zero semantic or byte changes outside BT15. A regression launched before synchronization completed correctly caught stale persisted IR (one sync test failed; 1911 tests passed); no assertions were weakened. After synchronization and the explicit temporal-order assertion, `pnpm --filter @aegis/api exec vitest run src/cards/BT15 src/cards/BT14/BT14-090.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/effects --maxWorkers=1 --no-file-parallelism` passed 175 files / 1912 tests. Full API typecheck, scoped Oxlint and audit layout (4/4) passed. Read-only independent review found no semantic or fixture blocker.
 
-This proves these consumer boundaries, not all compound payment policy or BT15 collection fidelity. BT25-096 and ST17-10 exact-name consumers, general candidate overlap, arbitrary stack ordering, targetless Option payment and cost-bearing evolution remain open. BT17-085's host boundaries and EX3-035's specific ordered-return boundaries are reproduced below.
+This proves these consumer boundaries, not all compound payment policy or BT15 collection fidelity. The former BT25-096/ST17-10 exact-name, targetless Option payment, and ordered-placement concerns in this paragraph are historical checkpoints; their current provider proofs are listed in the authoritative table above and the later sections below. General candidate overlap outside current named consumers remains out of scope.
 
 ### EX3-035 exact-name return and player order
 
@@ -194,7 +360,7 @@ Public Main activation with only Renamon X Antibody as a placement host incorrec
 
 `pnpm effects:sync:set -- --set BT17 --base 40904ef30` synchronized 102 records with one semantic card change and zero semantic or byte changes outside BT17. `pnpm --filter @aegis/api exec vitest run src/cards/BT17 src/cards/BT14/BT14-090.test.ts src/cards/BT15/BT15-091.test.ts src/cards/EX3/EX3-035.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch15-02-timing-and-resolution.test.ts src/engine/effects --maxWorkers=1 --no-file-parallelism` passed 184 files / 2417 tests. Full API typecheck and scoped Oxlint passed. Independent read-only review found no semantic, fixture or bounded-claim blocker.
 
-Arbitrary printed stack order, targetless declaration/payment policy, full conditional-return fidelity and complete equivalence-class proof are still open. This consumer correction does not certify general compound payment or BT17 collection completion.
+Arbitrary printed stack order outside current ordered consumers, full conditional-return fidelity and complete equivalence-class proof remain bounded. This consumer correction does not certify general compound payment or BT17 collection completion.
 
 ### Payable processing without subsequent content (checkpoint `a43772ed7`)
 
@@ -215,7 +381,7 @@ BT14-090 provides the second collection and an Option-use boundary: with no WarG
 | Resident Main declaration requires payable conditions                            | §15-8-4-4-1 | Existing exact-host/material refusal proofs remain in the BT17-085 focused suite | Supporting proof; full shape inventory open                    |
 | Resident Main declared condition must be paid before optional subsequent content | §15-8-4-4-1 | BT17-085 first optional prompt sees empty stack before payment                   | Reproduced unresolved defect; `it.fails`, not verified         |
 
-At this checkpoint the expected failure was intentional audit evidence, not a passing obligation or completion certificate; the leading-block correction below removes that marker. Its source fingerprint is checked in a hook outside the expected-failure body, so citation drift remains a real suite failure; cleanup completes any pending public optional refusal. A mandatory-payment fix must remove the marker, prove no post-declaration refund and preserve triggered/Option processing choices. Direct action costs, whole-effect costs, borrowed effects, nested optional costs, all 63 discovered modules and complete activation-type inventory remain open.
+This paragraph records a historical expected-failure checkpoint. The leading-block correction below removed that marker and now proves no post-declaration refund while preserving triggered/Option processing choices. Direct action costs, whole-effect costs, borrowed effects, nested optional costs and the complete activation-type inventory remain bounded by the current consumer table; discovery counts are not certification.
 
 Closing gates: `pnpm --filter @aegis/api exec vitest run src/engine src/cards --maxWorkers=1 --no-file-parallelism` completed with 5045 passing files / 41302 passing tests and seven expected failures (41309 total). The final conformance run after the source-hook and Option-proof additions passed 31 files / 424 tests with one expected failure (425 total); final focused processing proofs passed three tests with that same unresolved expected failure. Full API typecheck, scoped Oxlint, Oxfmt for all five changed files, audit layout (4/4) and `git diff --check` passed. These are regression results, not proof of the seven unresolved contracts.
 
@@ -300,7 +466,7 @@ Review identified movement events emitted during provisional placement. The mixe
 
 Closing gates: final focused real-primitives proof passed 155 tests. Final API typecheck, scoped Oxlint, changed-file Oxfmt, audit layout (4/4) and `git diff --check` passed. Card modules and persisted card IR remain unchanged.
 
-This is the movement prerequisite, not a complete ordering implementation. Cost target/host collection, public order decisions, stale selections after those decisions, manual nondefault ST17-10/BT17-085 permutations, source-specific Tamer-attached-card rulings and breeding-top material support still require classification/proof. ST17-10's expected ordering failure remains intentional unresolved evidence; no card, collection or mechanism completion is claimed.
+This is the movement prerequisite, not a complete ordering implementation. Cost target/host collection, stale selections after decisions, source-specific Tamer-attached-card rulings and breeding-top material support remain bounded provider obligations. The former ST17-10 expected ordering failure is historical; the later public ordered-placement section records the corrected proof. No card, collection or mechanism completion is claimed.
 
 ### Public ordered placement payment for ST17-10 and BT17-085
 
@@ -319,3 +485,40 @@ This verifies the two public permutation/refusal boundaries, not all compound co
 ### Current primary-source check
 
 On 2026-09-12, the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf) identifies itself as version 4.2, updated 2026-08-18. Its §15-7-3 example specifies one Kimeramon and one Machinedramon; the local “126” extraction is not a valid numeric requirement. The current text retains no-partial-payment and payment-without-payload principles. §15-8-4-4-1 additionally requires performable payment before declaring an activation-type effect and mandatory performance after declaration. The [official BT14-090 ruling](https://world.digimoncard.com/rule/?card_no=BT14-090) confirms separable placement payment and evolution choice. These sources clarify audit obligations; they do not certify the current targetless Option gate or replace the committed KB fingerprints without a separate reviewed KB update.
+
+## Borrowed force-cost processing proof (2026-09-13)
+
+`BT23-060.ts` is the current printed consumer assigning
+`borrowedEffectOverrides.forceCostProcessing: true` for its public
+`[When Attacking]` `ActivateForeignEffect`. It borrows the face-up
+`BT23-045` `[On Play]` clause. The borrowed clause has a placement processing
+cost and a return payload; when the eligible card is in trash, that cost is
+mandatory under the borrowed override, and when the trash branch is absent the
+hand branch is still processed without a second consent prompt.
+
+`apps/api/src/engine/conformance/activation-cost-borrowed-effects.test.ts`
+proves both real public attack paths. After the attack and its security
+resolution finish, it asserts the exact physical payment instance is at the
+bottom of security, the opponent victim instance is in its owner's hand, the
+machine remains in play, memory is unchanged, and no decision remains. The
+completed decision trace contains no second optional consent for the borrowed
+processing step. This proves the current BT23-060/BT23-045 consumer shape
+only; it does not certify all borrowed effects or ordinary optional activation
+costs.
+
+The combined focused command
+`pnpm --filter @aegis/api exec vitest run src/cards/BT23/BT23-060.test.ts
+src/engine/conformance/activation-cost-borrowed-effects.test.ts` passed **23
+tests** (2026-09-12). The colocated BT23-060 suite remains the normal-consumer
+comparison and covers the face-up lender, once-per-turn, source-zone, and
+non-Zaxon boundaries; the new two-case proof adds the forced-cost completion
+assertions. Oxfmt, Oxlint, and `git diff --check` also passed for both changed
+paths.
+
+| Reviewed obligation                                      | Current evidence                                                                                     | Status                  |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------- |
+| Borrowed processing cost is paid before payload          | BT23-060 public attack with BT23-043 trash payer                                                     | Focused green           |
+| Hand fallback remains a single forced processing step    | BT23-060 public attack with BT23-015 hand payer                                                      | Focused green           |
+| Payment identity and destination are preserved           | Both cases assert the exact payer instance at security bottom                                        | Focused green           |
+| No duplicate optional consent / no pending decision leak | Both cases use `autoAcceptOptional: false` and assert zero optional requests and empty pending state | Focused green           |
+| Other borrowed cost kinds and force assignments          | No additional current printed `forceCostProcessing` assignment found                                 | Open discovery boundary |

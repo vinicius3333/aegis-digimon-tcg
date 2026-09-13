@@ -40,7 +40,7 @@ function fakeDefinition(cardId: string, nameEn = cardId, traits?: string[]): Car
 }
 
 function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
-  return { cardId, instanceId, ownerSeat: 0 as Seat } as never;
+  return { cardId, instanceId, ownerSeat: 0 as Seat, faceUp: true } as never;
 }
 
 function makeInsectoidStack(count: number): CardInstance[] {
@@ -51,6 +51,7 @@ function makeInsectoidStack(count: number): CardInstance[] {
         cardId: `insectoid-${i}`,
         instanceId: `stack-insectoid-${i}`,
         ownerSeat: 0 as Seat,
+        faceUp: true,
       }) as never,
   );
 }

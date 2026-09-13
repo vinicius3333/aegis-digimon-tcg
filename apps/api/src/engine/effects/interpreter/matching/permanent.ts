@@ -25,13 +25,15 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
     (filter.nameOrTrait?.length ?? 0) > 0 || (filter.or?.length ?? 0) > 0 || (filter.and?.length ?? 0) > 0;
   if (!hasPredicate) return false;
   const self = ctx.source.permanent();
-  if (self !== undefined) return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  if (self !== undefined)
+    return self.stack.some((card) => card.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card)));
   const deletedStackIds = ctx.trigger.deletedWasStackInstanceIds;
   if (deletedStackIds === undefined || deletedStackIds.length === 0) return false;
   const trash = ctx.game.player(ctx.source.ownerSeat).trash;
   return deletedStackIds.some((instanceId) => {
     const card = trash.find((candidate) => candidate.instanceId === instanceId);
-    return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+    // Deletion LKI reads the moved stack instance, retaining its event-time visibility state.
+    return card?.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card));
   });
 }
 
@@ -233,8 +235,10 @@ export function permanentMatchesFilter(
   if (stackKeywords !== undefined) {
     if (
       !stackKeywords.every((keyword) =>
-        permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true &&
+            textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword),
         ),
       )
     )
@@ -574,6 +578,7 @@ export function permanentMatchesFilter(
   if (filter.digivolutionStackKind && filter.digivolutionStackKind.length > 0) {
     const wanted = filter.digivolutionStackKind.map((k) => KIND_MAP[k as keyof typeof KIND_MAP]);
     const hit = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const stackDef = ctx.game.definitionOf(card);
       return wanted.some((k) => k !== undefined && stackDef.kinds.includes(k));
     });
@@ -582,6 +587,7 @@ export function permanentMatchesFilter(
   if (filter.digivolutionStackKindExclude && filter.digivolutionStackKindExclude.length > 0) {
     const excluded = filter.digivolutionStackKindExclude.map((k) => KIND_MAP[k as keyof typeof KIND_MAP]);
     const hit = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const stackDef = ctx.game.definitionOf(card);
       return excluded.some((k) => k !== undefined && stackDef.kinds.includes(k));
     });
@@ -593,6 +599,7 @@ export function permanentMatchesFilter(
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
     const refs = filter.digivolutionStackNameOrTrait;
     const hit = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const stackDefinition = ctx.game.definitionOf(card);
       return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, stackDefinition));
     });
@@ -610,6 +617,7 @@ export function permanentMatchesFilter(
   if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
     const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
     const hasExcluded = permanent.stack.some((card) => {
+      if (card.faceUp !== true) return false;
       const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();
       return excluded.some((n) => name === n);
     });
@@ -731,6 +739,7 @@ export function permanentMatchesFilter(
   if (filter.printedTextOnly !== true && filter.nameOrTrait?.some((reference) => reference.match === "text")) {
     const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
     const inheritedText = permanent.stack
+      .filter((card) => card.faceUp === true)
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
       .join("\n")
       .toLowerCase();
@@ -844,8 +853,9 @@ export function permanentMatchesFilter(
         liveKeyword === true ||
         granted.has(token) ||
         printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true && printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };
@@ -862,8 +872,9 @@ export function permanentMatchesFilter(
         liveKeyword === true ||
         granted.has(token) ||
         printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        permanent.stack.some(
+          (card) =>
+            card.faceUp === true && printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };
