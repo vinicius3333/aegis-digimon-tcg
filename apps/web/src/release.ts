@@ -1,6 +1,6 @@
 /* This file is generated from releases.json. */
 
-export const APP_VERSION = "1.2.1";
+export const APP_VERSION = "1.2.2";
 
 export interface ReleaseNote {
   version: string;
@@ -14,17 +14,29 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "1.2.2",
+    date: "2026-09-13",
+    changes: [
+      { type: "fixed", description: "BT11-112" },
+      { type: "fixed", description: "Responsive Evade confirmation modal actions" },
+    ],
+  },
+  {
     version: "1.2.1",
     date: "2026-09-12",
-    changes: [
-      { type: "fixed", description: "allow preview cards in bot battles" },
-    ],
+    changes: [{ type: "fixed", description: "allow preview cards in bot battles" }],
   },
   {
     version: "1.2.0",
     date: "2026-09-12",
     changes: [
-      { type: "added", description: "Optional beta battles support unreleased cards, including EX13 and new promos.", translations: {"pt-BR":"Batalhas beta opcionais com cartas de lançamentos futuros, incluindo EX13 e novas promos."} },
+      {
+        type: "added",
+        description: "Optional beta battles support unreleased cards, including EX13 and new promos.",
+        translations: {
+          "pt-BR": "Batalhas beta opcionais com cartas de lançamentos futuros, incluindo EX13 e novas promos.",
+        },
+      },
     ],
   },
   {
@@ -48,7 +60,11 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     version: "1.0.0",
     date: "2026-08-09",
     changes: [
-      { type: "added", description: "Initial production release.", translations: {"pt-BR":"Lançamento inicial de produção."} },
+      {
+        type: "added",
+        description: "Initial production release.",
+        translations: { "pt-BR": "Lançamento inicial de produção." },
+      },
     ],
   },
 ];
