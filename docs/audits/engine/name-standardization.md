@@ -1,8 +1,9 @@
 # English name standardization audit
 
-Status: in progress. Baseline `33053bf14`. Standardized negative name-token
-references are implemented for the reviewed English exceptions. Complete
-positive standardizations, every consumer encoding and live alias priority
+Status: in progress. Baseline `33053bf14`. Standardized English name-token
+references are implemented at the shared predicate and every production
+substring reader found by the bounded server/client inventory. Complete
+positive consumer coverage, live alias priority and card/collection proof
 remain open. No card, collection or engine mechanism is certified.
 
 ## Contract and source identity
@@ -25,8 +26,9 @@ it is not an automated source-drift check.
 
 Eight English excluded-token groups yield twelve name/token pairs and forty
 committed physical card definitions at this baseline. The PDF also supplies
-an English positive Kimeramon inclusion for MarineChimairamon, which remains
-queued; no MarineChimairamon definition exists in the current committed catalog. Chinese/Japanese/Korean token mappings do not redefine the committed
+an English positive Kimeramon inclusion for MarineChimairamon; the shared
+predicate now encodes that inclusion, while no MarineChimairamon definition
+exists in the current committed catalog. Chinese/Japanese/Korean token mappings do not redefine the committed
 English-name gates; complete multilingual support is outside this bounded
 proof and does not receive credit.
 
@@ -59,8 +61,10 @@ renamed to remove the excluded letters.
 
 The engine definition name matcher, name component of name/trait/text unions,
 and `excludeNames` use this helper. Exact-name branches remain exact. Alternate
-name-gated evolution and the web's matching evolution projection use the same
-helper; the DigiXros client definition matcher mirrors the engine branch.
+name-gated evolution, stack-name requirements, base-granted evolution, DNA
+material gates, continuous name overrides, condition readers, and the server
+and client Assembly/board projections use the same helper. The DigiXros client
+definition matcher mirrors the engine branch.
 Plain recipe `names` remain full-name slots in `digiXrosSlotMatches` and are
 not treated as substring gates. Literal effect text and traits can still
 satisfy their own union branches: name exclusion is not a blanket text ban.
@@ -82,8 +86,8 @@ self-name Aura now reads the corrected shared predicate.
 | Public inherited DP through legal final evolution                                        | ST1-01 → seeded P-009 evolves publicly to BT7-011 for three memory/draw; 6000 DP ties Gorillamon and exact egg/rookie/top are trashed | Verified bounded public final step     |
 | Comparative included name                                                                | Same source evolves to P-010 for two memory/draw, gets 7000 DP and wins Gorillamon battle; exact source stack remains                 | Verified public control                |
 | Client DigiXros substring/exact distinction                                              | Actual BurningGreymon and Greymon candidates offer only Greymon for substring and only BurningGreymon for its exact full slot         | Verified candidate projection          |
-| Positive Kimeramon standardization                                                       | MarineChimairamon printed-name alias requires separate implementation/proof                                                           | Queued                                 |
-| All name-gated evolution consumers and other raw substring readers                       | Changed common server/web seams; complete consumer inventory and distinct public shapes not established                               | Queued                                 |
+| Positive Kimeramon standardization                                                       | Official PDF inclusion is encoded by `nameIncludesToken`; synthetic MarineChimairamon definition and exact-gate negative are covered by shared/API tests | Verified shared/definition seam; live card queued |
+| All name-gated evolution consumers and other raw substring readers                       | Bounded production inventory routes server/client substring readers through `nameIncludesToken`; exact-name and recipe slots remain exact | Verified bounded consumer inventory; distinct public card shapes queued |
 | Full initial egg-to-rookie route, all excluded peer interactions and live alias priority | Seeded initial legal stack is not a public full evolution-line proof                                                                  | Queued                                 |
 
 The initial public fixture used an incorrect digivolve permanent field and
@@ -132,7 +136,9 @@ Complete full API and restored final proofs follow; broad gates run only
 after mutation restoration.
 
 Restored final gates passed three API files / nineteen tests (fifteen cards,
-four layout), thirty shared cases, and two web files / 123 tests. Persisted
+four layout), thirty shared cases, and two web files / 123 tests. The current
+raw-consumer correction additionally passes three API engine files / 221 tests
+and two web projection files / 111 tests. Persisted
 JSON semantic inspection finds only EX13-002 changed; its executable effects
 are identical and only coverage/residual metadata differs. Independent
 read-only review found no introduced exclusion/predicate/registration,

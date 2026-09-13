@@ -8,6 +8,7 @@ import {
   type Seat,
   type Keyword,
   type ZoneRef,
+  nameIncludesToken,
 } from "@aegis/shared";
 import type { Restriction } from "./EffectContext.js";
 import type { DurationBoundary } from "./modifiers.js";
@@ -1049,7 +1050,7 @@ export class ContinuousEffectLedger {
     return this.dnaLevelOverrides.find(
       (entry) =>
         entry.permanentId === permanentId &&
-        (entry.intoNames === undefined || entry.intoNames.some((name) => into.nameEn.includes(name))),
+        (entry.intoNames === undefined || entry.intoNames.some((name) => nameIncludesToken(into.nameEn, name))),
     )?.level;
   }
 

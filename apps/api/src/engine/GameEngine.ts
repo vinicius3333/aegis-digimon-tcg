@@ -29,6 +29,7 @@ import {
   digiXrosRequirementFor,
   assemblyRequirementFor,
   appFusionCostFor,
+  nameIncludesToken,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import {
@@ -2311,7 +2312,7 @@ export class GameEngine {
    * name-substring OR trait). */
   private static baseGrantTargetMatches(target: BaseGrantedDigivolve["target"], evolving: CardDefinition): boolean {
     if (target.namesExact && target.namesExact.some((n) => evolving.nameEn === n)) return true;
-    if (target.names && target.names.some((n) => evolving.nameEn.includes(n))) return true;
+    if (target.names && target.names.some((n) => nameIncludesToken(evolving.nameEn, n))) return true;
     if (target.traits && target.traits.some((t) => cardHasTrait(evolving, t))) return true;
     return false;
   }

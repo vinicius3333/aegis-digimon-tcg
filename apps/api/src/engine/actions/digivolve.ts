@@ -15,6 +15,7 @@ import {
   type Seat,
   type ServerEvent,
   type ZoneRef,
+  nameIncludesToken,
 } from "@aegis/shared";
 import {
   cardHasTrait,
@@ -373,7 +374,7 @@ function alternateRequirementAvailable(
     const matching = permanent.stack.filter((card) => {
       const name = definitionOf(card.cardId).nameEn;
       return requiredNames.some((required) =>
-        requirement.minNameStackMatch === "contains" ? name.includes(required) : name === required,
+        requirement.minNameStackMatch === "contains" ? nameIncludesToken(name, required) : name === required,
       );
     }).length;
     if (matching < requirement.minNameStackCount) return false;
@@ -614,7 +615,9 @@ export function validateDigivolve(
     const matching = permanent.stack.filter((card) => {
       const stackDef = definitionOf(card.cardId);
       return wantedNames.some((n) =>
-        altRequirement!.minNameStackMatch === "contains" ? stackDef.nameEn.includes(n) : stackDef.nameEn === n,
+        altRequirement!.minNameStackMatch === "contains"
+          ? nameIncludesToken(stackDef.nameEn, n)
+          : stackDef.nameEn === n,
       );
     }).length;
     if (matching < requiredCount) {

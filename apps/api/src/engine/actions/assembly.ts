@@ -9,6 +9,7 @@ import {
   type CardDefinition,
   type GameState,
   type Seat,
+  nameIncludesToken,
 } from "@aegis/shared";
 import { cardHasTrait, definitionOf, isDigimon } from "../cards/cardData.js";
 import { matchNameOrTrait } from "../effects/interpreter.js";
@@ -236,7 +237,7 @@ function materialMatchesAssemblySlot(
   }
 
   if (slot.names && slot.names.length > 0) {
-    if (!slot.names.some((n) => def.nameEn.toLowerCase().includes(n.toLowerCase()))) return false;
+    if (!slot.names.some((n) => nameIncludesToken(def.nameEn, n))) return false;
   }
   if (slot.namesExact && slot.namesExact.length > 0) {
     if (!slot.namesExact.includes(def.nameEn)) return false;

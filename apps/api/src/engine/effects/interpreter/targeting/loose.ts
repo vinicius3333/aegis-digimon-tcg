@@ -11,6 +11,7 @@ import {
 import { scaleFactor } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
+import { nameIncludesToken } from "@aegis/shared";
 import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -309,10 +310,10 @@ function candidateLooseInstancesIncludingReserved(
   const contextMatches = (filter: Filter, ownerSeat: Seat): boolean => {
     const gate = filter.ownerTrashNameCountGte;
     if (gate === undefined) return true;
-    const tokens = gate.tokens.map((token) => token.toLowerCase());
+    const tokens = gate.tokens;
     const matches = Array.from(ctx.game.player(ownerSeat).trash).filter((card) => {
-      const name = ctx.game.definitionOf(card).nameEn.toLowerCase();
-      return tokens.some((token) => name.includes(token));
+      const name = ctx.game.definitionOf(card).nameEn;
+      return tokens.some((token) => nameIncludesToken(name, token));
     }).length;
     return matches >= gate.count;
   };
