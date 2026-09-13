@@ -26,14 +26,17 @@ The initial full run found six failures (42353 passes): four old tests incorrect
 | Raw/fallback, off-field snapshots, native keyword scans, dynamic names and numerical readers | EX9-054 Negamon scaling plus EX8-045 source-color scaling | EX9-054 filters face-down stack cards for its named `[Negamon]` scaling predicate, while EX8-045 counts only face-up source colors after EX9-043 places a real trash card face down; paired red and green controls retain exact stack IDs and resolve fully |
 
 The highest-risk remaining gap is comprehensive rule §15-4-4-4: a triggered effect
-losing its source effect before activation. The public Blocker turnover proof above
-shows that live inherited effect recalculation follows a public evolution, while the
-trigger-ordering proof covers a source physically departing before its pending effect
-activates (§15-4-4-3). No current public card path in the bounded reader set creates a
-pending stack-sourced effect and then changes that host's top card before activation,
-so this narrower pending-loss claim remains open rather than being inferred from the
-persistent Blocker case. Quantity-only stack counts remain valid; the correction applies
-only when the scaling filter asks for card information such as name, trait, kind, level or color.
+losing its source effect before activation. The eighth and ninth cases in
+`trigger-ordering-source-departure.test.ts` publicly cover a copied stack effect losing its
+source before activation, with a control where the source remains in place. Quantity-only
+stack counts remain valid; the correction applies only when a filter asks for card information
+such as name, trait, kind, level or color.
+
+The new `stack-metadata-filtering.test.ts` uses the public EX5-070 play path: a hidden
+X-Antibody stack card cannot satisfy the negative “without X Antibody” requirement, while a
+visible host is selected. This exercises `permanentMatchesFilter` rather than only the
+Succession kernel. Negative predicates conservatively reject when any matching stack card is
+concealed because absence cannot be established from hidden information.
 
 The three public sequences prove the demonstrated copied and inherited source leak. The legal Succession producer proof and the seeded visible-over-hidden cases now cover face-down filtering before highest-visible selection for the demonstrated Bacchusmon provider shapes; they do not expose source identity in the public decision payload. Existing green regressions do not certify the open reader classes in the finite map above. BT22's historical complete status is reopened and BT22-010 capped provisionally at 8/10; BT26-080 retains its existing cap. Independent read-only review found no blocker for this bounded change.
 
