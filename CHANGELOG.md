@@ -3,6 +3,13 @@
 All notable changes to Aegis are documented here. This file is generated from
 `releases.json`; use `pnpm release:prepare` to add a release.
 
+## [1.2.2] - 2026-09-13
+
+### Fixed
+
+- BT11-112
+- Responsive Evade confirmation modal actions
+
 ## [1.2.1] - 2026-09-12
 
 ### Fixed

@@ -1,6 +1,20 @@
 {
   "releases": [
     {
+      "version": "1.2.2",
+      "date": "2026-09-13",
+      "changes": [
+        {
+          "type": "fixed",
+          "description": "BT11-112"
+        },
+        {
+          "type": "fixed",
+          "description": "Responsive Evade confirmation modal actions"
+        }
+      ]
+    },
+    {
       "version": "1.2.1",
       "date": "2026-09-12",
       "changes": [
@@ -18,7 +32,7 @@
           "type": "added",
           "description": "Optional beta battles support unreleased cards, including EX13 and new promos.",
           "translations": {
-            "pt-BR": "Batalhas beta opcionais com cartas de lançamentos futuros, incluindo EX13 e novas promos."
+            "pt-BR": "Batalhas beta opcionais com cartas de lan\u00e7amentos futuros, incluindo EX13 e novas promos."
           }
         }
       ]
@@ -81,7 +95,7 @@
           "type": "added",
           "description": "Initial production release.",
           "translations": {
-            "pt-BR": "Lançamento inicial de produção."
+            "pt-BR": "Lan\u00e7amento inicial de produ\u00e7\u00e3o."
           }
         }
       ]
