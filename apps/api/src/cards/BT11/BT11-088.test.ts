@@ -12,6 +12,7 @@ import {
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
 import { compiled } from "./BT11-088.js";
+import "../ST18/ST18-12.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { cite } from "../../engine/conformance/_kb.js";
@@ -433,6 +434,63 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([lowerId, upperId]);
     expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([securityIds[2]]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(securityIds.slice(0, 2));
+    expect(s.state.memory).toBe(-4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
+  it("Q5207: cannot place an opponent Digimon under an effect-immune destination", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", as: "ready", suspended: true }],
+          hand: [{ card: "BT11-088", as: "bagramon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "ST18-12", as: "zepha" },
+            { card: "BT3-067", as: "tankmon", under: ["BT2-052"] },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const tankmonId = s.perm("tankmon").topCard.instanceId;
+    const tankmonPermanentId = s.perm("tankmon").permanentId;
+    const zephaPermanentId = s.perm("zepha").permanentId;
+    const tankmonStack = s.perm("tankmon").stack.map(({ instanceId }) => instanceId);
+    const zephaStack = s.perm("zepha").stack.map(({ instanceId }) => instanceId);
+    const ownSecurity = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+    const opponentSecurity = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+    preferred.push(tankmonId, tankmonPermanentId, zephaPermanentId);
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("zepha"), "beAffected", "Digimon")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bagramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleEngine(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("tankmon").stack.map(({ instanceId }) => instanceId)).toEqual(tankmonStack);
+    expect(s.perm("tankmon").permanentId).toBe(tankmonPermanentId);
+    expect(s.perm("zepha").stack.map(({ instanceId }) => instanceId)).toEqual(zephaStack);
+    expect(s.perm("zepha").permanentId).toBe(zephaPermanentId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      zephaPermanentId,
+      tankmonPermanentId,
+    ]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(ownSecurity);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(opponentSecurity);
     expect(s.state.memory).toBe(-4);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
