@@ -12,6 +12,13 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          requireByEffect: true,
+          fireCondition: {
+            kind: "triggerByYourEffect",
+          },
           actions: [
             {
               kind: "Draw",

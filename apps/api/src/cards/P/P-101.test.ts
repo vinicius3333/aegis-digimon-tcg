@@ -90,7 +90,7 @@ describe("P-101 Raremon", () => {
         },
         1: {
           battleArea: [{ card: "BT1-028", as: "level3" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

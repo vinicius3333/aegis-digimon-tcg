@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-007.js";
 
@@ -38,12 +37,19 @@ describe("LM-007 Publimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-007", as: "publimon" }], security: [{ card: "BT1-027" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("publimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("publimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2, 2000);
 
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["LM-007", "BT1-027"]);
@@ -54,12 +60,19 @@ describe("LM-007 Publimon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-007", as: "publimon" }], security: [{ card: "BT1-027" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("publimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("publimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2, 2000);
 
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["LM-007", "BT1-027"]);

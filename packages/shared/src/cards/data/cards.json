@@ -119097,7 +119097,7 @@
     "types": [
       "Light Fang"
     ],
-    "effectText": "[Main] Delete 1 of your opponent's Digimon with the lowest DP. Then, if you have a Tamer, return 1 Digimon card with the [Light Fang]/[Night Claw] trait from your trash to the hand.",
+    "effectText": "[Main] Delete 1 of your opponent's Digimon with the lowest DP. Then, if you have a Tamer, return 1 Digimon card with the [Light Fang], [Night Claw] or [Galaxy] trait from your trash to the hand.",
     "securityEffectText": "[Security] Activate this card's [Main] effect.",
     "rarity": "C",
     "maxCountInDeck": 4,
@@ -133185,7 +133185,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 red Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-035",
     "nameJp": "レッド・メモリーブースト！！"
@@ -133205,7 +133205,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 blue Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-036",
     "nameJp": "ブルー・メモリーブースト!!"
@@ -133225,7 +133225,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 yellow Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-037",
     "nameJp": "イエロー・メモリーブースト！！"
@@ -133245,7 +133245,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 green Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-038",
     "nameJp": "グリーン・メモリーブースト！！"
@@ -133265,7 +133265,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 black Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-039",
     "nameJp": "ブラック・メモリーブースト！！"
@@ -133285,7 +133285,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 4 cards of your deck. Add 1 purple Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order. Then, place this card in your battle area. [Main] ＜Delay＞ (Trash this card in your battle area to activate the effect below. You can't activate this effect the turn this card enters play.)  ・Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in its owner's battle area.",
-    "rarity": "P",
+    "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "P-040",
     "nameJp": "ヴァイオレット・メモリーブースト！！"
@@ -133949,10 +133949,10 @@
       "Rookie"
     ],
     "attributes": [
-      "Ceratopsian"
+      "Virus"
     ],
     "types": [
-      "Virus"
+      "Ceratopsian"
     ],
     "inheritedEffectText": "[Your Turn] While you have a [Hiro Amanokawa] in play, this Digimon gets +2000 DP.",
     "rarity": "P",
@@ -134019,10 +134019,10 @@
       "Rookie"
     ],
     "attributes": [
-      "Mollusk"
+      "Data"
     ],
     "types": [
-      "Data"
+      "Mollusk"
     ],
     "inheritedEffectText": "[When Attacking][Once Per Turn] If you have a [Kiyoshiro Higashimitarai] in play, ＜Draw 1＞. (Draw 1 card from your deck.)",
     "rarity": "P",
@@ -134433,10 +134433,10 @@
       "Ultimate"
     ],
     "attributes": [
-      "Beastkin"
+      "Vaccine"
     ],
     "types": [
-      "Vaccine"
+      "Beastkin"
     ],
     "effectText": "[Your Turn] When this Digimon would digivolve into a card with [Shaman] or [Wizard] in its traits, you may trash up to 3 of your security cards. For each security card trashed with this effect, reduce the digivolution cost by 1.",
     "inheritedEffectText": "[When Attacking][Once Per Turn] If you have exactly 3 security cards, unsuspend this Digimon.",
@@ -134511,10 +134511,10 @@
       "Champion"
     ],
     "attributes": [
-      "Composite"
+      "Virus"
     ],
     "types": [
-      "Virus"
+      "Composite"
     ],
     "effectText": "[Your Turn] When this Digimon would digivolve into a card with 2 colors or [Composite] in its traits, reduce the digivolution cost by 2.",
     "inheritedEffectText": "[When Attacking] For each of this Digimon’s colors, delete 1 of your opponent's Digimon with 3000 DP or less.",
@@ -134547,10 +134547,10 @@
       "Champion"
     ],
     "attributes": [
-      "Wizard"
+      "Data"
     ],
     "types": [
-      "Data"
+      "Wizard"
     ],
     "effectText": "When this card is trashed from your deck, gain 1 memory.",
     "inheritedEffectText": "[When Attacking] You may reveal 1 purple card from your hand and place it on top of your deck.",
@@ -134624,7 +134624,7 @@
       "Reptile"
     ],
     "effectText": "[On Play] If you have a red Tamer in play, delete 1 of your opponent's Digimon with 3000 DP or less.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-079",
     "nameJp": "アグモン"
@@ -134659,7 +134659,7 @@
       "Beast"
     ],
     "effectText": "[On Play] If you have a purple Tamer in play, delete 1 of your opponent's level 3 Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-080",
     "nameJp": "ラブラモン"
@@ -134694,7 +134694,7 @@
       "Avian"
     ],
     "effectText": "[On Play] If you have a yellow Tamer in play, 1 of your opponent's Digimon gets -2000 DP until the end of their turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-081",
     "nameJp": "ファルコモン"
@@ -134729,7 +134729,7 @@
       "Larva"
     ],
     "effectText": "[On Play] If you have a green Tamer in play, suspend 1 of your opponent's Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-082",
     "nameJp": "クネモン"
@@ -134764,7 +134764,7 @@
       "Vegetation"
     ],
     "effectText": "[On Play] If you have a green Tamer in play, 1 of your opponent's Digimon can't unsuspend until the end of their turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-083",
     "nameJp": "フローラモン"
@@ -134799,7 +134799,7 @@
       "Beast"
     ],
     "effectText": "[On Play] If you have a yellow Tamer in play, 1 of your opponent's Digimon gains ＜Security Attack -1＞ (This Digimon checks 1 fewer security card) until the end of their turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-084",
     "nameJp": "ロップモン"
@@ -134834,7 +134834,7 @@
       "Undead"
     ],
     "effectText": "[On Play] If you have a purple Tamer in play, if its your turn, you may digivolve this Digimon into a Digimon card with the [Undead]/[Dark Animal] trait from your trash by paying its digivolution cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-085",
     "nameJp": "ドラクモン"
@@ -134869,7 +134869,7 @@
       "Crustacean"
     ],
     "effectText": "[On Play] If you have a blue Tamer in play, 1 of your Digimon can't be attacked until the end of your opponent's turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-086",
     "nameJp": "シャコモン"
@@ -134889,7 +134889,7 @@
     "evoCosts": [],
     "effectText": "[Your Turn] When you would play a [Pulsemon], by suspending this tamer, if you have 3 or more security cards, ＜Draw 1＞ (Draw 1 card from your deck). If you have 3 or fewer security cards, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-087",
     "nameJp": "鼓堂リツ"
@@ -134924,7 +134924,7 @@
       "Light Dragon"
     ],
     "effectText": "[When Digivolving] By placing 1 card with [Gammamon] in its name from your hand as this Digimon's bottom digivolution card, this Digimon gets +2000 DP for the turn.[When Attacking] Delete 1 of your opponent's Digimon with 6000 DP or less. If this Digimon has 12000 DP or more, Delete 2 such Digimon instead.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-088",
     "nameJp": "シリウスモン"
@@ -134959,7 +134959,7 @@
       "Cyborg"
     ],
     "effectText": "[When Digivolving] You may trash up to 3 blue cards from your hand. For each card trashed by this effect, you may trash 1 card under 1 of your opponent's Digimon or Tamers. Then, 1 of your opponent's Digimon or Tamers without cards under it can't suspend until the end of your opponent's turn.[Opponent's Turn] [Once Per Turn] When an opponent's Digimon attacks, end that attack by returning 3 cards with [Jellymon] in their text from your trash to the bottom of your deck.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-089",
     "nameJp": "アンフィモン"
@@ -134994,7 +134994,7 @@
       "Beast Knight"
     ],
     "effectText": "[When Digivolving] Suspend 2 of your opponent's Digimon.[All Turns] [Once Per Turn] When one of your Digimon deletes an opponent's Digimon in battle and survives, if [Angoramon] is in this Digimon's digivolution cards, unsuspend 1 of your Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-090",
     "nameJp": "ディルビットモン"
@@ -135036,7 +135036,7 @@
     ],
     "effectText": "＜Raid＞ (When this Digimon attacks, you may switch the target of attack to 1 of your opponent's unsuspended Digimon with the highest DP).＜Retaliation＞ (When this Digimon is deleted after losing a battle, delete the Digimon it was battling).",
     "inheritedEffectText": "[On Deletion] Return 1 red or purple Digimon card from your trash to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-091",
     "nameJp": "セーバードラモン"
@@ -135078,7 +135078,7 @@
     ],
     "effectText": "[Your Turn] When you play a [Groundramon], this Digimon may digivolve into a [Wingdramon] from your hand for a cost of 3, ignoring its digivolution requirements.",
     "inheritedEffectText": "[Your Turn] When you play a [Groundramon], this Digimon may digivolve into a [Wingdramon] from your hand without paying its cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-092",
     "nameJp": "ドラコモン"
@@ -135114,7 +135114,7 @@
     ],
     "effectText": "[All Turns] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When this Digimon would digivolve, reduce the digivolution cost by 1.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-093",
     "nameJp": "バステモン"
@@ -135150,7 +135150,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] Delete your opponent's Digimon and Tamers with a total play cost of 3. For every [Vemmon] in this Digimon's digivolution cards, increase the maximum play cost you can choose by this effect by 1.",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When an opponent's Digimon attacks, by placing 2 [Vemmon] from 1 of your [Galacticmon]'s digivolution cards at the bottom of their owners' decks, switch the target of attack to this Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-094",
     "nameJp": "デストロモン"
@@ -135170,7 +135170,7 @@
     "evoCosts": [],
     "effectText": "While you have a Tamer in play, you may use this card without meeting its color requirements.[Main] 1 of your opponent's Digimon gets -6000 DP and cannot activate its [When Digivolving] effects until the end of your opponent's turn.",
     "securityEffectText": "[Security] 1 of your opponent's Digimon gets -6000 DP until the end of this turn. Then, add this card to your hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-095",
     "nameJp": "無効化プラグインP"
@@ -135190,7 +135190,7 @@
     "evoCosts": [],
     "effectText": "While you have a Tamer with the [Hunter] trait in play, you may use this card without meeting its color requirements.[Main] By placing up to 2 Digimon cards with ＜Save＞ in their text from under your Tamers or your trash under 1 of your Digimon with ＜Save＞ in its text as its bottom digivolution cards, that Digimon gains +1000 DP for each card placed by this effect.",
     "securityEffectText": "[Security] Add this card to its owner's hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-096",
     "nameJp": "プリズムギャレット"
@@ -135200,7 +135200,8 @@
     "set": "P",
     "nameEn": "Zubamon",
     "colors": [
-      "Red"
+      "Red",
+      "Black"
     ],
     "kinds": [
       "Digimon"
@@ -135232,7 +135233,7 @@
     ],
     "effectText": "[On Play] By placing this card under 1 of your other Digimon in play as its bottom digivolution card, reveal the top 3 cards of your deck. Place those cards at either the top or bottom of your deck in any order. Then, if you have a Digimon with the [Legend-Arms] trait in play, gain 2 memory.",
     "inheritedEffectText": "[Your Turn] While you have a Digimon with the [Legend-Arms] trait or a black Digimon in play, this Digimon gains ＜Raid＞ (When this Digimon attacks, you may switch the target of attack to 1 of your opponent's unsuspended Digimon with the highest DP).",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-097",
     "nameJp": "ズバモン"
@@ -135268,7 +135269,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] 1 of your blue Digimon cannot be deleted in battle until the end of your opponent's turn.",
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When you play another Digimon by an effect, 1 of your blue Digimon gains ＜Rush＞ (This Digimon can attack the turn it comes into play) for the turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-098",
     "nameJp": "シードラモン"
@@ -135310,7 +135311,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] ＜De-Digivolve  1＞ on 1 of your opponent's Digimon (Trash up to 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards).",
     "inheritedEffectText": "[On Deletion] You may play 1 yellow or black Digimon card with a play cost of 3 or less from your hand without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-099",
     "nameJp": "エテモン"
@@ -135346,7 +135347,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] 1 of your opponent's Digimon or Tamers cannot unsuspend until the end of your opponent's turn.",
     "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-100",
     "nameJp": "クワガーモン"
@@ -135389,7 +135390,7 @@
     ],
     "effectText": "This card/Digimon is also treated as having the [Cyborg] trait.[On Play] [When Digivolving] By trashing 1 card from your hand, ＜Draw 2＞ (Draw 2 cards from your deck).",
     "inheritedEffectText": "[When Attacking] By trashing 1 card from your hand, delete 1 of your opponent's level 3 Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-101",
     "nameJp": "レアモン"
@@ -135431,7 +135432,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] By deleting 1 of your Digimon, delete 2 of your opponent's Digimon with 5000 DP or less.[On Deletion] You may play 1 purple or red level 3 Digimon card from your trash without paying the cost.",
     "inheritedEffectText": "[On Deletion] You may play 1 red or purple level 3 Digimon card from your trash without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-102",
     "nameJp": "スカルグレイモン"
@@ -135451,7 +135452,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 red card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a red Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-103",
     "nameJp": "オフェンス・トレーニング"
@@ -135471,7 +135472,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 blue card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a blue Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-104",
     "nameJp": "メンタル・トレーニング"
@@ -135491,7 +135492,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 yellow card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a yellow Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-105",
     "nameJp": "フィジカル・トレーニング"
@@ -135511,7 +135512,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 green card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a green Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-106",
     "nameJp": "アジリティ・トレーニング"
@@ -135531,7 +135532,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 black card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a black Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-107",
     "nameJp": "ディフェンス・トレーニング"
@@ -135551,7 +135552,7 @@
     "evoCosts": [],
     "effectText": "[Main] Reveal the top 2 cards of your deck. Add 1 purple card among them to your hand. Place the rest at the bottom of your deck in any order. Then, place this card into your battle area.\n[Main] ＜Delay＞ \n・1 of your Digimon may digivolve into a purple Digimon card in your hand for its digivolution cost. When it would digivolve by this effect, reduce the cost by 2.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-108",
     "nameJp": "ウィズダム・トレーニング"
@@ -135592,7 +135593,7 @@
       "Ancient Dragon"
     ],
     "effectText": "[Hand] [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost).[On Play] [When Digivolving] Suspend 1 Digimon, then unsuspend 1 Digimon.[All Turns] [Once Per Turn] When this Digimon becomes suspended, you may play a Tamer card or a Digimon card with 4000 DP or less from your hand without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-109",
     "nameJp": "インペリアルドラモン：ドラゴンモード",
@@ -135636,7 +135637,7 @@
     ],
     "effectText": "[Digivolve][Wormmon]: Cost 2[When Digivolving] You may play 1 [Veemon] or [Wormmon] from your trash suspended without paying the cost.",
     "inheritedEffectText": "[On Deletion] You may play 1 [Veemon] or [Wormmon] from your hand suspended without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-110",
     "nameJp": "シェイドラモン"
@@ -135678,7 +135679,7 @@
     ],
     "effectText": "＜Blocker＞ [On Play][When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn for each of your Digimon.",
     "inheritedEffectText": "[All Turns][Once Per Turn] When another Digimon attacks, you may play 1 yellow or black level 3 Digimon card from your hand without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-111",
     "nameJp": "ナイトモン"
@@ -135714,7 +135715,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Eosmon] and 1 [Menoa Bellucci] among them to the hand. Return the rest to the bottom of the deck. Then, by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card, you may play 1 [Menoa Bellucci] from your hand without paying the cost.",
     "inheritedEffectText": "[Your Turn][Once Per Turn] When another [Eosmon] is played, this Digimon may digivolve into 1 [Eosmon] in your hand with the digivolution cost reduced by 3.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-112",
     "nameJp": "モルフォモン"
@@ -135749,7 +135750,7 @@
       "Cyborg"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Tyrannomon] in name: Cost 3[Hand][Counter] ＜Blast Digivolve＞ (One of your Digimon may digivolve into this card without paying the cost.) [When Digivolving] Suspend all of your opponent's Digimon with DP less than or equal to this Digimon's DP. [All Turns][Once Per Turn] When an opponent's Digimon is deleted in battle, trash the top card of your opponent's security stack.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-113",
     "nameJp": "ラストティラノモン",
@@ -135786,7 +135787,7 @@
       "Unidentified"
     ],
     "effectText": "[Hand][Counter] ＜Blast Digivolve＞ (One of your Digimon may digivolve into this card without paying the cost.) [When Digivolving][When Attacking] You may play 1 [Diaboromon] Token without paying the cost. (Digimon/Cost 14/Lv. 6/White/Mega/Unidentified/Unknown/3000 DP) [All Turns][Once Per Turn] When an effect plays another Digimon, you may delete 1 of your opponent's play cost 3 or lower Digimon. For each of your [Diaboromon], add 2 to this effect's play cost maximum.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-114",
     "nameJp": "ディアボロモン",
@@ -135832,7 +135833,7 @@
     ],
     "effectText": "[On Deletion] You may play 1 Tamer card with [Amano] in its name from your hand or trash without paying the cost. Then, ＜Save＞.",
     "inheritedEffectText": "[Your Turn] While this Digimon has the [Bagra Army] or [Twilight] trait and is level 5 or higher, this Digimon gains ＜Security A. +1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-115",
     "nameJp": "スカルナイトモン"
@@ -135852,7 +135853,7 @@
     "evoCosts": [],
     "effectText": "While you have [Agumon], [Pulsemon], and [Gammamon], this card costs 0.[Main] Reveal the top 2 cards of your deck. Add all Tamer cards with a play cost of 3 or less among them to your hand. Return the rest to the top of the deck.",
     "securityEffectText": "[Security] Activate this card's [Main] effect.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-116",
     "nameJp": "DIGIMONCON2023"
@@ -135893,7 +135894,7 @@
     ],
     "effectText": "[Your Turn] [Once Per Turn] When this Digimon would digivolve into a card with the [Free] trait, if you have a Tamer, reduce the digivolution cost by 1.",
     "inheritedEffectText": "[When Attacking] If this Digimon has 2 or more colors, ＜Draw 1＞ (Draw 1 card from your deck).",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-117",
     "nameJp": "ブイモン"
@@ -135934,7 +135935,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 green or blue card with 2 or more colors and 1 Tamer card with [Ken Ichijoji] in its name among them to the hand. Return the rest to the bottom of the deck.",
     "inheritedEffectText": "[End of Your Turn] You may DNA digivolve this Digimon and one of your other Digimon in play into a Digimon card in your hand by paying its DNA digivolve cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-118",
     "nameJp": "ワームモン"
@@ -135975,7 +135976,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 red or yellow card with 2 or more colors and 1 Tamer card with [Yolei Inoue] in its name among them to the hand. Return the rest to the bottom of the deck.",
     "inheritedEffectText": "[End of Your Turn] You may DNA digivolve this Digimon and one of your other Digimon in play into a Digimon card in your hand by paying its DNA digivolve cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-119",
     "nameJp": "ホークモン"
@@ -136016,7 +136017,7 @@
     ],
     "effectText": "＜Barrier＞ (When this Digimon would be deleted in battle, by trashing the top card of your security stack, prevent that deletion).",
     "inheritedEffectText": "[Your Turn] All of your opponent's security Digimon get -2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-120",
     "nameJp": "テイルモン"
@@ -136057,7 +136058,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 black or yellow card with 2 or more colors and 1 Tamer card with [Cody Hida] in its name among them to the hand. Return the rest to the bottom of the deck.",
     "inheritedEffectText": "[End of Your Turn] You may DNA digivolve this Digimon and one of your other Digimon in play into a Digimon card in your hand by paying its DNA digivolve cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-121",
     "nameJp": "アルマジモン"
@@ -136098,7 +136099,7 @@
     ],
     "effectText": "[On Play] Search your security stack. You may add 1 yellow or black card with 2 or more colors among them to the hand. If you added cards, ＜Recovery +1 (Deck)＞ (Place the top card of your deck on top of your security stack). Then, shuffle your security stack.",
     "inheritedEffectText": "[Your Turn] All of your opponent's security Digimon get -2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-122",
     "nameJp": "パタモン"
@@ -136163,7 +136164,7 @@
       "Ancient Fairy"
     ],
     "effectText": "[Your Turn] [Once Per Turn] When one of your Digimon moves from the breeding area to the battle area. You may hatch in your breeding area. Then, gain 1 memory.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-123",
     "nameJp": "ウッコモン"
@@ -136183,7 +136184,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have a Digimon with the [Free] trait, gain 1 memory.[On Play] Activate 1 of the following effects:・You may play 1 [Veemon] from your hand without paying the cost.・1 of your Digimon may digivolve into [ExVeemon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-124",
     "nameJp": "本宮大輔"
@@ -136203,7 +136204,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have a Digimon with the [Free] trait, gain 1 memory.[On Play] Activate 1 of the effects below:・You may play 1 [Wormmon] from your hand without paying the cost.・1 of your Digimon may digivolve into [Stingmon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-125",
     "nameJp": "一乗寺賢"
@@ -136223,7 +136224,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have a Digimon with the [Free] trait, gain 1 memory.[On Play] Activate 1 of the following effects:・You may play 1 [Hawkmon] from your hand without paying the cost.・1 of your Digimon may digivolve into [Aquilamon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-126",
     "nameJp": "井ノ上京"
@@ -136243,7 +136244,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have fewer security cards than your opponent, gain 1 memory.[On Play] Activate 1 of the effects below:・You may play 1 [Salamon] from your hand without paying the cost.・1 of your Digimon may digivolve into [Gatomon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-127",
     "nameJp": "八神ヒカリ"
@@ -136263,7 +136264,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have a Digimon with the [Free] trait, gain 1 memory.[On Play] Activate 1 of the effects below:・You may play 1 [Armadillomon] from your hand without paying the cost.・1 of your Digimon may digivolve into [Ankylomon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-128",
     "nameJp": "火田伊織"
@@ -136283,7 +136284,7 @@
     "evoCosts": [],
     "effectText": "[Start of Your Main Phase] If you have more security cards than your opponent, gain 1 memory.[On Play] Activate 1 of the effects below:・You may play 1 [Patamon] from your hand without paying the cost.・1 of your Digimon may digivolve into [Angemon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-129",
     "nameJp": "高石タケル"
@@ -136303,7 +136304,7 @@
     "evoCosts": [],
     "effectText": "[On Play] You may move 1 of your level 3 or higher Digimon from the breeding area to the battle area.[Your Turn] When one of your Digimon moves from the breeding area to the battle area, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying its memory cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-130",
     "nameJp": "大和田ルイ"
@@ -136340,7 +136341,7 @@
     ],
     "effectText": "[On Play] Suspend 1 of your opponent's Digimon.",
     "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-131"
   },
@@ -136376,7 +136377,7 @@
     ],
     "effectText": "[When Digivolving] By suspending 1 Digimon, this Digimon gets +2000 DP until the end of your opponent's turn.\n[Your Turn] While you have [Shoto Kazama], this digimon gains ＜Piercing＞.",
     "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-132"
   },
@@ -136404,7 +136405,7 @@
     ],
     "effectText": "[On Play] You may play 1 [Pteromon] from your hand without paying the cost.\n[Your Turn] [Once Per Turn] When one of your Digimon digivolves into a Digimon with the [Avian]/[Bird] in one of its traits, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-133"
   },
@@ -136440,7 +136441,7 @@
     ],
     "effectText": "[On Play] 1 of your opponent's Digimon gains ＜Security Attack -1＞until the end of their turn.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-134"
   },
@@ -136476,7 +136477,7 @@
     ],
     "effectText": "[When Digivolving] Until the end of your opponent's turn, 1 of their Digimon can't attack Digimon and gains ＜Security Attack -1＞ \n[Your Turn] While you have [Arisa Kinosaki], this Digimon gains ＜Jamming＞.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-135"
   },
@@ -136504,7 +136505,7 @@
     ],
     "effectText": "[On Play] You may play 1 [Shoemon] from your hand without paying the cost.\n[Your Turn] [Once Per Turn] When one of your Digimon digivolves into a Digimon with the [Puppet] trait, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-136"
   },
@@ -136544,7 +136545,7 @@
       "Dragonkin"
     ],
     "effectText": "[Digivolve][Veemon]: Cost 2 \n\n＜Armor Purge＞.\n＜Raid＞ \n[Your Turn] [Once Per Turn] When this Digimon's attack target is switched, your opponent adds the top card of their security stack to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-137"
   },
@@ -136579,7 +136580,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Veedramon] in its name and 1 blue Tamer card among them to the hand. Return the rest to the bottom of the deck.",
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When this Digimon becomes unsuspended, gain 1 memory.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-138"
   },
@@ -136621,7 +136622,7 @@
     ],
     "effectText": "[Digivolve][Leomon]: Cost 0 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.\n[All Turns] While [Leomon]/[X Antibody] is in this Digimon’s digivolution cards, this Digimon gains ＜Blocker＞and ＜Fortitude＞ (When this Digimon with digivolution cards is deleted, play this card without paying the cost).",
     "inheritedEffectText": "[On Deletion] ＜Recovery +1 (Deck)＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-139"
   },
@@ -136662,7 +136663,7 @@
     ],
     "effectText": "[Digivolve]Lv.4 w/[Insectoid] in its name: Cost 3 \n\n＜Evade＞ \n[All Turns] While this Digimon is suspended, it isn’t affected by the effects of your opponent's Digimon.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes an opponent's Digimon in battle, trash the top card of your opponent's security stack.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-140"
   },
@@ -136704,7 +136705,7 @@
     ],
     "effectText": "[Digivolve]Lv.4 w/[Mamemon]/[Tyrannomon] in its name: Cost 3 \n\n＜Collision＞ (During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and must block if possible).\n＜Blocker＞ \n[All Turns] [Once Per Turn] When an opponent's Digimon becomes suspended, you may unsuspended this Digimon.\n[Rule] Name: Treated as having [Mamemon]/[Tyrannomon].",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When an opponent's Digimon becomes suspended, you may unsuspended this Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-141"
   },
@@ -136745,7 +136746,7 @@
     ],
     "effectText": "[Digivolve][Pinamon]: Cost 0 \n\n[On Play] Suspend 1 of your opponent's level 6 or lower Digimon. Then, by placing this Digimon as the bottom digivolution card of 1 of your Digimon with [Ravemon] in its name, that Digimon may attack an opponent's Digimon.",
     "inheritedEffectText": "[On Deletion] When this Digimon is deleted other than in battle, your opponent trashes 1 card in their hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-142"
   },
@@ -136780,7 +136781,7 @@
     ],
     "effectText": "[End of Your Turn] [Once Per Turn] You may place this Digimon to the empty space in your breeding area.",
     "inheritedEffectText": "＜Piercing＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-143"
   },
@@ -136816,7 +136817,7 @@
     ],
     "effectText": "[Digivolve][Gotsumon]: Cost 0 \n\n＜Blocker＞ \n[Your Turn] This Digimon without [Gotsumon]/[X Antibody] in it's digivolution cards can't attack.\n[Opponent's Turn] [Once Per Turn] When an attack target is switched, you may unsuspend 1 of your Digimon with ＜Blocker＞",
     "inheritedEffectText": "[All Turns] All of your Digimon with ＜Blocker＞ get +1000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-144"
   },
@@ -136841,7 +136842,7 @@
       }
     ],
     "forms": [
-      "Champion"
+      "Ultimate"
     ],
     "attributes": [
       "Virus"
@@ -136851,14 +136852,14 @@
       "X Antibody"
     ],
     "effectText": "[Digivolve][Myotismon]: Cost 0 \n\n[On Play] [When Digivolving] Delete 1 of your opponent's level 4 or lower Digimon.\n[On Deletion] If [Myotismon]/[X Antibody] is in this Digimon's digivolution cards, you may play 1 level 6 Digimon card with [Myotismon] in its name from your trash without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-145"
   },
   {
     "cardId": "P-146",
     "set": "P",
-    "nameEn": "Recharge Plug-In Q",
+    "nameEn": "Reload Plug-In Q",
     "colors": [
       "Yellow"
     ],
@@ -136879,8 +136880,8 @@
     ],
     "effectText": "While you have a Tamer, you may ignore this card's color requirements.\n[Security] 1 of your opponent's Digimon gains ＜Security Attack -1＞for the turn.\n[Main] Place this card as 1 of your non-white Digimon's bottom digivolution card.",
     "inheritedEffectText": "[All Turns] When this Digimon would be deleted by battle, by placing 1 [Reload Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack, prevent that deletion.",
-    "securityEffectText": "[All Turns] When this Digimon would be deleted by battle, by placing 1 [Recharge Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack, prevent that deletion.",
-    "rarity": "SEC",
+    "securityEffectText": "[Security] 1 of your opponent's Digimon gains ＜Security Attack -1＞ for the turn.",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-146"
   },
@@ -136914,7 +136915,7 @@
       "Beastkin"
     ],
     "effectText": "[Digivolve][Bibimon]: Cost 0 \n\n[When Attacking] [Once Per Turn] By placing 1 level 4 card with [Pulsemon] in its text from your hand as this Digimon's bottom digivolution card, activate 1 of the placed card's [When Digivolving] as an effect of this Digimon.\n[Your Turn] While you have a Tamer, this Digimon gets +3000 DP.\n[Rule] Name: Also treated as [Pulsemon].",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-147"
   },
@@ -136943,7 +136944,7 @@
       "NSp"
     ],
     "inheritedEffectText": "[When Attacking] [Once Per Turn] If this Digimon has the [NSp] trait, ＜Draw 1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-148"
   },
@@ -136971,7 +136972,7 @@
       "Larva"
     ],
     "inheritedEffectText": "[When Attacking] [Once Per Turn] If this Digimon has 2 or more colors, by trashing 1 card in your hand, delete 1 of your opponent's level 3 Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-149"
   },
@@ -137006,7 +137007,7 @@
     ],
     "effectText": "[Digivolve][Pulsemon]: Cost 2 \n\n[When Digivolving] If you have 3 or more security cards, suspend 1 of your opponent's Digimon or Tamers. If you have 3 or fewer security cards, 1 of your opponent's Digimon or Tamers can't unsuspend until the end of their turn.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon with DP less than or equal to this Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-150"
   },
@@ -137034,7 +137035,7 @@
     ],
     "effectText": "While you have a Digimon or Tamer with the [LIBERATOR] trait, you may ignore this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 card with the [LIBERATOR] trait among them to your hand. Return the rest to the bottom of the deck in any order. Then, you may play 1 card with the [LIBERATOR] trait and a play cost of 3 or less from your hand without paying the cost.",
     "securityEffectText": "[Security] Activate this card's [Main] effect.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-151"
   },
@@ -137075,7 +137076,7 @@
       "Xros Heart"
     ],
     "effectText": "[Digivolve]Play cost 4 or less [Shoutmon]/[Dorulumon]: Cost 0 \n\n[When Attacking] 1 of your opponent’s Digimon gets -2000 DP for the turn. Then, by placing 1 Digimon card with the [Xros Heart] trait in this Digimon’s digivolution cards under 1 of your Tamers, delete 1 of their Digimon with 3000 DP or less.\n[Rule] Name: Also treated as [Shoutmon]/[Dorulumon].\n\n[DigiXros -1] [Shoutmon] x [Dorulumon]",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-152"
   },
@@ -137114,8 +137115,8 @@
     "types": [
       "Cyborg"
     ],
-    "effectText": "[Digivolve]3-Color [MagnaGarurumon]: Cost 2 \n\n＜Armor Purge＞\n[When Digivolving] Return 1 of your opponent's level 3, level 4 and level 5 to the hand.\n[End of Attack] By placing this Digimon’s top card as your top security card, unsuspend this Digimon or Tamer.",
-    "rarity": "SEC",
+    "effectText": "[Digivolve]3-Color [MagnaGarurumon]: Cost 2 \n\n＜Armor Purge＞\n[When Digivolving] Return 1 each of your opponent's level 3, level 4 and level 5 Digimon to the hand.\n[End of Attack] By placing this Digimon’s top card as your top security card, unsuspend this Digimon or Tamer.",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-153"
   },
@@ -137150,7 +137151,7 @@
     ],
     "effectText": "[All Turns] When another of your Digimon with [Knightmon] in its text would leave the battle area by an opponent's effect, by placing this Digimon as its bottom digivolution card, it doesn't leave.",
     "inheritedEffectText": "＜Blocker＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-154"
   },
@@ -137178,7 +137179,7 @@
     ],
     "effectText": "While you don't have [Pawn Device], you may ignore this card's color requirements.\n[Main] ＜Draw 1＞. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・By trashing 1 of your non-red option cards in your battle area, gain 1 memory.",
     "securityEffectText": "[Security] Delete 1 of your opponent's Digimon with 11000 DP or less. Then, add this card to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-155"
   },
@@ -137206,7 +137207,7 @@
     ],
     "effectText": "While you have a tamer, you may use this card ignoring its color requirements.  [Main] Choose 1 Tamer. You may play 1 Digimon card with the same color as the chosen tamer with a play cost of 3 or less from your hand or trash without paying the cost.",
     "securityEffectText": "[Security] You may play 1 tamer card from your hand without paying the cost. Then, add this card to your hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-156"
   },
@@ -137236,7 +137237,7 @@
       "Xros Heart"
     ],
     "inheritedEffectText": "[On Deletion] If you have a black Tamer, ＜Draw 1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-157"
   },
@@ -137254,17 +137255,17 @@
     "dp": 0,
     "evoCosts": [],
     "forms": [
-      "D-Reaper"
+      "-"
     ],
     "attributes": [
       "-"
     ],
     "types": [
-      "-"
+      "D-Reaper"
     ],
     "effectText": "[On Play] Reveal the top 4 cards of your deck. Add 1 card with the [D-Reaper] trait among them to the hand. Return the rest to the bottom of the deck.\n[Main] By returning this Tamer to the bottom of the deck. You may play 1 Digimon card with the[D-Reaper] traitand play cost of 3 or less from your hand without paying the cost. For each digivolution card under 1 of your [Mother D-Reaper], add 1 to the maximum play cost you may play with this effect.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-158"
   },
@@ -137292,7 +137293,7 @@
     ],
     "effectText": "While you don't have [Rook Device], you may ignore this card's color requirements.When an effect trashes this card in your battle area, 1 of your Digimon gains ＜Reboot＞ , ＜Blocker＞and gets +2000 DP until the end of your opponent's turn.\n[Main] 1 of your Digimon gains ＜Reboot＞ , ＜Blocker＞and gets +2000 DP until the end of your opponent's turn. Then, place this card in the battle area.",
     "securityEffectText": "[Security] ＜De-Digivolve2＞ 1 of your opponent's Digimon. Then, add this card to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-159"
   },
@@ -137334,7 +137335,7 @@
     ],
     "effectText": "[Digivolve]Lv.4 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 0 \n\n＜Raid＞ \n[When Attacking] If a card with [Tyrannomon] in its name or [X Antibody] is in this Digimon's digivolution cards, this Digimon may digivolve into a Digimon card with [Tyrannomon] in its name or [Dinosaur] trait in the hand with the digivolution cost reduced by 1.",
     "inheritedEffectText": "＜Piercing＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-160"
   },
@@ -137362,7 +137363,7 @@
     ],
     "effectText": "While you don't have [Bishop Device], you may ignore this card's color requirements.When an effect trashes this card in your battle area, When this card is trashed from the battle area, until the end of your opponent's turn, 1 of their Digimon or Tamers can't Suspend.  [Main] Until the end of your opponent's turn, 1 of their Digimon or Tamers can't suspend. Then, place this card in the battle area.",
     "securityEffectText": "[Security] Return 1 of your opponent's level 5 or lower Digimon to the bottom of the deck. Then, add this card to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-161"
   },
@@ -137398,7 +137399,7 @@
     ],
     "effectText": "[Digivolve]Lv.3 w/[DS] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your [DS] trait Digimon can't have its DP reduced or be affected by your opponent's ＜De-Digivolve＞ effects until the end of their turn.",
     "inheritedEffectText": "＜Blocker＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-162"
   },
@@ -137433,7 +137434,7 @@
       "NSo"
     ],
     "effectText": "[Digivolve]Lv.3 w/[NSo] trait: Cost 2 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-163"
   },
@@ -137470,7 +137471,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] By placing 1 Level 5 or lower Digimon card with [Aqua]/[Sea Animal] in any of its traits from your hand as 1 of your Digimon's bottom digivolution card, ＜Draw 1＞ \n[Rule] Trait: Has [Aquatic] type.",
     "inheritedEffectText": "[End of Attack] [Once Per Turn] ＜Draw 1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-164"
   },
@@ -137506,7 +137507,7 @@
     ],
     "effectText": "[Security] At the end of the battle, play this card without paying the cost.  [On Play] [When Digivolving] Play 1 [Familiar] Token (Digimon/Yellow/3000 DP/[On Deletion] 1 of your opponent's Digimon gets -3000 DP for the turn). At the end of your opponent's turn, delete that token.",
     "inheritedEffectText": "＜Barrier＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-165"
   },
@@ -137542,7 +137543,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] You may suspend 1 Digimon. Then, if it's your turn, this Digimon may digivolve into a Digimon card with [Bird]/[Avian] in any of its traits in the hand. For every other suspended Digimon, reduce this effect's digivolution cost by 1.",
     "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-166"
   },
@@ -137578,7 +137579,7 @@
     ],
     "effectText": "[Start of Your Main Phase] [When Digivolving] By trashing 1 [Mineral]/[Rock] trait from any of your Digimon’s digivolution cards, reveal the top 3 cards of your deck. Among them, add 1 [Mineral]/[Rock] trait card to the hand, or place 1 such card as this Digimon's bottom digivolution card. Return the rest to the top or bottom of the deck.",
     "inheritedEffectText": "When effects trash this card from digivolution cards of a [Mineral]/[Rock] trait Digimon,＜De-Digivolve1＞ 1 of your opponent's Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-167"
   },
@@ -137606,7 +137607,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When effects add digivolution cards under any of your Digimon with [Aqua]/[Sea Animal] in any of its traits, by suspending this Tamer, one of those Digimon may digivolve into a Digimon card with the [Aqua]/[Sea Animal] in any of its traits in your hand with the digivolution cost reduced by 1.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-168"
   },
@@ -137627,14 +137628,14 @@
       "-"
     ],
     "attributes": [
-      "LIBERATOR"
+      "-"
     ],
     "types": [
-      "-"
+      "LIBERATOR"
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[All Turns] When effects trash digivolution cards of any of your [Mineral]/[Rock] trait Digimon, by suspending this Tamer, place 1 card with the [Mineral]/[Rock] trait from your trash as any of your Digimon’s bottom digivolution card.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-169"
   },
@@ -137675,7 +137676,7 @@
       "Three Musketeers"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Three Musketeers] in text: Cost 4 \n\nWhen this card would be played, by returning 3 cards with [Three Musketeers] in their texts from your trash to the bottom of the deck, reduce this card's play cost by 6.\n＜Raid＞.\n＜Blocker＞.\n＜Retaliation＞ \n[On Deletion] You may play 1 [Three Musketeers] trait Digimon card with a play cost of 12 or less from your hand or trash without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-170"
   },
@@ -137716,7 +137717,7 @@
       "DS"
     ],
     "effectText": "When this card would be played, if [Deep Savers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [When Digivolving] Trash the top 2 digivolution cards of all of your opponent's Digimon. Then, delete 1 of their Digimon with no digivolution cards.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-171"
   },
@@ -137758,7 +137759,7 @@
       "NSp"
     ],
     "effectText": "When this card would be played, if [Nature Spirits] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [On Deletion] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, delete 1 of their Digimon with 5000 DP or less.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-172"
   },
@@ -137798,7 +137799,7 @@
       "Cyborg"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Tyrannomon] in name: Cost 4 \n\n＜Collision＞.\n＜Piercing＞.\n＜Blocker＞ \n[When Digivolving] ＜De-Digivolve 4＞ 1 of your opponent's Digimon \n[All Turns] [Once Per Turn] When your opponent's Digimon are deleted in battle, this Digimon may unsuspend.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-173"
   },
@@ -137839,7 +137840,7 @@
       "NSo"
     ],
     "effectText": "When this card would be played, if [Nightmare Soldiers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[When Digivolving] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, delete 1 of their level 4 or lower Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-174"
   },
@@ -137867,7 +137868,7 @@
     ],
     "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When any of your Digimon with the [Rock Dragon]/[Machine Dragon] trait are played, by suspending this Tamer, 1 of your level 4 or higher Digimon may digivolve into a Digimon card with the [Rock Dragon]/[Earth Dragon]/[Machine Dragon]/[Sky Dragon] trait in the hand with the digivolution cost reduced by 2.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-175"
   },
@@ -137897,7 +137898,7 @@
       "Chronicle"
     ],
     "inheritedEffectText": "[When Attacking] [Once Per Turn] This Digimon may digivolve into a Digimon card with the [Chronicle] trait in the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-176"
   },
@@ -137925,7 +137926,7 @@
       "Lesser"
     ],
     "inheritedEffectText": "[On Deletion] You may return 1 card with [Growlmon]/[Gallantmon] in its name from your trash to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-177"
   },
@@ -137965,7 +137966,7 @@
       "Mythical Beast"
     ],
     "effectText": "[Digivolve] [Veemon]: Cost 2 \n\n＜Armor Purge＞ \n[When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.\n[When Attacking] Delete 1 of your opponent's Digimon with 4000 DP or less.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-178"
   },
@@ -137999,7 +138000,7 @@
       "Cyborg"
     ],
     "effectText": "[Digivolve] [Justimon: Blitz Arm]/[Justimon: Accel Arm]: Cost 1 \n\n[When Digivolving] By placing 1 Option card with the [Device] trait from your hand or trash into the battle area, this Digimon gets +3000 DP until your opponent's turn ends.\n[When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 of your Option cards in the battle area, delete 1 of your opponent's Digimon with a play cost of 9 or less.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-179"
   },
@@ -138027,7 +138028,7 @@
     ],
     "effectText": "When effects trash this card from digivolution cards, delete 1 of your opponent's 7000 DP or lower Digimon.While you have a [Three Musketeers] trait Digimon, you can ignore this card's color requirements.\n[Main] Trash your opponent's top security card. Then, place this card as the bottom digivolution card of 1 of your [Three Musketeers] trait Digimon.",
     "securityEffectText": "[Security] Delete 1 of your opponent's Digimon with the highest DP.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-180"
   },
@@ -138056,7 +138057,7 @@
     ],
     "effectText": "[Security] [Your Turn] [Once Per Turn] When any of your Digimon would digivolve into a Digimon card with the [Royal Base] trait, reduce the digivolution cost by 1.\n[Main] Add your top security card to the hand. Then, place this card face up as your bottom security card.",
     "securityEffectText": "[Security] You may play 1 level 5 or lower Digimon card with the [Royal Base] trait from your hand without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-181"
   },
@@ -138091,7 +138092,7 @@
       "ADVENTURE"
     ],
     "effectText": "[Digivolve] Lv.5 w/[MetalGreymon] in name or w/[ADVENTURE] trait: Cost 3 \n\n＜Security A. +1＞.\n＜Blocker＞ \n[When Digivolving] Delete 1 of your opponent's Digimon with as much or less DP as this Digimon.\n[All Turns] This Digimon gets +1000 DP for each color Digimon and Tamers have.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-182"
   },
@@ -138132,7 +138133,7 @@
       "X Antibody"
     ],
     "effectText": "＜Reboot＞.\n＜Blocker＞ \n[When Digivolving] Until your opponent's turn ends, 1 of your opponent's Digimon gains \"[Start of Your Main Phase] This Digimon attacks.\" Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, trash your opponent's top security card.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-183"
   },
@@ -138174,7 +138175,7 @@
       "SoC"
     ],
     "effectText": "[Digivolve] Lv.5 w/[DoruGreymon] in name or w/[SoC] trait: Cost 3 \n\n＜Collision＞.\n＜Security A. +1＞ \n[When Digivolving] This Digimon gets +3000 DP until your opponent's turn ends. Then, if [Kosuke Kisakata] is in this Digimon's digivolution cards, all of your Digimon with the [SoC] trait unsuspend.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-184"
   },
@@ -138220,7 +138221,7 @@
       "Dragon Warrior"
     ],
     "effectText": "[Digivolve] [Takuya Kanbara] w/5 [Hybrid] trait cards under: Cost 4 \n\n＜Blocker＞ \n[When Digivolving] Delete 1 of your opponent's Digimon with as much or less DP as this Digimon.\n[All Turns] This Digimon gets +1000 DP for each color in its digivolution cards.\n[End of Your Turn] [Once Per Turn] This Digimon unsuspends.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-185"
   },
@@ -138261,7 +138262,7 @@
       "Royal Knight"
     ],
     "effectText": "[Digivolve] Lv.5 w/[WarGrowlmon] in name: Cost 3 \n\nWhen this card would be played, if there is a Digimon with 13000 DP or more, reduce the play cost by 2 for every 5 total cards in both players' trashes.\n＜Rush＞.\n＜Blocker＞ \n[On Play] [When Digivolving] Delete 1 Digimon with 13000 DP or more. If this effect didn't delete, ＜Recovery +1 (Deck)＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-186"
   },
@@ -138301,7 +138302,7 @@
       "Angel"
     ],
     "effectText": "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.\n[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, you may play 1 purple or yellow Digimon card with 6000 DP or less from your hand or trash without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-187"
   },
@@ -138329,7 +138330,7 @@
       "Baby Dragon"
     ],
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your blue Tamers are played, ＜Draw 1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-188"
   },
@@ -138365,7 +138366,7 @@
     ],
     "effectText": "[Security] You may play 1 card with the [LIBERATOR] trait and a play cost of 4 or less from your hand or trash without paying the cost.\n＜Progress＞.",
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When your opponent's security stack is removed from, gain 1 memory.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-189"
   },
@@ -138400,7 +138401,7 @@
       "Tweet"
     ],
     "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] ＜Draw 1＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-190",
     "linkDp": 2000,
@@ -138444,9 +138445,9 @@
       "Olympos XII",
       "Light Fang"
     ],
-    "effectText": "[Digivolve] Lv.5 w/[Light Fang]/[Night Claw] trait: Cost 4 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait. Then, delete up to 7000 DP total worth of their Digimon.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.",
+    "effectText": "[Digivolve] Lv.5 w/[Light Fang]/[Night Claw] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait. Then, delete up to 7000 DP total worth of their Digimon.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand. Then, 1 of your Digimon may attack.",
     "inheritedEffectText": "[End of Your Turn] [Once Per Turn] 1 of your Digimon may attack.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-191",
     "isAce": true,
@@ -138484,7 +138485,7 @@
     ],
     "effectText": "[On Play] [When Digivolving] By trashing 1 card in your hand, delete 1 of your opponent's level 4 or lower Digimon.",
     "inheritedEffectText": "＜Retaliation＞.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-192"
   },
@@ -138512,7 +138513,7 @@
     ],
     "effectText": "[Main] By trashing 1 card with the [Composite] or [Wicked God] trait from your hand, ＜Draw 2＞. Then, place this card in the battle area.\n[End of All Turns] ＜Delay＞.\n・By deleting 1 of your [Millenniummon], you may play 1 [Wicked God] trait Digimon card from your hand or trash without paying the cost.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-193"
   },
@@ -138548,7 +138549,7 @@
     ],
     "effectText": "[Digivolve] Lv.3 w/[TS] trait: Cost 2 \n\n＜Blocker＞ \n＜Barrier＞",
     "inheritedEffectText": "＜Barrier＞",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-194"
   },
@@ -138576,7 +138577,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[On Play] Activate 1 of the effects below:\n・You may play 1 [Elecmon] from your hand without paying the cost.\n・1 of your Digimon may digivolve into [Aegiomon] in the hand without paying the cost.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-195"
   },
@@ -138612,7 +138613,7 @@
     ],
     "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with the [Sea Beast] or [TS] trait in the hand without paying the cost.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] If you have 7 or fewer cards in your hand, ＜Draw 1＞",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-196"
   },
@@ -138648,7 +138649,7 @@
     ],
     "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with the [Angel] or [TS] trait in the hand without paying the cost.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-197"
   },
@@ -138684,7 +138685,7 @@
     ],
     "effectText": "[Digivolve] Lv.2 w/[TS] trait: Cost 0 \n\n[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with the [Fallen Angel] or [TS] trait in the hand without paying the cost.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] ＜Draw 1＞ and trash 1 card in your hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-198"
   },
@@ -138712,7 +138713,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If you have 4 or less memory, 1 of your Digimon gets +3000 DP for the turn.\n[Your Turn] When any of your Digimon cards with the [TS] trait would be played, by suspending this Tamer, reduce their play costs by 1.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-199"
   },
@@ -138740,7 +138741,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If you have 4 or less memory, suspend 1 of your opponent's Digimon.\n[Your Turn] When any of your Digimon would digivolve into a Digimon card with the [TS] trait, by suspending this Tamer, reduce the digivolution cost by 1.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-200"
   },
@@ -138781,7 +138782,7 @@
     ],
     "effectText": "[Digivolve] [Kapurimon]: Cost 0 \n\n[On Play] [On Deletion] Reveal the top 3 cards of your deck. Add 1 card with [Belphemon] or [Gizmon] in its text among them to the hand. Return the rest to the bottom of the deck. Then, trash 1 card in your hand.",
     "inheritedEffectText": "[End of Opponent's Turn] [Once Per Turn] By trashing 1 card in your hand, suspend 1 of your opponent's Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-201"
   },
@@ -138818,7 +138819,7 @@
     ],
     "effectText": "[Digivolve] Lv.3 w/[DM] trait: Cost 2 \n\n＜Training＞ \n[Your Turn] [Once Per Turn] When any of your suspended Digimon would digivolve into a Digimon card with [Tyrannomon] in its name or the [Dinosaur] or [Ver.1] trait, reduce the digivolution cost by 1.",
     "inheritedEffectText": "＜Piercing＞",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-202"
   },
@@ -138852,7 +138853,7 @@
       "Cyborg"
     ],
     "effectText": "[Digivolve] [Justimon: Blitz Arm]/[Justimon: Critical Arm]: Cost 1\n[Digivolve] Lv.5 w/[Cyberdramon] in name: Cost 3 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn. \n[All Turns] [Once Per Turn] When Option cards in the battle area are trashed, 1 of your opponent's Digimon can't digivolve or attack players until their turn ends.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-203"
   },
@@ -138881,7 +138882,7 @@
     ],
     "effectText": "[Main] By trashing 1 card with the [X Antibody] or [Chronicle] trait from your hand, ＜Draw 2＞ Then, place this card in the battle area.\n[All Turns] When Digimon attack players, ＜Delay＞ \n・1 of your [Grademon] or Digimon with the [Chronicle] trait may digivolve into [Alphamon] or a level 6 or lower Digimon card with the [Chronicle] trait in the hand without paying the cost.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-204"
   },
@@ -138909,7 +138910,7 @@
     ],
     "effectText": "While you have a Digimon or Tamer with the [DM] trait on the field, you can ignore this card's color requirements.\n[Main] ＜Draw 2＞ and trash 2 cards in your hand. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・By deleting 1 of your play cost 7 or lower Digimon, you may play 1 Digimon card with [Kimeramon] or [Millenniummon] in its name from your trash with the play cost reduced by 3.",
     "securityEffectText": "[Security] ＜Draw 2＞ and trash 2 cards in your hand. Then, place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-205"
   },
@@ -138937,7 +138938,7 @@
     ],
     "effectText": "You can ignore this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 Digimon card and 1 Tamer card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・You may play 1 Tamer card with the same color as any of your Digimon on the field from your hand with the play cost reduced by 4.",
     "securityEffectText": "[Security] You may play 1 Digimon card with a play cost of 3 or less from your hand or trash without paying the cost. Then, add this card to the hand.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-206"
   },
@@ -138980,7 +138981,7 @@
       "TS"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Beastkin]/[TS] trait: Cost 3 \n\n＜Alliance＞ \n[On Play] [When Digivolving] You may play 1 level 4 or lower Digimon card with [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of its traits (other than [Sea Animal]) or the [TS] trait from your hand without paying the cost.\n[When Attacking] [Once Per Turn] You may play 1 level 4 or lower Digimon card with [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of its traits (other than [Sea Animal]) or the [TS] trait from your trash without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-207"
   },
@@ -139023,7 +139024,7 @@
       "TS"
     ],
     "effectText": "[Digivolve] Lv.5 w/[Beastkin]/[TS] trait: Cost 3 \n\n＜Execute＞ \n[When Digivolving] [On Deletion] You may play 1 level 4 or lower Digimon card with [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of its traits (other than [Sea Animal]) or the [TS] trait from your trash without paying the cost.\n[When Attacking] [Once Per Turn] Return 1 of your opponent's suspended Digimon to the bottom of the deck.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-208"
   },
@@ -139065,8 +139066,8 @@
       "TS",
       "Demon"
     ],
-    "effectText": "[Digivolve] Lv.5 w/[Demon]/[TS] trait: Cost 3 \n\n＜Alliance＞ \n[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[All Turns] [Once Per Turn] When your hand is trashed from, you may play 1 level 4 or lower [Demon] card from your trash without paying the cost.",
-    "rarity": "SEC",
+    "effectText": "[Digivolve] Lv.5 w/[Demon]/[TS] trait: Cost 3 \n\n＜Alliance＞ \n[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.\n[All Turns] [Once Per Turn] When your hand is trashed from, you may play 1 level 4 or lower [Demon] or [Titan] trait card from your trash without paying the cost.",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-209"
   },
@@ -139094,7 +139095,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[On Play] You may return 1 Digimon card with the [TS] trait from your trash to the hand.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-210"
   },
@@ -139122,7 +139123,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.  [On Play] Until your opponent's turn ends, 1 of their Digimon can't attack players.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-211"
   },
@@ -139150,7 +139151,7 @@
     ],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[On Play] ＜Draw 1＞ and trash 1 card in your hand. If this effect trashed a card with the [Three Musketeers] or [TS] trait, delete 1 of your opponent's level 3 Digimon.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-212"
   },
@@ -139188,7 +139189,7 @@
     ],
     "effectText": "[Digivolve] [Aegiomon]: Cost 3 \n\n＜Raid＞ \n＜Decode ([Aegiomon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.)\n[When Digivolving] If you have 3 or fewer security cards, this Digimon gains ＜Rush＞ and +3000 DP until your opponent's turn ends. Then, this Digimon may attack.",
     "inheritedEffectText": "＜Decode ([Aegiomon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.))",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-213"
   },
@@ -139222,9 +139223,9 @@
       "Aquatic",
       "X Antibody"
     ],
-    "effectText": "[Digivolve] [Betamon]/[ModokiBetamon]: Cost 2 \n\n＜Decode ([Betamon])/([ModokiBetamon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Betamon] or [ModokiBetamon] from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Seadramon] in its text, return 1 of your opponent's Digimon with as high or lower a level as 1 of your Digimon with [Seadramon] in its text to the bottom of the deck.",
+    "effectText": "[Digivolve] [Betamon]/[ModokiBetamon]: Cost 0 \n\n＜Decode ([Betamon])/([ModokiBetamon])＞ (When this Digimon would leave the battle area other than in battle, you may play 1 [Betamon] or [ModokiBetamon] from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Seadramon] in its text, return 1 of your opponent's Digimon with as high or lower a level as 1 of your Digimon with [Seadramon] in its text to the bottom of the deck.",
     "inheritedEffectText": "[All Turns] When this Digimon with [Seadramon] in its text would leave the battle area by your opponent's effects, by trashing 2 same-level cards in its digivolution cards, it doesn't leave.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-214"
   },
@@ -139266,7 +139267,7 @@
     ],
     "effectText": "[Digivolve] Lv.3 w/[Ice-Snow]/[Mineral]/[Rock]: Cost 2 \n\n[When Moving] [On Play] [When Digivolving] By placing 1 level 4 or lower [Ice-Snow], [Mineral] or [Rock] trait card from your hand or trash as this Digimon's bottom digivolution card, until your opponent’s turn ends, their effects can't return 1 or your [Ice-Snow], [Mineral] or [Rock] trait Digimon to hands or decks or affect it with ＜De-Digivolve＞ effects.",
     "inheritedEffectText": "＜Blocker＞",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-215"
   },
@@ -139301,7 +139302,7 @@
     ],
     "effectText": "＜Blocker＞ \n[On Play] You may play 1 [Dark Masters] trait Digimon card from your hand without paying the cost. The Digimon this effect played can't digivolve and is deleted at turn end.\n[On Deletion] You may play 1 face-up [Dark Masters] trait Digimon card from your security stack without paying the cost. At the end of your turn, delete the Digimon this effect played.",
     "inheritedEffectText": "＜Blocker＞",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-216"
   },
@@ -139330,7 +139331,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Social] trait card and 1 [Creation], [Navi] or [Tool] trait card among them to the hand. Return the rest to the bottom of the deck.\n[Your Turn] When any of your Digimon get linked to a [Social], [Creation], [Navi] or [Tool] trait card, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-217"
   },
@@ -139359,7 +139360,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Entertainment] trait card and 1 [Awakening], [Tool] or [Navi] trait card among them to the hand. Return the rest to the bottom of the deck.\n[Your Turn] When any of your Digimon get linked to a [Entertainment], [Tool] or [Navi] trait card, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-218"
   },
@@ -139387,7 +139388,7 @@
     ],
     "effectText": "When this card would be used, if your opponent has 10 or more cards in their trash, reduce the use cost by 3.\n[Main] Delete 1 of your opponent's level 6 or lower Digimon. Then, by deleting 1 of your [Evil] or [Fallen Angel] trait Digimon, you may play 1 [Creepymon] from your trash without paying the cost. The Digimon this effect played gains ＜Rush＞ and ＜Blocker＞ until your opponent's turn ends.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-219"
   },
@@ -139430,7 +139431,7 @@
       "Ver.5"
     ],
     "effectText": "＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may delete 1 Digimon.\n[On Deletion] By returning 3 [Composite], [Wicked God] or [DM] cards from your trash to the bottom of the deck, you may play 2 level 6 or lower [Composite], [Ver.3] or [Ver.5] Digimon cards from your trash without paying the costs. This effect can't play cards of the same level.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-220"
   },
@@ -139470,7 +139471,7 @@
       "Unique"
     ],
     "effectText": "＜Security A. +1＞ \n＜Partition (Yellow Lv.6 & Purple/Black Lv.6)＞ \n[When Digivolving] If DNA digivolving, until your opponent's turn ends, their effects don't affect this Digimon.\n[When Digivolving] [When Attacking] 1 of your opponent's Digimon gets -10000 DP until their turn ends.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-221"
   },
@@ -139511,7 +139512,7 @@
       "WG"
     ],
     "effectText": "[Digivolve] Lv.5 w/[WG] trait: Cost 3 \n\nWhen this card would be played, if you have a face-up [Wind Guardians] security card, reduce the play cost by 4.\n[On Play] [When Digivolving] You may suspend 1 Digimon.\n[All Turns] [Once Per Turn] When any Digimon suspend, you may delete 1 of your opponent's lowest DP Digimon.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-222"
   },
@@ -139550,8 +139551,8 @@
     "types": [
       "Shaman"
     ],
-    "effectText": "[Digivolve] Lv.6 w/[Maid Mode] in name: Cost 1 \n\nWhen this card would be played, if you have 3 or fewer security cards, reduce the play cost by 4.\n[On Play] [When Digivolving] You may use 1 [Onmyōjutsu] or [Plug-In] Option card from your hand or trash without paying the cost.\n[All Turns] [Once Per Turn] When you use Option cards, you may play 1 [Pipe Fox] Token. (Digimon/Yellow/6000 DP/＜Blocker＞)",
-    "rarity": "SEC",
+    "effectText": "[Digivolve] Lv.6 w/[Maid Mode] in name: Cost 1 \n\nWhen this card would be played, if you have 3 or fewer security cards, reduce the play cost by 4.\n[On Play] [When Digivolving] You may use 1 [Onmyōjutsu] or [Plug-In] Option card from your hand or trash without paying the cost.\n[All Turns] [Once Per Turn] When you use Option cards, you may play 1 [Pipe Fox] Token. (Digimon/Yellow/6000 DP/＜Blocker＞)\n(Rule) Name: Also treated as [Sakuyamon].",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-223"
   },
@@ -139580,7 +139581,7 @@
     ],
     "effectText": "[Start of Your Main Phase] [On Play] By placing 1 [Xros Heart] or [Twilight] trait Digimon card from your hand or trash under this Tamer, if you have 7 or fewer cards in your hand, ＜Draw 1＞ \n[Main] By suspending this Tamer, you may play 1 level 5 or higher [Xros Heart] trait Digimon card from under any of your Tamers with the play cost reduced by 1.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-224"
   },
@@ -139608,7 +139609,7 @@
     ],
     "effectText": "While you have [CS] trait Digimon or Tamer, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・By placing the top stacked card of any of your level 4 or higher [CS] Digimon as its bottom digivolution card, gain 2 memory.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-225"
   },
@@ -139636,7 +139637,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Tyrannomon] in its name or the [Reptile] or [Dinosaur] trait and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Ryutaro Williams] are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-227"
   },
@@ -139664,7 +139665,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Ice-Snow] trait Digimon card and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Suzune Kazuki]s are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-228"
   },
@@ -139692,7 +139693,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Puppet] trait Digimon card and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Mirai Kinosaki]s are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-229"
   },
@@ -139720,7 +139721,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 card with [Royal Base] in its text and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Winr]s are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-230"
   },
@@ -139748,7 +139749,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Cyborg] or [Machine] trait Digimon card and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Altea]s are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-231"
   },
@@ -139776,7 +139777,7 @@
     ],
     "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon card and 1 [LIBERATOR] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Your Turn] When any of your [Yuuki]s are played, ＜Delay＞ \n・1 of your Digimon may digivolve into a level 6 or lower [LIBERATOR] trait card in the hand or trash with the digivolution cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-232"
   },
@@ -139805,7 +139806,7 @@
     ],
     "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 [Game] trait card and 1 [Invincible], [Life] or [Entertainment] trait card among them to the hand. Return the rest to the bottom of the deck.\n[Your Turn] When any of your Digimon get linked to a [Game], [Life] or [Entertainment] trait card, by suspending this Tamer, gain 1 memory.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-233"
   },
@@ -139835,7 +139836,7 @@
     ],
     "effectText": "[On Play] Reveal the top 4 cards of your deck. Add 1 [System], [Navi], [Tool] or [Leviathan] trait card among them to the hand. Return the rest to the bottom of the deck.\n[Your Turn] When effects trash any of your Digimon's link cards, by suspending this Tamer, you may link 1 [System], [Navi], [Tool] or [Leviathan] trait card from your hand with the cost reduced by 2.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-234"
   },
@@ -139863,7 +139864,7 @@
     ],
     "effectText": "＜Use Req. ([DATA SQUAD] trait)＞ \n[Main] Reveal the top 3 cards of your deck. Add 1 card with the [DATA SQUAD] trait among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・ Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-235"
   },
@@ -139892,7 +139893,7 @@
     ],
     "effectText": "＜Use Req. ([Glowing Dawn] trait)＞ \n[Main] Reveal the top 3 cards of your deck. Add 1 card with the [Glowing Dawn] trait among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・ Gain 2 memory.",
     "securityEffectText": "[Security] Place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-236"
   },
@@ -139921,7 +139922,7 @@
     ],
     "effectText": "＜Use Req. ([Maquinamon] in text)＞ \n[Main] You may play 1 [Maquinamon] or [Unchained] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[All Turns] When any of your [Unchained] are played, ＜Delay＞ \n・ 1 of your Digimon may digivolve into a level 6 or lower Digimon card with [Maquinamon] in its text in the hand without paying the cost.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-237"
   },
@@ -139949,7 +139950,7 @@
     ],
     "effectText": "＜Use Req. ([CS] trait)＞ \n[Main] Delete 1 of your opponent’s level 6 or lower Digimon. Then, place this card in the battle area.\n[Your Turn] When one of your [CS] trait Digimon attacks, ＜Delay＞ \n・ Delete 1 of your opponent’s level 6 or lower Digimon.",
     "securityEffectText": "[Security] Delete 1 of your opponent’s level 6 or lower Digimon. Then, place this card in the battle area.",
-    "rarity": "SEC",
+    "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-238"
   },
@@ -140122,7 +140123,7 @@
     "types": [
       "LIBERATOR"
     ],
-    "effectText": "[Main] You may play 1 [Vemmon] or [Zenith] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[All Turns] When effects place [Vemmon] as any of your Digimon's digivolution cards, ＜Delay＞ \n・1 of your Digimon with [Vemmon] in its text may digivolve into a Digimon card with [Vemmon] in its text in the hand or trash with the cost reduced by 3.",
+    "effectText": "[Main] You may play 1 [Vemmon] or [Zenith] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Your Turn] When effects place [Vemmon] as any of your Digimon's digivolution cards, ＜Delay＞ \n・1 of your Digimon with [Vemmon] in its text may digivolve into a Digimon card with [Vemmon] in its text in the hand or trash with the cost reduced by 3.",
     "securityEffectText": "[Security] Activate this card's [Main] effects.",
     "nameJp": "ユニークエンブレム：終焉の到達者"
   },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, Phase } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -241,10 +241,23 @@ describe("RB1-033 [Your Turn] unsuspend memory", () => {
 
 describe("RB1-033 [Security]", () => {
   it("plays itself from Security without paying its play cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: RB1033, as: "securityKiyoshiro" }] }, 1: {} }, OPTS);
+    const s = setupEngine(
+      {
+        0: { security: [{ card: RB1033, as: "securityKiyoshiro" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      OPTS,
+    );
+    s.state.turnSeat = 1;
     await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     const securityCard = s.inst("securityKiyoshiro");
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, securityCard);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === securityCard.instanceId));
     expect(s.state.players[0]!.security.some((c) => c.instanceId === securityCard.instanceId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === securityCard.instanceId)).toBe(true);

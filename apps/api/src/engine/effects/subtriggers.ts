@@ -786,10 +786,14 @@ export class SubTriggerRegistry {
   /** Resolve `instead` replacements at the pay-time `wouldBePlayed` seam. */
   async activateInsteadReplacementsFor(
     event: ReplacementEventName,
-    target: Permanent,
-    buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
+    target: Permanent | Permanent[],
+    buildContext: (
+      sourcePermanentId: string,
+      sourceInstanceId?: string,
+      targetInstanceId?: string,
+    ) => EffectContext | undefined,
     turnBudget?: SubTriggerTurnLedger,
-    onApplicable?: (replacement: ReplacementSubscriptionInstead) => void,
+    onApplicable?: (replacement: ReplacementSubscriptionInstead, targetInstanceIds?: readonly string[]) => void,
   ): Promise<number> {
     if (event !== "wouldBePlayed") return 0;
     const candidates = this.replacements.filter(
@@ -797,17 +801,48 @@ export class SubTriggerRegistry {
         replacement.event === event && replacement.mode === "instead",
     );
     let activated = 0;
+    const targets = Array.isArray(target) ? target : [target];
     for (const replacement of candidates) {
       const sourcePermanentId = replacement.sourcePermanentId;
       if (sourcePermanentId === undefined) continue;
-      const ctx = buildContext(sourcePermanentId, replacement.sourceInstanceId);
-      if (ctx === undefined) continue;
-      if (replacement.appliesToPending !== undefined) {
-        if (!replacement.appliesToPending(ctx, target)) continue;
-      } else if (replacement.appliesTo !== undefined && !replacement.appliesTo(ctx, target.permanentId)) {
-        continue;
+      const qualifyingTargets: Permanent[] = [];
+      const candidateInstanceIds = new Map<Permanent, string>();
+      const candidateContexts = new Map<Permanent, EffectContext>();
+      for (const candidate of targets) {
+        const candidateContext = buildContext(
+          sourcePermanentId,
+          replacement.sourceInstanceId,
+          candidate.topCard?.instanceId,
+        );
+        if (candidateContext === undefined) continue;
+        candidateContexts.set(candidate, candidateContext);
+        if (replacement.appliesToPending !== undefined && !replacement.appliesToPending(candidateContext, candidate))
+          continue;
+        if (
+          replacement.appliesToPending === undefined &&
+          replacement.appliesTo !== undefined &&
+          !replacement.appliesTo(candidateContext, candidate.permanentId)
+        )
+          continue;
+        qualifyingTargets.push(candidate);
+        const candidateInstanceId = candidate.topCard?.instanceId ?? candidateContext.trigger?.wouldBePlayedInstanceId;
+        if (candidateInstanceId !== undefined) candidateInstanceIds.set(candidate, candidateInstanceId);
       }
-      onApplicable?.(replacement);
+      if (qualifyingTargets.length === 0) continue;
+      const qualifyingIds = qualifyingTargets
+        .map((candidate) => candidateInstanceIds.get(candidate))
+        .filter((id): id is string => id !== undefined);
+      if (qualifyingIds.length === 0) continue;
+      const ctx =
+        candidateContexts.get(qualifyingTargets[0]!) ??
+        buildContext(sourcePermanentId, replacement.sourceInstanceId, qualifyingIds[0]);
+      if (ctx === undefined) continue;
+      ctx.trigger = {
+        ...(ctx.trigger ?? {}),
+        wouldBePlayedInstanceId: qualifyingIds[0],
+        wouldBePlayedInstanceIds: qualifyingIds,
+      };
+      onApplicable?.(replacement, qualifyingIds);
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
       const result = await replacement.apply(ctx);
       if (result === false) continue;

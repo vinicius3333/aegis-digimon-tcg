@@ -11,9 +11,9 @@ describe("P-122 Patamon", () => {
           hand: [{ card: "P-122", as: "patamon" }],
           security: [
             { card: "BT11-036", as: "match" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
-          deck: [{ card: "BT1-002", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -36,7 +36,7 @@ describe("P-122 Patamon", () => {
   it("does not recover when no eligible security card exists", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "P-122", as: "patamon" }], security: ["BT1-001"], deck: [{ card: "BT1-002", as: "top" }] },
+        0: { hand: [{ card: "P-122", as: "patamon" }], security: ["BT1-009"], deck: [{ card: "BT1-009", as: "top" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -60,9 +60,9 @@ describe("P-122 Patamon", () => {
           hand: [{ card: "P-122", as: "patamon" }],
           security: [
             { card: cardId, as: "candidate" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
-          deck: [{ card: "BT1-002", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -87,9 +87,9 @@ describe("P-122 Patamon", () => {
           hand: [{ card: "P-122", as: "patamon" }],
           security: [
             { card: cardId, as: "candidate" },
-            { card: "BT1-001", as: "other" },
+            { card: "BT1-009", as: "other" },
           ],
-          deck: [{ card: "BT1-002", as: "recovery" }],
+          deck: [{ card: "BT1-009", as: "recovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

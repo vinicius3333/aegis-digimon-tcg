@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,9 +33,14 @@ describe("P-208 Merukimon", () => {
                 kind: ["Digimon"],
                 levelComparison: { op: "lte", value: 4 },
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
-                nameOrTrait: [
-                  { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-                  { tokens: ["TS"], match: "trait" },
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
+                orFilters: [
+                  {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "lte", value: 4 },
+                    nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+                  },
                 ],
               },
             },
@@ -67,44 +71,149 @@ describe("P-208 Merukimon", () => {
 
   it("plays an eligible level-4 Digimon from trash when deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "P-208", as: "meruki" }], trash: [{ card: "BT1-013", as: "avian" }] } },
+      { 0: { battleArea: [{ card: "P-208", as: "meruki" }], trash: [{ card: "BT1-017", as: "avian" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("meruki").permanentId]);
     await settle();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId)).toBe(true);
   });
 
-  it("plays an eligible level-4 Digimon from trash when digivolving", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "P-208", as: "meruki" }], trash: [{ card: "BT1-013", as: "avian" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("meruki"));
-    await settle();
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId)).toBe(true);
-  });
-
-  it("returns a suspended opposing Digimon to the bottom of the deck after a real attack", async () => {
+  it("publicly digivolves for 3 and plays an eligible level-4 Digimon from trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-208", as: "meruki" }] },
-        1: { battleArea: [{ card: "BT1-009", suspended: true, as: "victim" }], security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT1-040", as: "base" }],
+          hand: [{ card: "P-208", as: "meruki" }],
+          trash: [{ card: "BT1-017", as: "avian" }],
+          deck: Array.from({ length: 20 }, () => "BT3-059"),
+        },
+        1: { deck: Array.from({ length: 20 }, () => "BT3-059"), security: Array(3).fill("BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const sourceId = s.inst("meruki").instanceId;
+    const avianId = s.inst("avian").instanceId;
+    const basePermanentId = s.perm("base").permanentId;
+    const baseId = s.inst("base").instanceId;
+    s.state.memory = 3;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: basePermanentId,
+        instanceId: sourceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.instanceId === sourceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").permanentId).toBe(basePermanentId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.perm("base").topCard.instanceId).toBe(sourceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sourceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === avianId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === avianId)).toBe(true);
+  });
+
+  it("returns one suspended opposing Digimon per attack and resets after the natural handoff", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-208", as: "meruki" },
+            { card: "BT1-009", as: "legalAlly" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array.from({ length: 20 }, () => "BT3-059"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", suspended: true, as: "victim1" },
+            { card: "BT1-013", suspended: true, as: "victim2" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array.from({ length: 20 }, () => "BT3-059"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourcePermanentId = s.perm("meruki").permanentId;
+    const victim1Id = s.inst("victim1").instanceId;
+    const victim2Id = s.inst("victim2").instanceId;
+    const attack = () =>
+      s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("meruki").permanentId,
+        attackerPermanentId: sourcePermanentId,
+        target: { kind: "player" },
+      });
+    const combatIdle = () => !observe(s.engine).isAttacking();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const securityChecksBeforeFirst = s.events.filter((event) => event.kind === "securityChecked").length;
+    expect(attack()).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("meruki").instanceId) &&
+        s.state.players[1]!.battleArea.length === 1 &&
+        combatIdle() &&
+        s.state.pendingDecision === undefined &&
+        s.events.filter((event) => event.kind === "securityChecked").length === securityChecksBeforeFirst + 1,
+    );
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(victim1Id);
+    expect(s.perm("meruki").permanentId).toBe(sourcePermanentId);
+
+    await advance(s.engine).verb.unsuspend([sourcePermanentId]);
+    const securityChecksBeforeSecond = s.events.filter((event) => event.kind === "securityChecked").length;
+    expect(attack()).toEqual({ ok: true });
+    await settle(
+      () =>
+        combatIdle() &&
+        s.state.pendingDecision === undefined &&
+        s.events.filter((event) => event.kind === "securityChecked").length === securityChecksBeforeSecond + 1,
+    );
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === victim2Id)).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(victim1Id);
+
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("victim2").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    const securityChecksBeforeOpponent = s.events.filter((event) => event.kind === "securityChecked").length;
+    await settle(
+      () =>
+        s.perm("victim2").isSuspended &&
+        s.state.pendingDecision === undefined &&
+        combatIdle() &&
+        s.events.filter((event) => event.kind === "securityChecked").length === securityChecksBeforeOpponent + 1,
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const securityBeforeThird = s.state.players[1]!.security.length;
+    const securityChecksBeforeThird = s.events.filter((event) => event.kind === "securityChecked").length;
+    expect(attack()).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.deck.at(-1)?.instanceId === victim2Id &&
+        combatIdle() &&
+        s.state.pendingDecision === undefined &&
+        s.events.filter((event) => event.kind === "securityChecked").length === securityChecksBeforeThird + 1,
+    );
+    expect(s.state.players[1]!.security.length).toBe(securityBeforeThird - 1);
+    expect(s.perm("meruki").permanentId).toBe(sourcePermanentId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

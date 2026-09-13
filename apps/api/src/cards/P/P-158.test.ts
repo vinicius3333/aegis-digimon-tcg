@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-158.js";
 
 describe("P-158 Jeri (Fake)", () => {
@@ -54,11 +54,117 @@ describe("P-158 Jeri (Fake)", () => {
     });
   });
 
-  it("plays itself from security without paying its memory cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "P-158", as: "jeri" }] } });
+  it("returns itself to the deck bottom and plays only within the Mother D-Reaper ceiling", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-158", as: "jeri" },
+            { card: "EX2-007", as: "mother", under: ["EX2-046", "EX2-046"] },
+          ],
+          hand: [
+            { card: "BT19-078", as: "eligible" },
+            { card: "EX2-051", as: "overCeiling" },
+          ],
+          deck: Array.from({ length: 20 }, () => "BT1-012"),
+        },
+        1: { deck: Array.from({ length: 20 }, () => "BT1-012"), security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("jeri"));
-    await settle();
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("jeri").instanceId)).toBe(true);
+    const ability = JSON.parse(s.perm("jeri").activatableEffectsJson) as { effectKey: string }[];
+    expect(ability).toHaveLength(1);
+    const jeriId = s.inst("jeri").instanceId;
+    const eligibleId = s.inst("eligible").instanceId;
+    const overCeilingId = s.inst("overCeiling").instanceId;
+    preferred.push(overCeilingId, eligibleId);
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: jeriId, effectKey: ability[0]!.effectKey }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === eligibleId),
+    );
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(jeriId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === eligibleId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === overCeilingId)).toBe(true);
+  });
+
+  it("plays a play-cost-3 D-Reaper with no Mother D-Reaper sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-158", as: "jeri" },
+            { card: "EX2-007", as: "mother" },
+          ],
+          hand: [{ card: "EX2-046", as: "searcher" }],
+          deck: Array.from({ length: 20 }, () => "BT1-012"),
+        },
+        1: { deck: Array.from({ length: 20 }, () => "BT1-012"), security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const jeriId = s.inst("jeri").instanceId;
+    const searcherId = s.inst("searcher").instanceId;
+    const ability = JSON.parse(s.perm("jeri").activatableEffectsJson) as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: jeriId, effectKey: ability[0]!.effectKey }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === searcherId),
+    );
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(jeriId);
+  });
+
+  it("plays itself from security after a public opponent attack without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-158", as: "jeri" }], deck: Array.from({ length: 20 }, () => "BT1-012") },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          deck: Array.from({ length: 20 }, () => "BT1-012"),
+          security: ["BT1-011", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("jeri").instanceId),
+    );
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

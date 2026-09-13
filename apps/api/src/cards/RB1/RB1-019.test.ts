@@ -23,6 +23,7 @@ describe("RB1-019 ShinMonzaemon", () => {
       },
       { autoSelectCards: true },
     );
+    const oldTopId = s.inst("base").instanceId;
     const ownLevel3 = s.perm("ownLevel3").topCard.instanceId;
     const opposingLevel3 = s.perm("opposingLevel3").topCard.instanceId;
 
@@ -41,6 +42,8 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(s.state.players[1]!.security.at(0)).toMatchObject({ instanceId: opposingLevel3, faceUp: false });
     expect(s.perm("opposingLevel5").currentDP).toBe(5000);
     expect(observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack")).toBe(-1);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(oldTopId);
   });
 
   it("places the attacked opponent Digimon face down at security bottom after trashing Numemon", async () => {
@@ -69,5 +72,46 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
     ).toBe(false);
+  });
+
+  it("lets the activating player choose the order of multiple opponent level 3 cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-018", as: "base" }], hand: [{ card: "RB1-019", as: "shin" }] },
+        1: {
+          battleArea: [
+            { card: "RB1-011", as: "first" },
+            { card: "BT1-009", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shin").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const ordering = s.decisions.at(-1)!.req;
+    expect(ordering.kind).toBe("orderCards");
+    expect(ordering.options?.candidateInstanceIds).toEqual([firstId, secondId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: [secondId, firstId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 2);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([secondId, firstId]);
   });
 });

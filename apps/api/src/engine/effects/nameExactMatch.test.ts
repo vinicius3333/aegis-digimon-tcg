@@ -48,6 +48,14 @@ describe("named X Antibody source references", () => {
   });
 });
 
+it.each(["TOKEN-Diaboromon", "TOKEN-Diaboromon-Token"] as const)(
+  "matches both existing Diaboromon token identities by exact name: %s",
+  (cardId) => {
+    const definition = getCardDefinition(cardId)!;
+    expect(matchNameOrTrait(definition, { tokens: ["Diaboromon"], match: "nameExact" })).toBe(true);
+  },
+);
+
 it.each([
   ["BT10-016", "Jesmon"],
   ["BT10-086", "Omnimon"],

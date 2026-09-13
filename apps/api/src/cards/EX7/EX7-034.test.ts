@@ -177,7 +177,7 @@ describe("EX7-034 GrandGalemon", () => {
   it("inherits optional once-per-turn unsuspend only when attacking an opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-035", as: "host", dp: 9000, under: ["EX7-034"] }], security: ["BT1-009"] },
+        0: { battleArea: [{ card: "BT1-080", as: "host", dp: 9000, under: ["EX7-034"] }], security: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first", dp: 3000, suspended: true },

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-099.js";
+import "../BT4/BT4-104.js";
 import "./LM-023.js";
 
 describe("LM-023 Sakuyamon: Maid Mode", () => {
@@ -32,15 +33,18 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-023", as: "maid" }],
-          hand: [{ card: "BT1-091", as: "option" }],
+          hand: [
+            { card: "LM-023", as: "maid" },
+            { card: "BT1-091", as: "option" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("maid"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-091"), 2000);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-091")).toBe(true);
@@ -50,17 +54,21 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-023", as: "maid" }, "BT1-087", "BT1-087", "BT1-087", "BT1-087"],
-          hand: [{ card: "BT2-099", as: "reduced-option" }],
+          battleArea: ["BT1-087", "BT1-087", "BT1-087", "BT1-087"],
+          hand: [
+            { card: "LM-023", as: "maid" },
+            { card: "BT2-099", as: "reduced-option" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
     // Glorious Burst has printed use cost 9, reduced by one for each of four
     // Yellow Tamers. Q5516 permits the resulting effective cost of 5.
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT2-099"), 2000);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT2-099")).toBe(true);
@@ -70,16 +78,20 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-023", as: "maid" }, "BT1-087", "BT1-087", "BT1-087"],
-          hand: [{ card: "BT2-099", as: "too-expensive" }],
+          battleArea: ["BT1-087", "BT1-087", "BT1-087"],
+          hand: [
+            { card: "LM-023", as: "maid" },
+            { card: "BT2-099", as: "too-expensive" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
     // Three Yellow Tamers reduce Glorious Burst from 9 to 6, so it remains ineligible.
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT2-099")).toBe(false);
@@ -111,15 +123,18 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-023", as: "maid" }],
-          hand: [{ card: "BT1-107", as: "expensive" }],
+          hand: [
+            { card: "LM-023", as: "maid" },
+            { card: "BT1-107", as: "expensive" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maid").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.security).toHaveLength(0);
@@ -130,7 +145,7 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-023", as: "maid" }] },
-        1: { battleArea: [{ card: "BT1-080", as: "victim" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-080", as: "victim" }], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -162,6 +177,56 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     await advance(s.engine).fireSubTrigger("whenOptionUsed", {});
     await settle(() => s.state.pendingDecision == null);
     expect(s.perm("victim").currentDP).toBe(printed - 6000);
+  });
+
+  it("suppresses a second Option trigger this turn and refreshes it on the next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-023", as: "maid" }, "BT1-087", "BT1-087", "BT1-087", "BT1-087"],
+          hand: ["BT4-104", "BT4-104", "BT4-104"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "victim", dp: 12000 }],
+          security: ["BT1-009", "BT1-009"],
+          deck: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const playOption = (instanceId: string) => s.engine.applyIntent(0, { type: "playCard", instanceId });
+    expect(playOption(s.state.players[0]!.hand[0]!.instanceId)).toEqual({ ok: true });
+    await settle(() => s.perm("victim").currentDP === 6000, 2000);
+    expect(playOption(s.state.players[0]!.hand[0]!.instanceId)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision == null);
+    expect(s.perm("victim").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(playOption(s.state.players[0]!.hand[0]!.instanceId)).toEqual({ ok: true });
+    await settle(() => s.perm("victim").currentDP === 6000, 2000);
+    expect(s.perm("victim").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

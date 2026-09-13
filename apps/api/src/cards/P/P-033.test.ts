@@ -50,7 +50,7 @@ describe("P-033 Sunarizamon", () => {
         1: {
           security: [
             { card: "BT2-105", as: "deDigivolveSecurity" },
-            { card: "BT1-001", as: "remainingSecurity" },
+            { card: "BT1-009", as: "remainingSecurity" },
           ],
         },
       },

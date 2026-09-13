@@ -8,7 +8,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
       {
         0: {
           battleArea: [{ card: "P-011" }, { card: "P-012", as: "tai" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true },
@@ -86,7 +86,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
       {
         0: {
           battleArea: [{ card: "P-011" }, { card: "P-012", as: "tai" }],
-          deck: [{ card: "BT1-001", as: "deck-top" }],
+          deck: [{ card: "BT1-009", as: "deck-top" }],
         },
       },
       { autoChooseOption: false },

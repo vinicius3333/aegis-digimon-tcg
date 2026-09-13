@@ -75,7 +75,7 @@ describe("P-225 engine behavior", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "P-225", as: "lab" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
         battleArea: [{ card: "BT22-008", as: "cs" }],
       },
     });

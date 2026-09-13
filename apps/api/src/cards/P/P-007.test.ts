@@ -9,7 +9,7 @@ describe("P-007 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "P-008", as: "family", under: ["P-007"] }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
     });
@@ -31,7 +31,7 @@ describe("P-007 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-037", as: "unrelated", under: ["P-007"] }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
     });
@@ -58,7 +58,7 @@ describe("P-007 Garurumon", () => {
               under: ["BT9-109", "BT5-002", "ST6-03", "BT9-020", "P-007"],
             },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { security: 5 },
       },

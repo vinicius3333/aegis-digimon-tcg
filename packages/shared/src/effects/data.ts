@@ -1102,8 +1102,10 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       namesExact: ["Gammamon"],
       minNameStackCount: 1,
       minNameStackNames: ["Gammamon"],
+      minNameStackMatch: "contains",
       battleAreaOnly: true,
     },
+    { level: 4, names: ["Gammamon"], cost: 3, isAlternate: true },
   ],
   // BT26-074 Cerberusmon: [Digivolve] Lv.4 w/[TS] trait: Cost 3.
   "BT26-074": [{ cost: 3, isAlternate: true, level: 4, traits: ["TS"] }],
@@ -1574,7 +1576,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 3,
       isAlternate: true,
-      names: ["Siriusmon"],
+      namesExact: ["Siriusmon"],
       minNameStackCount: 1,
       minNameStackNames: ["Arcturusmon"],
     },

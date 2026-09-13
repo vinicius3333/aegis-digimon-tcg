@@ -117,7 +117,7 @@ describe("P-135 ShoeShoemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-020", as: "host", under: ["P-135"] }] },
+        0: { battleArea: [{ card: "BT1-057", as: "host", under: ["P-135"] }] },
         1: { battleArea: [{ card: "BT1-020", as: "target", dp: 6000 }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -131,5 +131,56 @@ describe("P-135 ShoeShoemon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("target").currentDP).toBe(4000);
     assertNoLoudGap(s);
+  });
+
+  it("resets the inherited attack effect on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "host", under: ["P-135"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", dp: 6000, as: "target" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = async () => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+    };
+
+    await attack();
+    expect(s.perm("target").currentDP).toBe(4000);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await attack();
+    expect(s.perm("target").currentDP).toBe(4000);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("target").currentDP).toBe(6000);
+    await attack();
+    expect(s.perm("target").currentDP).toBe(4000);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

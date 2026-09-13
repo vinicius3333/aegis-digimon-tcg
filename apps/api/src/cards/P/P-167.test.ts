@@ -61,7 +61,7 @@ describe("P-167 Landramon", () => {
       {
         0: {
           battleArea: [{ card: "P-167", as: "landra", under: ["BT10-062"] }],
-          deck: [{ card: "BT10-062", as: "revealed" }, { card: "BT1-001" }, { card: "BT1-002" }],
+          deck: [{ card: "BT10-062", as: "revealed" }, { card: "BT1-009" }, { card: "BT1-009" }],
         },
       },
       { autoSelectCards: true, autoChooseOption: true },
@@ -81,7 +81,7 @@ describe("P-167 Landramon", () => {
             { card: "P-167", as: "landra" },
             { card: "BT10-062", as: "host", under: ["P-167", "BT1-009"] },
           ],
-          deck: [{ card: "BT10-062" }, { card: "BT1-001" }, { card: "BT1-002" }],
+          deck: [{ card: "BT10-062" }, { card: "BT1-009" }, { card: "BT1-009" }],
         },
         1: { battleArea: [{ card: "BT1-025", as: "opponent", under: ["BT1-009"] }] },
       },

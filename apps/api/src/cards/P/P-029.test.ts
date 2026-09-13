@@ -11,7 +11,7 @@ describe("P-029 Agunimon", () => {
         battleArea: [{ card: "P-029", as: "promoAgunimon" }],
         hand: [{ card: "BT4-113", as: "ancientGreymon" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.state.memory = 3;
     const permanentId = s.perm("promoAgunimon").permanentId;
@@ -97,7 +97,7 @@ describe("P-029 Agunimon", () => {
           hand: [{ card: "BT4-113", as: "ancientGreymon" }],
           deck: ["BT1-009"],
         },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-028", "BT1-028", "BT1-048"] },
       },
       {
         autoAcceptOptional: true,
@@ -146,7 +146,7 @@ describe("P-029 Agunimon", () => {
           ],
           deck: ["BT1-009", "BT1-010"],
         },
-        1: { security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       {
         autoAcceptOptional: true,

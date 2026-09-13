@@ -308,7 +308,7 @@ describe("EX7-042 Jazardmon", () => {
 
   it("grants inherited +2000 DP only during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 5000, under: ["EX7-042"] }], deck: ["BT1-011", "BT1-012"] },
+      0: { battleArea: [{ card: "BT10-064", as: "host", dp: 5000, under: ["EX7-042"] }], deck: ["BT1-011", "BT1-012"] },
       1: { deck: ["BT1-013", "BT1-014"] },
     });
     const loop = s.engine.startTurnLoop();

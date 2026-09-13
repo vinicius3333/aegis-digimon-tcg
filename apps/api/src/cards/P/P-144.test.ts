@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -15,12 +16,12 @@ describe("P-144 Gotsumon (X Antibody)", () => {
           restriction: "attack",
           condition: {
             kind: "selfLacksInDigivolutionCards",
-            filter: { nameOrTrait: [{ tokens: ["Gotsumon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Gotsumon", "X Antibody"], match: "nameExact" }] },
           },
         },
       ],
     });
-    expect(JSON.stringify(effect)).not.toContain("X Antibody");
+    expect(JSON.stringify(effect)).toContain("X Antibody");
   });
 
   it("encodes Blocker, target-switch unsuspension, and inherited Blocker DP", () => {
@@ -47,7 +48,7 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", under: ["P-144"] },
+          { card: "BT10-062", as: "host", under: ["P-144"] },
           { card: "P-144", as: "blocker" },
         ],
       },
@@ -157,5 +158,99 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     }
     expect(s.perm("first").isSuspended).toBe(false);
     expect(s.perm("second").isSuspended).toBe(true);
+  });
+
+  it("denies a second same-turn unsuspend and resets on the next opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-144", as: "watcher", suspended: true },
+            { card: "BT1-031", as: "primary" },
+            { card: "BT1-031", as: "secondary" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attackerOne", dp: 500 },
+            { card: "BT1-010", as: "attackerTwo", dp: 500 },
+            { card: "BT1-009", as: "attackerThree", dp: 500 },
+          ],
+          deck: ["BT1-090", "BT1-090", "BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.suspend([s.perm("watcher").permanentId]);
+    expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("primary").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length === 1 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("watcher").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("watcher").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerTwo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("secondary").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length === 2 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerThree").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 3);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("watcher").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length === 3 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("watcher").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

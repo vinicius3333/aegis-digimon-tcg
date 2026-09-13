@@ -11,8 +11,8 @@ describe("P-087 Ritsu Kodo", () => {
           battleArea: [{ card: "P-087", as: "ritsu" }],
           hand: [{ card: "P-028", as: "pulsemon" }],
           deck: [
-            { card: "BT1-001", as: "drawnOne" },
-            { card: "BT1-002", as: "drawnTwo" },
+            { card: "BT1-009", as: "drawnOne" },
+            { card: "BT1-009", as: "drawnTwo" },
           ],
           security: 3,
         },

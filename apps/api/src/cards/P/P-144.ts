@@ -1,9 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q4259: "If a Digimon card with the [X Antibody] trait is in this Digimon's digivolution
-// cards, can this Digimon attack?" → No. The restriction therefore remains active when only
-// an X Antibody trait card is present; a Gotsumon-named card is the permitted exception.
+// KB Q4259: a card with the [X Antibody] trait alone does not satisfy the exception. The
+// exception is a card named [Gotsumon] or the named card [X Antibody].
 const compiled: CompiledCard = {
   effects: [
     {
@@ -12,8 +11,8 @@ const compiled: CompiledCard = {
       keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
-      // [Your Turn] This Digimon without [Gotsumon]/[X Antibody] in its digivolution cards can't attack.
-      // = This Digimon can't attack UNLESS it has a [Gotsumon]-named card in digivolution cards.
+      // [Your Turn] This Digimon without a [Gotsumon]-named or [X Antibody]-named card in its
+      // digivolution cards can't attack.
       trigger: "YourTurn",
       actions: [
         {
@@ -28,9 +27,9 @@ const compiled: CompiledCard = {
           condition: {
             kind: "selfLacksInDigivolutionCards",
             filter: {
-              nameOrTrait: [{ tokens: ["Gotsumon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Gotsumon", "X Antibody"], match: "nameExact" }],
             },
-            raw: "this Digimon has no [Gotsumon] name in its digivolution cards",
+            raw: "this Digimon has no [Gotsumon] or [X Antibody] name in its digivolution cards",
           },
         },
       ],

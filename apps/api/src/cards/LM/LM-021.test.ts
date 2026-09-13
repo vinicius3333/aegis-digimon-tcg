@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-021.js";
+import "../BT1/BT1-015.js";
 
 describe("LM-021 Agumon - Bond of Bravery", () => {
   it("deletes opposing Digimon whose total DP fits inside its own DP, per Q4017", async () => {
@@ -45,10 +47,37 @@ describe("LM-021 Agumon - Bond of Bravery", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("uses inherited DP on a legal stack for the aggregate budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-026", as: "base", under: ["BT1-010", "BT1-015", "BT1-020"] }],
+          hand: [{ card: "LM-021", as: "bond" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bond").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("base").currentDP).toBe(16000);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-015", "BT1-020", "BT1-026"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("takes several Digimon whose DP adds up inside the budget", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "LM-021", as: "bond" }] },
+        0: { hand: [{ card: "LM-021", as: "bond" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "a", dp: 7000 },
@@ -58,9 +87,10 @@ describe("LM-021 Agumon - Bond of Bravery", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 8;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bond"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bond").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -108,27 +138,62 @@ describe("LM-021 Agumon - Bond of Bravery", () => {
             { card: "LM-021", as: "bond" },
             { card: "BT1-085", as: "tamer" },
           ],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
-        1: { security: 3 },
+        1: {
+          security: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("bond"));
-    await settle(() => s.state.players[1]!.security.length === 2, 2000);
-    expect(s.state.players[1]!.security).toHaveLength(2);
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("bond"));
-    await settle(() => s.state.pendingDecision == null);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bond").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
+    const afterFirst = s.state.players[1]!.security.length;
+    expect(afterFirst).toBeLessThan(10);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bond").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 2000);
+    expect(s.state.players[1]!.security.length).toBeLessThan(afterFirst);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("trashes nothing without a Tamer", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-021", as: "bond" }] },
-        1: { security: 3 },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

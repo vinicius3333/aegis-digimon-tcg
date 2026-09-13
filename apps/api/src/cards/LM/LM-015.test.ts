@@ -16,7 +16,7 @@ describe("LM-015 Ryudamon", () => {
           ],
           hand: [{ card: "BT15-058", as: "ginryumon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-085"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -42,7 +42,7 @@ describe("LM-015 Ryudamon", () => {
           battleArea: [{ card: "LM-015", as: "ryudamon" }],
           hand: [{ card: "BT15-058", as: "ginryumon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-085"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -69,7 +69,7 @@ describe("LM-015 Ryudamon", () => {
           ],
           hand: [{ card: "BT15-058", as: "ginryumon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-085"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

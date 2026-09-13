@@ -25,6 +25,7 @@ describe("RB1-015 Fumamon", () => {
 
     expect(s.perm("target").stack).toHaveLength(0);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("fumamon"), "Evade")).toBe(true);
   });
 
   it("does not affect an opponent Digimon above Fumamon's DP", async () => {
@@ -45,5 +46,14 @@ describe("RB1-015 Fumamon", () => {
 
     expect(s.perm("target").stack).toHaveLength(1);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
+  });
+
+  it("does not copy inherited effects from a Gammamon source card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-015", as: "fumamon", under: [{ card: "RB1-005" }] }] },
+    });
+    await s.ready();
+
+    expect(s.perm("fumamon").currentDP).toBe(9000);
   });
 });

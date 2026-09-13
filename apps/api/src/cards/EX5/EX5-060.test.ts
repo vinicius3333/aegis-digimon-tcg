@@ -35,7 +35,10 @@ describe("EX5-060 Dragomon", () => {
         from: ["trash"],
         payCost: false,
         suppressOnPlayEffects: true,
-        target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3, 4] }, count: 1 },
+        target: {
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+          count: 1,
+        },
       });
     }
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({

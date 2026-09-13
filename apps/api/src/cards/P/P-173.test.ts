@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -50,25 +49,55 @@ describe("P-173 RustTyrannomon", () => {
 
   it("de-digivolves four opposing cards when it digivolves", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-173", as: "rust" }] },
-      1: { battleArea: [{ card: "BT1-084", as: "opponent", under: ["BT1-025", "BT1-020", "BT1-014", "BT3-031"] }] },
+      0: {
+        battleArea: [{ card: "BT2-046", as: "base" }],
+        hand: [{ card: "P-173", as: "rust" }],
+        deck: Array(20).fill("BT1-013"),
+        security: ["BT1-090", "BT1-090"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-084", as: "opponent", under: ["BT1-009", "BT1-014", "BT1-020", "BT1-025"] }],
+        deck: Array(20).fill("BT1-013"),
+        security: ["BT1-090", "BT1-090"],
+      },
     });
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rust"));
-    await settle();
+    const baseId = s.inst("base").instanceId;
+    const rustId = s.inst("rust").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: rustId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "P-173" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").topCard?.instanceId).toBe(rustId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
     expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.perm("opponent").topCard?.cardId).toBe("BT1-009");
   });
 
   it("unsuspends once when opposing Digimon are deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-173", as: "rust" }] },
+        0: {
+          battleArea: [{ card: "P-173", as: "rust" }],
+          hand: ["BT1-009"],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "opponentOne", suspended: true },
             { card: "BT1-009", as: "opponentTwo", suspended: true },
+            { card: "BT1-009", as: "opponentThree", suspended: true },
           ],
-          security: ["BT1-001", "BT1-001"],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -76,6 +105,8 @@ describe("P-173 RustTyrannomon", () => {
     const opponentOnePermanentId = s.perm("opponentOne").permanentId;
     const opponentTwoPermanentId = s.perm("opponentTwo").permanentId;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -83,7 +114,12 @@ describe("P-173 RustTyrannomon", () => {
         target: { kind: "permanent", permanentId: opponentOnePermanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentOnePermanentId));
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentOnePermanentId) &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.perm("rust").isSuspended).toBe(false);
 
     expect(
@@ -93,8 +129,29 @@ describe("P-173 RustTyrannomon", () => {
         target: { kind: "permanent", permanentId: opponentTwoPermanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentTwoPermanentId));
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponentTwoPermanentId) &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
     expect(s.perm("rust").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("opponentThree").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rust").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponentThree").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("rust").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses Piercing to check security after deleting a Digimon in a permanent battle", async () => {
@@ -103,7 +160,7 @@ describe("P-173 RustTyrannomon", () => {
         0: { battleArea: [{ card: "P-173", as: "rust" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -156,7 +213,7 @@ describe("P-173 RustTyrannomon", () => {
   it("acts as a real Blocker and redirects an opponent's player attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-173", as: "rust" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "P-173", as: "rust" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       // Deleting the attacker in the block battle offers rust's own optional

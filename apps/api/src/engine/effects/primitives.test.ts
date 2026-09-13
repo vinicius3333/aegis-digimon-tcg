@@ -1169,6 +1169,32 @@ describe("primitives: flipSecurityFaceUp (EX11-064)", () => {
   });
 });
 
+describe("primitives: flipSecurityFaceDown (revealed security restoration)", () => {
+  it("hides only the requested face-up instance and emits an in-place security event", () => {
+    const h = harness({
+      board: {
+        0: {
+          security: [
+            { card: DIGIMON, as: "other", faceUp: true },
+            { card: OPTION, as: "target", faceUp: true },
+          ],
+        },
+      },
+    });
+    const otherId = h.s.inst("other").instanceId;
+    const targetId = h.s.inst("target").instanceId;
+
+    expect(h.fx.flipSecurityFaceDown!(0, targetId)).toBe(true);
+    expect(h.state.players[0]!.security.find((card) => card.instanceId === otherId)!.faceUp).toBe(true);
+    expect(h.state.players[0]!.security.find((card) => card.instanceId === targetId)!.faceUp).toBe(false);
+    expect(h.events).toContainEqual({ kind: "cardsMoved", instanceIds: [targetId], from: "security", to: "security" });
+    expect(h.subTriggerFires).toHaveLength(0);
+    expect(h.fx.flipSecurityFaceDown!(0, "missing")).toBe(false);
+    expect(h.fx.flipSecurityFaceDown!(0, targetId)).toBe(false);
+    expect(h.events.filter((event) => event.kind === "cardsMoved")).toHaveLength(1);
+  });
+});
+
 describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
   it("preflights a paid effect play with the same explicit reduction used by the play", async () => {
     const h = harness({ memory: 0, board: { 0: { trash: [{ card: "BT1-043", as: "c" }] } } });
@@ -1256,6 +1282,46 @@ describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
 });
 
 describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
+  it.each([
+    { label: "paid", payCost: true, expectedMemory: 7 },
+    { label: "free", payCost: false, expectedMemory: 10 },
+  ])("accepts the RB1-009 Gammamon-text stack gate on the $label path", async ({ payCost, expectedMemory }) => {
+    const h = harness({
+      memory: 10,
+      board: {
+        0: {
+          battleArea: [{ card: "RB1-005", as: "base", under: ["RB1-008"] }],
+          hand: [{ card: "RB1-009", as: "evolving" }],
+        },
+      },
+    });
+    const base = h.s.perm("base");
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, { payCost });
+
+    expect(result).toBeDefined();
+    expect(h.state.memory).toBe(expectedMemory);
+    expect(base.stack.map((card) => card.cardId)).toEqual(["RB1-008", "RB1-005"]);
+  });
+
+  it.each([true, false])("rejects the RB1-009 stack gate without Gammamon text (payCost=%s)", async (payCost) => {
+    const h = harness({
+      memory: 10,
+      board: {
+        0: {
+          battleArea: [{ card: "RB1-005", as: "base", under: ["RB1-011"] }],
+          hand: [{ card: "RB1-009", as: "evolving" }],
+        },
+      },
+    });
+    const base = h.s.perm("base");
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, { payCost });
+
+    expect(result).toBeUndefined();
+    expect(h.state.memory).toBe(10);
+    expect(h.state.players[0]!.hand).toHaveLength(1);
+    expect(base.topCard.cardId).toBe("RB1-005");
+  });
+
   it("stacks a loose hand card onto a target permanent, prior top sliding under", async () => {
     const h = harness({
       board: {
@@ -2865,6 +2931,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     digiXrosPlayExpansionCount: true,
     consumeDigiXrosPlayExpansions: true,
     prepareDigiXrosPlay: true,
+    prepareDigiXrosPlays: true,
     disableSecurityEffect: true,
     disableSecurityEffectsForSeat: true,
     disableTimingEffect: true,
@@ -2882,6 +2949,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     fireWhenTrashedFromDeck: true,
     flipSecurityFaceUp: true,
     flipTopSecurity: true,
+    flipSecurityFaceDown: true,
     forceAttack: true,
     forceBattle: true,
     gainMemory: true,

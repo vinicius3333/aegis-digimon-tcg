@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Eosmon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Menoa Bellucci"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Menoa Bellucci"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -79,7 +79,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Eosmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Eosmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -119,7 +119,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Eosmon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

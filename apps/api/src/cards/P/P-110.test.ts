@@ -13,7 +13,7 @@ describe("P-110 Shadramon", () => {
             { card: "EX3-004", as: "veemon" },
             { card: "BT1-009", as: "wrong" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -180,7 +180,7 @@ describe("EX7-056", () => {
       0: {
         battleArea: [
           { card: "EX7-056", as: "blocker" },
-          { card: "BT1-009", as: "host", under: ["EX7-056"] },
+          { card: "BT10-082", as: "host", under: ["EX7-056"] },
         ],
       },
     });

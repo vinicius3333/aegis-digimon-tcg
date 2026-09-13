@@ -74,7 +74,7 @@ describe("P-147 Pal", () => {
         0: {
           battleArea: [{ card: "P-147", as: "pal" }],
           hand: [{ card: "P-150", as: "pulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -102,7 +102,7 @@ describe("P-147 Pal", () => {
           // BT16-043 would also gain memory; only the new P-150 may activate.
           battleArea: [{ card: "P-147", as: "pal", under: [{ card: "BT16-043", as: "oldPulse" }] }],
           hand: [{ card: "P-150", as: "newPulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: {
           battleArea: [
@@ -136,7 +136,7 @@ describe("P-147 Pal", () => {
         0: {
           battleArea: [{ card: "P-147", as: "pal" }],
           hand: [{ card: "P-150", as: "pulse" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -164,14 +164,33 @@ describe("P-147 Pal", () => {
           hand: [
             { card: "P-150", as: "firstPulse" },
             { card: "P-150", as: "secondPulse" },
+            { card: "P-150", as: "thirdPulse" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: [
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+            "BT1-090",
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const attack = () =>
       s.engine.applyIntent(0, {
         type: "attack" as const,
@@ -185,5 +204,14 @@ describe("P-147 Pal", () => {
     await settle();
     expect(s.perm("pal").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondPulse").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(attack()).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("pal").stack).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

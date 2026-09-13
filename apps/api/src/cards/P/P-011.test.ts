@@ -12,10 +12,10 @@ describe("P-011 Veedramon Zero", () => {
             { card: "BT1-086", as: "tamer" },
           ],
           deck: [
-            { card: "BT1-001", as: "first" },
-            { card: "BT1-002", as: "second" },
-            { card: "BT1-003", as: "third" },
-            { card: "BT1-004", as: "remaining" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-009", as: "second" },
+            { card: "BT1-009", as: "third" },
+            { card: "BT1-009", as: "remaining" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
@@ -43,7 +43,7 @@ describe("P-011 Veedramon Zero", () => {
       {
         0: {
           battleArea: [{ card: "P-011", as: "attacker" }, { card: "BT1-086" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
       },
@@ -69,7 +69,7 @@ describe("P-011 Veedramon Zero", () => {
       {
         0: {
           battleArea: [{ card: "BT1-043", as: "attacker", under: ["P-011"] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
           trash: [
             { card: "BT1-009", as: "digimon" },
             { card: "BT1-086", as: "tamer" },

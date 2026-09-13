@@ -33,7 +33,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Rook Device"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

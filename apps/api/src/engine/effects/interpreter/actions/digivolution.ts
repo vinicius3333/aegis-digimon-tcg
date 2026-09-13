@@ -162,12 +162,9 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, action.zones, duration);
       } else {
         if (ctx.fx.expandDigiXrosZonesForPlay !== undefined) {
-          ctx.fx.expandDigiXrosZonesForPlay(
-            ctx.source.ownerSeat,
-            action.zones,
-            duration,
-            ctx.trigger.wouldBePlayedInstanceId,
-          );
+          for (const pendingId of ctx.trigger.wouldBePlayedInstanceIds ?? [ctx.trigger.wouldBePlayedInstanceId]) {
+            ctx.fx.expandDigiXrosZonesForPlay(ctx.source.ownerSeat, action.zones, duration, pendingId);
+          }
         } else {
           ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, action.zones, duration);
         }

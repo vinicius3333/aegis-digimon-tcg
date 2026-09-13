@@ -20,19 +20,23 @@ describe("P-157 Monimon", () => {
     });
   });
 
-  it("draws when the inherited host is deleted while a black Tamer is present", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-009", as: "host", under: ["P-157"] },
-          { card: "BT10-092", as: "tamer" },
-        ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
-      },
-    });
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
-    await settle();
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  it("draws only when the inherited host is deleted while a black Tamer is present", async () => {
+    for (const hasTamer of [true, false]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: "BT10-058", as: "host", under: ["P-157"] },
+            ...(hasTamer ? [{ card: "BT10-092", as: "tamer" }] : []),
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      });
+      const drawnId = s.inst("drawn").instanceId;
+      await s.ready();
+      await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+      await settle();
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(hasTamer);
+      expect(s.state.players[0]!.deck.some((card) => card.instanceId === drawnId)).toBe(!hasTamer);
+    }
   });
 });

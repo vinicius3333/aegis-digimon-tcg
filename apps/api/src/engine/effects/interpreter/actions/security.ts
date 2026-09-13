@@ -424,7 +424,14 @@ export async function runSecurityManipulation(
         }
         return;
       }
-      await ctx.fx.addSecurity(seat, ids, {
+      // When multiple permanents are placed on top of one security stack, the activating
+      // player chooses their order (KB Q4095). addSecurity unshifts each id, so reverse the
+      // chosen top-to-bottom order before applying a top placement.
+      const orderedIds =
+        ids.length > 1 && action.toTop === true && ctx.ask.orderCards !== undefined
+          ? [...(await ctx.ask.orderCards(ctx, { candidates: ids }))].reverse()
+          : ids;
+      await ctx.fx.addSecurity(seat, orderedIds, {
         toTop: await placementToTop(),
         faceUp: action.faceUp,
         detachPermanentTop: action.detachPermanentTop,
@@ -528,8 +535,16 @@ async function runSecurityAdd(
     const revealedInstanceId = ctx.lastRevealedCards?.at(-1)?.instanceId;
     const restored = ctx.game.state.players[seat]?.security.find((card) => card.instanceId === revealedInstanceId);
     if (restored !== undefined) {
-      restored.faceUp = false;
-      ctx.fx.flipTopSecurity(seat);
+      const stack = ctx.game.state.players[seat]!.security;
+      const currentIndex = stack.indexOf(restored);
+      if (currentIndex >= 0) {
+        stack.splice(currentIndex, 1);
+        if (toTop) insertCard(ctx.game.state.players[seat]!, Zone.Security, restored, "top");
+        else stack.push(restored);
+      }
+      restored.faceUp = true;
+      if (ctx.fx.flipSecurityFaceDown !== undefined) ctx.fx.flipSecurityFaceDown(seat, restored.instanceId);
+      else ctx.fx.flipTopSecurity(seat);
     }
     return;
   }

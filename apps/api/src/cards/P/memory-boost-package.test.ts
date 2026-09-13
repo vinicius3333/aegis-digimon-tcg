@@ -32,7 +32,7 @@ describe("Memory Boost support package", () => {
       const entry = entries.find(
         ({ instanceId, description }) => instanceId === delay.topCard.instanceId && /delay/i.test(description),
       );
-      expect(entry, cards[index]).toBeDefined();
+      expect(entry).toBeDefined();
       expect(
         s.engine.applyIntent(0, {
           type: "activateEffect",
@@ -43,7 +43,7 @@ describe("Memory Boost support package", () => {
       await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === cards[index]));
       const expectedMemory = -2 + (index + 1) * 2;
       await settle(() => s.state.memory === expectedMemory);
-      expect(s.state.memory, cards[index]).toBe(expectedMemory);
+      expect(s.state.memory).toBe(expectedMemory);
       expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
         cards.slice(index + 1),
       );

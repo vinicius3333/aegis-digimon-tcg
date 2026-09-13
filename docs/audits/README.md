@@ -32,7 +32,7 @@ docs/audits/
 
 ## Per-set template
 
-```markdown
+````markdown
 ---
 set: BT20
 cards: 102
@@ -75,7 +75,7 @@ file names and dates.
 
 One bullet per superseded file or directory: path, last commit SHA and date, one-line description.
 Group per-card directories as one bullet with the file count.
-```
+````
 
 ## Status index
 
@@ -117,18 +117,18 @@ build when it is stale.
 | EX2  | 74    | verified    | 2026-09-10  | [EX2.md](EX2.md)   |
 | EX3  | 74    | in-progress | 2026-09-10  | [EX3.md](EX3.md)   |
 | EX4  | 74    | verified    | 2026-09-10  | [EX4.md](EX4.md)   |
-| EX5  | 74    | verified    | 2026-09-09  | [EX5.md](EX5.md)   |
+| EX5  | 74    | verified    | 2026-09-12  | [EX5.md](EX5.md)   |
 | EX6  | 74    | incomplete  | 2026-09-09  | [EX6.md](EX6.md)   |
-| EX7  | 74    | verified    | 2026-09-09  | [EX7.md](EX7.md)   |
+| EX7  | 74    | verified    | 2026-09-12  | [EX7.md](EX7.md)   |
 | EX8  | 74    | verified    | 2026-09-10  | [EX8.md](EX8.md)   |
 | EX9  | 74    | incomplete  | 2026-09-09  | [EX9.md](EX9.md)   |
-| EX10 | 74    | verified    | 2026-09-08  | [EX10.md](EX10.md) |
+| EX10 | 74    | verified    | 2026-09-12  | [EX10.md](EX10.md) |
 | EX11 | 74    | verified    | 2026-09-09  | [EX11.md](EX11.md) |
 | EX12 | 77    | incomplete  | 2026-09-08  | [EX12.md](EX12.md) |
 | EX13 | 60    | incomplete  | 2026-09-11  | [EX13.md](EX13.md) |
-| LM   | 62    | verified    | 2026-09-10  | [LM.md](LM.md)     |
-| P    | 249   | in-progress | 2026-09-11  | [P.md](P.md)       |
-| RB1  | 33    | verified    | 2026-09-10  | [RB1.md](RB1.md)   |
+| LM   | 62    | complete    | 2026-09-12  | [LM.md](LM.md)     |
+| P    | 249   | verified    | 2026-09-12  | [P.md](P.md)       |
+| RB1  | 33    | verified    | 2026-09-12  | [RB1.md](RB1.md)   |
 | ST1  | 16    | verified    | 2026-09-05  | [ST1.md](ST1.md)   |
 | ST2  | 16    | in-progress | 2026-09-05  | [ST2.md](ST2.md)   |
 | ST3  | 16    | verified    | 2026-09-05  | [ST3.md](ST3.md)   |

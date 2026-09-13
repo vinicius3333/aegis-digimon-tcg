@@ -74,7 +74,7 @@ describe("P-177 Gigimon", () => {
         0: {
           battleArea: [{ card: "BT21-068", as: "host", under: ["P-177", "BT21-064"] }],
           hand: [{ card: "BT21-064", as: "discardable" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

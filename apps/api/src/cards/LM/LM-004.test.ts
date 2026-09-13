@@ -1,27 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-004.js";
-
-const entranceBoard = {
-  0: {
-    battleArea: [
-      { card: "LM-004", as: "thetismon" },
-      { card: "BT1-027", as: "digimon", suspended: true },
-      { card: "BT9-086", as: "kiyoshiro", suspended: true },
-    ],
-    hand: ["BT1-027", "BT1-027"],
-  },
-};
+import "../BT1/BT1-039.js";
+import "./LM-003.js";
+import "./LM-005.js";
 
 describe("LM-004 Thetismon", () => {
   it("trashes exactly two blue cards to unsuspend a Digimon and Kiyoshiro and gain Blocker", async () => {
-    const s = setupEngine(entranceBoard, { autoAcceptOptional: true, autoSelectCards: true });
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-027", as: "digimon", suspended: true },
+            { card: "BT9-086", as: "kiyoshiro", suspended: true },
+          ],
+          hand: [{ card: "LM-004", as: "thetismon" }, "BT1-027", "BT1-027", "BT1-029"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thetismon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("digimon").isSuspended && !s.perm("kiyoshiro").isSuspended);
 
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-027")).toHaveLength(2);
@@ -31,19 +37,52 @@ describe("LM-004 Thetismon", () => {
   });
 
   it("does the same on the When Digivolving timing", async () => {
-    const s = setupEngine(entranceBoard, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-003", as: "base", suspended: true },
+            { card: "BT9-086", as: "kiyoshiro", suspended: true },
+          ],
+          hand: [{ card: "LM-004", as: "thetismon" }, "BT1-027", "BT1-027", "BT1-029"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("thetismon").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("base").isSuspended);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("thetismon"));
-    await settle(() => !s.perm("digimon").isSuspended);
-
-    expect(s.perm("digimon").isSuspended).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("thetismon"), "Blocker")).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
   });
 
   it("leaves the board untouched when the trash cost is declined", async () => {
-    const s = setupEngine(entranceBoard, { autoDeclineOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-027", as: "digimon", suspended: true },
+            { card: "BT9-086", as: "kiyoshiro", suspended: true },
+          ],
+          hand: [{ card: "LM-004", as: "thetismon" }, "BT1-027", "BT1-027"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thetismon").instanceId })).toEqual({
+      ok: true,
+    });
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -57,17 +96,19 @@ describe("LM-004 Thetismon", () => {
       {
         0: {
           battleArea: [
-            { card: "LM-004", as: "thetismon" },
             { card: "BT1-027", as: "digimon", suspended: true },
             { card: "BT9-086", as: "kiyoshiro", suspended: true },
           ],
-          hand: ["BT1-027", "BT1-020"],
+          hand: [{ card: "LM-004", as: "thetismon" }, "BT1-027", "BT1-020"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thetismon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision == null);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -80,53 +121,164 @@ describe("LM-004 Thetismon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-005", as: "host", under: ["LM-004"], suspended: true }],
-          hand: [
-            { card: "LM-002", as: "jellymon" },
-            { card: "LM-003", as: "teslaJellymon" },
+          battleArea: [
+            { card: "LM-005", as: "host", under: ["LM-004"], suspended: true },
+            { card: "BT1-039", as: "attacker" },
           ],
+          hand: [{ card: "LM-002", as: "jellymon" }, "BT1-029", "BT1-029"],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
-      trashedFromHandCardId: "LM-002",
-      trashedFromHandInstanceId: s.inst("jellymon").instanceId,
-      handTrashedSeat: 0,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-002")).toBe(true);
+  });
 
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
-      trashedFromHandCardId: "LM-003",
-      trashedFromHandInstanceId: s.inst("teslaJellymon").instanceId,
-      handTrashedSeat: 0,
-    });
-    await settle(() => s.state.pendingDecision == null);
+  it("suppresses a second real hand-trash trigger in the same turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-005", as: "host", under: ["LM-004"], suspended: true },
+            { card: "LM-003", as: "first" },
+            { card: "LM-003", as: "second" },
+          ],
+          hand: [
+            { card: "LM-002", as: "firstJelly" },
+            { card: "LM-002", as: "secondJelly" },
+            { card: "LM-002", as: "thirdJelly" },
+            "BT1-027",
+            "BT1-027",
+            "BT1-027",
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          security: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+            "BT1-017",
+            "BT1-018",
+          ],
+          deck: ["BT1-019"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstJelly").instanceId, s.inst("secondJelly").instanceId, s.inst("thirdJelly").instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    // End the real turn, let the opponent take a real turn, then prove the once-per-turn
+    // inherited watcher is available again on the controller's next turn.
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("ignores a hand-trashed card with no Jellymon in its text", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-005", as: "host", under: ["LM-004"], suspended: true }],
-          hand: [{ card: "BT1-027", as: "unrelated" }],
+          battleArea: [
+            { card: "LM-005", as: "host", under: ["LM-004"], suspended: true },
+            { card: "BT1-039", as: "attacker" },
+          ],
+          hand: [{ card: "BT1-027", as: "unrelated" }, "BT1-027", "BT1-027"],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
-      trashedFromHandCardId: "BT1-027",
-      trashedFromHandInstanceId: s.inst("unrelated").instanceId,
-      handTrashedSeat: 0,
-    });
-    await settle(() => s.state.pendingDecision == null);
+    // The neutral blue card is not Jellymon-text, so an actual hand-trash event must not arm it.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("host").isSuspended).toBe(true);
   });

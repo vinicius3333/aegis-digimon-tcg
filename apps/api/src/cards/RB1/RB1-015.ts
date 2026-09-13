@@ -53,6 +53,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "effects",
+          excludeInherited: true,
           filter: {
             controllerDefault: "mine",
             nameOrTrait: [
@@ -78,6 +79,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "effects",
+          excludeInherited: true,
           filter: {
             controllerDefault: "mine",
             nameOrTrait: [

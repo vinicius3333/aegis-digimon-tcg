@@ -27,7 +27,9 @@ describe("LM-050 through LM-053 Delay integration", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0 as Seat, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0 as Seat, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === cardId), 2000);
 
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === cardId)!;

@@ -2,18 +2,40 @@
 set: EX5
 cards: 74
 status: verified
-verified_at: 2026-09-09
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+verified_at: 2026-09-12
+catalog_commit: 0a6761be3
+evidence_commit: 14de8e0a5
 ---
 
 # EX5 audit
 
 ## Status
 
-All 74 EX5 cards are verified at 10/10 (aggregate 740/740). The winning source is the re-audit of 2026-09-09 (`docs/audits/EX5-REAUDIT-LEDGER.md`, `1edc556bf`, with the run log and per-card reports under `docs/audits/EX5-reaudit/`, `8d9fb67af`), which was run from base `afa3ab2f451245fb03bf4e3f895ead8807f18df1` and did not inherit prior scores. It supersedes the earlier `docs/audits/EX5-AUDIT.md` of 2026-09-04, which reported the same 74/74 result from a different evidence pass. Two engine investigations opened during the run (Q5393 stack rotation for EX5-001 and Q3528 once-per-turn identity for EX5-007) were both closed as fixture errors, and every production engine edit proposed for them was withdrawn. The engine seam queue is empty. One narrow evidence limitation remains, listed under Open items.
+Fresh full-collection re-audit completed on 2026-09-12 in independent worktree/branch `ex5-full-reaudit`, based on `de4dda717d8c9e0c2420796cb387f68b1379b863` (`origin/main`). All 74 cards were reviewed against the committed catalog, all local card Q&A, direct compiled IR, shared mechanisms and public behavioral/evolution-stack proofs by three Luna lanes and accepted by the coordinator. Scores were recalculated rather than inherited: 74/74 at 10/10, aggregate 740/740. This pass supersedes the 2026-09-09 scores and closes its Sunmon lifecycle evidence limitation.
+
+Corrected Dragomon's two trash-play filters to inclusive level ≤4, and restored Galaxy to Phoebus Blow's catalog and IR recovery targets (`0a6761be3`). Added only three necessary behavioral scenarios: pure-Galaxy recovery and the physical-source once-per-turn lifecycle for Sunmon and Moonmon (`14de8e0a5`). Existing sufficient tests were retained. All 74 card IDs register their behavior exclusively through `registerIrCard(cardId, compiled)`; EX5-058 also registers its Fujitsumon token through IR. All EX5 production modules already had zero `@ts-nocheck`; no suppression directive was introduced. No engine change or unresolved seam remains.
 
 ## Gates
+
+### Current 2026-09-12 closing gates
+
+Run on the delivered implementation at `14de8e0a5`; all commands exited 0. The coordinator serialized test executions and used one Vitest fork, with a 4096 MB Node heap. RAM was checked between gates; tests waited while workspace typechecking and other worktree checks consumed memory. Offline installation reused 423 packages. No audit evidence artifacts were added outside this document.
+
+- `pnpm install --offline --frozen-lockfile`: 423 packages reused, no downloads.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX5/EX5-001.test.ts src/cards/EX5/EX5-002.test.ts --maxWorkers=1 --no-file-parallelism`: 2 files / 16 tests passed.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX5/EX5-060.test.ts src/cards/EX5/EX5-066.test.ts --maxWorkers=1 --no-file-parallelism`: 2 files / 18 tests passed; final pure-Galaxy EX5-066 refinement also passed separately (8 tests).
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter @aegis/api exec vitest run src/cards/EX5 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/engine/effectFiring.test.ts src/engine/mechanic.test.ts src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`: 216 files / 2,757 tests passed, including all 74 EX5 files / 551 tests. JSON result inspected: zero failed, pending or todo tests. Conformance/combat/effects/cards and the effect-firing/mechanic mechanisms all passed.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm typecheck`: shared build and shared/API/web strict typechecks passed. No `ts-nocheck` added.
+- `pnpm effects:sync:set -- --set EX5 --base de4dda717d8c9e0c2420796cb387f68b1379b863` and corresponding `pnpm effects:check:set` command: 74 records synchronized; exactly two semantic EX5 changes, zero semantic or byte changes outside EX5.
+- `node --test tools/sync-effects-from-card-modules.test.mjs`: 13/13 tests passed.
+- `pnpm exec oxlint apps/api/src/cards/EX5`, `pnpm exec oxfmt --check apps/api/src/cards/EX5` and `git diff --check`: passed, 149 files formatted correctly.
+- Catalog/module/test inventory: exactly the same 74 IDs, one matching IR registration per card ID, no legacy registration or production `@ts-nocheck`.
+
+Final documentation checks: `pnpm audit:index --check` passed for 66 sets; `src/cards/audit-docs.test.ts` passed again after ledger updates (4 tests); Oxfmt passed for the EX5 document and synchronized effects JSON. An expanded Oxfmt check of the whole catalog reports pre-existing formatting differences, reproduced on `git show de4dda717:packages/shared/src/cards/data/cards.json`; only EX5-066 catalog text changed, and unrelated catalog records were not reformatted. The generated README index is checked byte-for-byte by its generator.
+
+Independent follow-up Luna review accepted the pure-Galaxy exact-instance recovery and both legal, paid, physical-source OPT lifecycle scenarios. The first proposed Sunmon fixture was rejected because it tried to reuse an inactive/spent Coronamon source; it was replaced by Coronamon/Koh/next-turn Coronamon public paths. Neither injected timing nor Digi-Egg deck/security fixtures were accepted as evidence.
+
+### Historical 2026-09-09 gates
 
 Copied from `docs/audits/EX5-reaudit/RUN.md` (`8d9fb67af`), sections "Baseline measured before worker acceptance", "2026-09-09 final coordinator gate", and "2026-09-09 strict TypeScript follow-up".
 
@@ -49,86 +71,90 @@ git diff --check -- apps/api/src/cards/EX5/EX5-NNN.ts apps/api/src/cards/EX5/EX5
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX5-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX5-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, and every card is 10/10.
+The table below is the current 2026-09-12 recalculation. Each card receives 2/2 for catalog/rules, concrete IR trace, behavioral proof, peer/stack proof and delivery gates after the closing collection/mechanism/typecheck/style/sync gates. Per-card sections retain historical clause mappings, with a current acceptance paragraph and current focused count. Historical worker scores and pending-gate wording are superseded by this recalculation.
 
 | Card    | Name                                 | Catalog/rules | IR trace | Behavioral proof | Peer/stack | Gates | Total | Status                                                                                                                                                           |
 | ------- | ------------------------------------ | ------------- | -------- | ---------------- | ---------- | ----- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EX5-001 | Sunmon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; paid reduced evolution and effect-only provenance corrected; Q3526/Q5393 public paths and legal rotation stack pass; 6 focused tests green          |
-| EX5-002 | Moonmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; paid evolution cost corrected; 8 focused tests cover both traits, public play, refusal, legality, turn ownership and peer stack; focused gate green |
-| EX5-003 | Nyaromon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public attack/turn-loop DP aura, both players, legal evolution and peer stack proof green; no card Q&A returned                                     |
-| EX5-004 | Frimon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; legal Leomon/non-Leomon stacks, public attacks, same-turn refusal and next-own-turn OPT reset pass; no card Q&A returned                            |
-| EX5-005 | Tokomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public own/opponent-turn battle deletion, exact draw boundary and legal evolution stack pass; no card Q&A returned                                  |
-| EX5-006 | Xiaomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public effect-play/manual boundary, same-turn refusal, next-turn reset and legal evolution stack pass; no card Q&A returned                         |
-| EX5-007 | Coronamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3526-Q3528 public paths pass; per-copy OPT rotation blocks spent source and resets next own turn; 6 focused tests green                            |
-| EX5-008 | Firamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public On Play/When Digivolving reveal paths cover Q3529/Q3530 mandatory trait buckets, order and inherited stack DP                                |
-| EX5-009 | Indramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3531-Q3536 public breeding play/movement/restriction proof, optionality and legal inherited stack pass; 9 focused tests green                      |
-| EX5-010 | Sandiramon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3537-Q3542 breeding/name/restriction proofs, public deletion boundary, optional refusal and inherited stack pass; 14 focused tests green           |
-| EX5-011 | Pajiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3543-Q3548 breeding/name/restriction proofs, conditional deletion memory, optional refusal and inherited stack pass; 10 focused tests green        |
-| EX5-012 | Flaremon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; split intrinsic play/into reductions fixes Q3549; exact traits/source counts, deletion boundaries and inherited DP pass; 14 tests green             |
-| EX5-013 | Zhuqiaomon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3550 inclusive Deva/6000-DP cost, Counter, shared OPT/reset, optional refusal and highest-DP deletion pass; 9 tests green                          |
-| EX5-014 | Apollomon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; public Q3551 multi-check timing, scaling, DP boundary, legal color routes and next-turn OPT reset pass; 9 tests green                               |
-| EX5-015 | Gabumon (X Antibody)                 | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3552-Q3554 reveal semantics, public On Play/alternate evolution, conditional trash and battle replacement pass; 7 tests green                      |
-| EX5-016 | Lunamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 12 focused tests green; Q3555-Q3559, optionality, legal routes and public timing proven                                                  |
-| EX5-017 | Lekismon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Re-reviewed; Q3560/Q3561 mandatory reveal buckets, public On Play/When Digivolving, order, inherited DP and legal stacks pass; 8 tests green                     |
-| EX5-018 | Garurumon (X Antibody)               | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 7 focused tests green; draw/trash/memory, battle replacement and real OPT reset proven                                                   |
-| EX5-019 | Antylamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 10 focused tests green; Q3563-Q3568, restrictions and inherited OPT proven                                                               |
-| EX5-020 | Crescemon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 8 focused tests green; Q3569 destination reduction and both evolution routes proven                                                      |
-| EX5-021 | Majiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 10 focused tests green; Q3570-Q3576 and Q5503-Q5506 proven                                                                               |
-| EX5-022 | Mihiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 12 focused tests green; Q3577-Q3582, play restrictions, watchers and inherited OPT proven                                                |
-| EX5-023 | WereGarurumon (X Antibody)           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/rulings mapped; 9 focused tests green; Q3583, public evolution, refusal and inherited OPT proven                                                         |
-| EX5-024 | Azulongmon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog and full IR mapped; 5 focused tests green; public On Play/evolution/deletion and exact boundaries proven                                                 |
-| EX5-025 | Dianamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3584-Q3587 mapped; 5 focused tests green; public evolution, source trash, live restriction and release boundaries proven                                |
-| EX5-026 | MetalGarurumon (X Antibody)          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3588-Q3590 mapped; 8 focused tests green; conditional aura, Blocker and trash-return deletion proven                                                    |
-| EX5-027 | Liollmon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3591 mapped; 8 focused tests green; security reveal/recovery/shuffle, evolution routes and inherited deletion proven                                    |
-| EX5-028 | Kudamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3592 mapped; 6 focused tests green; threshold play and inherited OPT/reset proven                                                                       |
-| EX5-029 | Reppamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3593 mapped; 5 focused tests green; security cost and next evolution reduction proven                                                                   |
-| EX5-030 | Liamon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3594 mapped; 8 focused tests green; normal/alternate evolution, attack limits and inherited deletion proven                                             |
-| EX5-031 | Chirinmon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3595-Q3596 mapped; 5 focused tests green; public security cost, legal evolution and deletion-recovery boundaries proven                                 |
-| EX5-032 | LoaderLeomon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 6 focused tests green; public DP, inherited Blocker and Fortitude source boundary proven                                                 |
-| EX5-033 | Mitamamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3597-Q3599 mapped; 5 focused tests green; shared OPT/reset, dynamic threshold, Barrier and play/Rush proven                                             |
-| EX5-034 | BanchoLeomon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3600 mapped; 6 focused tests green; threshold play, suspend and optional package proven                                                                 |
-| EX5-035 | Hawkmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 5 focused tests green; Fortitude reveal/evolution and inherited DP proven                                                                |
-| EX5-036 | Aquilamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 5 focused tests green; public Fortitude replay, evolution and inherited DP proven                                                        |
-| EX5-037 | Vajramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3601-Q3607/Q5507 mapped; 9 focused tests green with public legal Piercing lapse proof                                                                   |
-| EX5-038 | Vikaralamon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3608-Q3613 mapped; 8 focused tests green; breeding restrictions, watcher OPT and inherited Piercing proven                                              |
-| EX5-039 | Garudamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3614 mapped; 5 focused tests green with public current-DP threshold proof                                                                               |
-| EX5-040 | Kumbhiramon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3615-Q3620 mapped; 8 focused tests green; breeding, watcher OPT and inherited Piercing proven                                                           |
-| EX5-041 | Ebonwumon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 7 focused tests green; scaled suspend/lock, Blast and deletion proven                                                                    |
-| EX5-042 | Merukimon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 5 focused tests green; Fortitude reveal/play and Rush boundaries proven                                                                  |
-| EX5-043 | Leopardmon (X Antibody)              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3621-Q3622 mapped; 7 focused tests green; shared OPT, play reduction and bounce scaling proven                                                          |
-| EX5-044 | Elecmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 7 focused tests green; reveal, evolution routes and inherited De-Digivolve proven                                                        |
-| EX5-045 | Chuumon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 7 focused tests green; public opponent-turn play, Sukamon reveal/refusal and inherited boundaries proven                                 |
-| EX5-046 | Targetmon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3623-Q3624 mapped; 5 focused tests green; Blocker, public effects and evolution boundaries proven                                                       |
-| EX5-047 | Leomon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 6 focused tests green; public attack evolution, optionality, De-Digivolve stack ordering and evolution boundaries proven                 |
-| EX5-048 | Etemon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3625 mapped; 9 focused tests green; public forced-attack timing, inherited reveal and alternate evolution paths proven                                  |
-| EX5-049 | GrapLeomon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; 7 focused tests green; public On Play, evolution, Fortitude and target boundaries proven                                                 |
-| EX5-050 | Sinduramon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3626-Q3631 mapped; focused suite green; breeding, restrictions and inherited Blocker proven                                                             |
-| EX5-051 | Caturamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3632-Q3637 mapped; focused suite green; breeding suppression, movement lock and inherited Blocker proven                                                |
-| EX5-052 | Makuramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3638-Q3643 mapped; 7 focused tests green; public persistent Option, deletion watcher and evolution boundaries proven                                    |
-| EX5-053 | Baihumon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3644-Q3645 mapped; 5 focused tests green; security play OPT, deletion superlative and evolution boundaries proven                                       |
-| EX5-054 | MetalEtemon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3646-Q3647 mapped; 9 focused tests green; public evolution, security cost, attack switch and inherited deletion proven                                  |
-| EX5-055 | HeavyLeomon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3648 mapped; 7 focused tests green; public Fortitude replay, one-shot On Deletion and evolution boundaries proven                                       |
-| EX5-056 | Syakomon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3649 mapped; 6 focused tests green; public by-effect provenance, control baseline and Once Per Turn boundary proven                                     |
-| EX5-057 | Labramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3650 mapped; 6 focused tests green; public effect-play provenance, real next-turn OPT reset and evolution boundaries proven                             |
-| EX5-058 | Octomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3651-Q3654/Q3834/Q6034 mapped; 10 focused tests green; public evolution, by-effect OPT/reset and Crimson Blaze boundaries proven                        |
-| EX5-059 | Dobermon (X Antibody)                | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3655-Q3656 mapped; 6 focused tests green; public evolution, own/granted On Play reactivation and inherited watcher proven                               |
-| EX5-060 | Dragomon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3657-Q3659/Q4663-Q4676/Q5227-Q5228 mapped; 10 focused tests green; public play/evolution, Fortitude and Piercing paths proven                           |
-| EX5-061 | Cerberusmon (X Antibody)             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3660 mapped; 8 focused tests green; public own/granted On Play reactivation, revival and deletion watcher proven                                        |
-| EX5-062 | Anubismon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3661-Q3665 mapped; 9 focused tests green; public evolution/Main, same-card trash/play, refusal and effect-play boundary proven                          |
-| EX5-063 | Leviamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3666-Q3667/Q4735/Q6035-Q6039 mapped; 8 focused tests green; conditional deletion, legal evolution and controller-relative watcher proven                |
-| EX5-064 | Koh & Sayo                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3668/Q4931/Q5212/Q5393 mapped; 10 focused tests green; public turn loop, placement, refusal and legal breeding rotation proven                          |
-| EX5-065 | Sayo & Koh                           | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3669-Q3670 mapped; focused suite green; public Security route and conditional placement proven                                                          |
-| EX5-066 | Phoebus Blow                         | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3671 mapped; 7 focused tests green; public Main/Security, source trash and attack restriction paths proven                                              |
-| EX5-067 | Good Night Moon                      | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3672-Q3673 mapped; 7 focused tests green; public Main/Security, no-target and Night Claw Tamer paths proven                                             |
-| EX5-068 | Flashy Boss Punch                    | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/full IR mapped; focused suite green; Security resolved through a public attack without injected timing                                                   |
-| EX5-069 | Biting Crush                         | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3674-Q3678/Q4735 mapped; 5 focused tests green; public Main placement, bound cost and exact-name Delay boundaries proven                                |
-| EX5-070 | X Antibody Proto Form                | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3679-Q3682/Q4260 mapped; 8 focused tests green; public placement and inherited replacement boundaries proven                                            |
-| EX5-071 | Loyalty Deeper than the Sea          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3683-Q3684 mapped; 6 focused tests green; public placement/hand decision and Delay endpoints proven                                                     |
-| EX5-072 | Holy Beasts Great Cardinal Positions | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3685 mapped; 8 focused tests green; public Main/Security routes and Four Sovereigns placement boundaries proven                                         |
-| EX5-073 | GraceNovamon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3686-Q3689 mapped; 10 focused tests green; public DNA, deletion replacement and attack boundaries proven                                                |
-| EX5-074 | Fanglongmon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | Catalog/Q3690-Q3691 mapped; 6 focused tests green; public On Play/attack, one-card boundary and immunity proven                                                  |
+| EX5-001 | Sunmon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted; same-source OPT refusal/reset closed                        |
+| EX5-002 | Moonmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted; same-source OPT refusal/reset proven                        |
+| EX5-003 | Nyaromon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 3 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-004 | Frimon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 3 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-005 | Tokomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 4 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-006 | Xiaomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-007 | Coronamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-008 | Firamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-009 | Indramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-010 | Sandiramon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 14 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-011 | Pajiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-012 | Flaremon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 14 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-013 | Zhuqiaomon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-014 | Apollomon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-015 | Gabumon (X Antibody)                 | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-016 | Lunamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 12 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-017 | Lekismon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-018 | Garurumon (X Antibody)               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-019 | Antylamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-020 | Crescemon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-021 | Majiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-022 | Mihiramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 12 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-023 | WereGarurumon (X Antibody)           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-024 | Azulongmon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-025 | Dianamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-026 | MetalGarurumon (X Antibody)          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-027 | Liollmon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-028 | Kudamon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-029 | Reppamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-030 | Liamon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-031 | Chirinmon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-032 | LoaderLeomon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-033 | Mitamamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-034 | BanchoLeomon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-035 | Hawkmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-036 | Aquilamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-037 | Vajramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-038 | Vikaralamon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-039 | Garudamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-040 | Kumbhiramon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-041 | Ebonwumon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-042 | Merukimon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-043 | Leopardmon (X Antibody)              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-044 | Elecmon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-045 | Chuumon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-046 | Targetmon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-047 | Leomon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-048 | Etemon                               | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-049 | GrapLeomon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-050 | Sinduramon                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-051 | Caturamon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-052 | Makuramon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-053 | Baihumon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-054 | MetalEtemon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-055 | HeavyLeomon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-056 | Syakomon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-057 | Labramon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-058 | Octomon                              | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-059 | Dobermon (X Antibody)                | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-060 | Dragomon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted; inclusive level ceiling corrected                          |
+| EX5-061 | Cerberusmon (X Antibody)             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-062 | Anubismon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-063 | Leviamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-064 | Koh & Sayo                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-065 | Sayo & Koh                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-066 | Phoebus Blow                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted; Galaxy catalog/IR correction and pure-trait recovery proven |
+| EX5-067 | Good Night Moon                      | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-068 | Flashy Boss Punch                    | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-069 | Biting Crush                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 5 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-070 | X Antibody Proto Form                | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-071 | Loyalty Deeper than the Sea          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-072 | Holy Beasts Great Cardinal Positions | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-073 | GraceNovamon                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
+| EX5-074 | Fanglongmon                          | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 6 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
 
 ### EX5-001 — Sunmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-001.test.ts`, 7 tests passed. Public same-physical-source once-per-turn refusal and next-own-turn paid evolution now proven by the new production turn-loop scenario; the focused pair passes 16 tests. Independent Luna review accepted both scenarios. The closing gates passed. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and sources
 
@@ -143,16 +169,16 @@ Local KB evidence:
 
 #### Clause-to-proof mapping
 
-| Clause | Proof | IR mapping |
-| --- | --- | --- |
-| Your Turn inherited effect | Structural assertion in `EX5-001.test.ts` | `trigger: "YourTurn"`, `isInherited: true` |
-| Once Per Turn | Structural assertion in `EX5-001.test.ts` | `frequency: "OncePerTurn"` |
-| Effect-only placement | Public EX5-007 placement test; ordinary public digivolution negative | `SubTrigger(event: "onAddDigivolutionCards", sourceFilter: { isSelfRef: true, byEffect: true })` |
-| This Digimon may digivolve from hand | Public EX5-007 placement test and optional-decline test | `Digivolve(target.isSelf, from: ["hand"], optional: true)` |
-| Cost reduced by 1 and still paid | Public test leaves memory at 1 after EX5-007 gains 2 and BT1-014 costs 2 | `payCost: true`, `reduceCost: 1` |
-| Receiver must be this host | Cross-host negative and public placement fixture | `sourceFilter.isSelfRef: true` |
-| Q3526 | EX5-007's inherited top-card rotation is exercised through `activateEffect` | `onAddDigivolutionCards` effect provenance gate |
-| Q5393 | Public EX5-064 route rotates EX5-007 away, promotes Sunmon, then completes the legal level-3 evolution without consuming a later compatible card | `EX5-064` public play, stack/zones, memory, and hand assertions |
+| Clause                               | Proof                                                                                                                                            | IR mapping                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Your Turn inherited effect           | Structural assertion in `EX5-001.test.ts`                                                                                                        | `trigger: "YourTurn"`, `isInherited: true`                                                       |
+| Once Per Turn                        | Structural assertion in `EX5-001.test.ts`                                                                                                        | `frequency: "OncePerTurn"`                                                                       |
+| Effect-only placement                | Public EX5-007 placement test; ordinary public digivolution negative                                                                             | `SubTrigger(event: "onAddDigivolutionCards", sourceFilter: { isSelfRef: true, byEffect: true })` |
+| This Digimon may digivolve from hand | Public EX5-007 placement test and optional-decline test                                                                                          | `Digivolve(target.isSelf, from: ["hand"], optional: true)`                                       |
+| Cost reduced by 1 and still paid     | Public test leaves memory at 1 after EX5-007 gains 2 and BT1-014 costs 2                                                                         | `payCost: true`, `reduceCost: 1`                                                                 |
+| Receiver must be this host           | Cross-host negative and public placement fixture                                                                                                 | `sourceFilter.isSelfRef: true`                                                                   |
+| Q3526                                | EX5-007's inherited top-card rotation is exercised through `activateEffect`                                                                      | `onAddDigivolutionCards` effect provenance gate                                                  |
+| Q5393                                | Public EX5-064 route rotates EX5-007 away, promotes Sunmon, then completes the legal level-3 evolution without consuming a later compatible card | `EX5-064` public play, stack/zones, memory, and hand assertions                                  |
 
 #### Changes
 
@@ -187,21 +213,24 @@ The test suite does not claim a public same-turn/next-turn reset proof for the o
 
 #### Worker score
 
-| Rubric column | Score |
-| --- | ---: |
-| Catalog / rules | 2/2 |
-| IR trace | 2/2 |
-| Behavioural proof | 2/2 |
-| Peer / stack proof | 2/2 |
-| Delivery gates (coordinator-owned) | 0/2 |
-| **Worker total** | **8/10** |
-
+| Rubric column                      |    Score |
+| ---------------------------------- | -------: |
+| Catalog / rules                    |      2/2 |
+| IR trace                           |      2/2 |
+| Behavioural proof                  |      2/2 |
+| Peer / stack proof                 |      2/2 |
+| Delivery gates (coordinator-owned) |      0/2 |
+| **Worker total**                   | **8/10** |
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-002 — Moonmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-002.test.ts`, 9 tests passed. Public same-physical-source once-per-turn refusal and next-own-turn paid evolution now proven by the new production turn-loop scenario; the focused pair passes 16 tests. Independent Luna review accepted both scenarios. The closing gates passed. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -227,15 +256,15 @@ The audit fixed the previous silent free-evolution behavior by adding `payCost: 
 
 `apps/api/src/cards/EX5/EX5-002.test.ts` proves:
 
-| Clause | Public behavioral proof |
-| --- | --- |
-| Night Claw trigger | Playing `EX5-065` evolves the real stack from `BT1-029 + EX5-002` into `BT1-032`. Memory decreases by the Tamer play cost (3) and evolution cost (2). |
-| Light Fang trigger | Playing `EX5-064` follows the same path and pays 4 + 2 memory. |
-| Final zones and stack | `EX5-002` and the prior top remain in the stack, the evolution leaves hand, the normal evolution draw of inert main-deck Digimon `BT1-009` is observed, and no decision remains pending. |
-| Optionality | Declining the effect leaves the host and evolution card unchanged; only the Tamer play cost is paid. |
-| Exact filters and legality | An unrelated `BT1-087` Tamer does not trigger; an incompatible red level-4 `BT1-014` is not offered from a blue level-3 base. |
-| Turn ownership | A matching Tamer played during the opponent's real production turn does not trigger Moonmon. |
-| Peer isolation | With an `EX5-001`-bearing peer stack beside Moonmon, only the Moonmon-bearing stack evolves; the peer stack and its hand card remain unchanged. |
+| Clause                     | Public behavioral proof                                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Night Claw trigger         | Playing `EX5-065` evolves the real stack from `BT1-029 + EX5-002` into `BT1-032`. Memory decreases by the Tamer play cost (3) and evolution cost (2).                                    |
+| Light Fang trigger         | Playing `EX5-064` follows the same path and pays 4 + 2 memory.                                                                                                                           |
+| Final zones and stack      | `EX5-002` and the prior top remain in the stack, the evolution leaves hand, the normal evolution draw of inert main-deck Digimon `BT1-009` is observed, and no decision remains pending. |
+| Optionality                | Declining the effect leaves the host and evolution card unchanged; only the Tamer play cost is paid.                                                                                     |
+| Exact filters and legality | An unrelated `BT1-087` Tamer does not trigger; an incompatible red level-4 `BT1-014` is not offered from a blue level-3 base.                                                            |
+| Turn ownership             | A matching Tamer played during the opponent's real production turn does not trigger Moonmon.                                                                                             |
+| Peer isolation             | With an `EX5-001`-bearing peer stack beside Moonmon, only the Moonmon-bearing stack evolves; the peer stack and its hand card remain unchanged.                                          |
 
 The stack fixture uses a legal main-deck Digimon as the host, uses inert main-deck Digimon `BT1-009` for the evolution draw, and places the Digi-Egg only under the host; no Digi-Egg is placed in security or a deck.
 
@@ -251,22 +280,25 @@ The once-per-turn identity is asserted in the IR. A same-source second trigger a
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog text and card identity verified; KB accurately reports no Q&A. |
-| IR trace | 2/2 | Exact controller, kind, trait, turn, frequency, self-target, hand source, optionality, and normal cost are encoded. |
-| Behavioral proof | 2/2 | Both traits, paid costs, stack/zones, draw, optional refusal, negative filters, requirements, and opponent-turn boundary pass through public intents. |
-| Peer/stack proof | 2/2 | Legal and illegal stack transitions plus a comparative `EX5-001` peer stack prove source isolation; the once-per-turn limitation is explicitly documented rather than replaced with an impossible reset fixture. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                                                                         |
+| ---------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Catalog text and card identity verified; KB accurately reports no Q&A.                                                                                                                                           |
+| IR trace         |   2/2 | Exact controller, kind, trait, turn, frequency, self-target, hand source, optionality, and normal cost are encoded.                                                                                              |
+| Behavioral proof |   2/2 | Both traits, paid costs, stack/zones, draw, optional refusal, negative filters, requirements, and opponent-turn boundary pass through public intents.                                                            |
+| Peer/stack proof |   2/2 | Legal and illegal stack transitions plus a comparative `EX5-001` peer stack prove source isolation; the once-per-turn limitation is explicitly documented rather than replaced with an impossible reset fixture. |
+| Delivery gates   |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                                                                 |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-003 — Nyaromon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-003.test.ts`, 3 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -288,14 +320,14 @@ The module encodes an inherited `AllTurns` effect with a self-only target, `modi
 
 `apps/api/src/cards/EX5/EX5-003.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog definition, color, kind, level, DP, and exact inherited text are asserted alongside the IR shape. |
-| +1000 DP while suspended | A suspended `BT1-009` host carrying `EX5-003` changes from 3000 to 4000 DP. |
-| All Turns | A second player’s suspended host carrying `EX5-003` also receives +1000 DP while the first player’s turn is active. |
+| Clause                          | Public/observable behavioral proof                                                                                                                                                                                                                                                                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity         | Catalog definition, color, kind, level, DP, and exact inherited text are asserted alongside the IR shape.                                                                                                                                                                                                                    |
+| +1000 DP while suspended        | A suspended `BT1-009` host carrying `EX5-003` changes from 3000 to 4000 DP.                                                                                                                                                                                                                                                  |
+| All Turns                       | A second player’s suspended host carrying `EX5-003` also receives +1000 DP while the first player’s turn is active.                                                                                                                                                                                                          |
 | Condition removal/reapplication | Public attack intents suspend each host, and the real `runOneTurn` turn loop's ActivePhase unsuspends the owning host on its next turn; the aura withdraws at 3000 DP and reapplies at 4000 DP. The test explicitly hands off `state.turnSeat` because `runOneTurn` is a one-turn seam and does not advance the seat itself. |
-| Self-only targeting | A suspended peer `BT1-009` without `EX5-003` remains at 3000 DP. |
-| Evolution-stack continuity | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory; the stack remains `[EX5-003, BT1-009]`, the normal evolution draw is inert `BT1-009`, and the evolved host receives 4000/5000 DP unsuspended/suspended. |
+| Self-only targeting             | A suspended peer `BT1-009` without `EX5-003` remains at 3000 DP.                                                                                                                                                                                                                                                             |
+| Evolution-stack continuity      | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory; the stack remains `[EX5-003, BT1-009]`, the normal evolution draw is inert `BT1-009`, and the evolved host receives 4000/5000 DP unsuspended/suspended.                                                                                       |
 
 The fixtures place `EX5-003` only under battle-area hosts. No Digi-Egg is placed in a deck or security; the deck draw uses inert main-deck Digimon `BT1-009`.
 
@@ -313,22 +345,25 @@ The peer stack and legal evolution route provide comparative and source-stack pr
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog fields, printed clause, comprehensive processing-condition rule, and no-Q&A result verified. |
-| IR trace | 2/2 | Inherited all-turns self aura, exact +1000 amount, and suspended condition are encoded. |
-| Behavioral proof | 2/2 | Suspended/unsuspended boundaries, both turn owners, exact DP endpoints, and pending-free resolution pass. |
-| Peer/stack proof | 2/2 | Non-source peer isolation and a legal evolution stack with source identity, cost, draw, and post-evolution aura pass. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                              |
+| ---------------- | ----: | --------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Catalog fields, printed clause, comprehensive processing-condition rule, and no-Q&A result verified.                  |
+| IR trace         |   2/2 | Inherited all-turns self aura, exact +1000 amount, and suspended condition are encoded.                               |
+| Behavioral proof |   2/2 | Suspended/unsuspended boundaries, both turn owners, exact DP endpoints, and pending-free resolution pass.             |
+| Peer/stack proof |   2/2 | Non-source peer isolation and a legal evolution stack with source identity, cost, draw, and post-evolution aura pass. |
+| Delivery gates   |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                      |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-004 — Frimon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-004.test.ts`, 3 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and sources
 
@@ -346,12 +381,12 @@ The local knowledge-base query `node tools/kb/query.mjs card EX5-004` returned n
 
 #### Clause-to-proof mapping
 
-| Clause | Public proof | IR mapping |
-| --- | --- | --- |
-| Inherited When Attacking effect | A legal stack with Frimon under green Lv.3 `BT1-066` and green Lv.4 `BT4-055` Leomon attacks through a public attack intent | `trigger: "WhenAttacking"`, `isInherited: true` |
-| Once Per Turn | The same Leomon stack attacks, is unsuspended by public On Play `BT1-036`, then attacks again in the same turn without a second draw; after the real opponent turn and own unsuspend phase, its next attack draws again | `frequency: "OncePerTurn"` |
-| Exact `[Leomon] in its name` condition | A parallel legal stack ending in non-Leomon `BT1-074` Togemon attacks without drawing | `condition: { kind: "selfHasNameContaining", names: ["Leomon"] }` |
-| Draw 1 from own deck | The first and next-turn attacks move the named deck cards into the controller's hand; the same-turn card remains in the deck | `Draw`, `controller: "mine"`, `amount: 1` |
+| Clause                                 | Public proof                                                                                                                                                                                                            | IR mapping                                                        |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Inherited When Attacking effect        | A legal stack with Frimon under green Lv.3 `BT1-066` and green Lv.4 `BT4-055` Leomon attacks through a public attack intent                                                                                             | `trigger: "WhenAttacking"`, `isInherited: true`                   |
+| Once Per Turn                          | The same Leomon stack attacks, is unsuspended by public On Play `BT1-036`, then attacks again in the same turn without a second draw; after the real opponent turn and own unsuspend phase, its next attack draws again | `frequency: "OncePerTurn"`                                        |
+| Exact `[Leomon] in its name` condition | A parallel legal stack ending in non-Leomon `BT1-074` Togemon attacks without drawing                                                                                                                                   | `condition: { kind: "selfHasNameContaining", names: ["Leomon"] }` |
+| Draw 1 from own deck                   | The first and next-turn attacks move the named deck cards into the controller's hand; the same-turn card remains in the deck                                                                                            | `Draw`, `controller: "mine"`, `amount: 1`                         |
 
 #### Implementation and behavioral evidence
 
@@ -377,22 +412,25 @@ No engine gap remains for EX5-004.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog metadata and the complete inherited clause are asserted; the local KB has no EX5-004 entries. |
-| IR trace | 2/2 | Trigger, inheritance, frequency, exact name condition, own controller, and draw amount are encoded and structurally asserted. |
-| Behavioral proof | 2/2 | Positive draw, exact near-miss negative, same-turn refusal, next-own-turn reset, final zones, stack identity, and pending-state checks pass through public intents. |
-| Peer / stack proof | 2/2 | Both positive and negative cases use legal green evolution stacks with Frimon as the inherited source and compare Leomon against a non-Leomon peer. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                            |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog metadata and the complete inherited clause are asserted; the local KB has no EX5-004 entries.                                                               |
+| IR trace           |   2/2 | Trigger, inheritance, frequency, exact name condition, own controller, and draw amount are encoded and structurally asserted.                                       |
+| Behavioral proof   |   2/2 | Positive draw, exact near-miss negative, same-turn refusal, next-own-turn reset, final zones, stack identity, and pending-state checks pass through public intents. |
+| Peer / stack proof |   2/2 | Both positive and negative cases use legal green evolution stacks with Frimon as the inherited source and compare Leomon against a non-Leomon peer.                 |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                    |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-005 — Tokomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-005.test.ts`, 4 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -414,14 +452,14 @@ The existing module encodes an inherited `OnDeletion` effect that draws exactly 
 
 `apps/api/src/cards/EX5/EX5-005.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog definition, black color, Digi-Egg kind, level, DP, and exact inherited text are asserted alongside the IR shape. |
-| Opponent-turn deletion draw | A public opponent attack deletes the suspended 3000-DP host carrying `EX5-005`; its face-up source cards reach trash and the owner's exact inert deck card reaches hand. |
-| Your-turn boundary | A public attack by the host into a suspended 4000-DP opponent deletes the host during its own turn; the owner's hand remains empty while the source stack reaches trash. |
-| Evolution-stack continuity | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory, draws the inert `BT1-010`, preserves stack order `[EX5-005, BT1-009]`, and then triggers the inherited draw when the evolved host is deleted during the opponent's public attack. |
-| Evolution legality boundary | A public digivolution from a level-3 `BT1-009` into another level-3 `BT1-013` is rejected without changing the host stack, hand, memory, or pending state. |
-| Resolution safety | Each public battle path settles fully, asserts exact endpoints, has no pending decision, and reports no active attack. |
+| Clause                      | Public/observable behavioral proof                                                                                                                                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity     | Catalog definition, black color, Digi-Egg kind, level, DP, and exact inherited text are asserted alongside the IR shape.                                                                                                                                         |
+| Opponent-turn deletion draw | A public opponent attack deletes the suspended 3000-DP host carrying `EX5-005`; its face-up source cards reach trash and the owner's exact inert deck card reaches hand.                                                                                         |
+| Your-turn boundary          | A public attack by the host into a suspended 4000-DP opponent deletes the host during its own turn; the owner's hand remains empty while the source stack reaches trash.                                                                                         |
+| Evolution-stack continuity  | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory, draws the inert `BT1-010`, preserves stack order `[EX5-005, BT1-009]`, and then triggers the inherited draw when the evolved host is deleted during the opponent's public attack. |
+| Evolution legality boundary | A public digivolution from a level-3 `BT1-009` into another level-3 `BT1-013` is rejected without changing the host stack, hand, memory, or pending state.                                                                                                       |
+| Resolution safety           | Each public battle path settles fully, asserts exact endpoints, has no pending decision, and reports no active attack.                                                                                                                                           |
 
 The fixtures use only inert main-deck Digimon `BT1-009` through `BT1-014` for deck/security cards; no Digi-Egg is placed in a deck or security. No injected deletion verb or injected timing is used for behavioral credit.
 
@@ -437,22 +475,25 @@ The fixtures use only inert main-deck Digimon `BT1-009` through `BT1-014` for de
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog fields, printed clause, comprehensive turn-timing rule, and no-Q&A result verified. |
-| IR trace | 2/2 | Inherited deletion trigger, exact one-card draw, owner controller, and opponent-turn condition are encoded. |
-| Behavioral proof | 2/2 | Public battle deletion proves the positive and own-turn negative boundaries with exact hand/trash endpoints and settled state. |
-| Peer/stack proof | 2/2 | A legal evolution stack preserves the inherited source and proves the clause after evolution during a public opponent battle. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                       |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules    |   2/2 | Catalog fields, printed clause, comprehensive turn-timing rule, and no-Q&A result verified.                                    |
+| IR trace         |   2/2 | Inherited deletion trigger, exact one-card draw, owner controller, and opponent-turn condition are encoded.                    |
+| Behavioral proof |   2/2 | Public battle deletion proves the positive and own-turn negative boundaries with exact hand/trash endpoints and settled state. |
+| Peer/stack proof |   2/2 | A legal evolution stack preserves the inherited source and proves the clause after evolution during a public opponent battle.  |
+| Delivery gates   |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                               |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-006 — Xiaomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-006.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -474,15 +515,15 @@ The existing module encodes an inherited `YourTurn` effect with `OncePerTurn` fr
 
 `apps/api/src/cards/EX5/EX5-006.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog definition, purple color, Digi-Egg kind, level, DP, and exact inherited text are asserted alongside the IR shape. |
-| Effect-play trigger | Publicly playing `EX5-058` causes its On Play effect to create an own Fujitsumon Digimon token; the first token consumes exactly the named deck card into hand. |
-| Effect-only boundary | A manually played `BT1-010` enters the battle area while the watcher card remains in the deck and the hand remains empty. |
-| Once Per Turn | A second public effect-played token in the same turn does not draw a second card; after a real opponent loop and next own turn, a third token draws again. |
-| Evolution-stack continuity | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory, draws the inert `BT1-010`, preserves stack `[EX5-006, BT1-009]`, and still draws when the evolved host's effect-played token is created. |
-| Evolution legality boundary | A public level-3 `BT1-009` → level-3 `BT1-013` route is rejected without changing the host stack, memory, or pending state. |
-| Resolution safety | All public paths settle fully and assert no pending decision. |
+| Clause                      | Public/observable behavioral proof                                                                                                                                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity     | Catalog definition, purple color, Digi-Egg kind, level, DP, and exact inherited text are asserted alongside the IR shape.                                                                                               |
+| Effect-play trigger         | Publicly playing `EX5-058` causes its On Play effect to create an own Fujitsumon Digimon token; the first token consumes exactly the named deck card into hand.                                                         |
+| Effect-only boundary        | A manually played `BT1-010` enters the battle area while the watcher card remains in the deck and the hand remains empty.                                                                                               |
+| Once Per Turn               | A second public effect-played token in the same turn does not draw a second card; after a real opponent loop and next own turn, a third token draws again.                                                              |
+| Evolution-stack continuity  | A legal red level-3 `BT1-009` evolves into red level-4 `BT1-014` for 2 memory, draws the inert `BT1-010`, preserves stack `[EX5-006, BT1-009]`, and still draws when the evolved host's effect-played token is created. |
+| Evolution legality boundary | A public level-3 `BT1-009` → level-3 `BT1-013` route is rejected without changing the host stack, memory, or pending state.                                                                                             |
+| Resolution safety           | All public paths settle fully and assert no pending decision.                                                                                                                                                           |
 
 The fixtures use only inert main-deck Digimon `BT1-009` through `BT1-014` for deck cards; no Digi-Egg is placed in a deck or security. The effect-play proof uses the production `EX5-058` token effect and no injected `playInstances`, timing, or verb seam.
 
@@ -499,22 +540,25 @@ The fixtures use only inert main-deck Digimon `BT1-009` through `BT1-014` for de
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog fields, printed clause, comprehensive trigger/frequency rules, and no-Q&A result verified. |
-| IR trace | 2/2 | Inherited YourTurn timing, OncePerTurn frequency, effect-play Digimon filter, and exact one-card draw are encoded. |
-| Behavioral proof | 2/2 | Public effect-play positive path, manual-play negative, same-turn refusal, next-own-turn reset, exact deck/hand endpoints, and settled decisions pass. |
-| Peer/stack proof | 2/2 | Legal evolution preserves the inherited source and trigger; an invalid source level is rejected without mutation. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                               |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules    |   2/2 | Catalog fields, printed clause, comprehensive trigger/frequency rules, and no-Q&A result verified.                                                     |
+| IR trace         |   2/2 | Inherited YourTurn timing, OncePerTurn frequency, effect-play Digimon filter, and exact one-card draw are encoded.                                     |
+| Behavioral proof |   2/2 | Public effect-play positive path, manual-play negative, same-turn refusal, next-own-turn reset, exact deck/hand endpoints, and settled decisions pass. |
+| Peer/stack proof |   2/2 | Legal evolution preserves the inherited source and trigger; an invalid source level is rejected without mutation.                                      |
+| Delivery gates   |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                                       |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-007 — Coronamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-007.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and ruling sources
 
@@ -538,13 +582,13 @@ The local knowledge base returns all three required rulings:
 
 #### Clause-to-proof mapping
 
-| Clause / ruling | Public proof | IR mapping |
-| --- | --- | --- |
-| Start of Your Main Phase, own Light Fang/Night Claw Tamer | A real turn loop with own EX5-064 adds 1 memory; an opponent-only EX5-064 does not | `trigger: "StartOfYourMainPhase"`, `GainMemory(1)`, own Tamer trait filter in `zone: "battleArea"` |
-| Q3527 top-to-bottom rotation and +2 memory | Public `activateEffect` on a legal EX5-008 over EX5-007 stack promotes EX5-007 and leaves EX5-008 as the bottom stack card | Inherited `Main` effect, `GainMemory(2)`, `place` cost with `position: "bottom"` and `host: "self"` |
-| Q3526 effect-placement event | Public EX5-007 activation on EX5-008 over Sunmon/EX5-007 causes the Sunmon effect-placement route and legal BT1-014 evolution; final stack and hand are asserted | The place primitive emits the placement event; EX5-001 observes it through the public route |
-| Q3528 once-per-turn prevention and reset | Public two-copy rotation allows each physical EX5-007 one use, blocks cycling back to the already-used source in the same turn, and resets the source ledger on the next own turn | `frequency: "OncePerTurn"` with per-source-instance accounting |
-| Exact trait boundary | A legal EX5-007 under non-Light-Fang BT1-014 cannot rotate or gain memory; stack and memory remain unchanged | Cost target requires a self Digimon with exact Light Fang/Night Claw trait |
+| Clause / ruling                                           | Public proof                                                                                                                                                                      | IR mapping                                                                                          |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Start of Your Main Phase, own Light Fang/Night Claw Tamer | A real turn loop with own EX5-064 adds 1 memory; an opponent-only EX5-064 does not                                                                                                | `trigger: "StartOfYourMainPhase"`, `GainMemory(1)`, own Tamer trait filter in `zone: "battleArea"`  |
+| Q3527 top-to-bottom rotation and +2 memory                | Public `activateEffect` on a legal EX5-008 over EX5-007 stack promotes EX5-007 and leaves EX5-008 as the bottom stack card                                                        | Inherited `Main` effect, `GainMemory(2)`, `place` cost with `position: "bottom"` and `host: "self"` |
+| Q3526 effect-placement event                              | Public EX5-007 activation on EX5-008 over Sunmon/EX5-007 causes the Sunmon effect-placement route and legal BT1-014 evolution; final stack and hand are asserted                  | The place primitive emits the placement event; EX5-001 observes it through the public route         |
+| Q3528 once-per-turn prevention and reset                  | Public two-copy rotation allows each physical EX5-007 one use, blocks cycling back to the already-used source in the same turn, and resets the source ledger on the next own turn | `frequency: "OncePerTurn"` with per-source-instance accounting                                      |
+| Exact trait boundary                                      | A legal EX5-007 under non-Light-Fang BT1-014 cannot rotate or gain memory; stack and memory remain unchanged                                                                      | Cost target requires a self Digimon with exact Light Fang/Night Claw trait                          |
 
 #### Implementation and behavioral evidence
 
@@ -580,22 +624,25 @@ engine change is needed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog metadata and Q3526/Q3527/Q3528 rulings are identified and mapped. |
-| IR trace | 2/2 | Both clauses, controller/zone scope, exact traits, bottom placement, +1/+2 amounts, inheritance, and frequency are encoded. |
-| Behavioral proof | 2/2 | Public positive, negative, Q3526, Q3527, two-copy Q3528 rotation, same-turn source reuse block, and next-turn reset are covered through observable intents/state. |
-| Peer / stack proof | 2/2 | Legal evolution stack, Sunmon peer trigger, exact top-to-bottom identity, and non-trait host boundary are asserted. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                          |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog metadata and Q3526/Q3527/Q3528 rulings are identified and mapped.                                                                                         |
+| IR trace           |   2/2 | Both clauses, controller/zone scope, exact traits, bottom placement, +1/+2 amounts, inheritance, and frequency are encoded.                                       |
+| Behavioral proof   |   2/2 | Public positive, negative, Q3526, Q3527, two-copy Q3528 rotation, same-turn source reuse block, and next-turn reset are covered through observable intents/state. |
+| Peer / stack proof |   2/2 | Legal evolution stack, Sunmon peer trigger, exact top-to-bottom identity, and non-trait host boundary are asserted.                                               |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                  |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-008 — Firamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-008.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -621,16 +668,16 @@ The existing module has separate `OnPlay` and `WhenDigivolving` `RevealAdd` effe
 
 `apps/api/src/cards/EX5/EX5-008.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog identity, red color, level, play cost, DP, exact traits, both printed texts, both trigger records, exact trait-match filters, reveal count, and deck-bottom disposition are asserted. |
-| On Play | A public play of Firamon resolves the reveal and adds a Light Fang `EX5-007` plus a Galaxy `EX5-073`; the inert `BT1-009` remainder is returned to the deck bottom. |
-| Q3529 | A public On Play reveal with only `EX5-007` matching one group adds that card and leaves the two inert fillers in their original bottom order. |
-| Q3530 | The public On Play path with both groups available adds both required cards; no optional refusal is modeled because the ruling makes both additions mandatory when available. |
-| When Digivolving | A public `BT1-009` → `EX5-008` digivolution costs 2 memory, resolves the same reveal groups with Night Claw `EX5-016` and Galaxy `EX5-073`, and bottoms the inert remainder. |
-| Inherited +2000 DP | The legal stack then evolves `EX5-008` into `BT1-020`; the inherited source remains `[BT1-009, EX5-008]`, giving the level-5 top 8000 DP on the owner’s turn and 6000 DP on the opponent’s turn through real turn loops. |
-| Evolution boundary | A public level-4 `BT1-014` → level-4 `EX5-008` route is rejected without changing the host stack, memory, or pending state. |
-| Resolution safety | All public paths settle with no pending decision. |
+| Clause                  | Public/observable behavioral proof                                                                                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and IR identity | Catalog identity, red color, level, play cost, DP, exact traits, both printed texts, both trigger records, exact trait-match filters, reveal count, and deck-bottom disposition are asserted.                            |
+| On Play                 | A public play of Firamon resolves the reveal and adds a Light Fang `EX5-007` plus a Galaxy `EX5-073`; the inert `BT1-009` remainder is returned to the deck bottom.                                                      |
+| Q3529                   | A public On Play reveal with only `EX5-007` matching one group adds that card and leaves the two inert fillers in their original bottom order.                                                                           |
+| Q3530                   | The public On Play path with both groups available adds both required cards; no optional refusal is modeled because the ruling makes both additions mandatory when available.                                            |
+| When Digivolving        | A public `BT1-009` → `EX5-008` digivolution costs 2 memory, resolves the same reveal groups with Night Claw `EX5-016` and Galaxy `EX5-073`, and bottoms the inert remainder.                                             |
+| Inherited +2000 DP      | The legal stack then evolves `EX5-008` into `BT1-020`; the inherited source remains `[BT1-009, EX5-008]`, giving the level-5 top 8000 DP on the owner’s turn and 6000 DP on the opponent’s turn through real turn loops. |
+| Evolution boundary      | A public level-4 `BT1-014` → level-4 `EX5-008` route is rejected without changing the host stack, memory, or pending state.                                                                                              |
+| Resolution safety       | All public paths settle with no pending decision.                                                                                                                                                                        |
 
 The fixtures contain no Digi-Egg in a deck or security. Neutral remainder cards use inert main-deck Digimon from `BT1-009` through `BT1-014`; trait candidates are the required Light Fang/Night Claw/Galaxy cards. No injected timing or verb seam is used for behavior credit.
 
@@ -646,22 +693,25 @@ The fixtures contain no Digi-Egg in a deck or security. Neutral remainder cards 
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Catalog contract, Q3529/Q3530, and exact trait-bucket interpretation verified. |
-| IR trace | 2/2 | On Play and When Digivolving reveal effects, exact filters/counts/remainder, and inherited DP modifier match the printed text. |
-| Behavioral proof | 2/2 | Public On Play and When Digivolving paths prove both buckets, sole-match behavior, mandatory additions, bottom order, costs, and settled endpoints. |
-| Peer/stack proof | 2/2 | Mixed Light Fang/Night Claw/Galaxy/nonmatching pool, legal multi-step evolution stack, turn-duration proof, and invalid source negative pass. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                            |
+| ---------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Catalog contract, Q3529/Q3530, and exact trait-bucket interpretation verified.                                                                      |
+| IR trace         |   2/2 | On Play and When Digivolving reveal effects, exact filters/counts/remainder, and inherited DP modifier match the printed text.                      |
+| Behavioral proof |   2/2 | Public On Play and When Digivolving paths prove both buckets, sole-match behavior, mandatory additions, bottom order, costs, and settled endpoints. |
+| Peer/stack proof |   2/2 | Mixed Light Fang/Night Claw/Galaxy/nonmatching pool, legal multi-step evolution stack, turn-duration proof, and invalid source negative pass.       |
+| Delivery gates   |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                                    |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-009 — Indramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-009.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -689,17 +739,17 @@ The existing compiled IR has a mandatory draw followed by an optional `PlayWitho
 
 `apps/api/src/cards/EX5/EX5-009.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog identity, color, level, cost, DP, types, exact printed texts, trigger records, filters, optionality, breeding endpoint, and inherited keyword are asserted. |
-| Q3531 | Public Indramon play draws once and refuses a same-name Deva represented in either the battle area or trash. A structural Option placement fixture is also present for the printed Option scope; the catalog has no same-name Deva Digimon/Option pair for a direct positive collision case. |
-| Q3532 | A candidate whose name appears only under a Digimon and under a Tamer is publicly played into breeding; the under-cards do not block it. |
-| Q3533/Q3535 | A public effect play of `EX5-051` into breeding proves that its On Play and the `EX5-006` when-effect-played watcher do not fire; the exact draw and breeding endpoints remain observable. |
-| Q3534 | Public Indramon play followed by public `P-130` play moves the candidate from breeding to battle, then a public attack intent is rejected for same-turn summoning sickness. |
-| Q3536 | A public effect-play restriction from opponent `BT9-047` leaves the candidate in hand and prevents the breeding play while still resolving Indramon's mandatory draw. |
-| Optional branch | `autoDeclineOptional` declines only the printed optional Deva play after the mandatory draw, leaving the candidate in hand with no pending decision. |
-| Inherited effect and stack | A legal public `EX5-009` → `EX5-013` evolution costs four memory and exposes inherited Security Attack +1 on the Four Sovereigns host. An invalid level-4 source is rejected without changing stack or memory. |
-| Resolution safety | Each public flow asserts no pending decision; no behavior credit depends on injected timing or direct production verbs. The only verb call is the explicitly structural Option fixture. |
+| Clause                     | Public/observable behavioral proof                                                                                                                                                                                                                                                           |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity    | Catalog identity, color, level, cost, DP, types, exact printed texts, trigger records, filters, optionality, breeding endpoint, and inherited keyword are asserted.                                                                                                                          |
+| Q3531                      | Public Indramon play draws once and refuses a same-name Deva represented in either the battle area or trash. A structural Option placement fixture is also present for the printed Option scope; the catalog has no same-name Deva Digimon/Option pair for a direct positive collision case. |
+| Q3532                      | A candidate whose name appears only under a Digimon and under a Tamer is publicly played into breeding; the under-cards do not block it.                                                                                                                                                     |
+| Q3533/Q3535                | A public effect play of `EX5-051` into breeding proves that its On Play and the `EX5-006` when-effect-played watcher do not fire; the exact draw and breeding endpoints remain observable.                                                                                                   |
+| Q3534                      | Public Indramon play followed by public `P-130` play moves the candidate from breeding to battle, then a public attack intent is rejected for same-turn summoning sickness.                                                                                                                  |
+| Q3536                      | A public effect-play restriction from opponent `BT9-047` leaves the candidate in hand and prevents the breeding play while still resolving Indramon's mandatory draw.                                                                                                                        |
+| Optional branch            | `autoDeclineOptional` declines only the printed optional Deva play after the mandatory draw, leaving the candidate in hand with no pending decision.                                                                                                                                         |
+| Inherited effect and stack | A legal public `EX5-009` → `EX5-013` evolution costs four memory and exposes inherited Security Attack +1 on the Four Sovereigns host. An invalid level-4 source is rejected without changing stack or memory.                                                                               |
+| Resolution safety          | Each public flow asserts no pending decision; no behavior credit depends on injected timing or direct production verbs. The only verb call is the explicitly structural Option fixture.                                                                                                      |
 
 Fixtures use no Digi-Egg in a deck or security. Neutral cards use inert main-deck Digimon (`BT1-009` through `BT1-014`); trait cards are used only where their printed traits are required.
 
@@ -717,22 +767,25 @@ Fixtures use no Digi-Egg in a deck or security. Neutral cards use inert main-dec
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract and all six KB Q&A rulings are recorded; relevant breeding and same-turn rules queried. |
-| IR trace | 2/2 | Draws, unique Deva filter, battle/trash same-name scope, breeding endpoint, and inherited Security Attack aura match the printed text. |
-| Behavioral proof | 2/2 | Public play, restriction, optional decline, breeding suppression, same-turn move/attack rejection, legal evolution, and invalid-source endpoints are covered. |
-| Peer/stack proof | 2/2 | Mixed battle/trash/under-card fixtures, effect-play peer/restriction cases, and legal/illegal evolution stack behavior are included. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                      |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract and all six KB Q&A rulings are recorded; relevant breeding and same-turn rules queried.                                                |
+| IR trace         |   2/2 | Draws, unique Deva filter, battle/trash same-name scope, breeding endpoint, and inherited Security Attack aura match the printed text.                        |
+| Behavioral proof |   2/2 | Public play, restriction, optional decline, breeding suppression, same-turn move/attack rejection, legal evolution, and invalid-source endpoints are covered. |
+| Peer/stack proof |   2/2 | Mixed battle/trash/under-card fixtures, effect-play peer/restriction cases, and legal/illegal evolution stack behavior are included.                          |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                       |
 
 **Worker score: 8/10 (verification commands pending RAM release).**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-010 — Sandiramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-010.test.ts`, 14 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rulings
 
@@ -818,22 +871,25 @@ changes were made.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all Q3537–Q3542 rulings are mapped. |
-| IR trace | 2/2 | Draw, optional breeding play, Deva/name scope, deletion boundary, and inherited trait gate are encoded. |
-| Behavioral proof | 2/2 | 14 public/observable tests cover every printed clause, all six Q&A items, optional decline, deletion boundaries, and legal/illegal stacks. |
-| Peer / stack proof | 2/2 | Deva peers, Option-area fixture, breeding watcher, P-130 movement, and legal/illegal EX5-013 evolution are covered. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                   |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and all Q3537–Q3542 rulings are mapped.                                                                                   |
+| IR trace           |   2/2 | Draw, optional breeding play, Deva/name scope, deletion boundary, and inherited trait gate are encoded.                                    |
+| Behavioral proof   |   2/2 | 14 public/observable tests cover every printed clause, all six Q&A items, optional decline, deletion boundaries, and legal/illegal stacks. |
+| Peer / stack proof |   2/2 | Deva peers, Option-area fixture, breeding watcher, P-130 movement, and legal/illegal EX5-013 evolution are covered.                        |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                           |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-011 — Pajiramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-011.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -861,18 +917,18 @@ The existing compiled IR has a mandatory On Play draw followed by an optional `P
 
 `apps/api/src/cards/EX5/EX5-011.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog identity, color, level, cost, DP, types, exact printed texts, trigger records, filters, optionality, breeding endpoint, deletion condition, and inherited keyword are asserted. |
-| Q3543 | Public Pajiramon play draws once and refuses a same-name Deva represented in either the battle area or trash. An effect-placed Option structural fixture represents the printed Option scope; no same-name Deva Digimon/Option pair exists in the catalog for a direct collision case. |
-| Q3544 | A candidate whose name appears only under a Digimon and under a Tamer is publicly played into breeding; the under-cards do not block it. |
-| Q3545/Q3547 | A public effect play of peer `EX5-009` into breeding proves that its On Play and the `EX5-006` when-effect-played watcher do not fire; the exact draw and breeding endpoints remain observable. |
-| Q3546 | Public Pajiramon play followed by public `P-130` play moves the candidate from breeding to battle, then a public attack intent is rejected for same-turn summoning sickness. |
-| Q3548 | A public effect-play restriction from opponent `BT9-047` leaves the candidate in hand and prevents the breeding play while still resolving Pajiramon's mandatory draw. |
-| Optional branch | `autoDeclineOptional` declines only the printed optional Deva play after the mandatory draw, leaving the candidate in hand with no pending decision. |
-| On Deletion | Public `playCard` of `BT2-018` deletes a 4000-DP Pajiramon. The test proves the conditional gain is exactly one memory with an opponent Tamer and zero without one; only the Main-phase opening is a labeled structural setup so the turn-loop pass-memory race cannot obscure the resolved effect. |
-| Inherited effect and stack | A legal public `EX5-011` → `EX5-013` evolution costs four memory and exposes inherited Security Attack +1 on the Four Sovereigns host. An invalid level-4 source is rejected without changing stack or memory. |
-| Resolution safety | Each public flow asserts no pending decision; no behavior credit depends on injected timing or direct deletion. The only verb call is the explicitly structural Option fixture. |
+| Clause                     | Public/observable behavioral proof                                                                                                                                                                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity    | Catalog identity, color, level, cost, DP, types, exact printed texts, trigger records, filters, optionality, breeding endpoint, deletion condition, and inherited keyword are asserted.                                                                                                             |
+| Q3543                      | Public Pajiramon play draws once and refuses a same-name Deva represented in either the battle area or trash. An effect-placed Option structural fixture represents the printed Option scope; no same-name Deva Digimon/Option pair exists in the catalog for a direct collision case.              |
+| Q3544                      | A candidate whose name appears only under a Digimon and under a Tamer is publicly played into breeding; the under-cards do not block it.                                                                                                                                                            |
+| Q3545/Q3547                | A public effect play of peer `EX5-009` into breeding proves that its On Play and the `EX5-006` when-effect-played watcher do not fire; the exact draw and breeding endpoints remain observable.                                                                                                     |
+| Q3546                      | Public Pajiramon play followed by public `P-130` play moves the candidate from breeding to battle, then a public attack intent is rejected for same-turn summoning sickness.                                                                                                                        |
+| Q3548                      | A public effect-play restriction from opponent `BT9-047` leaves the candidate in hand and prevents the breeding play while still resolving Pajiramon's mandatory draw.                                                                                                                              |
+| Optional branch            | `autoDeclineOptional` declines only the printed optional Deva play after the mandatory draw, leaving the candidate in hand with no pending decision.                                                                                                                                                |
+| On Deletion                | Public `playCard` of `BT2-018` deletes a 4000-DP Pajiramon. The test proves the conditional gain is exactly one memory with an opponent Tamer and zero without one; only the Main-phase opening is a labeled structural setup so the turn-loop pass-memory race cannot obscure the resolved effect. |
+| Inherited effect and stack | A legal public `EX5-011` → `EX5-013` evolution costs four memory and exposes inherited Security Attack +1 on the Four Sovereigns host. An invalid level-4 source is rejected without changing stack or memory.                                                                                      |
+| Resolution safety          | Each public flow asserts no pending decision; no behavior credit depends on injected timing or direct deletion. The only verb call is the explicitly structural Option fixture.                                                                                                                     |
 
 Fixtures use no Digi-Egg in a deck or security. Neutral cards use inert main-deck Digimon (`BT1-009` through `BT1-014`); trait cards are used only where their printed traits are required.
 
@@ -889,22 +945,25 @@ Fixtures use no Digi-Egg in a deck or security. Neutral cards use inert main-dec
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract and all six KB Q&A rulings are recorded; relevant breeding, play, and same-turn rules queried. |
-| IR trace | 2/2 | Draw, unique Deva filter, battle/trash name scope, breeding endpoint, conditional memory gain, and inherited Security Attack aura match the printed text. |
-| Behavioral proof | 2/2 | Public play, restriction, optional decline, breeding suppression, same-turn move/attack rejection, conditional deletion, legal evolution, and invalid-source endpoints are covered. |
-| Peer/stack proof | 2/2 | Mixed battle/trash/under-card fixtures, peer effect-play suppression, restriction cases, and legal/illegal evolution stack behavior are included. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                                            |
+| ---------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract and all six KB Q&A rulings are recorded; relevant breeding, play, and same-turn rules queried.                                                               |
+| IR trace         |   2/2 | Draw, unique Deva filter, battle/trash name scope, breeding endpoint, conditional memory gain, and inherited Security Attack aura match the printed text.                           |
+| Behavioral proof |   2/2 | Public play, restriction, optional decline, breeding suppression, same-turn move/attack rejection, conditional deletion, legal evolution, and invalid-source endpoints are covered. |
+| Peer/stack proof |   2/2 | Mixed battle/trash/under-card fixtures, peer effect-play suppression, restriction cases, and legal/illegal evolution stack behavior are included.                                   |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                             |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-012 — Flaremon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-012.test.ts`, 14 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3549
 
@@ -969,22 +1028,25 @@ typecheck changes were made.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3549 are mapped. |
-| IR trace | 2/2 | Split play/into reductions, exact trait/count/controller gate, deletion clauses, and inherited DP are encoded. |
-| Behavioral proof | 2/2 | 14 public/observable tests cover all clauses, boundaries, costs, negative paths, and Q3549. |
-| Peer / stack proof | 2/2 | Light Fang/Night Claw/Galaxy sources, mixed red/blue routes, full stack identity, and illegal source are covered. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                          |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3549 are mapped.                                                                            |
+| IR trace           |   2/2 | Split play/into reductions, exact trait/count/controller gate, deletion clauses, and inherited DP are encoded.    |
+| Behavioral proof   |   2/2 | 14 public/observable tests cover all clauses, boundaries, costs, negative paths, and Q3549.                       |
+| Peer / stack proof |   2/2 | Light Fang/Night Claw/Galaxy sources, mixed red/blue routes, full stack identity, and illegal source are covered. |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                  |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-013 — Zhuqiaomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-013.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -1010,18 +1072,18 @@ The existing compiled IR has a hand Counter Blast Digivolve keyword, separate Wh
 
 `apps/api/src/cards/EX5/EX5-013.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog identity, colors, level, play cost, DP, evolution costs, types, exact printed text, Counter keyword, shared OPT identity, inclusive OR filter, optionality, duration, and highest-DP deletion are asserted. |
-| Q3550 Deva branch | A public legal red evolution deletes an opposing 12000-DP `EX5-009` solely because it has the Deva trait, then exposes Security Attack +1. |
-| Q3550 DP branch and boundary | Public legal evolutions delete a non-Deva at exactly 6000 DP and refuse a non-Deva at 6001 DP. |
-| When Digivolving / shared OPT | The public evolution pays 4 memory, preserves the source stack, and consumes the shared Once Per Turn identity. A same-turn public attack cannot pay the cost again; the existing Security Attack modifier remains for the turn. |
-| When Attacking and reset | A public attack deletes an eligible target, checks the correct extra security, and a second public attack on the next own turn deletes a fresh eligible target after the real opponent turn reset. |
-| Optionality | `autoDeclineOptional` refuses the attack cost; the target remains, the normal security check occurs, and no new Security Attack is granted. |
-| On Deletion | A public `BT2-018` play deletes a 4000-DP Zhuqiaomon and its On Deletion effect publicly deletes the opponent's highest-DP Digimon while preserving the lower-DP peer and Volcanicdramon. The Main-phase opening is labeled structural setup only. |
-| Blast Digivolve | A public Counter window opened by an opponent attack accepts Zhuqiaomon from hand, evolves it without paying memory, resolves the Deva branch, and preserves the source stack. |
-| Evolution boundary | A public level-4 source is rejected without changing host stack or memory. |
-| Resolution safety | Public paths settle with no pending decision. No injected timing or direct deletion verb is used for behavior credit. |
+| Clause                        | Public/observable behavioral proof                                                                                                                                                                                                                 |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity       | Catalog identity, colors, level, play cost, DP, evolution costs, types, exact printed text, Counter keyword, shared OPT identity, inclusive OR filter, optionality, duration, and highest-DP deletion are asserted.                                |
+| Q3550 Deva branch             | A public legal red evolution deletes an opposing 12000-DP `EX5-009` solely because it has the Deva trait, then exposes Security Attack +1.                                                                                                         |
+| Q3550 DP branch and boundary  | Public legal evolutions delete a non-Deva at exactly 6000 DP and refuse a non-Deva at 6001 DP.                                                                                                                                                     |
+| When Digivolving / shared OPT | The public evolution pays 4 memory, preserves the source stack, and consumes the shared Once Per Turn identity. A same-turn public attack cannot pay the cost again; the existing Security Attack modifier remains for the turn.                   |
+| When Attacking and reset      | A public attack deletes an eligible target, checks the correct extra security, and a second public attack on the next own turn deletes a fresh eligible target after the real opponent turn reset.                                                 |
+| Optionality                   | `autoDeclineOptional` refuses the attack cost; the target remains, the normal security check occurs, and no new Security Attack is granted.                                                                                                        |
+| On Deletion                   | A public `BT2-018` play deletes a 4000-DP Zhuqiaomon and its On Deletion effect publicly deletes the opponent's highest-DP Digimon while preserving the lower-DP peer and Volcanicdramon. The Main-phase opening is labeled structural setup only. |
+| Blast Digivolve               | A public Counter window opened by an opponent attack accepts Zhuqiaomon from hand, evolves it without paying memory, resolves the Deva branch, and preserves the source stack.                                                                     |
+| Evolution boundary            | A public level-4 source is rejected without changing host stack or memory.                                                                                                                                                                         |
+| Resolution safety             | Public paths settle with no pending decision. No injected timing or direct deletion verb is used for behavior credit.                                                                                                                              |
 
 The evolution-stack fixtures use existing EX5 Deva peers and inert main-deck Digimon (`BT1-009` through `BT1-014`). No Digi-Egg appears in a deck or security.
 
@@ -1040,22 +1102,25 @@ The evolution-stack fixtures use existing EX5 Deva peers and inert main-deck Dig
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract, Q3550, and relevant DP/Blast/OPT/highest-DP rules are recorded. |
-| IR trace | 2/2 | Counter, shared once-per-turn triggers, inclusive OR cost, for-the-turn keyword, and highest-DP deletion match the printed text. |
-| Behavioral proof | 2/2 | Public normal/Counter evolution, both OR branches and boundaries, attacks, refusal, reset, deletion, and exact endpoints pass. |
-| Peer/stack proof | 2/2 | EX5 Deva peer targeting, multi-step turn evolution/attack stacks, Counter stack, and invalid source negative are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                         |
+| ---------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract, Q3550, and relevant DP/Blast/OPT/highest-DP rules are recorded.                                          |
+| IR trace         |   2/2 | Counter, shared once-per-turn triggers, inclusive OR cost, for-the-turn keyword, and highest-DP deletion match the printed text. |
+| Behavioral proof |   2/2 | Public normal/Counter evolution, both OR branches and boundaries, attacks, refusal, reset, deletion, and exact endpoints pass.   |
+| Peer/stack proof |   2/2 | EX5 Deva peer targeting, multi-step turn evolution/attack stacks, Counter stack, and invalid source negative are covered.        |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                          |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-014 — Apollomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-014.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3551
 
@@ -1117,22 +1182,25 @@ typecheck changes were made.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3551 are mapped. |
-| IR trace | 2/2 | Blitz, three-card scaling, opponent security-removal trigger, relative DP boundary, and Once Per Turn are encoded. |
-| Behavioral proof | 2/2 | 9 public/observable tests cover all clauses, exact boundaries, Q3551, same-turn suppression, and next-turn reset. |
-| Peer / stack proof | 2/2 | Red/blue legal stacks, illegal source, BT3-036 security peer, and real security attack paths are covered. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                           |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and Q3551 are mapped.                                                                             |
+| IR trace           |   2/2 | Blitz, three-card scaling, opponent security-removal trigger, relative DP boundary, and Once Per Turn are encoded. |
+| Behavioral proof   |   2/2 | 9 public/observable tests cover all clauses, exact boundaries, Q3551, same-turn suppression, and next-turn reset.  |
+| Peer / stack proof |   2/2 | Red/blue legal stacks, illegal source, BT3-036 security peer, and real security attack paths are covered.          |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                   |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-015 — Gabumon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-015.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -1160,16 +1228,16 @@ The existing compiled IR has two identical RevealAdd actions (On Play and When D
 
 `apps/api/src/cards/EX5/EX5-015.test.ts` proves:
 
-| Clause | Public/observable behavioral proof |
-| --- | --- |
-| Catalog and IR identity | Catalog identity, colors, level, play/evolution costs, DP, types, exact effect fragments, complete coverage, both triggers, name filter, deck-bottom remainder, conditional trash, alternate costs, and inherited replacement are asserted. |
-| Q3552 | A public On Play with exactly one Garurumon match adds that card, bottom-decks all three nonmatches in original order, and resolves the conditional hand-trash endpoint. |
-| Q3553 | A mixed four-card reveal with one Garurumon, one X Antibody-name card, and two fillers adds both matching cards, leaves both fillers in original remainder order, and trashes one hand card. |
-| Q3554 | A mixed four-card reveal with two Garurumon cards, one X Antibody-name card, and one filler adds the two Garurumon cards (as many as possible), leaves the X Antibody-name card and filler in original remainder order, and trashes one hand card. |
-| When Digivolving | A public legal 0-cost evolution from `BT1-029 Gabumon` resolves the same four-card reveal, mandatory digivolution draw, stack endpoint, hand addition, conditional hand-trash, and ordered deck remainder. |
-| Inherited replacement | A public battle attack against a suspended matching `[Garurumon]` host returns exactly two non-Digi-Egg trash cards to deck bottom and prevents deletion. A second public attack in the same turn deletes the host, proving the Once Per Turn boundary and exact endpoints. |
-| Evolution routes | Public legal `BT1-029 Gabumon` → EX5-015 alternate evolution costs 0 memory; a level-3 non-Gabumon source is publicly rejected without changing memory or stack. The normal blue/purple level-2 routes remain asserted in the compiled requirement/catalog trace. |
-| Fixture legality and safety | No Digi-Egg appears in a deck or security fixture. Public paths settle with no pending decisions; no direct deletion or effect verbs are used for behavior credit. |
+| Clause                      | Public/observable behavioral proof                                                                                                                                                                                                                                          |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity     | Catalog identity, colors, level, play/evolution costs, DP, types, exact effect fragments, complete coverage, both triggers, name filter, deck-bottom remainder, conditional trash, alternate costs, and inherited replacement are asserted.                                 |
+| Q3552                       | A public On Play with exactly one Garurumon match adds that card, bottom-decks all three nonmatches in original order, and resolves the conditional hand-trash endpoint.                                                                                                    |
+| Q3553                       | A mixed four-card reveal with one Garurumon, one X Antibody-name card, and two fillers adds both matching cards, leaves both fillers in original remainder order, and trashes one hand card.                                                                                |
+| Q3554                       | A mixed four-card reveal with two Garurumon cards, one X Antibody-name card, and one filler adds the two Garurumon cards (as many as possible), leaves the X Antibody-name card and filler in original remainder order, and trashes one hand card.                          |
+| When Digivolving            | A public legal 0-cost evolution from `BT1-029 Gabumon` resolves the same four-card reveal, mandatory digivolution draw, stack endpoint, hand addition, conditional hand-trash, and ordered deck remainder.                                                                  |
+| Inherited replacement       | A public battle attack against a suspended matching `[Garurumon]` host returns exactly two non-Digi-Egg trash cards to deck bottom and prevents deletion. A second public attack in the same turn deletes the host, proving the Once Per Turn boundary and exact endpoints. |
+| Evolution routes            | Public legal `BT1-029 Gabumon` → EX5-015 alternate evolution costs 0 memory; a level-3 non-Gabumon source is publicly rejected without changing memory or stack. The normal blue/purple level-2 routes remain asserted in the compiled requirement/catalog trace.           |
+| Fixture legality and safety | No Digi-Egg appears in a deck or security fixture. Public paths settle with no pending decisions; no direct deletion or effect verbs are used for behavior credit.                                                                                                          |
 
 #### Verification
 
@@ -1183,22 +1251,25 @@ The existing compiled IR has two identical RevealAdd actions (On Play and When D
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract, Q3552-Q3554, and the one-copy banlist restriction are recorded. |
-| IR trace | 2/2 | Both public triggers, matching-name bucket, ordering, conditional trash, alternate routes, and inherited Once Per Turn replacement match the printed text. |
-| Behavioral proof | 2/2 | On Play, reveal rulings, ordered remainder, public When Digivolving reveal/draw/trash endpoints, and public battle replacement all pass. |
-| Peer/stack proof | 2/2 | Mixed Garurumon/X Antibody reveals, legal breeding and Gabumon alternate routes, invalid source, inherited host, and same-turn Once Per Turn boundary are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                           |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog/rules    |   2/2 | Exact catalog contract, Q3552-Q3554, and the one-copy banlist restriction are recorded.                                                                            |
+| IR trace         |   2/2 | Both public triggers, matching-name bucket, ordering, conditional trash, alternate routes, and inherited Once Per Turn replacement match the printed text.         |
+| Behavioral proof |   2/2 | On Play, reveal rulings, ordered remainder, public When Digivolving reveal/draw/trash endpoints, and public battle replacement all pass.                           |
+| Peer/stack proof |   2/2 | Mixed Garurumon/X Antibody reveals, legal breeding and Gabumon alternate routes, invalid source, inherited host, and same-turn Once Per Turn boundary are covered. |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                            |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-016 — Lunamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-016.test.ts`, 12 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Card and printed clauses
 
@@ -1225,11 +1296,11 @@ Relevant comprehensive-rule evidence is §3-1-3-9 (Digi-Egg cards sent to a priv
 
 #### Implementation trace
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Start of Main return +2 memory | `StartOfYourMainPhase` → `GainMemory` with a one-Digimon `return` cost | public Start-of-Main timing path, optional refusal, self-return (Q3557), Mother D-Reaper (Q3558), token (Q3559) |
+| Clause                             | IR                                                                                                                                                                                           | Behavioral proof                                                                                                                              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start of Main return +2 memory     | `StartOfYourMainPhase` → `GainMemory` with a one-Digimon `return` cost                                                                                                                       | public Start-of-Main timing path, optional refusal, self-return (Q3557), Mother D-Reaper (Q3558), token (Q3559)                               |
 | Inherited stack rotation +2 memory | inherited `Main` → `GainMemory` with the specialized `placeOwnTopAtStackBottom` cost, self reference, battle-area Digimon filter, exact Night Claw/Light Fang trait match, and `OncePerTurn` | public `activateEffect` on Night Claw and Light Fang hosts (Q3555), two physical copies and next-turn reset (Q3556), non-trait host rejection |
-| Evolution requirements | catalog standard route: blue or red level 2, cost 0 | public evolution from EX5-001 and EX5-002; level-3 negative source rejected |
+| Evolution requirements             | catalog standard route: blue or red level 2, cost 0                                                                                                                                          | public evolution from EX5-001 and EX5-002; level-3 negative source rejected                                                                   |
 
 The `By ...` conditions are explicitly `optional: true` with `abortOnDecline: true`. The inherited target is `isSelfRef: true`, so the payment cannot select another Digimon as the source of the top-card rotation.
 
@@ -1257,12 +1328,15 @@ Cheap static checks passed: `git diff --check -- apps/api/src/cards/EX5/EX5-016.
 
 **Worker total: 8/10 pending coordinator verification.**
 
-
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-017 — Lekismon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-017.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3560–Q3561
 
@@ -1336,22 +1410,25 @@ made.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3560–Q3561 are mapped. |
-| IR trace | 2/2 | Mandatory reveal, both exact trait buckets, deck-bottom remainder, and inherited timing are encoded. |
-| Behavioral proof | 2/2 | Eight public/observable tests pass for both triggers, mandatory add-as-many behavior, exact hand/deck endpoints, and negatives. |
-| Peer / stack proof | 2/2 | Galaxy, Light Fang, Night Claw, mixed stacks, legal red/blue routes, and illegal source are covered. |
-| Delivery gates | 0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                        |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3560–Q3561 are mapped.                                                                                    |
+| IR trace           |   2/2 | Mandatory reveal, both exact trait buckets, deck-bottom remainder, and inherited timing are encoded.                            |
+| Behavioral proof   |   2/2 | Eight public/observable tests pass for both triggers, mandatory add-as-many behavior, exact hand/deck endpoints, and negatives. |
+| Peer / stack proof |   2/2 | Galaxy, Light Fang, Night Claw, mixed stacks, legal red/blue routes, and illegal source are covered.                            |
+| Delivery gates     |   0/2 | Coordinator-owned set gates and commit/PR delivery are intentionally not awarded to a card lane.                                |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-018 — Garurumon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-018.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -1377,15 +1454,15 @@ The existing compiled IR has a mandatory When Digivolving Draw 2, mandatory Tras
 
 `apps/api/src/cards/EX5/EX5-018.test.ts` contains public-path proof for:
 
-| Clause | Public/observable proof prepared |
-| --- | --- |
-| Catalog and IR identity | Catalog colors, level, costs, DP, types, exact effect fragments, complete coverage, Draw 2, Trash 2, exact stack-name filter, inherited source-name filter, replacement cost, battle cause, and Once Per Turn are asserted. |
-| When Digivolving positive | A public legal stack evolves `BT1-029 Gabumon → EX5-015 → EX5-018`; the EX5-018 evolution pays 3 memory, draws two, trashes two selected hand cards, gains one memory from the X Antibody trait source, and preserves stack identity. |
-| Stack-name negative | A public direct evolution from `BT1-029 Gabumon` has no Garurumon/X Antibody source beneath EX5-018, so it pays 3 memory and does not gain the conditional memory. |
-| Battle replacement | A public attack against a legal `BT1-029 → EX5-018 → BT1-040 WereGarurumon` stack returns exactly two non-Digi-Egg trash cards to deck bottom and leaves the host in play. |
-| Q3562 payment boundary | With only one eligible non-Digi-Egg trash card, the public battle deletion removes the host and leaves that card in trash; the test does not bless a paid-cost-then-delete result. |
-| Once Per Turn | Two public attacks in one turn prove the first replacement and second deletion. A separate real turn-loop case passes the owner’s turn, publicly suspends the reset host by attacking the opponent, and proves replacement is available again on the next opponent turn. |
-| Fixtures and resolution safety | No Digi-Egg appears in deck or security. Inert main-deck Digimon are BT1-009 through BT1-014. Public intents, `ready()`, `settle()`, and the real turn loop are used; no direct delete verb or injected timing is used for behavior credit. |
+| Clause                         | Public/observable proof prepared                                                                                                                                                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and IR identity        | Catalog colors, level, costs, DP, types, exact effect fragments, complete coverage, Draw 2, Trash 2, exact stack-name filter, inherited source-name filter, replacement cost, battle cause, and Once Per Turn are asserted.                                              |
+| When Digivolving positive      | A public legal stack evolves `BT1-029 Gabumon → EX5-015 → EX5-018`; the EX5-018 evolution pays 3 memory, draws two, trashes two selected hand cards, gains one memory from the X Antibody trait source, and preserves stack identity.                                    |
+| Stack-name negative            | A public direct evolution from `BT1-029 Gabumon` has no Garurumon/X Antibody source beneath EX5-018, so it pays 3 memory and does not gain the conditional memory.                                                                                                       |
+| Battle replacement             | A public attack against a legal `BT1-029 → EX5-018 → BT1-040 WereGarurumon` stack returns exactly two non-Digi-Egg trash cards to deck bottom and leaves the host in play.                                                                                               |
+| Q3562 payment boundary         | With only one eligible non-Digi-Egg trash card, the public battle deletion removes the host and leaves that card in trash; the test does not bless a paid-cost-then-delete result.                                                                                       |
+| Once Per Turn                  | Two public attacks in one turn prove the first replacement and second deletion. A separate real turn-loop case passes the owner’s turn, publicly suspends the reset host by attacking the opponent, and proves replacement is available again on the next opponent turn. |
+| Fixtures and resolution safety | No Digi-Egg appears in deck or security. Inert main-deck Digimon are BT1-009 through BT1-014. Public intents, `ready()`, `settle()`, and the real turn loop are used; no direct delete verb or injected timing is used for behavior credit.                              |
 
 #### Verification
 
@@ -1399,22 +1476,25 @@ The existing compiled IR has a mandatory When Digivolving Draw 2, mandatory Tras
 
 #### Score (worker maximum 8/10; pending focused execution)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract, Q3562, and one-copy banlist restriction are recorded. |
-| IR trace | 2/2 | Draw/trash/gain condition, inherited source-name boundary, exact two-card non-Digi-Egg cost, battle-only replacement, prevention outcome, and Once Per Turn match the printed text. |
-| Behavioral proof | 2/2* | Public evolution, exact stack/memory/hand endpoints, Q3562 insufficient-cost deletion, and public replacement/reset tests are authored; *focused execution remains pending by coordinator instruction*. |
-| Peer/stack proof | 2/2* | Legal three-step Gabumon/X/level-5 Garurumon stack, exact source-name comparison, and legal mixed battle replacement stack are authored; *focused execution remains pending*. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                                                                |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract, Q3562, and one-copy banlist restriction are recorded.                                                                                                                           |
+| IR trace         |   2/2 | Draw/trash/gain condition, inherited source-name boundary, exact two-card non-Digi-Egg cost, battle-only replacement, prevention outcome, and Once Per Turn match the printed text.                     |
+| Behavioral proof |  2/2* | Public evolution, exact stack/memory/hand endpoints, Q3562 insufficient-cost deletion, and public replacement/reset tests are authored; _focused execution remains pending by coordinator instruction_. |
+| Peer/stack proof |  2/2* | Legal three-step Gabumon/X/level-5 Garurumon stack, exact source-name comparison, and legal mixed battle replacement stack are authored; _focused execution remains pending_.                           |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                                                 |
 
 **Worker score: 8/10 (provisional pending serial Vitest).**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-019 — Antylamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-019.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3563–Q3568
 
@@ -1493,22 +1573,25 @@ the public endpoints above before acceptance.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all six Q3563–Q3568 rulings are mapped. |
-| IR trace | 2/2 | Draw, optional unique Deva breeding play, attack trash, and inherited once-per-turn memory are encoded. |
-| Behavioral proof | 2/2 | Public proofs cover every printed clause, exact zones, restrictions, optionality, suppression, movement, and same-turn reset boundary; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Deva/when-played/restriction peers, mixed name-scope zones, under-card exclusions, and inherited Four Sovereigns stack are covered; no evolution route exists in the catalog. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                      |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and all six Q3563–Q3568 rulings are mapped.                                                                                                                  |
+| IR trace           |   2/2 | Draw, optional unique Deva breeding play, attack trash, and inherited once-per-turn memory are encoded.                                                                       |
+| Behavioral proof   |   2/2 | Public proofs cover every printed clause, exact zones, restrictions, optionality, suppression, movement, and same-turn reset boundary; execution is coordinator-pending.      |
+| Peer / stack proof |   2/2 | Deva/when-played/restriction peers, mixed name-scope zones, under-card exclusions, and inherited Four Sovereigns stack are covered; no evolution route exists in the catalog. |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                       |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-020 — Crescemon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-020.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -1536,16 +1619,16 @@ The existing compiled IR has a self-scoped `wouldBePlayed` reduction and a separ
 
 `apps/api/src/cards/EX5/EX5-020.test.ts` contains public-path proof for:
 
-| Clause | Public/observable proof prepared |
-| --- | --- |
-| Catalog and IR identity | Catalog colors, level, costs, DP, types, exact effect text, complete coverage, both replacement events, exact support filter, both restriction triggers, duration, and inherited DP aura are asserted. |
-| Public On Play | A legal three-source Night Claw support stack reduces play from 7 to 5 memory and restricts exactly one opponent Digimon; the peer remains unrestricted. |
-| Q3569 destination-not-source | A public evolution from a stacked Crescemon into blue level-6 BT1-044 pays the full 1-memory destination evolution cost (memory 4→3). The Crescemon source's own three-plus-card Night Claw stack does not reduce this destination's cost. |
-| Public When Digivolving | Both blue (`EX5-017`) and red (`EX5-008`) level-4 routes evolve into Crescemon at the reduced one-memory cost while resolving the printed restriction target through a public intent. |
-| Trait and count boundaries | Public play cases cover Night Claw, Light Fang, and Galaxy with exactly three sources; a two-source stack, nonmatching stack, and opponent-only support do not reduce the cost. |
-| Evolution legality | A level-3 source is publicly rejected without charging memory or moving Crescemon. Public blue and red level-4 routes preserve source-stack identity. |
-| Inherited behavior | A real turn loop observes the host's baseline DP on its own turn, +2000 DP during the opponent's turn, and baseline restoration on the next own turn. |
-| Fixtures and resolution safety | No Digi-Egg appears in a deck or security. Inert fixtures use BT1-009 through BT1-014. Public intents, `ready()`, `settle()`, and the real turn loop are used; no direct timing or behavior verbs are used. |
+| Clause                         | Public/observable proof prepared                                                                                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and IR identity        | Catalog colors, level, costs, DP, types, exact effect text, complete coverage, both replacement events, exact support filter, both restriction triggers, duration, and inherited DP aura are asserted.                                     |
+| Public On Play                 | A legal three-source Night Claw support stack reduces play from 7 to 5 memory and restricts exactly one opponent Digimon; the peer remains unrestricted.                                                                                   |
+| Q3569 destination-not-source   | A public evolution from a stacked Crescemon into blue level-6 BT1-044 pays the full 1-memory destination evolution cost (memory 4→3). The Crescemon source's own three-plus-card Night Claw stack does not reduce this destination's cost. |
+| Public When Digivolving        | Both blue (`EX5-017`) and red (`EX5-008`) level-4 routes evolve into Crescemon at the reduced one-memory cost while resolving the printed restriction target through a public intent.                                                      |
+| Trait and count boundaries     | Public play cases cover Night Claw, Light Fang, and Galaxy with exactly three sources; a two-source stack, nonmatching stack, and opponent-only support do not reduce the cost.                                                            |
+| Evolution legality             | A level-3 source is publicly rejected without charging memory or moving Crescemon. Public blue and red level-4 routes preserve source-stack identity.                                                                                      |
+| Inherited behavior             | A real turn loop observes the host's baseline DP on its own turn, +2000 DP during the opponent's turn, and baseline restoration on the next own turn.                                                                                      |
+| Fixtures and resolution safety | No Digi-Egg appears in a deck or security. Inert fixtures use BT1-009 through BT1-014. Public intents, `ready()`, `settle()`, and the real turn loop are used; no direct timing or behavior verbs are used.                                |
 
 #### Verification
 
@@ -1559,22 +1642,25 @@ The existing compiled IR has a self-scoped `wouldBePlayed` reduction and a separ
 
 #### Score (worker maximum 8/10; provisional pending focused execution)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract and Q3569 destination-not-source ruling are recorded. |
-| IR trace | 2/2 | Play/digivolve reductions, exact trait/count condition, target restriction, duration, and inherited aura match the printed text. |
-| Behavioral proof | 2/2* | Public play/evolution costs, target restriction, Q3569 full-cost source route, negative boundaries, and turn duration are authored; *focused execution is pending*. |
-| Peer/stack proof | 2/2* | Night Claw, Light Fang, Galaxy, nonmatching/opponent stacks, both legal color routes, illegal source, and inherited stack are authored; *focused execution is pending*. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                                |
+| ---------------- | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract and Q3569 destination-not-source ruling are recorded.                                                                                            |
+| IR trace         |   2/2 | Play/digivolve reductions, exact trait/count condition, target restriction, duration, and inherited aura match the printed text.                                        |
+| Behavioral proof |  2/2* | Public play/evolution costs, target restriction, Q3569 full-cost source route, negative boundaries, and turn duration are authored; _focused execution is pending_.     |
+| Peer/stack proof |  2/2* | Night Claw, Light Fang, Galaxy, nonmatching/opponent stacks, both legal color routes, illegal source, and inherited stack are authored; _focused execution is pending_. |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                 |
 
 **Worker score: 8/10 (provisional pending serial Vitest).**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-021 — Majiramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-021.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3570–Q3576/Q5503–Q5506
 
@@ -1661,22 +1747,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all eleven Q3570–Q3576/Q5503–Q5506 rulings are mapped. |
-| IR trace | 2/2 | Draw, optional unique Deva breeding play, Option threshold, attack inherited gain, and once-per-turn identity are encoded. |
-| Behavioral proof | 2/2 | Public proofs cover printed clauses, exact zones, restrictions, optionality, Option ordering/threshold, public unsuspend, and same-turn OPT; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Deva/when-played/restriction peers, mixed name-scope zones, under-card exclusions, and inherited Four Sovereigns stack are covered; no evolution route exists in the catalog. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                       |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and all eleven Q3570–Q3576/Q5503–Q5506 rulings are mapped.                                                                                                    |
+| IR trace           |   2/2 | Draw, optional unique Deva breeding play, Option threshold, attack inherited gain, and once-per-turn identity are encoded.                                                     |
+| Behavioral proof   |   2/2 | Public proofs cover printed clauses, exact zones, restrictions, optionality, Option ordering/threshold, public unsuspend, and same-turn OPT; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Deva/when-played/restriction peers, mixed name-scope zones, under-card exclusions, and inherited Four Sovereigns stack are covered; no evolution route exists in the catalog.  |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                        |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-022 — Mihiramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-022.test.ts`, 12 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3577–Q3582
 
@@ -1715,11 +1804,11 @@ once-per-turn identity/reset processing.
 `apps/api/src/cards/EX5/EX5-022.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-022", compiled)`. The IR maps:
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| On Play Draw 1 + optional unique Deva breeding play | `OnPlay` → `Draw` then optional `PlayWithoutCost` with `breeding: true`, `payCost: false`, `notSameNameAs: ["battleArea", "trash"]` | Q3577/Q3578 name scope, Q3579/Q3580 breeding endpoints, Q3582 restriction, and optional refusal |
-| Your Turn once-per-turn top-source trash | `YourTurn` → `SubTrigger(whenPlayed)` with own Digimon source filter and opponent Digimon `TrashDigivolution` from top | public manual plays, exact remaining stack/trash, and same-turn refusal |
-| Inherited attack memory | inherited `WhenAttacking` → conditional `GainMemory(1)`, `OncePerTurn`, exact Four Sovereigns/God Beast trait filter | public attacks with BT6-029 and EX5-033, same-turn refusal, next-own-turn reset, and non-trait negative |
+| Clause                                              | IR                                                                                                                                  | Behavioral proof                                                                                        |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| On Play Draw 1 + optional unique Deva breeding play | `OnPlay` → `Draw` then optional `PlayWithoutCost` with `breeding: true`, `payCost: false`, `notSameNameAs: ["battleArea", "trash"]` | Q3577/Q3578 name scope, Q3579/Q3580 breeding endpoints, Q3582 restriction, and optional refusal         |
+| Your Turn once-per-turn top-source trash            | `YourTurn` → `SubTrigger(whenPlayed)` with own Digimon source filter and opponent Digimon `TrashDigivolution` from top              | public manual plays, exact remaining stack/trash, and same-turn refusal                                 |
+| Inherited attack memory                             | inherited `WhenAttacking` → conditional `GainMemory(1)`, `OncePerTurn`, exact Four Sovereigns/God Beast trait filter                | public attacks with BT6-029 and EX5-033, same-turn refusal, next-own-turn reset, and non-trait negative |
 
 #### Behavioral proof prepared
 
@@ -1771,22 +1860,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all six Q3577–Q3582 rulings are mapped. |
-| IR trace | 2/2 | Draw/unique breeding play, top-source trash watcher, inherited conditional memory, and both OPT records are encoded. |
-| Behavioral proof | 2/2 | Public proofs cover exact zones, stack endpoints, memory, attack rejection, restriction, optionality, watcher suppression, and no pending decisions; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Deva peers, same-name zone scope, under-card exclusions, effect-play restriction, Four Sovereigns/God Beast hosts, top-source order, and turn reset are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                               |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and all six Q3577–Q3582 rulings are mapped.                                                                                                                           |
+| IR trace           |   2/2 | Draw/unique breeding play, top-source trash watcher, inherited conditional memory, and both OPT records are encoded.                                                                   |
+| Behavioral proof   |   2/2 | Public proofs cover exact zones, stack endpoints, memory, attack rejection, restriction, optionality, watcher suppression, and no pending decisions; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Deva peers, same-name zone scope, under-card exclusions, effect-play restriction, Four Sovereigns/God Beast hosts, top-source order, and turn reset are covered.                       |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                                |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-023 — WereGarurumon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-023.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3583
 
@@ -1865,22 +1957,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact catalog contract and Q3583 are mapped. |
-| IR trace | 2/2 | Mandatory two-card cost, abort-on-failure Then boundary, conditional return, inherited cost, name filters, and OPT are encoded. |
-| Behavioral proof | 2/2 | Public Q3583, both evolution colors, exact endpoints, inherited OPT, negative name/source paths, and pending-state checks are prepared; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Blue/purple legal stacks, exact WereGarurumon/X Antibody source distinctions, matching/nonmatching inherited hosts, and illegal level boundary are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                  |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Exact catalog contract and Q3583 are mapped.                                                                                                                              |
+| IR trace           |   2/2 | Mandatory two-card cost, abort-on-failure Then boundary, conditional return, inherited cost, name filters, and OPT are encoded.                                           |
+| Behavioral proof   |   2/2 | Public Q3583, both evolution colors, exact endpoints, inherited OPT, negative name/source paths, and pending-state checks are prepared; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Blue/purple legal stacks, exact WereGarurumon/X Antibody source distinctions, matching/nonmatching inherited hosts, and illegal level boundary are covered.               |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                   |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-024 — Azulongmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-024.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -1906,14 +2001,14 @@ The existing compiled IR maps the hand Counter Blast Digivolve keyword, both On 
 
 `apps/api/src/cards/EX5/EX5-024.test.ts` contains public-path proof for:
 
-| Clause | Public/observable proof |
-| --- | --- |
-| Catalog and IR identity | Catalog colors, level, costs, DP, traits, complete coverage, hand origin, Blast Digivolve keyword, action filters, count, and highest-level deletion are asserted. |
-| On Play | Public play from hand pays 7 memory, returns the opposing level-5 Majiramon to hand while leaving opposing level-6 Titamon in play, unsuspends one own Deva, and leaves a nonmatching peer suspended. |
-| When Digivolving | Public blue level-5-to-level-6 evolution pays 4 memory, preserves the source in the stack, returns only the opposing level-5 Digimon, and unsuspends the evolved destination. |
-| On Deletion | A public battle deletes Azulongmon and its resolved On Deletion effect deletes the opposing highest-level Digimon (level 6), leaving the level-5 peer. |
-| Evolution boundary | A public level-3 source is rejected without charging memory or moving Azulongmon. |
-| Fixtures and resolution safety | Fixtures use inert main-deck Digimon and contain no Digi-Egg in deck or security. Assertions settle asynchronous resolution and require no pending decision. |
+| Clause                         | Public/observable proof                                                                                                                                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity        | Catalog colors, level, costs, DP, traits, complete coverage, hand origin, Blast Digivolve keyword, action filters, count, and highest-level deletion are asserted.                                    |
+| On Play                        | Public play from hand pays 7 memory, returns the opposing level-5 Majiramon to hand while leaving opposing level-6 Titamon in play, unsuspends one own Deva, and leaves a nonmatching peer suspended. |
+| When Digivolving               | Public blue level-5-to-level-6 evolution pays 4 memory, preserves the source in the stack, returns only the opposing level-5 Digimon, and unsuspends the evolved destination.                         |
+| On Deletion                    | A public battle deletes Azulongmon and its resolved On Deletion effect deletes the opposing highest-level Digimon (level 6), leaving the level-5 peer.                                                |
+| Evolution boundary             | A public level-3 source is rejected without charging memory or moving Azulongmon.                                                                                                                     |
+| Fixtures and resolution safety | Fixtures use inert main-deck Digimon and contain no Digi-Egg in deck or security. Assertions settle asynchronous resolution and require no pending decision.                                          |
 
 #### Verification
 
@@ -1924,22 +2019,25 @@ The existing compiled IR maps the hand Counter Blast Digivolve keyword, both On 
 
 #### Score (worker maximum 8/10; focused execution pending)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract recorded; KB result is explicitly no card Q&A. |
-| IR trace | 2/2 | All printed keyword, timing, target, count, level boundary, trait bucket, and highest-level clauses map to IR. |
-| Behavioral proof | 2/2* | Public play, evolution, battle deletion, exact endpoints, costs, and illegal-source boundary are authored; *focused execution is pending*. |
-| Peer/stack proof | 2/2* | Legal blue level-5 stack, source-stack assertion, matching/nonmatching trait peers, and level-5/level-6 comparison are authored; *focused execution is pending*. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                         |
+| ---------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract recorded; KB result is explicitly no card Q&A.                                                                                            |
+| IR trace         |   2/2 | All printed keyword, timing, target, count, level boundary, trait bucket, and highest-level clauses map to IR.                                                   |
+| Behavioral proof |  2/2* | Public play, evolution, battle deletion, exact endpoints, costs, and illegal-source boundary are authored; _focused execution is pending_.                       |
+| Peer/stack proof |  2/2* | Legal blue level-5 stack, source-stack assertion, matching/nonmatching trait peers, and level-5/level-6 comparison are authored; _focused execution is pending_. |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane.                                                                        |
 
 **Worker score: 8/10 (provisional pending serial Vitest).**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-025 — Dianamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-025.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3584–Q3587
 
@@ -2003,22 +2101,25 @@ files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all four KB rulings are mapped. |
-| IR trace | 2/2 | Blocker, shared front OPT, per-source trash scaling, live no-source lock, duration, and All Turns unsuspend are encoded. |
-| Behavioral proof | 2/2 | Public evolution, attack, suspension, live entrant, source restoration, and illegal-route endpoints are prepared; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Multi-source opponent stack, source-less peer, later entrant, and public evolution/attack stack routes are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                            |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and all four KB rulings are mapped.                                                                                                |
+| IR trace           |   2/2 | Blocker, shared front OPT, per-source trash scaling, live no-source lock, duration, and All Turns unsuspend are encoded.                            |
+| Behavioral proof   |   2/2 | Public evolution, attack, suspension, live entrant, source restoration, and illegal-route endpoints are prepared; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Multi-source opponent stack, source-less peer, later entrant, and public evolution/attack stack routes are covered.                                 |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                                                       |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-026 — MetalGarurumon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-026.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -2048,17 +2149,17 @@ The IR already covered Blocker, the opponent-wide timed aura, and the When Attac
 
 `apps/api/src/cards/EX5/EX5-026.test.ts` contains public-path proof for:
 
-| Clause | Public/observable proof |
-| --- | --- |
-| Catalog and IR identity | Catalog colors, level, costs, DP, forms, attributes, traits, complete coverage, Blocker keyword, aura condition/duration, later-entrant flag, return cost, stored level, and same-level deletion filter are asserted. |
+| Clause                               | Public/observable proof                                                                                                                                                                                                                                           |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity              | Catalog colors, level, costs, DP, forms, attributes, traits, complete coverage, Blocker keyword, aura condition/duration, later-entrant flag, return cost, stored level, and same-level deletion filter are asserted.                                             |
 | Legal evolution and conditional aura | A public blue/purple EX5-023 (X Antibody) source evolves into EX5-026 for exactly 4 memory. During the real turn loop, an opponent's later-played BT14-058 gains Rush through its own public On Play path and attacks; the aura makes the opponent lose 4 memory. |
-| Negative stack boundary | A legal level-five EX5-021 source without MetalGarurumon name or X Antibody trait evolves at the same cost, but an opponent attack does not lose memory. |
-| Blocker | A public attack opens the block window; a `declareBlock` intent suspends EX5-026 and redirects the battle, deleting the weaker attacker. |
-| When Attacking | A public attack returns one trash Digimon to deck bottom and deletes exactly one opposing Digimon with the returned card's level, leaving a different-level peer. |
-| Q3588 | A returned level-5 card is accepted and returned even when the only opponent is level 6; no target is deleted. |
-| Q3589 | A returned no-level Digimon card is accepted, but an opposing no-level Digimon is not selected by the level-equality target. |
-| Evolution boundaries and peer route | A public purple level-five BT11-071 route succeeds for 4 memory, while a level-three BT1-009 source is rejected without charging memory or moving EX5-026. |
-| Fixtures and resolution safety | No Digi-Egg appears in deck or security. Public intents, real turn loops, `settle()`, and exact endpoint assertions are authored; no direct timing or behavior verbs are used. |
+| Negative stack boundary              | A legal level-five EX5-021 source without MetalGarurumon name or X Antibody trait evolves at the same cost, but an opponent attack does not lose memory.                                                                                                          |
+| Blocker                              | A public attack opens the block window; a `declareBlock` intent suspends EX5-026 and redirects the battle, deleting the weaker attacker.                                                                                                                          |
+| When Attacking                       | A public attack returns one trash Digimon to deck bottom and deletes exactly one opposing Digimon with the returned card's level, leaving a different-level peer.                                                                                                 |
+| Q3588                                | A returned level-5 card is accepted and returned even when the only opponent is level 6; no target is deleted.                                                                                                                                                    |
+| Q3589                                | A returned no-level Digimon card is accepted, but an opposing no-level Digimon is not selected by the level-equality target.                                                                                                                                      |
+| Evolution boundaries and peer route  | A public purple level-five BT11-071 route succeeds for 4 memory, while a level-three BT1-009 source is rejected without charging memory or moving EX5-026.                                                                                                        |
+| Fixtures and resolution safety       | No Digi-Egg appears in deck or security. Public intents, real turn loops, `settle()`, and exact endpoint assertions are authored; no direct timing or behavior verbs are used.                                                                                    |
 
 #### Verification
 
@@ -2072,22 +2173,25 @@ The IR already covered Blocker, the opponent-wide timed aura, and the When Attac
 
 #### Score (worker maximum 8/10; focused execution pending)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract and all three indexed rulings are recorded. |
-| IR trace | 2/2 | Corrected X Antibody trait condition; every keyword, duration, later-entrant, cost, level-binding, and target clause maps to IR. |
-| Behavioral proof | 2/2* | Public aura, later entrant, Blocker, attack cost/deletion, negative stack, Q3588, Q3589, and evolution-boundary cases are authored; *focused execution is pending*. |
-| Peer/stack proof | 2/2* | Blue/purple legal source routes, matching X Antibody and nonmatching Deva stacks, exact-level peer, and no-level peer are authored; *focused execution is pending*. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                                            |
+| ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract and all three indexed rulings are recorded.                                                                                                  |
+| IR trace         |   2/2 | Corrected X Antibody trait condition; every keyword, duration, later-entrant, cost, level-binding, and target clause maps to IR.                                    |
+| Behavioral proof |  2/2* | Public aura, later entrant, Blocker, attack cost/deletion, negative stack, Q3588, Q3589, and evolution-boundary cases are authored; _focused execution is pending_. |
+| Peer/stack proof |  2/2* | Blue/purple legal source routes, matching X Antibody and nonmatching Deva stacks, exact-level peer, and no-level peer are authored; _focused execution is pending_. |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane.                                                                           |
 
 **Worker score: 8/10 (provisional pending serial Vitest).**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-027 — Liollmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-027.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3591
 
@@ -2119,13 +2223,13 @@ re-hides the security stack.
 exclusively with `registerIrCard("EX5-027", compiled)`. The module now also
 publishes the printed alternate evolution requirement.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Optional security search | `OnPlay` → optional `Search` in `security`, exact `Leomon` name filter, `to: hand` | Q3591 revealed/face-up selected hand instance, unchanged security count, and face-down post-shuffle state |
-| Conditional Recovery +1 | `SecurityManipulation(addTop, source: deck)` with `ifThisEffectActed` | positive deck-top endpoint and negative/no-card/declined paths |
-| Security shuffle | final `SecurityManipulation(shuffle)` | exact security card set and all cards hidden after resolution |
-| Inherited deletion DP | inherited `OnDeletion` → opponent Digimon `ModifyDP -2000`, `untilOpponentTurnEnd` | public opposing attack deletes the host and modifies the selected opponent Digimon |
-| Evolution | `digivolutionRequirement: [{ names: ["Frimon"], cost: 0, isAlternate: true }]` plus catalog yellow/green level-2 routes | public normal yellow route, public zero-cost Frimon route, and illegal alternate source |
+| Clause                   | IR                                                                                                                      | Behavioral proof                                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Optional security search | `OnPlay` → optional `Search` in `security`, exact `Leomon` name filter, `to: hand`                                      | Q3591 revealed/face-up selected hand instance, unchanged security count, and face-down post-shuffle state |
+| Conditional Recovery +1  | `SecurityManipulation(addTop, source: deck)` with `ifThisEffectActed`                                                   | positive deck-top endpoint and negative/no-card/declined paths                                            |
+| Security shuffle         | final `SecurityManipulation(shuffle)`                                                                                   | exact security card set and all cards hidden after resolution                                             |
+| Inherited deletion DP    | inherited `OnDeletion` → opponent Digimon `ModifyDP -2000`, `untilOpponentTurnEnd`                                      | public opposing attack deletes the host and modifies the selected opponent Digimon                        |
+| Evolution                | `digivolutionRequirement: [{ names: ["Frimon"], cost: 0, isAlternate: true }]` plus catalog yellow/green level-2 routes | public normal yellow route, public zero-cost Frimon route, and illegal alternate source                   |
 
 #### Behavioral proof prepared
 
@@ -2167,22 +2271,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3591 are documented, including public reveal and the Frimon alternate route. |
-| IR trace | 2/2 | Security search, conditional Recovery, shuffle, inherited deletion DP, and alternate evolution are mapped. |
-| Behavioral proof | 2/2 | Security/hand/deck endpoints, reveal event, shuffle visibility, optional refusal, public deletion, and evolution outcomes are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Leomon/non-Leomon security peers, exact inherited source stack, public opponent deletion, normal/alternate evolution, and illegal source are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                  |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3591 are documented, including public reveal and the Frimon alternate route.                                                                        |
+| IR trace           |   2/2 | Security search, conditional Recovery, shuffle, inherited deletion DP, and alternate evolution are mapped.                                                                |
+| Behavioral proof   |   2/2 | Security/hand/deck endpoints, reveal event, shuffle visibility, optional refusal, public deletion, and evolution outcomes are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Leomon/non-Leomon security peers, exact inherited source stack, public opponent deletion, normal/alternate evolution, and illegal source are covered.                     |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                   |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-028 — Kudamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-028.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract
 
@@ -2206,15 +2313,15 @@ The existing compiled IR maps the optional On Play free-play action to exactly o
 
 `apps/api/src/cards/EX5/EX5-028.test.ts` contains public-path proof for:
 
-| Clause | Public/observable proof |
-| --- | --- |
-| Catalog and IR identity | Catalog colors, level, cost, DP, evolution, form, attribute, type, exact text, complete coverage, optional On Play action, inherited Once Per Turn action, duration, target, and condition are asserted. |
-| Q3592 / On Play positive | With 3 security cards for each player (combined total exactly 6), a public Kudamon play pays 4 memory and publicly plays BT1-087 T.K. for free. |
-| Optionality and boundary | At the same qualifying total, an auto-declined optional effect leaves the Tamer in hand. At total 7 (4 + 3), accepting optional resolution still leaves it in hand. |
+| Clause                                     | Public/observable proof                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity                    | Catalog colors, level, cost, DP, evolution, form, attribute, type, exact text, complete coverage, optional On Play action, inherited Once Per Turn action, duration, target, and condition are asserted.                                                                                                                                                                                                                                                                          |
+| Q3592 / On Play positive                   | With 3 security cards for each player (combined total exactly 6), a public Kudamon play pays 4 memory and publicly plays BT1-087 T.K. for free.                                                                                                                                                                                                                                                                                                                                   |
+| Optionality and boundary                   | At the same qualifying total, an auto-declined optional effect leaves the Tamer in hand. At total 7 (4 + 3), accepting optional resolution still leaves it in hand.                                                                                                                                                                                                                                                                                                               |
 | Inherited positive and Once Per Turn reset | A legal stack carrying the yellow Digi-Egg is exercised through public intents. A legal green Tamer is played, then BT1-112 Dimension Scissor grants the host its public battle-unsuspend effect. The first host attack reduces the selected opponent Digimon from 5000 to 3000 and deletes a weaker suspended opponent; the host unsuspends publicly. A second same-turn attack records no second EX5-028 trigger, and the next own turn resets the cap and applies -2000 again. |
-| Strict inherited boundary | At total 7, a public attack leaves the opponent Digimon at 5000 DP. |
-| Legal evolution stack | Public `hatchEgg`, zero-memory yellow evolution, turn progression, and `moveFromBreeding` prove the legal level-2-to-level-3 route and preserved stack. |
-| Fixtures and resolution safety | Main decks and security use inert non-Digi-Egg cards; the only Digi-Egg is in the breeding egg deck. Assertions settle asynchronous resolution and require no pending decision. |
+| Strict inherited boundary                  | At total 7, a public attack leaves the opponent Digimon at 5000 DP.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Legal evolution stack                      | Public `hatchEgg`, zero-memory yellow evolution, turn progression, and `moveFromBreeding` prove the legal level-2-to-level-3 route and preserved stack.                                                                                                                                                                                                                                                                                                                           |
+| Fixtures and resolution safety             | Main decks and security use inert non-Digi-Egg cards; the only Digi-Egg is in the breeding egg deck. Assertions settle asynchronous resolution and require no pending decision.                                                                                                                                                                                                                                                                                                   |
 
 #### Verification
 
@@ -2228,22 +2335,25 @@ The existing compiled IR maps the optional On Play free-play action to exactly o
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog/rules | 2/2 | Exact catalog contract and Q3592 combined-security ruling are recorded. |
-| IR trace | 2/2 | Optionality, yellow Tamer filter, combined-security threshold, inherited timing, Once Per Turn, target, amount, and duration map to IR. |
-| Behavioral proof | 2/2 | Public On Play, optional refusal, 7-card negative, inherited attack, same-turn cap, reset, and exact endpoints pass focused execution. |
-| Peer/stack proof | 2/2 | Public yellow Digi-Egg-to-Kudamon evolution and legal stack transition pass focused execution. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane. |
+| Rubric column    | Score | Evidence                                                                                                                                |
+| ---------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog/rules    |   2/2 | Exact catalog contract and Q3592 combined-security ruling are recorded.                                                                 |
+| IR trace         |   2/2 | Optionality, yellow Tamer filter, combined-security threshold, inherited timing, Once Per Turn, target, amount, and duration map to IR. |
+| Behavioral proof |   2/2 | Public On Play, optional refusal, 7-card negative, inherited attack, same-turn cap, reset, and exact endpoints pass focused execution.  |
+| Peer/stack proof |   2/2 | Public yellow Digi-Egg-to-Kudamon evolution and legal stack transition pass focused execution.                                          |
+| Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane.                                               |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-029 — Reppamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-029.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3593
 
@@ -2292,22 +2402,25 @@ claimed and no internal timing seam is used in the behavioral tests.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3593 are mapped. |
-| IR trace | 2/2 | Security cost, next-evolution reduction, inherited OPT, DP amount, and combined threshold are encoded. |
-| Behavioral proof | 2/2 | Public attack/evolution endpoints, exact security identity, threshold boundary, and negative route are prepared; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Legal yellow evolution and inherited stack host are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                           |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3593 are mapped.                                                                                                             |
+| IR trace           |   2/2 | Security cost, next-evolution reduction, inherited OPT, DP amount, and combined threshold are encoded.                                             |
+| Behavioral proof   |   2/2 | Public attack/evolution endpoints, exact security identity, threshold boundary, and negative route are prepared; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Legal yellow evolution and inherited stack host are covered.                                                                                       |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                                                      |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-030 — Liamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-030.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3594
 
@@ -2319,8 +2432,7 @@ and alternate `[Digivolve][Liollmon]: Cost 2` or
 Its clauses are:
 
 - When Attacking, this Digimon may digivolve into a Digimon card with
-  `[Leomon]` in its name from hand, reducing that card's digivolution cost by
-  1.
+  `[Leomon]` in its name from hand, reducing that card's digivolution cost by 1.
 - Rule: this card's name is treated as having `[Leomon]`.
 - Inherited On Deletion: one opponent's Digimon gets -2000 DP until the end of
   their turn.
@@ -2334,14 +2446,14 @@ have `[Leomon]` in its name and be an applicable legal evolution.
 `apps/api/src/cards/EX5/EX5-030.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-030", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Optional attack digivolve | `WhenAttacking` → optional self `Digivolve`, hand source, exact `Leomon` name filter, `payCost: true`, `reduceCost: 1` | public attack upgrades Liamon into EX5-049 and charges 3 instead of 4 |
-| Optional boundary | no printed Once Per Turn clause or IR frequency | public refusal leaves the host, hand, memory, and decision state unchanged |
-| Q3594 requirements | candidate uses the normal Digivolve legality path in addition to the `Leomon` name filter | public attack cannot use blue BT1-035 despite its Leomon name |
-| Rule name grant | `Rule` → self `GrantStatic` name `Leomon` | legal public attack evolution into GrapLeomon requires the granted identity |
-| Alternate evolution | two compiled requirements for Liollmon and Elecmon at cost 2 | public direct evolution covers normal EX5-028 cost 3 and both alternate sources at cost 2 |
-| Inherited deletion DP | inherited `OnDeletion` → opponent Digimon `ModifyDP -2000`, `untilOpponentTurnEnd` | public opposing attack deletes the suspended host and leaves the selected opponent at 3000 DP |
+| Clause                    | IR                                                                                                                     | Behavioral proof                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Optional attack digivolve | `WhenAttacking` → optional self `Digivolve`, hand source, exact `Leomon` name filter, `payCost: true`, `reduceCost: 1` | public attack upgrades Liamon into EX5-049 and charges 3 instead of 4                         |
+| Optional boundary         | no printed Once Per Turn clause or IR frequency                                                                        | public refusal leaves the host, hand, memory, and decision state unchanged                    |
+| Q3594 requirements        | candidate uses the normal Digivolve legality path in addition to the `Leomon` name filter                              | public attack cannot use blue BT1-035 despite its Leomon name                                 |
+| Rule name grant           | `Rule` → self `GrantStatic` name `Leomon`                                                                              | legal public attack evolution into GrapLeomon requires the granted identity                   |
+| Alternate evolution       | two compiled requirements for Liollmon and Elecmon at cost 2                                                           | public direct evolution covers normal EX5-028 cost 3 and both alternate sources at cost 2     |
+| Inherited deletion DP     | inherited `OnDeletion` → opponent Digimon `ModifyDP -2000`, `untilOpponentTurnEnd`                                     | public opposing attack deletes the suspended host and leaves the selected opponent at 3000 DP |
 
 #### Behavioral proof prepared
 
@@ -2384,22 +2496,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3594 are documented, including normal requirements and both alternate routes. |
-| IR trace | 2/2 | Attack digivolve, Leomon identity grant, alternate requirements, inherited deletion DP, and no-OPT shape are mapped. |
-| Behavioral proof | 2/2 | Public legal/refusal/negative attack paths, exact costs/endpoints, normal and alternate evolution, and public deletion are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Leomon-name legal and illegal peers, normal/alternate sources, exact inherited stack, and public opposing deletion are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                               |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3594 are documented, including normal requirements and both alternate routes.                                                                    |
+| IR trace           |   2/2 | Attack digivolve, Leomon identity grant, alternate requirements, inherited deletion DP, and no-OPT shape are mapped.                                                   |
+| Behavioral proof   |   2/2 | Public legal/refusal/negative attack paths, exact costs/endpoints, normal and alternate evolution, and public deletion are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Leomon-name legal and illegal peers, normal/alternate sources, exact inherited stack, and public opposing deletion are covered.                                        |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-031 — Chirinmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-031.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3595–Q3596
 
@@ -2451,22 +2566,25 @@ card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Printed clauses and Q3595–Q3596 are mapped. |
-| IR trace | 2/2 | Mandatory security cost, unsuspend, inherited optional placement, combined threshold, and OPT are encoded. |
-| Behavioral proof | 2/2 | Public positive, unavailable-cost, threshold, and above-threshold endpoints are prepared; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Legal yellow level-4 source and security boundary routes are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                    |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Printed clauses and Q3595–Q3596 are mapped.                                                                                 |
+| IR trace           |   2/2 | Mandatory security cost, unsuspend, inherited optional placement, combined threshold, and OPT are encoded.                  |
+| Behavioral proof   |   2/2 | Public positive, unavailable-cost, threshold, and above-threshold endpoints are prepared; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Legal yellow level-4 source and security boundary routes are covered.                                                       |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                               |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-032 — LoaderLeomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-032.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and knowledge-base status
 
@@ -2523,22 +2641,25 @@ changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | All printed clauses, exact stats, and the alternate evolution route are mapped; KB returned no Q&A. |
-| IR trace | 2/2 | Fortitude, both duration-limited reductions, inherited conditional Blocker, and full coverage are encoded. |
-| Behavioral proof | 2/2 | Public play, evolution, timing, inherited Blocker, and Fortitude positive/negative endpoints are prepared. |
-| Peer / stack proof | 2/2 | Legal EX5-030 Leomon source, non-Leomon rejection, Leomon-name host, and source/no-source Fortitude cases are prepared. |
-| Delivery gates | 0/2 | Coordinator-owned focused execution and collection gates are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | All printed clauses, exact stats, and the alternate evolution route are mapped; KB returned no Q&A.                     |
+| IR trace           |   2/2 | Fortitude, both duration-limited reductions, inherited conditional Blocker, and full coverage are encoded.              |
+| Behavioral proof   |   2/2 | Public play, evolution, timing, inherited Blocker, and Fortitude positive/negative endpoints are prepared.              |
+| Peer / stack proof |   2/2 | Legal EX5-030 Leomon source, non-Leomon rejection, Leomon-name host, and source/no-source Fortitude cases are prepared. |
+| Delivery gates     |   0/2 | Coordinator-owned focused execution and collection gates are intentionally not awarded to a card lane.                  |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-033 — Mitamamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-033.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3597–Q3599
 
@@ -2568,14 +2689,14 @@ The local KB returns:
 `apps/api/src/cards/EX5/EX5-033.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-033", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Shared optional play package | `WhenDigivolving` and `WhenAttacking`, each `OncePerTurn` with `sharedUseKey: "ir-shared-0"` | public digivolution trashes security, plays a yellow level-4, and grants Rush; a same-turn public attack cannot reuse the package; the owner's next turn can use it again |
-| Security cost | `PlayWithoutCost` with top own-security trash cost | exact security/trash endpoints are asserted after public digivolution |
-| Level/color play filter | controller mine, Yellow, level <= 4, from hand, no play cost | public BT1-045 fixture is played and removed from hand |
-| Rush binding | `GainKeyword` bound to `playedByThisEffect`, `forTheTurn` | played public Digimon has Rush while the source remains separate |
-| Barrier | All Turns yellow-Digimon Aura | own yellow Mitamamon and BT1-045 have Barrier; own red and opposing yellow do not |
-| Dynamic Security Attack -2 | Opponent-turn `GainKeyword`, opponent Digimon, `gte` dynamic combined-security count, live target filter, through opponent-turn end | Q3597/Q3598 initial total 4 selects level 4 but not level 3; Q3599 trashing one security dynamically qualifies level 3 |
+| Clause                       | IR                                                                                                                                  | Behavioral proof                                                                                                                                                          |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared optional play package | `WhenDigivolving` and `WhenAttacking`, each `OncePerTurn` with `sharedUseKey: "ir-shared-0"`                                        | public digivolution trashes security, plays a yellow level-4, and grants Rush; a same-turn public attack cannot reuse the package; the owner's next turn can use it again |
+| Security cost                | `PlayWithoutCost` with top own-security trash cost                                                                                  | exact security/trash endpoints are asserted after public digivolution                                                                                                     |
+| Level/color play filter      | controller mine, Yellow, level <= 4, from hand, no play cost                                                                        | public BT1-045 fixture is played and removed from hand                                                                                                                    |
+| Rush binding                 | `GainKeyword` bound to `playedByThisEffect`, `forTheTurn`                                                                           | played public Digimon has Rush while the source remains separate                                                                                                          |
+| Barrier                      | All Turns yellow-Digimon Aura                                                                                                       | own yellow Mitamamon and BT1-045 have Barrier; own red and opposing yellow do not                                                                                         |
+| Dynamic Security Attack -2   | Opponent-turn `GainKeyword`, opponent Digimon, `gte` dynamic combined-security count, live target filter, through opponent-turn end | Q3597/Q3598 initial total 4 selects level 4 but not level 3; Q3599 trashing one security dynamically qualifies level 3                                                    |
 
 #### Behavioral proof prepared
 
@@ -2617,22 +2738,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3597–Q3599 are documented, including combined and live security threshold semantics. |
-| IR trace | 2/2 | Security cost, bound play/Rush, shared Once Per Turn, Barrier, and dynamic Security Attack -2 are mapped. |
-| Behavioral proof | 2/2 | Public play/attack/reset endpoints, exact security movement, Rush, Barrier boundaries, and dynamic threshold are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Yellow level-4 candidate, rejected color/level peers, same-turn shared trigger, cross-turn reset, and threshold boundary peers are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                     |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and Q3597–Q3599 are documented, including combined and live security threshold semantics.                                                   |
+| IR trace           |   2/2 | Security cost, bound play/Rush, shared Once Per Turn, Barrier, and dynamic Security Attack -2 are mapped.                                                    |
+| Behavioral proof   |   2/2 | Public play/attack/reset endpoints, exact security movement, Rush, Barrier boundaries, and dynamic threshold are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Yellow level-4 candidate, rejected color/level peers, same-turn shared trigger, cross-turn reset, and threshold boundary peers are covered.                  |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                      |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-034 — BanchoLeomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-034.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3600
 
@@ -2683,22 +2807,25 @@ card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full printed contract and Q3600 are mapped. |
-| IR trace | 2/2 | Threshold reduction, both suspension routes, shared target binding, DP, keyword, duration, and OPT are encoded. |
-| Behavioral proof | 2/2 | Public positive, negative, refusal, and evolution routes are prepared; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Legal yellow/green Mega evolution and combined-security boundary fixtures are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                        |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full printed contract and Q3600 are mapped.                                                                     |
+| IR trace           |   2/2 | Threshold reduction, both suspension routes, shared target binding, DP, keyword, duration, and OPT are encoded. |
+| Behavioral proof   |   2/2 | Public positive, negative, refusal, and evolution routes are prepared; execution is coordinator-pending.        |
+| Peer / stack proof |   2/2 | Legal yellow/green Mega evolution and combined-security boundary fixtures are covered.                          |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                   |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-035 — Hawkmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-035.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules knowledge
 
@@ -2721,14 +2848,14 @@ and Fortitude keyword, adds all matches, and bottoms every non-match.
 `apps/api/src/cards/EX5/EX5-035.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-035", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| On Play reveal | `RevealAdd`, `revealCount: 3` | public play resolves the exact three-card endpoint |
-| Fortitude filter | controller-default mine, `kind: Digimon`, `keywords: [Fortitude]`, `count: all`, to hand | two EX5-032 matches are added; non-Fortitude BT1-009 stays out of hand |
-| Non-match zone | `rest: deckBottom` | public deck endpoint contains the unmatched card at the bottom |
-| Inherited DP | All Turns self Aura, +1000 DP while `selfIsSuspended` | public attack suspends the host and raises DP; production unsuspend removes the modifier |
-| OPT / timing | no `frequency` is present; On Play and inherited All Turns are not once-per-turn clauses | static proof confirms no accidental OPT restriction |
-| Evolution route | catalog green level-2 cost 0 | public breeding evolution from green BT1-007 succeeds; yellow BT1-005 is rejected |
+| Clause           | IR                                                                                       | Behavioral proof                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| On Play reveal   | `RevealAdd`, `revealCount: 3`                                                            | public play resolves the exact three-card endpoint                                       |
+| Fortitude filter | controller-default mine, `kind: Digimon`, `keywords: [Fortitude]`, `count: all`, to hand | two EX5-032 matches are added; non-Fortitude BT1-009 stays out of hand                   |
+| Non-match zone   | `rest: deckBottom`                                                                       | public deck endpoint contains the unmatched card at the bottom                           |
+| Inherited DP     | All Turns self Aura, +1000 DP while `selfIsSuspended`                                    | public attack suspends the host and raises DP; production unsuspend removes the modifier |
+| OPT / timing     | no `frequency` is present; On Play and inherited All Turns are not once-per-turn clauses | static proof confirms no accidental OPT restriction                                      |
+| Evolution route  | catalog green level-2 cost 0                                                             | public breeding evolution from green BT1-007 succeeds; yellow BT1-005 is rejected        |
 
 #### Behavioral proof prepared
 
@@ -2766,22 +2893,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract is documented; no dedicated EX5-035 KB ruling exists. |
-| IR trace | 2/2 | Three-card reveal, Fortitude Digimon filter, deck-bottom remainder, inherited conditional DP, and no-OPT shape are mapped. |
-| Behavioral proof | 2/2 | Public positive/negative On Play, evolution legality, suspension DP, and unsuspend reset endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Fortitude/non-Fortitude reveal peers, green/yellow evolution peers, and suspended/unsuspended inherited states are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                           |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract is documented; no dedicated EX5-035 KB ruling exists.                                                                             |
+| IR trace           |   2/2 | Three-card reveal, Fortitude Digimon filter, deck-bottom remainder, inherited conditional DP, and no-OPT shape are mapped.                         |
+| Behavioral proof   |   2/2 | Public positive/negative On Play, evolution legality, suspension DP, and unsuspend reset endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Fortitude/non-Fortitude reveal peers, green/yellow evolution peers, and suspended/unsuspended inherited states are covered.                        |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                            |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-036 — Aquilamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-036.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules
 
@@ -2827,22 +2957,25 @@ ledger, RUN, notes, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full catalog contract and shared Fortitude rule are mapped. |
-| IR trace | 2/2 | Fortitude keyword, inherited suspension predicate, and +1000 amount are encoded. |
-| Behavioral proof | 2/2 | Public battle replay, no-source negative, suspended aura, and evolution legality routes are prepared. |
-| Peer / stack proof | 2/2 | Legal green source stack and source-less peer are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                              |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full catalog contract and shared Fortitude rule are mapped.                                           |
+| IR trace           |   2/2 | Fortitude keyword, inherited suspension predicate, and +1000 amount are encoded.                      |
+| Behavioral proof   |   2/2 | Public battle replay, no-source negative, suspended aura, and evolution legality routes are prepared. |
+| Peer / stack proof |   2/2 | Legal green source stack and source-less peer are covered.                                            |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.         |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-037 — Vajramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-037.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3601–Q3607/Q5507
 
@@ -2883,14 +3016,14 @@ The local KB returns:
 `apps/api/src/cards/EX5/EX5-037.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-037", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Draw and optional Deva play | On Play `Draw 1` followed by optional `PlayWithoutCost` to `breeding` | public On Play moves the selected Deva to breeding and leaves the draw in hand |
-| Same-name comparison | `notSameNameAs: ["battleArea", "trash"]` | same-name top cards in battle/trash reject; source cards under Digimon and cards under Tamer do not reject |
-| Breeding lifecycle | `breeding: true`, effect-play route | Q3603/Q3605 suppress candidate On Play/watchers; Q3604 public movement still cannot attack that turn |
-| Effect-play restriction | production play path honors active restriction | Pomumon blocks the breeding play while Vajramon's mandatory draw remains |
-| Paid Option trigger | Your Turn `SubTrigger whenOptionUsed` with cost >= 1, GainMemory +1 | public cost-one Option ends net-even after its printed cost; zero-cost and Security activation do not trigger |
-| Inherited Piercing | Your Turn `frequency: OncePerTurn` Aura while live Four Sovereigns/God Beast trait | qualifying hosts have Piercing, nonmatching top cards do not, and the aura lapses after public stack replacement |
+| Clause                      | IR                                                                                 | Behavioral proof                                                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Draw and optional Deva play | On Play `Draw 1` followed by optional `PlayWithoutCost` to `breeding`              | public On Play moves the selected Deva to breeding and leaves the draw in hand                                   |
+| Same-name comparison        | `notSameNameAs: ["battleArea", "trash"]`                                           | same-name top cards in battle/trash reject; source cards under Digimon and cards under Tamer do not reject       |
+| Breeding lifecycle          | `breeding: true`, effect-play route                                                | Q3603/Q3605 suppress candidate On Play/watchers; Q3604 public movement still cannot attack that turn             |
+| Effect-play restriction     | production play path honors active restriction                                     | Pomumon blocks the breeding play while Vajramon's mandatory draw remains                                         |
+| Paid Option trigger         | Your Turn `SubTrigger whenOptionUsed` with cost >= 1, GainMemory +1                | public cost-one Option ends net-even after its printed cost; zero-cost and Security activation do not trigger    |
+| Inherited Piercing          | Your Turn `frequency: OncePerTurn` Aura while live Four Sovereigns/God Beast trait | qualifying hosts have Piercing, nonmatching top cards do not, and the aura lapses after public stack replacement |
 
 #### Behavioral proof prepared
 
@@ -2935,22 +3068,25 @@ made. No engine gap is claimed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3601–Q3607/Q5507 boundaries are documented. |
-| IR trace | 2/2 | Draw/breeding play, name zones, effect-play restriction path, Option SubTrigger, and inherited Once Per Turn Aura are mapped. |
-| Behavioral proof | 2/2 | Public positive/negative breeding, restriction, movement/attack, Option, Security, and Piercing endpoints are asserted and pass focused execution. |
-| Peer / stack proof | 2/2 | Same-name and source-zone peers, breeding lifecycle, cost boundaries, and legal qualifying/nonqualifying inherited stacks pass focused execution. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                           |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3601–Q3607/Q5507 boundaries are documented.                                                                                  |
+| IR trace           |   2/2 | Draw/breeding play, name zones, effect-play restriction path, Option SubTrigger, and inherited Once Per Turn Aura are mapped.                      |
+| Behavioral proof   |   2/2 | Public positive/negative breeding, restriction, movement/attack, Option, Security, and Piercing endpoints are asserted and pass focused execution. |
+| Peer / stack proof |   2/2 | Same-name and source-zone peers, breeding lifecycle, cost boundaries, and legal qualifying/nonqualifying inherited stacks pass focused execution.  |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                            |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-038 — Vikaralamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-038.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3608–Q3613
 
@@ -3004,8 +3140,8 @@ Beast. Coverage is full and residual is empty.
   negative control.
 
 EX5-038 has no evolution cost; the public route is normal play and the legal
-  stacked peer is used only where the inherited clause requires a host/source
-  stack.
+stacked peer is used only where the inherited clause requires a host/source
+stack.
 
 #### Verification status
 
@@ -3016,22 +3152,25 @@ ledger, RUN, notes, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full printed contract and Q3608–Q3613 are mapped. |
-| IR trace | 2/2 | Draw, optional breeding play, name scope, battle deletion OPT, trait gate, and Piercing are encoded. |
-| Behavioral proof | 2/2 | Public positive, exclusions, suppression, movement, restriction, deletion, and Piercing routes are prepared. |
-| Peer / stack proof | 2/2 | Legal Deva source/name stack and Four Sovereigns host are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                     |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Full printed contract and Q3608–Q3613 are mapped.                                                            |
+| IR trace           |   2/2 | Draw, optional breeding play, name scope, battle deletion OPT, trait gate, and Piercing are encoded.         |
+| Behavioral proof   |   2/2 | Public positive, exclusions, suppression, movement, restriction, deletion, and Piercing routes are prepared. |
+| Peer / stack proof |   2/2 | Legal Deva source/name stack and Four Sovereigns host are covered.                                           |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-039 — Garudamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-039.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3614
 
@@ -3053,14 +3192,14 @@ live `relativeToSource` DP predicate for both public timing routes.
 `apps/api/src/cards/EX5/EX5-039.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-039", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Fortitude | Static keyword `Fortitude` | catalog and IR identity proof |
-| On Play suspension | Opponent Digimon target, DP `lte relativeToSource`, count 1 | public play suspends the eligible 7000-DP peer and leaves the 8000-DP peer active |
-| When Digivolving suspension | Same live source-relative predicate | a public host carrying EX5-012's +2000 inherited aura evolves, then the preferred 8500 DP target is selected while the 9500 DP peer is rejected (Q3614) |
-| Target boundaries | `controller: opponent`, `kind: Digimon` | own low-DP Digimon is unaffected; oversized opponent remains unsuspended |
-| Inherited DP | All Turns self Aura, +1000 while `selfIsSuspended` | public attack suspension gives 5000→6000 DP; production unsuspend returns 5000 |
-| OPT | no frequency is printed or compiled | static proof confirms no accidental once-per-turn restriction |
+| Clause                      | IR                                                          | Behavioral proof                                                                                                                                        |
+| --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fortitude                   | Static keyword `Fortitude`                                  | catalog and IR identity proof                                                                                                                           |
+| On Play suspension          | Opponent Digimon target, DP `lte relativeToSource`, count 1 | public play suspends the eligible 7000-DP peer and leaves the 8000-DP peer active                                                                       |
+| When Digivolving suspension | Same live source-relative predicate                         | a public host carrying EX5-012's +2000 inherited aura evolves, then the preferred 8500 DP target is selected while the 9500 DP peer is rejected (Q3614) |
+| Target boundaries           | `controller: opponent`, `kind: Digimon`                     | own low-DP Digimon is unaffected; oversized opponent remains unsuspended                                                                                |
+| Inherited DP                | All Turns self Aura, +1000 while `selfIsSuspended`          | public attack suspension gives 5000→6000 DP; production unsuspend returns 5000                                                                          |
+| OPT                         | no frequency is printed or compiled                         | static proof confirms no accidental once-per-turn restriction                                                                                           |
 
 #### Behavioral proof prepared
 
@@ -3097,22 +3236,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3614 current-DP ruling are documented. |
-| IR trace | 2/2 | Fortitude, both suspension triggers, live relative DP filter, inherited aura, and no-OPT shape are mapped. |
-| Behavioral proof | 2/2 | Public play/evolution, Q3614 modified-source route via a public inherited aura, negative target boundaries, and inherited suspension endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Eligible/oversized/opponent-vs-own peers and suspended/unsuspended inherited states are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                                                       |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3614 current-DP ruling are documented.                                                                                                                                   |
+| IR trace           |   2/2 | Fortitude, both suspension triggers, live relative DP filter, inherited aura, and no-OPT shape are mapped.                                                                                     |
+| Behavioral proof   |   2/2 | Public play/evolution, Q3614 modified-source route via a public inherited aura, negative target boundaries, and inherited suspension endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Eligible/oversized/opponent-vs-own peers and suspended/unsuspended inherited states are covered.                                                                                               |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                                                        |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-040 — Kumbhiramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-040.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3615–Q3620
 
@@ -3124,8 +3266,7 @@ Its clauses are:
 - On Play, draw 1. Then, optionally play one Deva-trait Digimon from hand
   without paying its cost into an empty breeding area, provided its name is
   different from every card in the controller's battle area and trash.
-- All Turns Once Per Turn: when an opponent's Digimon becomes suspended, draw
-  1.
+- All Turns Once Per Turn: when an opponent's Digimon becomes suspended, draw 1.
 - Inherited Your Turn Once Per Turn: while the host has Four Sovereigns or God
   Beast, it gains Piercing.
 
@@ -3149,14 +3290,14 @@ The local KB returns:
 `apps/api/src/cards/EX5/EX5-040.ts` remains compiled IR-only and registers
 exclusively with `registerIrCard("EX5-040", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Draw and optional Deva play | On Play `Draw 1` followed by optional `PlayWithoutCost` to `breeding` | public On Play moves the selected Deva to breeding and leaves the draw in hand |
-| Same-name comparison | `notSameNameAs: ["battleArea", "trash"]` | same-name top cards in battle/trash reject; source cards under Digimon and cards under Tamer do not reject |
-| Breeding lifecycle | `breeding: true`, effect-play route | Q3617/Q3619 suppress candidate On Play/watchers; Q3618 public movement still cannot attack that turn |
-| Effect-play restriction | production play path honors active restriction | Pomumon blocks the breeding play while Kumbhiramon's mandatory draw remains |
-| Suspension draw | All Turns `OncePerTurn` `whenSuspended` watcher scoped to opponent Digimon | public production suspension draws once, while a second same-turn opposing suspension does not draw again |
-| Inherited Piercing | Your Turn `OncePerTurn` Aura while live Four Sovereigns/God Beast trait | qualifying hosts have Piercing, nonmatching top cards do not, and the aura lapses after top-card replacement |
+| Clause                      | IR                                                                         | Behavioral proof                                                                                             |
+| --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Draw and optional Deva play | On Play `Draw 1` followed by optional `PlayWithoutCost` to `breeding`      | public On Play moves the selected Deva to breeding and leaves the draw in hand                               |
+| Same-name comparison        | `notSameNameAs: ["battleArea", "trash"]`                                   | same-name top cards in battle/trash reject; source cards under Digimon and cards under Tamer do not reject   |
+| Breeding lifecycle          | `breeding: true`, effect-play route                                        | Q3617/Q3619 suppress candidate On Play/watchers; Q3618 public movement still cannot attack that turn         |
+| Effect-play restriction     | production play path honors active restriction                             | Pomumon blocks the breeding play while Kumbhiramon's mandatory draw remains                                  |
+| Suspension draw             | All Turns `OncePerTurn` `whenSuspended` watcher scoped to opponent Digimon | public production suspension draws once, while a second same-turn opposing suspension does not draw again    |
+| Inherited Piercing          | Your Turn `OncePerTurn` Aura while live Four Sovereigns/God Beast trait    | qualifying hosts have Piercing, nonmatching top cards do not, and the aura lapses after top-card replacement |
 
 #### Behavioral proof prepared
 
@@ -3196,22 +3337,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3615–Q3620 breeding/name-zone rulings are documented. |
-| IR trace | 2/2 | Draw/breeding play, name zones, effect-play restriction path, suspension watcher, and inherited Once Per Turn Aura are mapped. |
-| Behavioral proof | 2/2 | Public positive/negative breeding, restriction, movement/attack, suspension draw, and Piercing endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Same-name/source-zone peers, breeding lifecycle, suspension OPT boundary, and qualifying/nonqualifying inherited stacks are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                 |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3615–Q3620 breeding/name-zone rulings are documented.                                                                              |
+| IR trace           |   2/2 | Draw/breeding play, name zones, effect-play restriction path, suspension watcher, and inherited Once Per Turn Aura are mapped.                           |
+| Behavioral proof   |   2/2 | Public positive/negative breeding, restriction, movement/attack, suspension draw, and Piercing endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Same-name/source-zone peers, breeding lifecycle, suspension OPT boundary, and qualifying/nonqualifying inherited stacks are covered.                     |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                  |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-041 — Ebonwumon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-041.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules
 
@@ -3273,22 +3417,25 @@ ledger, RUN, notes, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full catalog contract and shared Counter/phase rules are mapped. |
-| IR trace | 2/2 | Blast Digivolve, trait-count scaling, suspension, duration, and On Deletion are encoded. |
-| Behavioral proof | 2/2 | Public play, evolution, Counter, phase, deletion, and no-trait negative routes are prepared. |
-| Peer / stack proof | 2/2 | Legal green Deva evolution source and multi-target scaling are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                      |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full catalog contract and shared Counter/phase rules are mapped.                              |
+| IR trace           |   2/2 | Blast Digivolve, trait-count scaling, suspension, duration, and On Deletion are encoded.      |
+| Behavioral proof   |   2/2 | Public play, evolution, Counter, phase, deletion, and no-trait negative routes are prepared.  |
+| Peer / stack proof |   2/2 | Legal green Deva evolution source and multi-target scaling are covered.                       |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-042 — Merukimon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-042.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules knowledge
 
@@ -3315,14 +3462,14 @@ exclusively with `registerIrCard("EX5-042", compiled)`. Since `RevealAdd`'s
 catch-all `to: "hand"` add slot after the Fortitude play slot and keeps
 `deckBottom` only as an unreachable safety fallback.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Fortitude | Static keyword `Fortitude` | catalog/IR identity and live keyword proof |
-| On Play reveal/play | `RevealAdd`, one card, Digimon + level <= 5 + Fortitude, to play, catch-all remainder to hand | public play moves EX5-039 from deck to battle area for free |
-| When Digivolving reveal/play | same exact `RevealAdd` action | public evolution resolves the same endpoint and preserves the mandatory evolution draw |
-| Negative reveal boundaries | filter requires both Digimon kind and Fortitude and caps level at 5 | non-Fortitude BT10-079 and level-6 Fortitude EX5-042 return to hand |
-| Rush aura | Your Turn `GainKeyword`, all own Digimon with Fortitude and no digivolution cards, permanent | source and unstacked Fortitude hosts gain Rush; stacked/non-Fortitude peers do not, and a public attack is legal |
-| OPT | no frequency is printed or compiled | static proof confirms the reveal and Rush clauses are not accidentally once-per-turn |
+| Clause                       | IR                                                                                            | Behavioral proof                                                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Fortitude                    | Static keyword `Fortitude`                                                                    | catalog/IR identity and live keyword proof                                                                       |
+| On Play reveal/play          | `RevealAdd`, one card, Digimon + level <= 5 + Fortitude, to play, catch-all remainder to hand | public play moves EX5-039 from deck to battle area for free                                                      |
+| When Digivolving reveal/play | same exact `RevealAdd` action                                                                 | public evolution resolves the same endpoint and preserves the mandatory evolution draw                           |
+| Negative reveal boundaries   | filter requires both Digimon kind and Fortitude and caps level at 5                           | non-Fortitude BT10-079 and level-6 Fortitude EX5-042 return to hand                                              |
+| Rush aura                    | Your Turn `GainKeyword`, all own Digimon with Fortitude and no digivolution cards, permanent  | source and unstacked Fortitude hosts gain Rush; stacked/non-Fortitude peers do not, and a public attack is legal |
+| OPT                          | no frequency is printed or compiled                                                           | static proof confirms the reveal and Rush clauses are not accidentally once-per-turn                             |
 
 #### Behavioral proof prepared
 
@@ -3359,22 +3506,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract is documented; no dedicated EX5-042 KB ruling exists. |
-| IR trace | 2/2 | Fortitude, both reveal/play triggers, level/kind filter, hand remainder, Rush recipient filter, and no-OPT shape are mapped. |
-| Behavioral proof | 2/2 | Public play/evolution, reveal negatives, Rush boundaries, and public attack endpoint are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Legal Fortitude, non-Fortitude, over-level, no-source, sourced, and non-Fortitude Rush peers are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                             |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract is documented; no dedicated EX5-042 KB ruling exists.                                                               |
+| IR trace           |   2/2 | Fortitude, both reveal/play triggers, level/kind filter, hand remainder, Rush recipient filter, and no-OPT shape are mapped.         |
+| Behavioral proof   |   2/2 | Public play/evolution, reveal negatives, Rush boundaries, and public attack endpoint are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Legal Fortitude, non-Fortitude, over-level, no-source, sourced, and non-Fortitude Rush peers are covered.                            |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                              |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-043 — Leopardmon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-043.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3621–Q3622
 
@@ -3405,12 +3555,12 @@ exclusively with `registerIrCard("EX5-043", compiled)`. It clones the catalog
 compiled record, removes the stale replacement residual, and adds the supported
 dynamic reduction and bounce ceiling primitives.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Main/When Digivolving play | shared `OncePerTurn` effects with `sharedUseKey: "ir-shared-0"` | public Main and public evolution routes play a green Digimon with the appropriate cost reduction; same-turn reuse is unavailable |
-| Base reduction | `PlayWithoutCost.reduceCostBy: 4`, `payCost: true` | public Main route pays exactly 3 for EX5-049 (7→3) |
-| Conditional reduction | `reduceCostByIf.amount: 3`, stack trait `Leopardmon` name or exact `X Antibody` name | Q3621 public route pays 0 for cost-7 EX5-049; Q3622 uses two matching stack cards and still receives only 3 extra reduction |
-| Played-Digimon bounce | Your Turn Once Per Turn `whenPlayed` watcher, opponent Digimon <=5000 base ceiling, +3000 per other own Digimon | public play returns 9000 DP with two other own Digimon and leaves 12000 DP above the live ceiling |
+| Clause                     | IR                                                                                                              | Behavioral proof                                                                                                                 |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Main/When Digivolving play | shared `OncePerTurn` effects with `sharedUseKey: "ir-shared-0"`                                                 | public Main and public evolution routes play a green Digimon with the appropriate cost reduction; same-turn reuse is unavailable |
+| Base reduction             | `PlayWithoutCost.reduceCostBy: 4`, `payCost: true`                                                              | public Main route pays exactly 3 for EX5-049 (7→3)                                                                               |
+| Conditional reduction      | `reduceCostByIf.amount: 3`, stack trait `Leopardmon` name or exact `X Antibody` name                            | Q3621 public route pays 0 for cost-7 EX5-049; Q3622 uses two matching stack cards and still receives only 3 extra reduction      |
+| Played-Digimon bounce      | Your Turn Once Per Turn `whenPlayed` watcher, opponent Digimon <=5000 base ceiling, +3000 per other own Digimon | public play returns 9000 DP with two other own Digimon and leaves 12000 DP above the live ceiling                                |
 
 #### Behavioral proof prepared
 
@@ -3450,22 +3600,25 @@ made. No engine gap is claimed; focused execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3621–Q3622 reduction rulings are documented. |
-| IR trace | 2/2 | Shared Main/evolution OPT, base/conditional reductions, dynamic bounce ceiling, and the exact catalog effect shape are mapped. |
-| Behavioral proof | 2/2 | Public Main/evolution, stack reduction, negative candidate, same-turn shared boundary, and scaled bounce endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Green/non-green peers, no-match/one/multiple stack matches, memory costs, and target ceiling boundaries are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                                           |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and Q3621–Q3622 reduction rulings are documented.                                                                                                 |
+| IR trace           |   2/2 | Shared Main/evolution OPT, base/conditional reductions, dynamic bounce ceiling, and the exact catalog effect shape are mapped.                                     |
+| Behavioral proof   |   2/2 | Public Main/evolution, stack reduction, negative candidate, same-turn shared boundary, and scaled bounce endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Green/non-green peers, no-match/one/multiple stack matches, memory costs, and target ceiling boundaries are covered.                                               |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                                            |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-044 — Elecmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-044.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules
 
@@ -3521,22 +3674,25 @@ card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog fields, full printed text, and no-card-Q&A status mapped. |
-| IR trace | 2/2 | Reveal/add/bottom, Frimon alternate evolution, and inherited De-Digivolve are encoded. |
-| Behavioral proof | 2/2 | Positive/negative public reveal, exact endpoints, legal/illegal evolution, and deletion paths are prepared. |
-| Peer / stack proof | 2/2 | Normal and alternate evolution stacks plus a two-stack inherited deletion comparison are prepared. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                    |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog fields, full printed text, and no-card-Q&A status mapped.                                           |
+| IR trace           |   2/2 | Reveal/add/bottom, Frimon alternate evolution, and inherited De-Digivolve are encoded.                      |
+| Behavioral proof   |   2/2 | Positive/negative public reveal, exact endpoints, legal/illegal evolution, and deletion paths are prepared. |
+| Peer / stack proof |   2/2 | Normal and alternate evolution stacks plus a two-stack inherited deletion comparison are prepared.          |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates are intentionally not awarded to a card lane.                    |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-045 — Chuumon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-045.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules
 
@@ -3599,22 +3755,25 @@ other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full catalog contract and no-card-Q&A status mapped. |
-| IR trace | 2/2 | Opponent-turn reveal/play/trash and conditional inherited revival are encoded. |
-| Behavioral proof | 2/2 | Public positive, explicit decline, own-turn negative, evolution, and battle-deletion paths are prepared. |
-| Peer / stack proof | 2/2 | Real BT19-077 security route and inherited Etemon-name stack prove cross-card/public stack behavior. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                 |
+| ------------------ | ----: | -------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full catalog contract and no-card-Q&A status mapped.                                                     |
+| IR trace           |   2/2 | Opponent-turn reveal/play/trash and conditional inherited revival are encoded.                           |
+| Behavioral proof   |   2/2 | Public positive, explicit decline, own-turn negative, evolution, and battle-deletion paths are prepared. |
+| Peer / stack proof |   2/2 | Real BT19-077 security route and inherited Etemon-name stack prove cross-card/public stack behavior.     |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates are intentionally not awarded to a card lane.                 |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-046 — Targetmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-046.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3623-Q3624
 
@@ -3642,50 +3801,53 @@ inherited `wouldBeDeleted` replacement with an excluding-other Sukamon target.
 
 `apps/api/src/cards/EX5/EX5-046.test.ts` provides public observable proof:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog and IR | Exact metadata, Blocker, rule names, On Deletion cost/action, replacement event, prevention, and target boundaries are asserted. |
-| Blocker and Q3623 | A public player attack opens the blocker window; declaring Blocker causes battle deletion, the source is observed to have entered trash, then returns to hand after trashing the Sukamon-name cost card. Security remains unchanged. |
-| Q3624 | Two legal stacks each carry EX5-046 under Sukamon-name top cards. A public battle deletion leaves the first host alive while deleting the other host; its top instance is in trash, proving the recursive immediate activation did not prevent the first replacement's result. |
-| Evolution and negative route | Public yellow level-3 → EX5-046 evolution pays exactly 3 memory and preserves the source stack; a red level-3 source is rejected without changing memory, stack, or hand. |
-| Fixtures and resolution | Main decks/security use inert non-Digi-Egg cards, all asynchronous paths settle, and final states have no pending decisions. |
+| Clause                       | Evidence                                                                                                                                                                                                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and IR               | Exact metadata, Blocker, rule names, On Deletion cost/action, replacement event, prevention, and target boundaries are asserted.                                                                                                                                               |
+| Blocker and Q3623            | A public player attack opens the blocker window; declaring Blocker causes battle deletion, the source is observed to have entered trash, then returns to hand after trashing the Sukamon-name cost card. Security remains unchanged.                                           |
+| Q3624                        | Two legal stacks each carry EX5-046 under Sukamon-name top cards. A public battle deletion leaves the first host alive while deleting the other host; its top instance is in trash, proving the recursive immediate activation did not prevent the first replacement's result. |
+| Evolution and negative route | Public yellow level-3 → EX5-046 evolution pays exactly 3 memory and preserves the source stack; a red level-3 source is rejected without changing memory, stack, or hand.                                                                                                      |
+| Fixtures and resolution      | Main decks/security use inert non-Digi-Egg cards, all asynchronous paths settle, and final states have no pending decisions.                                                                                                                                                   |
 
 #### Verification
 
 - `node tools/kb/query.mjs card EX5-046` — Q3623 and Q3624 returned and
   documented above.
 - Focused serial Vitest: `pnpm exec vitest run
-  src/cards/EX5/EX5-046.test.ts --maxWorkers=1 --no-file-parallelism` — **5
+src/cards/EX5/EX5-046.test.ts --maxWorkers=1 --no-file-parallelism` — **5
   tests passed / 5 tests**.
 - `pnpm exec oxfmt src/cards/EX5/EX5-046.ts
-  src/cards/EX5/EX5-046.test.ts` — passed.
+src/cards/EX5/EX5-046.test.ts` — passed.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-046.ts
-  src/cards/EX5/EX5-046.test.ts` — passed.
+src/cards/EX5/EX5-046.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-046.ts
-  src/cards/EX5/EX5-046.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-046.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-046.ts
-  apps/api/src/cards/EX5/EX5-046.test.ts
-  docs/audits/EX5-reaudit/EX5-046.md` — passed.
+apps/api/src/cards/EX5/EX5-046.test.ts
+docs/audits/EX5-reaudit/EX5-046.md` — passed.
 - Workspace typecheck and broad suites were not run; they are coordinator-owned.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact catalog contract and both indexed rulings are covered. |
-| IR trace | 2/2 | Blocker, rule name, deletion cost/return, and inherited replacement map directly to complete IR. |
-| Behavioral proof | 2/2 | Public blocker, deletion return, immediate replacement lock, exact endpoints, and negative evolution route pass focused execution. |
-| Peer / stack proof | 2/2 | Legal yellow evolution and paired Sukamon stacks exercise source identity and replacement boundaries. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                                           |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Exact catalog contract and both indexed rulings are covered.                                                                       |
+| IR trace           |   2/2 | Blocker, rule name, deletion cost/return, and inherited replacement map directly to complete IR.                                   |
+| Behavioral proof   |   2/2 | Public blocker, deletion return, immediate replacement lock, exact endpoints, and negative evolution route pass focused execution. |
+| Peer / stack proof |   2/2 | Legal yellow evolution and paired Sukamon stacks exercise source identity and replacement boundaries.                              |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane.                                                    |
 
 **Worker score: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-047 — Leomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-047.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rules knowledge
 
@@ -3710,13 +3872,13 @@ the operative contract.
 `apps/api/src/cards/EX5/EX5-047.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-047", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Attack evolution | `WhenAttacking` optional self `Digivolve` from hand | public attack evolves into EX5-049 GrapLeomon and removes it from hand |
-| Leomon-name filter | `kind: Digimon`, `nameOrTrait` name substring `Leomon` | EX5-049 is accepted while non-Leomon EX5-050 remains in hand |
-| Attack evolution endpoint | `reduceCost: 1` with the generated action's no-cost effect-play semantics | EX5-049's alternate Leomon evolution is placed through the public attack route while memory remains exactly 10 |
-| Inherited De-Digivolve | On Deletion, opponent Digimon count 1, amount 1 | public battle deletion of an inherited host trashes exactly one card from a selected opposing stack |
-| Evolution requirements | alternate names Liollmon/Elecmon cost 2, plus catalog black/green level-3 routes | public EX5-044 Elecmon route succeeds; yellow BT1-045 route is rejected |
+| Clause                    | IR                                                                               | Behavioral proof                                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Attack evolution          | `WhenAttacking` optional self `Digivolve` from hand                              | public attack evolves into EX5-049 GrapLeomon and removes it from hand                                         |
+| Leomon-name filter        | `kind: Digimon`, `nameOrTrait` name substring `Leomon`                           | EX5-049 is accepted while non-Leomon EX5-050 remains in hand                                                   |
+| Attack evolution endpoint | `reduceCost: 1` with the generated action's no-cost effect-play semantics        | EX5-049's alternate Leomon evolution is placed through the public attack route while memory remains exactly 10 |
+| Inherited De-Digivolve    | On Deletion, opponent Digimon count 1, amount 1                                  | public battle deletion of an inherited host trashes exactly one card from a selected opposing stack            |
+| Evolution requirements    | alternate names Liollmon/Elecmon cost 2, plus catalog black/green level-3 routes | public EX5-044 Elecmon route succeeds; yellow BT1-045 route is rejected                                        |
 
 #### Behavioral proof prepared
 
@@ -3754,22 +3916,25 @@ made. Execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog identity, alternate evolution requirements, printed clauses, and absence of a dedicated KB ruling are documented. |
-| IR trace | 2/2 | Optional attack evolution, Leomon name filter, reduction, inherited De-Digivolve, and registration are mapped. |
-| Behavioral proof | 2/2 | Public attack/evolution/deletion routes, exact costs, negative name/color boundaries, and stack trash are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Leomon/non-Leomon peers, legal/illegal alternate source, optional decline, and inherited stack target are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                              |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog identity, alternate evolution requirements, printed clauses, and absence of a dedicated KB ruling are documented.                             |
+| IR trace           |   2/2 | Optional attack evolution, Leomon name filter, reduction, inherited De-Digivolve, and registration are mapped.                                        |
+| Behavioral proof   |   2/2 | Public attack/evolution/deletion routes, exact costs, negative name/color boundaries, and stack trash are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Leomon/non-Leomon peers, legal/illegal alternate source, optional decline, and inherited stack target are covered.                                    |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                               |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-048 — Etemon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-048.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Card and rules scope
 
@@ -3836,21 +4001,24 @@ There is no retained engine gap or catalog discrepancy for this card.
 
 #### Score
 
-| Rubric column | Score |
-| --- | ---: |
-| Catalog and rules | 2/2 |
-| IR fidelity | 2/2 |
-| Public behavioural proof | 2/2 |
-| Peer/stack/evolution proof | 2/2 |
-| Delivery gates (worker) | 0/2 |
-| **Total** | **8/10** |
-
+| Rubric column              |    Score |
+| -------------------------- | -------: |
+| Catalog and rules          |      2/2 |
+| IR fidelity                |      2/2 |
+| Public behavioural proof   |      2/2 |
+| Peer/stack/evolution proof |      2/2 |
+| Delivery gates (worker)    |      0/2 |
+| **Total**                  | **8/10** |
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-049 — GrapLeomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-049.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and KB status
 
@@ -3875,14 +4043,14 @@ the inherited Leomon-name Piercing aura.
 
 `apps/api/src/cards/EX5/EX5-049.test.ts` covers:
 
-| Clause | Observable proof |
-| --- | --- |
-| Catalog and IR | Exact catalog metadata, Fortitude, both return actions, 4000-DP filter, alternate requirement, coverage, and inherited aura are asserted. |
-| On Play boundary | Public play pays exactly 7 memory (10→3), returns the 4000-DP boundary Digimon to deck bottom, leaves the 6000-DP peer in play, and leaves no pending decision. |
-| When Digivolving | A public alternate Leomon evolution pays exactly 3 memory, returns the 4000-DP opponent Digimon to deck, preserves the source stack, and settles cleanly. |
-| Fortitude | A public battle deletion of a stacked GrapLeomon replays its card from trash without its old digivolution stack, proving the printed replacement path. |
-| Inherited Piercing | A legal public EX5-047→EX5-049→EX5-055 Leomon stack pays 3 then 5 memory (the normal black Lv.5 route) and exposes Piercing from the EX5-049 card beneath the Leomon-name host; a non-Leomon top host is a negative control. |
-| Negative/evolution legality | A red level-3 non-Leomon source rejects the alternate route without changing memory or its stack. Main decks use inert non-Digi-Egg cards only. |
+| Clause                      | Observable proof                                                                                                                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR              | Exact catalog metadata, Fortitude, both return actions, 4000-DP filter, alternate requirement, coverage, and inherited aura are asserted.                                                                                    |
+| On Play boundary            | Public play pays exactly 7 memory (10→3), returns the 4000-DP boundary Digimon to deck bottom, leaves the 6000-DP peer in play, and leaves no pending decision.                                                              |
+| When Digivolving            | A public alternate Leomon evolution pays exactly 3 memory, returns the 4000-DP opponent Digimon to deck, preserves the source stack, and settles cleanly.                                                                    |
+| Fortitude                   | A public battle deletion of a stacked GrapLeomon replays its card from trash without its old digivolution stack, proving the printed replacement path.                                                                       |
+| Inherited Piercing          | A legal public EX5-047→EX5-049→EX5-055 Leomon stack pays 3 then 5 memory (the normal black Lv.5 route) and exposes Piercing from the EX5-049 card beneath the Leomon-name host; a non-Leomon top host is a negative control. |
+| Negative/evolution legality | A red level-3 non-Leomon source rejects the alternate route without changing memory or its stack. Main decks use inert non-Digi-Egg cards only.                                                                              |
 
 #### Verification
 
@@ -3891,35 +4059,38 @@ the inherited Leomon-name Piercing aura.
 - Vitest was **not run**, per coordinator instruction. No broad suite or
   workspace typecheck was run.
 - `pnpm exec oxfmt src/cards/EX5/EX5-049.ts
-  src/cards/EX5/EX5-049.test.ts` — passed.
+src/cards/EX5/EX5-049.test.ts` — passed.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-049.ts
-  src/cards/EX5/EX5-049.test.ts` — passed.
+src/cards/EX5/EX5-049.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-049.ts
-  src/cards/EX5/EX5-049.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-049.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-049.ts
-  apps/api/src/cards/EX5/EX5-049.test.ts
-  docs/audits/EX5-reaudit/EX5-049.md` — passed.
+apps/api/src/cards/EX5/EX5-049.test.ts
+docs/audits/EX5-reaudit/EX5-049.md` — passed.
 
 No engine/shared/catalog/ledger/RUN/notes or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact catalog contract is documented; KB absence is explicitly recorded. |
-| IR trace | 2/2 | All printed triggers, target boundary, Fortitude, alternate route, and inherited condition map directly to full IR. |
-| Behavioral proof | 2/2 | Public On Play, When Digivolving, Fortitude, boundary, and negative evolution evidence is prepared. |
-| Peer / stack proof | 2/2 | Legal Leomon evolution stack, inherited source, and nonmatching top-host comparison are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                            |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Exact catalog contract is documented; KB absence is explicitly recorded.                                            |
+| IR trace           |   2/2 | All printed triggers, target boundary, Fortitude, alternate route, and inherited condition map directly to full IR. |
+| Behavioral proof   |   2/2 | Public On Play, When Digivolving, Fortitude, boundary, and negative evolution evidence is prepared.                 |
+| Peer / stack proof |   2/2 | Legal Leomon evolution stack, inherited source, and nonmatching top-host comparison are covered.                    |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane.                                     |
 
 **Worker score: 8/10 pending coordinator focused execution.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-050 — Sinduramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-050.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3626–Q3631
 
@@ -3952,16 +4123,16 @@ The local KB returns:
 `apps/api/src/cards/EX5/EX5-050.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-050", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Decoy | Static keyword `Decoy (Deva/Four Sovereigns)` | catalog and exact keyword metadata are asserted |
-| Draw 1 | On Play `Draw` for the controller | public play leaves the drawn card in hand |
-| Deva breeding play | optional `PlayWithoutCost`, own hand, Deva trait, breeding, empty slot | public source play places EX5-051 into breeding without its On Play effect |
-| Name exclusion | `notSameNameAs: ["battleArea", "trash"]` | Q3626 peers in battle/trash are rejected; Q3627 stack-under-Digimon and under-Tamer names are ignored |
-| Breeding timing | effect play into breeding | Q3628 suppresses candidate On Play and Q3630 suppresses effect-play watcher activation |
-| Same-turn movement | public `P-130` promotion route | Q3629 rejects attack after breeding-to-battle movement in the same turn |
-| Restriction handling | normal effect-play legality | Q3631 leaves the Deva in hand under BT9-047's effect-play restriction |
-| Inherited Blocker | opponent-turn self Aura gated by Four Sovereigns/God Beast trait | matching EX5-053 host gains Blocker; non-matching EX5-049 host does not |
+| Clause               | IR                                                                     | Behavioral proof                                                                                      |
+| -------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Decoy                | Static keyword `Decoy (Deva/Four Sovereigns)`                          | catalog and exact keyword metadata are asserted                                                       |
+| Draw 1               | On Play `Draw` for the controller                                      | public play leaves the drawn card in hand                                                             |
+| Deva breeding play   | optional `PlayWithoutCost`, own hand, Deva trait, breeding, empty slot | public source play places EX5-051 into breeding without its On Play effect                            |
+| Name exclusion       | `notSameNameAs: ["battleArea", "trash"]`                               | Q3626 peers in battle/trash are rejected; Q3627 stack-under-Digimon and under-Tamer names are ignored |
+| Breeding timing      | effect play into breeding                                              | Q3628 suppresses candidate On Play and Q3630 suppresses effect-play watcher activation                |
+| Same-turn movement   | public `P-130` promotion route                                         | Q3629 rejects attack after breeding-to-battle movement in the same turn                               |
+| Restriction handling | normal effect-play legality                                            | Q3631 leaves the Deva in hand under BT9-047's effect-play restriction                                 |
+| Inherited Blocker    | opponent-turn self Aura gated by Four Sovereigns/God Beast trait       | matching EX5-053 host gains Blocker; non-matching EX5-049 host does not                               |
 
 #### Behavioral proof prepared
 
@@ -4000,22 +4171,25 @@ made. Execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all six Q3626–Q3631 rulings are documented. |
-| IR trace | 2/2 | Decoy, draw, unique Deva breeding play, name-zone scope, inherited Blocker, and registration are mapped. |
-| Behavioral proof | 2/2 | Public draw/play, breeding suppression, restriction, movement, attack, watcher, and keyword endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Battle/trash exclusions, Digimon/Tamer stack exceptions, trait-positive/negative hosts, and breeding timing boundaries are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                              |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and all six Q3626–Q3631 rulings are documented.                                                                                      |
+| IR trace           |   2/2 | Decoy, draw, unique Deva breeding play, name-zone scope, inherited Blocker, and registration are mapped.                                              |
+| Behavioral proof   |   2/2 | Public draw/play, breeding suppression, restriction, movement, attack, watcher, and keyword endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Battle/trash exclusions, Digimon/Tamer stack exceptions, trait-positive/negative hosts, and breeding timing boundaries are covered.                   |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                               |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-051 — Caturamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-051.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3632-Q3637
 
@@ -4046,15 +4220,15 @@ residual is empty.
 
 `apps/api/src/cards/EX5/EX5-051.test.ts` provides public observable evidence:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog and IR | Exact metadata, printed filters, optionality, breeding destination, Blocker, trait gate, and complete IR are asserted. |
-| On Play and Q3632 | Public Caturamon play draws one and effect-plays a Deva; mixed same-name fixtures cover comparison behavior, with inert non-Digi-Egg decks. |
-| Q3633 | Matching Deva names under a Digimon and a Tamer do not block the public breeding play. |
-| Q3634/Q3636 | The breeding candidate's On Play and the EX5-006 effect-play watcher do not trigger. |
-| Q3635 | Public Lui movement places the candidate in battle area, but its same-turn attack intent is rejected. |
-| Q3637 | BT9-047's public play-by-effect restriction leaves the mandatory draw resolved and the candidate in hand. |
-| Inherited route | A legal Four Sovereigns host exposes inherited Blocker through the public opponent-turn block window; a nonmatching host is a negative control. |
+| Clause            | Evidence                                                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR    | Exact metadata, printed filters, optionality, breeding destination, Blocker, trait gate, and complete IR are asserted.                          |
+| On Play and Q3632 | Public Caturamon play draws one and effect-plays a Deva; mixed same-name fixtures cover comparison behavior, with inert non-Digi-Egg decks.     |
+| Q3633             | Matching Deva names under a Digimon and a Tamer do not block the public breeding play.                                                          |
+| Q3634/Q3636       | The breeding candidate's On Play and the EX5-006 effect-play watcher do not trigger.                                                            |
+| Q3635             | Public Lui movement places the candidate in battle area, but its same-turn attack intent is rejected.                                           |
+| Q3637             | BT9-047's public play-by-effect restriction leaves the mandatory draw resolved and the candidate in hand.                                       |
+| Inherited route   | A legal Four Sovereigns host exposes inherited Blocker through the public opponent-turn block window; a nonmatching host is a negative control. |
 
 #### Verification
 
@@ -4063,14 +4237,14 @@ residual is empty.
 - Vitest was **not run**, per coordinator instruction. No broad suite or
   workspace typecheck was run.
 - `pnpm exec oxfmt src/cards/EX5/EX5-051.ts
-  src/cards/EX5/EX5-051.test.ts` — passed.
+src/cards/EX5/EX5-051.test.ts` — passed.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-051.ts
-  src/cards/EX5/EX5-051.test.ts` — passed.
+src/cards/EX5/EX5-051.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-051.ts
-  src/cards/EX5/EX5-051.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-051.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-051.ts
-  apps/api/src/cards/EX5/EX5-051.test.ts
-  docs/audits/EX5-reaudit/EX5-051.md` — passed.
+apps/api/src/cards/EX5/EX5-051.test.ts
+docs/audits/EX5-reaudit/EX5-051.md` — passed.
 - Fixture/direct-verb scan found no Digi-Egg in decks/security and no
   injected timing or direct verb usage.
 
@@ -4079,22 +4253,25 @@ changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and all six indexed Q&A boundaries are documented. |
-| IR trace | 2/2 | All printed triggers, optional breeding play, name scope, and inherited trait gate map directly to full IR. |
-| Behavioral proof | 2/2 | Public draw/play, suppression, movement lock, restriction, and blocker routes are prepared. |
-| Peer / stack proof | 2/2 | Under-card comparison peers, qualifying Four Sovereigns host, and nonmatching host are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                    |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and all six indexed Q&A boundaries are documented.                                         |
+| IR trace           |   2/2 | All printed triggers, optional breeding play, name scope, and inherited trait gate map directly to full IR. |
+| Behavioral proof   |   2/2 | Public draw/play, suppression, movement lock, restriction, and blocker routes are prepared.                 |
+| Peer / stack proof |   2/2 | Under-card comparison peers, qualifying Four Sovereigns host, and nonmatching host are covered.             |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are not awarded to a card lane.                             |
 
 **Worker score: 8/10 pending coordinator focused execution.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-052 — Makuramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-052.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rulings
 
@@ -4174,21 +4351,24 @@ No engine gap or catalog discrepancy is claimed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score |
-| --- | ---: |
-| Catalog and rulings | 2/2 |
-| IR fidelity | 2/2 |
-| Public behavioural proof | 2/2 |
-| Peer/stack proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
-
+| Rubric column            |    Score |
+| ------------------------ | -------: |
+| Catalog and rulings      |      2/2 |
+| IR fidelity              |      2/2 |
+| Public behavioural proof |      2/2 |
+| Peer/stack proof         |      2/2 |
+| Delivery gates           |      0/2 |
+| **Total**                | **8/10** |
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-053 — Baihumon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-053.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3644-Q3645
 
@@ -4217,13 +4397,13 @@ deletion. The module preserves complete coverage and an empty residual list.
 
 `apps/api/src/cards/EX5/EX5-053.test.ts` provides public observable evidence:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog and IR | Exact metadata, printed text, complete coverage, Blast Digivolve source, security filter/action, frequency, and deletion superlative are asserted. |
-| Q3644/Q3645 | Public player security checks play a revealed EX5-009 Deva without a battle; BT1-009 remains a security battle/trash result, and a Deva attacker does not make a non-Deva revealed card qualify. The mandatory action is also asserted as non-optional. |
-| Once Per Turn | Two public attacks during the same opponent turn reveal two Deva cards: only the first is played; the second follows the normal security battle endpoint. |
-| On Deletion | A public battle deletes Baihumon and its deletion effect removes exactly the opposing Digimon with the highest play cost while retaining the lower-cost peer. |
-| Evolution and boundaries | A public EX5-050 black level-5 to EX5-053 evolution pays exactly 4 memory and preserves the source stack; an illegal BT1-013 level-3 source is rejected without consuming memory or the hand card. |
+| Clause                   | Evidence                                                                                                                                                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR           | Exact metadata, printed text, complete coverage, Blast Digivolve source, security filter/action, frequency, and deletion superlative are asserted.                                                                                                      |
+| Q3644/Q3645              | Public player security checks play a revealed EX5-009 Deva without a battle; BT1-009 remains a security battle/trash result, and a Deva attacker does not make a non-Deva revealed card qualify. The mandatory action is also asserted as non-optional. |
+| Once Per Turn            | Two public attacks during the same opponent turn reveal two Deva cards: only the first is played; the second follows the normal security battle endpoint.                                                                                               |
+| On Deletion              | A public battle deletes Baihumon and its deletion effect removes exactly the opposing Digimon with the highest play cost while retaining the lower-cost peer.                                                                                           |
+| Evolution and boundaries | A public EX5-050 black level-5 to EX5-053 evolution pays exactly 4 memory and preserves the source stack; an illegal BT1-013 level-3 source is rejected without consuming memory or the hand card.                                                      |
 
 Fixtures use inert main-deck cards and no Digi-Egg in a deck or security
 stack. Public intents, turn-loop progression, asynchronous settling, and
@@ -4238,14 +4418,14 @@ injected timing are used for behavioral credit.
   Vitest/RAM gate. Five focused tests are prepared for the coordinator queue;
   no broad suite or workspace typecheck was run.
 - `pnpm exec oxfmt src/cards/EX5/EX5-053.ts
-  src/cards/EX5/EX5-053.test.ts` — passed.
+src/cards/EX5/EX5-053.test.ts` — passed.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-053.ts
-  src/cards/EX5/EX5-053.test.ts` — passed.
+src/cards/EX5/EX5-053.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-053.ts
-  src/cards/EX5/EX5-053.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-053.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-053.ts
-  apps/api/src/cards/EX5/EX5-053.test.ts
-  docs/audits/EX5-reaudit/EX5-053.md` — passed.
+apps/api/src/cards/EX5/EX5-053.test.ts
+docs/audits/EX5-reaudit/EX5-053.md` — passed.
 - Fixture/direct-verb scan found no Digi-Egg in decks/security and no
   injected timing, direct verb, or diagnostic usage.
 
@@ -4255,22 +4435,25 @@ gap is claimed from the unexecuted run.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact catalog contract and both indexed rulings are covered. |
-| IR trace | 2/2 | Blast Digivolve, mandatory once-per-turn security play, and highest-cost deletion map directly to complete IR. |
-| Behavioral proof | 2/2 | Public security, mandatory/no-battle, once-per-turn, deletion, and evolution tests are prepared with exact endpoints; focused execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Deva/non-Deva security peers, same-turn once-per-turn peer, highest/lower-cost deletion peers, and legal/illegal evolution sources are covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                                                                        |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Exact catalog contract and both indexed rulings are covered.                                                                                                    |
+| IR trace           |   2/2 | Blast Digivolve, mandatory once-per-turn security play, and highest-cost deletion map directly to complete IR.                                                  |
+| Behavioral proof   |   2/2 | Public security, mandatory/no-battle, once-per-turn, deletion, and evolution tests are prepared with exact endpoints; focused execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Deva/non-Deva security peers, same-turn once-per-turn peer, highest/lower-cost deletion peers, and legal/illegal evolution sources are covered.                 |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane.                                                                         |
 
 **Worker score: 8/10 pending coordinator focused execution.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-054 — MetalEtemon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-054.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rulings
 
@@ -4336,21 +4519,24 @@ No engine gap or catalog discrepancy is claimed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score |
-| --- | ---: |
-| Catalog and rulings | 2/2 |
-| IR fidelity | 2/2 |
-| Public behavioural proof | 2/2 |
-| Peer/stack/evolution proof | 2/2 |
-| Delivery gates | 0/2 |
-| **Total** | **8/10** |
-
+| Rubric column              |    Score |
+| -------------------------- | -------: |
+| Catalog and rulings        |      2/2 |
+| IR fidelity                |      2/2 |
+| Public behavioural proof   |      2/2 |
+| Peer/stack/evolution proof |      2/2 |
+| Delivery gates             |      0/2 |
+| **Total**                  | **8/10** |
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-055 — HeavyLeomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-055.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3648
 
@@ -4384,15 +4570,15 @@ unsuspend sequence.
 
 `apps/api/src/cards/EX5/EX5-055.test.ts` provides public observable evidence:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog and IR | Exact metadata, alternate evolution requirement, Fortitude keyword, trigger actions, DP bounds, destination, binding, condition, and full/empty residual coverage are asserted. |
-| When Digivolving | A public 4-memory Leomon-named level-5 evolution de-digivolves a stacked opposing Digimon and bottoms the resulting 3000-DP card, with exact stack, memory, deck, and pending-decision endpoints. |
-| On Deletion | A public battle deletes a suspended HeavyLeomon without a stack; its On Deletion effect de-digivolves the selected opposing stack and bottoms the resulting 3000-DP Digimon. |
-| Q3648 / Fortitude | A public battle deletes a suspended stacked HeavyLeomon and Fortitude replays the same physical source without its stack. Captured target and stack instance IDs prove the original On Deletion de-digivolves and bottom-decks the target once, while the replay does not create a second deletion window. |
-| End of Attack boundary | A public attack bottoms an opposing Digimon at exactly 4000 DP while retaining a 5000-DP peer, and HeavyLeomon remains suspended because a target was returned. |
-| End of Attack reset | With no opposing target at 4000 DP or less, the first public attack unsuspends HeavyLeomon; a second same-turn attack does not retrigger the Once Per Turn effect, while the next own turn resets it and the third attack unsuspends again. |
-| Evolution negative | A public alternate-evolution intent from the non-Leomon level-5 BT1-021 is rejected without changing memory, hand, or source stack. |
+| Clause                 | Evidence                                                                                                                                                                                                                                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR         | Exact metadata, alternate evolution requirement, Fortitude keyword, trigger actions, DP bounds, destination, binding, condition, and full/empty residual coverage are asserted.                                                                                                                            |
+| When Digivolving       | A public 4-memory Leomon-named level-5 evolution de-digivolves a stacked opposing Digimon and bottoms the resulting 3000-DP card, with exact stack, memory, deck, and pending-decision endpoints.                                                                                                          |
+| On Deletion            | A public battle deletes a suspended HeavyLeomon without a stack; its On Deletion effect de-digivolves the selected opposing stack and bottoms the resulting 3000-DP Digimon.                                                                                                                               |
+| Q3648 / Fortitude      | A public battle deletes a suspended stacked HeavyLeomon and Fortitude replays the same physical source without its stack. Captured target and stack instance IDs prove the original On Deletion de-digivolves and bottom-decks the target once, while the replay does not create a second deletion window. |
+| End of Attack boundary | A public attack bottoms an opposing Digimon at exactly 4000 DP while retaining a 5000-DP peer, and HeavyLeomon remains suspended because a target was returned.                                                                                                                                            |
+| End of Attack reset    | With no opposing target at 4000 DP or less, the first public attack unsuspends HeavyLeomon; a second same-turn attack does not retrigger the Once Per Turn effect, while the next own turn resets it and the third attack unsuspends again.                                                                |
+| Evolution negative     | A public alternate-evolution intent from the non-Leomon level-5 BT1-021 is rejected without changing memory, hand, or source stack.                                                                                                                                                                        |
 
 All behavioral cases use public intents, real turn-loop progression, and
 settled observable state. Main decks and security stacks use inert non-Digi-Egg
@@ -4406,14 +4592,14 @@ used for behavior credit.
   Vitest gate. Seven focused tests are prepared for the coordinator queue; no
   broad suite or workspace typecheck was run.
 - `pnpm exec oxfmt src/cards/EX5/EX5-055.ts
-  src/cards/EX5/EX5-055.test.ts` — passed.
+src/cards/EX5/EX5-055.test.ts` — passed.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-055.ts
-  src/cards/EX5/EX5-055.test.ts` — passed.
+src/cards/EX5/EX5-055.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-055.ts
-  src/cards/EX5/EX5-055.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-055.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-055.ts
-  apps/api/src/cards/EX5/EX5-055.test.ts
-  docs/audits/EX5-reaudit/EX5-055.md` — passed.
+apps/api/src/cards/EX5/EX5-055.test.ts
+docs/audits/EX5-reaudit/EX5-055.md` — passed.
 - Fixture/direct-verb scan found no Digi-Egg in deck/security and no
   `advance.fire`, `fireTiming`, direct `.verb.` calls, or diagnostics.
 
@@ -4423,22 +4609,25 @@ coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact printed contract and Q3648 are covered. |
-| IR trace | 2/2 | Alternate route, Fortitude, both deletion triggers, and End of Attack conditional Once Per Turn map directly to complete IR. |
-| Behavioral proof | 2/2 | Public evolution, deletion, Fortitude suppression, boundary, and reset routes are prepared with exact endpoints; focused execution is pending. |
-| Peer / stack proof | 2/2 | Leomon alternate route, non-Leomon negative, stacked source/target, exact 4000/5000 peers, and same-turn/next-turn cases are covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                                                       |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Exact printed contract and Q3648 are covered.                                                                                                  |
+| IR trace           |   2/2 | Alternate route, Fortitude, both deletion triggers, and End of Attack conditional Once Per Turn map directly to complete IR.                   |
+| Behavioral proof   |   2/2 | Public evolution, deletion, Fortitude suppression, boundary, and reset routes are prepared with exact endpoints; focused execution is pending. |
+| Peer / stack proof |   2/2 | Leomon alternate route, non-Leomon negative, stacked source/target, exact 4000/5000 peers, and same-turn/next-turn cases are covered.          |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane.                                                        |
 
 **Worker score: 8/10 pending coordinator focused execution.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-056 — Syakomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-056.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3649
 
@@ -4455,13 +4644,13 @@ controller's effects plays an opponent's Digimon.
 `apps/api/src/cards/EX5/EX5-056.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-056", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Catalog identity | Purple Rookie, level 3, 1000 DP, Virus Crustacean, purple level-2 evolution for 0 | exact catalog fields and printed text are asserted |
-| Opposing-Digimon draw | On Play `Draw` amount 1 with one-per-opponent-Digimon scaling | public play with two opposing Digimon draws exactly two cards |
-| Hand trash | On Play `Trash` one own hand card | public play leaves the two drawn cards and trashes the pre-existing hand card |
-| Q3649 inherited trigger | All Turns, Once Per Turn, `whenPlayed`, opponent Digimon, `byEffect: true`, gain 1 memory | public EX5-060 effect-play route gains once across two opponent Digimon |
-| Manual-play boundary | `byEffect: true` source filter | opponent manual play does not gain memory |
+| Clause                  | IR                                                                                        | Behavioral proof                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Catalog identity        | Purple Rookie, level 3, 1000 DP, Virus Crustacean, purple level-2 evolution for 0         | exact catalog fields and printed text are asserted                            |
+| Opposing-Digimon draw   | On Play `Draw` amount 1 with one-per-opponent-Digimon scaling                             | public play with two opposing Digimon draws exactly two cards                 |
+| Hand trash              | On Play `Trash` one own hand card                                                         | public play leaves the two drawn cards and trashes the pre-existing hand card |
+| Q3649 inherited trigger | All Turns, Once Per Turn, `whenPlayed`, opponent Digimon, `byEffect: true`, gain 1 memory | public EX5-060 effect-play route gains once across two opponent Digimon       |
+| Manual-play boundary    | `byEffect: true` source filter                                                            | opponent manual play does not gain memory                                     |
 
 #### Behavioral proof prepared
 
@@ -4500,22 +4689,25 @@ made. Execution remains coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3649 are documented. |
-| IR trace | 2/2 | Draw scaling, hand trash, effect-play watcher, Once Per Turn, and registration are mapped. |
-| Behavioral proof | 2/2 | Public draw/trash, positive Q3649 effect-play, repeated-trigger gate, and manual negative are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Two-opponent scaling, effect-play versus manual-play source boundaries, and exact memory endpoints are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                                  |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog contract and Q3649 are documented.                                                                                                |
+| IR trace           |   2/2 | Draw scaling, hand trash, effect-play watcher, Once Per Turn, and registration are mapped.                                                |
+| Behavioral proof   |   2/2 | Public draw/trash, positive Q3649 effect-play, repeated-trigger gate, and manual negative are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Two-opponent scaling, effect-play versus manual-play source boundaries, and exact memory endpoints are covered.                           |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and commit/PR delivery are intentionally not awarded to a card lane.                                   |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-057 — Labramon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-057.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3650
 
@@ -4538,12 +4730,12 @@ counted.
 `apps/api/src/cards/EX5/EX5-057.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-057", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Catalog identity and evolution | Purple Rookie, level 3, 1000 DP, Vaccine Beast; purple level 2 for 0 | exact catalog fields, legal purple Digi-Egg evolution, and illegal yellow-source rejection |
-| Optional On Play cost and return | optional `Return` to hand, one own-trash Digimon with exact trait filter, one own-hand `Trash` cost, abort on decline | public play returns BT1-039 (Dark Animal), leaves the non-matching BT1-009 in trash, and trashes the selected hand card |
-| Optional refusal | `optional: true`, `abortOnDecline: true` | public `autoDeclineOptional` path leaves the cost in hand, target in trash, and no pending decision |
-| Q3650 inherited trigger | Your Turn, `whenPlayed`, own Digimon, `byEffect: true`, gain 1 memory, Once Per Turn | public BT1-044 stack effect-plays gain exactly once; a second same-turn effect-play does not; the next own turn gains again, while manual play only pays its play cost |
+| Clause                           | IR                                                                                                                    | Behavioral proof                                                                                                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution   | Purple Rookie, level 3, 1000 DP, Vaccine Beast; purple level 2 for 0                                                  | exact catalog fields, legal purple Digi-Egg evolution, and illegal yellow-source rejection                                                                             |
+| Optional On Play cost and return | optional `Return` to hand, one own-trash Digimon with exact trait filter, one own-hand `Trash` cost, abort on decline | public play returns BT1-039 (Dark Animal), leaves the non-matching BT1-009 in trash, and trashes the selected hand card                                                |
+| Optional refusal                 | `optional: true`, `abortOnDecline: true`                                                                              | public `autoDeclineOptional` path leaves the cost in hand, target in trash, and no pending decision                                                                    |
+| Q3650 inherited trigger          | Your Turn, `whenPlayed`, own Digimon, `byEffect: true`, gain 1 memory, Once Per Turn                                  | public BT1-044 stack effect-plays gain exactly once; a second same-turn effect-play does not; the next own turn gains again, while manual play only pays its play cost |
 
 #### Behavioral and peer/stack proof
 
@@ -4576,22 +4768,25 @@ changed. No engine gap is retained.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full catalog contract and Q3650 are documented. |
-| IR trace | 2/2 | Return/cost, exact trait filter, optional abort, inherited event, and Once Per Turn are mapped. |
-| Behavioral proof | 2/2 | Public positive/negative On Play, refusal, effect-play/manual boundary, repetition, and next-turn reset are asserted. |
-| Peer / stack proof | 2/2 | BT1-044 public effect-play peer and legal/illegal evolution stacks cover the shared trigger and source boundaries. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                              |
+| ------------------ | ----: | --------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full catalog contract and Q3650 are documented.                                                                       |
+| IR trace           |   2/2 | Return/cost, exact trait filter, optional abort, inherited event, and Once Per Turn are mapped.                       |
+| Behavioral proof   |   2/2 | Public positive/negative On Play, refusal, effect-play/manual boundary, repetition, and next-turn reset are asserted. |
+| Peer / stack proof |   2/2 | BT1-044 public effect-play peer and legal/illegal evolution stacks cover the shared trigger and source boundaries.    |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                         |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-058 — Octomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-058.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and evidence
 
@@ -4675,22 +4870,25 @@ were changed.
 
 #### Worker score
 
-| Rubric column | Score | Basis |
-| --- | ---: | --- |
-| Catalog and rulings | 2/2 | Exact catalog text and Q3651/Q3652/Q3653/Q3654/Q3834/Q6034 mapping |
-| IR trace | 2/2 | Both branches, token clauses, inherited filter, OPT, and full residual coverage |
-| Behavioural proof | 2/2 | Public threshold, evolution, deletion, restriction, and memory/reset endpoints |
-| Peer and stack proof | 2/2 | Legal/illegal evolution and EX5-060 inherited cross-card route |
-| Delivery gates | 0/2 | Coordinator-owned serial verification and gates are pending |
+| Rubric column        | Score | Basis                                                                           |
+| -------------------- | ----: | ------------------------------------------------------------------------------- |
+| Catalog and rulings  |   2/2 | Exact catalog text and Q3651/Q3652/Q3653/Q3654/Q3834/Q6034 mapping              |
+| IR trace             |   2/2 | Both branches, token clauses, inherited filter, OPT, and full residual coverage |
+| Behavioural proof    |   2/2 | Public threshold, evolution, deletion, restriction, and memory/reset endpoints  |
+| Peer and stack proof |   2/2 | Legal/illegal evolution and EX5-060 inherited cross-card route                  |
+| Delivery gates       |   0/2 | Coordinator-owned serial verification and gates are pending                     |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-059 — Dobermon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-059.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract, banlist, and Q3655-Q3656
 
@@ -4725,14 +4923,14 @@ identity.
 
 `apps/api/src/cards/EX5/EX5-059.test.ts` provides public observable evidence:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog and IR | Exact metadata, printed text, complete coverage, Retaliation duration, draw/trash ordering, reactivation condition, and inherited watcher are asserted. |
-| On Play | A public play intent grants Retaliation and settles with no pending decision. |
-| When Digivolving | A legal public purple level-3 evolution draws exactly one card, trashes exactly one chosen hand card, preserves the source stack/cost, and confirms no reactivation without a qualifying stack card. |
-| Q3656 | A ruling-specific public evolution fixture containing EX2-041 Dobermon, BT10-011 Canoweissmon, and P-065 Gammamon uses two exact 2000-DP targets: ST1-03 is preferred and inert BT1-009 is the safe peer. It inspects P-065's target decision under the activating EX5-059 source provenance, then asserts the chosen target's trash endpoint, the safe peer's survival, Retaliation, and the BT13-063 nonmatching-stack negative control. |
-| Q3655 / inherited watcher | Public EX5-058 effect-play creates an own Fujitsumon Digimon and gains exactly one memory, while a manual BT1-009 play pays its cost without the inherited gain. The source filter is asserted as own Digimon plus `byEffect`; the opponent-controlled variant is documented below. |
-| Evolution boundary | A public evolution intent from a red BT1-009 level-3 source is rejected without changing memory or hand. |
+| Clause                    | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog and IR            | Exact metadata, printed text, complete coverage, Retaliation duration, draw/trash ordering, reactivation condition, and inherited watcher are asserted.                                                                                                                                                                                                                                                                                    |
+| On Play                   | A public play intent grants Retaliation and settles with no pending decision.                                                                                                                                                                                                                                                                                                                                                              |
+| When Digivolving          | A legal public purple level-3 evolution draws exactly one card, trashes exactly one chosen hand card, preserves the source stack/cost, and confirms no reactivation without a qualifying stack card.                                                                                                                                                                                                                                       |
+| Q3656                     | A ruling-specific public evolution fixture containing EX2-041 Dobermon, BT10-011 Canoweissmon, and P-065 Gammamon uses two exact 2000-DP targets: ST1-03 is preferred and inert BT1-009 is the safe peer. It inspects P-065's target decision under the activating EX5-059 source provenance, then asserts the chosen target's trash endpoint, the safe peer's survival, Retaliation, and the BT13-063 nonmatching-stack negative control. |
+| Q3655 / inherited watcher | Public EX5-058 effect-play creates an own Fujitsumon Digimon and gains exactly one memory, while a manual BT1-009 play pays its cost without the inherited gain. The source filter is asserted as own Digimon plus `byEffect`; the opponent-controlled variant is documented below.                                                                                                                                                        |
+| Evolution boundary        | A public evolution intent from a red BT1-009 level-3 source is rejected without changing memory or hand.                                                                                                                                                                                                                                                                                                                                   |
 
 Q3655's opponent-controlled effect route is not publicly constructible in the
 current card pool during this source's Your Turn: no legal opponent-turn
@@ -4753,14 +4951,14 @@ zones/memory, and pending-decision assertions are used throughout.
   Vitest gate. Seven focused tests are prepared for the coordinator queue; no
   broad suite or workspace typecheck was run.
 - `pnpm exec oxfmt src/cards/EX5/EX5-059.ts
-  src/cards/EX5/EX5-059.test.ts` — passed after disk space recovered.
+src/cards/EX5/EX5-059.test.ts` — passed after disk space recovered.
 - `pnpm exec oxfmt --check src/cards/EX5/EX5-059.ts
-  src/cards/EX5/EX5-059.test.ts` — passed.
+src/cards/EX5/EX5-059.test.ts` — passed.
 - `pnpm exec oxlint src/cards/EX5/EX5-059.ts
-  src/cards/EX5/EX5-059.test.ts` — passed with no diagnostics.
+src/cards/EX5/EX5-059.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-059.ts
-  apps/api/src/cards/EX5/EX5-059.test.ts
-  docs/audits/EX5-reaudit/EX5-059.md` — passed.
+apps/api/src/cards/EX5/EX5-059.test.ts
+docs/audits/EX5-reaudit/EX5-059.md` — passed.
 - Fixture/direct-verb scan found no Digi-Egg in deck/security and no
   `advance.fire`, `fireTiming`, direct `.verb.` calls, diagnostics, or
   `registerCard` usage.
@@ -4771,22 +4969,25 @@ coordinator-pending because of the test gate.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Printed clauses, Q3655-Q3656, and the banlist restriction are documented. |
-| IR trace | 2/2 | Retaliation, draw/trash, conditional reactivation, and inherited Once Per Turn watcher map directly to complete IR. |
-| Behavioral proof | 2/2 | Public On Play, legal/illegal evolution, Q3656 stack, and inherited effect-play routes are prepared; focused execution is pending. |
-| Peer / stack proof | 2/2 | Dobermon/Gammamon/Canoweissmon stack and nonmatching X Antibody peer are covered, with legal purple evolution and red negative route. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                                              |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Printed clauses, Q3655-Q3656, and the banlist restriction are documented.                                                             |
+| IR trace           |   2/2 | Retaliation, draw/trash, conditional reactivation, and inherited Once Per Turn watcher map directly to complete IR.                   |
+| Behavioral proof   |   2/2 | Public On Play, legal/illegal evolution, Q3656 stack, and inherited effect-play routes are prepared; focused execution is pending.    |
+| Peer / stack proof |   2/2 | Dobermon/Gammamon/Canoweissmon stack and nonmatching X Antibody peer are covered, with legal purple evolution and red negative route. |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane.                                               |
 
 **Worker score: 8/10 pending coordinator focused execution.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-060 — Dragomon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-060.test.ts`, 10 tests passed. Both mandatory opponent trash-play branches corrected to levelComparison ≤4 with Digimon-kind exclusion of eggs; existing public level-4/level-5 boundary tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and IR trace
 
@@ -4869,22 +5070,25 @@ No engine, shared, catalog, ledger, RUN, or notes files were changed.
 
 #### Worker score
 
-| Rubric column | Score | Basis |
-| --- | ---: | --- |
-| Catalog and rulings | 2/2 | Exact card contract and Q3657-Q3659/Q4663-Q4676/Q5227-Q5228 mapping |
-| IR trace | 2/2 | Main triggers, costs, zones, suppression, level snapshot, OPT, and Piercing |
-| Behavioural proof | 2/2 | Public play/evolution/revival/decline/battle/restriction endpoints |
-| Peer and stack proof | 2/2 | Legal/illegal evolution and public cross-card restriction fixtures |
-| Delivery gates | 0/2 | Coordinator-owned serial verification is pending |
+| Rubric column        | Score | Basis                                                                       |
+| -------------------- | ----: | --------------------------------------------------------------------------- |
+| Catalog and rulings  |   2/2 | Exact card contract and Q3657-Q3659/Q4663-Q4676/Q5227-Q5228 mapping         |
+| IR trace             |   2/2 | Main triggers, costs, zones, suppression, level snapshot, OPT, and Piercing |
+| Behavioural proof    |   2/2 | Public play/evolution/revival/decline/battle/restriction endpoints          |
+| Peer and stack proof |   2/2 | Legal/illegal evolution and public cross-card restriction fixtures          |
+| Delivery gates       |   0/2 | Coordinator-owned serial verification is pending                            |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-061 — Cerberusmon (X Antibody)
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-061.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3660
 
@@ -4908,14 +5112,14 @@ P-065 deletion against an opposing printed-2000-DP P-065 Digimon.
 `apps/api/src/cards/EX5/EX5-061.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-061", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Catalog identity and evolution | Purple Ultimate level 5, 7000 DP, Vaccine, Dark Animal/X Antibody; purple level 4 for 3 | exact catalog fields and a public level-4-to-level-5 evolution route |
-| On Play revival | Optional `PlayWithoutCost`, one own purple level-3 Digimon from trash | public play revives BT14-069 and leaves a red level-3 near-match in trash |
-| When Digivolving draw/trash | `Draw` 1, then own-hand `Trash` 1 | public evolution leaves the exact deck draw in hand and the selected hand card in trash |
-| Stack-gated On Play reactivation | `ReactivateEffect` from `OnPlay`, count 1, exact Cerberusmon-name or X Antibody stack predicate | public X Antibody stack and Q3660 multi-card stack both revive BT14-069; nonmatching BT13-063 does not |
-| Q3660 stacked Gammamon On Play | inherited BT10-011 grants P-065 Gammamon effects; Q3660 fixture supplies an opposing printed-2000-DP P-065 target | public evolution deletes the opposing victim while EX5-061's own On Play also revives BT14-069; the nested borrowed effect is proven by the P-065 endpoint rather than an independent event announcement |
-| Inherited Once Per Turn attack | `WhenAttacking`, optional self `Unsuspend`, cost deletes one other own Digimon | public first attack deletes sacrificeOne and unsuspends; second same-turn attack leaves sacrificeTwo and attacker suspended |
+| Clause                           | IR                                                                                                                | Behavioral proof                                                                                                                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and evolution   | Purple Ultimate level 5, 7000 DP, Vaccine, Dark Animal/X Antibody; purple level 4 for 3                           | exact catalog fields and a public level-4-to-level-5 evolution route                                                                                                                                     |
+| On Play revival                  | Optional `PlayWithoutCost`, one own purple level-3 Digimon from trash                                             | public play revives BT14-069 and leaves a red level-3 near-match in trash                                                                                                                                |
+| When Digivolving draw/trash      | `Draw` 1, then own-hand `Trash` 1                                                                                 | public evolution leaves the exact deck draw in hand and the selected hand card in trash                                                                                                                  |
+| Stack-gated On Play reactivation | `ReactivateEffect` from `OnPlay`, count 1, exact Cerberusmon-name or X Antibody stack predicate                   | public X Antibody stack and Q3660 multi-card stack both revive BT14-069; nonmatching BT13-063 does not                                                                                                   |
+| Q3660 stacked Gammamon On Play   | inherited BT10-011 grants P-065 Gammamon effects; Q3660 fixture supplies an opposing printed-2000-DP P-065 target | public evolution deletes the opposing victim while EX5-061's own On Play also revives BT14-069; the nested borrowed effect is proven by the P-065 endpoint rather than an independent event announcement |
+| Inherited Once Per Turn attack   | `WhenAttacking`, optional self `Unsuspend`, cost deletes one other own Digimon                                    | public first attack deletes sacrificeOne and unsuspends; second same-turn attack leaves sacrificeTwo and attacker suspended                                                                              |
 
 #### Behavioral and peer/stack proof
 
@@ -4948,22 +5152,25 @@ or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full printed contract and Q3660 are documented. |
-| IR trace | 2/2 | Revival, draw/trash, exact stack predicate, reactivation, inherited cost, and Once Per Turn are mapped. |
-| Behavioral proof | 2/2 | Public revival/refusal, evolution endpoints, Q3660 stack, and attack cost/OPT negative are asserted. |
-| Peer / stack proof | 2/2 | Real BT10-011/P-065 stack proves both reactivated effects plus a nonmatching stack negative. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full printed contract and Q3660 are documented.                                                         |
+| IR trace           |   2/2 | Revival, draw/trash, exact stack predicate, reactivation, inherited cost, and Once Per Turn are mapped. |
+| Behavioral proof   |   2/2 | Public revival/refusal, evolution endpoints, Q3660 stack, and attack cost/OPT negative are asserted.    |
+| Peer / stack proof |   2/2 | Real BT10-011/P-065 stack proves both reactivated effects plus a nonmatching stack negative.            |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.           |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-062 — Anubismon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-062.test.ts`, 9 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3661-Q3665
 
@@ -4998,14 +5205,14 @@ delete action.
 
 `apps/api/src/cards/EX5/EX5-062.test.ts` provides public observable evidence:
 
-| Clause | Evidence |
-| --- | --- |
-| Catalog / IR | Exact reduction, scaling count, shared Once Per Turn identity, by-effect source filter, level-5 boundary, and conditional draw are asserted. |
-| Q3661 | Public Main activation trashes two inert cards, pays exactly the remaining cost of `BT10-080`, and asserts hand/trash, memory, battle-area, and pending-decision endpoints. |
-| Q3662 | Public legal `EX5-060` to EX5-062 evolution trashes zero cards, plays the purple trash candidate at the base reduction, and asserts the source stack and exact 8-to-0 memory result. |
-| Q3663 | Public Main activation prefers a purple candidate from hand, then plays that same physical instance from trash; final hand/trash are empty and the instance is in the battle area. |
-| Q3665 | The card's own public Main effect plays `BT10-080`; the watcher deletes exactly one opposing level-5 target while retaining the level-6 near miss. A no-target route proves the conditional Draw 1 branch. |
-| Q3664 | A public `BT13-112` play from a legal breeding stack plays two distinct Royal Knights from the stack. The watcher removes only one of two opposing level-5 peers and retains the level-6 peer. |
+| Clause                                | Evidence                                                                                                                                                                                                                                                               |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / IR                          | Exact reduction, scaling count, shared Once Per Turn identity, by-effect source filter, level-5 boundary, and conditional draw are asserted.                                                                                                                           |
+| Q3661                                 | Public Main activation trashes two inert cards, pays exactly the remaining cost of `BT10-080`, and asserts hand/trash, memory, battle-area, and pending-decision endpoints.                                                                                            |
+| Q3662                                 | Public legal `EX5-060` to EX5-062 evolution trashes zero cards, plays the purple trash candidate at the base reduction, and asserts the source stack and exact 8-to-0 memory result.                                                                                   |
+| Q3663                                 | Public Main activation prefers a purple candidate from hand, then plays that same physical instance from trash; final hand/trash are empty and the instance is in the battle area.                                                                                     |
+| Q3665                                 | The card's own public Main effect plays `BT10-080`; the watcher deletes exactly one opposing level-5 target while retaining the level-6 near miss. A no-target route proves the conditional Draw 1 branch.                                                             |
+| Q3664                                 | A public `BT13-112` play from a legal breeding stack plays two distinct Royal Knights from the stack. The watcher removes only one of two opposing level-5 peers and retains the level-6 peer.                                                                         |
 | Printed optionality / source boundary | A public manual play does not activate the watcher, and a public Main activation can decline both optional clauses without moving the candidate or spending memory. An illegal level-3 red source is rejected without changing hand, source, memory, or pending state. |
 
 All behavior uses public play, digivolve, and activate-effect intents followed
@@ -5023,14 +5230,14 @@ is used for behavior credit.
   gate. Eight focused tests are prepared for the coordinator queue; no broad
   suite or workspace typecheck was run.
 - `pnpm exec oxfmt apps/api/src/cards/EX5/EX5-062.ts
-  apps/api/src/cards/EX5/EX5-062.test.ts` — passed (2 files formatted).
+apps/api/src/cards/EX5/EX5-062.test.ts` — passed (2 files formatted).
 - `pnpm exec oxfmt --check apps/api/src/cards/EX5/EX5-062.ts
-  apps/api/src/cards/EX5/EX5-062.test.ts` — passed.
+apps/api/src/cards/EX5/EX5-062.test.ts` — passed.
 - `pnpm exec oxlint apps/api/src/cards/EX5/EX5-062.ts
-  apps/api/src/cards/EX5/EX5-062.test.ts` — passed with no diagnostics.
+apps/api/src/cards/EX5/EX5-062.test.ts` — passed with no diagnostics.
 - `git diff --check -- apps/api/src/cards/EX5/EX5-062.ts
-  apps/api/src/cards/EX5/EX5-062.test.ts
-  docs/audits/EX5-reaudit/EX5-062.md` — passed.
+apps/api/src/cards/EX5/EX5-062.test.ts
+docs/audits/EX5-reaudit/EX5-062.md` — passed.
 - Static inspection found no Digi-Egg in deck/security, no `advance.fire`,
   `fireTiming`, direct `.verb.` calls, diagnostics, or `registerCard` usage.
 
@@ -5040,22 +5247,25 @@ command results remain coordinator-pending.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Exact printed clauses, restriction, and Q3661-Q3665 are documented. |
-| IR trace | 2/2 | Shared activation identity, count-scaled reduction, effect-play source filter, deletion boundary, and conditional draw map to complete IR. |
-| Behavioral proof | 2/2 | Public evolution, Main, optional refusal, same-instance, deletion/draw, manual-play negative, and multi-play routes are prepared with exact endpoints; focused execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Legal purple evolution, illegal red source, BT13-112 breeding-stack peers, and level-5/level-6 boundary peers are covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane. |
+| Rubric             | Score | Evidence                                                                                                                                                                                         |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Exact printed clauses, restriction, and Q3661-Q3665 are documented.                                                                                                                              |
+| IR trace           |   2/2 | Shared activation identity, count-scaled reduction, effect-play source filter, deletion boundary, and conditional draw map to complete IR.                                                       |
+| Behavioral proof   |   2/2 | Public evolution, Main, optional refusal, same-instance, deletion/draw, manual-play negative, and multi-play routes are prepared with exact endpoints; focused execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Legal purple evolution, illegal red source, BT13-112 breeding-stack peers, and level-5/level-6 boundary peers are covered.                                                                       |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are not awarded to a card lane.                                                                                                          |
 
 **Worker score: 8/10 pending coordinator focused execution and collection gates.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-063 — Leviamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-063.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and implementation
 
@@ -5132,22 +5342,25 @@ No engine, shared, catalog, ledger, RUN, or notes files were changed.
 
 #### Worker score
 
-| Rubric column | Score | Basis |
-| --- | ---: | --- |
-| Catalog and rulings | 2/2 | Exact contract, Q3666-Q3667, Q4735 discrepancy, and Q6035-Q6039 mapping |
-| IR trace | 2/2 | Count predicate, highest/lowest sequence, deletion watcher, controller filter, Security Attack +1 |
-| Behavioural proof | 2/2 | Public play/evolution/battle routes with exact deletion, memory, and negative endpoints |
-| Peer and stack proof | 2/2 | Legal/illegal evolution, stacked deletion exactness, and opponent-turn controller proof |
-| Delivery gates | 0/2 | Coordinator-owned serial verification remains pending |
+| Rubric column        | Score | Basis                                                                                             |
+| -------------------- | ----: | ------------------------------------------------------------------------------------------------- |
+| Catalog and rulings  |   2/2 | Exact contract, Q3666-Q3667, Q4735 discrepancy, and Q6035-Q6039 mapping                           |
+| IR trace             |   2/2 | Count predicate, highest/lowest sequence, deletion watcher, controller filter, Security Attack +1 |
+| Behavioural proof    |   2/2 | Public play/evolution/battle routes with exact deletion, memory, and negative endpoints           |
+| Peer and stack proof |   2/2 | Legal/illegal evolution, stacked deletion exactness, and opponent-turn controller proof           |
+| Delivery gates       |   0/2 | Coordinator-owned serial verification remains pending                                             |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-064 — Koh &amp; Sayo
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-064.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and local rulings
 
@@ -5173,14 +5386,14 @@ level-2 Digi-Egg.
 `apps/api/src/cards/EX5/EX5-064.ts` is compiled IR-only and registers
 exclusively with `registerIrCard("EX5-064", compiled)`.
 
-| Clause | IR | Behavioral proof |
-| --- | --- | --- |
-| Catalog identity and Start of Your Turn | Red Light Fang Tamer, play cost 4; `StartOfYourTurn` conditional `SetMemory(3)` at `memoryAtMost(2)` | exact catalog/IR assertions and public turn-loop checks at memory 2 and 3 |
-| On Play/Main optional free evolution | both triggers use optional hand `Digivolve`, `payCost:false`, with compound self-suspend plus exact Light Fang/Night Claw `placeOwnTopAtStackBottom` cost | public On Play suspends Koh, rotates a Night Claw top card, and evolves a different Digimon with exact memory/stack endpoints (Q3668) |
-| Q4931 related peer route | BT22-072 Lekismon same-level evolution plays BT22-102 Sayo from hand while EX5-064 remains present | public alternate evolution places Sayo and preserves Koh unsuspended |
-| Q5212/Q5393 source rotation | top placement is observable as the former top card becoming the bottom stack card before a level-3 promotion | public legal purple-egg route ends with `[BT6-006, EX5-017]` beneath BT14-069; no pending decision or illegal level-4 destination is used |
-| Placement negative/refusal | exact trait filter and optional action | non-Light-Fang/Night-Claw board leaves Koh unsuspended and evolution card in hand |
-| Security | Security `PlayWithoutCost` self target | opponent public attack checks EX5-064 security and places it in the battle area |
+| Clause                                  | IR                                                                                                                                                        | Behavioral proof                                                                                                                          |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog identity and Start of Your Turn | Red Light Fang Tamer, play cost 4; `StartOfYourTurn` conditional `SetMemory(3)` at `memoryAtMost(2)`                                                      | exact catalog/IR assertions and public turn-loop checks at memory 2 and 3                                                                 |
+| On Play/Main optional free evolution    | both triggers use optional hand `Digivolve`, `payCost:false`, with compound self-suspend plus exact Light Fang/Night Claw `placeOwnTopAtStackBottom` cost | public On Play suspends Koh, rotates a Night Claw top card, and evolves a different Digimon with exact memory/stack endpoints (Q3668)     |
+| Q4931 related peer route                | BT22-072 Lekismon same-level evolution plays BT22-102 Sayo from hand while EX5-064 remains present                                                        | public alternate evolution places Sayo and preserves Koh unsuspended                                                                      |
+| Q5212/Q5393 source rotation             | top placement is observable as the former top card becoming the bottom stack card before a level-3 promotion                                              | public legal purple-egg route ends with `[BT6-006, EX5-017]` beneath BT14-069; no pending decision or illegal level-4 destination is used |
+| Placement negative/refusal              | exact trait filter and optional action                                                                                                                    | non-Light-Fang/Night-Claw board leaves Koh unsuspended and evolution card in hand                                                         |
+| Security                                | Security `PlayWithoutCost` self target                                                                                                                    | opponent public attack checks EX5-064 security and places it in the battle area                                                           |
 
 #### Behavioral and peer/stack proof
 
@@ -5213,22 +5426,25 @@ or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Full printed contract and all four KB IDs are documented. |
-| IR trace | 2/2 | Start-memory, both free-evolution triggers/costs, exact trait boundary, and Security route are mapped. |
-| Behavioral proof | 2/2 | Public turn loop, free evolution, refusal/negative, Q4931 peer, Q5212/Q5393 rotation, and Security attack are asserted. |
-| Peer / stack proof | 2/2 | BT22-072/BT22-102 peer evolution and legal purple-egg source rotation are covered. |
-| Delivery gates | 0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane. |
+| Rubric column      | Score | Evidence                                                                                                                |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Full printed contract and all four KB IDs are documented.                                                               |
+| IR trace           |   2/2 | Start-memory, both free-evolution triggers/costs, exact trait boundary, and Security route are mapped.                  |
+| Behavioral proof   |   2/2 | Public turn loop, free evolution, refusal/negative, Q4931 peer, Q5212/Q5393 rotation, and Security attack are asserted. |
+| Peer / stack proof |   2/2 | BT22-072/BT22-102 peer evolution and legal purple-egg source rotation are covered.                                      |
+| Delivery gates     |   0/2 | Coordinator-owned collection gates and delivery are intentionally not awarded to a card lane.                           |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-065 — Sayo & Koh
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-065.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and IR trace
 
@@ -5275,22 +5491,25 @@ No engine, shared, catalog, ledger, RUN, or notes files were changed.
 
 #### Worker score
 
-| Rubric column | Score | Basis |
-| --- | ---: | --- |
-| Catalog and rulings | 2/2 | Exact catalog and Q3669/Q3670 coverage |
-| IR trace | 2/2 | Placement watcher, start-turn play/DNA/return, and security route |
-| Behavioural proof | 2/2 | Public placement, negative evolution, and security endpoints |
-| Peer and stack proof | 2/2 | Night Claw stack and public Koh & Sayo interaction |
-| Delivery gates | 0/2 | Coordinator-owned serial verification pending |
+| Rubric column        | Score | Basis                                                             |
+| -------------------- | ----: | ----------------------------------------------------------------- |
+| Catalog and rulings  |   2/2 | Exact catalog and Q3669/Q3670 coverage                            |
+| IR trace             |   2/2 | Placement watcher, start-turn play/DNA/return, and security route |
+| Behavioural proof    |   2/2 | Public placement, negative evolution, and security endpoints      |
+| Peer and stack proof |   2/2 | Night Claw stack and public Koh & Sayo interaction                |
+| Delivery gates       |   0/2 | Coordinator-owned serial verification pending                     |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-066 — Phoebus Blow
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-066.test.ts`, 8 tests passed. Official card list and Q3671 include Galaxy. Catalog and IR corrected; exact pure-Galaxy EX5-073 instance recovery, trash removal, paid cost, and settled stack pass (8 focused tests). Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3671
 
@@ -5330,22 +5549,25 @@ changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog contract and Q3671 are mapped. |
-| IR trace | 2/2 | Lowest-DP deletion, conditional trait return, and Security activation are encoded. |
-| Behavioral proof | 2/2 | Public Main positive/negative, no-opponent ruling, and public Security paths are prepared. |
-| Peer / stack proof | 2/2 | Light Fang and Night Claw matching plus Tamer boundary are covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are pending. |
+| Rubric column      | Score | Evidence                                                                                   |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------ |
+| Catalog / rules    |   2/2 | Catalog contract and Q3671 are mapped.                                                     |
+| IR trace           |   2/2 | Lowest-DP deletion, conditional trait return, and Security activation are encoded.         |
+| Behavioral proof   |   2/2 | Public Main positive/negative, no-opponent ruling, and public Security paths are prepared. |
+| Peer / stack proof |   2/2 | Light Fang and Night Claw matching plus Tamer boundary are covered.                        |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are pending.                       |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-067 — Good Night Moon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-067.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rulings
 
@@ -5367,14 +5589,14 @@ cards with either trait. Security is represented by `ActivateMain`.
 
 `apps/api/src/cards/EX5/EX5-067.test.ts` provides public observable evidence:
 
-| Clause | Observable proof |
-| --- | --- |
-| IR fidelity | Main action order, target kinds, restriction, duration, optionality, trait filter, and Security activation are asserted. |
-| Main positive path | A public Option play restricts one opposing Digimon and one opposing Tamer and plays EX5-065 without cost. |
-| Trait boundary | A second public play accepts the Light Fang peer EX5-064, proving both printed traits are accepted. |
-| Q3672/Q3673 | A fixture with no opposing targets still resolves and plays the optional Night Claw Tamer. |
-| Optionality | A public refusal leaves the candidate Tamer in hand. |
-| Security | An opponent attack publicly checks EX5-067 in Security, then the Main effect restricts both opposing permanent kinds and plays the matching Tamer. |
+| Clause             | Observable proof                                                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IR fidelity        | Main action order, target kinds, restriction, duration, optionality, trait filter, and Security activation are asserted.                           |
+| Main positive path | A public Option play restricts one opposing Digimon and one opposing Tamer and plays EX5-065 without cost.                                         |
+| Trait boundary     | A second public play accepts the Light Fang peer EX5-064, proving both printed traits are accepted.                                                |
+| Q3672/Q3673        | A fixture with no opposing targets still resolves and plays the optional Night Claw Tamer.                                                         |
+| Optionality        | A public refusal leaves the candidate Tamer in hand.                                                                                               |
+| Security           | An opponent attack publicly checks EX5-067 in Security, then the Main effect restricts both opposing permanent kinds and plays the matching Tamer. |
 
 All behavioral fixtures use public intents, settled observable state, and
 inert main-deck cards. No direct timing helper or engine verb is used.
@@ -5392,22 +5614,25 @@ No engine, shared, catalog, ledger, RUN, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rulings | 2/2 | Exact catalog contract and Q3672/Q3673 are recorded. |
-| IR trace | 2/2 | Both restrictions, optional trait-based play, duration, and Security routing map directly to IR. |
-| Behavioral proof | 2/2 | Public positive, trait peer, no-target ruling, refusal, and Security routes are prepared. |
-| Peer / stack proof | 2/2 | Both Night Claw and Light Fang trait peers are exercised; no evolution stack is applicable to this Option. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery remain pending. |
+| Rubric             | Score | Evidence                                                                                                   |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------- |
+| Catalog / rulings  |   2/2 | Exact catalog contract and Q3672/Q3673 are recorded.                                                       |
+| IR trace           |   2/2 | Both restrictions, optional trait-based play, duration, and Security routing map directly to IR.           |
+| Behavioral proof   |   2/2 | Public positive, trait peer, no-target ruling, refusal, and Security routes are prepared.                  |
+| Peer / stack proof |   2/2 | Both Night Claw and Light Fang trait peers are exercised; no evolution stack is applicable to this Option. |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery remain pending.                                    |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-068 — Flashy Boss Punch
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-068.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and IR trace
 
@@ -5452,22 +5677,25 @@ changed.
 
 #### Worker score
 
-| Rubric column | Score | Basis |
-| --- | ---: | --- |
-| Catalog and rulings | 2/2 | Exact catalog contract; KB explicitly has no entries |
-| IR trace | 2/2 | Waiver, Main, Security, target boundaries, duration, optionality |
-| Behavioural proof | 2/2 | Public Main, negative, optional attack, and Security endpoints |
-| Peer and stack proof | 2/2 | Legal Leomon-name fixture and nonmatching negative |
-| Delivery gates | 0/2 | Coordinator-owned serial verification pending |
+| Rubric column        | Score | Basis                                                            |
+| -------------------- | ----: | ---------------------------------------------------------------- |
+| Catalog and rulings  |   2/2 | Exact catalog contract; KB explicitly has no entries             |
+| IR trace             |   2/2 | Waiver, Main, Security, target boundaries, duration, optionality |
+| Behavioural proof    |   2/2 | Public Main, negative, optional attack, and Security endpoints   |
+| Peer and stack proof |   2/2 | Legal Leomon-name fixture and nonmatching negative               |
+| Delivery gates       |   0/2 | Coordinator-owned serial verification pending                    |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-069 — Biting Crush
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-069.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and Q3674–Q3678/Q4735
 
@@ -5524,22 +5752,25 @@ as set-valued movement bindings; this is required because Delete replaces
 
 #### Score (worker maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Printed contract and Q3674–Q3678/Q4735 are mapped. |
-| IR trace | 2/2 | Hand-trash cost, conditional placement, effect-play watcher, optional Delay, exact Leviamon target, and Security route are encoded. |
-| Behavioral proof | 2/2 | Public Main and public effect-play/next-phase Delay routes are prepared. |
-| Peer / stack proof | 2/2 | BT15-078 supplies a real opposing effect-play and the exact-name X Antibody negative is covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery are pending. |
+| Rubric column      | Score | Evidence                                                                                                                            |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Printed contract and Q3674–Q3678/Q4735 are mapped.                                                                                  |
+| IR trace           |   2/2 | Hand-trash cost, conditional placement, effect-play watcher, optional Delay, exact Leviamon target, and Security route are encoded. |
+| Behavioral proof   |   2/2 | Public Main and public effect-play/next-phase Delay routes are prepared.                                                            |
+| Peer / stack proof |   2/2 | BT15-078 supplies a real opposing effect-play and the exact-name X Antibody negative is covered.                                    |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery are pending.                                                                |
 
 **Worker score: 8/10 pending the coordinator's focused test run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-070 — X Antibody Proto Form
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-070.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and rulings
 
@@ -5574,14 +5805,14 @@ selects the named X Antibody card for Security.
 
 `apps/api/src/cards/EX5/EX5-070.test.ts` provides public observable evidence:
 
-| Clause | Observable proof |
-| --- | --- |
-| IR fidelity | Waiver, Security return, Main Digivolve target, result binding, conditional PlaceUnder, Rule name, replacement cause, and action order are asserted. |
-| Main positive path | A public Option play digivolves BT1-010 into BT9-011 and places EX5-070 under the new host, paying exactly the reduced cost. |
-| Q3679 / Q3682 boundary | A host already containing Proto Form is rejected as a Main target and the candidate remains in hand, proving no unconditional placement. |
-| Inherited leave-field path | A public battle deletion of a stacked host returns a Digimon stack card and places Proto Form in Security. |
-| Q3680 | A host with only Proto Form in its stack still activates the inherited replacement. |
-| Security | A public attack checks EX5-070 from Security and adds it to hand. |
+| Clause                     | Observable proof                                                                                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IR fidelity                | Waiver, Security return, Main Digivolve target, result binding, conditional PlaceUnder, Rule name, replacement cause, and action order are asserted. |
+| Main positive path         | A public Option play digivolves BT1-010 into BT9-011 and places EX5-070 under the new host, paying exactly the reduced cost.                         |
+| Q3679 / Q3682 boundary     | A host already containing Proto Form is rejected as a Main target and the candidate remains in hand, proving no unconditional placement.             |
+| Inherited leave-field path | A public battle deletion of a stacked host returns a Digimon stack card and places Proto Form in Security.                                           |
+| Q3680                      | A host with only Proto Form in its stack still activates the inherited replacement.                                                                  |
+| Security                   | A public attack checks EX5-070 from Security and adds it to hand.                                                                                    |
 
 Fixtures use public play, attack, and Security routes with settled observable
 zones and no direct effect verbs or injected timings. Q3681/Q4260's more
@@ -5602,22 +5833,25 @@ No engine, shared, catalog, ledger, RUN, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rulings | 2/2 | Exact printed contract and all five local Q&A entries are recorded. |
-| IR trace | 2/2 | Main target/cost/placement guards, Rule name, Security, and inherited replacement map directly to IR. |
-| Behavioral proof | 2/2 | Public Main, invalid target, battle replacement, Q3680, and Security routes are prepared. |
-| Peer / stack proof | 2/2 | Public stacked-host and Proto-Form-only cases exercise the relevant evolution-stack boundaries. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery remain pending. |
+| Rubric             | Score | Evidence                                                                                              |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------- |
+| Catalog / rulings  |   2/2 | Exact printed contract and all five local Q&A entries are recorded.                                   |
+| IR trace           |   2/2 | Main target/cost/placement guards, Rule name, Security, and inherited replacement map directly to IR. |
+| Behavioral proof   |   2/2 | Public Main, invalid target, battle replacement, Q3680, and Security routes are prepared.             |
+| Peer / stack proof |   2/2 | Public stacked-host and Proto-Form-only cases exercise the relevant evolution-stack boundaries.       |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery remain pending.                               |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-071 — Loyalty Deeper than the Sea
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-071.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and evidence
 
@@ -5659,22 +5893,25 @@ git diff --check
 
 #### Worker score
 
-| Rubric column | Score |
-| --- | ---: |
-| Catalog and rulings | 2/2 |
-| IR trace | 2/2 |
-| Behavioural proof | 2/2 |
-| Peer and stack proof | 2/2 |
-| Delivery gates | 0/2 |
+| Rubric column        | Score |
+| -------------------- | ----: |
+| Catalog and rulings  |   2/2 |
+| IR trace             |   2/2 |
+| Behavioural proof    |   2/2 |
+| Peer and stack proof |   2/2 |
+| Delivery gates       |   0/2 |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-072 — Holy Beasts Great Cardinal Positions
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-072.test.ts`, 8 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Printed contract and ruling
 
@@ -5699,13 +5936,13 @@ the Option itself to hand.
 
 `apps/api/src/cards/EX5/EX5-072.test.ts` provides public observable evidence:
 
-| Clause | Observable proof |
-| --- | --- |
-| IR fidelity | Static waiver, use-time reduction, distinct-name/self-exclusion filter, Main Digimon target, and Security card-category boundary are asserted. |
-| Q3685 / cost | A public Option use with duplicate Sandiramon names and a second qualifying name pays only once per distinct name and plays Fanglongmon. |
-| Waiver independence | A public use with a white Tamer source proves the trash-name reduction does not depend on the separate waiver Digimon. |
-| Optional Main | A public refusal with no eligible Fanglongmon leaves the unrelated hand card out of play. |
-| Security | An opponent attack publicly checks EX5-072, returns a Fanglongmon-named trash card, and adds the Option to hand. |
+| Clause              | Observable proof                                                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| IR fidelity         | Static waiver, use-time reduction, distinct-name/self-exclusion filter, Main Digimon target, and Security card-category boundary are asserted. |
+| Q3685 / cost        | A public Option use with duplicate Sandiramon names and a second qualifying name pays only once per distinct name and plays Fanglongmon.       |
+| Waiver independence | A public use with a white Tamer source proves the trash-name reduction does not depend on the separate waiver Digimon.                         |
+| Optional Main       | A public refusal with no eligible Fanglongmon leaves the unrelated hand card out of play.                                                      |
+| Security            | An opponent attack publicly checks EX5-072, returns a Fanglongmon-named trash card, and adds the Option to hand.                               |
 
 All behavioral cases use public intents and settled observable zones. The
 Security case intentionally uses a real attack/security check rather than an
@@ -5724,22 +5961,25 @@ No engine, shared, catalog, ledger, RUN, or other card files were changed.
 
 #### Score (worker maximum 8/10)
 
-| Rubric | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / ruling | 2/2 | Exact catalog contract and Q3685 are recorded. |
-| IR trace | 2/2 | Waiver, unique-name reduction, Main target, optionality, and Security category are mapped. |
-| Behavioral proof | 2/2 | Public cost, waiver independence, optional refusal, and Security routes are prepared. |
-| Peer / stack proof | 2/2 | Deva/Four Sovereigns trait peers, duplicate-name boundary, Fanglongmon play, and Security card boundary are exercised. |
-| Delivery gates | 0/2 | Coordinator-owned focused/collection gates and delivery remain pending. |
+| Rubric             | Score | Evidence                                                                                                               |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------- |
+| Catalog / ruling   |   2/2 | Exact catalog contract and Q3685 are recorded.                                                                         |
+| IR trace           |   2/2 | Waiver, unique-name reduction, Main target, optionality, and Security category are mapped.                             |
+| Behavioral proof   |   2/2 | Public cost, waiver independence, optional refusal, and Security routes are prepared.                                  |
+| Peer / stack proof |   2/2 | Deva/Four Sovereigns trait peers, duplicate-name boundary, Fanglongmon play, and Security card boundary are exercised. |
+| Delivery gates     |   0/2 | Coordinator-owned focused/collection gates and delivery remain pending.                                                |
 
 **Worker total: 8/10.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-073 — GraceNovamon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-073.test.ts`, 10 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and IR trace
 
@@ -5798,22 +6038,25 @@ No ledger, RUN, engine, shared, or catalog files were changed.
 
 #### Worker score (maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Catalog identity, DNA route, keywords, replacement, and stack-count rule are documented. |
-| IR trace | 2/2 | Both triggers, DNA condition, cross-stack trash, matching delete, replacement cost, and registration are mapped. |
-| Behavioral proof | 2/2 | Public DNA, boundary, deletion replacement, and attack endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Same-level self-stack cost, cross-stack eight-card removal, and lower/equal stack targeting are covered. |
-| Delivery gates | 0/2 | Coordinator-owned focused execution and collection gates remain pending. |
+| Rubric column      | Score | Evidence                                                                                                         |
+| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog identity, DNA route, keywords, replacement, and stack-count rule are documented.                         |
+| IR trace           |   2/2 | Both triggers, DNA condition, cross-stack trash, matching delete, replacement cost, and registration are mapped. |
+| Behavioral proof   |   2/2 | Public DNA, boundary, deletion replacement, and attack endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Same-level self-stack cost, cross-stack eight-card removal, and lower/equal stack targeting are covered.         |
+| Delivery gates     |   0/2 | Coordinator-owned focused execution and collection gates remain pending.                                         |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-074 — Fanglongmon
+
+#### Current source review — 2026-09-12
+
+Current collection execution: `EX5-074.test.ts`, 6 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
 #### Contract and IR trace
 
@@ -5868,16 +6111,15 @@ No ledger, RUN, engine, shared, or catalog files were changed.
 
 #### Worker score (maximum 8/10)
 
-| Rubric column | Score | Evidence |
-| --- | ---: | --- |
-| Catalog / rules | 2/2 | Printed return/scaling, security-trash, and Digimon-effect immunity clauses are documented. |
-| IR trace | 2/2 | Return provenance, paid-count DP scaling, security scaling, immunity scope, and registration are mapped. |
-| Behavioral proof | 2/2 | Public attack, On Play, one-card boundary, and immunity endpoints are asserted; execution is coordinator-pending. |
-| Peer / stack proof | 2/2 | Two-versus-zero Four Sovereigns and two-versus-one trash-return cases cover scaling boundaries. |
-| Delivery gates | 0/2 | Coordinator-owned focused execution and collection gates remain pending. |
+| Rubric column      | Score | Evidence                                                                                                          |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Printed return/scaling, security-trash, and Digimon-effect immunity clauses are documented.                       |
+| IR trace           |   2/2 | Return provenance, paid-count DP scaling, security scaling, immunity scope, and registration are mapped.          |
+| Behavioral proof   |   2/2 | Public attack, On Play, one-card boundary, and immunity endpoints are asserted; execution is coordinator-pending. |
+| Peer / stack proof |   2/2 | Two-versus-zero Four Sovereigns and two-versus-one trash-return cases cover scaling boundaries.                   |
+| Delivery gates     |   0/2 | Coordinator-owned focused execution and collection gates remain pending.                                          |
 
 **Worker score: 8/10 pending the coordinator's focused serial run.**
-
 
 #### Coordinator final gate — 2026-09-09
 
@@ -5913,90 +6155,86 @@ No mechanism report was produced for EX5.
 
 Generated from `node tools/kb/query.mjs card <ID>` on 2026-09-09. Each card report must cover every listed Q&A id or document why it is not behaviorally testable.
 
-| Card | Q&A ids | Status |
-| --- | --- | --- |
-| EX5-001 | Q3526, Q5393 | Covered by public EX5-007 and EX5-064 stack-rotation proof |
-| EX5-002 | None returned | Covered; catalog/rules reviewed and no card Q&A returned |
-| EX5-003 | None returned | Covered; catalog/rules reviewed and no card Q&A returned |
-| EX5-004 | None returned | Covered; catalog/rules reviewed and no card Q&A returned |
-| EX5-005 | None returned | Covered; catalog/rules reviewed and no card Q&A returned |
-| EX5-006 | None returned | Covered; catalog/rules reviewed and no card Q&A returned |
-| EX5-007 | Q3526, Q3527, Q3528 | Covered by public placement/rotation and per-copy OPT reset proof |
-| EX5-008 | Q3529, Q3530 | Covered by public On Play and When Digivolving reveal proof |
-| EX5-009 | Q3531, Q3532, Q3533, Q3534, Q3535, Q3536 | Covered by public breeding play, movement and restriction proof; Option-name scope structurally documented |
-| EX5-010 | Q3537, Q3538, Q3539, Q3540, Q3541, Q3542 | Covered by public breeding play, movement, restriction and deletion proof |
-| EX5-011 | Q3543, Q3544, Q3545, Q3546, Q3547, Q3548 | Covered by public breeding play, movement, restriction and conditional deletion proof |
-| EX5-012 | Q3549 | Covered by intrinsic destination-vs-source cost-reduction proof |
-| EX5-013 | Q3550 | Covered by public inclusive Deva/DP cost and boundary proof |
-| EX5-014 | Q3551 | Covered by public multi-check security timing and OPT proof |
-| EX5-015 | Q3552, Q3553, Q3554 | Covered by public reveal/add and battle-replacement proof |
-| EX5-016 | Q3555, Q3556, Q3557, Q3558, Q3559 | Accepted 10/10; coordinator gates green |
-| EX5-017 | Q3560, Q3561 | Covered by public mandatory reveal/add paths and order proof |
-| EX5-018 | Q3562 | Accepted 10/10; coordinator gates green |
-| EX5-019 | Q3563, Q3564, Q3565, Q3566, Q3567, Q3568 | Accepted 10/10; coordinator gates green |
-| EX5-020 | Q3569 | Accepted 10/10; coordinator gates green |
-| EX5-021 | Q3570, Q3571, Q3572, Q3573, Q3574, Q3575, Q3576, Q5503, Q5504, Q5505, Q5506 | Accepted 10/10; coordinator gates green |
-| EX5-022 | Q3577, Q3578, Q3579, Q3580, Q3581, Q3582 | Accepted 10/10; coordinator gates green |
-| EX5-023 | Q3583 | Accepted 10/10; coordinator gates green |
-| EX5-024 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-025 | Q3584, Q3585, Q3586, Q3587 | Accepted 10/10; coordinator gates green |
-| EX5-026 | Q3588, Q3589, Q3590 | Accepted 10/10; coordinator gates green |
-| EX5-027 | Q3591 | Accepted 10/10; coordinator gates green |
-| EX5-028 | Q3592 | Accepted 10/10; coordinator gates green |
-| EX5-029 | Q3593 | Accepted 10/10; coordinator gates green |
-| EX5-030 | Q3594 | Accepted 10/10; coordinator gates green |
-| EX5-031 | Q3595, Q3596 | Accepted 10/10; coordinator gates green |
-| EX5-032 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-033 | Q3597, Q3598, Q3599 | Accepted 10/10; coordinator gates green |
-| EX5-034 | Q3600 | Accepted 10/10; coordinator gates green |
-| EX5-035 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-036 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-037 | Q3601, Q3602, Q3603, Q3604, Q3605, Q3606, Q3607, Q5507, Q5508, Q5509, Q5510 | Accepted 10/10; coordinator gates green |
-| EX5-038 | Q3608, Q3609, Q3610, Q3611, Q3612, Q3613 | Accepted 10/10; coordinator gates green |
-| EX5-039 | Q3614 | Accepted 10/10; coordinator gates green |
-| EX5-040 | Q3615, Q3616, Q3617, Q3618, Q3619, Q3620 | Accepted 10/10; coordinator gates green |
-| EX5-041 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-042 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-043 | Q3621, Q3622 | Accepted 10/10; coordinator gates green |
-| EX5-044 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-045 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-046 | Q3623, Q3624 | Accepted 10/10; coordinator gates green |
-| EX5-047 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-048 | Q3625 | Accepted 10/10; coordinator gates green |
-| EX5-049 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-050 | Q3626, Q3627, Q3628, Q3629, Q3630, Q3631 | Accepted 10/10; coordinator gates green |
-| EX5-051 | Q3632, Q3633, Q3634, Q3635, Q3636, Q3637 | Accepted 10/10; coordinator gates green |
-| EX5-052 | Q3638, Q3639, Q3640, Q3641, Q3642, Q3643 | Accepted 10/10; coordinator gates green |
-| EX5-053 | Q3644, Q3645 | Accepted 10/10; coordinator gates green |
-| EX5-054 | Q3646, Q3647 | Accepted 10/10; coordinator gates green |
-| EX5-055 | Q3648 | Accepted 10/10; coordinator gates green |
-| EX5-056 | Q3649 | Accepted 10/10; coordinator gates green |
-| EX5-057 | Q3650 | Accepted 10/10; coordinator gates green |
-| EX5-058 | Q3651, Q3652, Q3653, Q3654, Q3834, Q6034 | Accepted 10/10; coordinator gates green |
-| EX5-059 | Q3655, Q3656 | Accepted 10/10; coordinator gates green |
-| EX5-060 | Q3657, Q3658, Q3659, Q4663, Q4664, Q4667, Q4668, Q4671, Q4672, Q4675, Q4676, Q5227, Q5228 | Accepted 10/10; coordinator gates green |
-| EX5-061 | Q3660 | Accepted 10/10; coordinator gates green |
-| EX5-062 | Q3661, Q3662, Q3663, Q3664, Q3665 | Accepted 10/10; coordinator gates green |
-| EX5-063 | Q3666, Q3667, Q4735, Q6035, Q6036, Q6037, Q6038, Q6039 | Accepted 10/10; coordinator gates green |
-| EX5-064 | Q3668, Q4931, Q5212, Q5393 | Accepted 10/10; coordinator gates green |
-| EX5-065 | Q3669, Q3670 | Accepted 10/10; coordinator gates green |
-| EX5-066 | Q3671 | Accepted 10/10; coordinator gates green |
-| EX5-067 | Q3672, Q3673 | Accepted 10/10; coordinator gates green |
-| EX5-068 | None returned | Accepted 10/10; coordinator gates green |
-| EX5-069 | Q3674, Q3675, Q3676, Q3677, Q3678, Q4735 | Accepted 10/10; coordinator gates green |
-| EX5-070 | Q3679, Q3680, Q3681, Q3682, Q4260 | Accepted 10/10; coordinator gates green |
-| EX5-071 | Q3683, Q3684 | Accepted 10/10; coordinator gates green |
-| EX5-072 | Q3685 | Accepted 10/10; coordinator gates green |
-| EX5-073 | Q3686, Q3687, Q3688, Q3689 | Accepted 10/10; coordinator gates green |
-| EX5-074 | Q3690, Q3691 | Accepted 10/10; coordinator gates green |
+| Card    | Q&A ids                                                                                   | Status                                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| EX5-001 | Q3526, Q5393                                                                              | Covered by public EX5-007 and EX5-064 stack-rotation proof                                                 |
+| EX5-002 | None returned                                                                             | Covered; catalog/rules reviewed and no card Q&A returned                                                   |
+| EX5-003 | None returned                                                                             | Covered; catalog/rules reviewed and no card Q&A returned                                                   |
+| EX5-004 | None returned                                                                             | Covered; catalog/rules reviewed and no card Q&A returned                                                   |
+| EX5-005 | None returned                                                                             | Covered; catalog/rules reviewed and no card Q&A returned                                                   |
+| EX5-006 | None returned                                                                             | Covered; catalog/rules reviewed and no card Q&A returned                                                   |
+| EX5-007 | Q3526, Q3527, Q3528                                                                       | Covered by public placement/rotation and per-copy OPT reset proof                                          |
+| EX5-008 | Q3529, Q3530                                                                              | Covered by public On Play and When Digivolving reveal proof                                                |
+| EX5-009 | Q3531, Q3532, Q3533, Q3534, Q3535, Q3536                                                  | Covered by public breeding play, movement and restriction proof; Option-name scope structurally documented |
+| EX5-010 | Q3537, Q3538, Q3539, Q3540, Q3541, Q3542                                                  | Covered by public breeding play, movement, restriction and deletion proof                                  |
+| EX5-011 | Q3543, Q3544, Q3545, Q3546, Q3547, Q3548                                                  | Covered by public breeding play, movement, restriction and conditional deletion proof                      |
+| EX5-012 | Q3549                                                                                     | Covered by intrinsic destination-vs-source cost-reduction proof                                            |
+| EX5-013 | Q3550                                                                                     | Covered by public inclusive Deva/DP cost and boundary proof                                                |
+| EX5-014 | Q3551                                                                                     | Covered by public multi-check security timing and OPT proof                                                |
+| EX5-015 | Q3552, Q3553, Q3554                                                                       | Covered by public reveal/add and battle-replacement proof                                                  |
+| EX5-016 | Q3555, Q3556, Q3557, Q3558, Q3559                                                         | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-017 | Q3560, Q3561                                                                              | Covered by public mandatory reveal/add paths and order proof                                               |
+| EX5-018 | Q3562                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-019 | Q3563, Q3564, Q3565, Q3566, Q3567, Q3568                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-020 | Q3569                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-021 | Q3570, Q3571, Q3572, Q3573, Q3574, Q3575, Q3576, Q5503, Q5504, Q5505, Q5506               | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-022 | Q3577, Q3578, Q3579, Q3580, Q3581, Q3582                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-023 | Q3583                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-024 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-025 | Q3584, Q3585, Q3586, Q3587                                                                | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-026 | Q3588, Q3589, Q3590                                                                       | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-027 | Q3591                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-028 | Q3592                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-029 | Q3593                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-030 | Q3594                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-031 | Q3595, Q3596                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-032 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-033 | Q3597, Q3598, Q3599                                                                       | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-034 | Q3600                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-035 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-036 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-037 | Q3601, Q3602, Q3603, Q3604, Q3605, Q3606, Q3607, Q5507, Q5508, Q5509, Q5510               | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-038 | Q3608, Q3609, Q3610, Q3611, Q3612, Q3613                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-039 | Q3614                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-040 | Q3615, Q3616, Q3617, Q3618, Q3619, Q3620                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-041 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-042 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-043 | Q3621, Q3622                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-044 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-045 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-046 | Q3623, Q3624                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-047 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-048 | Q3625                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-049 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-050 | Q3626, Q3627, Q3628, Q3629, Q3630, Q3631                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-051 | Q3632, Q3633, Q3634, Q3635, Q3636, Q3637                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-052 | Q3638, Q3639, Q3640, Q3641, Q3642, Q3643                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-053 | Q3644, Q3645                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-054 | Q3646, Q3647                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-055 | Q3648                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-056 | Q3649                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-057 | Q3650                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-058 | Q3651, Q3652, Q3653, Q3654, Q3834, Q6034                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-059 | Q3655, Q3656                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-060 | Q3657, Q3658, Q3659, Q4663, Q4664, Q4667, Q4668, Q4671, Q4672, Q4675, Q4676, Q5227, Q5228 | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-061 | Q3660                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-062 | Q3661, Q3662, Q3663, Q3664, Q3665                                                         | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-063 | Q3666, Q3667, Q4735, Q6035, Q6036, Q6037, Q6038, Q6039                                    | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-064 | Q3668, Q4931, Q5212, Q5393                                                                | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-065 | Q3669, Q3670                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-066 | Q3671                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-067 | Q3672, Q3673                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-068 | None returned                                                                             | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-069 | Q3674, Q3675, Q3676, Q3677, Q3678, Q4735                                                  | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-070 | Q3679, Q3680, Q3681, Q3682, Q4260                                                         | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-071 | Q3683, Q3684                                                                              | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-072 | Q3685                                                                                     | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-073 | Q3686, Q3687, Q3688, Q3689                                                                | Accepted 10/10; coordinator gates green                                                                    |
+| EX5-074 | Q3690, Q3691                                                                              | Accepted 10/10; coordinator gates green                                                                    |
 
 ## Open items
 
-- No card is below 10/10 and the engine seam queue is empty (`docs/audits/EX5-reaudit/REVIEW-NOTES.md`, `8d9fb67af`).
-- EX5-001: the suite does not claim a public same-turn/next-turn reset proof for the once-per-turn ledger. The structural `frequency: "OncePerTurn"` assertion passes and the limitation is documented rather than replaced with an artificial reset fixture (`docs/audits/EX5-reaudit/EX5-001.md`).
-- Missing evidence file: `docs/audits/EX5-reaudit/REVIEW-NOTES.md` cites `EX5-001-Q5393-MECHANISM.md` as the record of the projected-base rotation mechanics, but no such file existed in `docs/audits/EX5-reaudit/` at `8d9fb67af`. The Q5393 conclusion survives only in the EX5-001 card section above.
-- Contradiction, resolved in favour of the newer source: `docs/audits/EX5-AUDIT.md` (2026-09-04, `8857d0f00`) reports per-card focused test counts that are lower than the re-audit's (for example EX5-001 "focused 3/3" against the re-audit's 6 tests). The 2026-09-09 re-audit ledger wins; the older counts belong to the superseded pass.
-- Interruption recorded during the run, since resolved: a full disk temporarily blocked atomic writes. Only ignored, reproducible `apps/api/dist` build output was removed (`docs/audits/EX5-reaudit/RUN.md`).
+None. All 74 cards have current reproducible 10/10 evidence. The historical EX5-001 structural-only OPT limitation is closed by the public same-source suppression and next-own-turn paid evolution scenario. EX5-002 received the analogous proof. No engine seam is open. Historical missing mechanism-file references are not used by the current pass; its accepted Q5393 conclusion is covered by the retained public regression and clause mapping in this document.
 
 ## History
 

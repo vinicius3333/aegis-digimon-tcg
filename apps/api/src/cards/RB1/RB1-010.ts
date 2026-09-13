@@ -62,6 +62,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "Unsuspend",
+              preserveOncePerTurnOnDecline: true,
               target: {
                 filter: {
                   isSelfRef: true,

@@ -219,7 +219,7 @@ describe("EX7-058 LadyDevimon (X Antibody)", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-020", as: "host", under: ["EX7-058"] },
+            { card: "BT10-082", as: "host", under: ["EX7-058"] },
             { card: "BT10-022", as: "defender", suspended: true, dp: 9000 },
           ],
           trash: [

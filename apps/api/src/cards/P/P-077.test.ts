@@ -10,7 +10,7 @@ describe("P-077 Wizardmon", () => {
       {
         0: {
           battleArea: [{ card: "P-011", as: "attacker" }, "BT1-086"],
-          deck: [{ card: "P-077", as: "wizardmon" }, "BT1-001", "BT1-002", "BT1-003"],
+          deck: [{ card: "P-077", as: "wizardmon" }, "BT1-009", "BT1-009", "BT1-028"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
       },
@@ -41,7 +41,7 @@ describe("P-077 Wizardmon", () => {
             { card: "BT2-107", as: "purple" },
             { card: "BT1-009", as: "red" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 1000 }] },
       },

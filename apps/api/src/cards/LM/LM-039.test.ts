@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-039.js";
 
-const BASE = "BT8-015";
+const BASE = "BT1-020";
 const CARD = "LM-039";
 const TARGET = "BT1-009";
 
@@ -70,9 +70,16 @@ describe("LM-039 Valkyrimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("valkyrimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("valkyrimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("valkyrimon"), "SecurityAttack") === 1, 2000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -82,25 +89,62 @@ describe("LM-039 Valkyrimon", () => {
   it("shares one once-per-turn budget between the digivolving and attacking windows", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD, as: "valkyrimon" }] },
+        0: {
+          battleArea: [{ card: BASE, as: "base" }],
+          hand: [{ card: CARD, as: "valkyrimon" }],
+          deck: [TARGET, TARGET, TARGET, TARGET, TARGET, TARGET],
+        },
         1: {
           battleArea: [
             { card: TARGET, dp: 3000, as: "first" },
             { card: TARGET, dp: 3000, as: "second" },
           ],
+          security: [TARGET, TARGET, TARGET, TARGET, TARGET, TARGET],
+          deck: [TARGET, TARGET, TARGET, TARGET, TARGET, TARGET],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 8;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("valkyrimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("valkyrimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1, 2000);
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("valkyrimon"));
-    await settle(() => s.state.pendingDecision == null);
-
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("stops its own attack target from being changed on its controller's turn", async () => {

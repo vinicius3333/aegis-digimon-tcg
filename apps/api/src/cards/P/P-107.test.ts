@@ -13,10 +13,10 @@ import "./P-107.js";
 //      BLACK Digimon card in hand for its digivolution cost -2.
 //
 // KB authority (authoritative over printed text):
-//   Q4192: Does not ignore digivolution requirements — only cards that meet them are legal targets.
-//   Q4193: Cannot burst-digivolve or DNA-digivolve; only standard digivolve.
-//   Q4194 / Q2758 / Q2767: Digivolves 1 Digimon only; Tamers cannot be the target.
-//   Q4195: The controller may choose NOT to digivolve (optional).
+//   Q4204: Does not ignore digivolution requirements — only cards that meet them are legal targets.
+//   Q4205: Cannot burst-digivolve or DNA digivolve; only standard digivolve.
+//   Q4206: Digivolves 1 Digimon only; Tamers cannot be the target.
+//   Q4207: The controller may choose NOT to digivolve (optional).
 //   documented behavior source: CanSelectCardCondition = cardSource.IsDigimon && cardSource.HasCardColor(Black);
 //              reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
 
@@ -327,7 +327,7 @@ describe("P-107 (Defense Training)", () => {
     await effects[0]!.resolve(ctx);
 
     // Only the black card should be offered/added — the red one must not appear.
-    // With the current empty `filter: {}`, the red card IS offered, so this assertion fails.
+    // The corrected color filter prevents the red card from being offered.
     const addedToHand = recorder.calls.filter((c) => c.verb === "returnToHand");
     const instancesAdded = addedToHand.flatMap((c) => c.args[0] as string[]);
     expect(instancesAdded).toContain(blackCard.instanceId);
@@ -389,11 +389,11 @@ describe("P-107 (Defense Training)", () => {
     expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
   });
 
-  it(// Q4192 / documented behavior CanSelectCardCondition: IsDigimon && HasCardColor(Black).
+  it(// Q4204 / documented behavior CanSelectCardCondition: IsDigimon && HasCardColor(Black).
   // Now PASSES: the IR override sets the Digivolve `into` filter to
   // `{ kind: ["Digimon"], colors: ["Black"] }`, so only the black Digimon in hand is a
   // legal target — digivolveFromInstance is invoked with the black instance, never red.
-  "OnDeclaration <Delay> only digivolves into a BLACK Digimon in hand (Q4192 / documented behavior HasCardColor(Black))", async () => {
+  "OnDeclaration <Delay> only digivolves into a BLACK Digimon in hand (Q4204 / documented behavior HasCardColor(Black))", async () => {
     const recorder: Recorder = { calls: [] };
     const blackDigimon = { instanceId: "INST#BLACK-D", cardId: "BLACK-DIGIMON", ownerSeat: 0 as Seat };
     const redDigimon = { instanceId: "INST#RED-D", cardId: "RED-DIGIMON", ownerSeat: 0 as Seat };
@@ -445,8 +445,8 @@ describe("P-107 (Defense Training)", () => {
     expect(recorder.calls.filter((c) => c.verb === "subscribeReplacement")).toHaveLength(0);
   });
 
-  it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4195: choosing not to is allowed)", async () => {
-    // Q4195: "Can I activate this card's <Delay> effect but choose to not digivolve? Yes, you can."
+  it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4207: choosing not to is allowed)", async () => {
+    // Q4207: "Can I activate this card's <Delay> effect but choose to not digivolve? Yes, you can."
     // The Digivolve action is optional; declining the prompt must skip digivolveFromInstance
     // even though a legal black target is available.
     const recorder: Recorder = { calls: [] };

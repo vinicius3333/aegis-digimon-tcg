@@ -200,8 +200,8 @@ describe("EX7-035 Triceramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-039", as: "host", dp: 9000, under: ["EX7-035"] }],
-          hand: ["BT1-009", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          battleArea: [{ card: "BT1-080", as: "host", dp: 9000, under: ["EX7-035"] }],
+          hand: [{ card: "BT1-112", as: "scissor" }, "BT1-009", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
           deck: ["BT1-009", "BT1-011"],
           security: ["BT1-009", "BT1-011"],
         },
@@ -223,6 +223,12 @@ describe("EX7-035 Triceramon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scissor").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("scissor").instanceId));
     const attack = (target: string) =>
       s.engine.applyIntent(0, {
         type: "attack",

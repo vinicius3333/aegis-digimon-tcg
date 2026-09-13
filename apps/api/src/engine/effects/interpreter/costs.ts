@@ -1907,8 +1907,12 @@ export async function payCost(
                 const permanent = ctx.game.permanentById(sourcePermanentId);
                 if (permanent?.topCard === undefined) return false;
                 const topInstanceId = permanent.topCard.instanceId;
+                const toTop =
+                  cost.position === "choice"
+                    ? (await ctx.ask.chooseOption(ctx, ["top", "bottom"])) === 0
+                    : cost.position !== "bottom";
                 await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
-                  toTop: cost.position !== "bottom",
+                  toTop,
                   detachPermanentTop: cost.detachPermanentTop === true,
                 });
                 if (cost.detachPermanentTop === true) {

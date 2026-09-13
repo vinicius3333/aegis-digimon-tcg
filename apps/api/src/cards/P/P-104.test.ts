@@ -326,7 +326,7 @@ describe("P-104 (Mental Training)", () => {
     await effects[0]!.resolve(ctx);
 
     // Only the blue card should be offered/added — the red one must not appear.
-    // With the current empty `filter: {}`, the red card IS offered, so this assertion fails.
+    // The corrected color filter prevents the red card from being offered.
     const addedToHand = recorder.calls.filter((c) => c.verb === "returnToHand");
     const instancesAdded = addedToHand.flatMap((c) => c.args[0] as string[]);
     expect(instancesAdded).toContain(blueCard.instanceId);

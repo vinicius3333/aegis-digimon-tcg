@@ -64,7 +64,7 @@ describe("P-168 Yao Qinglan", () => {
             { card: "BT1-033", as: "placed" },
             { card: "BT7-027", as: "whamon" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -87,7 +87,7 @@ describe("P-168 Yao Qinglan", () => {
   it("plays itself for free from Security", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "P-168", as: "yao" }, "BT1-001"] },
+        0: { security: [{ card: "P-168", as: "yao" }, "BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

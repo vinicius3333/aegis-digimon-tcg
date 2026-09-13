@@ -16,15 +16,22 @@ describe("P-046 Wizardmon", () => {
           hand: [
             { card: "BT2-107", as: "first" },
             { card: "BT2-107", as: "second" },
+            { card: "BT2-107", as: "third" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010"],
         },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
     const firstId = s.inst("first").instanceId;
     const secondId = s.inst("second").instanceId;
+    const thirdId = s.inst("third").instanceId;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: firstId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === firstId));
@@ -35,6 +42,18 @@ describe("P-046 Wizardmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === secondId));
     await settle();
     expect(s.state.memory).toBe(9);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeThird = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: thirdId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === thirdId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(beforeThird);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Q5519: does not trigger when a Delay effect activates without using an Option card", async () => {

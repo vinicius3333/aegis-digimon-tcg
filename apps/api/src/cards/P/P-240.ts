@@ -169,7 +169,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Proximamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

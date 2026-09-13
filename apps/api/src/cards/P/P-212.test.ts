@@ -54,9 +54,9 @@ describe("P-212 engine behavior", () => {
         0: {
           hand: [
             { card: "P-212", as: "asuna" },
-            { card: "BT24-002", as: "binding" },
+            { card: "BT24-091", as: "binding" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },

@@ -279,7 +279,7 @@ describe("EX7-009 Lavorvomon", () => {
   });
 
   it("applies inherited +2000 DP only during its owner's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-009"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-024", dp: 3000, as: "host", under: ["EX7-009"] }] } });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(5000);
     s.state.turnSeat = 1;

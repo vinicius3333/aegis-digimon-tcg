@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { Phase } from "@aegis/shared";
 import "./P-138.js";
 
 describe("P-138 Veedramon", () => {
@@ -61,5 +62,38 @@ describe("P-138 Veedramon", () => {
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     await settle();
     expect(s.state.memory).toBe(1);
+  });
+
+  it("denies a second same-turn unsuspend trigger and resets on the next natural turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-029", as: "host", under: ["P-138"], suspended: true }],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.phase).toBe(Phase.Main);
+    const afterFirst = s.state.memory;
+    expect(afterFirst).toBe(1);
+
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await settle();
+    expect(s.state.memory).toBe(afterFirst);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    // The natural turn transition restores the 3-memory baseline, then the reset trigger gains 1.
+    expect(s.state.memory).toBe(4);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -1,8 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Delay is granted only while the opponent has a Digimon and is consumed by the
-// optional trash-to-deck play effect.
+// The printed Delay effect is available at the start of your turn only while the
+// opponent has a Digimon, and returns a DM Digimon from trash to the deck top.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -35,11 +35,14 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: ["hand"],
               },
               count: 1,
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "PlaceInBattleAreaSelf",
@@ -48,33 +51,18 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "StartOfYourTurn",
+      condition: {
+        kind: "opponentHas",
+        filter: {
+          controllerDefault: "opponent",
+          kind: ["Digimon"],
+        },
+        raw: "your opponent has a Digimon",
+      },
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Delay",
-            raw: "＜Delay＞",
-          },
-          duration: "permanent",
-          condition: {
-            kind: "opponentHas",
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            raw: "your opponent has a Digimon",
-          },
-        },
-        {
           kind: "PlayWithoutCost",
-          requiresDelayArmed: true,
           target: {
             filter: {
               controller: "mine",
@@ -92,9 +80,11 @@ const compiled: CompiledCard = {
           payCost: false,
           cost: {
             kind: "return",
+            to: "deckTop",
             target: {
               filter: {
                 controller: "mine",
+                zone: ["trash"],
                 kind: ["Digimon"],
                 nameOrTrait: [
                   {

@@ -3,6 +3,7 @@ import { getCompiledCard } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./P-131.js";
 import "./P-141.js";
 
 describe("P-141 MameTyramon", () => {
@@ -70,7 +71,7 @@ describe("P-141 MameTyramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", suspended: true, under: [{ card: "P-141", as: "inherited" }] }],
+          battleArea: [{ card: "BT1-080", as: "host", suspended: true, under: [{ card: "P-141", as: "inherited" }] }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -80,5 +81,59 @@ describe("P-141 MameTyramon", () => {
     await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 1);
     await settle();
     expect(s.perm("host").isSuspended).toBe(false);
+  });
+
+  it("limits the top unsuspend trigger in a real turn and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-141", as: "mame", suspended: true }],
+          hand: ["P-131", "P-131", "P-131", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "body" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+      },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const playPteromon = async () => {
+      const card = s.state.players[0]!.hand.find((c) => c.cardId === "P-131");
+      expect(card).toBeDefined();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card!.instanceId })).toEqual({ ok: true });
+      await settle();
+    };
+
+    await advance(s.engine).verb.suspend([s.perm("mame").permanentId]);
+    await playPteromon();
+    expect(s.perm("body").isSuspended).toBe(true);
+    expect(s.perm("mame").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("mame").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("body").permanentId]);
+    await playPteromon();
+    expect(s.perm("body").isSuspended).toBe(true);
+    expect(s.perm("mame").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("body").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("mame").permanentId]);
+    await playPteromon();
+    expect(s.perm("body").isSuspended).toBe(true);
+    expect(s.perm("mame").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
             kind: "youHaveNone",
             filter: {
               controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Bishop Device"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Bishop Device"], match: "nameExact" }],
             },
             raw: "you don't have [Bishop Device]",
           },

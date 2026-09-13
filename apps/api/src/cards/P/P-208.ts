@@ -38,11 +38,15 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"],
-                  match: "trait",
+                  match: "traitContains",
                 },
+              ],
+              orFilters: [
                 {
-                  tokens: ["TS"],
-                  match: "trait",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                 },
               ],
             },
@@ -76,11 +80,15 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"],
-                  match: "trait",
+                  match: "traitContains",
                 },
+              ],
+              orFilters: [
                 {
-                  tokens: ["TS"],
-                  match: "trait",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                 },
               ],
             },

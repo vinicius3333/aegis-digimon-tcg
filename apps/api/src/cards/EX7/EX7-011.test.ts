@@ -197,7 +197,7 @@ describe("EX7-011 Megadramon", () => {
 
   it("uses inherited Piercing to check security after deleting an opposing battle target", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", dp: 7000, as: "attacker", under: ["EX7-011"] }] },
+      0: { battleArea: [{ card: "BT1-025", dp: 7000, as: "attacker", under: ["EX7-011"] }] },
       1: { security: ["BT1-009"], battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "defender" }] },
     });
     await s.ready();

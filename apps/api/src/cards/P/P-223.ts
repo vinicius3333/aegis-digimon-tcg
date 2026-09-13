@@ -17,31 +17,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "BeforePayCost",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
+          kind: "CostModifier",
+          costType: "play",
+          mode: "reduce",
+          amount: 4,
+          handResident: true,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "you have 3 or fewer security cards",
           },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 4,
-              raw: "reduce the play cost by 4",
-              condition: {
-                kind: "zoneCount",
-                seat: "mine",
-                zone: "security",
-                op: "lte",
-                value: 3,
-                raw: "you have 3 or fewer security cards",
-              },
-            },
-          ],
         },
       ],
     },
@@ -101,6 +94,17 @@ const compiled: CompiledCard = {
         },
       ],
       frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Sakuyamon"],
+        },
+      ],
     },
   ],
   coverage: "full",

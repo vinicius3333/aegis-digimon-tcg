@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { getCompiledCard } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -45,17 +44,35 @@ describe("P-139 Leomon (X Antibody)", () => {
 
   it("applies -3000 DP on the live When Digivolving window", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "P-139", as: "source" }] },
+      0: {
+        battleArea: [{ card: "BT14-048", as: "base" }],
+        hand: [{ card: "P-139", as: "source" }],
+        deck: ["BT1-009"],
+        security: ["BT1-090"],
+      },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
     });
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle();
+    const baseId = s.inst("base").instanceId;
+    const sourceId = s.inst("source").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: sourceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "P-139" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("base").topCard?.instanceId).toBe(sourceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
     expect(s.perm("target").currentDP).toBe(1000);
   });
 
   it("grants Blocker and Fortitude while Leomon/X Antibody is in its stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "P-139", as: "source", under: ["BT9-050"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-139", as: "source", under: ["BT9-109"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Fortitude")).toBe(true);
@@ -63,13 +80,13 @@ describe("P-139 Leomon (X Antibody)", () => {
 
   it("recovers the top deck card when deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "source", under: ["P-139"] }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT17-036", as: "source", under: ["P-139"] }], deck: ["BT1-009"] },
     });
     await s.ready();
     const sourceId = s.perm("source").permanentId;
     expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
   });
 });

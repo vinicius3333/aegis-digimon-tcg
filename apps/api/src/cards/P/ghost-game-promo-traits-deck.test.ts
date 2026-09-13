@@ -17,11 +17,11 @@ describe("Ghost Game promo trait decks", () => {
             { card: "P-062", as: "hiro" },
             { card: "P-063", as: "ruli" },
             { card: "P-064", as: "kiyoshiro" },
-            { card: "BT1-010", as: "gammamonHost", under: ["P-059"] },
-            { card: "BT1-014", as: "angoramonHost", under: ["P-060"] },
-            { card: "BT1-009", as: "jellymonHost", under: ["P-061"] },
+            { card: "BT1-014", as: "gammamonHost", under: ["P-059"] },
+            { card: "BT1-069", as: "angoramonHost", under: ["P-060"] },
+            { card: "BT1-036", as: "jellymonHost", under: ["P-061"] },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: {
           battleArea: [

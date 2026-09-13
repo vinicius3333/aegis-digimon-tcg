@@ -75,7 +75,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Creepymon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

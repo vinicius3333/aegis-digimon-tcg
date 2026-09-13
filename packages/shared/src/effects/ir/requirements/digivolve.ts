@@ -78,6 +78,8 @@ export interface DigivolutionRequirement {
    */
   minNameStackCount?: number;
   minNameStackNames?: string[];
+  /** Use substring matching only for printed “in its name” stack gates; named-card gates default to exact. */
+  minNameStackMatch?: "exact" | "contains";
   /**
    * The structured stack-count gate used by multi-Spirit cards (BT18-102; KB Q3055). Distinct
    * from `minTraitStackCount`/`minTraitStackTraits`, which carry a single count + trait-list pair.

@@ -186,7 +186,7 @@ describe("EX7-032 Galemon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", dp: 7000, under: ["EX7-032"] },
+          { card: "BT11-053", as: "host", dp: 7000, under: ["EX7-032"] },
           { card: "BT1-009", as: "other", dp: 7000 },
         ],
       },
@@ -222,7 +222,7 @@ describe("EX7-032 Galemon", () => {
 
   it("does not gain memory when the host loses the battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 3000, under: ["EX7-032"] }] },
+      0: { battleArea: [{ card: "BT11-053", as: "host", dp: 3000, under: ["EX7-032"] }] },
       1: { battleArea: [{ card: "BT1-010", as: "defender", dp: 7000, suspended: true }] },
     });
     s.state.memory = 2;
@@ -242,8 +242,8 @@ describe("EX7-032 Galemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-039", as: "host", dp: 9000, under: ["EX7-032"] }],
-          hand: ["BT1-009", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          battleArea: [{ card: "BT11-053", as: "host", dp: 9000, under: ["EX7-032"] }],
+          hand: [{ card: "BT1-112", as: "scissor" }, "BT1-009", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
           deck: ["BT1-009", "BT1-011", "BT1-012"],
           security: ["BT1-009", "BT1-011"],
         },
@@ -260,6 +260,12 @@ describe("EX7-032 Galemon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scissor").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.state.memory).toBe(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("scissor").instanceId));
     const attack = (target: string) =>
       s.engine.applyIntent(0, {
         type: "attack",
