@@ -610,6 +610,123 @@ describe("Guard departure lifecycle", () => {
     assertNoLoudGap(s);
   });
 
+  it("keeps a paid Guard stack's inherited OnDeletion and then resolves sibling Detach", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [NEUTRAL], hand: [{ card: "ST1-16", as: "option" }], deck: [NEUTRAL, NEUTRAL] },
+        1: {
+          battleArea: [
+            { card: "EX13-052", as: "guard", under: [{ card: "BT6-005", as: "onDeletionSource" }, "ST13-07"] },
+            { card: "BT26-019", as: "target", linked: [{ card: "BT26-010", as: "link" }] },
+          ],
+          deck: [{ card: "BT6-067", as: "revealedBlack" }],
+          security: [NEUTRAL],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false, autoChooseOption: false, autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const guardPermanentId = s.perm("guard").permanentId;
+    const guardTopId = s.perm("guard").topCard.instanceId;
+    const guardStackIds = s.perm("guard").stack.map(({ instanceId }) => instanceId);
+    const targetId = s.perm("target").permanentId;
+    const targetCardId = s.perm("target").topCard.instanceId;
+    const linkId = s.inst("link").instanceId;
+    const revealedBlackId = s.inst("revealedBlack").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [targetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.state.pendingDecision!;
+    const triggerKeys = JSON.parse(order.payloadJson ?? "{}").triggerKeys as string[];
+    const guardKey = triggerKeys.find((key) => key.split("/").at(-1) === "EX13-052");
+    expect(guardKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [guardKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const guardDecision = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === guardDecision.decisionId)?.req.sourceCardId).toBe(
+      "EX13-052",
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: guardDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const detachDecision = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === detachDecision.decisionId)?.req.sourceCardId).toBe(
+      "BT26-019",
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: detachDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [linkId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const deletionOrder = s.state.pendingDecision!;
+    const deletionPayload = JSON.parse(deletionOrder.payloadJson ?? "{}") as {
+      triggerKeys?: string[];
+      triggerCardIds?: string[];
+    };
+    const inheritedIndex = deletionPayload.triggerCardIds?.indexOf("BT6-005") ?? -1;
+    const inheritedKey = inheritedIndex >= 0 ? deletionPayload.triggerKeys?.[inheritedIndex] : undefined;
+    expect(inheritedKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletionOrder.decisionId,
+        response: { kind: "orderTriggers", order: [inheritedKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const revealDecision = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === revealDecision.decisionId)?.req.sourceCardId).toBe(
+      "BT6-005",
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: revealDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [revealedBlackId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([targetId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [linkId, guardTopId, ...guardStackIds].sort(),
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(targetCardId);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([revealedBlackId]);
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(
+      s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT6-005"),
+    ).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(guardPermanentId);
+    expect(s.perm("target").linked.map(({ instanceId }) => instanceId)).toEqual([]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("falls back to Guard when Detach has only a non-Seven-Code linked card", async () => {
     const s = setupEngine(
       {
