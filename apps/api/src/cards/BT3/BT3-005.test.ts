@@ -61,6 +61,8 @@ describe("BT3-005 Kakkinmon", () => {
   it("gains memory only once when its level 7 host attacks twice in one turn", async () => {
     const s = setupEngine({
       0: {
+        deck: ["BT1-013", "BT1-014", "BT1-015"],
+        hand: ["BT1-009"],
         battleArea: [
           {
             card: "BT9-111",
@@ -69,9 +71,11 @@ describe("BT3-005 Kakkinmon", () => {
           },
         ],
       },
-      1: { security: ["BT1-010", "BT1-011"] },
+      1: { security: ["BT1-010", "BT1-011", "BT1-012"], deck: ["BT1-013", "BT1-014", "BT1-015"] },
     });
-    s.state.memory = 0;
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
 
     expect(
       s.engine.applyIntent(0, {
@@ -80,7 +84,7 @@ describe("BT3-005 Kakkinmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
+    await settle(() => s.state.memory === 6);
     await settle(() => !observe(s.engine).isAttacking(), 5000);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
 
@@ -91,7 +95,23 @@ describe("BT3-005 Kakkinmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
-    expect(s.state.memory).toBe(1);
+    await settle(() => s.state.players[1]!.security.length === 1, 5000);
+    expect(s.state.memory).toBe(6);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 6, 5000);
+    expect(s.state.memory).toBe(6);
   });
 });

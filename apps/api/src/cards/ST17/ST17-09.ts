@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controller: "any",
               kind: ["Digimon"],
               levelComparison: {
                 op: "lte",
@@ -59,7 +59,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Antylamon"],
+      namesExact: ["Antylamon"],
       cost: 3,
       isAlternate: true,
     },

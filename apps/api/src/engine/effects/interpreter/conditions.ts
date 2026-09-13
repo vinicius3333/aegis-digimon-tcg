@@ -12,6 +12,7 @@ import {
   selfTopMatchesTrait,
   sourceStackHasSameLevelCards,
   sourceTopDefinition,
+  seatsForController,
 } from "./matching/permanent.js";
 import {
   triggerAddedSecurityMatches,
@@ -805,6 +806,15 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return (ctx.lastDeleteCount ?? 0) === 0;
     case "ifThisEffectDidNotDeleteChosenTarget":
       return ctx.lastDeleteTargetSelected !== true;
+    case "lastDeletedMatchesFilter": {
+      const filter = cond.filter;
+      if (filter === undefined) return false;
+      const allowedSeats = seatsForController(ctx, filter);
+      return (ctx.lastDeletedPermanentSnapshots ?? []).some(
+        ({ controllerSeat, topCard }) =>
+          allowedSeats.includes(controllerSeat) && definitionMatches(filter, ctx.game.definitionOf(topCard)),
+      );
+    }
     case "ifThisEffectUsed":
       // True when an Option-use happened this resolution (bool set by the 08-06 use verb).
       return ctx.lastOptionUsed === true;

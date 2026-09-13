@@ -99,7 +99,7 @@ describe("BT14-054", () => {
         0: {
           battleArea: [{ card: "BT14-049", as: "base", suspended: true }],
           hand: [{ card: "BT14-054", as: "saber" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-042", as: "target", suspended: true }] },
       },

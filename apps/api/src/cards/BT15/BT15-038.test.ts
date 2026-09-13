@@ -14,7 +14,7 @@ import { compiled } from "./BT15-038.js";
 //
 const ANGEWOMON = "BT15-038";
 const OPP_DIGIMON = "BT1-009"; // Monodramon Lv.3, 2000 DP
-const SECURITY_CARD = "BT1-001"; // any card for security stack
+const SECURITY_CARD = "BT1-010"; // neutral non-Digi-Egg card for security stack
 
 describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () => {
   it("registers Blast Digivolve and executable owned-security recovery IR", () => {
@@ -71,8 +71,8 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
           battleArea: [{ card: "BT15-037", as: "base" }],
           hand: [{ card: ANGEWOMON, as: "angewomon" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-009", as: "bottom" },
           ],
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 8000, as: "target" }] },
@@ -100,7 +100,7 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
       0: {
         battleArea: [{ card: ANGEWOMON, as: "angewomon" }],
         security: [{ card: SECURITY_CARD, as: "removed" }],
-        deck: [{ card: "BT1-001", as: "recovery" }],
+        deck: [{ card: "BT1-009", as: "recovery" }],
       },
       1: { battleArea: [{ card: OPP_DIGIMON, as: "opponent" }] },
     });
@@ -109,15 +109,15 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
   });
 
   it("does not recover when the post-removal security count is 4", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: ANGEWOMON, as: "angewomon" }],
-        security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", { card: "BT1-005", as: "removed" }],
-        deck: [{ card: "BT1-006", as: "deckTop" }],
+        security: ["BT1-009", "BT1-010", "BT1-009", "BT1-010", { card: "BT1-009", as: "removed" }],
+        deck: [{ card: "BT1-010", as: "deckTop" }],
       },
     });
 
@@ -131,10 +131,10 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
     const s = setupEngine({
       0: {
         battleArea: [{ card: ANGEWOMON, as: "angewomon" }],
-        security: ["BT1-001", "BT1-002"],
-        deck: ["BT1-003", "BT1-004", "BT1-005"],
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-009", "BT1-010", "BT1-009"],
       },
-      1: { security: ["BT1-006"] },
+      1: { security: ["BT1-010"] },
     });
 
     await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
@@ -149,10 +149,10 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
     const s = setupEngine({
       0: {
         battleArea: [{ card: ANGEWOMON, as: "angewomon" }],
-        security: ["BT1-001", "BT1-002"],
-        deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"],
       },
-      1: { deck: ["BT1-007"] },
+      1: { deck: ["BT1-009"] },
     });
 
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
@@ -171,7 +171,7 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
       1: {
         battleArea: [{ card: "BT15-037", as: "base" }],
         hand: [{ card: ANGEWOMON, as: "angewomon" }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     s.state.memory = 0;

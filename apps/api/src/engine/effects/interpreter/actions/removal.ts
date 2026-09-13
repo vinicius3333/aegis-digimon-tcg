@@ -17,7 +17,7 @@ import {
   resolveTotalPlayCostBudgetTargets,
   topInstanceIds,
 } from "../targeting/permanents.js";
-import type { Action, Permanent, Target } from "@aegis/shared";
+import type { Action, CardInstance, Permanent, Seat, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
 
@@ -33,6 +33,19 @@ type StackFirstAction = {
   order?: "any";
   returnDigivolutionCardsFirst?: boolean;
 };
+
+function deletedPermanentSnapshots(
+  ctx: EffectContext,
+  ids: readonly string[],
+): Array<{ permanentId: string; controllerSeat: Seat; topCard: CardInstance }> {
+  return ids.flatMap((permanentId) => {
+    const permanent = ctx.game.permanentById(permanentId);
+    const topCard = permanent?.topCard;
+    return permanent === undefined || topCard === undefined
+      ? []
+      : [{ permanentId, controllerSeat: permanent.controllerSeat, topCard }];
+  });
+}
 
 async function returnDigivolutionCardsFirst(
   ctx: EffectContext,
@@ -164,6 +177,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           : await resolvePermanentTargets(ctx, target, { preserveUnaffectableSelection: true });
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
       ctx.lastDeleteTargetSelected = ids.length > 0;
+      ctx.lastDeletedPermanentSnapshots = [];
       if (action.at === "endOfTurn") {
         for (const id of ids) ctx.fx.delayedDeletePlayed?.(id);
         ctx.lastDeleteCount = 0;
@@ -177,8 +191,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return permanent?.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
       });
       const selectedDP = ids.map((id) => ctx.game.permanentById(id)?.currentDP);
+      const selectedSnapshots = deletedPermanentSnapshots(ctx, ids);
       ctx.lastDeleteCount = ids.length > 0 ? await ctx.fx.deletePermanent(ids) : 0;
       ctx.lastDeletedByThisEffectIds = ids.filter((id) => ctx.game.permanentById(id) === undefined);
+      const actuallyDeleted = new Set(ctx.lastDeletedByThisEffectIds);
+      ctx.lastDeletedPermanentSnapshots = selectedSnapshots.filter(({ permanentId }) =>
+        actuallyDeleted.has(permanentId),
+      );
       ctx.lastDeletedLevel =
         ctx.lastDeletedByThisEffectIds.length > 0 ? selectedLevels.find((level) => level !== undefined) : undefined;
       ctx.lastDeletedDP =
@@ -249,6 +268,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       if (toDelete === 0) {
         ctx.lastDeleteCount = 0;
         ctx.lastDeletedByThisEffectIds = [];
+        ctx.lastDeletedPermanentSnapshots = [];
         ctx.lastEffectActed = false;
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -258,10 +278,15 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       const target: Target = { ...action.target, count: toDelete };
       const selected = await resolvePermanentTargets(ctx, target);
+      const selectedSnapshots = deletedPermanentSnapshots(ctx, selected);
       const deleted = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       const actuallyDeleted = deleted > 0 ? selected.filter((id) => ctx.game.permanentById(id) === undefined) : [];
       ctx.lastDeleteCount = deleted;
       ctx.lastDeletedByThisEffectIds = actuallyDeleted;
+      const actuallyDeletedSet = new Set(actuallyDeleted);
+      ctx.lastDeletedPermanentSnapshots = selectedSnapshots.filter(({ permanentId }) =>
+        actuallyDeletedSet.has(permanentId),
+      );
       ctx.lastEffectActed = deleted > 0;
       if (action.trackCount !== undefined) {
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -436,6 +461,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       if (candidates.length === 0) {
         ctx.lastDeleteCount = 0;
         ctx.lastDeletedByThisEffectIds = [];
+        ctx.lastDeletedPermanentSnapshots = [];
         return false;
       }
       // Sort ascending by live DP so the greedy pass picks cheapest first.
@@ -453,6 +479,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           spent += candidate.dp;
         }
       }
+      const selectedSnapshots = deletedPermanentSnapshots(ctx, selected);
       const deleted = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       ctx.lastDeleteCount = deleted;
       // `selected` is the ATTEMPTED set; deletePermanent silently no-ops entries a
@@ -464,6 +491,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // itself uses internally (there is no id-level return from the primitive, only a count).
       ctx.lastDeletedByThisEffectIds =
         deleted > 0 ? selected.filter((id) => ctx.game.permanentById(id) === undefined) : [];
+      const actuallyDeletedSet = new Set(ctx.lastDeletedByThisEffectIds);
+      ctx.lastDeletedPermanentSnapshots = selectedSnapshots.filter(({ permanentId }) =>
+        actuallyDeletedSet.has(permanentId),
+      );
       return false;
     }
     case "AddToDPDeleteBudget": {

@@ -63,6 +63,73 @@ describe("BT15-091", () => {
     expect(s.perm("host").stack).toHaveLength(2);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(destinationId);
   });
+
+  it.each([
+    ["Garurumon then WereGarurumon", ["garurumon", "weregarurumon"]],
+    ["WereGarurumon then Garurumon", ["weregarurumon", "garurumon"]],
+  ] as const)("lets the controller choose %s before the optional evolution", async (_label, aliases) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-020", as: "host", under: [{ card: "BT15-002", as: "priorSource" }] }],
+          trash: [
+            { card: "BT15-024", as: "garurumon" },
+            { card: "BT15-026", as: "weregarurumon" },
+          ],
+          hand: [
+            { card: "BT15-091", as: "option" },
+            { card: "BT15-101", as: "destination" },
+          ],
+        },
+      },
+      { autoOrderCards: false, autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const payment = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: payment.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const order = s.state.pendingDecision!;
+    const requestedOrder = aliases.map((alias) => s.inst(alias).instanceId);
+    expect(JSON.parse(order.payloadJson)).toMatchObject({ min: 2, max: 2 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderCards", order: requestedOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const evolution = s.state.pendingDecision!;
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      ...requestedOrder,
+      s.inst("priorSource").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolution.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("host").topCard.cardId).toBe("BT15-020");
+    expect(s.state.memory).toBe(6);
+    for (const materialId of requestedOrder) {
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(materialId);
+    }
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("destination").instanceId);
+  });
   it.each([
     ["missing exact Garurumon", "BT15-020", ["BT15-026"], "BT15-101"],
     ["Garurumon X Antibody payment", "BT15-020", ["BT9-024", "BT15-026"], "BT15-101"],
@@ -163,6 +230,7 @@ describe("BT15-091", () => {
       kind: "CostGatedBlock",
       cost: {
         kind: "compound",
+        orderPlacedCards: true,
         costs: [
           { kind: "place", bindHostAs: "bt15091Gabumon", position: "bottom" },
           { kind: "place", host: { filter: { boundRef: "bt15091Gabumon" } }, position: "bottom" },

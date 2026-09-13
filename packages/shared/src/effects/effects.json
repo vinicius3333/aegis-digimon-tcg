@@ -29527,7 +29527,6 @@
       },
       {
         "trigger": "YourTurn",
-        "frequency": "OncePerTurn",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -30034,6 +30033,7 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "compound",
+              "orderPlacedCards": true,
               "costs": [
                 {
                   "kind": "place",
@@ -35398,6 +35398,7 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "compound",
+              "orderPlacedCards": true,
               "costs": [
                 {
                   "kind": "place",
@@ -61323,6 +61324,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "battleArea",
                 "nameOrTrait": [{ "tokens": ["Knight Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Knight Device]"
@@ -61337,13 +61339,13 @@
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 4000,
-            "duration": "untilOpponentTurnEnd"
+            "duration": "forTheTurn"
           },
           {
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
             "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-            "duration": "untilOpponentTurnEnd"
+            "duration": "forTheTurn"
           },
           { "kind": "PlaceInBattleAreaSelf" }
         ]
@@ -61355,13 +61357,13 @@
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 4000,
-            "duration": "untilOpponentTurnEnd"
+            "duration": "forTheTurn"
           },
           {
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
             "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-            "duration": "untilOpponentTurnEnd"
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -107283,7 +107285,8 @@
                   "position": "bottom",
                   "host": { "filter": { "boundRef": "gaomonHost" }, "count": 1 }
                 }
-              ]
+              ],
+              "orderPlacedCards": true
             },
             "optional": true,
             "abortOnDecline": true,
@@ -107300,7 +107303,10 @@
                   "count": 1,
                   "fromSelectionRef": "gaomonHost"
                 },
-                "into": { "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "nameExact" }] },
+                "into": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "nameExact" }]
+                },
                 "from": ["hand"],
                 "payCost": false,
                 "ignoreRequirements": true,
@@ -107317,9 +107323,17 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }] },
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Gaomon"], "match": "nameExact" }]
+              },
               "orFilters": [
-                { "kind": ["Tamer"], "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "nameExact" }] }
+                {
+                  "controller": "mine",
+                  "kind": ["Tamer"],
+                  "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "nameExact" }]
+                }
               ],
               "count": 1,
               "upTo": true
@@ -156538,7 +156552,6 @@
       },
       {
         "trigger": "WhenAttacking",
-        "isInherited": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -207853,7 +207866,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gummymon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gummymon"], "cost": 0, "isAlternate": true }]
   },
   "ST17-03": {
     "effects": [
@@ -207884,7 +207897,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Kokomon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Kokomon"], "cost": 0, "isAlternate": true }]
   },
   "ST17-04": {
     "effects": [
@@ -207909,8 +207922,9 @@
             "from": ["trash"],
             "payCost": false,
             "condition": {
-              "kind": "ifThisEffectActed",
-              "raw": "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name"
+              "kind": "lastDeletedMatchesFilter",
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "raw": "this effect deleted one of your Digimon"
             },
             "optional": true
           }
@@ -207937,8 +207951,9 @@
             "from": ["trash"],
             "payCost": false,
             "condition": {
-              "kind": "ifThisEffectActed",
-              "raw": "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name"
+              "kind": "lastDeletedMatchesFilter",
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "raw": "this effect deleted one of your Digimon"
             },
             "optional": true
           }
@@ -208186,11 +208201,7 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": {
-                "controllerDefault": "opponent",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "lte", "value": 4 }
-              },
+              "filter": { "controller": "any", "kind": ["Digimon"], "levelComparison": { "op": "lte", "value": 4 } },
               "count": 1
             },
             "optional": true
@@ -208215,7 +208226,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Antylamon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Antylamon"], "cost": 3, "isAlternate": true }]
   },
   "ST17-10": {
     "effects": [
@@ -208378,7 +208389,8 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "name" }]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -208440,7 +208452,7 @@
         "actions": [
           {
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1
           },
           {
@@ -208484,7 +208496,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Veemon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Veemon"], "cost": 3, "isAlternate": true }]
   },
   "ST18-01": {
     "effects": [
@@ -209741,7 +209753,7 @@
           {
             "kind": "SelectBind",
             "target": {
-              "filter": { "controller": "mine", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+              "filter": { "controller": "mine", "kind": ["Digimon"], "digivolutionStackKind": ["Digimon"] },
               "count": 1,
               "bindAs": "chosenHost"
             }
@@ -209758,8 +209770,7 @@
               "count": 1
             },
             "from": ["digivolutionCards"],
-            "payCost": false,
-            "optional": true
+            "payCost": false
           }
         ]
       },
@@ -209777,10 +209788,6 @@
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "to": "hand"
-          },
-          {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" }
           }
         ]
       },

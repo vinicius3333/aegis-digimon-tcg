@@ -52,7 +52,7 @@ describe("BT15-049", () => {
         1: {
           battleArea: [{ card: "BT15-048", as: "base" }],
           hand: [{ card: "BT15-049", as: "megakabuterimon" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -28,7 +28,7 @@ describe("BT14-098", () => {
           battleArea: [{ card: "BT14-058", as: "source" }],
           hand: [{ card: "BT14-098", as: "option" }],
           trash: ["BT14-056", "BT14-060", "BT14-064"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -81,7 +81,7 @@ describe("BT14-098", () => {
         1: {
           security: [{ card: "BT14-098", as: "securityOption" }],
           trash: ["BT14-056", "BT14-060", "BT14-064"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

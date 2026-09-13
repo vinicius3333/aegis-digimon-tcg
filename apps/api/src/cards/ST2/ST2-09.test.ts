@@ -29,7 +29,11 @@ describe("ST2-09 Zudomon", () => {
   it("trashes two bottom sources of an opposing Digimon when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST2-06", as: "base" }], hand: [{ card: "ST2-09", as: "zudomon" }] },
+        0: {
+          battleArea: [{ card: "ST2-06", as: "base" }],
+          hand: [{ card: "ST2-09", as: "zudomon" }],
+          deck: [{ card: "ST1-02", as: "drawn" }],
+        },
         1: {
           battleArea: [
             {
@@ -55,6 +59,10 @@ describe("ST2-09 Zudomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 1);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("zudomon").instanceId);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("bottom").instanceId, s.inst("next").instanceId]),
     );
@@ -64,7 +72,11 @@ describe("ST2-09 Zudomon", () => {
   it("trashes the only source when the chosen Digimon has fewer than two", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST2-06", as: "base" }], hand: [{ card: "ST2-09", as: "zudomon" }] },
+        0: {
+          battleArea: [{ card: "ST2-06", as: "base" }],
+          hand: [{ card: "ST2-09", as: "zudomon" }],
+          deck: [{ card: "ST1-02", as: "drawn" }],
+        },
         1: {
           battleArea: [{ card: "ST1-10", as: "target", under: [{ card: "ST1-03", as: "onlySource" }] }],
         },
@@ -84,5 +96,9 @@ describe("ST2-09 Zudomon", () => {
     );
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("onlySource").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("zudomon").instanceId);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("base").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });

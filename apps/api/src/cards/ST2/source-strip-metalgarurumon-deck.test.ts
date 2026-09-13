@@ -22,7 +22,7 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
         },
         1: {
           battleArea: [{ card: "ST1-10", as: "opponent", under: ["ST1-01", "ST1-03"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["ST1-02", "ST1-03", "ST1-04", "ST1-05", "ST1-07"],
         },
       },
       { autoSelectCards: true },
@@ -81,7 +81,7 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
               under: [{ card: "ST1-03", as: "bottomSource" }],
             },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          security: ["ST1-02", "ST1-03", "ST1-04", "ST1-05", "ST1-07"],
         },
       },
       { autoSelectCards: true },

@@ -1,5 +1,6 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./ST2-01.js";
@@ -82,7 +83,7 @@ describe("ST2-01 Tsunomon", () => {
   it("applies the bonus when its attack is blocked by a source-less Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST2-09", as: "host", under: ["ST2-01", "BT1-028", "BT1-037"] }] },
-      1: { battleArea: [{ card: "BT11-013", as: "blocker" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT11-013", as: "blocker" }], security: ["BT1-028"] },
     });
     const hostId = s.perm("host").permanentId;
     expect(
@@ -231,5 +232,108 @@ describe("ST2-01 Tsunomon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("victim").instanceId, s.inst("security").instanceId].sort(),
     );
+  });
+
+  it("carries the inherited boost through public hatch, digivolve, and move", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "ST2-01", as: "tsunomon" }],
+          hand: [
+            { card: "ST2-02", as: "gomamon" },
+            { card: "ST2-06", as: "garurumon" },
+            { card: "ST2-08", as: "weregarurumon" },
+            { card: "ST2-11", as: "metalgarurumon" },
+          ],
+          battleArea: [{ card: "BT1-028", as: "peer" }],
+          deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028"],
+          security: ["BT1-028"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-028", as: "sourceLessTarget", suspended: true },
+            { card: "BT1-026", as: "megaTarget", suspended: true },
+          ],
+          deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028", "BT1-028"],
+          security: ["BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turnLoop = s.engine.startTurnLoop();
+    const megaTargetId = s.perm("megaTarget").permanentId;
+
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "ST2-01");
+    const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
+    const eggInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
+
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggPermanentId,
+        instanceId: s.inst("gomamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "ST2-02");
+    expect(s.state.players[0]!.breeding!.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.memory).toBe(3);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: megaTargetId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === eggPermanentId));
+    await advance(s.engine).waitForMainPhase(0);
+    const host = s.state.players[0]!.battleArea.find((p) => p.permanentId === eggPermanentId)!;
+    s.state.memory = 10;
+    for (const [alias, memory] of [
+      ["garurumon", 8],
+      ["weregarurumon", 5],
+      ["metalgarurumon", 1],
+    ] as const) {
+      const next = s.inst(alias);
+      expect(
+        s.engine.applyIntent(0, { type: "digivolve", permanentId: host.permanentId, instanceId: next.instanceId }),
+      ).toEqual({ ok: true });
+      await settle(() => host.topCard.instanceId === next.instanceId);
+      expect(s.state.memory).toBe(memory);
+    }
+    expect(host.stack.map(({ cardId }) => cardId)).toEqual(["ST2-01", "ST2-02", "ST2-06", "ST2-08"]);
+    expect(host.stack.map(({ instanceId }) => instanceId)).toEqual([
+      eggInstanceId,
+      s.inst("gomamon").instanceId,
+      s.inst("garurumon").instanceId,
+      s.inst("weregarurumon").instanceId,
+    ]);
+    expect(host.topCard.cardId).toBe("ST2-11");
+    expect(host.topCard.instanceId).toBe(s.inst("metalgarurumon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: host.permanentId,
+        target: { kind: "permanent", permanentId: megaTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === eggPermanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("sourceLessTarget").permanentId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("peer").permanentId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    expect(s.state.gameOver).toBe(true);
+    await turnLoop;
   });
 });

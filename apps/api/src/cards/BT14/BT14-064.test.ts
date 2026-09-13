@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT14-064.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -130,5 +131,77 @@ describe("BT14-064", () => {
       "BT14-089",
     ]);
     expect(s.state.players[0]!.deck.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("resets the inherited deletion watcher on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-067", as: "host", under: ["BT14-064"] },
+            { card: "BT14-055", as: "firstCost" },
+            { card: "BT14-055", as: "secondCost" },
+          ],
+          hand: ["BT1-009"],
+          deck: ["BT16-050", "BT14-082", "BT14-089", "BT16-050", "BT14-083", "BT14-084", "BT14-085", "BT14-087"],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+        },
+        1: {
+          hand: [
+            { card: "BT13-011", as: "deleterA" },
+            { card: "BT13-011", as: "deleterB" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-091", "BT1-091"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const firstCostId = s.perm("firstCost").permanentId;
+    const secondCostId = s.perm("secondCost").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deleterA").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === firstCostId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-050"),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === secondCostId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const secondOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deleterB").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === secondCostId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-050"),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === firstCostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === secondCostId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondOpponentTurn;
   });
 });

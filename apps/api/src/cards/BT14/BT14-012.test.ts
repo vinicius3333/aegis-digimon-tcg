@@ -25,7 +25,7 @@ describe("BT14-012", () => {
           { card: "BT1-085", as: "tai" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 5;
@@ -43,7 +43,7 @@ describe("BT14-012", () => {
   it("still gains attack DP but no memory without Tai Kamiya", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT14-012", as: "greymon" }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     s.state.memory = 5;
     const before = s.perm("greymon").currentDP;
@@ -69,7 +69,7 @@ describe("BT14-012", () => {
             { card: "BT14-012", as: "greymon" },
             { card: "BT14-014", as: "metalGreymon" },
           ],
-          deck: ["BT1-001", "BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-031", as: "deleteTarget" }] },
       },

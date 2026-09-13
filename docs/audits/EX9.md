@@ -1,15 +1,30 @@
 ---
 set: EX9
 cards: 74
-status: incomplete
-verified_at: 2026-09-09
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+status: verified
+verified_at: 2026-09-13
+catalog_commit: c71edba9829fd88b51b46043d964da79c6696dd7
+evidence_commit: a0ff6569cf06a4dd476810947c00af85b8a59f90
 ---
 
 # EX9 audit
 
 ## Status
+
+2026-09-13 fresh recalculation from `b88aeb69f`: **74/74 cards at 10/10,
+740/740 aggregate**. Three Luna lanes reviewed the committed catalog, local
+KB, direct IR, used primitives and existing behavioral/peer/stack proof for
+every card. One missing EX9-025 public lifecycle case was added; card modules
+required no change. Fresh public payment, keyword and lifecycle proof closes
+the previous EX9-009/025/061 caps. All 74 modules register exclusively through
+IR and the entire collection already has no `@ts-nocheck` or `@ts-ignore`.
+The final collection, mechanism and peer gates, serial workspace typecheck,
+scoped style and effect parity pass. Delivery: engine `c756ba193`, focused
+proof `a0ff6569c`, pushed branch `audit-EX9-20260913-incomplete`,
+[PR #4764](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4764).
+Current scores below supersede the historical pre-gate lane reports.
+
+### Superseded checkpoints
 
 2026-09-12 checkpoint at baseline `63f441978` reopens historical whole-collection ten-point credit. Legal public attacks by EX9-009/025/061 exposed incorrect top-position metadata for their deck-to-bottom placement cost. The shared primitive correction closes that event-description gap. Their optional processing conditions also move to whole-effect costs: §15-7-4 requires offering the choice even with an empty deck, and §15-7-5 permits payment without an opposing payload target. Eleven legal public cases cover paid, refused, impossible-payment and targetless-payment paths; synchronized focused, collection, full API and workspace type gates pass; exact results are recorded in the engine owner. Each consumer has a provisional **8/10 cap** until complete category, keyword and lifecycle revalidation. Evidence belongs to [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Historical verification below is superseded as a current collection certificate.
 
@@ -25,6 +40,76 @@ collection run of 924 tests. The 2026-09-09 ledger is the newest complete per-ca
 and therefore wins. The contradictions are listed under Open items.
 
 ## Gates
+
+### 2026-09-13 restart checkpoint
+
+Fresh audit baseline: `b88aeb69f`, isolated branch
+`audit-EX9-20260913-incomplete`. The collection contains 74 production modules,
+74 exclusive `registerIrCard` calls and 78 test files (74 primary suites,
+two additional EX9-074 suites, a collection IR audit and a fuzz suite). A fresh scan of all
+EX9 TypeScript files finds no `@ts-nocheck`, `@ts-ignore`, legacy
+`registerCard` registration or disabled/focused/expected-failure tests.
+No suppression removal is necessary at this baseline.
+
+The initial collection command could not load `@aegis/shared`: the new
+worktree had no dependencies or shared build output. This is an environment
+failure, not behavioral evidence. `pnpm install --frozen-lockfile --offline`
+and `NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/shared build`
+then passed. Fresh collection and mechanism validation is serialized with
+`--maxWorkers=1 --no-file-parallelism`; three Luna review lanes execute no
+test processes. That restart checkpoint withheld current ten-point credit; the closing
+certificate below supersedes it.
+
+### 2026-09-13 closing certificate
+
+Evidence tree: `a0ff6569cf06a4dd476810947c00af85b8a59f90`; catalog owner:
+`c71edba9829fd88b51b46043d964da79c6696dd7`. Exact final behavioral command:
+
+```sh
+TEST_HEAP_MB=2048 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX9 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/BT14/BT14-090.test.ts src/cards/BT25/BT25-096.test.ts src/cards/ST17/ST17-10.test.ts src/cards/EX6/EX6-007.test.ts src/cards/EX6/EX6-009.test.ts src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --reporter=default --reporter=json --outputFile=/tmp/ex9-20260913-merged-results.json
+```
+
+- **276 files / 3,433 tests passed**, zero failures, skips or expected failures;
+  15.32 seconds. JSON file results prove EX9 **78 files / 992 tests**, engine
+  mechanisms **192 files / 2,397 tests**, five affected peer files / 40 tests,
+  and layout / four tests. Nested describe counts are not file counts.
+- Final direct `BT14-090.test.ts` focus: **one file / 11 tests passed**, 7.47 seconds.
+  EX9-025's new case proves exact bottom-source identities, a publicly paid
+  unsuspend Option, same-turn payment suppression, DP expiry on the opposing
+  turn and payment/reset with two face-down sources on the next own turn.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm -r --workspace-concurrency=1 typecheck`:
+  **exit 0**, shared, API and web serialized. The earlier 3072-MB API attempt
+  exhausted its heap; the final 4096-MB run checks the complete final code.
+- `NODE_OPTIONS=--max-old-space-size=4096 pnpm effects:sync:set -- --set EX9 --base b88aeb69f`
+  and the corresponding `effects:check:set`: **exit 0**, 74 records already
+  synchronized, zero semantic changes in EX9, zero semantic or byte changes
+  outside EX9. An earlier supplementary check was stopped when disk free
+  space fell below 1 GiB; no parity result was inferred from that attempt.
+- `pnpm exec oxlint` and `pnpm exec oxfmt --check` for the changed
+  TypeScript files: **exit 0**. Closing documentation `pnpm exec oxfmt --check` passes for EX9, index and
+  engine owner. `pnpm audit:index` refreshes 66 sets; `pnpm audit:index --check`
+  exits 0. Post-refresh `audit-docs.test.ts` passes one file / four tests
+  (90 ms). `git diff --check`: **exit 0**.
+- Final `/Users/viniciusluiz/.agents/skills/autoreview/scripts/autoreview --mode local --engine codex --model gpt-5.6-luna --no-web-search`
+  (read-only, no tests/builds): **exit 0**, no accepted/actionable findings.
+- No EX9 suppression, legacy registration, disabled/focused/expected-failure
+  test, injected timing or probe residue. Existing complete proof was reused
+  for 73 cards; EX9-025 needed one additional behavioral case.
+- The fresh mechanism gate exposed two baseline-red BT14-090 compound payment
+  cases. The minimal shared correction, isolated baseline replay and green
+  proof belong to [activation-costs.md](engine/activation-costs.md#ordered-loose-material-target-host-normalization-2026-09-13).
+
+Atomic delivery commits separate engine/affected regression evidence,
+EX9-025 focused proof, and the complete ledger/index. A normal merge of main
+`e423e12a223a67f5a0808cf46cdf96352edb3834` adopts the published target-host
+normalization while preserving its material-first choices. The complete
+behavioral gate and workspace typecheck were repeated after that integration;
+EX9 modules, catalog and generated effects were unchanged, so the recorded
+zero-change sync/parity proof remains applicable. The pushed branch and
+[PR #4764](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4764) carry
+these commits. Delivery points apply to every freshly reviewed card.
+
+### Historical closing gates (2026-09-09)
 
 Copied from `docs/audits/EX9-reaudit/RUN.md` (commit `678a92fca`, 2026-09-09), section
 "Closing gates before publication".
@@ -65,13 +150,22 @@ Publication, same source:
 
 ## Card ledger
 
-Scores from `docs/audits/EX9-REAUDIT-LEDGER.md` (2026-09-09): aggregate 740/740, 74/74
-cards at 10/10. Each section below merges that card's evidence report from
-`docs/audits/EX9-reaudit/`.
+Fresh 2026-09-13 inventory matches exactly: 74 unique catalog cards, 74 production
+modules, 74 primary card suites, 74 ledger sections, 74 new review entries and
+74 exclusive IR registrations. Each current score is recalculated as 2/2 in
+all five categories, **740/740 aggregate and 74/74 at 10/10**. Runtime focused
+counts below are from the final green collection; EX9-074 includes both extra
+suites. Collection IR-audit and fuzz cases contribute to the 992-test total.
+Historical reports from `docs/audits/EX9-reaudit/` remain below each current
+entry as source context; their pending-gate scores are superseded.
 
 ### EX9-001 — Koromon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-001.test.ts`, lines 70–169,222–365. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -155,6 +249,10 @@ Remaining limitation: Q4741's `<Delay>` activation attempt is proven by the exis
 
 ### EX9-002 — Tsunomon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-002.test.ts`, lines 25–253. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-002`, Tsunomon), a Blue level-2 DigiEgg with `[Lesser]/[DM]/[Ver.2]` traits.
@@ -218,7 +316,11 @@ No card-specific defect or unresolved engine seam found. The implementation alre
 
 ### EX9-003 — Tokomon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-003.test.ts`, lines 24–194,197 onward. Runtime focused proof: **7 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Worker score: **8/10** (pre-gate evidence: 8/8; delivery-gate column: 0/2, coordinator-owned).
 
@@ -285,6 +387,10 @@ No Git writes were performed. No engine files were changed.
 
 ### EX9-004 — Tanemon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-004.test.ts`, lines 45–266. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-004`, Tanemon), a Green level-2 DigiEgg with `[Bulb]/[DM]/[Ver.4]` traits.
@@ -343,7 +449,11 @@ No card-specific implementation defect or engine seam found. The module already 
 
 ### EX9-005 — Negamon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-005.test.ts`, lines 75–242. Runtime focused proof: **13 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -427,7 +537,11 @@ No unresolved EX9-005 behavior or typecheck errors remain.
 
 ### EX9-006 — Pagumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-006.test.ts`, lines 9–255,268–356. Runtime focused proof: **9 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -502,6 +616,10 @@ No unresolved EX9-006 engine seam remains. The only blocked check is the reposit
 
 ### EX9-007 — Agumon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-007.test.ts`, lines 36–196. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-007`, Agumon), a Red level-3 Digimon with `[Reptile]/[DM]/[Ver.1]` traits, play cost 3, and 1,000 DP.
@@ -563,6 +681,10 @@ No EX9-007-specific implementation defect or engine seam found. The module alrea
 
 ### EX9-008 — Biyomon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-008.test.ts`, lines 20–150. Runtime focused proof: **7 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-008`, Biyomon), a Red level-3 Digimon with `[Bird]/[DM]/[Ver.4]` traits, play cost 3, and 1,000 DP.
@@ -623,9 +745,13 @@ No EX9-008-specific implementation defect or engine seam found. The module regis
 
 ### EX9-009 — Greymon
 
-Current score: **8/10, provisional cap**. The public deck-placement metadata failure at `63f441978` supersedes historical ten-point credit. The shared correction and paid/refused/empty controls are owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Full fresh category/lifecycle proof remains open.
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 
-#### Result
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-009.test.ts`, lines 33–240. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+Historical eight-point cap: superseded by the 2026-09-13 public payment, keyword/lifecycle review and green delivery gates. The original deck-placement correction remains owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint).
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -698,6 +824,10 @@ No unresolved EX9-009 engine seam or Q&A gap remains.
 
 ### EX9-010 — Tuskmon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-010.test.ts`, lines 33–255. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-010`, Tuskmon), a Red level-4 Digimon with `[Dinosaur]/[DM]/[Ver.5]` traits, play cost 4, and 4,000 DP.
@@ -760,7 +890,11 @@ No EX9-010-specific implementation defect or engine seam found. The module regis
 
 ### EX9-011 — MetalGreymon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-011.test.ts`, lines 8–215. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2
 behavioral proof, 2/2 peer/evolution-stack proof).
@@ -862,7 +996,11 @@ covered above. No unresolved EX9-011 behavior or typecheck errors remain.
 
 ### EX9-012 — MetalGreymon: Alterous Mode
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-012.test.ts`, lines 42–314. Runtime focused proof: **15 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -939,6 +1077,10 @@ No unresolved EX9-012 engine seam or Q&A gap remains.
 
 ### EX9-013 — BlitzGreymon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-013.test.ts`, lines 32–245,246 onward. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-013`, BlitzGreymon), a Red/Black level-6 Digimon with `[Cyborg]/[DM]/[Ver.1]` traits, play cost 7, and 12,000 DP; it is marked as an Ace card.
@@ -1004,7 +1146,11 @@ No EX9-013-specific implementation defect or engine seam found. The module regis
 
 ### EX9-014 — Gabumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-014.test.ts`, lines 25–68,69 onward. Runtime focused proof: **6 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1076,7 +1222,11 @@ No unresolved EX9-014 engine seam or Q&A gap remains.
 
 ### EX9-015 — Gizamon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-015.test.ts`, lines 9–188. Runtime focused proof: **7 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2
 behavioral proof, 2/2 peer/evolution-stack proof).
@@ -1179,7 +1329,11 @@ EX9-015 behavior or typecheck errors remain.
 
 ### EX9-016 — Betamon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-016.test.ts`, lines 8–77,78 onward. Runtime focused proof: **6 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1246,6 +1400,10 @@ No unresolved EX9-016 engine seam or Q&A gap remains.
 
 ### EX9-017 — Garurumon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-017.test.ts`, lines 7–108,109 onward. Runtime focused proof: **6 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-017`, Garurumon), a Blue level-4 Digimon with `[Beast]/[DM]/[Ver.2]` traits, play cost 5, and 5,000 DP.
@@ -1309,7 +1467,11 @@ No EX9-017-specific implementation defect or engine seam found. The module regis
 
 ### EX9-018 — MetalMamemon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-018.test.ts`, lines 8–383,384 onward. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1380,6 +1542,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-019 — WereGarurumon: Sagittarius Mode
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-019.test.ts`, lines 54–215,216 onward. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-019`, WereGarurumon: Sagittarius Mode), a Blue/Black level-5 Digimon with `[Beastkin]/[ADVENTURE]` traits, play cost 8, and 8,000 DP.
@@ -1444,7 +1610,11 @@ No EX9-019-specific implementation defect or engine seam found. The module regis
 
 ### EX9-020 — CresGarurumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-020.test.ts`, lines 48–184,227–339. Runtime focused proof: **16 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2
 behavioral proof, 2/2 peer/evolution-stack proof).
@@ -1566,6 +1736,10 @@ test errors above.
 
 ### EX9-021 — Omnimon Alter-S
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-021.test.ts`, lines 49–197,198 onward. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-021`, Omnimon Alter-S), a Blue/White/Red level-7 Digimon with `[Holy Warrior]/[DM]/[Ver.1]/[Ver.2]` traits, play cost 15, and 15,000 DP.
@@ -1636,7 +1810,11 @@ No EX9-021-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-022 — Elecmon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-022.test.ts`, lines 50–106,107 onward. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1701,7 +1879,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-023 — Patamon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-023.test.ts`, lines 30–107,108 onward. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1782,7 +1964,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-024 — Hanimon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-024.test.ts`, lines 38–273. Runtime focused proof: **14 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1852,7 +2038,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-025 — Airdramon
 
-Current score: **8/10, provisional cap**. The public deck-placement metadata failure at `63f441978` supersedes historical ten-point credit. The shared correction and paid/refused/empty controls are owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Full fresh category/lifecycle proof remains open.
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-025.test.ts`, lines 33–118,120–207,209 onward; fresh public attack-limit/reset and DP-expiry proof passes. Runtime focused proof: **8 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+Historical eight-point cap: superseded by the 2026-09-13 public payment, keyword/lifecycle review and green delivery gates. The original deck-placement correction remains owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint).
 
 #### Scope and sources
 
@@ -1914,7 +2104,11 @@ No EX9-025-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-026 — Angemon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-026.test.ts`, lines 41,71,86,91,125,191,227,249. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -1994,6 +2188,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-027 — Kokeshimon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-027.test.ts`, lines 46,93,126,165,179,192,279. Runtime focused proof: **15 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-027`, Kokeshimon), a Yellow/Purple level-4 Digimon with `[Puppet]/[LIBERATOR]` traits, play cost 4, and 4,000 DP.
@@ -2056,6 +2254,10 @@ No EX9-027-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-028 — Nanimon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-028.test.ts`, lines 17,53,71,116,161,199,255. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-028`, Nanimon), a Yellow level-4 Digimon with `[Invader]/[DM]/[Ver.4]` traits, play cost 3, and 3,000 DP.
@@ -2116,7 +2318,11 @@ No EX9-028-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-029 — Unimon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-029.test.ts`, lines 41,59,65,94,149,184,233,264. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2185,7 +2391,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-030 — Andromon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-030.test.ts`, lines 25,64,84,116,150,156,204. Runtime focused proof: **18 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2272,6 +2482,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-031 — Etemon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-031.test.ts`, lines 8,92,178,187,211,217,256,299,312. Runtime focused proof: **15 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-031`, Etemon), a Yellow level-5 Digimon with `[Puppet]/[DM]/[Ver.3]` traits, play cost 8, and 8,000 DP.
@@ -2333,7 +2547,11 @@ No EX9-031-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-032 — Karakurumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-032.test.ts`, lines 8,77,90,116,182,252. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2397,6 +2615,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-033 — Kaguyamon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-033.test.ts`, lines 17,35,83,94,106,119,146,170,189,207. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-033`, Kaguyamon), a Yellow/Purple level-6 Digimon with `[Puppet]/[LIBERATOR]` traits, play cost 12, and 12,000 DP.
@@ -2454,7 +2676,11 @@ No EX9-033-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-034 — Kunemon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-034.test.ts`, lines 8,13,18,21,42. Runtime focused proof: **7 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2529,6 +2755,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-035 — Palmon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-035.test.ts`, lines 9,18,24,49,79. Runtime focused proof: **5 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-035`, Palmon), a Green level-3 Digimon with `[Vegetation]/[DM]/[Ver.4]` traits, play cost 3, and 1,000 DP.
@@ -2589,7 +2819,11 @@ No EX9-035-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-036 — Pomumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-036.test.ts`, lines 18,46,66,87,103,105,118. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2655,7 +2889,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-037 — Kabuterimon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-037.test.ts`, lines 9,93,115,121,151,172,206,236,277. Runtime focused proof: **13 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2739,6 +2977,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-038 — Kuwagamon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-038.test.ts`, lines 9,33,70,124,150,156,185,240,270,296. Runtime focused proof: **16 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-038`, Kuwagamon), a Green level-4 Digimon with `[Insectoid]/[DM]/[Ver.4]` traits, play cost 4, and 4,000 DP.
@@ -2799,6 +3041,10 @@ No EX9-038-specific implementation defect or engine seam found. The module is fu
 **Pre-gate score: 8/8. Final lane score: 8/10 until coordinator gates are awarded.**
 
 ### EX9-039 — DarkTyrannomon
+
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-039.test.ts`, lines 9,53,89,103,109,147,193,210. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
 
 #### Scope and sources
 
@@ -2861,7 +3107,11 @@ No EX9-039-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-040 — Parasaurmon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-040.test.ts`, lines 9,44,97,115,120,134,157. Runtime focused proof: **9 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -2939,7 +3189,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-041 — ExTyrannomon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-041.test.ts`, lines 8,60,135,166,202,217,264,285,349,379,405. Runtime focused proof: **18 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3009,6 +3263,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-042 — Toropiamon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-042.test.ts`, lines 43,100,109,121,151,253,340,362. Runtime focused proof: **19 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-042`, Toropiamon), a Green/Purple level-5 Digimon with `[Vegetation]/[WG]` traits, play cost 7, and 7,000 DP.
@@ -3069,7 +3327,11 @@ No EX9-042-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-043 — MetalTyrannomon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-043.test.ts`, lines 31,56,77,97,125,132,186,207,320. Runtime focused proof: **22 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3156,6 +3418,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-044 — Hydramon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-044.test.ts`, lines 10,91,160,164,173,181,194. Runtime focused proof: **14 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-044`, Hydramon), a Green/Purple level-6 Digimon with `[Vegetation]/[WG]` traits, play cost 11, and 11,000 DP.
@@ -3217,7 +3483,11 @@ No EX9-044-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-045 — Cernumon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-045.test.ts`, lines 10,31,55,111,146,171,202,211,227,244,277,304,329. Runtime focused proof: **21 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3297,6 +3567,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-046 — Soundbirdmon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-046.test.ts`, lines 9,19,23,45,60,74. Runtime focused proof: **6 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-046`, Soundbirdmon), a Black level-3 Digimon with `[Avian]` trait, play cost 3, and 1,000 DP.
@@ -3357,7 +3631,11 @@ No EX9-046-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-047 — Eyesmon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-047.test.ts`, lines 10,16,49,75,81,107,128,140. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3423,6 +3701,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-048 — Eyesmon: Scatter Mode
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-048.test.ts`, lines 10,18,22,37,53,68. Runtime focused proof: **6 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-048`, Eyesmon: Scatter Mode), a Black level-4 Digimon with `[Dark Dragon]` trait, play cost 5, and 4,000 DP.
@@ -3481,7 +3763,11 @@ No EX9-048-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-049 — Sukamon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-049.test.ts`, lines 9,21,38,40,52,67,89,155. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3563,6 +3849,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-050 — Numemon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-050.test.ts`, lines 9,53,74,86,107,112,150,171. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-050`, Numemon), a Black level-4 Digimon with `[Mollusk]/[DM]/[Ver.1]` traits, play cost 3, and 3,000 DP.
@@ -3623,7 +3913,11 @@ No EX9-050-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-051 — Monochromon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-051.test.ts`, lines 10–267. Runtime focused proof: **16 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3689,7 +3983,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-052 — Raremon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-052.test.ts`, lines 8–196; Q4806:54–76. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3772,7 +4070,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-053 — Mamemon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-053.test.ts`, lines 8–261; Q4807:95–145. Runtime focused proof: **14 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3839,6 +4141,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-054 — RareRaremon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-054.test.ts`, lines 10–308; Q4808/Q4809:33–58,249–289. Runtime focused proof: **14 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-054`, RareRaremon), a Black level-5 Digimon with `[Undead]` trait, play cost 7, and 7,000 DP.
@@ -3899,7 +4205,11 @@ No EX9-054-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-055 — Abbadomon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-055.test.ts`, lines 8–344; Q4810–Q4812:120–158. Runtime focused proof: **23 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -3965,7 +4275,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-056 — HiAndromon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-056.test.ts`, lines 33–328; Q4813–Q4815:191–328. Runtime focused proof: **21 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4052,6 +4366,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-057 — Abbadomon Core
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-057.test.ts`, lines 8–381; Q4816–Q4821:192–381. Runtime focused proof: **18 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-057`, Abbadomon Core), a Black level-7 Digimon with `[Unidentified]` trait, play cost 15, and 15,000 DP.
@@ -4116,7 +4434,11 @@ No EX9-057-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-058 — Gazimon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-058.test.ts`, lines 8–142; Q4822:64–118. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4198,6 +4520,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-059 — Ogremon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-059.test.ts`, lines 8–276. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-059`, Ogremon), a Purple level-4 Digimon with `[Demon]/[DM]/[Ver.3]` traits, play cost 4, and 4,000 DP.
@@ -4254,6 +4580,10 @@ No EX9-059-specific implementation defect or engine seam found. The module is fu
 **Pre-gate score: 8/8. Final lane score: 8/10 until coordinator gates are awarded.**
 
 ### EX9-060 — Devidramon
+
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-060.test.ts`, lines 8–276. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
 
 #### Scope and sources
 
@@ -4312,9 +4642,13 @@ No EX9-060-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-061 — Devimon
 
-Current score: **8/10, provisional cap**. The public deck-placement metadata failure at `63f441978` supersedes historical ten-point credit. The shared correction and paid/refused/empty controls are owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Full fresh category/lifecycle proof remains open.
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 
-#### Result
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-061.test.ts`, lines 34–57,155–211,210–246,269–315. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+Historical eight-point cap: superseded by the 2026-09-13 public payment, keyword/lifecycle review and green delivery gates. The original deck-placement correction remains owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint).
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4383,7 +4717,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-062 — SkullGreymon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-062.test.ts`, lines 8–299. Runtime focused proof: **20 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4465,6 +4803,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-063 — Digitamamon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-063.test.ts`, lines 8–427. Runtime focused proof: **25 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-063`, Digitamamon), a Purple level-5 Digimon with `[Perfect]/[DM]/[Ver.4]` traits, play cost 8, and 8,000 DP.
@@ -4523,7 +4865,11 @@ No EX9-063-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-064 — Megadramon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-064.test.ts`, lines 8–307. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4609,6 +4955,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-065 — Titamon
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-065.test.ts`, lines 46–344. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-065`, Titamon), a Purple/Green level-6 Digimon with `[Shaman]/[DM]/[Ver.4]` traits, play cost 7, 12,000 DP, and overflow memory 4.
@@ -4668,7 +5018,11 @@ No EX9-065-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-066 — Tai Kamiya & Matt Ishida
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-066.test.ts`, lines 7–205; Q4825/Q4826:47–119. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/mechanism proof).
 
@@ -4751,7 +5105,11 @@ An exploratory combined peer command also included `EX9-065.test.ts`; its two un
 
 ### EX9-067 — Mirai Kinosaki
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-067.test.ts`, lines 7–265; Q4827:36–119. Runtime focused proof: **19 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -4817,7 +5175,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-068 — Analogman
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-068.test.ts`, lines 10–250; Q4828:50–172. Runtime focused proof: **19 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/mechanism proof).
 
@@ -4899,6 +5261,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-069 — Analog Youth
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-069.test.ts`, lines 11–360; Q4829/Q4830/Q4978:126–249,329–359. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-069`, Analog Youth), a White Tamer with `[DM]` trait and play cost 3.
@@ -4961,7 +5327,11 @@ No EX9-069-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-070 — Meat
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-070.test.ts`, lines 8–414. Runtime focused proof: **26 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -5052,7 +5422,11 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-071 — Protein
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-071.test.ts`, lines 8–295; Q4833/Q4834:41–130,243–295. Runtime focused proof: **18 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -5119,6 +5493,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-072 — File Island
 
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-072.test.ts`, lines 8–278; Q4835–Q4840:40–278. Runtime focused proof: **16 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
 #### Scope and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` (`EX9-072`, File Island), a White Option with the `[DM]` trait and play cost 2.
@@ -5183,7 +5561,11 @@ No EX9-072-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-073 — Machinedramon
 
-#### Result
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-073.test.ts`, lines 8–391. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
+
+#### Historical lane result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof).
 
@@ -5268,6 +5650,10 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 **Pre-gate score: 8/8. Final lane score: 8/10 until coordinator gates are awarded.**
 
 ### EX9-074 — Kimeramon
+
+Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+
+2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-074.test.ts`, lines 8–258; also EX9-074.behavior.test.ts and EX9-074.faceDown.test.ts. Runtime focused proof: **26 passing cases** in the primary card suite and the two additional EX9-074 suites. Delivery gates: **2/2** under the current closing certificate.
 
 #### Scope and sources
 
@@ -5444,6 +5830,10 @@ Generated from `node tools/kb/query.mjs card <ID>` on 2026-09-09. Each card repo
 | EX9-074 | Q5003, Q5004, Q5005                                                  | Covered by three focused public-flow suites                 |
 
 ## Open items
+
+Current EX9 open items: **none**. The entries below preserve historical
+contradictions and earlier deferred repository-wide commands. Current scoped
+closing gates and delivery evidence above supersede their EX9 score claims.
 
 - No EX9 card scores below 10/10 in the winning ledger, and the coordinator recorded no
   open engine seam (`docs/audits/EX9-reaudit/REVIEW-NOTES.md`, 2026-09-09).

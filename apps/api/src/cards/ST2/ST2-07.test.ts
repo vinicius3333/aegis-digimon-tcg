@@ -23,7 +23,7 @@ describe("ST2-07 Grizzlymon", () => {
   });
 
   it("has Blocker and loses 2 memory when attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST2-07", as: "grizzlymon" }] }, 1: { security: ["BT1-001"] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST2-07", as: "grizzlymon" }] }, 1: { security: ["ST1-02"] } });
     s.state.memory = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("grizzlymon"), "Blocker")).toBe(true);
@@ -41,7 +41,7 @@ describe("ST2-07 Grizzlymon", () => {
 
   it("can suspend to redirect an opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST2-07", as: "blocker" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "ST2-07", as: "blocker" }], security: ["ST1-02"] },
       1: { battleArea: [{ card: "BT1-028", as: "attacker" }] },
     });
     s.state.turnSeat = 1;

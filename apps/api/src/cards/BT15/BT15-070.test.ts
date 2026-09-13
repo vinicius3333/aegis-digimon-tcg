@@ -24,13 +24,13 @@ describe("BT15-070", () => {
         0: {
           hand: [
             { card: "BT15-070", as: "demidevimon" },
-            { card: "BT1-001", as: "handFiller" },
+            { card: "BT1-009", as: "handFiller" },
           ],
           deck: [
             { card: "BT15-098", as: "myotismonText" },
-            { card: "BT1-001" },
-            { card: "BT1-001" },
-            { card: "BT1-001" },
+            { card: "BT1-009", as: "fillerOne" },
+            { card: "BT1-009", as: "fillerTwo" },
+            { card: "BT1-009", as: "fillerThree" },
           ],
         },
       },
@@ -45,7 +45,14 @@ describe("BT15-070", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("myotismonText").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("myotismonText").instanceId);
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("handFiller").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handFiller").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("fillerOne").instanceId,
+      s.inst("fillerTwo").instanceId,
+      s.inst("fillerThree").instanceId,
+    ]);
   });
   it("deletes the opposing battle partner when deleted after losing a battle", () =>
     expect(compiled.effects?.[1]).toMatchObject({

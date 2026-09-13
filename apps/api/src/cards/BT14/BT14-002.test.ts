@@ -46,7 +46,7 @@ it("keeps a legally evolved blue stack in play after losing a security battle wi
     0: {
       breeding: { card: "BT14-002", as: "bukamon" },
       hand: [{ card: "BT14-019", as: "otamamon" }],
-      deck: ["BT1-001"],
+      deck: ["BT1-009"],
     },
     1: {
       battleArea: [{ card: "BT14-007", as: "fewerSources" }],

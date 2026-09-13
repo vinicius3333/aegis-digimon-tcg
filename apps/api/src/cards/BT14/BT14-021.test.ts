@@ -69,7 +69,7 @@ describe("BT14-021", () => {
   it("accepts Evade after losing a real Raid battle and survives the battle deletion", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-021", as: "syakomon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT14-021", as: "syakomon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "AD1-004", as: "attacker" }] },
       },
       { autoSelectCards: true },

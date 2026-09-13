@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../BT26/BT26-021.js";
 import "../ST17/ST17-02.js";
@@ -146,5 +147,123 @@ describe("BT14-046", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT14-050");
     expect(s.state.memory).toBe(8);
+  });
+
+  it("resets the green Tamer play reduction on the next natural turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-046", as: "togemon" },
+            { card: "BT1-064", as: "other" },
+          ],
+          hand: [
+            { card: "BT1-089", as: "firstMimi" },
+            { card: "BT1-089", as: "secondMimi" },
+            { card: "BT1-089", as: "thirdMimi" },
+          ],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: { hand: ["BT1-009"], deck: Array(8).fill("BT1-009") },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("togemon").topCard.instanceId);
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMimi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 9 && s.perm("togemon").isSuspended);
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("togemon").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMimi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 5);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("other").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("other").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdMimi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 9);
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("other").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+  });
+
+  it("resets the inherited green Tamer evolution reduction on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-053", as: "host", under: ["BT14-046"] },
+            { card: "BT1-089", as: "mimi" },
+          ],
+          hand: [
+            { card: "BT1-081", as: "firstEvo" },
+            { card: "BT12-057", as: "secondEvo" },
+          ],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: { hand: ["BT1-009"], deck: Array(8).fill("BT1-009") },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("firstEvo").instanceId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT1-081");
+    expect(s.state.memory).toBe(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("secondEvo").instanceId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT12-057");
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });

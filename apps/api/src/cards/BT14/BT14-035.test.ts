@@ -49,7 +49,7 @@ describe("BT14-035", () => {
 
   it("pays Barrier during a public battle, trashes top security, and survives", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-035", as: "unimon", suspended: true }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT14-035", as: "unimon", suspended: true }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT14-026", as: "attacker", dp: 8000 }] },
     });
     s.state.turnSeat = 1;
@@ -67,14 +67,14 @@ describe("BT14-035", () => {
     });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === unimonId)).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.events).toContainEqual({ kind: "barrierResolved", permanentId: unimonId, accepted: true });
     assertNoLoudGap(s);
   });
 
   it("allows Barrier to be declined, preserving security while battle deletes Unimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-035", as: "unimon", suspended: true }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT14-035", as: "unimon", suspended: true }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT14-026", as: "attacker", dp: 8000 }] },
     });
     s.state.turnSeat = 1;

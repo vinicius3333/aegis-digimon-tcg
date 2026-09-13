@@ -53,14 +53,17 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "CostGatedBlock",
-          cost: { kind: "compound", costs: [first, second] },
+          cost: { kind: "compound", costs: [first, second], orderPlacedCards: true },
           optional: true,
           abortOnDecline: true,
           actions: [
             {
               kind: "Digivolve",
               target: { filter: host, count: 1, fromSelectionRef: "gaomonHost" },
-              into: { nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "nameExact" }] },
+              into: {
+                controller: "mine",
+                nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "nameExact" }],
+              },
               from: ["hand"],
               payCost: false,
               ignoreRequirements: true,
@@ -77,8 +80,12 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gaomon"], match: "nameExact" }] },
-            orFilters: [playThomasFilter],
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Gaomon"], match: "nameExact" }],
+            },
+            orFilters: [{ controller: "mine", ...playThomasFilter }],
             count: 1,
             upTo: true,
           },

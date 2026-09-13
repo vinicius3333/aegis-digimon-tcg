@@ -80,4 +80,68 @@ describe("BT14-015", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
     assertNoLoudGap(s);
   });
+
+  it("resets its inherited deletion once-per-turn gate on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-017", as: "attacker", under: ["BT14-012", "BT14-015"] }],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstExact", dp: 5000 },
+            { card: "BT1-009", as: "secondExact", dp: 5000 },
+            { card: "BT1-020", as: "above", dp: 5001 },
+          ],
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          security: ["BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstId = s.perm("firstExact").permanentId;
+    const secondId = s.perm("secondExact").permanentId;
+    const aboveId = s.perm("above").permanentId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+    assertNoLoudGap(s);
+  });
 });
