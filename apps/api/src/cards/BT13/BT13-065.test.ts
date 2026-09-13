@@ -59,7 +59,7 @@ describe("BT13-065 PlatinumSukamon", () => {
   it("may delete an opponent's other Sukamon to prevent its host's deletion (Q2307)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-040", as: "host", under: ["BT13-065"] }] },
+        0: { battleArea: [{ card: "BT13-069", as: "host", under: ["BT13-065"] }] },
         1: { battleArea: [{ card: "BT11-040", as: "opponent-sukamon" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

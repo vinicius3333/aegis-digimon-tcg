@@ -72,7 +72,7 @@ describe("BT13-039 KnightChessmon", () => {
 
   it("inherited Reboot unsuspends its host during the opponent's active phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-039"], suspended: true }] },
+      0: { battleArea: [{ card: "BT13-042", as: "host", under: ["BT13-039"], suspended: true }] },
     });
     s.state.turnSeat = 1;
     s.state.memory = 1;
