@@ -60,6 +60,15 @@ BT20-073 MetalPhantomon; the inherited On Deletion trigger remains associated wi
 the original top card while the host leaves play and De-Digivolves a separate
 opponent stack by exactly one, preserving every physical instance ID.
 
+The seventh case exercises the same exception through a nested public timing window.
+BT8-085 Yolei deletes an opposing BT19-065 carrying BT20-073 while a public attack is
+still resolving. Seat 1 orders the two deletion effects by the exact BT20-073 source
+key, and the inherited effect De-Digivolves the attacking BT25-077 stack; the former
+top card is in trash and the buried physical card is the new top. The separate native
+BT19-065 optional effect is then declined, so the result cannot be attributed to that
+effect. This uses the §15-8-3-5 event snapshot and keeps the source-departure exception
+scoped to the deleted stack source and its former top card.
+
 ## Current source and ordering classes
 
 | Class                                                                  | Current public consumer/provider                                                                 | Executable proof                                                                                                      | Status                                     |
@@ -69,6 +78,7 @@ opponent stack by exactly one, preserving every physical instance ID.
 | Derived trigger while an older trigger remains pending                 | BT19-065, BT20-073, BT19-020                                                                     | Fourth case above, with exact source IDs and derived request precedence                                               | Proven for this chain                      |
 | A pending source leaving or changing before that same source activates | BT25-077 Bacchusmon watcher created by effect-play, then deleted by the turn player's Bacchusmon | Fifth case deletes the enemy source before its pending watcher can activate; paired Agumon control proves eligibility | Proven for this public play/deletion shape |
 | Inherited On Deletion after the carrier leaves play                     | BT20-073 under a battle-deleted BT20-078 Reapermon                              | Sixth case keeps the inherited trigger's original top-card identity and De-Digivolves a separate stacked target       | Proven for this public battle shape                 |
+| Nested inherited On Deletion after a public deletion window             | BT8-085 Yolei deletes BT19-065 carrying BT20-073 during an attack             | Seventh case selects the exact BT20-073 trigger key, then checks old/new attacker top IDs and all trash zones          | Proven for this public nested shape                 |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining

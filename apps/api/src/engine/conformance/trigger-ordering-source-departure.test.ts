@@ -543,4 +543,88 @@ describe("bounded trigger ordering and pending source departure", () => {
       await loop;
     }
   });
+
+  it("preserves inherited OnDeletion through a nested Yolei deletion window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-077", as: "attacker", under: [{ card: "BT25-077" }] },
+            { card: "BT8-085", as: "yolei" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT19-065", as: "enemy", dp: 3000, under: [{ card: "BT20-073", as: "metal" }] }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+          trash: [{ card: "ST5-10", as: "nativePayload" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      const enemyId = s.inst("enemy").instanceId;
+      const metalId = s.inst("metal").instanceId;
+      const oldSourceId = s.perm("attacker").topCard.instanceId;
+      const newSourceId = s.perm("attacker").stack[0]!.instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const yolei = s.state.pendingDecision!;
+      expect(s.decisions.find(({ req }) => req.decisionId === yolei.decisionId)?.req.sourceCardId).toBe("BT8-085");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: yolei.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === enemyId));
+      const order = s.state.pendingDecision!;
+      const orderRequest = s.decisions.find(({ req }) => req.decisionId === order.decisionId)?.req;
+      expect(order.kind).toBe("orderTriggers");
+      expect(order.seat).toBe(1);
+      expect(orderRequest?.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT20-073", "BT19-065"]));
+      const metalKey = orderRequest?.options?.triggerKeys?.find((key) => key.startsWith(`${metalId}::BT20-073/`));
+      expect(metalKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderTriggers", order: [metalKey!] },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      const native = s.state.pendingDecision!;
+      expect(native.kind).toBe("optional");
+      expect(s.decisions.find(({ req }) => req.decisionId === native.decisionId)?.req.sourceCardId).toBe("BT19-065");
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: native.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toMatchObject({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(newSourceId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(oldSourceId);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(metalId);
+      expect(s.perm("attacker").stack).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
+  });
 });
