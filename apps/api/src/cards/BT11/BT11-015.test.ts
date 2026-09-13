@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -37,43 +37,73 @@ describe("BT11-015 OmniShoutmon", () => {
     });
   });
 
-  it("deletes two 4000-DP Digimon when Shoutmon is in its sources", async () => {
+  it("deletes two 4000-DP Digimon when publicly evolving from Shoutmon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-015", as: "omni", under: ["BT10-008"] }] },
+        0: {
+          battleArea: [{ card: "BT10-008", as: "base" }],
+          hand: [{ card: "BT11-015", as: "omni" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "one", dp: 4000 },
             { card: "BT1-010", as: "two", dp: 4000 },
-            { card: "BT1-011", as: "three", dp: 4000 },
+            { card: "BT1-011", as: "three", dp: 4001 },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omni"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-
-    expect(s.state.players[1]!.trash).toHaveLength(2);
+    const oneId = s.perm("one").topCard.instanceId;
+    const twoId = s.perm("two").topCard.instanceId;
+    preferred.push(oneId, twoId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omni").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([oneId, twoId]);
   });
 
-  it("deletes only one 4000-DP Digimon without Shoutmon in its sources", async () => {
+  it("deletes only one 4000-DP Digimon when publicly evolving without Shoutmon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-015", as: "omni", under: ["BT1-009"] }] },
+        0: {
+          battleArea: [{ card: "BT11-010", as: "base" }],
+          hand: [{ card: "BT11-015", as: "omni" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "one", dp: 4000 },
-            { card: "BT1-010", as: "two", dp: 4000 },
+            { card: "BT1-010", as: "two", dp: 4001 },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omni"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    const oneId = s.perm("one").topCard.instanceId;
+    preferred.push(oneId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omni").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([oneId]);
   });
 
   it("uses its DigiXros-only Shoutmon alias from hand without leaking into ordinary names", async () => {
@@ -164,15 +194,37 @@ describe("BT11-015 OmniShoutmon", () => {
             { card: "BT11-015", as: "omni" },
             { card: "BT10-087", as: "taiki" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker", dp: 15000, suspended: true }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
     const omniCardId = s.perm("omni").topCard.instanceId;
+    const omniPermanentId = s.perm("omni").permanentId;
+    const taikiPermanentId = s.perm("taiki").permanentId;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("omni").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: omniPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("taiki").stack.some(({ instanceId }) => instanceId === omniCardId));
 
     expect(s.perm("taiki").stack.some(({ instanceId }) => instanceId === omniCardId)).toBe(true);
+    expect(s.perm("taiki").permanentId).toBe(taikiPermanentId);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === omniPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === omniCardId)).toBe(false);
+    expect(s.state.memory).toBe(3);
   });
 });

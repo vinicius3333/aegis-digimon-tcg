@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-001.js";
 
 describe("BT11-001 Yokomon", () => {
@@ -49,14 +50,30 @@ describe("BT11-001 Yokomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-001"] }, "BT1-085"],
-        deck: ["BT1-009"],
+        deck: [{ card: "BT1-009", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-080", as: "titan", dp: 13000, suspended: true }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("titan").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId),
+    );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    await settle(() => s.state.players[0]!.hand.length === 1);
-
-    expect(s.state.players[0]!.hand[0]?.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
   it("does not count an opponent's red Tamer", async () => {

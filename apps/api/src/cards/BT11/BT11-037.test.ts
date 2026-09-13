@@ -37,7 +37,7 @@ describe("BT11-037 Kotemon", () => {
   it("has Blocker and can't attack players on its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT11-037", as: "kotemon" }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
 
     await advance(s.engine).recompute();
@@ -82,7 +82,7 @@ describe("BT11-037 Kotemon", () => {
 
   it("uses Blocker to redirect a real opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-037", as: "kotemon" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT11-037", as: "kotemon" }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT1-028", as: "attacker", dp: 6000 }] },
     });
     s.state.turnSeat = 1;
@@ -111,7 +111,7 @@ describe("BT11-037 Kotemon", () => {
       0: {
         battleArea: [{ card: "BT11-003", as: "base" }],
         hand: [{ card: "BT11-037", as: "kotemon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 2;

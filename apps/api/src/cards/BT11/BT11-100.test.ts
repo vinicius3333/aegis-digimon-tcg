@@ -5,7 +5,12 @@ import { compiled } from "./BT11-100.js";
 
 describe("BT11-100 Megalo Spark", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-100")).toMatchObject({ cardId: "BT11-100", colors: ["Yellow"], kinds: ["Option"], playCost: 5 });
+    expect(getCardDefinition("BT11-100")).toMatchObject({
+      cardId: "BT11-100",
+      colors: ["Yellow"],
+      kinds: ["Option"],
+      playCost: 5,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
       { trigger: "Main", actions: [{ kind: "ModifyDP", amount: -8000 }] },

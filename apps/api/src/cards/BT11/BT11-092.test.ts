@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,9 +7,20 @@ import { compiled } from "./BT11-092.js";
 
 describe("BT11-092 Analogman", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-092")).toMatchObject({ cardId: "BT11-092", colors: ["Black"], kinds: ["Tamer"], playCost: 4 });
+    expect(getCardDefinition("BT11-092")).toMatchObject({
+      cardId: "BT11-092",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 4,
+    });
     expect(compiled.effects).toMatchObject([
-      { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", amount: 1 }] },
+      {
+        trigger: "StartOfYourMainPhase",
+        actions: [
+          { kind: "GainMemory", amount: 1 },
+          { kind: "Draw", amount: 1 },
+        ],
+      },
       { trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks" }] },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
     ]);
@@ -19,18 +30,24 @@ describe("BT11-092 Analogman", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-092", as: "analogman" }],
+          battleArea: [{ card: "BT11-092", as: "analogman" }, "BT1-009"],
           hand: [{ card: "AD1-003", as: "cyborg" }],
-          deck: [{ card: "BT1-009", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
+          security: ["BT1-011", "BT1-012"],
         },
+        1: { deck: ["BT1-013", "BT1-014"], security: ["BT1-015", "BT1-016"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    s.state.isFirstPlayersFirstTurn = false;
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("analogman"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cyborg").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("arms an opponent-attack redirect watcher", async () => {

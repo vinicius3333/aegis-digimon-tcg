@@ -5,9 +5,20 @@ import { compiled } from "./BT11-098.js";
 
 describe("BT11-098 Maelstrom", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-098")).toMatchObject({ cardId: "BT11-098", colors: ["Blue"], kinds: ["Option"], playCost: 5 });
+    expect(getCardDefinition("BT11-098")).toMatchObject({
+      cardId: "BT11-098",
+      colors: ["Blue"],
+      kinds: ["Option"],
+      playCost: 5,
+    });
     expect(compiled.effects).toMatchObject([
-      { trigger: "Main", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"] }, { kind: "Return", to: "deckBottom" }] },
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "PlayWithoutCost", from: ["digivolutionCards"] },
+          { kind: "Return", to: "deckBottom" },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
     ]);
   });

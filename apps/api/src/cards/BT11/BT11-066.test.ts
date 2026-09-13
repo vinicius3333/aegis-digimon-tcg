@@ -14,9 +14,7 @@ describe("BT11-066 Tekkamon", () => {
       dp: 7000,
       types: ["Machine"],
     });
-    expect(compiled.effects).toMatchObject([
-      { trigger: "Static", keywords: [{ keyword: "Reboot" }] },
-    ]);
+    expect(compiled.effects).toMatchObject([{ trigger: "Static", keywords: [{ keyword: "Reboot" }] }]);
   });
 
   it("has Reboot", async () => {
