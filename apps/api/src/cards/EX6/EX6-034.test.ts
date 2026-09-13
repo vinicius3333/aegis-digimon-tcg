@@ -29,17 +29,36 @@ describe("EX6-034 Antylamon", () => {
     }));
   it("publicly plays a level-3 yellow Digimon from hand when digivolving", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-034", as: "anty" }], hand: [{ card: "EX6-016", as: "rookie" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-033", as: "base" }],
+          hand: [
+            { card: "EX6-034", as: "anty" },
+            { card: "EX6-016", as: "rookie" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("anty"));
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("anty").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId) &&
+        s.state.pendingDecision === undefined,
     );
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId),
     ).toBe(true);
+    expect(s.state.memory).toBe(-1);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-033"]);
   });
 
   it("does not play a wrong-color level-3 Digimon from hand", async () => {
@@ -60,17 +79,24 @@ describe("EX6-034 Antylamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-060", as: "antyHost", under: ["EX6-034"], suspended: true },
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"] },
             { card: "BT1-009", as: "returned", suspended: true },
           ],
           hand: [{ card: "BT1-031", as: "beast" }],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("antyHost"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antyHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("beast").instanceId),
     );
@@ -85,16 +111,23 @@ describe("EX6-034 Antylamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-060", as: "antyHost", under: ["EX6-034"], suspended: true },
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"] },
             { card: "BT1-031", as: "returned", suspended: true },
           ],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("antyHost"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antyHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-031"));
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("returned").instanceId),
@@ -107,17 +140,24 @@ describe("EX6-034 Antylamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-060", as: "antyHost", under: ["EX6-034"], suspended: true },
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"] },
             { card: "BT1-031", as: "returned", suspended: true },
           ],
           hand: [{ card: "BT1-031", as: "beast" }],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("antyHost"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antyHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("returned").instanceId),
     ).toBe(true);

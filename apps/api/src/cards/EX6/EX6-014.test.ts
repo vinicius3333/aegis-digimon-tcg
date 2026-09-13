@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-014.js";
 
 describe("EX6-014 Huankunmon", () => {
@@ -55,17 +56,62 @@ describe("EX6-014 Huankunmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-027", as: "host", under: ["EX6-014"], suspended: true },
-            { card: "BT1-027", as: "other" },
+            { card: "EX6-015", as: "host", under: ["EX6-012", "EX6-013", "EX6-014"] },
+            { card: "BT12-021", as: "other" },
           ],
         },
+        1: { deck: Array(10).fill("BT1-009"), security: Array(5).fill("BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => !s.perm("host").isSuspended);
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
+  });
+
+  it("publicly plays its blue level-3 source when digivolving from a blue level-4 stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-013", as: "host", under: [{ card: "EX6-012", as: "source" }] }],
+          hand: [{ card: "EX6-014", as: "huan" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("huan").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId),
+    );
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("huan").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("huan").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("huan").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX6-013"]);
   });
 });

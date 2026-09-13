@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-007.js";
+import "./EX6-008.js";
 
 describe("EX6-007 Zubamon", () => {
   it("pays 1 and places itself under a level 3 or Legend-Arms Digimon to give it +4000 DP", () => {
@@ -84,5 +86,26 @@ describe("EX6-007 Zubamon", () => {
     await s.ready();
 
     expect(JSON.parse(s.inst("zubamon").activatableEffectsJson || "[]")).toHaveLength(0);
+  });
+
+  it("publicly places under an EX6-008 host and triggers its Raid/Piercing response", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-008", as: "host" }], hand: [{ card: "EX6-007", as: "zubamon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const effect = JSON.parse(s.inst("zubamon").activatableEffectsJson || "[]")[0];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("zubamon").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("zubamon").instanceId));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 });

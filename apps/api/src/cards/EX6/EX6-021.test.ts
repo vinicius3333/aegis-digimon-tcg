@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-021.js";
 
@@ -32,34 +30,45 @@ describe("EX6-021 ArkhaiAngemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-021", as: "arkhai" }],
           security: [{ card: "BT1-009", as: "paid" }],
-          hand: [{ card: "EX6-019", as: "angel" }],
+          hand: [
+            { card: "EX6-021", as: "arkhai" },
+            { card: "EX6-019", as: "angel" },
+          ],
         },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
+    s.state.memory = 10;
     await s.ready();
     const before = s.perm("opponent").currentDP;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arkhai"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("paid").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arkhai").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("arkhai") !== undefined && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("paid").instanceId)).toBe(true);
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not resolve the gated effects when the controller has no security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-021", as: "arkhai" }] },
+        0: { hand: [{ card: "EX6-021", as: "arkhai" }] },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
+    s.state.memory = 10;
     await s.ready();
     const before = s.perm("opponent").currentDP;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arkhai"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arkhai").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("arkhai") !== undefined && s.state.pendingDecision === undefined);
     expect(s.perm("opponent").currentDP).toBe(before);
+    expect(s.state.memory).toBe(3);
   });
 });

@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             isSelfRef: true,
+            byEffect: true,
           },
           actions: [
             {
@@ -107,7 +108,6 @@ export const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon"],
                     zone: "digivolutionCards",
                     hostFilter: {
                       isSelfRef: true,

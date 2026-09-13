@@ -19,6 +19,7 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
+      mode: "instead",
       optional: true,
       cost: {
         kind: "return",
@@ -74,6 +75,72 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
+  });
+
+  it("publicly pays the leave replacement by bottom-decking its Lucemon stack card and plays Satan Mode", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemon" }] }],
+          trash: [{ card: "EX10-060", as: "satan" }],
+          deck: [{ card: "BT1-009", as: "deck" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("chaos").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("satan").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("satan").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["EX10-060"]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaos").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("deck").instanceId,
+      s.inst("lucemon").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("satan").instanceId)).toBe(false);
+  });
+
+  it("declines the optional leave replacement without paying or playing from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemon" }] }],
+          trash: [{ card: "EX10-060", as: "satan" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("chaos").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("chaos").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("satan").instanceId)).toBe(true);
+  });
+
+  it("requires an exact Lucemon card for the replacement payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-060", as: "nearMatch" }] }],
+          trash: [{ card: "EX10-060", as: "satan" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("chaos").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nearMatch").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("satan").instanceId)).toBe(true);
   });
 
   it("rejects a non-Lucemon red level 4 as an illegal alternate evolution source", async () => {

@@ -108,6 +108,72 @@ describe("EX6-074 Mirei Mikagura", () => {
             { card: "BT16-063", as: "resultOne" },
             { card: "BT16-063", as: "resultTwo" },
           ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    s.state.turnSeat = 0;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT16-063"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT16-063")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("resultTwo").instanceId)).toBe(false);
+  });
+
+  it("publicly plays Mirei from security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX6-074", as: "mirei", faceUp: true }], deck: Array(10).fill("BT1-009") },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        deck: Array(10).fill("BT1-010"),
+        security: Array(6).fill("BT1-010"),
+      },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-074"));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-074")).toBe(true);
+  });
+
+  it("rejects a non-DNA target in hand instead of ignoring its DNA requirements (Q3813)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-074", as: "mirei" },
+            { card: "BT10-061", as: "black" },
+            { card: "BT10-035", as: "yellow" },
+          ],
+          hand: [{ card: "BT1-101", as: "invalidResult" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -115,19 +181,35 @@ describe("EX6-074 Mirei Mikagura", () => {
     s.state.memory = 10;
     await s.ready();
     await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("mirei"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT16-063"));
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("mirei"));
-
-    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT16-063")).toHaveLength(1);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("resultTwo").instanceId)).toBe(true);
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidResult").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT1-101")).toHaveLength(0);
   });
 
-  it("publicly plays Mirei from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX6-074", as: "mirei", faceUp: true }] } });
+  it("rejects an unspecified hand DNA material even when a valid DNA result is available (Q3814)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-074", as: "mirei" },
+            { card: "BT10-061", as: "blackField" },
+          ],
+          hand: [
+            { card: "BT16-063", as: "result" },
+            { card: "BT10-061", as: "invalidHandMaterial" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("mirei"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-074"));
-
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-074")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("mirei"));
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("result").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidHandMaterial").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT16-063")).toHaveLength(0);
   });
 });

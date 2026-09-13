@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-018.js";
@@ -51,7 +50,10 @@ describe("EX6-018 Lucemon", () => {
     );
     await s.ready();
     const levelSixId = s.inst("levelSix").instanceId;
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     await settle(() => s.perm("lucemon").topCard.cardId === "EX6-054");
     expect(s.state.players[0]!.security.some((card) => card.instanceId === levelSixId)).toBe(true);
     expect(s.perm("lucemon").topCard.cardId).toBe("EX6-054");
@@ -94,14 +96,24 @@ describe("EX6-018 Lucemon", () => {
 
   it("publicly resolves the main-phase reveal independently of On Play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-009"] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-018", as: "lucemon" }],
+          deck: ["EX6-019", "EX6-054", "BT1-009", ...Array(7).fill("BT1-011")],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lucemon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const deckBefore = s.state.players[0]!.deck.length;
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX6-019");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX6-054");
+    expect(deckBefore).toBe(7);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("still pays the level-6 security cost when no Chaos Mode is available in trash", async () => {
@@ -118,7 +130,10 @@ describe("EX6-018 Lucemon", () => {
     );
     await s.ready();
     const levelSixId = s.inst("levelSix").instanceId;
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     expect(s.state.players[0]!.security.some((card) => card.instanceId === levelSixId)).toBe(true);
     expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
   });
@@ -134,7 +149,9 @@ describe("EX6-018 Lucemon", () => {
       },
     });
     await s.ready();
-    const firing = advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const firing = advance(s.engine).endMainPhaseIfOpen(0);
     await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 1);
     const activation = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(
@@ -154,6 +171,7 @@ describe("EX6-018 Lucemon", () => {
       }),
     ).toEqual({ ok: true });
     await firing;
+    await turn;
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("levelSix").instanceId)).toBe(true);
     expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaosMode").instanceId)).toBe(true);
