@@ -193,7 +193,7 @@ describe("BT22-009 Effecmon", () => {
             { card: "BT22-009", dp: 4000, as: "eligible" },
             { card: "BT22-010", dp: 5000, as: "tooLarge" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

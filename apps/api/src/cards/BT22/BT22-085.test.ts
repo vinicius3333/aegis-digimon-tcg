@@ -95,7 +95,7 @@ describe("BT22-085 Rina Shinomiya", () => {
             { card: "BT22-085", as: "rina" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

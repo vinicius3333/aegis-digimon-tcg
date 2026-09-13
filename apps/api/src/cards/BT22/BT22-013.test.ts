@@ -140,8 +140,8 @@ describe("BT22-013 WarGreymon", () => {
       0: { battleArea: [{ card: "BT22-015", under: ["BT22-013"], as: "omnimon" }] },
       1: {
         security: [
-          { card: "BT1-001", as: "top" },
-          { card: "BT1-002", as: "bottom" },
+          { card: "BT1-009", as: "top" },
+          { card: "BT1-010", as: "bottom" },
         ],
       },
     });

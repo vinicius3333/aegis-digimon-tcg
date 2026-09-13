@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-043.js";
 import "./index.js";
 
@@ -125,5 +126,51 @@ describe("BT22-043 Terriermon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-091")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(false);
+  });
+
+  it("suppresses the inherited draw for the rest of this turn, then resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+          hand: ["BT1-009"],
+          battleArea: [{ card: "BT22-047", as: "host", under: ["BT22-043", "BT22-046"] }],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceCard = s.perm("host").stack.find((card) => card.cardId === "BT22-043")!;
+    const sourceInstanceId = sourceCard.instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const effectKey = observe(s.engine)
+      .activatableEffects(s.perm("host"))
+      .find((effect) => effect.instanceId === sourceInstanceId && effect.effectKey.startsWith("BT22-043/"))?.effectKey;
+    expect(effectKey).toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: effectKey! })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("host").topCard?.cardId).toBe("BT22-046");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT22-047", "BT22-043"]);
+    const handAfterFirst = s.state.players[0]!.hand.length;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: effectKey! }).ok).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handAfterFirst);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: effectKey! })).toEqual({
+      ok: true,
+    });
+    await settle();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.state.players[0]!.hand.length).toBe(handAfterFirst + 2);
+    expect(s.perm("host").topCard?.cardId).toBe("BT22-043");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT22-046", "BT22-047"]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

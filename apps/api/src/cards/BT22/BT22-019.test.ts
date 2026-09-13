@@ -13,7 +13,7 @@ describe("BT22-019 Veemon", () => {
           { card: "BT22-022", as: "veedramon" },
           { card: "BT22-008", as: "invalidAgumon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.phase = Phase.Breeding;

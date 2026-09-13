@@ -44,7 +44,7 @@ describe("BT22-023 AeroVeedramon", () => {
             { card: "BT22-022", as: "level4" },
             { card: "BT22-023", as: "level5" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },

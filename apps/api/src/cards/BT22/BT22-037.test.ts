@@ -146,7 +146,7 @@ describe("BT22-037 Chirinmon", () => {
   it("applies the inherited attack reduction through a public attack intent", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT22-041", under: ["BT22-037"], as: "attacker" }] },
-      1: { battleArea: [{ card: "BT1-028", as: "victim", dp: 20000, suspended: true }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-028", as: "victim", dp: 20000, suspended: true }], security: ["BT1-009"] },
     });
     await s.ready();
 

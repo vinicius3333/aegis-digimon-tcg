@@ -76,7 +76,7 @@ describe("BT22-089 Mirei Mikagura", () => {
             { card: "BT22-089", as: "mirei" },
             { card: "BT22-054", as: "cost" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -89,7 +89,7 @@ describe("BT22-089 Mirei Mikagura", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
   });
 
   it("returns itself and plays a qualifying Tamer through the production main-phase window", async () => {
@@ -98,7 +98,7 @@ describe("BT22-089 Mirei Mikagura", () => {
         0: {
           battleArea: [{ card: "BT22-089", as: "mirei" }],
           hand: [{ card: "BT22-091", as: "arata" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

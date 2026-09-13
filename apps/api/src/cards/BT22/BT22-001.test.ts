@@ -24,7 +24,7 @@ describe("BT22-001 Puyoyomon", () => {
           { card: "BT22-018", as: "sangomon" },
           { card: "BT22-008", as: "invalidAgumon" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     s.state.phase = Phase.Breeding;
@@ -92,7 +92,7 @@ describe("BT22-001 Puyoyomon", () => {
           { card: "BT1-033", as: "firstSeaAnimal" },
           { card: "BT1-033", as: "secondSeaAnimal" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();
@@ -115,7 +115,7 @@ describe("BT22-001 Puyoyomon", () => {
             { card: "BT22-021", as: "shellmon" },
             { card: "BT1-033", as: "placed" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -143,7 +143,7 @@ describe("BT22-001 Puyoyomon", () => {
             { card: "BT22-021", as: "shellmon" },
             { card: "BT10-023", as: "aquabeast" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -171,7 +171,7 @@ describe("BT22-001 Puyoyomon", () => {
           { card: "BT1-033", as: "wrongStack" },
           { card: "BT1-033", as: "opponentTurn" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();
@@ -190,7 +190,7 @@ describe("BT22-001 Puyoyomon", () => {
       0: {
         battleArea: [{ card: "BT22-018", under: ["BT22-001"], as: "host" }],
         hand: [{ card: "BT1-033", as: "manualSeaAnimal" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();

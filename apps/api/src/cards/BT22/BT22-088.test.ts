@@ -92,7 +92,7 @@ describe("BT22-088 Arisa Kinosaki", () => {
         0: {
           battleArea: [{ card: "BT22-088", as: "arisa" }],
           hand: [{ card: "BT22-029", as: "shoemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -106,7 +106,7 @@ describe("BT22-088 Arisa Kinosaki", () => {
     await settle(() => s.perm("arisa").isSuspended && s.state.players[0]!.hand.length > 0, 400);
 
     expect(s.perm("arisa").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("plays Arisa from security during a public security check", async () => {
