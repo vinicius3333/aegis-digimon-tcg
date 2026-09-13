@@ -45,6 +45,7 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
     cite(
       "comprehensive-0157",
       "15-1-5 if an effect is mandatory and not optional, its processing must be " + "performed whenever possible",
+      "7e4796d2ff74cf99d9c22c39fdecc61508027605b2ecaef9dbc1daf74177db25",
     );
 
     // `autoSelectCards` answers the target choice: the rule under test is that no OPTIONAL
@@ -72,8 +73,13 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
       "comprehensive-0157",
       "15-1-7 an effect with no stated area can specify/affect the battle area (example: " +
         "'[On Play] Suspend 1 of your opponent's Digimon')",
+      "7e4796d2ff74cf99d9c22c39fdecc61508027605b2ecaef9dbc1daf74177db25",
     );
-    cite("comprehensive-0159", "15-2-1-1 an effect activated by a Digimon card/Digimon is a Digimon effect");
+    cite(
+      "comprehensive-0159",
+      "15-2-1-1 an effect activated by a Digimon card/Digimon is a Digimon effect",
+      "4a3763ec68fbfbd93047d70d3d205f9574f6e181c4732ce665e8872137131774",
+    );
 
     const def = requireCardDefinition("BT1-070");
     expect(def.effectText).toContain("Suspend 1 of your opponent's Digimon");
@@ -90,6 +96,7 @@ describe("§15-3 Inherited Effects (comprehensive-0160)", () => {
       "comprehensive-0160",
       "15-3-2 an inherited effect is considered an effect activated by a Digimon " +
         "regardless of the digivolution card's own card category",
+      "2c055b02ffa9c5dbe1734f499d80029364ab320d2d5543f76237a9fcc2f9d487",
     );
 
     const s = setup({ autoAcceptOptional: true });
@@ -121,9 +128,21 @@ describe("§15-3 Inherited Effects (comprehensive-0160)", () => {
 
 describe("§15-9 Mandatory Processing and Optional Processing (comprehensive-0179/0180/0181)", () => {
   it("15-9-1/15-9-2: a mandatory clause always runs; an optional clause with abortOnDecline stops the rest when declined", async () => {
-    cite("comprehensive-0179", "15-9 mandatory processing vs optional processing");
-    cite("comprehensive-0180", "15-9-1-2 the player must choose to execute mandatory processing; can't decline it");
-    cite("comprehensive-0181", "15-9-2-2 the player can choose to execute optional processing");
+    cite(
+      "comprehensive-0179",
+      "15-9 mandatory processing vs optional processing",
+      "3807f058806207cd80c10a0fa4df43bd96f14c5005c3a677a88180da00566efa",
+    );
+    cite(
+      "comprehensive-0180",
+      "15-9-1-2 the player must choose to execute mandatory processing; can't decline it",
+      "1d2983836d486d40261c562da8ff6f953fb60932d96c1eceedbefcb8a98a9f5b",
+    );
+    cite(
+      "comprehensive-0181",
+      "15-9-2-2 the player can choose to execute optional processing",
+      "0884b39331ea9df0735e2f2a3344e2799ea8e40d9adf0e9b81f1df6e54fb9bfc",
+    );
 
     const s = setup(); // no autoAccept — we drive the optional decision ourselves
     const p0 = s.state.players[0]!;
@@ -174,6 +193,7 @@ describe("§15-12-1 Effects That Add Information (comprehensive-0189)", () => {
         "Digimon (the Digimon rules then apply to it), and DP added to a card with none " +
         "becomes that card's original DP — the rules' own worked example: '1 of your " +
         "[Marcus Damon] is treated as a 3000 DP Digimon that can't digivolve for the turn'",
+      "3e1b0df26f682edf266abb7a2705d08b2635b9c835101c2ea0e799c008815d8b",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -206,6 +226,7 @@ describe("§15-13 Gained Effects (comprehensive-0191)", () => {
       "comprehensive-0191",
       "15-13-2 when an effect is gained, it and its state carry over even if a card is " +
         "placed on top of that card or removed from its stack",
+      "55831f88f5d759efb2d3a69e7a1b24124822846eb13556329967f171402d88b0",
     );
 
     // The PlaceUnder asks which trash card to pull and whether to use the optional clause.
@@ -233,7 +254,11 @@ describe("§15-13 Gained Effects (comprehensive-0191)", () => {
 
 describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
   it('15-15-2-1/15-15-2-2: a target "gains" a keyword and is thereafter affected by it', async () => {
-    cite("comprehensive-0200", '15-15-2-1/2 "gains" means the target gains an effect and is affected by it');
+    cite(
+      "comprehensive-0200",
+      '15-15-2-1/2 "gains" means the target gains an effect and is affected by it',
+      "93aa6ac7ec04f915918158886733ef5b2462c8dd01109684ea231ec104bfa65f",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -262,6 +287,7 @@ describe("§15-12-2 Effects That Change Information (comprehensive-0190)", () =>
       "comprehensive-0189",
       "15-12-1-3 an effect that adds information can only add to play cost/level/DP of 1 " +
         "card at a time; newly added information overwrites the previous",
+      "3e1b0df26f682edf266abb7a2705d08b2635b9c835101c2ea0e799c008815d8b",
     );
     const state = new GameState();
     const p0 = new PlayerState();

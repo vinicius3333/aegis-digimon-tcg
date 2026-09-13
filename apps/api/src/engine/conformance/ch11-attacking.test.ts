@@ -93,7 +93,11 @@ function controllerHarness(extra?: Partial<CombatHooks>): ControllerHarness {
 
 describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
   it("11-1-2: only the turn player can attack — a non-turn-player attack declaration is rejected", () => {
-    cite("comprehensive-0143", "11-1-2 only the turn player can attack");
+    cite(
+      "comprehensive-0143",
+      "11-1-2 only the turn player can attack",
+      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
+    );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, as: "attacker" }] } });
     const attacker = s.perm("attacker");
@@ -113,6 +117,7 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
       "comprehensive-0143",
       "11-1-3 an attack proceeds through ordered timings; 11-1-4 the next timing doesn't begin " +
         "until all processing for the current one is resolved",
+      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
     );
 
     const s = setup({
@@ -153,6 +158,7 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
       "comprehensive-0143",
       "11-1-5 once an attack declaration is made, all of the timings that follow will occur, " +
         "even if the attacking Digimon leaves the battle area",
+      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
     );
 
     const h = controllerHarness({
@@ -187,7 +193,11 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
 
 describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
   it("11-2-1: declaring an attack suspends the attacking Digimon", async () => {
-    cite("comprehensive-0144", "11-2-1 the turn player suspends their Digimon to make an attack declaration");
+    cite(
+      "comprehensive-0144",
+      "11-2-1 the turn player suspends their Digimon to make an attack declaration",
+      "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
+    );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, as: "attacker" }] } });
     const attacker = s.perm("attacker");
@@ -206,6 +216,7 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
     cite(
       "comprehensive-0144",
       "11-2-3 1 Digimon can perform 1 attack for an attack declaration; multiple attacks aren't allowed",
+      "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
     );
 
     // Driven directly against the pure `validateAttack` (actions/attack.ts) with a hand-built
@@ -242,7 +253,11 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
   });
 
   it("11-2-4: a new attack declaration can't be made while another attack is mid-resolution", async () => {
-    cite("comprehensive-0144", "11-2-4 a new attack declaration can't be made during an attack");
+    cite(
+      "comprehensive-0144",
+      "11-2-4 a new attack declaration can't be made during an attack",
+      "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
+    );
 
     const s = setup({
       0: {
@@ -276,6 +291,7 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
     cite(
       "comprehensive-0144",
       "11-2-5 an attack declaration can't be made using a Digimon that can't suspend (already suspended)",
+      "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
     );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, suspended: true, as: "attacker" }] } });
@@ -294,6 +310,7 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
       "comprehensive-0144",
       "11-2-6 even if the attack target Digimon is removed during an attack, it remains the " +
         "attack target and the attack fails",
+      "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
     );
 
     const h = controllerHarness({
@@ -328,6 +345,7 @@ describe("§11-2-7 Attack Targets (comprehensive-0145)", () => {
     cite(
       "comprehensive-0145",
       "11-2-7-1 the attack target is either the opponent, or 1 of the opponent's suspended Digimon",
+      "7b6dd9207380f99bd7d3f4366523551867d0836623a82a0d0872c8b4fdb3e908",
     );
 
     const s = setup({
@@ -355,7 +373,11 @@ describe("§11-2-7 Attack Targets (comprehensive-0145)", () => {
   });
 
   it("11-2-7-2: the attack target may be switched to another target mid-attack (a rule/effect redirect)", async () => {
-    cite("comprehensive-0145", "11-2-7-2 after the attack declaration, the attack target may switch to another target");
+    cite(
+      "comprehensive-0145",
+      "11-2-7-2 after the attack declaration, the attack target may switch to another target",
+      "7b6dd9207380f99bd7d3f4366523551867d0836623a82a0d0872c8b4fdb3e908",
+    );
 
     const h = controllerHarness();
     const attacker = makePermanent(0, 9000);
@@ -384,6 +406,7 @@ describe("§11-2-7 Attack Targets (comprehensive-0145)", () => {
       "comprehensive-0145",
       "11-2-7-4 if an attacking Digimon isn't in the battle area, its attack target can't be " +
         "changed and its attack won't succeed on any target",
+      "7b6dd9207380f99bd7d3f4366523551867d0836623a82a0d0872c8b4fdb3e908",
     );
 
     const h = controllerHarness({
@@ -415,6 +438,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "`CombatController.runCounterWindow` opens a distinct §11-3 window (EffectTiming.OnCounterTiming, " +
         "a dedicated enum member — not the generic OnDeclaration bucket) right after the When Attacking " +
         "timings resolve and before `runBlockWindow`, emitting `counterWindowOpened`.",
+      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
     );
 
     const h = controllerHarness({
@@ -455,6 +479,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "blocker' shortcut: `runCounterWindow` resolves immediately (no round trip) when " +
         "`hooks.counterEligible` reports nothing activatable, so an attack against a defender with " +
         "no [Counter] effects doesn't hang waiting for a response nobody can give.",
+      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
     );
 
     const h = controllerHarness(); // no counterEligible hook => nothing eligible
@@ -475,6 +500,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "`CombatController.resolveCounterActivated` closes the window on the first activation (the " +
         "cap is structural: the window never reopens for a second choice within the same attack), " +
         "and `counterActivationsRemaining` reflects the spent cap.",
+      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
     );
 
     const h = controllerHarness({
@@ -512,6 +538,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "(effectActivated narrates it) and then closes the window via " +
         "`CombatController.resolveCounterActivated`, so a second respondCounter this attack is " +
         "rejected (§11-3-2's cap enforced end-to-end, not just at the controller layer).",
+      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
     );
 
     const s = setup(
@@ -571,6 +598,7 @@ describe("§11-4 Block Timing (comprehensive-0147)", () => {
     cite(
       "comprehensive-0147",
       "11-4-1 the block timing is when the non-turn player can use a ＜Blocker＞ Digimon to block",
+      "37c347a62a97835a219c801db853d68dd16195439b3654e54952f7a94576a5c9",
     );
 
     const s = setup({
@@ -602,6 +630,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     cite(
       "comprehensive-0148",
       "11-5-1-1/11-5-1-1-1 an attack on the player with 1+ security triggers a security check",
+      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
     );
 
     const s = setup({
@@ -623,6 +652,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     cite(
       "comprehensive-0148",
       "11-5-1-2/11-5-1-2-1 an attack on a player with 0 security wins the attacker's controller the game",
+      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
     );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] } });
@@ -640,7 +670,11 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
   });
 
   it("11-5-1-3: a successful attack ON A DIGIMON is a battle between the two Digimon", async () => {
-    cite("comprehensive-0148", "11-5-1-3/11-5-1-3-1 a successful attack on a Digimon causes a battle between the two");
+    cite(
+      "comprehensive-0148",
+      "11-5-1-3/11-5-1-3-1 a successful attack on a Digimon causes a battle between the two",
+      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
@@ -666,7 +700,11 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
   });
 
   it("11-5-1-4: an unsuccessful attack ends without anything happening — no security check, no battle", async () => {
-    cite("comprehensive-0148", "11-5-1-4 an unsuccessful attack ends without anything happening");
+    cite(
+      "comprehensive-0148",
+      "11-5-1-4 an unsuccessful attack ends without anything happening",
+      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+    );
 
     const h = controllerHarness({
       fireTiming: async (timing, trigger) => {
@@ -693,7 +731,11 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
 
 describe("§11-6 End of Attack (comprehensive-0149)", () => {
   it("11-6-1: every attack — successful or not — reaches the end-of-attack timing exactly once", async () => {
-    cite("comprehensive-0149", "11-6-1 the end of attack timing arrives and the attack ends");
+    cite(
+      "comprehensive-0149",
+      "11-6-1 the end of attack timing arrives and the attack ends",
+      "e8ea58082321d2c61143f7d0d64c9abbf0f0aaecd31970c63449be5204f2826a",
+    );
 
     const h = controllerHarness();
     const attacker = makePermanent(0, 9000);
@@ -706,7 +748,11 @@ describe("§11-6 End of Attack (comprehensive-0149)", () => {
   });
 
   it("11-6-2: the attack-in-progress flag drops only once end-of-attack processing has fully resolved", async () => {
-    cite("comprehensive-0149", "11-6-2 the end of attack timing won't end until all processing has been resolved");
+    cite(
+      "comprehensive-0149",
+      "11-6-2 the end of attack timing won't end until all processing has been resolved",
+      "e8ea58082321d2c61143f7d0d64c9abbf0f0aaecd31970c63449be5204f2826a",
+    );
 
     let sawIsAttackingDuringEnd = false;
     const h = controllerHarness({

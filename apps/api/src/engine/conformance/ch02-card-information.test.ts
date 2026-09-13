@@ -48,7 +48,11 @@ markNotTestable(
 
 describe("§2-2 Card Category (comprehensive-0032)", () => {
   it("2-2-3..2-2-6: the four card categories are distinct and drive real predicates", () => {
-    cite("comprehensive-0032", "the four card categories: Digi-Egg, Digimon, Tamer, Option");
+    cite(
+      "comprehensive-0032",
+      "the four card categories: Digi-Egg, Digimon, Tamer, Option",
+      "896c34a5bcf84f206551213d65463d5bfd55ca2829b498ee92b04828c48230c6",
+    );
 
     const digimonDef = requireCardDefinition("AD1-001");
     expect(digimonDef.kinds).toEqual([CardKind.Digimon]);
@@ -69,7 +73,11 @@ describe("§2-2 Card Category (comprehensive-0032)", () => {
 
 describe("§2-3-1 Name (comprehensive-0034)", () => {
   it("2-3-1-4: an ACE card's stored name never literally contains 'ACE'", () => {
-    cite("comprehensive-0034", "2-3-1-4 ACE is not included in the card name");
+    cite(
+      "comprehensive-0034",
+      "2-3-1-4 ACE is not included in the card name",
+      "c0ee1524e24827189e2dcfae2543a217540028723a55d660c84d63e4f29505f2",
+    );
 
     const ace = requireCardDefinition("AD1-005");
     expect(ace.isAce).toBe(true);
@@ -97,7 +105,11 @@ describe("§2-3-1 Name (comprehensive-0034)", () => {
 
 describe("§2-3-2 Traits (comprehensive-0035)", () => {
   it("2-3-2-1/2-3-2-2: multiple traits (form/attribute/type) are separate, independently matchable", () => {
-    cite("comprehensive-0035", "traits: form, attribute, and type; slash-separated when multiple");
+    cite(
+      "comprehensive-0035",
+      "traits: form, attribute, and type; slash-separated when multiple",
+      "f1433d5f0df1c806b473c8bad5ed1a8891ee443dc8807e05fb8463d8b777922c",
+    );
 
     const def = requireCardDefinition("AD1-005"); // forms: God/Appmon, attributes: God, types: Creation
     expect(def.forms?.length).toBeGreaterThan(1);
@@ -111,7 +123,11 @@ describe("§2-3-2 Traits (comprehensive-0035)", () => {
 
 describe("§2-3-3 Effects / (Rule) (comprehensive-0036)", () => {
   it("2-3-3-1/2-3-11-1: upper text (effect) is a field distinct from inherited/security text", () => {
-    cite("comprehensive-0036", "2-3-3 an effect is the upper text on a card");
+    cite(
+      "comprehensive-0036",
+      "2-3-3 an effect is the upper text on a card",
+      "ecdc495235abeca8638383963a95a068ba7f7f67f6d65f9ca30096cea28eb6c4",
+    );
 
     const def = requireCardDefinition("BT12-088");
     expect(def.effectText).toBeTruthy();
@@ -125,7 +141,11 @@ describe("§2-3-3 Effects / (Rule) (comprehensive-0036)", () => {
 
 describe("§2-3-5 Digivolution Requirements (comprehensive-0037)", () => {
   it("2-3-5-2: a digivolution cost is a color+level+memory requirement engine code reads", () => {
-    cite("comprehensive-0037", "2-3-5-2 digivolution cost required to digivolve");
+    cite(
+      "comprehensive-0037",
+      "2-3-5-2 digivolution cost required to digivolve",
+      "1109d6a323d257054e93be58c5ea8d408ae67cb68bf99fc3645719486e912b76",
+    );
 
     const def = requireCardDefinition("AD1-001");
     expect(def.evoCosts.length).toBeGreaterThan(0);
@@ -138,7 +158,11 @@ describe("§2-3-5 Digivolution Requirements (comprehensive-0037)", () => {
 
 describe("§2-3-6 DNA Digivolution (comprehensive-0038)", () => {
   it("implemented: dnaDigivolveInto merges 2 battle-area materials into a new permanent carrying both as its digivolution stack", async () => {
-    cite("comprehensive-0038", "DNA digivolution requirements, see 8-2");
+    cite(
+      "comprehensive-0038",
+      "DNA digivolution requirements, see 8-2",
+      "b726a01ba2631befade7f3830faf927a395ca6255832b01e2b93c21402141395",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -170,7 +194,11 @@ describe("§2-3-6 DNA Digivolution (comprehensive-0038)", () => {
 
 describe("§2-3-7 DigiXros Requirements (comprehensive-0039)", () => {
   it("implemented: playing EX10-058 via DigiXros reduces its cost per material and places both materials under it", async () => {
-    cite("comprehensive-0039", "the requirements for a DigiXros");
+    cite(
+      "comprehensive-0039",
+      "the requirements for a DigiXros",
+      "79c662e8644630d2a6e83d2108e1c0a9508b871965eec052585321a62125aa5b",
+    );
 
     const { getCompiledCard, getCardDefinition } = await import("@aegis/shared");
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -248,6 +276,7 @@ describe("§2-3-8 Burst Digivolve (comprehensive-0040)", () => {
         "digivolve intent below succeeds for cost 0 via it. The OTHER half of the rule (the " +
         "Tamer must actually be RETURNED as that cost) is a separate, still-broken divergence — " +
         "see the it.fails test below.",
+      "63c4e39211f266d6c32790d4b30f04584db26564858a499f83afc618014f0a82",
     );
 
     const { s, p0, base, burstCard } = layBurstScenario();
@@ -290,7 +319,11 @@ describe("§2-3-8 Burst Digivolve (comprehensive-0040)", () => {
 
 describe("§2-3-9 App Fusion (comprehensive-0041)", () => {
   it("implemented: appFusionCostFor computes a real, printed fusion cost", () => {
-    cite("comprehensive-0041", "the digivolution requirements for App Fusion");
+    cite(
+      "comprehensive-0041",
+      "the digivolution requirements for App Fusion",
+      "d4da054f16419d7bb7fb1e0e434147e6fe98d34ed7d4f8c5ad9012cd94f8ba3f",
+    );
     // AD1-005 prints "[App Fusion] [Globemon] & [Charismon]: Cost 0".
     const cost = appFusionCostFor("AD1-005", { topName: "Globemon", linkedNames: ["Charismon"] });
     expect(cost).toBe(0);
@@ -315,6 +348,7 @@ describe("§2-3-10 Assembly Requirements (comprehensive-0042)", () => {
       "2-3-10-1/2 the Assembly requirement (materials + cost reduction) is compiled from the " +
         "card's note text and is what `apps/api/src/engine/actions/assembly.ts` reads to drive " +
         "an Assembly play (see ch07-playing-a-card.test.ts §7-3 for the behavioral coverage)",
+      "54bd582fedafc37f24cb9d2947a18ea43ab462d54313d957cc18a9247e8d0c69",
     );
 
     const requirement = assemblyRequirementFor("EX12-046")?.[0];
@@ -327,7 +361,11 @@ describe("§2-3-10 Assembly Requirements (comprehensive-0042)", () => {
 
 describe("§2-3-11 Lower Text: Inherited/Security/Link/Option info (comprehensive-0043, 0044)", () => {
   it("2-3-11-4: Link requirement/cost/DP are distinct, independently-populated fields", () => {
-    cite("comprehensive-0043", "2-3-11-4 Link requirement, link cost, link DP");
+    cite(
+      "comprehensive-0043",
+      "2-3-11-4 Link requirement, link cost, link DP",
+      "7df84af08d6ff15a6b3c33996083cf3eaf9d08946fa827453ee895904921395e",
+    );
 
     const def = requireCardDefinition("BT21-009");
     expect(def.linkRequirement).toBeTruthy();
@@ -335,7 +373,11 @@ describe("§2-3-11 Lower Text: Inherited/Security/Link/Option info (comprehensiv
   });
 
   it("2-3-11-5: Option information (DUAL card lower text) is a distinct field from the main effect", () => {
-    cite("comprehensive-0044", "2-3-11-5 option information: lower text on a DUAL card");
+    cite(
+      "comprehensive-0044",
+      "2-3-11-5 option information: lower text on a DUAL card",
+      "f369ce5e4a1154e4e3794335e4f807056d0ec0d6787e5c8639e3b739fd6e0e89",
+    );
 
     const def = requireCardDefinition("BT25-043");
     expect(def.isDualCard).toBe(true);
@@ -347,7 +389,11 @@ describe("§2-3-11 Lower Text: Inherited/Security/Link/Option info (comprehensiv
 
 describe("§2-4 Color / §2-5 DP (comprehensive-0045)", () => {
   it("2-4-3-1/2-4-3-2: a multicolor card matches EITHER of its colors, and can't be treated as lacking one", () => {
-    cite("comprehensive-0045", "2-4-3 a multicolor card is treated as having all its colors");
+    cite(
+      "comprehensive-0045",
+      "2-4-3 a multicolor card is treated as having all its colors",
+      "7dac23b7703528a2c204e93b00a4c3f8f5c864590683f633e8b9d4e55c908c98",
+    );
 
     const def = requireCardDefinition("AD1-004"); // Red/Black
     expect(def.colors).toEqual(["Red", "Black"]);
@@ -375,7 +421,11 @@ describe("§2-4 Color / §2-5 DP (comprehensive-0045)", () => {
 
 describe("§2-6 Play Cost (comprehensive-0046)", () => {
   it("2-6-1: play cost is the memory the engine actually deducts when the card is played", async () => {
-    cite("comprehensive-0046", "2-6-1 play cost: the cost required to play a Digimon/Tamer card");
+    cite(
+      "comprehensive-0046",
+      "2-6-1 play cost: the cost required to play a Digimon/Tamer card",
+      "f449a89b1d961cd5f6cf3876178617bcb3ae49cb23ee94103b70bc2de6d13e91",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -392,7 +442,11 @@ describe("§2-6 Play Cost (comprehensive-0046)", () => {
 
 describe("§2-7 Use Cost (comprehensive-0047)", () => {
   it("2-7-1: an Option card's playCost field IS its use cost — there is no separate field", () => {
-    cite("comprehensive-0047", "2-7-1 use cost: the cost required to use an Option card");
+    cite(
+      "comprehensive-0047",
+      "2-7-1 use cost: the cost required to use an Option card",
+      "9ce3a3186cca41d61e5f2251c7fa13fea145b6029465954c50648e98758d6800",
+    );
 
     // CardDefinition has no separate "useCost" field (see types.ts) — an Option card's cost
     // to use is stored in the same `playCost` field a Digimon/Tamer card uses to be PLAYED.
@@ -406,7 +460,11 @@ describe("§2-7 Use Cost (comprehensive-0047)", () => {
 
 describe("§2-8 Digi-Egg Icon / §2-9 Level (comprehensive-0048)", () => {
   it("2-9-2: cards with no printed level ('Lv.-') are treated as having no level (undefined)", () => {
-    cite("comprehensive-0048", "2-9-2 no level shown -> treated as having no level");
+    cite(
+      "comprehensive-0048",
+      "2-9-2 no level shown -> treated as having no level",
+      "25084b7238b1aaf2bd09435a0a9ce0a2a5851a744a5a52ed8abf210f3ddc41f2",
+    );
 
     const tamer = requireCardDefinition("AD1-019");
     expect(tamer.level).toBeUndefined();
@@ -424,7 +482,11 @@ describe("§2-8 Digi-Egg Icon / §2-9 Level (comprehensive-0048)", () => {
 
 describe("§2-10 Overflow (comprehensive-0049)", () => {
   it("2-10-1: an Overflow ACE card costs its controller its printed overflow memory on leave", () => {
-    cite("comprehensive-0049", "2-10-1 a card has Overflow (loses memory when it leaves)");
+    cite(
+      "comprehensive-0049",
+      "2-10-1 a card has Overflow (loses memory when it leaves)",
+      "6685cfd03dd6c522bef8103ad25995fd0f4817ddf862af9a98c3be9221b5f2e4",
+    );
 
     const def = requireCardDefinition("AD1-005");
     expect(def.isAce).toBe(true);
@@ -491,7 +553,11 @@ describe("§4-6-2 DUAL Option declaration (comprehensive-0289)", () => {
 
 describe("§2-12 Card Number (comprehensive-0051)", () => {
   it("2-12-1: matching card name AND card number => the same card (copy-limit groups by cardId)", () => {
-    cite("comprehensive-0051", "2-12-1 matching card names and numbers are the same card");
+    cite(
+      "comprehensive-0051",
+      "2-12-1 matching card names and numbers are the same card",
+      "24898cbc121dae584aa6d9a42d4a5f284a67b499406aacb74d7fce5d5ca35491",
+    );
 
     // The deck copy-limit check (validateDecklist / effectiveCopyLimit) groups by `cardId` —
     // the engine's card-number identity — treating every instance sharing a cardId as "the
@@ -508,7 +574,11 @@ describe("§2-12 Card Number (comprehensive-0051)", () => {
 
 describe("§2-13 Other Information (comprehensive-0052)", () => {
   it("2-13-1: illustration/illustrator/copyright/rarity/block-icon are display-only, not referenced by filters", () => {
-    cite("comprehensive-0052", "2-13-1 other information can't be referenced during a game");
+    cite(
+      "comprehensive-0052",
+      "2-13-1 other information can't be referenced during a game",
+      "c3c94f90eb58e09f08c2d552a6cac084497bd9e7f60719ee07ea3ec8847f7e51",
+    );
 
     // Two real cards sharing the same kind but (in general) differing rarity both match a
     // filter that only inspects kind — rarity has no bearing on `definitionMatches`, because

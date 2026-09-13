@@ -54,7 +54,11 @@ describe("Blocker through public block windows", () => {
     ["BT1-009", false],
     ["AD1-005", true],
   ] as const)("rejects %s from a public block window", async (card, suspended) => {
-    cite("comprehensive-0151", "12-1-4: a suspended Digimon cannot block");
+    cite(
+      "comprehensive-0151",
+      "12-1-4: a suspended Digimon cannot block",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
+    );
     const s = setupEngine({
       0: { battleArea: [{ card: "BT4-038", as: "attacker" }], security: ["BT1-085"] },
       1: {

@@ -69,7 +69,11 @@ describe("bounded Retaliation lifecycle", () => {
   });
 
   it("does not trigger Retaliation when an opponent effect deletes the holder", async () => {
-    cite("comprehensive-0231", "Retaliation triggers only when its Digimon is deleted in battle");
+    cite(
+      "comprehensive-0231",
+      "Retaliation triggers only when its Digimon is deleted in battle",
+      "9fa675c87ec50b4575c9c464804c403e19fd1247cadf8ed144268d60d23801f7",
+    );
     const s = setupEngine(
       {
         0: {

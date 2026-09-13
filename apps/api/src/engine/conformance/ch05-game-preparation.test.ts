@@ -33,7 +33,11 @@ function seatState(state: GameState, seat: Seat): PlayerState {
 
 describe("§5-1 Deck and Digi-Egg Deck Preparation (comprehensive-0100)", () => {
   it("5-1-2: token cards are never part of a legal decklist — validateDecklist rejects a synthetic TOKEN- id", () => {
-    cite("comprehensive-0100", "5-1-2 token cards are left outside of the game before setup");
+    cite(
+      "comprehensive-0100",
+      "5-1-2 token cards are left outside of the game before setup",
+      "6603a5e6e045e464e37385d2bd6b1729d099723fb0fdd122af32f514e8e15601",
+    );
 
     // Tokens are spawned by effects (packages/shared/src/cards/tokens.ts), never printed
     // deck-legal cards. The registry DOES resolve a synthetic TOKEN- id (tokens are registered
@@ -57,6 +61,7 @@ describe("§5-2 Pre-Game Preparations (comprehensive-0101)", () => {
     const chunk = cite(
       "comprehensive-0101",
       "5-2-1: shuffle deck/egg-deck, decide first player, draw 5, mulligan window, set security, memory to 0, first player's turn begins",
+      "d8cade83bc41283fe4f5f8320ede83d93b82248fcc0f045bc4a85a6fd72cd17d",
     );
     expect(chunk.text).toContain("5-2-1-7");
 
@@ -104,7 +109,11 @@ describe("§5-2 Pre-Game Preparations (comprehensive-0101)", () => {
   });
 
   it("5-2-1-5: a mulligan redraw returns the whole hand to the deck, reshuffles, and deals a fresh 5-card hand", () => {
-    cite("comprehensive-0101", "5-2-1-5 a redraw returns the hand, shuffles, and draws a new opening hand");
+    cite(
+      "comprehensive-0101",
+      "5-2-1-5 a redraw returns the hand, shuffles, and draws a new opening hand",
+      "d8cade83bc41283fe4f5f8320ede83d93b82248fcc0f045bc4a85a6fd72cd17d",
+    );
 
     const state = new GameState();
     runSetup(state, {

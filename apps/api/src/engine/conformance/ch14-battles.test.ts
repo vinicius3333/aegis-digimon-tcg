@@ -95,6 +95,7 @@ describe("§14 Battles (comprehensive-0155)", () => {
       "comprehensive-0155",
       "14-1 a battle compares the DP of the two battling cards; 14-2-1-1 the higher-DP card " +
         "wins; 14-2-1-2 the lower-DP card loses",
+      "5b06ea97b99d6d698c6a1af32e9a3d725f850ddcf288c2f53f3bd003beaefa68",
     );
 
     const h = controllerHarness();
@@ -115,6 +116,7 @@ describe("§14 Battles (comprehensive-0155)", () => {
       "comprehensive-0155",
       "14-2-1-3 if both cards have the same DP, both lose the battle; 14-2-2 the loser is " +
         "immediately deleted, and if both lose, both are deleted at the same time",
+      "5b06ea97b99d6d698c6a1af32e9a3d725f850ddcf288c2f53f3bd003beaefa68",
     );
 
     const h = controllerHarness();
@@ -137,7 +139,11 @@ describe("§14 Battles (comprehensive-0155)", () => {
   });
 
   it("14-2-3: a Security Digimon that loses a battle is NOT deleted the way a battle-area permanent is — it's simply trashed as a loose card", async () => {
-    cite("comprehensive-0155", "14-2-3 Security Digimon aren't deleted even when they lose a battle");
+    cite(
+      "comprehensive-0155",
+      "14-2-3 Security Digimon aren't deleted even when they lose a battle",
+      "5b06ea97b99d6d698c6a1af32e9a3d725f850ddcf288c2f53f3bd003beaefa68",
+    );
 
     const ATTACKER_ID = "sec-attacker";
     const card = makeSecurityCard(1, 0, "AD1-002");
@@ -174,6 +180,7 @@ describe("§14 Battles (comprehensive-0155)", () => {
     cite(
       "comprehensive-0155",
       "14-2-4 if an effect is triggered by a battle, it is resolved before the next action begins",
+      "5b06ea97b99d6d698c6a1af32e9a3d725f850ddcf288c2f53f3bd003beaefa68",
     );
 
     const h = controllerHarness();
@@ -205,6 +212,7 @@ describe("§14 Battles (comprehensive-0155)", () => {
         "member). BT11-059's own A3 test (cards/BT11/BT11-059.test.ts) only exercises its " +
         "OTHER (evo-cost-reduction) clause — nothing anywhere drives its OnEndBattle unsuspend " +
         "ability through a real battle, because there is no code path that ever would.",
+      "5b06ea97b99d6d698c6a1af32e9a3d725f850ddcf288c2f53f3bd003beaefa68",
     );
 
     const h = controllerHarness({

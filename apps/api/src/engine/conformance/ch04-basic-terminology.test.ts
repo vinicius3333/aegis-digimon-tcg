@@ -50,7 +50,11 @@ function bareState(): { state: GameState; p0: PlayerState; p1: PlayerState } {
 
 describe("§4-1 Memory (comprehensive-0068)", () => {
   it("4-1-1/4-1-4: paying a cost moves the gauge toward the opponent; 'gain X' moves it back toward you", () => {
-    cite("comprehensive-0068", "4-1-1 memory is spent by moving the gauge; 4-1-4 gain/lose move it left/right");
+    cite(
+      "comprehensive-0068",
+      "4-1-1 memory is spent by moving the gauge; 4-1-4 gain/lose move it left/right",
+      "c681206c24c9b53e21aa82a9d896e801194cda16b3f1f9dac13fcedc488967d2",
+    );
 
     const { state } = bareState();
     const gauge = new MemoryGauge(state);
@@ -66,6 +70,7 @@ describe("§4-1 Memory (comprehensive-0068)", () => {
     cite(
       "comprehensive-0068",
       "4-1-2 'X or less/more memory' (your side); 4-1-3 same phrasing for 'if your opponent has'",
+      "c681206c24c9b53e21aa82a9d896e801194cda16b3f1f9dac13fcedc488967d2",
     );
 
     const { state } = bareState();

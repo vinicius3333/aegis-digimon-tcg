@@ -21,7 +21,11 @@ import "../../cards/index.js";
 
 describe("§3-1 Areas (comprehensive-0054)", () => {
   it("3-1-1: the six named areas each have a real, distinct zone on PlayerState", () => {
-    cite("comprehensive-0054", "3-1-1 areas: deck, Digi-Egg deck, field, hand, trash, security");
+    cite(
+      "comprehensive-0054",
+      "3-1-1 areas: deck, Digi-Egg deck, field, hand, trash, security",
+      "b971feee53ff2b66a5487401db5d7941e42f81b7d1a2c3ddce0bfb32fec70c8e",
+    );
 
     const p = new PlayerState();
     // Deck, Digi-Egg deck, hand, trash, security are all distinct arrays; the field is
@@ -50,7 +54,11 @@ describe("§3-1-2 Public Areas and Private Areas (comprehensive-0055)", () => {
   }
 
   it("3-1-2-2-1: an opponent's deck/hand/security (private areas) are withheld from your view", () => {
-    cite("comprehensive-0055", "3-1-2 public areas are revealed to both players; private areas aren't");
+    cite(
+      "comprehensive-0055",
+      "3-1-2 public areas are revealed to both players; private areas aren't",
+      "d83cb8f6b829e2d53075a0818827e1b35653d0658346f6f3417b2a424f0979cd",
+    );
 
     const state = makeState();
     const view = buildStateView(state, 0);
@@ -72,7 +80,11 @@ describe("§3-1-2 Public Areas and Private Areas (comprehensive-0055)", () => {
 
 describe("§3-1-3 Area Rules (comprehensive-0056)", () => {
   it("3-1-3-2: the number of cards in a private area is public information (mirrored *Count fields)", () => {
-    cite("comprehensive-0056", "3-1-3-2 the number of cards in each area is public information");
+    cite(
+      "comprehensive-0056",
+      "3-1-3-2 the number of cards in each area is public information",
+      "3f2b889d58bbf244137026a274c7c36d7d56335c44af65c8464a86531a446d2e",
+    );
 
     const state = new GameState();
     state.players = new ArraySchema<PlayerState>();
@@ -132,7 +144,11 @@ describe("§3-1-3 Area Rules (comprehensive-0056)", () => {
 
 describe("§3-2 Deck (comprehensive-0058)", () => {
   it("3-2-2: deck cards are placed face-down (private) — 3-2-3: no client intent can reorder it", () => {
-    cite("comprehensive-0058", "3-2-2 the deck is private, cards are face-down");
+    cite(
+      "comprehensive-0058",
+      "3-2-2 the deck is private, cards are face-down",
+      "9f504932de0bc8a90aa71b503a70189c144b4744a7f23c8aa392f901133f4afd",
+    );
 
     const card = instance("AD1-001", 0, false);
     expect(card.faceUp).toBe(false);
@@ -147,7 +163,11 @@ describe("§3-2 Deck (comprehensive-0058)", () => {
 
 describe("§3-3 Digi-Egg Deck (comprehensive-0059)", () => {
   it("3-3-2: the egg deck is private and face-down, structurally identical in kind to the deck", () => {
-    cite("comprehensive-0059", "3-3-2 the Digi-egg deck is a private area, face-down");
+    cite(
+      "comprehensive-0059",
+      "3-3-2 the Digi-egg deck is a private area, face-down",
+      "50e78cd6cf668b57fb2c885f277db1daad7f99d4b2e862492fd989258dc464d1",
+    );
 
     const state = new GameState();
     state.players = new ArraySchema<PlayerState>();
@@ -336,7 +356,11 @@ describe("§3-4-8 Battle Area (comprehensive-0283)", () => {
 
 describe("§3-5 Hand (comprehensive-0064)", () => {
   it("3-5-3: the hand is private, but its OWNER may freely look at it", () => {
-    cite("comprehensive-0064", "3-5-3 the hand is private, but the owner may freely look at it");
+    cite(
+      "comprehensive-0064",
+      "3-5-3 the hand is private, but the owner may freely look at it",
+      "b45a892345714ae03146d648d6d745c07714b2119423a126ecc335c73ec81c8b",
+    );
 
     const state = new GameState();
     state.players = new ArraySchema<PlayerState>();
@@ -357,7 +381,11 @@ describe("§3-5 Hand (comprehensive-0064)", () => {
 
 describe("§3-6 Trash (comprehensive-0065)", () => {
   it("3-6-3: the trash is public and face-up — visible in BOTH players' views", () => {
-    cite("comprehensive-0065", "3-6-3 the trash is public, cards are face-up in a stack");
+    cite(
+      "comprehensive-0065",
+      "3-6-3 the trash is public, cards are face-up in a stack",
+      "5b6ecb6df97c1f9af89c1dab78ade71a9db7cfe81d5328a2e6249640a0597184",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -371,7 +399,11 @@ describe("§3-6 Trash (comprehensive-0065)", () => {
 
 describe("§3-7 The Security Stack (comprehensive-0066)", () => {
   it("3-7-2: the security stack is private and face-down until individually revealed", () => {
-    cite("comprehensive-0066", "3-7-2 the security stack is private, cards are face-down");
+    cite(
+      "comprehensive-0066",
+      "3-7-2 the security stack is private, cards are face-down",
+      "375de43e6d6ecf33441a24fd4271f6e87eb8cdba060c78642f259c3c5c1ee851",
+    );
 
     const state = new GameState();
     state.players = new ArraySchema<PlayerState>();

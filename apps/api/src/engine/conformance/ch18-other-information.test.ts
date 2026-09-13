@@ -125,6 +125,7 @@ describe("§18-1 Pending Processing (comprehensive-0267)", () => {
           "triggered effect — the rule's own example is exactly '[When Attacking] Gain 3 memory. " +
           "Lose 3 memory at the end of the turn'; BT1-090 is a real card carrying the same shape " +
           "on a [Main] Option instead ('Gain 2 memory. At end of turn, lose 2 memory.')",
+        "4722c6a6402dd1019b8ac7ef2be05e44db72f94d8125fdd7000013aae668ab8b",
       );
       const def = requireCardDefinition("BT1-090");
       expect(def.effectText).toContain("Gain 2 memory");
@@ -186,6 +187,7 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
         "Aonuma], you may return 1 [MetalGreymon] from your trash to your hand instead.' The " +
         "registered Modal IR exposes the eligible return branch and resolves it instead of the " +
         "default reveal branch when the player chooses that option.",
+      "dc098cffb6c65804f73e949cd67b04a4c7139f250f121240515120c0da1b7b7e",
     );
 
     const kirihaDef = requireCardDefinition("BT10-088"); // real [Kiriha Aonuma] Tamer
@@ -287,6 +289,7 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
         "below (via a runtime override of the class's own static field) so the SAME throw " +
         "statement a genuine runaway loop would hit is reached deterministically and fast, " +
         "without needing to actually construct 1000 real passes.",
+      "57b8cd9db14a91b10edbf2efb3667ef40bd7db6beeb5523388cf30d436730040",
     );
 
     const s = setup();
@@ -315,6 +318,7 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
       "18-3-3-1/18-3-3-2: the turn player, then the non-turn player, DECLARE a number of times to " +
         "repeat the loop before it's allowed to stop — a player-facing decision distinct from any " +
         "existing DecisionRequest kind",
+      "57b8cd9db14a91b10edbf2efb3667ef40bd7db6beeb5523388cf30d436730040",
     );
     // DECISION_KINDS (packages/shared/src/protocol/events.ts) is runtime-pinned to the
     // DecisionRequest.kind union in BOTH directions (a typecheck-enforced completeness guard —
@@ -338,6 +342,7 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
         "the following procedure' — 18-3-3-3 executes the processing, then 'the player stops the " +
         "processing when possible'. The draw of 18-3-2 is reserved for the case where NEITHER " +
         "player can stop it.",
+      "57b8cd9db14a91b10edbf2efb3667ef40bd7db6beeb5523388cf30d436730040",
     );
 
     // The stop ability the resolver can see is an OPTIONAL link inside the cycle: an effect its
@@ -370,6 +375,7 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
       "comprehensive-0270",
       "18-3-3: 'After performing the following processing, it will not be possible to perform the " +
         "actions for the same infinite loop again.'",
+      "57b8cd9db14a91b10edbf2efb3667ef40bd7db6beeb5523388cf30d436730040",
     );
 
     // A mandatory bystander trigger waits behind the loop. Once the loop is stopped, the window

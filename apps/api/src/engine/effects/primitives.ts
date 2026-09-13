@@ -2163,6 +2163,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     card.faceUp = false;
     unshiftOnStack(permanent, card);
     engine.emit({ kind: "cardsMoved", instanceIds: [card.instanceId], from: Zone.Deck, to: Zone.BattleArea });
+    // The newly added card may change the host's inherited/static effect set. Refresh that
+    // derived state before the placement watcher opens, matching the ordinary placeUnder path.
+    await engine.recomputeContinuousEffects?.();
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [card.instanceId],

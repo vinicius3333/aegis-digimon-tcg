@@ -159,12 +159,18 @@ describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALE
         "manual-0031",
         "'Each placed card reduces the play cost.' / 'Even if just 1 card is placed under a card " +
           "for a DigiXros, it is considered DigiXrosing.'",
+        "81da65a5e1d5ae2a24cc2d65ac6e1845f5b54da21b6a885e13495e0d50e9d999",
       );
       cite(
         "manual-0032",
         "worked example: DigiXros -2 per card, 4 cards placed -> total reduction 8, printed cost " + "9 becomes 1",
+        "416aef0651ef6f23b64a90719450678f2343ce898195df7a749e88cc9a1b7567",
       );
-      cite("manual-0033", "cards placed for a DigiXros stack top-to-bottom in requirement order");
+      cite(
+        "manual-0033",
+        "cards placed for a DigiXros stack top-to-bottom in requirement order",
+        "dc249a5006518b47c6ae58146f40c5f1fc51f91c82e66bc278e9d96e9ea9825f",
+      );
 
       // BT10-061 (SkullKnightmon: Mighty Axe Mode): printed "DigiXros -1: [SkullKnightmon] + " +
       // "[DeadlyAxemon]", playCost 4 — reused from ch07's own fixture set, but driven here with

@@ -57,6 +57,7 @@ describe("§8-1 Digivolution (comprehensive-0124)", () => {
       "comprehensive-0124",
       "8-1-1 digivolution transforms a card on the field by stacking a Digimon card on " +
         "top of it, paying its cost, as a Main phase action",
+      "c71566b9375923b2b9f0101e45a7a2bfabb2247f031b4209a44760e8532f05b6",
     );
 
     const s = setup();
@@ -245,6 +246,7 @@ describe("§8-2 DNA Digivolution (comprehensive-0127)", () => {
       "comprehensive-0127",
       "8-2-1 DNA digivolution digivolves 1 [DNA Digivolution] card into 1 NEW Digimon by " +
         "placing multiple material cards on top of it, per its DNA digivolution requirements",
+      "1947a6f048c20a68ea1ac7e1129124f591b5ce506c05b54e3fd08a274689af6a",
     );
 
     const s = setup();
@@ -273,6 +275,7 @@ describe("§8-2-2 DNA Digivolution Rules (comprehensive-0128)", () => {
       "comprehensive-0128",
       "8-2-2-1-1 the card placed on top digivolves unsuspended without carrying over the " +
         "orientation from before the digivolution",
+      "497bd87ced5ec038b26b12dc120129cf2fe7a3b36833421c847565402a32f9a2",
     );
 
     const s = setup();
@@ -298,6 +301,7 @@ describe("§8-2-2 DNA Digivolution Rules (comprehensive-0128)", () => {
       "comprehensive-0128",
       "8-2-2-1-2 cards that become digivolution cards are new cards; if a card that " +
         "would become a digivolution card has a link card, the link card is trashed first",
+      "497bd87ced5ec038b26b12dc120129cf2fe7a3b36833421c847565402a32f9a2",
     );
 
     const s = setup();
@@ -321,6 +325,7 @@ describe("§8-2-2-1-7 DNA Digivolution Rules (comprehensive-0129)", () => {
       "comprehensive-0129",
       "8-2-2-4 DNA digivolution can only be performed by an effect that specifically " +
         "performs DNA digivolution — never by an effect (or verb) that performs standard digivolution",
+      "2aebd5f185f85ef41b8bd673c2d6d35f3705415efd7d305df461440214eaf69d",
     );
 
     const s = setup();
@@ -350,6 +355,7 @@ describe("§8-2-3-1 DNA Digivolution Rules (comprehensive-0130)", () => {
     cite(
       "comprehensive-0130",
       "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution requirement is paid",
+      "0c15ccea9ee63b00b52d307ff764be95785d1dfedaaab99b9266bdc2f5dd834d",
     );
 
     const s = setup();
@@ -428,6 +434,7 @@ describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
       "comprehensive-0131",
       "8-3-1 burst digivolve digivolves a [Burst Digivolve] card into 1 of the player's " +
         "Digimon per its burst digivolve requirements, by returning a specified Tamer",
+      "6b9537bcc18dbf610f66b192871987c8d64ebd3d667f6d7c4cd508a77d952f01",
     );
     cite(
       "comprehensive-0317",
@@ -489,6 +496,7 @@ describe("§8-4 App Fusion (comprehensive-0134)", () => {
       "comprehensive-0134",
       "8-4-1 App Fusion digivolves 1 [App Fusion] Digimon card by placing a specified " +
         "link card from 1 specified battle-area Digimon on top of it",
+      "c9dac276f5a3ab224e8f3782cbc0618394ca5ae077859faf8b5887df2985c4c6",
     );
 
     // App Fusion fires the fusion-target's own WhenDigivolving — AD1-005 carries one that OFFERS
@@ -545,6 +553,7 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
       "comprehensive-0135",
       "8-4-2-1 App fusion allows a linked Digimon to digivolve using a combination of 2 " +
         "different specified cards, per the fusion target's printed requirement",
+      "919f338df14bb1fc207909af7a4cbff8515c2b089fe018404422a534f2e456e9",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });

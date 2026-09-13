@@ -35,7 +35,11 @@ function card(cardId: string, seat: Seat, faceUp: boolean): CardInstance {
 
 describe("glossary-0000 (Card Types)", () => {
   it("a Tamer permanent is not a legal attack target — Tamers 'can't be targeted by an attacking Digimon'", () => {
-    cite("glossary-0000", "Tamer Cards: '...They can't be targeted by an attacking Digimon.'");
+    cite(
+      "glossary-0000",
+      "Tamer Cards: '...They can't be targeted by an attacking Digimon.'",
+      "3a9772636093602f9b3e0bba6f526135ffde9fac00a79c0b0aed3b9174d57187",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -56,7 +60,11 @@ describe("glossary-0000 (Card Types)", () => {
 
 describe("glossary-0001 (Areas on the Playing Field, part 1)", () => {
   it("Breeding Area: 'Only 1 Digimon can be in the breeding area at a time'", () => {
-    cite("glossary-0001", "Breeding Area: 'Only 1 Digimon can be in this area at a time.'");
+    cite(
+      "glossary-0001",
+      "Breeding Area: 'Only 1 Digimon can be in this area at a time.'",
+      "61a7d65976ba8c2410cdf14190c9dc9dd903445ec1ca5430b41afbed3c5482a0",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -79,6 +87,7 @@ describe("glossary-0002 (Areas on the Playing Field, part 2)", () => {
     cite(
       "glossary-0002",
       "Security Stack: 'A player loses the game if they are attacked with zero cards remaining in their security stack.'",
+      "56ada564201d96097b9918dc5587b91d7a69c26e1a77bf432776983be11ee601",
     );
 
     const s = setup();
@@ -109,6 +118,7 @@ describe("glossary-0003 (Timings, part 1)", () => {
       "glossary-0003",
       "On Play: 'Triggers when Digimon are played directly to the battle area. Does not apply to " +
         "digivolving Digimon or Digimon moved into play from the breeding area.'",
+      "9182a8b692d277518b43386cd20ed8e3e1198b6633439c7a562c81affcb9de82",
     );
 
     const s = setup();
@@ -147,6 +157,7 @@ describe("glossary-0004 (Timings, part 2)", () => {
       "glossary-0004",
       "On Deletion: 'Triggers when a Digimon is defeated in battle, deleted by a card effect, " +
         "or deleted when its DP is reduced to 0.'",
+      "f95ec9683cc6a6647081f019f6bcdd02637747db32d3ec5c945039fb8ee6ec0f",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -181,7 +192,11 @@ describe("glossary-0004 (Timings, part 2)", () => {
 
 describe("glossary-0005 (Card States)", () => {
   it("Suspended: 'Suspended Digimon can be targeted for attacks' — an unsuspended Digimon can't be", () => {
-    cite("glossary-0005", "Suspended: 'Suspended Digimon can be targeted for attacks.'");
+    cite(
+      "glossary-0005",
+      "Suspended: 'Suspended Digimon can be targeted for attacks.'",
+      "733c5185b00b7464893e9e03581cba89ac2856796ff567a544c070aea6cf31a6",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -290,6 +305,7 @@ describe("glossary-0006 (Game Phases)", () => {
         "glossary-0006",
         "Draw Phase: 'The player who goes first does not draw during their initial turn. If a " +
           "player's deck is empty, and they can't draw a card during this phase, they lose the game.'",
+        "8138351158db1d80dda82e6ac4cdc9e38bee0c5082a1e22ba93e162a7d880acc",
       );
 
       const h = fullTurnHarness(0);
@@ -326,6 +342,7 @@ describe("glossary-0007 (Properties Common to All Card Types)", () => {
       "Once Per Turn: activatable only once per turn even if conditions recur; different Once " +
         "Per Turn effects (or the same effect on 2 different Digimon) each get their own count. " +
         "Twice Per Turn: the identical rule, but the ceiling is 2.",
+      "125cda217c1b57e3244104c64ce2073253694613d459113be0551f8ba3ba66b1",
     );
 
     const tracker = new UseTracker();
@@ -353,6 +370,7 @@ describe("glossary-0008 (Digimon Card Properties)", () => {
     cite(
       "glossary-0008",
       "DP: 'When battling, the DP of both Digimon are compared, and the Digimon with the lower number loses and is deleted.'",
+      "953bc879cf9def7db4680ac3ef51bd43ea04fe8f124624f89ce7eba5eef0c208",
     );
 
     const s = setup();
@@ -383,7 +401,11 @@ describe("glossary-0008 (Digimon Card Properties)", () => {
 
 describe("glossary-0009 (Digi-Egg Card Properties)", () => {
   it("In-Training: 'Corresponds to Level 2' — a hatched Digi-Egg carries level 2", () => {
-    cite("glossary-0009", "In-Training: 'One of the stages of Digimon Digivolution. Corresponds to Level 2.'");
+    cite(
+      "glossary-0009",
+      "In-Training: 'One of the stages of Digimon Digivolution. Corresponds to Level 2.'",
+      "42b4d935e4e30fb88732958fec776ed44080dccd49ba77c90fe3cce3dc152406",
+    );
 
     const eggDef = requireCardDefinition("BT1-001"); // a real Digi-Egg, hatched elsewhere in this suite
     expect(eggDef.level).toBe(2);
@@ -403,7 +425,11 @@ describe("glossary-0009 (Digi-Egg Card Properties)", () => {
 
 describe("glossary-0010 (Tamer Card Properties)", () => {
   it("Play Cost: playing a Tamer deducts EXACTLY its printed play cost from memory", async () => {
-    cite("glossary-0010", "Play Cost: 'Required cost to play a Tamer directly to your battle area.'");
+    cite(
+      "glossary-0010",
+      "Play Cost: 'Required cost to play a Tamer directly to your battle area.'",
+      "9d6f500b81b9c43a5c9684072c88d08e8a387ab4f4fa4ff80dd889ade7e40704",
+    );
 
     const def = requireCardDefinition("BT12-092"); // a real Tamer, printed play cost 4
     expect(def.playCost).toBeGreaterThan(0);
@@ -423,7 +449,11 @@ describe("glossary-0010 (Tamer Card Properties)", () => {
 
 describe("glossary-0011 (Option Card Properties)", () => {
   it("Cost: playing an Option deducts EXACTLY its printed cost from memory", async () => {
-    cite("glossary-0011", "Cost: 'Required cost to use an Option card.'");
+    cite(
+      "glossary-0011",
+      "Cost: 'Required cost to use an Option card.'",
+      "85d7929bde7033e4c486f2f06362f2f261d5c8f212c98a8aba5c8edc6e3a708e",
+    );
 
     const def = requireCardDefinition("BT1-097"); // a real Option, printed cost 1, unconditional <Draw 1>
     expect(def.playCost).toBe(1);
@@ -450,6 +480,7 @@ describe("glossary-0012 (Actions, part 1)", () => {
       "Pass: 'Voluntarily giving up your turn to the opponent during the main phase. When a " +
         "turn is passed, the memory counter is moved to the opponent's number 3 space regardless " +
         "of where it was before passing.'",
+      "8707e9160e2e490b0b2f13a8028b145dc531086249f98d0bd8f7f9102e287427",
     );
 
     // `endPhase` is only legal while the REAL Main phase is open (MainPhaseController, driven
@@ -494,6 +525,7 @@ describe("glossary-0013 (Actions, part 2 — DNA Digivolution / Color Requiremen
         "engine code this glossary chunk's own wording describes, not a distinct implementation " +
         "to re-verify — repeating either scenario here would test the identical code path a " +
         "second time under a new id, not new coverage.",
+      "a6a0bff871fef3a3dcf894a497802a220308eae41acab98441fe3aceedb37255",
     );
 
     // A minimal, fresh corroboration (not a re-derivation of the full mechanic): the real card
@@ -510,6 +542,7 @@ describe("glossary-0014 (Keyword Effects — <Security Attack -x>)", () => {
       "glossary-0014",
       "<Security Attack -x>: 'If your opponent has zero security cards and you attack with a " +
         "Digimon that checks zero cards, you can't win the game.'",
+      "4d9d193330e59f68c23e6c4ed03a38b5066d636a12352ae16a2fb72f38a1d4a2",
     );
 
     const s = setup();
@@ -548,6 +581,7 @@ describe("glossary-0015 (Keyword Effects — <Jamming>)", () => {
       "glossary-0015",
       "<Jamming>: '...If the Digimon has a Security Attack + effect that allows for an " +
         "additional security card to be checked, that check can still be performed.'",
+      "54d17d1ae79ce2fadc0b4aa8a78e80baf7799a1b4676010bf634752673a9b500",
     );
 
     const s = setup();
@@ -586,6 +620,7 @@ describe("glossary-0016 (Keyword Effects — <Reboot>)", () => {
       "glossary-0016",
       "<Reboot>: 'Digimon with this effect are unsuspended during not only your unsuspend " +
         "phase, but your opponent's unsuspend phase as well.' (additive, not a replacement)",
+      "db0fb43c10d9c8128bdc0d2c36b3fa85fd3c344c681c8162d4ededffd2cb1cb3",
     );
 
     const s = setup();
@@ -610,6 +645,7 @@ describe("glossary-0017 (Keyword Effects — <Blitz>)", () => {
       "glossary-0017",
       "<Blitz>: '...if the Digimon is suspended, has an effect that prevents it from attacking, " +
         "or is otherwise unable to attack normally, <Blitz> won't enable it to attack.'",
+      "eb3c4ba99b9daceef70d032e42ba142b8c622791f4d10eab1e1cb2b23b88b93f",
     );
 
     const s = setup();
@@ -637,6 +673,7 @@ describe("glossary-0018 (Keyword Effects — <Delay>)", () => {
       "glossary-0018",
       "<Delay>: \"It's not necessary to pay an Option card's memory cost or meet color " +
         'requirements when activating its <Delay> effect."',
+      "2067fdaf6c3e1cdcb88ba07a3283c3cd108c46c8fae6720c8b0f0bd6fbe8bc6a",
     );
 
     const s = setup();

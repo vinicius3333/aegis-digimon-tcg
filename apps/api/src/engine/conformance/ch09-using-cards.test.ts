@@ -49,6 +49,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
     cite(
       "comprehensive-0137",
       "9-1-1 using a card refers to activating an Option card's [Main] effect; its color " + "requirements must be met",
+      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
     );
 
     const { state, card } = optionState("BT1-090"); // playCost 0, so cost never blocks the play
@@ -65,6 +66,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
       "comprehensive-0137",
       "9-1-4 a used Option card is treated as not being in any area during the period " +
         "from activation of its 1st [Main] effect until it's been resolved",
+      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
     );
 
     const { state, card } = optionState("BT1-090");
@@ -118,6 +120,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
       "comprehensive-0137",
       "9-1-5 a used Option card is immediately trashed as pending processing as soon as " +
         "its 1st [Main] effect has resolved, unless it is considered to be placed in an area",
+      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
     );
 
     const s = setup();
@@ -136,7 +139,11 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
 
 describe("§9-1-6 Using Cards (comprehensive-0138)", () => {
   it("9-1-7: cards are used 1 at a time — a second use is rejected while one is mid-resolution", () => {
-    cite("comprehensive-0138", "9-1-7 cards are used 1 at a time; multiple cards can't be used at the same time");
+    cite(
+      "comprehensive-0138",
+      "9-1-7 cards are used 1 at a time; multiple cards can't be used at the same time",
+      "0d5f029f47ffbf5f0f18a4e389c473236acf8379acaf321ae0f1b28224ddd307",
+    );
 
     const { state, card } = optionState("BT1-090");
     const pd = new PendingDecision();
@@ -157,6 +164,7 @@ describe("§9-1-6 Using Cards (comprehensive-0138)", () => {
       "comprehensive-0138",
       "9-1-8 if a card can no longer be used after reveal, it's returned unchanged; " +
         "memory doesn't move when it fails on cost",
+      "0d5f029f47ffbf5f0f18a4e389c473236acf8379acaf321ae0f1b28224ddd307",
     );
 
     const s = setup();
@@ -178,6 +186,7 @@ describe("§9-1-6 Using Cards (comprehensive-0138)", () => {
       "comprehensive-0138",
       "9-1-9-2 the specified use cost is paid; 9-1-9-3 THEN, once use is resolved, the " +
         "1st [Main] effect is activated",
+      "0d5f029f47ffbf5f0f18a4e389c473236acf8379acaf321ae0f1b28224ddd307",
     );
 
     const { state, card } = optionState("BT1-091"); // playCost 3

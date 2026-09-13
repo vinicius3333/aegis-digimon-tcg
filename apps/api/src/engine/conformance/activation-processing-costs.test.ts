@@ -295,7 +295,11 @@ describe("declared optional processing conditions", () => {
   );
 
   it("BT15-091 rejects forged or duplicate ordered loose payments atomically", async () => {
-    cite("comprehensive-0056", "3-1-3-3/4 simultaneous cards from one area are ordered by their owner");
+    cite(
+      "comprehensive-0056",
+      "3-1-3-3/4 simultaneous cards from one area are ordered by their owner",
+      "3f2b889d58bbf244137026a274c7c36d7d56335c44af65c8464a86531a446d2e",
+    );
     const s = setupEngine(
       {
         0: {

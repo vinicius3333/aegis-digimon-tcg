@@ -31,7 +31,11 @@ import "../../cards/index.js";
 
 describe("§7-1 Playing a Card (comprehensive-0112)", () => {
   it("7-1-1: a card is played from hand into the battle area as a Main-phase action; illegal off-phase", async () => {
-    cite("comprehensive-0112", "7-1-1 playing a card places 1 hand card onto the field, as a Main phase action");
+    cite(
+      "comprehensive-0112",
+      "7-1-1 playing a card places 1 hand card onto the field, as a Main phase action",
+      "54de5fa141107ef8043089b1786d871dbff570496a840b0db2df48269b1161c8",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -58,7 +62,11 @@ describe("§7-1 Playing a Card (comprehensive-0112)", () => {
 
 describe("§7-1-2 Card Playing Rules (comprehensive-0113)", () => {
   it("7-1-2-1: a Digimon can't attack the same turn it was played", async () => {
-    cite("comprehensive-0113", "7-1-2-1 a card can't attack the same turn it was played");
+    cite(
+      "comprehensive-0113",
+      "7-1-2-1 a card can't attack the same turn it was played",
+      "7958d5d05d439f21d7124695d511a09f93c3e2319a40e75e8b7175bbe72f6984",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -89,6 +97,7 @@ describe("§7-1-2 Card Playing Rules (comprehensive-0113)", () => {
       "comprehensive-0113",
       "7-1-2-4 if a card can no longer be played after reveal, it's returned unchanged; " +
         "memory doesn't move when the play fails on cost",
+      "7958d5d05d439f21d7124695d511a09f93c3e2319a40e75e8b7175bbe72f6984",
     );
 
     const s = setup();
@@ -113,6 +122,7 @@ describe("§7-2 DigiXros (comprehensive-0114)", () => {
       "comprehensive-0114",
       "7-2-1 a DigiXros places named material cards under the played Digimon and " +
         "reduces its play cost by the requirement's value per card placed",
+      "3e19f3dd38c19018e90547fb4f7e8e59d9488ccfb9884430687d37192f869c63",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -146,6 +156,7 @@ describe("§7-2-2 DigiXros Rules (comprehensive-0115)", () => {
       "comprehensive-0115",
       "7-2-2-1/7-2-2-6 hand materials chosen for a DigiXros are revealed at declaration time " +
         "and placed under the played card in the same procedure",
+      "39147f59230129dfa69116e9d10bc53a6e7427bbc74ec031843fd4ed9bdfb90e",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -172,7 +183,11 @@ describe("§7-2-2 DigiXros Rules (comprehensive-0115)", () => {
 
 describe("§7-2-2-4 DigiXros Rules (comprehensive-0116)", () => {
   it("7-2-2-4: a declared DigiXros can't place 0 materials", () => {
-    cite("comprehensive-0116", "7-2-2-4 a declared DigiXros can't choose to place 0 cards");
+    cite(
+      "comprehensive-0116",
+      "7-2-2-4 a declared DigiXros can't choose to place 0 cards",
+      "c35ee0eb601016a6a697ac47fc51f09e5bead69070814d2b2c9fd8ce21d9b686",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -235,6 +250,7 @@ describe("§7-2-2-10 DigiXros Rules (comprehensive-0117)", () => {
       "comprehensive-0117",
       "7-2-2-10 an X-card DigiXros is considered performed only when X cards were placed; " +
         "a 'DigiXrosing with N cards' clause gates on the ACTUAL material count",
+      "1ebbe9afb14fc39b5aee3c498e606dd9178970b2425fd882f84777cdfac157ae",
     );
 
     // 1 material: digiXrosCount(1) < minimum(2) — the gated [On Play] Delete does NOT resolve.
@@ -295,6 +311,7 @@ describe("§7-2-3-3 DigiXros Rules (comprehensive-0118)", () => {
       "comprehensive-0118",
       "7-2-3-3 the play cost is reduced by the DigiXros amount, paid after any other " +
         "increases/reductions; 7-2-3-4 the card is placed and the play procedure resolves",
+      "b69edb2cf7ad45544307bbc8650afb7eaa424284b67933c8bb3a4a73c0c4e973",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -338,6 +355,7 @@ describe("§7-3 Assembly (comprehensive-0119)", () => {
       "comprehensive-0119",
       "7-3-1 Assembly plays a Digimon card by placing the specified trash cards under it, " +
         "reducing the play cost by the requirement's fixed amount",
+      "614c3277e551d169a95b876643824841ce82d55ee21efae9dfffa78aecbdd626",
     );
 
     const s = setup();
@@ -367,6 +385,7 @@ describe("§7-3 Assembly (comprehensive-0119)", () => {
       "comprehensive-0119",
       "7-3-2-9 Assembly isn't mandatory: an Assembly-eligible card can still be played the " +
         "ordinary way, paying the full printed cost and placing no materials",
+      "614c3277e551d169a95b876643824841ce82d55ee21efae9dfffa78aecbdd626",
     );
 
     const s = setup();
@@ -384,7 +403,11 @@ describe("§7-3 Assembly (comprehensive-0119)", () => {
   });
 
   it("a card with no Assembly requirement can't be played by Assembly", () => {
-    cite("comprehensive-0119", "7-3-1 only a card printing Assembly requirements can be played by Assembly");
+    cite(
+      "comprehensive-0119",
+      "7-3-1 only a card printing Assembly requirements can be played by Assembly",
+      "614c3277e551d169a95b876643824841ce82d55ee21efae9dfffa78aecbdd626",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -407,6 +430,7 @@ describe("§7-3-2 Assembly Rules (comprehensive-0120)", () => {
       "comprehensive-0120",
       "7-3-2-4 the exact number of cards specified in the Assembly requirements must be placed; " +
         "a player can't place just some (or extra) of them",
+      "971a8809272984a2d027af2b31f8cb9dd46574874edc40d0bfdb7bad243fee3b",
     );
 
     const s = setup();
@@ -446,6 +470,7 @@ describe("§7-3-2 Assembly Rules (comprehensive-0120)", () => {
       "comprehensive-0120",
       "7-3-1/7-3-3-2 Assembly materials are chosen from the cards in the trash, not hand or " +
         "battle area (contrast DigiXros, whose default sources are hand + battle area)",
+      "971a8809272984a2d027af2b31f8cb9dd46574874edc40d0bfdb7bad243fee3b",
     );
 
     const s = setup();
@@ -465,7 +490,11 @@ describe("§7-3-2 Assembly Rules (comprehensive-0120)", () => {
   });
 
   it("7-3-1: a trash card that doesn't match the recipe's name/trait slot is rejected", () => {
-    cite("comprehensive-0120", "7-3-2-5 only cards matching the Assembly requirements qualify as materials");
+    cite(
+      "comprehensive-0120",
+      "7-3-2-5 only cards matching the Assembly requirements qualify as materials",
+      "971a8809272984a2d027af2b31f8cb9dd46574874edc40d0bfdb7bad243fee3b",
+    );
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -488,6 +517,7 @@ describe("§7-3-2 Assembly Rules (comprehensive-0120)", () => {
       "comprehensive-0120",
       "7-3-1 an Assembly material must satisfy EVERY printed qualifier, including the level " +
         "bound (EX12-046: 'Lv.4 or lower [TB] trait card' — a Lv.5+ [TB] card doesn't qualify)",
+      "971a8809272984a2d027af2b31f8cb9dd46574874edc40d0bfdb7bad243fee3b",
     );
 
     const s = setup();
@@ -513,6 +543,7 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
       "comprehensive-0121",
       "7-3-2-6 when the Assembly requirements specify the same cards (or numbers of each), the " +
         "player performing the Assembly chooses the stacking order",
+      "2b2ceaf2c6c7b4f94b4be5e08b83cc3b3045e9c2d440252c3c780875eabe86e7",
     );
 
     const s = setup();
@@ -556,6 +587,7 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
       "comprehensive-0121",
       "7-3-2-6/§16 'w/different names' — EX12-076's recipe requires 8 DISTINCT-named " +
         "[Hybrid]/[Shambala] cards; repeating the same card doesn't satisfy it",
+      "2b2ceaf2c6c7b4f94b4be5e08b83cc3b3045e9c2d440252c3c780875eabe86e7",
     );
 
     const s = setup();
@@ -592,6 +624,7 @@ describe("§7-3-3 Assembly Rules (comprehensive-0122)", () => {
       "comprehensive-0122",
       "7-3-3-2 materials are chosen and declared immediately before paying the play cost; " +
         "7-3-3-3 the reduced cost is paid, then 7-3-3-4 the card resolves on the field",
+      "c1fa20885a22a9cee712a0df8e5d1229a3e403a7b3837feb51593c37469a0dae",
     );
 
     const s = setup();
@@ -622,6 +655,7 @@ describe("§7-3-3 Assembly Rules (comprehensive-0122)", () => {
       "comprehensive-0122",
       "7-3-3-3 the reduced cost still must be payable — an unaffordable Assembly declaration is " +
         "rejected and leaves the hand/trash untouched",
+      "c1fa20885a22a9cee712a0df8e5d1229a3e403a7b3837feb51593c37469a0dae",
     );
 
     const s = setup();

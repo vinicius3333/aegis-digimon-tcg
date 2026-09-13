@@ -41,6 +41,7 @@ describe("§16-1..16-4-3 <Security A.> (comprehensive-0221)", () => {
       "comprehensive-0221",
       "16-4-1 <Security A.> modifies the number of security checks; 16-4-3 multiple " +
         "instances sum their individual values rather than becoming one combined grant",
+      "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502",
     );
     // securityStrikeCount is the exact GameEngine.runSecurityCheck.strikeFor consumer
     // (base 1 + each active <Security A. ±N> grant), so this is the real computation,
@@ -75,6 +76,7 @@ describe("§16-4-4 <Security A.> floor (comprehensive-0222)", () => {
     cite(
       "comprehensive-0222",
       "16-4-4 even if the modified number of security checks is negative, the actual number is 0",
+      "471c3ca2923b2e688ac6e53edb3789646e7d01b6cb0be7e736fd3a3d2b82d60e",
     );
     // 1 (base) + 5 inverted +1 grants (each flipped to -1) = 1 - 5 = -4, floored to 0.
     expect(securityStrikeCount([{ amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }], true)).toBe(
@@ -85,7 +87,11 @@ describe("§16-4-4 <Security A.> floor (comprehensive-0222)", () => {
 
 describe("§16-5 <Blocker> (comprehensive-0223)", () => {
   it("16-5-1: a printed-<Blocker> Digimon (AD1-005) may block; a plain Digimon may not", () => {
-    cite("comprehensive-0223", "16-5-1 <Blocker> is the rule that allows a Digimon with the effect to block");
+    cite(
+      "comprehensive-0223",
+      "16-5-1 <Blocker> is the rule that allows a Digimon with the effect to block",
+      "f21e9a4a1278163e9b07ebe6f0776b3b15a6d1f9884771e498431baeb23e5a7d",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -108,6 +114,7 @@ describe("§16-6 <Recovery> (comprehensive-0224)", () => {
     cite(
       "comprehensive-0224",
       "16-6-1 <Recovery +N>: places N cards from the specified area face down atop the security stack",
+      "5639a0a98e8ef565e6fb4895f6e03d2beef6ce819056dae2015103762b7f655d",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -135,6 +142,7 @@ describe("§16-7 <Piercing> (comprehensive-0225)", () => {
       "comprehensive-0225",
       "16-7-1 <Piercing>: on deleting the opponent's Digimon in battle, check security " +
         "immediately before the end of attack; 16-7-3 that check is mandatory",
+      "f4d39e19988d50be36db0a6be32a7b3c639428df9116ff194f4a878181cc6cf5",
     );
 
     const s = setup();
@@ -189,7 +197,11 @@ describe("§16-7 <Piercing> (comprehensive-0225)", () => {
 
 describe("§16-8 <Draw> (comprehensive-0226)", () => {
   it("16-8-1/16-8-3: <Draw 1> mandatorily draws 1 card from the player's own deck", async () => {
-    cite("comprehensive-0226", "16-8-1 <Draw N> draws N cards from the deck; 16-8-3 the draw is mandatory");
+    cite(
+      "comprehensive-0226",
+      "16-8-1 <Draw N> draws N cards from the deck; 16-8-3 the draw is mandatory",
+      "7238f2ebc83dc30cf9e807e28b9253d812a140ad65a807ae2bf4d22a70730e6a",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -213,6 +225,7 @@ describe("§16-9 <Jamming> (comprehensive-0227)", () => {
     cite(
       "comprehensive-0227",
       "16-9-1 <Jamming>: a Digimon with this effect isn't deleted from a battle against an opponent's Security Digimon",
+      "7ab13077bd9882a27dcb47aa43ddc4d44e1d9a97c7774a75ff99de117fa559cf",
     );
 
     const s = setup();

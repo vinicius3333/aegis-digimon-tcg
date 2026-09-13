@@ -55,6 +55,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
     cite(
       "comprehensive-0151",
       "12-1-1 a block switches the attack target to a Digimon with ＜Blocker＞ in the battle area",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
     );
 
     const s = setup({
@@ -86,6 +87,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
       "comprehensive-0151",
       "12-1-2 a block can only be performed once per attack, multiple Digimon can't block at " +
         "the same time; 12-1-3 a new block declaration can't be made during a block",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
     );
 
     const s = setup({
@@ -119,7 +121,11 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
   });
 
   it("12-1-4: a suspended Digimon (one that can't suspend again) can't block", () => {
-    cite("comprehensive-0151", "12-1-4 a block can't be performed using a Digimon that can't suspend");
+    cite(
+      "comprehensive-0151",
+      "12-1-4 a block can't be performed using a Digimon that can't suspend",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
+    );
 
     const state = bareState();
     const access = new GameStateAccess(state);
@@ -135,7 +141,11 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
   });
 
   it("12-1-6: a block can only be performed if the attacking Digimon is (still) in the battle area", () => {
-    cite("comprehensive-0151", "12-1-6 a block can only be performed if an attacking Digimon is in the battle area");
+    cite(
+      "comprehensive-0151",
+      "12-1-6 a block can only be performed if an attacking Digimon is in the battle area",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
+    );
 
     const state = bareState();
     const access = new GameStateAccess(state);
@@ -156,6 +166,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
     cite(
       "comprehensive-0151",
       "12-1-7-1 the player makes a block declaration and suspends 1 of their battle-area Digimon to block",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
     );
 
     const s = setup({
@@ -178,7 +189,11 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
   });
 
   it("declining the block window is legal, and leaves the attack directed at its original target", async () => {
-    cite("comprehensive-0151", "12-1 a block is optional — declining it lets the original attack proceed");
+    cite(
+      "comprehensive-0151",
+      "12-1 a block is optional — declining it lets the original attack proceed",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
