@@ -55,18 +55,20 @@ const isEggCard = (def: CardDefinition): boolean => kindOf(def) === "DigiEgg";
 export function DeckBuilder({
   decks,
   activeDeckId,
+  initialEditingDeck,
   onSelectDeck,
   onSaveDeck,
   onNav,
 }: {
   decks: DeckListing[];
   activeDeckId: string;
+  initialEditingDeck?: DeckListing | null;
   onSelectDeck: (id: string) => void;
   onSaveDeck: (deck: DeckListing, setActive: boolean) => void;
   onNav: (s: Screen) => void;
 }) {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState<DeckListing | null>(null);
+  const [editing, setEditing] = useState<DeckListing | null>(initialEditingDeck ?? null);
   if (editing) {
     return <DeckEditor deck={editing} onSave={onSaveDeck} onClose={() => setEditing(null)} onNav={onNav} />;
   }

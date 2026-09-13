@@ -9,14 +9,14 @@ import {
   getCardDefinition,
   isBetaOnlyCard,
 } from "@aegis/shared";
-import { Alert, Button, Eyebrow, Field, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
+import { Alert, Button, Dialog, Eyebrow, Field, IconButton, type PlayerIdentity, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons, type IconComponent } from "../design/icons";
 import { FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
-import { DeckListCard } from "./DeckListCard";
+import { DeckListCard, deckLegality } from "./DeckListCard";
 import "./lobby.css";
 
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
@@ -63,6 +63,7 @@ export function Lobby({
   activeDeckId,
   onSelectDeck,
   onCopyDeck,
+  onEditDeck,
   onNav,
   onStart,
 }: {
@@ -71,18 +72,33 @@ export function Lobby({
   activeDeckId: string;
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
+  onEditDeck?: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
   onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean) => void;
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
   const [mode, setMode] = useState("casual");
-  const [betaBattleMode, setBetaBattleMode] = useState(false);
+  const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">("create");
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // "" is the random pool; any other value is a famous-deck preset id the bot will play.
   const [botDeckId, setBotDeckId] = useState("");
-  const userDecks = decks;
+  const [deckSearch, setDeckSearch] = useState("");
+  const betaSupported = mode === "casual" || mode === "practice";
+  const userDecks = useMemo(() => {
+    const query = deckSearch.trim().toLocaleLowerCase();
+    return decks
+      .map((deck) => ({
+        deck,
+        legal: deckLegality(deck).legal && (betaSupported || ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
+          const card = getCardDefinition(id);
+          return card !== undefined && isBetaOnlyCard(card);
+        })),
+      }))
+      .filter(({ deck }) => deck.name.toLocaleLowerCase().includes(query))
+      .sort((a, b) => Number(b.legal) - Number(a.legal));
+  }, [decks, deckSearch, betaSupported]);
   const availableDecks = selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
   const activeIsPreset = FAMOUS_DECK_GROUPS.some((group) => group.decks.some((deck) => deck.id === active?.id));
@@ -108,7 +124,7 @@ export function Lobby({
         : [],
     [active],
   );
-  const betaEnabled = (mode === "casual" || mode === "practice") && betaBattleMode;
+  const betaEnabled = betaSupported && betaCards.length > 0;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
@@ -190,7 +206,16 @@ export function Lobby({
 
         <section aria-label={t("lobby.yourDecks")}>
           <Eyebrow color="var(--ds-fg-muted)">{t("lobby.yourDecks")}</Eyebrow>
-          {userDecks.length === 0 ? (
+          <Field
+            className="lobby-deck-search"
+            label={t("lobby.searchDecks")}
+            name="deckSearch"
+            type="search"
+            value={deckSearch}
+            onChange={(event) => setDeckSearch(event.target.value)}
+            placeholder={t("lobby.searchDecks")}
+          />
+          {decks.length === 0 ? (
             <div
               style={{
                 marginTop: 14,
@@ -214,13 +239,27 @@ export function Lobby({
               className="lobby-decks"
               style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginTop: 14 }}
             >
-              {userDecks.map((deck) => (
+              {userDecks.length === 0 ? <p role="status">{t("lobby.noSearchResults")}</p> : null}
+              {userDecks.map(({ deck, legal }) => (
                 <DeckListCard
                   key={deck.id}
                   deck={deck}
                   active={deck.id === activeDeckId}
                   compact
+                  disabled={!legal}
                   onSelect={() => onSelectDeck(deck.id)}
+                  actions={
+                    <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => {
+                      if (onEditDeck) {
+                        onEditDeck(deck);
+                        return;
+                      }
+                      onSelectDeck(deck.id);
+                      onNav("deck");
+                    }}>
+                      {t("common.edit")}
+                    </Button>
+                  }
                 />
               ))}
             </div>
@@ -363,20 +402,10 @@ export function Lobby({
         <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
 
         <div style={{ flex: 1 }}>
-          {mode === "casual" || mode === "practice" ? (
-            <div className="lobby-beta-option">
-              <label htmlFor="lobby-beta-battle">
-                <input
-                  id="lobby-beta-battle"
-                  type="checkbox"
-                  checked={betaBattleMode}
-                  onChange={(event) => setBetaBattleMode(event.target.checked)}
-                  aria-describedby="lobby-beta-hint"
-                />
-                {t("lobby.betaBattleMode")}
-              </label>
-              <p id="lobby-beta-hint">{t("lobby.betaBattleHint")}</p>
-            </div>
+          {betaEnabled ? (
+            <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
+              {t("lobby.betaBattleHint")}
+            </Alert>
           ) : null}
           {betaCards.length > 0 && !betaEnabled ? (
             <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
@@ -493,7 +522,7 @@ export function Lobby({
                       full
                       icon={Icons.Bot}
                       disabled={!deckLegal}
-                      onClick={() => onStart("bot", undefined, botDeckId || undefined, betaBattleMode)}
+                      onClick={() => betaEnabled ? setBetaConfirmation("bot") : onStart("bot", undefined, botDeckId || undefined, false)}
                     >
                       {t("lobby.playVsBot")}
                     </Button>
@@ -501,7 +530,7 @@ export function Lobby({
                 </>
               ) : betaEnabled ? (
                 <div className="lobby-launch">
-                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => onStart("beta")}>
+                  <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={() => setBetaConfirmation("beta")}>
                     {t("lobby.enterBetaQueue")}
                   </Button>
                 </div>
@@ -518,6 +547,20 @@ export function Lobby({
           )}
         </div>
       </aside>
+      {betaConfirmation ? (
+        <Dialog labelledBy="lobby-beta-confirm-title" onClose={() => setBetaConfirmation(null)}>
+          <h2 id="lobby-beta-confirm-title">{t("lobby.betaConfirmTitle")}</h2>
+          <p>{t("lobby.betaConfirmHint", { deck: active?.name ?? "" })}</p>
+          <div className="lobby-beta-confirm-actions">
+            <Button variant="secondary" onClick={() => setBetaConfirmation(null)}>{t("common.cancel")}</Button>
+            <Button onClick={() => {
+              const startMode = betaConfirmation;
+              setBetaConfirmation(null);
+              if (deckLegal && betaEnabled) onStart(startMode, undefined, startMode === "bot" ? botDeckId || undefined : undefined, true);
+            }}>{t("common.confirm")}</Button>
+          </div>
+        </Dialog>
+      ) : null}
     </main>
   );
 }

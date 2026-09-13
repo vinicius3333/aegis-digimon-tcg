@@ -14,6 +14,19 @@
   border-color: var(--ds-primary);
 }
 
+.deck-list-card.is-disabled,
+.deck-list-card__selector:disabled {
+  cursor: not-allowed;
+}
+
+.deck-list-card.is-disabled .deck-list-card__cover {
+  opacity: 0.5;
+}
+
+.deck-list-card.is-compact .deck-list-card__actions {
+  margin-top: var(--ds-space-3);
+}
+
 .deck-list-card__selector {
   position: absolute;
   z-index: 0;

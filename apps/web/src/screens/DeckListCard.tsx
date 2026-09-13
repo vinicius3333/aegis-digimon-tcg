@@ -42,12 +42,14 @@ export function DeckListCard({
   deck,
   active,
   compact = false,
+  disabled = false,
   onSelect,
   actions,
 }: {
   deck: DeckListing;
   active: boolean;
   compact?: boolean;
+  disabled?: boolean;
   onSelect?: () => void;
   actions?: ReactNode;
 }) {
@@ -56,13 +58,14 @@ export function DeckListCard({
   const { legal, banViolations, pairViolations } = deckLegality(deck);
 
   return (
-    <article className={`deck-list-card${compact ? " is-compact" : ""}${active ? " is-active" : ""}`}>
+    <article className={`deck-list-card${compact ? " is-compact" : ""}${active ? " is-active" : ""}${disabled ? " is-disabled" : ""}`}>
       {onSelect ? (
         <button
           type="button"
           className="deck-list-card__selector"
           aria-label={deck.name}
           aria-pressed={active}
+          disabled={disabled}
           onClick={onSelect}
         />
       ) : null}

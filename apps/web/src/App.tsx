@@ -202,12 +202,16 @@ export function AegisClient({
     return directRoute ?? { screen: "home" };
   });
   const [startMode, setStartMode] = useState<StartMode>("casual");
+  const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   const [roomCode, setRoomCode] = useState<string>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
+  useEffect(() => {
+    if (screen !== "deck") setEditingDeck(null);
+  }, [screen]);
 
   useEffect(() => {
     if (initialScreen) return;
@@ -308,6 +312,10 @@ export function AegisClient({
                 saveDeck(copy, true);
                 navigateScreen("deck");
               }}
+              onEditDeck={(deck) => {
+                setEditingDeck(deck);
+                navigateScreen("deck");
+              }}
               onNav={navigateScreen}
               onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode) => {
                 setStartMode(mode);
@@ -321,11 +329,15 @@ export function AegisClient({
 
           {screen === "deck" && (
             <DeckBuilder
+              initialEditingDeck={editingDeck}
               decks={decks}
               activeDeckId={activeDeckId}
               onSelectDeck={setActiveDeckId}
               onSaveDeck={saveDeck}
-              onNav={navigateScreen}
+              onNav={(next) => {
+                setEditingDeck(null);
+                navigateScreen(next);
+              }}
             />
           )}
 

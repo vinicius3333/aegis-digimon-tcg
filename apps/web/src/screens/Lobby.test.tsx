@@ -5,10 +5,60 @@ import { I18nProvider } from "../i18n";
 import { Lobby } from "./Lobby";
 import { DECKS } from "../game/decks";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  localStorage.removeItem("aegis:locale");
+});
 
 describe("famous deck selection", () => {
-  it("launches beta matchmaking only after selecting the beta battle checkbox", () => {
+  it("translates automatic beta confirmation into Portuguese and confirms the human queue", () => {
+    localStorage.setItem("aegis:locale", "pt-BR");
+    const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck[0] = "EX13-007";
+    render(
+      <I18nProvider>
+        <Lobby player={{ name: "Tamer", color: "Blue", shards: 0 }} decks={[deck]}
+          activeDeckId={deck.id} onSelectDeck={() => undefined} onCopyDeck={() => undefined}
+          onNav={() => undefined} onStart={onStart} />
+      </I18nProvider>,
+    );
+    expect(screen.getByText("Deck de batalha")).toBeTruthy();
+    expect(screen.queryByText(/A partida começa assim/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Entrar na fila beta" }));
+    expect(onStart).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Jogar com cartas beta?" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(onStart).toHaveBeenCalledWith("beta", undefined, undefined, true);
+  });
+  it("puts playable decks first, searches by name, and edits blocked decks", () => {
+    const onSelectDeck = vi.fn();
+    const onNav = vi.fn();
+    const valid = { ...DECKS[0]!, id: "valid", name: "Playable build" };
+    const invalid = { ...valid, id: "draft", name: "Draft build", mainDeck: [] };
+    render(
+      <I18nProvider>
+        <Lobby player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[invalid, valid]} activeDeckId={valid.id}
+          onSelectDeck={onSelectDeck} onCopyDeck={() => undefined}
+          onNav={onNav} onStart={() => undefined} />
+      </I18nProvider>,
+    );
+    const region = within(screen.getByLabelText("Your decks"));
+    const selectors = region.getAllByRole("button").filter((button) => button.classList.contains("deck-list-card__selector"));
+    expect(selectors.map((button) => button.getAttribute("aria-label"))).toEqual([valid.name, invalid.name]);
+    expect((selectors[1] as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(selectors[1]!);
+    expect(onSelectDeck).not.toHaveBeenCalled();
+    fireEvent.change(region.getByRole("searchbox"), { target: { value: "DRAFT" } });
+    expect(region.queryByRole("button", { name: valid.name })).toBeNull();
+    fireEvent.click(region.getByRole("button", { name: "Edit" }));
+    expect(onSelectDeck).toHaveBeenCalledWith(invalid.id);
+    expect(onNav).toHaveBeenCalledWith("deck");
+    fireEvent.change(region.getByRole("searchbox"), { target: { value: "missing" } });
+    expect(region.getByRole("status").textContent).toBe("No decks match your search.");
+  });
+  it("keeps ordinary decks in the normal queue without a beta checkbox", () => {
     const onStart = vi.fn();
     render(
       <I18nProvider>
@@ -23,17 +73,13 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    const checkbox = screen.getByRole("checkbox", { name: "Beta battle mode" });
-    expect((checkbox as HTMLInputElement).checked).toBe(false);
-    fireEvent.click(checkbox);
-    fireEvent.click(screen.getByRole("button", { name: "Enter beta queue" }));
-    expect(onStart).toHaveBeenCalledWith("beta");
-    fireEvent.click(checkbox);
+    expect(screen.queryByRole("checkbox", { name: "Beta battle mode" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Enter beta queue" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Enter queue" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+    expect(onStart).toHaveBeenCalled();
   });
 
-  it("requires the beta checkbox for an EX13 deck and keeps other modes unavailable", () => {
+  it("automatically enables beta for an EX13 deck and keeps private matches unavailable", () => {
     const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
     deck.mainDeck[0] = "EX13-007";
     render(
@@ -49,8 +95,7 @@ describe("famous deck selection", () => {
         />
       </I18nProvider>,
     );
-    expect((screen.getByRole("button", { name: "Enter queue" }) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Beta battle mode" }));
+    expect(screen.queryByRole("button", { name: "Enter queue" })).toBeNull();
     expect((screen.getByRole("button", { name: "Enter beta queue" }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(false);
@@ -58,13 +103,15 @@ describe("famous deck selection", () => {
     expect((screen.getByRole("button", { name: "Create Room" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("offers beta opt-in for bot battles and forwards it with the selected bot deck", () => {
+  it("confirms beta bot battles before starting", () => {
     const onStart = vi.fn();
+    const deck = { ...DECKS[0]!, mainDeck: [...DECKS[0]!.mainDeck] };
+    deck.mainDeck[0] = "EX13-007";
     render(
       <I18nProvider>
         <Lobby
           player={{ name: "Tamer", color: "Blue", shards: 0 }}
-          decks={DECKS}
+          decks={[deck]}
           activeDeckId={DECKS[0]!.id}
           onSelectDeck={() => undefined}
           onCopyDeck={() => undefined}
@@ -75,10 +122,13 @@ describe("famous deck selection", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    const checkbox = screen.getByRole("checkbox", { name: "Beta battle mode" });
-    expect((checkbox as HTMLInputElement).checked).toBe(false);
-    fireEvent.click(checkbox);
     fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    expect(onStart).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Play with beta cards?" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onStart).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
   });
   it("separates personal decks and groups available famous decks by collection", () => {

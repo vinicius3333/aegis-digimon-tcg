@@ -461,3 +461,13 @@
   font-size: 12.5px;
   line-height: 1.5;
 }
+.lobby-deck-search {
+  margin-top: var(--ds-space-4);
+}
+
+.lobby-beta-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-4);
+}
