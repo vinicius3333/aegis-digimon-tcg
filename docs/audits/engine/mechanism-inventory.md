@@ -198,17 +198,17 @@ security fields. Counts are distinct card IDs per exact marker.
 
 ## Mechanism queue
 
-| Mechanism                   | Owner document                                          | Status                                                                |
-| --------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| Citation source drift       | `kb-citation-integrity.md`                              | focused and combined gates green; older citations remain unreviewed   |
-| Activation costs            | `activation-costs.md`                                   | refusal bug reproduced and repaired; audit incomplete                 |
-| Trigger ordering            | `trigger-ordering.md`                                   | queued                                                                |
-| Duration and identity       | `effect-duration-and-identity.md`                       | queued                                                                |
-| Replacements                | `replacement-effects.md`                                | batch placement correction delivered; remaining contracts under audit |
-| Combat and keyword families | existing documents where applicable; split by lifecycle | queued                                                                |
-| Targeting and selection     | `targeting-and-selection.md`                            | queued                                                                |
-| Zones and visibility        | `zones-and-visibility.md`                               | queued                                                                |
-| Evolution and reductions    | existing evolution documents where applicable           | queued                                                                |
+| Mechanism                   | Owner document                                          | Status                                                                   |
+| --------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Citation source drift       | `kb-citation-integrity.md`                              | focused and combined gates green; older citations remain unreviewed      |
+| Activation costs            | `activation-costs.md`                                   | refusal bug reproduced and repaired; audit incomplete                    |
+| Trigger ordering            | `trigger-ordering.md`                                   | queued                                                                   |
+| Duration and identity       | `effect-duration-and-identity.md`                       | bounded contract audit delivered; existing proof reused                  |
+| Replacements                | `replacement-effects.md`                                | batch/singular/DigiXros corrections delivered; wider producer proof open |
+| Combat and keyword families | existing documents where applicable; split by lifecycle | queued                                                                   |
+| Targeting and selection     | `targeting-and-selection.md`                            | queued                                                                   |
+| Zones and visibility        | `zones-and-visibility.md`                               | queued                                                                   |
+| Evolution and reductions    | existing evolution documents where applicable           | queued                                                                   |
 
 ## Open items
 
