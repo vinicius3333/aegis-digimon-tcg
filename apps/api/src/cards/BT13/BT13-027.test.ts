@@ -7,18 +7,26 @@ describe("BT13-027 Shaujinmon", () => {
   it("keeps Blocker and optionally plays a level 4 or lower card from its stack", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Blocker" })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "OpponentsTurn",
-      actions: [expect.objectContaining({
-      kind: "SubTrigger",
-      event: "whenOpponentAttacks",
-      actions: [expect.objectContaining({ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, optional: true })],
-      })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "Blocker" })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenOpponentAttacks",
+            actions: [
+              expect.objectContaining({ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, optional: true }),
+            ],
+          }),
+        ],
+      }),
+    );
   });
 
   it("plays a level 4 card from its own stack when the opponent attacks", async () => {
@@ -26,9 +34,9 @@ describe("BT13-027 Shaujinmon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-028", "BT13-026"] }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -52,7 +60,7 @@ describe("BT13-027 Shaujinmon", () => {
   it("allows the controller to decline playing from its stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-026"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-026"] }], security: ["BT1-010"] },
         1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
       },
       { autoDeclineOptional: true },

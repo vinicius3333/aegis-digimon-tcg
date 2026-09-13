@@ -62,7 +62,7 @@ describe("BT13-049 Lalamon", () => {
             { card: "BT13-050", as: "vegetation" },
             { card: "BT13-100", as: "yoshino" },
             { card: "BT13-047", as: "nonmatch" },
-            "BT1-001",
+            "BT1-009",
           ],
         },
       },

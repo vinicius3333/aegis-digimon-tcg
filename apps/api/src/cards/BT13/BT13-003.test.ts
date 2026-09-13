@@ -17,8 +17,8 @@ describe("BT13-003 Kyaromon", () => {
             { card: "BT1-048", as: "firstRecipient" },
           ],
           hand: [{ card: "BT18-036", as: "firstWizardmon" }],
-          security: ["BT1-001"],
-          deck: ["BT1-003"],
+          security: ["BT1-010"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -77,7 +77,7 @@ describe("BT13-003 Kyaromon", () => {
           { card: "BT1-049", as: "recipient" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
     await s.ready();
 

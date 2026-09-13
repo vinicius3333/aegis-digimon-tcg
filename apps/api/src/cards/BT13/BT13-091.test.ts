@@ -84,9 +84,9 @@ describe("BT13-091 Belphemon: Rage Mode", () => {
             { card: "BT13-091", as: "rage" },
             { card: "BT1-015", as: "fodder" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
-        1: { security: ["BT1-002"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -107,7 +107,7 @@ describe("BT13-091 Belphemon: Rage Mode", () => {
   it("trashes its top card when a Sleep Mode host reaches a real opponent turn end", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-088", as: "sleepHost", under: ["BT13-091"] }] },
-      1: { deck: ["BT1-001"] },
+      1: { deck: ["BT1-009"] },
     });
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);

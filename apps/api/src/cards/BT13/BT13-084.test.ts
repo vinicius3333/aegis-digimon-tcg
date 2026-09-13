@@ -110,7 +110,7 @@ describe("BT13-084 Astamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-084"] }],
-          hand: [{ card: "BT1-001", as: "discard" }],
+          hand: [{ card: "BT1-009", as: "discard" }],
           trash: [{ card: "BT13-080", as: "rescue" }],
         },
       },

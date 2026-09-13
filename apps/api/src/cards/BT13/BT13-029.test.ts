@@ -36,7 +36,7 @@ describe("BT13-029 MachGaogamon", () => {
         1: {
           hand: Array.from({ length: 8 }, (_, index) => ({ card: "BT13-021", as: `hand-${index}` })),
           battleArea: [{ card: "BT13-024", as: "blocker" }],
-          security: ["BT1-002"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -61,7 +61,7 @@ describe("BT13-029 MachGaogamon", () => {
       1: {
         hand: Array.from({ length: 7 }, () => "BT13-021"),
         battleArea: [{ card: "BT13-024", as: "blocker" }],
-        security: ["BT1-002"],
+        security: ["BT1-009"],
       },
     });
     expect(

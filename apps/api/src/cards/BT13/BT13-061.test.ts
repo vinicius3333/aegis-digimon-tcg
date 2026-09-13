@@ -37,7 +37,7 @@ describe("BT13-061 Gotsumon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-061", as: "gotsu" }],
-          deck: ["BT13-067", "BT13-036", "BT13-034", "BT1-001"],
+          deck: ["BT13-067", "BT13-036", "BT13-034", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT13-036", as: "opponent" }] },
       },

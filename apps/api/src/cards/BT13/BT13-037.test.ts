@@ -27,9 +27,9 @@ describe("BT13-037 Liamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-037", as: "liamon" }],
-          security: [{ card: "BT1-001", as: "top-security" }],
+          security: [{ card: "BT1-010", as: "top-security" }],
         },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -52,8 +52,8 @@ describe("BT13-037 Liamon", () => {
   it("declining the attack effect preserves security and the target's DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-037", as: "liamon" }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "BT13-037", as: "liamon" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -75,7 +75,7 @@ describe("BT13-037 Liamon", () => {
   it("does not offer the attack effect when its security cost cannot be paid", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-037", as: "liamon" }] },
-      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
     });
     const baseDP = s.perm("target").currentDP;
 
@@ -97,11 +97,11 @@ describe("BT13-037 Liamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-037"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
       },
       { autoSelectCards: true },
@@ -120,11 +120,11 @@ describe("BT13-037 Liamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-037"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-009", "BT1-015", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-009", "BT1-015", "BT1-010"],
         },
       },
       { autoSelectCards: true },

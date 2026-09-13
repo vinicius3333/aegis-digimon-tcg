@@ -141,7 +141,7 @@ describe("BT13-015 RizeGreymon", () => {
             { card: "BT13-008", as: "agumon" },
             { card: "BT12-092", as: "marcus" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true },

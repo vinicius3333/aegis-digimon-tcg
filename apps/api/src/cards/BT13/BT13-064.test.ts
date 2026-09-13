@@ -59,7 +59,7 @@ describe("BT13-064 PawnChessmon", () => {
 
   it("plays a level-3 Chessmon from hand when deleted during the opponent's turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-064", as: "pawn" }], hand: ["BT13-035"] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT13-064", as: "pawn" }], hand: ["BT13-035"] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;

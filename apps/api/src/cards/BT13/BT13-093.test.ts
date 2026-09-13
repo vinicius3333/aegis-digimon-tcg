@@ -36,11 +36,11 @@ describe("BT13-093 Omekamon", () => {
 
   it("draws a card through the live on-play effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-093", as: "omeka" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      0: { battleArea: [{ card: "BT13-093", as: "omeka" }], deck: [{ card: "BT1-009", as: "drawn" }] },
     });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("omeka"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("places one Royal Knight from hand under the exact breeding-area King Drasil", async () => {

@@ -75,9 +75,9 @@ describe("BT13-098 Richard Sampson", () => {
       0: {
         battleArea: [{ card: "BT13-098", as: "richard" }],
         hand: ["BT13-079"],
-        security: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
       },
-      1: { security: ["BT1-004", "BT1-005", "BT1-006"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     // Keep a legal Main action available so production does not auto-end the
     // phase immediately after resolving its entry window.
@@ -114,9 +114,9 @@ describe("BT13-098 Richard Sampson", () => {
             { card: "BT1-046", as: "kudamon" },
           ],
           hand: [{ card: "BT13-046", as: "kentaurosmon" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-004", "BT1-005", "BT1-006"] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

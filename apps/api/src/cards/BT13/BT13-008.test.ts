@@ -56,7 +56,7 @@ describe("BT13-008 Agumon", () => {
             { card: "BT12-092", as: "marcus" },
             { card: "BT12-092", as: "otherMarcus" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

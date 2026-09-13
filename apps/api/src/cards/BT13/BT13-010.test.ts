@@ -42,7 +42,7 @@ describe("BT13-010 Biyomon", () => {
             { card: "BT13-014", as: "garudamon" },
           ],
           battleArea: [{ card: "BT13-094", as: "kristy" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -105,11 +105,11 @@ describe("BT13-010 Biyomon", () => {
 
   it("draws one when the Digimon carrying its inherited effect is deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-010"] }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-010"] }], deck: ["BT1-010"] },
     });
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
 });

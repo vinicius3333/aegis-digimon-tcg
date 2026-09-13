@@ -189,7 +189,7 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
           { card: "BT12-092", as: "marcus" },
         ],
       },
-      1: { security: ["BT1-001", "BT1-002"] },
+      1: { security: ["BT1-010", "BT1-009"] },
     });
     await s.ready();
 
@@ -211,7 +211,7 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
           { card: "BT12-092", as: "marcus" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();

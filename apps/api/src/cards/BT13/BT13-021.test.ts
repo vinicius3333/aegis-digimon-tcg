@@ -31,8 +31,8 @@ describe("BT13-021 Gaomon", () => {
 
   it("draws one card for each player when it attacks", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-021", as: "gaomon" }], deck: ["BT1-001"] },
-      1: { hand: ["BT1-001"], deck: ["BT1-002"] },
+      0: { battleArea: [{ card: "BT13-021", as: "gaomon" }], deck: ["BT1-010"] },
+      1: { hand: ["BT1-010"], deck: ["BT1-009"] },
     });
     await s.ready();
     expect(
@@ -49,8 +49,8 @@ describe("BT13-021 Gaomon", () => {
 
   it("draws for both players only once across two attack timings in the same turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-021", as: "gaomon" }], deck: ["BT1-001", "BT1-002"] },
-      1: { deck: ["BT1-003", "BT1-004"] },
+      0: { battleArea: [{ card: "BT13-021", as: "gaomon" }], deck: ["BT1-010", "BT1-009"] },
+      1: { deck: ["BT1-015", "BT1-010"] },
     });
     await s.ready();
 
@@ -68,7 +68,7 @@ describe("BT13-021 Gaomon", () => {
   it("gains 1000 DP as an inherited effect while the opponent has at least 8 cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-021"] }] },
-      1: { hand: Array.from({ length: 8 }, () => "BT1-001") },
+      1: { hand: Array.from({ length: 8 }, () => "BT1-010") },
     });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(4000);
@@ -77,12 +77,12 @@ describe("BT13-021 Gaomon", () => {
   it("does not gain inherited DP at 7 opposing hand cards and gains it immediately at 8", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-021"] }] },
-      1: { hand: Array.from({ length: 7 }, () => "BT1-001") },
+      1: { hand: Array.from({ length: 7 }, () => "BT1-010") },
     });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(3000);
 
-    s.give(1, Zone.Hand, "BT1-002");
+    s.give(1, Zone.Hand, "BT1-009");
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(4000);
   });

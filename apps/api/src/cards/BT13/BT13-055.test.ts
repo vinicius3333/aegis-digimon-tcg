@@ -76,7 +76,7 @@ describe("BT13-055 Lamortmon", () => {
 
   it("trashes the opponent's top security card after a battle deletion", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-055"] }] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-055"] }] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -99,7 +99,7 @@ describe("BT13-055 Lamortmon", () => {
             { card: "BT13-055", as: "lamort" },
             { card: "BT13-052", as: "symbare" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -116,7 +116,7 @@ describe("BT13-055 Lamortmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("angora").topCard.cardId === "BT13-055");
     expect(s.perm("angora").stack[0]!.cardId).toBe("BT13-052");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.memory).toBe(2);
   });
 
@@ -167,7 +167,7 @@ describe("BT13-055 Lamortmon", () => {
           { card: "BT13-051", as: "other" },
         ],
       },
-      1: { security: [{ card: "BT1-001", as: "top-security" }, "BT1-002"] },
+      1: { security: [{ card: "BT1-009", as: "top-security" }, "BT1-010"] },
     });
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("other").permanentId });
@@ -187,8 +187,8 @@ describe("BT13-055 Lamortmon", () => {
       1: {
         battleArea: [{ card: "BT13-049", as: "target", suspended: true }],
         security: [
-          { card: "BT1-001", as: "first" },
-          { card: "BT1-002", as: "second" },
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-010", as: "second" },
         ],
       },
     });

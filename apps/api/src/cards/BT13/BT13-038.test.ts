@@ -26,8 +26,8 @@ describe("BT13-038 Reppamon", () => {
   it("trashes the exact top security card and gives an opposing Digimon Security Attack -2", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: [{ card: "BT1-001", as: "top" }] },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: [{ card: "BT1-010", as: "top" }] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -46,8 +46,8 @@ describe("BT13-038 Reppamon", () => {
   it("declining preserves security and grants no keyword", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -66,7 +66,7 @@ describe("BT13-038 Reppamon", () => {
   it("does not offer the main effect when the security cost cannot be paid", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-038", as: "reppa" }] },
-      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
     });
     expect(
       s.engine.applyIntent(0, {
@@ -85,11 +85,11 @@ describe("BT13-038 Reppamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-038"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
       },
       { autoSelectCards: true },
@@ -106,11 +106,11 @@ describe("BT13-038 Reppamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-038"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-009", "BT1-015", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-009", "BT1-015", "BT1-010"],
         },
       },
       { autoSelectCards: true },

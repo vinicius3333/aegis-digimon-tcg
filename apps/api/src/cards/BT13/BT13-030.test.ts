@@ -34,7 +34,7 @@ describe("BT13-030 UlforceVeedramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-040", as: "magnamon" }], hand: [{ card: "BT13-030", as: "ulforce" }] },
-        1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

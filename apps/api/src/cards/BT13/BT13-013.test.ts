@@ -12,7 +12,7 @@ describe("BT13-013 BaoHuckmon", () => {
             { card: "BT6-082", as: "sistermon" },
             { card: "BT13-016", as: "savior" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -39,7 +39,7 @@ describe("BT13-013 BaoHuckmon", () => {
             { card: "BT6-082", as: "sistermon" },
             { card: "BT13-016", as: "savior" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -92,11 +92,13 @@ describe("BT13-013 BaoHuckmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("bao").permanentId,
-      instanceId: s.inst("savior").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("bao").permanentId,
+        instanceId: s.inst("savior").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("bao").topCard.cardId === "BT13-016");
     expect(s.state.memory).toBe(7);
   });

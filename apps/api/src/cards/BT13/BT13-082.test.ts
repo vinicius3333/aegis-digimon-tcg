@@ -52,7 +52,7 @@ describe("BT13-082 Peckmon", () => {
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -60,17 +60,17 @@ describe("BT13-082 Peckmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("does not trash from hand when the inherited host is deleted by battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-082"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
-    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toContain("BT1-001");
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT1-001");
+    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT1-009");
   });
 });

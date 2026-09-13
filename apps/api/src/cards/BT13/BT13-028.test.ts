@@ -179,14 +179,14 @@ describe("BT13-028 Thetismon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-028"] }],
-          deck: ["BT1-001"],
+          deck: ["BT1-010"],
           trash: [
             { card: "EX12-023", as: "first" },
             { card: "EX12-027", as: "second" },
             { card: "BT13-028", as: "third" },
           ],
         },
-        1: { security: ["BT1-002"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
     );

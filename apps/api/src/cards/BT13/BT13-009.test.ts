@@ -33,7 +33,7 @@ describe("BT13-009 Huckmon", () => {
             { card: "BT6-082", as: "sistermon" },
             { card: "BT13-013", as: "bao" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-010", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

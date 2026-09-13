@@ -7,29 +7,35 @@ describe("BT13-032 JumboGamemon", () => {
   it("keeps Blocker and the level-5 stack-play trigger", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Blocker" })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "OpponentsTurn",
-      actions: [expect.objectContaining({
-      kind: "SubTrigger",
-      event: "whenOpponentAttacks",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          optional: true,
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
-            count: 1,
-          },
-        },
-      ],
-      })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "Blocker" })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenOpponentAttacks",
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                optional: true,
+                target: {
+                  filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+                  count: 1,
+                },
+              },
+            ],
+          }),
+        ],
+      }),
+    );
   });
 
   it("plays a level 5 card from its own stack when the opponent attacks", async () => {
@@ -37,9 +43,9 @@ describe("BT13-032 JumboGamemon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-031", "BT13-027"] }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -63,7 +69,7 @@ describe("BT13-032 JumboGamemon", () => {
   it("allows the controller to decline playing a source", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-027"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-027"] }], security: ["BT1-010"] },
         1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
       },
       { autoDeclineOptional: true },
@@ -87,7 +93,7 @@ describe("BT13-032 JumboGamemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 5000 }] },
-        1: { battleArea: [{ card: "BT13-032", as: "jumbo" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT13-032", as: "jumbo" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true },
     );

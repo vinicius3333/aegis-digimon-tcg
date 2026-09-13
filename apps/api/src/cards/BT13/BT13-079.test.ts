@@ -30,7 +30,7 @@ describe("BT13-079 Falcomon", () => {
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -38,7 +38,7 @@ describe("BT13-079 Falcomon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("grants Retaliation to a real own purple Digimon on play", async () => {
@@ -86,7 +86,7 @@ describe("BT13-079 Falcomon", () => {
 
   it("does not trash from hand when the inherited host is deleted in battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

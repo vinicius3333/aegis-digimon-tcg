@@ -57,7 +57,7 @@ describe("BT13-085 Crowmon", () => {
           ],
           trash: [{ card: "BT13-089", as: "ravemon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

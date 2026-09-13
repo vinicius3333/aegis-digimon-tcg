@@ -60,7 +60,7 @@ describe("BT13-048 Salamon", () => {
             { card: "BT13-047", as: "beast" },
             { card: "BT13-046", as: "royal-knight" },
             { card: "BT1-033", as: "sea-animal" },
-            { card: "BT1-001", as: "remainder" },
+            { card: "BT1-009", as: "remainder" },
           ],
         },
       },

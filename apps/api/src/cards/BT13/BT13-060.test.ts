@@ -160,7 +160,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
   it("does not count a suspended opponent breeding Digimon for attack security scaling", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-060", as: "attacker" }] },
-      1: { breeding: { card: "BT1-015", as: "breedingOpponent", suspended: true }, security: ["BT1-001"] },
+      1: { breeding: { card: "BT1-015", as: "breedingOpponent", suspended: true }, security: ["BT1-009"] },
     });
     await s.ready();
 
@@ -177,7 +177,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
           { card: "BT1-015", as: "suspendedDigimon", suspended: true },
           { card: "BT13-100", as: "suspendedTamer", suspended: true },
         ],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();

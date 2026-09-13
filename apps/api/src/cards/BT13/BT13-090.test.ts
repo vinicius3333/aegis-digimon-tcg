@@ -91,7 +91,7 @@ describe("BT13-090 LordKnightmon", () => {
             { card: "BT13-075", as: "royalOne" },
             { card: "BT13-087", as: "royalTwo" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -132,7 +132,7 @@ describe("BT13-090 LordKnightmon", () => {
         0: {
           battleArea: [{ card: "BT13-090", as: "lord" }],
           breeding: { card: "BT13-087", as: "breedingRoyal" },
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT13-081", as: "attacker" }] },
       },

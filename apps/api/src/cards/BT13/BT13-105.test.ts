@@ -27,28 +27,37 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
     });
   });
 
-  it("returns an opposing Digimon and gains one memory for every four opposing hand cards", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT1-030", as: "blueDigimon" }], hand: [{ card: "BT13-105", as: "option" }] },
-        1: {
-          battleArea: [{ card: "BT13-111", as: "target" }],
-          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+  it.each([
+    { initialHand: 2, finalHand: 3, memory: 2 },
+    { initialHand: 3, finalHand: 4, memory: 3 },
+    { initialHand: 6, finalHand: 7, memory: 3 },
+    { initialHand: 7, finalHand: 8, memory: 4 },
+  ])(
+    "returns the selected opposing Digimon and scales from $initialHand to $finalHand cards",
+    async ({ initialHand, finalHand, memory }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-030", as: "blueDigimon" }], hand: [{ card: "BT13-105", as: "option" }] },
+          1: {
+            battleArea: [{ card: "BT13-111", as: "target" }],
+            hand: Array.from({ length: initialHand }, () => "BT1-009"),
+          },
         },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 10;
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.hand.filter((card) => card.cardId === "BT13-111").length === 1);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.hand.filter((card) => card.cardId === "BT13-111").length === 1);
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111")).toBe(false);
-    // The returned Digimon is the ninth opposing hand card before scaling is counted.
-    expect(s.state.memory).toBe(4);
-  });
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111")).toBe(false);
+      expect(s.state.players[1]!.hand.filter((card) => card.cardId === "BT13-111").length).toBe(1);
+      expect(s.state.players[1]!.hand).toHaveLength(finalHand);
+      expect(s.state.memory).toBe(memory);
+    },
+  );
 
   it("returns an opposing Digimon without the Main memory gain from security", async () => {
     const s = setupEngine(

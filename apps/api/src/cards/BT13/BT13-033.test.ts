@@ -130,7 +130,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
       },
       1: {
         battleArea: [{ card: "BT13-021", as: "target" }],
-        hand: Array.from({ length: 7 }, () => "BT1-001"),
+        hand: Array.from({ length: 7 }, () => "BT1-010"),
       },
     });
     s.state.memory = 10;
@@ -158,8 +158,8 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
             as: `hand-${index}`,
             faceUp: false,
           })),
-          deck: ["BT1-001"],
-          security: ["BT1-002"],
+          deck: ["BT1-009"],
+          security: ["BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoOrderCards: false },
@@ -234,7 +234,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-033", as: "burst" }] },
-        1: { hand: Array.from({ length: 10 }, () => "BT13-021"), security: ["BT1-002"] },
+        1: { hand: Array.from({ length: 10 }, () => "BT13-021"), security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -254,7 +254,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
   it("does not offer the attack effect at eight opposing hand cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-033", as: "burst" }] },
-      1: { hand: Array.from({ length: 8 }, () => "BT13-021"), security: ["BT1-002"] },
+      1: { hand: Array.from({ length: 8 }, () => "BT13-021"), security: ["BT1-009"] },
     });
     expect(
       s.engine.applyIntent(0, {

@@ -98,7 +98,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       {
         0: {
           battleArea: [{ card: "BT13-088", as: "sleep" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [

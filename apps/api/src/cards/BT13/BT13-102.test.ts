@@ -38,7 +38,7 @@ describe("BT13-102 Keenan Crier", () => {
   it("trashes an opposing Tamer through the optional hand choice", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+        0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-009", as: "drawn" }] },
         1: { hand: [{ card: "BT13-094", as: "opponentTamer" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,16 +53,16 @@ describe("BT13-102 Keenan Crier", () => {
       {
         0: {
           battleArea: [{ card: "BT13-102", as: "keenan" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
         1: { hand: [] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("suspends for memory when the opponent effect-plays a Digimon, not for ordinary play", async () => {

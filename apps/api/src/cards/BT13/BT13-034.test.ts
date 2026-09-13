@@ -93,11 +93,11 @@ describe("BT13-034 Kudamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-034"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
       },
       { autoSelectCards: true },
@@ -117,11 +117,11 @@ describe("BT13-034 Kudamon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-034"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-009", "BT1-015", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-009", "BT1-015", "BT1-010"],
         },
       },
       { autoSelectCards: true },

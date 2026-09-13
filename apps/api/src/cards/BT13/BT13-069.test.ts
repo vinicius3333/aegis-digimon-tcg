@@ -64,7 +64,7 @@ describe("BT13-069 KingSukamon", () => {
 
   it("plays a Sukamon from hand when the host attacks", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-069", as: "king" }], hand: ["BT11-040"] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT13-069", as: "king" }], hand: ["BT11-040"] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

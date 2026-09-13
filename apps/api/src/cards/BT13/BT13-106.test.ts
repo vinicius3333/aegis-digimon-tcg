@@ -34,14 +34,14 @@ describe("BT13-106 Odin's Breath", () => {
         0: {
           battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
           hand: [{ card: "BT13-106", as: "option" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
             { card: "BT13-111", as: "first" },
             { card: "BT13-111", as: "second" },
           ],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -71,7 +71,7 @@ describe("BT13-106 Odin's Breath", () => {
           security: [{ card: "BT13-106", as: "option", faceUp: true }],
           hand: [],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target" }], security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT13-111", as: "target" }], security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -79,5 +79,31 @@ describe("BT13-106 Odin's Breath", () => {
     await advance(s.engine).verb.trash([s.inst("option").instanceId]);
     await settle(() => s.perm("target").currentDP === 10000);
     expect(s.perm("target").currentDP).toBe(10000);
+  });
+
+  it("keeps the DP reduction but withholds Security Attack -1 above six total security cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
+          hand: [{ card: "BT13-106", as: "option" }],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT13-111", as: "target" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 10000);
+
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
 });

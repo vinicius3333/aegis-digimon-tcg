@@ -30,8 +30,8 @@ describe("BT13-036 Liollmon", () => {
   it("gains memory only for its controller's first security removal during its turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-036", as: "lioll" }], security: ["BT1-001", "BT1-002"] },
-        1: { security: ["BT1-003"] },
+        0: { battleArea: [{ card: "BT13-036", as: "lioll" }], security: ["BT1-010", "BT1-009"] },
+        1: { security: ["BT1-015"] },
       },
       { autoAcceptOptional: true },
     );
@@ -47,7 +47,7 @@ describe("BT13-036 Liollmon", () => {
 
   it("does not gain memory from its controller's security removal during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-036", as: "lioll" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT13-036", as: "lioll" }], security: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();
@@ -63,11 +63,11 @@ describe("BT13-036 Liollmon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-036"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-010", "BT1-009", "BT1-015"],
         },
       },
       { autoSelectCards: true },
@@ -86,11 +86,11 @@ describe("BT13-036 Liollmon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-036"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          security: ["BT1-010", "BT1-009", "BT1-015", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-009", "BT1-015", "BT1-010"],
         },
       },
       { autoSelectCards: true },

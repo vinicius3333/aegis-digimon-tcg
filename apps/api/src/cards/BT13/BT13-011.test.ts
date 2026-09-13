@@ -51,11 +51,11 @@ describe("BT13-011 Aquilamon", () => {
 
   it("draws one when the Digimon carrying its inherited effect is deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-011"] }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-011"] }], deck: ["BT1-010"] },
     });
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
 });

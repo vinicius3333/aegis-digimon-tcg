@@ -29,7 +29,7 @@ describe("BT13-043 LoaderLeomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT13-043", as: "loader" }],
-        security: [{ card: "BT1-001", as: "top-security" }],
+        security: [{ card: "BT1-009", as: "top-security" }],
       },
     });
     await s.ready();
@@ -47,7 +47,7 @@ describe("BT13-043 LoaderLeomon", () => {
 
   it("declining printed Barrier deletes LoaderLeomon and preserves security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-043", as: "loader" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT13-043", as: "loader" }], security: ["BT1-009"] },
     });
     await s.ready();
     const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
@@ -64,7 +64,7 @@ describe("BT13-043 LoaderLeomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-043"] }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     await s.ready();

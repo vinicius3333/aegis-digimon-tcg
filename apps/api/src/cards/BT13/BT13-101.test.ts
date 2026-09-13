@@ -70,7 +70,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         0: {
           battleArea: [{ card: "BT13-101", as: "tamers" }],
           hand: [{ card: "BT13-035", as: "pawn" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -80,7 +80,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     expect(eligible.engine.applyIntent(0, { type: "playCard", instanceId: eligible.inst("pawn").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => eligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => eligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(eligible.perm("tamers").isSuspended).toBe(true);
 
     const ineligible = setupEngine(
@@ -100,7 +100,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(ineligible.perm("tamers").isSuspended).toBe(false);
-    expect(ineligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(ineligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 
   it("may decline the suspend processing cost without drawing or gaining memory", async () => {
@@ -109,7 +109,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         0: {
           battleArea: [{ card: "BT13-101", as: "tamers" }],
           hand: [{ card: "BT13-035", as: "pawn" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -120,6 +120,6 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
 
     expect(s.perm("tamers").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 });

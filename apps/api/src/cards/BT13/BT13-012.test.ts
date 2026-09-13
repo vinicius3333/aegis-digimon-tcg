@@ -10,8 +10,8 @@ describe("BT13-012 GeoGreymon", () => {
         0: {
           battleArea: [{ card: "BT13-008", as: "agumon" }],
           hand: [{ card: "BT13-012", as: "geogreymon" }],
-          security: [{ card: "BT12-092", as: "marcus" }, "BT1-001"],
-          deck: ["BT1-002", "BT1-003", "BT1-004"],
+          security: [{ card: "BT12-092", as: "marcus" }, "BT1-010"],
+          deck: ["BT1-009", "BT1-010", "BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -40,8 +40,8 @@ describe("BT13-012 GeoGreymon", () => {
       0: {
         battleArea: [{ card: "BT13-008", as: "agumon" }],
         hand: [{ card: "BT13-012", as: "geogreymon" }],
-        security: ["BT1-001", "BT1-002"],
-        deck: ["BT1-003", "BT1-004"],
+        security: ["BT1-010", "BT1-009"],
+        deck: ["BT1-010", "BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -67,8 +67,8 @@ describe("BT13-012 GeoGreymon", () => {
         0: {
           battleArea: [{ card: "BT13-008", as: "agumon" }],
           hand: [{ card: "BT13-012", as: "geogreymon" }],
-          security: [{ card: "BT12-092", as: "marcus" }, "BT1-001"],
-          deck: ["BT1-002", "BT1-003"],
+          security: [{ card: "BT12-092", as: "marcus" }, "BT1-010"],
+          deck: ["BT1-010", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },

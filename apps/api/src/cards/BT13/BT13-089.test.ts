@@ -102,7 +102,7 @@ describe("BT13-089 BT13-089", () => {
           ],
           hand: [{ card: "BT13-092", as: "burst" }],
         },
-        1: { hand: ["BT1-001"] },
+        1: { hand: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

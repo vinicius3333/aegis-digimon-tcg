@@ -16,7 +16,7 @@ describe("BT13-006 Kapurimon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-010", as: "cost" }],
         },
         1: {
           battleArea: [
@@ -47,7 +47,7 @@ describe("BT13-006 Kapurimon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "kept" }],
+          hand: [{ card: "BT1-010", as: "kept" }],
         },
         1: {
           battleArea: [
@@ -74,7 +74,7 @@ describe("BT13-006 Kapurimon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-010", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 12000 }] },
       },

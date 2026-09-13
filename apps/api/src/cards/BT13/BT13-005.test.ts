@@ -17,7 +17,7 @@ describe("BT13-005 Dorimon", () => {
         ],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
 
     expect(
@@ -45,7 +45,7 @@ describe("BT13-005 Dorimon", () => {
         ],
         deck: [{ card: "BT1-010", as: "deckTop" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
 
     expect(

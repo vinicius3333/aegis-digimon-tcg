@@ -21,8 +21,8 @@ describe("BT13-026 TeslaJellymon", () => {
 
   it("draws on attack from its printed effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-026", as: "host" }], deck: ["BT1-001"] },
-      1: { security: ["BT1-002"] },
+      0: { battleArea: [{ card: "BT13-026", as: "host" }], deck: ["BT1-010"] },
+      1: { security: ["BT1-009"] },
     });
     await s.ready();
     expect(
@@ -32,13 +32,13 @@ describe("BT13-026 TeslaJellymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"), 3000);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010"), 3000);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
   });
 
   it("draws again at a second attack timing because the effect is not once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-026", as: "tesla" }], deck: ["BT1-001", "BT1-002"] },
+      0: { battleArea: [{ card: "BT13-026", as: "tesla" }], deck: ["BT1-010", "BT1-009"] },
     });
     const tesla = s.perm("tesla");
 
@@ -49,13 +49,13 @@ describe("BT13-026 TeslaJellymon", () => {
       attackerPermanentId: tesla.permanentId,
     });
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("trashes the opponent's bottom evolution card through its inherited effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-026"] }] },
-      1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(

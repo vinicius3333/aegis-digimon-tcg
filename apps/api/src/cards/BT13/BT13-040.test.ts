@@ -79,7 +79,7 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna", under: ["BT3-021"] }],
           hand: ["BT3-021"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -96,7 +96,7 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT3-021", as: "source-veemon" }] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -120,7 +120,7 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
           hand: [{ card: "BT3-021", as: "hand-veemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -163,7 +163,7 @@ describe("BT13-040 Magnamon", () => {
             { card: "BT13-040", as: "magna" },
             { card: "BT13-041", as: "other-host", under: [{ card: "BT12-021", as: "wrong-host-veemon" }] },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -182,7 +182,7 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-022", as: "stack-exveemon" }] }],
           hand: [{ card: "BT12-022", as: "hand-exveemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -204,7 +204,7 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
           hand: [{ card: "BT3-021", as: "veemon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoDeclineOptional: true },

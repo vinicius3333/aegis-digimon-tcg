@@ -41,7 +41,7 @@ describe("BT13-041 Chirinmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT13-041", as: "chirin" }],
-        security: [{ card: "BT1-001", as: "top-security" }],
+        security: [{ card: "BT1-009", as: "top-security" }],
       },
     });
     await s.ready();

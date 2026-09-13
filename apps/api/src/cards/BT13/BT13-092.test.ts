@@ -64,10 +64,10 @@ describe("BT13-092 BT13-092", () => {
         },
         1: {
           hand: [
-            { card: "BT1-001", as: "first" },
-            { card: "BT1-002", as: "second" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-009", as: "second" },
           ],
-          security: [{ card: "BT1-003", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },

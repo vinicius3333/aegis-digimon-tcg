@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-023.js";
@@ -31,7 +30,7 @@ describe("BT13-023 Jellymon", () => {
       0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-023"] }] },
       1: {
         battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }],
-        security: [{ card: "BT1-001" }],
+        security: [{ card: "BT1-010" }],
       },
     });
     await s.ready();

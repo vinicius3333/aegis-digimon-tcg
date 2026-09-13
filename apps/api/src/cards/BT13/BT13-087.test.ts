@@ -74,7 +74,7 @@ describe("BT13-087 Dynasmon", () => {
       {
         0: {
           hand: [{ card: "BT13-087", as: "dynasmon" }],
-          deck: ["BT18-034", "BT13-017", "BT1-001", "BT1-002"],
+          deck: ["BT18-034", "BT13-017", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -86,6 +86,6 @@ describe("BT13-087 Dynasmon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT18-034", "BT13-017"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
   });
 });

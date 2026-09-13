@@ -40,7 +40,7 @@ describe("BT13-070 RookChessmon", () => {
 
   it("plays a level-5 Chessmon after deletion during the opponent's turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-070", as: "rook" }], hand: ["BT13-042"] }, 1: { security: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT13-070", as: "rook" }], hand: ["BT13-042"] }, 1: { security: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;

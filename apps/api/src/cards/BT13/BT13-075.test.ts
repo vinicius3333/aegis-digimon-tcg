@@ -150,7 +150,7 @@ describe("BT13-075 BT13-075", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -172,7 +172,7 @@ describe("BT13-075 BT13-075", () => {
     const ownEffect = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -189,7 +189,7 @@ describe("BT13-075 BT13-075", () => {
 
     const battle = setupEngine({
       0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
-      1: { deck: ["BT1-001"] },
+      1: { deck: ["BT1-009"] },
     });
     await battle.ready();
     const battleHostId = battle.perm("alphamon").permanentId;
