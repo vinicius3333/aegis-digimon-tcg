@@ -311,15 +311,6 @@ for (const [id, keywords] of [
       "documented ENGINE BUG), Scapegoat (comprehensive-0251, ch16c §16-32, unimplemented), " +
       "Execute (comprehensive-0257, ch16c §16-38, unimplemented)",
   ],
-  [
-    "manual-0066",
-    "#33 Digi-Burst (comprehensive-0232, ch16b §16-14), #7 Assembly (comprehensive-0119..0122, " +
-      "ch07, not-testable — no engine subsystem, see manual-0034..0036 above), #34 Blast Digivolve " +
-      "(comprehensive-0245, ch16c §16-26, unimplemented), #8 Arts Digivolve (comprehensive-0306/" +
-      "0050, ch04 §4-20 / ch02 §2-11, unreachable DIVERGENCE), Blast DNA Digivolve " +
-      "(comprehensive-0250, ch16c §16-31, unimplemented), Mind Link (comprehensive-0247, ch16c " +
-      "§16-28), #37 Link+X (comprehensive-0259, ch16c §16-40)",
-  ],
 ] as const) {
   markNotTestable(
     id,

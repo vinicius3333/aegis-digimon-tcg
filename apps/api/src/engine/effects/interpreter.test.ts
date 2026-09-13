@@ -3576,7 +3576,7 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(trashed).toEqual(["HAND#red-blue-a", "HAND#red-blue-b"]);
   });
 
-  it("rejects a second pick that cannot claim any unused color", async () => {
+  it("rejects an exact-count selection when two picks cannot claim distinct colors", async () => {
     const trashed = await differentColorsTrash(
       [
         { instanceId: "HAND#red-a", cardId: "RED" },
@@ -3584,7 +3584,9 @@ describe("v2 IR actions dispatch to real primitives", () => {
       ],
       { RED: ["Red"] },
     );
-    expect(trashed).toEqual(["HAND#red-a"]);
+    // Exact count is mandatory: the invalid two-card selection rejects atomically, with no
+    // partial trash of the first card.
+    expect(trashed).toBeUndefined();
   });
 
   it("routes a token play to playToken primitive", async () => {

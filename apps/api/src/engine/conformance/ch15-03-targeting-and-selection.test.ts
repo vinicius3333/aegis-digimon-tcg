@@ -196,17 +196,6 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
 });
 
 // §15-15-1 Effects That End an Attack (comprehensive-0199)
-markNotTestable(
-  "comprehensive-0199",
-  "Driving 'the end-of-attack timing comes immediately after the processing that ends " +
-    "the attack' requires a real in-progress attack (attack declared, WhenOpponentAttacks/" +
-    "delete-outcome-conditional resolution, ctx.fx.endAttack()) — combat's own state machine " +
-    "(combat/controller.ts, combat/legality.ts), which is chapter 11 'Attacking' scaffolding " +
-    "outside this lane's ch15 file ownership and the concurrent chapter-11 lane's scope. The " +
-    "producing action kind (EndAttack, interpreter.ts, real card BT23-069) exists and is wired " +
-    "to `ctx.fx.endAttack()`, so the mechanism is real — only the combat harness to drive it " +
-    "end-to-end is missing from this lane.",
-);
 describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203)", () => {
   it("15-15-3-1/15-15-3-2 (+ ch03 comprehensive-0280's batch-move ordering): revealing doesn't change the deck's count; only the FINAL placement does", async () => {
     cite(

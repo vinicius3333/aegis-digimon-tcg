@@ -8,7 +8,7 @@ import {
   PlayerState,
   requireCardDefinition,
 } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { GameStateAccess } from "../state/access.js";
@@ -255,51 +255,8 @@ describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
   });
 });
 
-// §15-15-6 Effects That Can Replace DigiXros Requirements (comprehensive-0205)
-markNotTestable(
-  "comprehensive-0205",
-  "No compiled card in the corpus implements a DigiXros-requirement-REPLACEMENT effect " +
-    "(searched apps/api/src/cards for a DigiXros 'replace'/'may use ... instead of' clause " +
-    "and the interpreter for a matching action kind — none exists). DigiXros itself is " +
-    "implemented (GameEngine.validateDigiXros/applyDigiXros), but the specific sub-mechanic " +
-    "this chunk describes — substituting a different card for the one named in a DigiXros " +
-    "bracket requirement — has no producing action kind or consuming card to drive.",
-);
-// §15-15-7 Effects That Activate Other Effects (comprehensive-0206)
-markNotTestable(
-  "comprehensive-0206",
-  "No compiled card in the corpus implements 'activate 1 of that card's [When " +
-    "Digivolving] effects as an effect of this Digimon' (searched cards.json effectText for " +
-    "the rule's own phrasing and the interpreter for an 'ActivateOtherEffect'/'ActivateAsSelf' " +
-    "action kind — neither exists). This is distinct from the stack-effect CONFERRAL exercised " +
-    "at comprehensive-0191 above (a standing grant that a stacked card's OWN effects fire as " +
-    "the host's): this chunk is a one-shot 'run 1 of THAT card's timing-window bodies right " +
-    "now, then continue this effect' primitive, which has no producing action kind to drive.",
-);
 // §15-1-9/15-1-10 Effects (comprehensive-0158)
-markNotTestable(
-  "comprehensive-0158",
-  "This chunk distinguishes trigger conditions ('placed in an area') from ADDED-to-area " +
-    "conditions being met-or-not by Digi-Egg/token placement rules — a nuance specific to the " +
-    "Digi-Egg-hatch and token-creation-into-a-non-field-area edge case. The compiled corpus has " +
-    "no card whose trigger text distinguishes 'placed in hand/trash/security' from 'added to " +
-    "hand/trash/security' in a way a Digi-Egg or token could exercise differently; driving it " +
-    "would require inventing a scenario no real card presents, which the honesty contract rules " +
-    "out.",
-);
 describe("§15-12-2 Effects That Change Information (comprehensive-0190)", () => {
-  markNotTestable(
-    "comprehensive-0190",
-    "No compiled card implements a name/color 'change the original information' effect " +
-      "(searched apps/api/src/cards for a ChangeName/SetColor-shaped action and the interpreter " +
-      "for a matching action kind — neither exists; only DP has a change-information path, " +
-      "exercised structurally via ModifierLedger.addBaseDpOverride below at comprehensive-0189's " +
-      "sibling test). The 'most recently changed information overwrites the previous' half of " +
-      "this rule IS verified for DP overrides (ModifierLedger.baseDpOf, 'highest activatedAt " +
-      "wins' — see modifiers.ts), but proving it for name/color specifically needs a producing " +
-      "action kind this corpus never compiles.",
-  );
-
   it("(structural) the DP change-information ledger applies 'most recently applied wins' — the same rule §15-12-1-3 states for added information", () => {
     cite(
       "comprehensive-0189",

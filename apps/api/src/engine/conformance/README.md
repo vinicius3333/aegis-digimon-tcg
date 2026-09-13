@@ -56,27 +56,19 @@ where `vitest`/`pnpm` is invoked from, at the cost of one hardcoded relative
 depth (`../../../../..` from `apps/api/src/engine/conformance/`) that must be
 updated if this file ever moves.
 
-## Chunk ids are positional — read this before citing one
+## Chunk identity and reviewed citations
 
-`tools/kb/index-rules.mjs` assigns chunk ids like this (line ~185):
+The original importer assigned IDs by extraction position. The current
+`tools/kb/index-rules.mjs` reconciles extracted chunks against the previous
+index using source, section, title and content. Unchanged insertions and
+reordering preserve existing identities; unique changed rule sections retain
+their IDs so reviewed fingerprints can detect prose drift. Ambiguous splits,
+merges and duplicate extraction content fail before the index is replaced.
+Removed IDs remain reserved in `retiredIds` and cannot be reassigned.
 
-```js
-id: `${source.id}-${String(chunks.length).padStart(4, "0")}`;
-```
-
-That's **not** a stable content hash or a rule number — it's "the Nth chunk
-emitted for this source, in emission order." Emission order depends on how the
-PDF's text extracts and how the chunker's heading/word-count heuristics split
-it. Concretely, this means:
-
-- A KB re-scrape (`node tools/kb/index-rules.mjs`) that hits a differently
-  formatted PDF (a rules errata update changes pagination, `pdftotext`/OCR
-  extracts a paragraph break differently, etc.) can shift every chunk id
-  **after** the change point, silently. `comprehensive-0148` today might be a
-  completely different rule after a re-scrape, and nothing would fail — the id
-  still resolves, just to the wrong text.
-- This is a real fragility for any test that cites an id and never re-validates
-  what that id currently means.
+IDs are source identities, rather than content hashes or printed rule numbers.
+A retained ID can still acquire reviewed wording changes during a source
+refresh, so citing an ID alone does not protect the meaning of its text.
 
 **Mitigation:** `getChunk()` rejects missing IDs. Reviewed citations can also
 supply a SHA-256 fingerprint of exact chunk text as a third argument to `cite()`.
@@ -86,7 +78,7 @@ test would accept drift automatically and defeat the check. `ruleFingerprint()`
 is provided for review tooling and citation-infrastructure tests.
 
 Existing two-argument citations remain compatible but are unpinned. They do not
-detect an existing positional ID whose content changed. `getCitations()` exposes
+detect a retained ID whose content changed. `getCitations()` exposes
 reviewed fingerprints and calling files for diagnostics; citations still do not
 prove every normative obligation in a chunk. After a KB update, review changed
 content and unpinned citations before trusting a green conformance run.
@@ -103,12 +95,25 @@ only after the existing chapter files have complete classified source coverage
 and the single-fork run proves that every file registered — see the one-line
 change documented directly above the report in `_kb.meta.test.ts`.
 
+### Deterministic source consistency
+
+The meta-test scans chapter source with the TypeScript AST and combines literal
+and top-level constant declarations with the runtime registry and seeded
+manifest before checking IDs and citation/exclusion overlaps. This catches
+cross-file contradictions even when only the meta-test runs. Intentional
+negative citation-infrastructure probes are excluded narrowly. Unresolved
+dynamic declarations are reported and are not guessed to be covered.
+Source declarations establish consistency; executed calls and their checked
+fingerprints remain runtime evidence. They do not establish behavioral rule
+coverage or a complete collected suite.
+
 ### The vacuous-cite-set hazard
 
 `_kb.ts`'s citation registry is plain module-level state. `vitest.config.ts`
 runs with `isolate: false`, which is what lets that state persist across test
 FILES sharing one worker — but the `forks` pool still spreads files across
-multiple worker **processes** (`poolOptions.forks.maxForks`, default 4). A
+multiple worker **processes** (`maxWorkers`, calculated by `vitest.workers.ts`
+from CPU and memory budgets, capped at six; `TEST_MAX_WORKERS` overrides it). A
 chapter file that lands in a different fork than `_kb.meta.test.ts` never
 touches this process's registry. Naively computing a coverage residual from
 "whatever this process happened to observe" could report near-100% missing
