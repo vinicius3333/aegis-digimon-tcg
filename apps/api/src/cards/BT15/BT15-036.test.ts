@@ -27,8 +27,8 @@ describe("BT15-036", () => {
         0: {
           battleArea: [{ card: "BT15-036", as: "wizardmon" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
         1: { battleArea: [{ card: "BT15-029", as: "target", dp: 8000 }] },
@@ -49,8 +49,8 @@ describe("BT15-036", () => {
         0: {
           battleArea: [{ card: "BT15-036", as: "wizardmon" }],
           security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
           ],
         },
         1: { battleArea: [{ card: "BT15-029", as: "target", dp: 8000 }] },
@@ -82,7 +82,7 @@ describe("BT15-036", () => {
 
   it("suspends to block a real opposing player attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-036", as: "wizardmon" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT15-036", as: "wizardmon" }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT15-025", as: "attacker" }] },
     });
     s.state.turnSeat = 1;

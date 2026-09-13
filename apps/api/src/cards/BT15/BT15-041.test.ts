@@ -81,7 +81,7 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
           battleArea: [{ card: "BT15-041", dp: 8000, as: "babamon" }],
           hand: [{ card: PLAYED_CARD, as: "rosemon" }],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

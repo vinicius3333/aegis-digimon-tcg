@@ -37,7 +37,7 @@ describe("BT15-025", () => {
   it("can attack the player on the turn it is normally played", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT15-025", as: "seadramon" }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
     s.state.memory = 5;
     await s.ready();
