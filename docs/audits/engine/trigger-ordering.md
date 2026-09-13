@@ -43,6 +43,21 @@ is still pending, the newly generated BT19-020 On Deletion request is offered fi
 the test then observes the older BT19-065 request and declines both. This is bounded
 proof of non-turn-player derived-trigger precedence with exact request source IDs.
 
+## Current source and ordering classes
+
+| Class | Current public consumer/provider | Executable proof | Status |
+| --- | --- | --- | --- |
+| Same-timing optional effects owned by both controllers | BT25-040 Ascension | First case above, with exact seat order and physical trash IDs | Proven for this native shape |
+| Simultaneous pending sources that depart after order selection | EX7-061 Lilithmon (X Antibody) with two EX7-072 Seventh Fascination cards | Second case above, with one `orderTriggers` request and both exact source IDs reaching deck | Proven for this trash-trigger shape |
+| Derived trigger while an older trigger remains pending | BT19-065, BT20-073, BT19-020 | Fourth case above, with exact source IDs and derived request precedence | Proven for this chain |
+| A pending source leaving or changing before that same source activates | No current printed consumer found in the committed effects scan | No legal public provider/test currently exercises this transition | N/A for current catalog; remains an engine contract gap |
+
+The second class must not be described as a source leaving before its own activation:
+the selected EX7-072 source departs after the public order decision and the remaining
+source then resolves. The fourth class demonstrates pending/derived precedence, not
+source identity mutation. A future legal consumer is required before this transition
+can be certified without a synthetic card or direct primitive invocation.
+
 ## Future plan
 
 - Add public fixtures for opposing-controller simultaneous pools and explicit
