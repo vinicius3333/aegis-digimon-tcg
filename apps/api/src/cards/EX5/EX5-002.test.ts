@@ -182,4 +182,69 @@ describe("EX5-002 Moonmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-032"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("keeps one physical Moonmon OPT spent for the turn and resets it on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-029", as: "host", under: [{ card: "EX5-002", as: "moonmon" }] }],
+          hand: [
+            { card: "EX5-065", as: "firstTamer" },
+            { card: "EX5-065", as: "secondTamer" },
+            { card: "EX5-065", as: "thirdTamer" },
+            { card: "BT1-032", as: "firstEvolution" },
+            { card: "BT1-040", as: "secondEvolution" },
+          ],
+          deck: Array.from({ length: 12 }, () => "BT1-009"),
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-032");
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("firstEvolution").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("moonmon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks(300);
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("firstEvolution").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("moonmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondEvolution").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("secondEvolution").instanceId);
+    expect(s.perm("host").topCard?.cardId).toBe("BT1-040");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-002", "BT1-029", "BT1-032"]);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("moonmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondEvolution").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

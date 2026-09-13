@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["Light Fang", "Night Claw"],
+                  tokens: ["Light Fang", "Night Claw", "Galaxy"],
                   match: "trait",
                 },
               ],

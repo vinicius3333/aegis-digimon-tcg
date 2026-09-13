@@ -117,7 +117,7 @@ build when it is stale.
 | EX2  | 74    | verified    | 2026-09-10  | [EX2.md](EX2.md)   |
 | EX3  | 74    | in-progress | 2026-09-10  | [EX3.md](EX3.md)   |
 | EX4  | 74    | verified    | 2026-09-10  | [EX4.md](EX4.md)   |
-| EX5  | 74    | verified    | 2026-09-09  | [EX5.md](EX5.md)   |
+| EX5  | 74    | verified    | 2026-09-12  | [EX5.md](EX5.md)   |
 | EX6  | 74    | incomplete  | 2026-09-09  | [EX6.md](EX6.md)   |
 | EX7  | 74    | verified    | 2026-09-12  | [EX7.md](EX7.md)   |
 | EX8  | 74    | verified    | 2026-09-10  | [EX8.md](EX8.md)   |

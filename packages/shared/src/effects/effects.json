@@ -166845,7 +166845,14 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "levels": [3, 4], "kind": ["Digimon"], "controller": "opponent" }, "count": 1 },
+            "target": {
+              "filter": {
+                "levelComparison": { "op": "lte", "value": 4 },
+                "kind": ["Digimon"],
+                "controller": "opponent"
+              },
+              "count": 1
+            },
             "suspended": true,
             "from": ["trash"],
             "payCost": false,
@@ -166858,7 +166865,14 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "levels": [3, 4], "kind": ["Digimon"], "controller": "opponent" }, "count": 1 },
+            "target": {
+              "filter": {
+                "levelComparison": { "op": "lte", "value": 4 },
+                "kind": ["Digimon"],
+                "controller": "opponent"
+              },
+              "count": 1
+            },
             "suspended": true,
             "from": ["trash"],
             "payCost": false,
@@ -167309,7 +167323,7 @@
                 "zone": "trash",
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Light Fang", "Night Claw"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Light Fang", "Night Claw", "Galaxy"], "match": "trait" }]
               },
               "count": 1
             },

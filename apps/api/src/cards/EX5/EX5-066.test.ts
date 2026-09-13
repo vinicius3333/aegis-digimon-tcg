@@ -13,13 +13,13 @@ describe("EX5-066 Phoebus Blow", () => {
       kinds: ["Option"],
       playCost: 6,
       types: ["Light Fang"],
-      effectText: expect.stringContaining("with the [Light Fang]/[Night Claw]"),
+      effectText: expect.stringContaining("with the [Light Fang], [Night Claw] or [Galaxy]"),
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("deletes the opponent's lowest-DP Digimon and returns a Light Fang/Night Claw Digimon if you have a Tamer", () => {
+  it("deletes the opponent's lowest-DP Digimon and returns a Light Fang/Night Claw/Galaxy Digimon if you have a Tamer", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
       {
         kind: "Delete",
@@ -35,11 +35,31 @@ describe("EX5-066 Phoebus Blow", () => {
             zone: "trash",
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ match: "trait", tokens: ["Light Fang", "Night Claw"] }],
+            nameOrTrait: [{ match: "trait", tokens: ["Light Fang", "Night Claw", "Galaxy"] }],
           },
         },
       },
     ]);
+  });
+
+  it("returns a Galaxy Digimon from trash when no opposing Digimon exists", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-064", as: "tamer" }],
+        hand: [{ card: "EX5-066", as: "option" }],
+        trash: [{ card: "EX5-073", as: "galaxy" }],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("galaxy").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("galaxy").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("galaxy").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("activates its Main effect from security", () =>
     expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions[0]?.kind).toBe("ActivateMain"));
