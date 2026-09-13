@@ -530,6 +530,7 @@ describe("Guard departure lifecycle", () => {
       response: { kind: "orderTriggers", order: [chosenKey!] },
     });
     expect(unauthorized.ok).toBe(false);
+    if (unauthorized.ok) throw new Error("unauthorized decision unexpectedly succeeded");
     expect(unauthorized.reason).toBe("decision-pending");
     expect(
       s.engine.applyIntent(1, {
