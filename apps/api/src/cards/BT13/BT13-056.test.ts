@@ -1,6 +1,10 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-056.js";
+import "./BT13-052.js";
+import "./BT13-055.js";
+import "./BT13-051.js";
+import "./BT13-040.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -85,8 +89,12 @@ describe("BT13-056 Leopardmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-056", as: "leo" }],
-          hand: [{ card: "BT13-052", as: "green" }],
+          battleArea: [{ card: "BT13-055", as: "leo" }],
+          hand: [
+            { card: "BT13-056", as: "evolution" },
+            { card: "BT13-052", as: "green" },
+          ],
+          deck: [{ card: "BT1-010", as: "bonus" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -94,10 +102,19 @@ describe("BT13-056 Leopardmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("leo"));
-    await settle(() => s.perm("green").topCard?.cardId === "BT13-052");
+    const baseId = s.perm("leo").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("leo").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("green").instanceId));
 
-    expect(s.state.memory).toBe(9);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("leo").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("green").instanceId)).toBe(false);
   });
 
@@ -133,30 +150,64 @@ describe("BT13-056 Leopardmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-056", as: "leo" }],
+          battleArea: [{ card: "BT13-055", as: "leo" }],
           hand: [
+            { card: "BT13-056", as: "evolution" },
             { card: "BT13-052", as: "green" },
             { card: "BT13-040", as: "royal" },
           ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
+        1: { deck: ["BT1-010", "BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    const mainKey = mainEffectKey(s);
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("leo"));
-    await settle(() => s.perm("green").topCard?.cardId === "BT13-052");
+    const baseId = s.perm("leo").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("leo").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("green").instanceId));
 
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.perm("leo").topCard!.instanceId,
-        effectKey: mainKey,
+        effectKey: mainEffectKey(s),
       }).ok,
     ).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("leo").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("leo").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("royal").instanceId));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("leo").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("grants Blocker to existing and newly played green Digimon through the opponent's turn (Q2301)", async () => {
