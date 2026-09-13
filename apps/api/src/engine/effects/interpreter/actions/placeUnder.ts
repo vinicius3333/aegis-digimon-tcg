@@ -297,11 +297,17 @@ export async function runPlaceUnder(
       return;
     }
     if (destId === undefined) return;
+    let placedCount = 0;
     for (const sourcePermanentId of sourceIds) {
-      await relocateByEffect(ctx, destId, sourcePermanentId, {
+      const moved = await relocateByEffect(ctx, destId, sourcePermanentId, {
         belowTop: action.position !== "bottom",
         ...(action.shedOwnCards === true ? { shedOwnCards: true } : {}),
       });
+      if (moved) placedCount += 1;
+    }
+    if (action.trackCount !== undefined) {
+      ctx.namedCounts ??= new Map();
+      ctx.namedCounts.set(action.trackCount, placedCount);
     }
     return;
   }

@@ -1,13 +1,13 @@
 ---
 title: KB citation integrity audit
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 # KB citation integrity audit
 
 ## Status
 
-In progress. `cite(id, note?, expectedFingerprint?)` now checks an optional
+Bounded infrastructure audit delivered; complete normative proof and source freshness remain open. `cite(id, note?, expectedFingerprint?)` now checks an optional
 SHA-256 fingerprint of exact chunk text before recording a citation. Existing
 two-argument calls remain compatible and are explicitly unpinned. Citation
 diagnostics also retain the calling file. This is source-integrity evidence,
@@ -22,7 +22,7 @@ documents or the index are replaced. Removed IDs remain reserved in
 `retiredIds` across later refreshes. Missing source extraction also fails,
 instead of silently dropping that source from the index.
 
-## Proof and gates
+## Historical proof and gates
 
 `src/engine/conformance/kb-citation-drift.test.ts`: 4/4 focused tests passed.
 Tests prove unchanged content acceptance, changed content under the same ID
@@ -38,7 +38,7 @@ the existing committed index preserved all 363 chunks exactly. The root
 review reproduced the duplicate-input gap; its correction was re-reviewed
 without remaining blockers in this bounded reconciliation change.
 
-## Open items
+## Prior checkpoints and residuals
 
 - Pin reviewed citations as each mechanism is audited; most existing citations
   remain unpinned and must not be reported as protected against drift.
@@ -47,15 +47,7 @@ without remaining blockers in this bounded reconciliation change.
   `d2753b28e`. Reviewed pilot obligations pin both local §15-7 chunks.
 - Citation counts still do not establish obligation coverage. Retain honest
   residual reporting until a complete classified denominator exists.
-- The conformance directory currently contains 76 chapter `*.test.ts` files
-  (excluding `_kb.meta.test.ts`); three have neither `cite()` nor
-  `markNotTestable()`: `activation-cost-and-borrowed-gates.test.ts`,
-  `keyword-link-parameters.test.ts`, and
-  `keyword-security-attack-lifecycle.test.ts`. Because the meta-test's
-  observed-file guard requires every chapter file to register, its coverage
-  report is skipped for the current suite. Add an appropriate source citation
-  or an explicitly justified `markNotTestable()` call in each file before
-  treating the report as a complete file-level check.
+- The earlier missing-file checkpoint is resolved: all three named files now register reviewed citations and fingerprints. The current chapter inventory is 76 files. Runtime coverage reporting still requires observed execution of every chapter; static declaration consistency does not establish execution.
 - Official comprehensive version 4.2 was downloaded and extracted (27559 words,
   286 provisional chunks before fixing history separation). Multi-source refresh
   failed on the removed glossary URL, then on ambiguous illustrated-manual OCR
@@ -164,6 +156,7 @@ without remaining blockers in this bounded reconciliation change.
   integrity residual to pin before claiming drift protection, not a failed
   helper contract. These counts are integrity coverage, not a behavioral
   denominator or completion score.
+
 - Affected broad regression: 425 files / 4627 tests passed across conformance,
   combat, effects, engine cards, BT26, EX10, BT14 and audit layout. The expected
   unsupported-effect logger receipt belongs to its negative regression test.
@@ -182,3 +175,23 @@ without remaining blockers in this bounded reconciliation change.
 
 - 2026-09-12: compatible opt-in drift detection and four focused tests added
   from baseline `de4dda717d8c9e0c2420796cb387f68b1379b863`.
+
+## Integrity checkpoint, 2026-09-13
+
+The four existing meta-test assertions now combine runtime registrations with an AST inventory of literal declarations and file-local top-level string constants. This makes unknown IDs and cited/excluded overlap detectable when the meta-test runs alone, independently of worker scheduling. Dynamic declarations are reported as unresolved instead of guessed. Runtime fingerprint checks and the observed-file guard remain separate; declaration inventory is not behavioral coverage.
+
+Cold meta execution reproduced the `comprehensive-0206` contradiction before correction. The obsolete exclusion was removed, preserving the existing reviewed activation-cost citation. Fifteen normative exclusions were removed in total: `manual-0034`, `0035`, `0036`, `0066`; `comprehensive-0158`, `0190`, `0199`, `0205`, `0206`, `0212`, `0218`, `0219`, `0241`, `0253`, `0255`. Missing producers, missing fixtures, timeouts and implementation gaps do not make normative rules non-testable. These are open proof obligations, not newly certified rules. Adjacent behavioral helpers and assertions were retained. Other historical exclusions still require individual classification.
+
+The audit-index fixtures now provide their real formatter dependency and a minimal project manifest. Their three existing tests reproduced the missing-dependency failures before correction and now exercise the formatter without mocks. Formatter failures retain a useful diagnostic even when stderr is empty. The importer comparison now records two field-specific deviations verified against primary sources on 2026-09-13: [EX12-035 Japanese name](https://digimoncard.com/rule/?card_no=EX12-035) and [P-244 Your Turn clause](https://world.digimoncard.com/cards/?category=522901&search=true). The catalog was already correct; no catalog behavior or collection score is changed by the allowlist. The serialized tools gate passed **34/34** tests.
+
+Persisted EX6 IR was reconciled to the authoritative direct modules: `EX6-002`, `010`, `021`, `027`, `030`, `043`, `054`, `057`, `065`, `067`, `068`, `069`, `074`. These 13 records normalize fields already used by runtime compilation: under-filter location, turn-duration aliases, cost-choice/destination representation, redundant inherited/frequency markers, Delay keywords, Recovery duration metadata and normal digivolution payment. No direct card module was changed in this checkpoint. Scoped sync and check report **74 synchronized records**, with **zero semantic or byte changes outside EX6** against `2debe592c`. This resolves the artifact-parity residual recorded at the earlier placement checkpoint without awarding new card behavioral credit.
+
+Direct identity reconciliation preserves **371 current chunks and 46 retired IDs** exactly. The manifest records only the comprehensive source refreshed on 2026-09-12; the manual remains unrefreshed and the glossary archived. Q&A provenance is older: 4,375 cards scanned on 2026-08-19, 2,617 nonempty ruling entries and 42 historical fetch failures, versus 4,458 current catalog cards. Absence from the nonempty Q&A map does not imply a missing ruling. No complete fresh-source coverage claim is made. The citation scan remains **431 recognized calls, 149 pinned, 282 unpinned** across 76 chapter files. Pinning and exhaustive normative proof remain open.
+
+The isolated meta-test passes **4/4** after correction. The combined conformance, EX6 collection and audit-layout gate passes **152 files / 1,082 tests**. Final serialized engine regression and style receipts follow below.
+
+Three baseline behavioral-oracle failures were corrected in the existing tests, with no new test cases or production changes. Two waiver fixtures previously treated the Digimon half of DUAL BT25-043 as color-gated; they now use the registered Yellow Option EX6-068 through public `playCard`, assert empty-board rejection without waiver, and await actual battle placement with waiver. BT1-053 remains in hand as a legal Angel candidate, so it does not supply a field color source. Automatic optional/card decisions complete the printed Option flow. The different-colors negative now preserves its mandatory count of two and asserts rejection of an invalid two-red group without partial trash; both multicolor positive controls are unchanged. The corrected existing mechanic/interpreter suites pass **339/339** tests. An intermediate candidate-free Option fixture failed settlement and was corrected rather than increasing polling or accepting only an intent receipt.
+
+Final serialized full engine regression: **328 files / 7,856 tests passed**, using `TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072` and `--no-file-parallelism`. The earlier four baseline failures are resolved by the classification/oracle corrections above; the expected unsupported AD1-002 logger receipt remains part of its passing negative test. Shared, API and web typechecks passed in sequence. Scoped Oxlint reports no new findings after removing the newly unused exclusion imports; nine existing warnings remain in the changed chapter files. Scoped Oxfmt passes for changed code, tooling and documents. The generated `effects.json` retains a pre-existing formatter mismatch: read-only stdin formatting differs both at `2debe592c` and after synchronization. Its authoritative scoped serializer and 74-record parity check pass, and outside-EX6 bytes are preserved; whole-file reformatting is not claimed green. Audit layout, the generated 66-set index and `git diff --check` pass. These receipts certify the bounded infrastructure and regression contracts, not exhaustive normative rule execution or whole-collection 10/10 status.
+
+Delivery commits: `1b8291557` (declaration consistency, normative classification and existing behavioral oracles), `711aa637d` (real-formatter fixtures and primary-source deviations), `df8f0317c` (scoped EX6 persisted IR). Read-only Luna review approved the bounded changes without material blockers. No complete collection certification or fresh-source denominator is inferred from these commits.

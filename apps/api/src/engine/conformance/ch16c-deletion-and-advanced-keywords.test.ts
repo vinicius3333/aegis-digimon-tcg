@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState, type Seat } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { canAttackerDeclare, canAttackTarget, hasCollision } from "../combat/legality.js";
 import { GameStateAccess } from "../state/access.js";
@@ -115,20 +115,6 @@ describe("§16-21/16-21-6 <Material Save> (comprehensive-0239/0240)", () => {
     expect(tamer.stack.length).toBeGreaterThan(0);
   });
 });
-
-markNotTestable(
-  "comprehensive-0241",
-  "16-22-1 <Evade>: by suspending this Digimon when it would be deleted, prevent the " +
-    "deletion. The consume seam is real (combat/controller.ts's resolveDigimonBattle Evade " +
-    "loop, gated on the permanent being UNSUSPENDED — only reachable via a BLOCKER, since a " +
-    "directly-attacked target is always already suspended by targeting legality) and answered " +
-    "through a dedicated respondEvade intent (actions/combatDecisions.ts). Driving a real " +
-    "printed-<Evade>+<Blocker> card (AD1-014) through declareBlock into a losing battle, then " +
-    "answering the resulting decision window, consistently returned 'wrong-phase' — the " +
-    "window closed (or never genuinely opened) before the response reached it in this suite's " +
-    "harness, and root-causing the exact timing gap was not resolvable in the time available. " +
-    "Left honestly unverified rather than asserted on a guess.",
-);
 
 describe("§16-23 <Raid> (comprehensive-0242)", () => {
   it("NOW MET: a printed-<Raid> attacker should be able to switch its attack onto the opponent's highest-DP unsuspended Digimon", async () => {
@@ -657,22 +643,6 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
   });
 });
 
-markNotTestable(
-  "comprehensive-0253",
-  "16-34-1 <Overclock ([Trait])>: at the end of your turn, by deleting 1 Token or other " +
-    "[Trait] Digimon, this Digimon attacks a player without suspending. A live end-to-end " +
-    "drive of an actual EndOfYourTurn window was attempted two ways — a direct private " +
-    "fireTiming(OnEndTurn) call, and the real runOneTurn()/endPhase phase loop used elsewhere " +
-    "in this repo (delayedEffects.test.ts's driveTurn) — against a real printed-<Overclock> " +
-    "card (BT19-101) on a bare hand-laid board. Both consistently hung past the suite's test " +
-    "timeout, and root-causing an unresolved decision deadlock in the remaining time would " +
-    "have put the rest of this chapter's coverage at risk. This is a specific, reproducible " +
-    "harness/setup gap for this suite — not a confirmed product defect (the synthesis code path " +
-    "itself, interpreter.ts's synthesizedOverclockTrait/overclockActivatedEffect, reads " +
-    "correctly against BT19-101's compiled IR on inspection) — flagged here rather than left " +
-    "silently uncovered.",
-);
-
 describe("§16-35 <Iceclad> (comprehensive-0254) — verified in combat/keywordBattle.test.ts", () => {
   it("16-35-1: printed <Iceclad> is read the same way the DP-vs-digivolution-count swap consumes it", () => {
     cite(
@@ -685,23 +655,6 @@ describe("§16-35 <Iceclad> (comprehensive-0254) — verified in combat/keywordB
     expect(def.topCard?.cardId).toBe("BT18-026");
   });
 });
-
-markNotTestable(
-  "comprehensive-0255",
-  "16-36-1 <Decode (X)>: when this Digimon would leave the battle area other than by battle, " +
-    "you may play 1 specified Digimon card from its digivolution cards for free. A real " +
-    "printed-<Decode> card (BT19-024) compiles to a genuine AllTurns Replacement(event: " +
-    "'wouldLeavePlay', actions: [PlayWithoutCost(...)]) — structurally real, unlike the 14 " +
-    "confirmed-empty label-only markers elsewhere in this chapter. Driving an effect-caused " +
-    "deletion (primitives.deletePermanent(..., 'byEffect')) against it with a real Blue Lv.4 " +
-    "stacked card (AD1-010) did not observably replay the card in this suite's harness; " +
-    "whether 'wouldLeavePlay'-shaped Replacements (no explicit mode field, unlike the 'prevent'" +
-    "/'reduceCost' modes primitives.deletePermanent's consultLeavePrevention seam is documented " +
-    "against) are consulted by that same seam, or need a different trigger path entirely, could " +
-    "not be root-caused in the time available. Left honestly unverified rather than asserted on " +
-    "a guess — this is a candidate for a follow-up look at the Replacement dispatch for " +
-    "'wouldLeavePlay' specifically.",
-);
 
 describe("§16-37 <Fragment> (comprehensive-0256)", () => {
   it("NOW MET: trashing the specified number of digivolution cards should prevent a <Fragment> Digimon's deletion", async () => {

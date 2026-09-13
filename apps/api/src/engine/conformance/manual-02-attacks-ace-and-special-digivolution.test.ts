@@ -203,23 +203,6 @@ describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALE
   );
 });
 
-for (const [id, sub] of [
-  ["manual-0034", "Assembly: 'by placing the specified cards from the trash under it, reduce the play cost'"],
-  ["manual-0035", "Assembly: worked example (Eyesmon: Scatter Mode x4, Assembly -3, all 4 must be placed)"],
-  ["manual-0036", "Assembly rules cont'd: exact-count placement, stacking order; DNA Digivolve intro"],
-] as const) {
-  markNotTestable(
-    id,
-    `${sub}. Assembly has no engine subsystem at all — comprehensive-0119..0122 (the SAME rule, ` +
-      "from the Comprehensive Rules' own angle) is already documented not-testable at " +
-      "ch07-playing-a-card.test.ts with the exact finding this manual chunk would re-surface: " +
-      "the compiled-IR schema has an `assemblyRequirement` field, but no card in the corpus " +
-      "populates it and no module under apps/api/src/engine reads it, so there is no real card " +
-      "to drive an Assembly play through GameEngine and observe (same root cause noted at " +
-      "comprehensive-0042, ch02-card-information.test.ts).",
-  );
-}
-
 markNotTestable(
   "manual-0037",
   "DNA Digivolve mechanics and its worked example (blue Lv.4 + green Lv.4 -> Paildramon, cost 0) " +

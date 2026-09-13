@@ -700,6 +700,112 @@ describe("leave-area prevent: cause gating + bounce coverage", () => {
     expect(source.isSuspended).toBe(true);
   });
 
+  it("applies a live wouldLeavePlay replacement before an atomic multi-source placement", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const sourceA = putPermanent(h.state, 0, "sourceA");
+    const sourceB = putPermanent(h.state, 0, "sourceB");
+    await h.installPrevent(sourceB, selfSuspendPrevent("any"));
+
+    await expect(
+      h.fx.relocatePermanentsByEffect!(destination.permanentId, [sourceA.permanentId, sourceB.permanentId]),
+    ).resolves.toEqual([]);
+
+    // The replacement is a real compiled wouldLeavePlay subscription. A batch
+    // placement must consult it before moving sourceA, preserving atomicity.
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      destination.permanentId,
+      sourceA.permanentId,
+      sourceB.permanentId,
+    ]);
+    expect(destination.stack).toHaveLength(0);
+    expect(sourceB.isSuspended).toBe(true);
+  });
+
+  it("does not apply a deletion-only replacement to an atomic multi-source placement", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const sourceA = putPermanent(h.state, 0, "sourceA");
+    const sourceB = putPermanent(h.state, 0, "sourceB");
+    await h.installPrevent(sourceB, selfDeletionOnlyPrevent());
+
+    await expect(
+      h.fx.relocatePermanentsByEffect!(destination.permanentId, [sourceA.permanentId, sourceB.permanentId]),
+    ).resolves.toEqual([sourceA.permanentId, sourceB.permanentId]);
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([destination.permanentId]);
+  });
+
+  it("continues an atomic multi-source placement when its optional replacement is declined", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const sourceA = putPermanent(h.state, 0, "sourceA");
+    const sourceB = putPermanent(h.state, 0, "sourceB");
+    h.optionalAnswers.push(false);
+    await h.installPrevent(sourceB, selfSuspendPrevent("any"));
+
+    await expect(
+      h.fx.relocatePermanentsByEffect!(destination.permanentId, [sourceA.permanentId, sourceB.permanentId]),
+    ).resolves.toEqual([sourceA.permanentId, sourceB.permanentId]);
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([destination.permanentId]);
+    expect(sourceB.isSuspended).toBe(false);
+  });
+
+  it("rejects a batch when a replacement mutates a selected top during consultation", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const sourceA = putPermanent(h.state, 0, "sourceA");
+    const sourceB = putPermanent(h.state, 0, "sourceB");
+    const originalTopId = sourceA.topCard!.instanceId;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      mode: "instead",
+      sourcePermanentId: sourceB.permanentId,
+      appliesTo: () => true,
+      apply: async () => {
+        sourceA.topCard = card(DIGIMON, 0);
+        return false;
+      },
+      description: "test: mutate a selected source during replacement consultation",
+    });
+
+    await expect(
+      h.fx.relocatePermanentsByEffect!(destination.permanentId, [sourceA.permanentId, sourceB.permanentId]),
+    ).resolves.toEqual([]);
+    expect(sourceA.topCard!.instanceId).not.toBe(originalTopId);
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      destination.permanentId,
+      sourceA.permanentId,
+      sourceB.permanentId,
+    ]);
+    expect(destination.stack).toHaveLength(0);
+  });
+
+  it("rejects a singular placement when a replacement mutates its selected top during consultation", async () => {
+    const h = harness();
+    const destination = putPermanent(h.state, 0, "destination");
+    const source = putPermanent(h.state, 0, "source");
+    const originalTopId = source.topCard!.instanceId;
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      mode: "instead",
+      sourcePermanentId: source.permanentId,
+      appliesTo: () => true,
+      apply: async () => {
+        source.topCard = card(DIGIMON, 0);
+        return false;
+      },
+      description: "test: mutate a singular selected source during replacement consultation",
+    });
+
+    await expect(h.fx.relocatePermanentByEffect!(destination.permanentId, source.permanentId)).resolves.toBe(false);
+    expect(source.topCard!.instanceId).not.toBe(originalTopId);
+    expect(h.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      destination.permanentId,
+      source.permanentId,
+    ]);
+    expect(destination.stack).toHaveLength(0);
+  });
+
   it("prevents moving a permanent to breeding and preserves the battle-area zone", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source", { sources: 1 });

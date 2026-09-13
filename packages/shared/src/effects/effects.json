@@ -168733,7 +168733,9 @@
             "optional": true,
             "trackCount": "xiangpengmonPlacedCount",
             "targetIsPermanent": true,
-            "underFilter": { "isSelfRef": true }
+            "underFilter": { "isSelfRef": true },
+            "position": "bottom",
+            "shedOwnCards": true
           },
           {
             "kind": "Return",
@@ -168766,7 +168768,9 @@
             "optional": true,
             "trackCount": "xiangpengmonPlacedCount",
             "targetIsPermanent": true,
-            "underFilter": { "isSelfRef": true }
+            "underFilter": { "isSelfRef": true },
+            "position": "bottom",
+            "shedOwnCards": true
           },
           {
             "kind": "Return",

@@ -2332,24 +2332,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     sourcePermanentId,
     opts,
   ) => {
-    const movedSource = access.permanentById(sourcePermanentId);
-    const movedCardIds =
-      movedSource === undefined
-        ? []
-        : (opts?.shedOwnCards
-            ? [movedSource.topCard]
-            : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
-          )
-            .filter((card): card is CardInstance => card !== undefined)
-            .map((card) => card.instanceId);
     const sourceInBattle = access.permanentById(sourcePermanentId);
     const source =
       sourceInBattle ?? state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
     const destination =
       access.permanentById(destPermanentId) ??
       state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    const selectedTopInstanceId = source?.topCard?.instanceId;
+    const selectedDestinationTopInstanceId = destination?.topCard?.instanceId;
     if (
       source === undefined ||
+      source.topCard === undefined ||
       destination?.topCard === undefined ||
       sourcePermanentId === destPermanentId ||
       isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
@@ -2363,6 +2356,27 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       });
       if (prevented?.has(sourcePermanentId)) return false;
     }
+
+    const sourceAfterConsult =
+      access.permanentById(sourcePermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+    const destinationAfterConsult =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (
+      sourceAfterConsult?.topCard === undefined ||
+      sourceAfterConsult?.topCard?.instanceId !== selectedTopInstanceId ||
+      destinationAfterConsult?.topCard?.instanceId !== selectedDestinationTopInstanceId ||
+      isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")
+    )
+      return false;
+    const movedCardIds = (
+      opts?.shedOwnCards
+        ? [sourceAfterConsult.topCard]
+        : [sourceAfterConsult.topCard, ...sourceAfterConsult.stack, ...sourceAfterConsult.linked]
+    )
+      .filter((card): card is CardInstance => card !== undefined)
+      .map((card) => card.instanceId);
 
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {
@@ -2411,6 +2425,51 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     ) {
       return [];
     }
+    const sourceTopInstanceIds = sources.map((source) => source!.topCard!.instanceId);
+
+    // The singular effect path consults leave replacements before the source is
+    // removed. Do the same once for the complete batch: awaiting one source at
+    // a time would permit a partial payment when a later source is protected.
+    // Placement under another permanent is a leave, but not a deletion, so the
+    // deletion-only replacement family must be excluded (`isBounce:true`).
+    const battleSourceIds = sourcePermanentIds.filter((sourcePermanentId) =>
+      state.players.some((owner) => owner.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId)),
+    );
+    if (battleSourceIds.length > 0) {
+      const resolvingSeat = effectSeatStack.at(-1) ?? sources.find((source) => source !== undefined)!.controllerSeat;
+      const prevented = await engine.consultLeavePrevention?.(battleSourceIds, "byEffect", resolvingSeat, {
+        isBounce: true,
+      });
+      if (prevented !== undefined && battleSourceIds.some((sourcePermanentId) => prevented.has(sourcePermanentId))) {
+        return [];
+      }
+    }
+
+    // Replacement bodies may resolve effects of their own. Revalidate every
+    // selected source and the destination after the await, including the top
+    // instance identities that the payment selected.
+    const destinationAfterConsult =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (destinationAfterConsult?.topCard === undefined) return [];
+    const sourcesAfterConsult = sourcePermanentIds.map((sourcePermanentId, index) => {
+      const permanent =
+        access.permanentById(sourcePermanentId) ??
+        state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+      return permanent?.topCard?.instanceId === sourceTopInstanceIds[index] ? permanent : undefined;
+    });
+    if (
+      sourcesAfterConsult.some((source) => source === undefined) ||
+      sourcePermanentIds.some((sourcePermanentId) => isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion"))
+    ) {
+      return [];
+    }
+
+    const movedCardIdsBySource = sourcesAfterConsult.map((source) =>
+      (opts?.shedOwnCards ? [source!.topCard] : [source!.topCard, ...source!.stack, ...source!.linked])
+        .filter((card): card is CardInstance => card !== undefined)
+        .map((card) => card.instanceId),
+    );
 
     // `relocatePermanent` is synchronous and the checks above cover every failure it can
     // report. Complete preflight means no async callback can interleave between source moves;
@@ -2420,12 +2479,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (!relocatePermanent(destPermanentId, sourcePermanentId, opts)) return [];
       moved.push(sourcePermanentId);
     }
-    for (const source of sources) {
-      const movedCardIds = (
-        opts?.shedOwnCards ? [source!.topCard] : [source!.topCard, ...source!.stack, ...source!.linked]
-      )
-        .filter((card): card is CardInstance => card !== undefined)
-        .map((card) => card.instanceId);
+    for (const movedCardIds of movedCardIdsBySource) {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,

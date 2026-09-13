@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, Phase, requireCardDefinition, type CardColor, type Seat } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { turnTiming, staticModifier, breeding, security, onAddHand, inTrash } from "../effects/builders.js";
@@ -439,15 +439,6 @@ describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
 });
 
 // §15-16-6 [When Linking] (comprehensive-0212)
-markNotTestable(
-  "comprehensive-0212",
-  "No compiled card prints '[When Linking]' anywhere in the 4,284-card corpus (searched " +
-    "cards.json effectText/inheritedEffectText for the literal bracket) AND the engine's " +
-    "EffectTiming enum (packages/shared/src/schema/enums.ts) has no member for it — unlike " +
-    "every other timing in this section, 'WhenLinking' appears in neither timingForTrigger's " +
-    "IR-trigger switch nor anywhere in GameEngine.ts's link-mechanic handlers (grepped both). " +
-    "There is no real card to drive and no engine window it would dispatch through.",
-);
 describe("§15-16-7 [Main] (comprehensive-0213)", () => {
   it("15-16-7-1: [Main] is exactly the activation-type-effect window — BT15-009 again, cited for its own timing icon this time", () => {
     cite("comprehensive-0213", "15-16-7-1 [Main] is an effect timing for activation-type effects (§15-8-4)");
@@ -586,24 +577,7 @@ describe("§15-16-13-1 [Start of Your/Opponent's Main Phase] (comprehensive-0217
 });
 
 // §15-16-14 [Counter] (comprehensive-0218)
-markNotTestable(
-  "comprehensive-0218",
-  "Every compiled card printing [Counter] in the corpus pairs it ONLY with the " +
-    '＜Blast Digivolve＞ keyword marker (grepped apps/api/src/cards for \'"trigger": ' +
-    '"Counter"\' — AD1-005/BT14-014/BT14-026/BT14-037, all keyword-only, no independent ' +
-    "action body). §11-3 'Counter Timing' (the window this icon fires in) is combat's own " +
-    "declare-block/pre-damage machinery, chapter 11 scaffolding outside this lane's file " +
-    "ownership. There is no real card whose [Counter] clause has an observable body distinct " +
-    "from ＜Blast Digivolve＞'s own well-covered digivolve mechanic (ch08) to drive here.",
-);
 // §15-16-15 [End of Attack] (comprehensive-0219)
-markNotTestable(
-  "comprehensive-0219",
-  "Driving '[End of Attack] triggers when the end of the attack arrives after an attack " +
-    "using the card with that effect' requires a real in-progress attack through combat's own " +
-    "state machine (combat/controller.ts) — chapter 11 'Attacking' scaffolding outside this " +
-    "lane's ch15 file ownership, the same reason comprehensive-0199 above is not-testable here.",
-);
 describe("§15-16-16 [When Moving] (comprehensive-0220)", () => {
   it("NOW MET: a compiled '[When Moving]' effect should fire at the real OnMove window", async () => {
     cite(

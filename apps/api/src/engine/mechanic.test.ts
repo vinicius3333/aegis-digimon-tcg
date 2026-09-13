@@ -2626,24 +2626,24 @@ describe("A3 Search — search deck, pick matching card, add to hand", () => {
 
 describe("A3 WaiveColorRequirement — minimal color-gate bypass (IR-01)", () => {
   // WaiveColorRequirement consume seam (Task 1: playCard.validate color step ->
-  // continuous.hasColorWaiver). BT25-043 carries an explicit play-time color requirement
-  // (optionColorRequirements: [Yellow]); played onto an empty board (no Yellow available),
-  // the minimal color gate rejects it. A faithful color waiver on its hand instance — the
-  // real source WaiveColorRequirement effect writes via continuous.addColorWaiver — makes
-  // the gate short-circuit to legal, so the card enters the battle area.
+  // continuous.hasColorWaiver). EX6-068 is a real yellow Option with the Option color
+  // requirement; using it through the public useOption path on an empty board (no Yellow
+  // available) exercises the actual Option color gate. A faithful waiver on its hand instance
+  // makes the gate short-circuit to legal, so its registered effect places it in the battle area.
   //
   // FAILS-WHEN-REVERTED: removing the `hasColorWaiver` short-circuit from the Task 1 gate
   // (or reverting the gate's `colorRequirementMet` binding) leaves the play rejected even
   // with the waiver, so the permanent is never created and the toBe(1) assertion fails.
-  const COLOR_GATED = "BT25-043"; // Digimon+Option; optionColorRequirements: [Yellow], playCost 6
+  const COLOR_GATED = "EX6-068"; // Yellow Option color requirement
 
   it("a color-gated card is rejected on an empty board, then PLAYS once its instance is color-waived", async () => {
-    const s = setup();
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
-    s.state.memory = 10; // afford the playCost (6)
+    s.state.memory = 10; // afford the Option's printed use cost
 
     const card = instance(COLOR_GATED, 0, false);
     p0.hand.push(card);
+    p0.hand.push(instance("BT1-053", 0, false)); // real Angel candidate for EX6-068's optional security placement
 
     // No Yellow source on the board => the minimal color gate rejects the play.
     // The color gate surfaces its own fine-grained reason (RejectReason consolidation,
@@ -2659,7 +2659,7 @@ describe("A3 WaiveColorRequirement — minimal color-gate bypass (IR-01)", () =>
 
     // The gate now short-circuits to legal: the card enters the battle area.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
-    await settle(() => p0.battleArea.length === 1);
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === COLOR_GATED));
     expect(p0.battleArea.length).toBe(1);
     expect(p0.battleArea[0]?.topCard?.cardId).toBe(COLOR_GATED);
     assertNoLoudGap(s);
@@ -2809,18 +2809,21 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
   // 5. color-waiver (ContinuousEffectLedger colorWaivers consumed by the play-card color gate).
   //    A waiver on the instance => the color-gated card plays; an empty store => it is rejected.
   it("color-waiver: a waived color-gated card plays; an empty store rejects it", async () => {
-    function playsColorGatedCard(waive: boolean): boolean {
-      const s = setup();
+    async function playsColorGatedCard(waive: boolean): Promise<boolean> {
+      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
       const p0 = s.state.players[0] as PlayerState;
       s.state.memory = 10;
-      const card = instance("BT25-043", 0, false); // optionColorRequirements: [Yellow]
+      const card = instance("EX6-068", 0, false); // Yellow Option color requirement
       p0.hand.push(card);
+      p0.hand.push(instance("BT1-053", 0, false)); // real Angel candidate for the optional security placement
       if (waive) ledgerWrite(s).addColorWaiver(card.instanceId, EFFECT_DURATION_TURN);
       const result = s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });
-      return result.ok === true && p0.battleArea.length === 1;
+      if (!result.ok) return false;
+      await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068"));
+      return p0.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068");
     }
-    expect(playsColorGatedCard(true)).toBe(true); // store populated => gate short-circuits, plays
-    expect(playsColorGatedCard(false)).toBe(false); // store empty => color gate rejects
+    expect(await playsColorGatedCard(true)).toBe(true); // store populated => gate short-circuits, plays
+    expect(await playsColorGatedCard(false)).toBe(false); // store empty => color gate rejects
   });
 });
 

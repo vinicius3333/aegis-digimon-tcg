@@ -13,7 +13,7 @@ describe("reviewed KB citations", () => {
     });
   });
 
-  it("rejects changed text under an existing positional ID before recording coverage", () => {
+  it("rejects changed text under a retained ID before recording coverage", () => {
     const chunk = getChunk("comprehensive-0169");
     const previousText = chunk.text;
     const fingerprint = ruleFingerprint(chunk);

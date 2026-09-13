@@ -106,4 +106,101 @@ describe("EX6-015 Xiangpengmon", () => {
       true,
     );
   });
+
+  it.each(["play", "digivolve"] as const)(
+    "%s places every selected blue Digimon at the bottom, sheds its sources, and scales the return ceiling",
+    async (timing) => {
+      const s = setupEngine(
+        timing === "play"
+          ? {
+              0: {
+                hand: [{ card: "EX6-015", as: "xiangpengmon" }],
+                battleArea: [
+                  { card: "BT10-024", as: "blueOne", under: [{ card: "BT1-037", as: "shedOne" }] },
+                  { card: "BT10-024", as: "blueTwo" },
+                  { card: "BT1-060", as: "ownReturnable" },
+                ],
+              },
+              1: {
+                battleArea: [
+                  { card: "BT1-009", as: "opponentReturnable" },
+                  { card: "AD1-004", as: "opponentLevel6" },
+                  { card: "BT1-084", as: "opponentTooHigh" },
+                ],
+              },
+            }
+          : {
+              0: {
+                hand: [{ card: "EX6-015", as: "xiangpengmon" }],
+                battleArea: [
+                  { card: "BT10-024", as: "host", under: [{ card: "BT1-037", as: "existingHost" }] },
+                  { card: "BT10-024", as: "blueOne", under: [{ card: "BT1-037", as: "shedOne" }] },
+                  { card: "BT10-024", as: "blueTwo" },
+                  { card: "BT1-060", as: "ownReturnable" },
+                ],
+              },
+              1: {
+                battleArea: [
+                  { card: "BT1-009", as: "opponentReturnable" },
+                  { card: "AD1-004", as: "opponentLevel6" },
+                  { card: "BT1-084", as: "opponentTooHigh" },
+                ],
+              },
+            },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoOrderTriggers: true,
+        },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 10;
+      await s.ready();
+
+      const blueOneId = s.inst("blueOne").instanceId;
+      const blueTwoId = s.inst("blueTwo").instanceId;
+      const hostId = timing === "play" ? undefined : s.perm("host").permanentId;
+      const hostTopId = timing === "play" ? undefined : s.perm("host").topCard.instanceId;
+      const result =
+        timing === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xiangpengmon").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              instanceId: s.inst("xiangpengmon").instanceId,
+              permanentId: hostId!,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-015"));
+
+      const host = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "EX6-015")!;
+      expect(host.stack.map(({ instanceId }) => instanceId)).toEqual(
+        timing === "play"
+          ? [blueTwoId, blueOneId]
+          : [blueTwoId, blueOneId, s.inst("existingHost").instanceId, hostTopId!],
+      );
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("shedOne").instanceId);
+      expect(
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ownReturnable").instanceId),
+      ).toBe(false);
+      expect(
+        s.state.players[1]!.battleArea.some(
+          (perm) => perm.topCard?.instanceId === s.inst("opponentReturnable").instanceId,
+        ),
+      ).toBe(false);
+      expect(
+        s.state.players[1]!.battleArea.some(
+          (perm) => perm.topCard?.instanceId === s.inst("opponentTooHigh").instanceId,
+        ),
+      ).toBe(true);
+      expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(
+        s.inst("opponentLevel6").instanceId,
+      );
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+        s.inst("ownReturnable").instanceId,
+      );
+      expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(
+        s.inst("opponentReturnable").instanceId,
+      );
+    },
+  );
 });

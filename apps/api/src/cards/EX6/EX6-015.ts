@@ -25,6 +25,8 @@ export const compiled: CompiledCard = {
           trackCount: "xiangpengmonPlacedCount",
           targetIsPermanent: true,
           underFilter: { isSelfRef: true },
+          position: "bottom",
+          shedOwnCards: true,
         },
         {
           kind: "Return",
@@ -67,6 +69,8 @@ export const compiled: CompiledCard = {
           trackCount: "xiangpengmonPlacedCount",
           targetIsPermanent: true,
           underFilter: { isSelfRef: true },
+          position: "bottom",
+          shedOwnCards: true,
         },
         {
           kind: "Return",

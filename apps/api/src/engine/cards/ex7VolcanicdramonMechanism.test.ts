@@ -6,6 +6,9 @@ import "../../cards/EX7/EX7-014.js";
 import "../../cards/EX3/EX3-014.js";
 import "../../cards/P/P-143.js";
 import "../../cards/BT10/BT10-061.js";
+import "../../cards/BT10/BT10-066.js";
+import "../../cards/BT11/BT11-088.js";
+import "../../cards/BT12/BT12-111.js";
 import "../../cards/BT7/BT7-058.js";
 
 async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>) {
@@ -120,5 +123,39 @@ describe("EX7-014 shared movement and DigiXros replacement seams", () => {
     // BT10-061 costs 4 and reduces by 1 for each card actually placed. Prevention means the
     // declared card was not placed, so the engine must charge the unreduced play cost.
     expect(s.state.memory).toBe(6);
+  });
+
+  it("does not apply a deletion-only replacement when a field material is DigiXrosed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-066", as: "darkKnightmon", under: [{ card: "BT7-058", as: "skullKnightmon" }] }],
+          hand: [
+            { card: "BT12-111", as: "darknessBagramon" },
+            { card: "BT11-088", as: "bagramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const materialId = s.perm("darkKnightmon").topCard.instanceId;
+    const materialPermanentId = s.perm("darkKnightmon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darknessBagramon").instanceId,
+        digiXros: { materialInstanceIds: [materialId, s.inst("bagramon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-111"));
+
+    const xros = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT12-111")!;
+    expect(xros.stack.map((card) => card.instanceId)).toContain(materialId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === materialPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("skullKnightmon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("skullKnightmon").instanceId);
   });
 });

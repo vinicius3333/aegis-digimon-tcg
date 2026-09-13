@@ -73,5 +73,15 @@
     "cardId": "EX12-077",
     "field": "effectText",
     "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header, repairing the same missing-newline scrape defect as EX12-037 (source glues 'Cost 5 [DNA Digivolve]' with a space, not a newline). Resulting text is intentionally not byte-identical to the source reconstruction."
+  },
+  {
+    "cardId": "EX12-035",
+    "field": "nameJp",
+    "reason": "Verified 2026-09-13 against the official card page (https://digimoncard.com/rule/?card_no=EX12-035): the committed Japanese name メタルガルルモン is correct; the community snapshot's ウォーグレイモン is wrong."
+  },
+  {
+    "cardId": "P-244",
+    "field": "effectText",
+    "reason": "Verified 2026-09-13 against the official card page (https://world.digimoncard.com/cards/?category=522901&search=true), P-244 section line 11556: the committed clause is [Your Turn]; the community snapshot's [All Turns] is wrong."
   }
 ]
