@@ -9,12 +9,12 @@ describe("Security Attack accumulation", () => {
   beforeEach(() => {
     cite(
       "comprehensive-0221",
-      "16-3: Security Attack modifies the number of security cards checked",
+      "16-4: Security A. modifies the number of security cards checked",
       "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502",
     );
     cite(
       "comprehensive-0222",
-      "Q605: independent Security Attack grants accumulate rather than replacing one another",
+      "16-4-3/16-4-4: independent Security A. instances modify checks additively and clamp negative results at zero",
       "471c3ca2923b2e688ac6e53edb3789646e7d01b6cb0be7e736fd3a3d2b82d60e",
     );
   });
