@@ -261,6 +261,70 @@ describe("BT26-078 compiled behavior", () => {
     await loop;
   });
 
+  it("expires the for-the-turn Execute grant at the next player's main phase", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          hand: [{ card: "BT24-010", as: "playedTitan" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const returnDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute"));
+    const loop = s.engine.startTurnLoop();
+    try {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const executeDecision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: executeDecision.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      for (let i = 0; i < 3; i += 1) {
+        await settle(() => s.state.pendingDecision?.kind === "optional" || s.state.phase !== "End");
+        if (s.state.pendingDecision === undefined) break;
+        const followUp = s.state.pendingDecision;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: followUp.decisionId,
+            response: { kind: "optional", accept: false },
+          }),
+        ).toEqual({ ok: true });
+      }
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+        s.inst("playedTitan").instanceId,
+      );
+      expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute")).toBe(false);
+    } finally {
+      if (s.state.pendingDecision === undefined && s.state.phase === "Main")
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await Promise.race([loop, new Promise<void>((resolve) => setTimeout(resolve, 100))]);
+    }
+  });
+
   it("Q7106 respects the optional return condition and grants nothing when declined", async () => {
     const s = setupEngine(
       {

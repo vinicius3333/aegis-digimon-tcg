@@ -251,6 +251,10 @@ describe("Ascension through public battle deletion", () => {
         await settle();
       }
       await advance(s.engine).waitForMainPhase(1);
+      expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Execute")).toBe(false);
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+        s.inst("iliad").instanceId,
+      );
       expect(
         s.engine.applyIntent(1, {
           type: "attack",
