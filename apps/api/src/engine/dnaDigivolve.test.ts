@@ -41,7 +41,7 @@ describe("A3 DnaDigivolve (Jogress) — two materials merge into the named resul
       {
         0: {
           battleArea: [
-            { card: "BT10-081", dp: 8000, as: "materialA" },
+            { card: "BT10-081", dp: 8000, as: "materialA", linked: [{ card: "BT24-036", as: "materialLink" }] },
             { card: "BT1-021", dp: 8000, as: "materialB" },
           ],
           hand: [
@@ -56,6 +56,7 @@ describe("A3 DnaDigivolve (Jogress) — two materials merge into the named resul
     const p0 = s.state.players[0] as PlayerState;
     const materialAId = s.perm("materialA").permanentId;
     const materialATopId = s.perm("materialA").topCard?.instanceId;
+    const materialLinkId = s.inst("materialLink").instanceId;
     const materialBId = s.perm("materialB").permanentId;
     const materialBTopId = s.perm("materialB").topCard?.instanceId;
 
@@ -81,8 +82,9 @@ describe("A3 DnaDigivolve (Jogress) — two materials merge into the named resul
 
     // Both materials' top cards are now carried under the merged permanent (the DNA stack).
     const stackInstanceIds = merged!.stack.map((c) => c.instanceId);
-    expect(stackInstanceIds).toContain(materialATopId);
-    expect(stackInstanceIds).toContain(materialBTopId);
+    expect(stackInstanceIds).toHaveLength(2);
+    expect(stackInstanceIds.sort()).toEqual([materialATopId, materialBTopId].sort());
+    expect(p0.trash.map((card) => card.instanceId)).toContain(materialLinkId);
 
     assertNoLoudGap(s);
   });

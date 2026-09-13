@@ -562,7 +562,7 @@ describe("Guard departure lifecycle", () => {
         s.engine.applyIntent(1, {
           type: "respondDecision",
           decisionId: detachDecision.decisionId,
-          response: { kind: "selectCards", instanceIds: [] },
+          response: { kind: "selectCards", instanceIds: [linkId] },
         }),
       ).toEqual({ ok: true });
     } else {
@@ -588,7 +588,7 @@ describe("Guard departure lifecycle", () => {
         s.engine.applyIntent(1, {
           type: "respondDecision",
           decisionId: guardDecision.decisionId,
-          response: { kind: "optional", accept: false },
+          response: { kind: "optional", accept: true },
         }),
       ).toEqual({ ok: true });
     }
@@ -597,13 +597,9 @@ describe("Guard departure lifecycle", () => {
         s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
     );
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId).sort()).toEqual(
-      (chosen === "Guard" ? [targetId] : [guardId, targetId]).sort(),
-    );
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual(
-      (chosen === "Guard" ? [guardId] : [linkId]).sort(),
-    );
-    expect(s.perm("target").linked.map((card) => card.instanceId)).toEqual(chosen === "Guard" ? [linkId] : []);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([targetId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId).sort()).toEqual([guardId, linkId].sort());
+    expect(s.perm("target").linked.map((card) => card.instanceId)).toEqual([]);
     const choices = s.decisions
       .filter(({ req }) => req.kind === "orderTriggers")
       .flatMap(({ req }) => req.options?.triggerKeys ?? [])

@@ -55,6 +55,13 @@ describe("pickLoose aggregate play-cost budgets", () => {
     await expect(pickLoose(ctx, target, [candidate("A", "A"), candidate("B", "B")])).resolves.toEqual([]);
   });
 
+  it("does not return a partial result when a mandatory count cannot fit the aggregate cap", async () => {
+    const ctx = context({ A: 4, B: 3 });
+    const target = { filter: {}, count: 2, totalPlayCostBudget: 5 } as Target;
+
+    await expect(pickLoose(ctx, target, [candidate("A", "A"), candidate("B", "B")])).resolves.toEqual([]);
+  });
+
   it("publishes the remaining cap to sequential exact-name and level prompts", async () => {
     const exactBudgets: number[] = [];
     const exactContext = context({ A: 2, B: 3 }, exactBudgets);

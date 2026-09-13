@@ -799,5 +799,16 @@ export async function pickLoose(
     );
   }
 
-  return chosen;
+  if (maxTotalPlayCost !== undefined) {
+    let spent = 0;
+    chosen = chosen.filter((instanceId) => {
+      const candidate = candidates.find((item) => item.instanceId === instanceId);
+      if (candidate === undefined) return false;
+      const cost = playCostOf(candidate);
+      if (spent + cost > maxTotalPlayCost) return false;
+      spent += cost;
+      return true;
+    });
+  }
+  return !target.upTo && chosen.length < min ? [] : chosen;
 }
