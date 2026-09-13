@@ -50,13 +50,13 @@ export const compiled: CompiledCard = {
                 conditions: [
                   {
                     kind: "selfHasTrait",
-                    filter: { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "trait" }] },
+                    filter: { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }] },
                   },
                   {
                     kind: "not",
                     condition: {
                       kind: "selfHasTrait",
-                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
                     },
                   },
                 ],

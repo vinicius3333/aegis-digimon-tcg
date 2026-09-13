@@ -29,13 +29,13 @@ describe("BT13-077 Craniamon", () => {
     }
   });
 
-  it("mandatorily makes an opponent Digimon attack the player at end of turn", () => {
+  it("optionally makes an opponent Digimon attack the player at end of turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
       actions: [
         {
           kind: "Attack",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          mandatory: true,
+          optional: true,
           attackPlayer: true,
         },
       ],
@@ -64,42 +64,118 @@ describe("BT13-077 Craniamon", () => {
   it("makes a chosen opponent Digimon attack the player at the opponent's turn end", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] },
+        0: {
+          battleArea: [{ card: "BT13-077", as: "craniamon", suspended: true }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
+    const attackerInstanceId = s.inst("attacker").instanceId;
+    const securityInstanceId = s.inst("security").instanceId;
 
-    // Craniamon itself has Blocker, so the forced player attack legitimately opens
-    // the production block window. Resolve that protocol window before asserting the
-    // attack result; autoSelectCards only answers card/target decisions.
-    const firing = advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await firing;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const choice = s.decisions.find(({ req }) => req.kind === "optional")!;
+    expect(choice.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+    expect(
+      s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === attackerPermanentId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === attackerInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityInstanceId)).toBe(true);
   });
 
-  it("does not let an optional-effect auto-decline suppress the mandatory forced attack", async () => {
+  it("lets Craniamon's controller decline choosing an attacker", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] },
+        0: { battleArea: [{ card: "BT13-077", as: "craniamon", suspended: true }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
+    const attackerInstanceId = s.inst("attacker").instanceId;
+    const securityInstanceId = s.state.players[0]!.security[0]!.instanceId;
 
-    const firing = advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await firing;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const choice = s.decisions.find(({ req }) => req.kind === "optional")!;
+    expect(choice.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+    expect(
+      s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === attackerPermanentId),
+    ).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === attackerInstanceId)).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === securityInstanceId)).toBe(true);
+  });
+
+  it("allows choosing an opposing Digimon immune to effects (Q2320)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-077", as: "craniamon", suspended: true }], security: ["BT1-009"] },
+        1: { hand: [{ card: "BT13-077", as: "immuneAttacker" }], security: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("immuneAttacker").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("immuneAttacker").instanceId),
+    );
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("immuneAttacker"), "beAffected", "Digimon")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const choice = s.decisions.find(({ req }) => req.kind === "optional")!;
+    expect(choice.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("immuneAttacker").permanentId,
+      ),
+    ).toBe(true);
   });
 
   it("keeps When Digivolving immunity against a real opposing Digimon effect", async () => {
@@ -112,6 +188,7 @@ describe("BT13-077 Craniamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const baseInstanceId = s.inst("base").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -121,6 +198,9 @@ describe("BT13-077 Craniamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT13-077");
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").stack.some((card) => card.instanceId === baseInstanceId)).toBe(true);
     s.state.turnSeat = 1;
     s.state.memory = 10;
 
@@ -139,7 +219,7 @@ describe("BT13-077 Craniamon", () => {
 
   it("uses Blocker in a real opponent attack block window", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-077", as: "blocker" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT13-077", as: "blocker" }], security: ["BT1-009"] },
       1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
     });
     s.state.turnSeat = 1;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-045.js";
+import "./EX6-049.js";
 
 describe("EX6-045 Tsukaimon", () => {
   it("deletes an opposing level 3 Digimon on deletion", () =>
@@ -41,7 +42,7 @@ describe("EX6-045 Tsukaimon", () => {
         0: {
           security: ["BT1-009"],
           battleArea: [
-            { card: "BT1-009", as: "host", under: ["EX6-045"] },
+            { card: "EX6-049", as: "host", under: ["EX6-045"] },
             { card: "BT1-010", as: "cost" },
           ],
         },

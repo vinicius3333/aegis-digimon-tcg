@@ -29,7 +29,7 @@ describe("BT13-067 Gladimon", () => {
 
   it("grants inherited Reboot and unsuspends its host during the opponent's phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-066", as: "host", under: ["BT13-067"], suspended: true }] },
+      0: { battleArea: [{ card: "BT13-071", as: "host", under: ["BT13-067"], suspended: true }] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);

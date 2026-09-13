@@ -20,7 +20,7 @@ describe("BT13-024 Gawappamon", () => {
 
   it("redirects a player attack and survives after deleting the weaker attacker", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "attacker", dp: 4000 }] },
+      0: { battleArea: [{ card: "BT1-065", as: "attacker" }] },
       1: { battleArea: [{ card: "BT13-024", as: "gawappamon" }], security: ["BT1-010"] },
     });
     const attackerId = s.perm("attacker").permanentId;

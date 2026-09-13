@@ -43,6 +43,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Inherited: [Your Turn] This Digimon gets +1000 DP when battling an opponent's Digimon that has no digivolution cards.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Inherited YourTurn + selfBattlesOpponentMatching → self-only ModifyDP +1000; live field-battle context opens/closes the bonus and excludes security. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-01.ts](../../apps/api/src/cards/ST2/ST2-01.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-01.test.ts`. Nine focused tests cover public direct attack, Blocker redirection, opponent-turn exclusion, no-source versus one-source effect battles, exact source identity and lapse before Piercing security battle. The new public hatch → Gomamon → Garurumon → WereGarurumon → MetalGarurumon line pays 0/2/3/4 memory, retains the exact egg/source instances, and defeats printed 11000-DP Breakdramon at 12000 DP while an unrelated friendly peer remains intact.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -53,6 +54,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: vanilla; no main, inherited or Security effects.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-02.ts](../../apps/api/src/cards/ST2/ST2-02.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-02.test.ts`. Existing vanilla test observes exact identity, printed level/color/trait/cost and base/current DP, with no printed or executable effect. Public egg-to-Gomamon evolution is also exercised in ST2-01.test.ts.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -63,6 +65,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Inherited: [When Attacking] Trash the digivolution card at the bottom of 1 of your opponent's Digimon with a level of 5 or less.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Inherited WhenAttacking → TrashDigivolution amount 1/fromTop false, opponent Digimon level ≤5. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-03.ts](../../apps/api/src/cards/ST2/ST2-03.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-03.test.ts`. Existing attacks remove exactly the bottom opposing source and exclude a level-6 opponent. The public MetalGarurumon gauntlet distinguishes this level-5 ceiling from Garurumon’s unrestricted source removal across real evolution and attacks.
 - Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
@@ -74,6 +77,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: vanilla; no main, inherited or Security effects.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-04.ts](../../apps/api/src/cards/ST2/ST2-04.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-04.test.ts`. Existing vanilla test observes catalog identity, level, color, Beast trait, printed cost and base/current DP; no main, inherited or Security clause is printed. Compared with Gomamon/Ikkakumon’s empty IR and Gabumon’s inherited IR; no trait-filter or inherited-stack behavior exists to duplicate.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -84,6 +88,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: vanilla; no main, inherited or Security effects.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-05.ts](../../apps/api/src/cards/ST2/ST2-05.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-05.test.ts`. Existing vanilla test observes catalog identity, level, color, Sea Beast trait, printed cost and base/current DP, and residual-free empty IR. Compared with Gomamon’s same trait and neighboring Garurumon’s inherited implementation; this card has no trait filter or effect.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -94,6 +99,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Inherited: [When Attacking] Trash the digivolution card at the bottom of 1 of your opponent's Digimon.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Inherited WhenAttacking → TrashDigivolution amount 1/fromTop false, opponent Digimon without a level ceiling. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-06.ts](../../apps/api/src/cards/ST2/ST2-06.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-06.test.ts`. Existing public attacks discard the exact bottom source from a multi-source opponent and safely handle a source-less opponent. The public gauntlet proves that Garurumon strips level 6 where Gabumon is excluded, then enables WereGarurumon during the same attack.
 - Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
@@ -105,6 +111,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.)[When Attacking] Lose 2 memory.
 - KB/rules: Q610; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Static Blocker keyword plus mandatory WhenAttacking → GainMemory -2. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-07.ts](../../apps/api/src/cards/ST2/ST2-07.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-07.test.ts`. Public attack pays the mandatory two-memory loss across zero (1 → -1); public declareBlock redirects the attack and preserves security. Shared combat/attackIntegration.test.ts separately proves public declineBlock and security completion for the same registered Blocker keyword; no card-specific refusal body exists.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -115,6 +122,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Inherited: [Your Turn] While your opponent has a Digimon with no digivolution cards, this Digimon gains ＜Security Attack +1＞. (This Digimon checks 1 additional security card.)
 - KB/rules: Q611–Q614; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Inherited YourTurn → self Aura(SecurityAttack +1), while an opposing battle-area Digimon has zero sources. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-08.ts](../../apps/api/src/cards/ST2/ST2-08.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-08.test.ts`. Existing conditional aura tests distinguish source-less battle-area Digimon from sourced Digimon, breeding and an empty board. The public evolution/attack gauntlet strips the last source, enables Security Attack +1 during that attack, checks twice, then proves MetalGarurumon’s second-attack limit.
 - Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
@@ -126,6 +134,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [When Digivolving] Trash 2 digivolution cards at the bottom of 1 of your opponent's Digimon.
 - KB/rules: Q615; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: WhenDigivolving → TrashDigivolution amount 2/fromTop false, one opposing Digimon. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-09.ts](../../apps/api/src/cards/ST2/ST2-09.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-09.test.ts`. Both existing public digivolutions now prove memory 5 → 2, the exact Zudomon top, the exact former Garurumon source and the evolution draw. They discard exactly the two bottom opposing sources while preserving the remaining top source, or discard the only source when fewer than two exist.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -136,6 +145,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: vanilla; no main, inherited or Security effects.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Full, residual-free empty compiled effects; printed metadata is consumed by the shared play/evolution and DP mechanics. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-10.ts](../../apps/api/src/cards/ST2/ST2-10.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-10.test.ts`. Existing vanilla test observes identity, level 6, Blue/Plesiosaur metadata, 12000 base/current DP, printed costs and empty full IR. Kaiser Nail additionally uses Plesiomon as a host and proves that source play retains the host identity and isolates host modifiers.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -146,6 +156,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [When Attacking][Once Per Turn] Unsuspend this Digimon.
 - KB/rules: Q616–Q618; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: WhenAttacking → Unsuspend self, frequency OncePerTurn. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-11.ts](../../apps/api/src/cards/ST2/ST2-11.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-11.test.ts`. The existing public attack test now checks three legal security cards: first attack unsuspends, second attack stays suspended, and an opponent turn plus the controller’s next production turn restore the once-per-turn effect for a third attack. The production turn promise is ended and awaited. The shared gauntlet proves the same effect in an evolved inherited stack.
 - Peer/stack suite: `apps/api/src/cards/ST2/source-strip-metalgarurumon-deck.test.ts`; public evolution costs, inherited-source order and real attack/security outcomes.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
@@ -157,6 +168,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [Start of Your Turn] If your opponent has a Digimon with no digivolution cards, gain 1 memory. | Security: [Security] Play this card without paying its memory cost.
 - KB/rules: Q619–Q622; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: StartOfYourTurn → gain 1 memory when opponent has a source-less battle-area Digimon; Security → free self play. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-12.ts](../../apps/api/src/cards/ST2/ST2-12.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-12.test.ts`. Existing start-turn tests distinguish no-source, sourced, breeding-only and empty opposing boards, and observe one memory per copy across multiple Tamers. An actual opponent attack reveals and plays the exact Security Tamer for free.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -167,6 +179,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [Main] Gain 1 memory. | Security: [Security] Gain 2 memory.
 - KB/rules: Q623, Q881, Q1081, Q1088, Q1098, Q1416; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Main → GainMemory 1; Security → GainMemory 2. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-13.ts](../../apps/api/src/cards/ST2/ST2-13.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-13.test.ts`. Existing Main intent gains one memory; the strengthened Security test uses an actual opponent attack, waits for security/attack completion and observes signed active-seat memory -2 for the owner’s gain of two.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -177,6 +190,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [Main] Choose 1 of your opponent's Digimon with no digivolution cards. That Digimon can't attack or block until the end of your opponent's next turn. | Security: [Security] Choose 1 of your opponent's Digimon with no digivolution cards. That Digimon can't attack or block until the end of your next turn.
 - KB/rules: Q624–Q625; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Main/Security → Restrict attackOrBlock on one source-less opposing Digimon; untilOpponentTurnEnd / untilYourTurnEnd respectively. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-14.ts](../../apps/api/src/cards/ST2/ST2-14.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-14.test.ts`. Existing Main proof restricts attack/block on a source-less opponent, retains the restriction after that target gains a source, and expires at the opponent turn boundary. Strengthened Security proof uses an actual attack and expires at the owner’s next turn end. All draw/security fixtures are legal non-Egg cards.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -187,6 +201,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [Main] Choose a Digimon digivolution card placed under 1 of your Digimon and play it as another Digimon without paying its memory cost. | Security: [Security] Activate this card's [Main] effect.
 - KB/rules: Q626–Q629; comprehensive play/evolution/battle/target/zone rules apply. Mandatory processing and target count were also confirmed against the [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf), §15-9-1-2 and §15-10-2-1.
 - IR trace: Direct SelectBind requires a friendly Digimon host with a Digimon source; mandatory PlayWithoutCost selects only a Digimon source under that exact bound host. Security → ActivateMain. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-15.ts](../../apps/api/src/cards/ST2/ST2-15.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-15.test.ts`. Existing Main proof pays the Option’s four memory, plays the exact Digimon source free and unsuspended, excludes Egg/Tamer sources, preserves the host and isolates its temporary DP modifier, and rejects an attack on the played turn. Manual selection distinguishes identical hosts by permanent ID, excludes the Tamer-only host and proceeds directly to mandatory source selection. No valid-source case resolves without a new Digimon. Security now resolves through an actual opponent attack.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 
@@ -197,6 +212,7 @@ Rubric: catalog/rules, IR trace, behavioral proof, peer/stack proof and delivery
 - Printed clauses: Main: [Main] Return 1 of your opponent's Digimon to its owner's hand. (Trash all of the digivolution cards of that Digimon.) | Security: [Security] Activate this card's [Main] effect.
 - KB/rules: no card-specific local entries; comprehensive play/evolution/battle/target/zone rules apply.
 - IR trace: Direct Main → Return one opposing Digimon to hand; returnToHand already trashes that target’s sources. Security → ActivateMain. The unprinted friendly Trash action is removed. Exclusive `registerIrCard` registration is checked by `collection.audit.test.ts`.
+- Module: [ST2-16.ts](../../apps/api/src/cards/ST2/ST2-16.ts).
 - Reproducible proof: `apps/api/src/cards/ST2/ST2-16.test.ts`. Strengthened Main proof pays 10 → 3 memory, returns the exact opposing top to its owner’s hand, trashes exactly its source instances and leaves the friendly host/source unchanged, with only the Option in its owner’s trash. Actual Security attack proves exact target/source/Option destinations and preserves the other attacker.
 - Remaining ambiguity: none identified. Evidence commit: `00c0d5be7a611a27507d47040a934fee9b2b356d` (including the preceding atomic card corrections).
 

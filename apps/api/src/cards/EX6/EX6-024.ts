@@ -136,6 +136,7 @@ export const compiled: CompiledCard = {
             raw: "＜Security Attack -1＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
         },
       ],
       isInherited: true,

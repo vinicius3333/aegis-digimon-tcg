@@ -5,8 +5,19 @@ import "./BT13-004.js";
 describe("BT13-004 Budmon", () => {
   it("gives its evolved stack +1000 DP during its turn while the opponent has a suspended Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },
+      0: { battleArea: [{ card: "BT1-071", as: "host", under: ["BT13-004", "BT1-065"] }] },
       1: { battleArea: [{ card: "BT1-010", as: "suspendedOpponent", suspended: true }] },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(7000);
+  });
+
+  it("does not give the bonus while every opposing Digimon is unsuspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-071", as: "host", under: ["BT13-004", "BT1-065"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "activeOpponent" }] },
     });
 
     await s.engine.recomputeContinuousEffects();
@@ -14,47 +25,36 @@ describe("BT13-004 Budmon", () => {
     expect(s.perm("host").currentDP).toBe(6000);
   });
 
-  it("does not give the bonus while every opposing Digimon is unsuspended", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },
-      1: { battleArea: [{ card: "BT1-010", as: "activeOpponent" }] },
-    });
-
-    await s.engine.recomputeContinuousEffects();
-
-    expect(s.perm("host").currentDP).toBe(5000);
-  });
-
   it("does not count a suspended Digimon in the opponent's breeding area", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },
+      0: { battleArea: [{ card: "BT1-071", as: "host", under: ["BT13-004", "BT1-065"] }] },
       1: { breeding: { card: "BT1-010", as: "breedingOpponent", suspended: true } },
     });
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 
   it("does not give the bonus during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },
+      0: { battleArea: [{ card: "BT1-071", as: "host", under: ["BT13-004", "BT1-065"] }] },
       1: { battleArea: [{ card: "BT1-010", as: "suspendedOpponent", suspended: true }] },
     });
     s.state.turnSeat = 1;
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 
   it("applies the bonus after an opposing Blocker suspends and before their battle (Q2257)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-064", as: "attacker", dp: 5000, under: ["BT13-004"] }],
+        battleArea: [{ card: "BT1-071", as: "attacker", under: ["BT13-004", "BT1-065"] }],
       },
       1: {
-        battleArea: [{ card: "BT1-072", as: "blocker", dp: 5500 }],
+        battleArea: [{ card: "BT1-072", as: "blocker" }],
         security: ["BT1-010"],
       },
     });

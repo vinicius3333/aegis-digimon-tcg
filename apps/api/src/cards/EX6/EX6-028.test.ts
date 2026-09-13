@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -36,14 +35,12 @@ describe("EX6-028 Seraphimon", () => {
     }));
   it("publicly recovers one card from the deck on play", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX6-028", as: "sera" }],
-        deck: [{ card: "BT1-009", as: "recovery" }],
-        security: ["BT1-009"],
-      },
+      0: { hand: [{ card: "EX6-028", as: "sera" }], deck: [{ card: "BT1-009", as: "recovery" }] },
     });
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sera").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-028"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
@@ -52,7 +49,7 @@ describe("EX6-028 Seraphimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-028", as: "sera" }],
+          hand: [{ card: "EX6-028", as: "sera" }],
           deck: [{ card: "BT1-009", as: "recovery" }],
           security: ["BT1-009", "BT1-009", "BT1-009"],
         },
@@ -60,8 +57,9 @@ describe("EX6-028 Seraphimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sera").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponent").instanceId));
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponent").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -71,7 +69,7 @@ describe("EX6-028 Seraphimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-028", as: "sera" }],
+          hand: [{ card: "EX6-028", as: "sera" }],
           deck: [{ card: "BT1-009", as: "recovery" }],
           security: ["BT1-009", "BT1-009", "BT1-009"],
         },
@@ -79,8 +77,9 @@ describe("EX6-028 Seraphimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sera").instanceId })).toEqual({ ok: true });
     expect(
       s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("opponent").instanceId),
     ).toBe(true);
@@ -91,26 +90,52 @@ describe("EX6-028 Seraphimon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-028", as: "sera" }],
-          deck: ["BT1-009", "BT1-009"],
-          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            { card: "BT1-060", as: "ownRecovery" },
+            { card: "BT1-060", as: "sameTurnRecovery" },
+            { card: "BT1-060", as: "resetRecovery" },
+          ],
         },
         1: {
           battleArea: [
-            { card: "BT1-060", as: "opponentRecovery" },
             { card: "BT1-009", as: "targetA" },
             { card: "BT1-009", as: "targetB" },
           ],
-          deck: ["BT1-009"],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+          security: [{ card: "BT1-060", as: "opponentRecovery" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("opponentRecovery"));
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.playFromSecurity(s.inst("opponentRecovery").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
+    // The first own security addition arms the watcher; subsequent additions in this turn
+    // must not retrigger it.
+    await advance(s.engine).verb.playFromSecurity(s.inst("ownRecovery").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    await advance(s.engine).verb.playFromSecurity(s.inst("sameTurnRecovery").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.playFromSecurity(s.inst("resetRecovery").instanceId);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 });

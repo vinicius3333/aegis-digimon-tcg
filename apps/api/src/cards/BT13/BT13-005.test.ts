@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT13-005.js";
+import "./BT13-063.js";
+import "./BT13-066.js";
+import "./BT13-071.js";
+import "../BT2/BT2-064.js";
 
 describe("BT13-005 Dorimon", () => {
   it("draws 1 when its evolved stack attacks with exactly 4 digivolution cards", async () => {
@@ -9,15 +13,14 @@ describe("BT13-005 Dorimon", () => {
       0: {
         battleArea: [
           {
-            card: "BT1-069",
+            card: "BT2-064",
             as: "attacker",
-            dp: 12000,
-            under: ["BT13-005", "BT1-066", "BT1-067", "BT1-068"],
+            under: ["BT13-005", "BT13-063", "BT13-066", "BT13-071"],
           },
         ],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
 
     expect(
@@ -37,15 +40,14 @@ describe("BT13-005 Dorimon", () => {
       0: {
         battleArea: [
           {
-            card: "BT1-069",
+            card: "BT13-071",
             as: "attacker",
-            dp: 12000,
-            under: ["BT13-005", "BT1-066", "BT1-067"],
+            under: ["BT13-005", "BT13-063", "BT13-066"],
           },
         ],
         deck: [{ card: "BT1-010", as: "deckTop" }],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
 
     expect(

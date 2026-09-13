@@ -32,22 +32,40 @@ describe("EX6-031 Shakamon", () => {
 
   it("publicly gives all Digimon Security Attack -1 on play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX6-031", as: "shaka" }] },
+      0: { hand: [{ card: "EX6-031", as: "shaka" }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shaka").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("shaka") !== undefined && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 
   it("publicly inverts each own negative Security Attack value during your turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-031", as: "shaka" }] }, 1: { security: ["BT1-009", "BT1-009"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT1-062", as: "base" }],
+          hand: [{ card: "EX6-031", as: "shaka" }],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: { security: Array(5).fill("BT1-009"), deck: Array(10).fill("BT1-009") },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
-    expect(observe(s.engine).keywordAmount(s.perm("shaka"), "SecurityAttack")).toBe(-1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shaka").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("base").topCard?.instanceId === s.inst("shaka").instanceId && s.state.pendingDecision === undefined,
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -55,8 +73,11 @@ describe("EX6-031 Shakamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-062"]);
+    expect(s.state.players[0]!.deck).toHaveLength(9);
   });
 
   it("publicly plays exact named cards from its stack after deletion", async () => {
@@ -116,7 +137,7 @@ describe("EX6-031 Shakamon", () => {
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
-      s.state.memory = 20;
+      s.state.memory = 10;
       await s.ready();
       expect(
         s.engine.applyIntent(0, {
@@ -127,7 +148,7 @@ describe("EX6-031 Shakamon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-031"));
       expect(s.perm("shaka").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
-      expect(s.state.memory).toBe(7);
+      expect(s.state.memory).toBe(-3);
     },
   );
 
@@ -141,14 +162,21 @@ describe("EX6-031 Shakamon", () => {
             { card: "BT1-114", as: "attacker" },
           ],
           security: ["BT1-009"],
+          deck: Array(10).fill("BT1-009"),
         },
+        1: { deck: Array(10).fill("BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
     preferred.push(s.inst("attacker").instanceId);
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("shaka"));
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("attacker").instanceId)).toBe(true);
     expect(

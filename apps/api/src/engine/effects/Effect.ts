@@ -1,5 +1,6 @@
 import type { Keyword } from "@aegis/shared";
 import type { EffectContext } from "./EffectContext.js";
+import type { Permanent } from "@aegis/shared";
 
 /**
  * TS analogue of the source `ICardEffect`. Card files almost never
@@ -42,6 +43,8 @@ export interface Effect {
 
   canTrigger(ctx: EffectContext): boolean;
   canActivate(ctx: EffectContext): boolean;
+  /** Read-only reduction projection for a prospective paid play. */
+  potentialPlayCostReduction?(ctx: EffectContext, target?: Permanent): number;
   /** The Activate(...) body; await player decisions here. */
   resolve(ctx: EffectContext): Promise<void>;
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-027.js";
 
 describe("EX6-027 Ophanimon", () => {
@@ -53,5 +54,41 @@ describe("EX6-027 Ophanimon", () => {
     const before = s.perm("opponent").currentDP;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("oph"));
     expect(s.perm("opponent").currentDP).toBe(before);
+  });
+
+  it("publicly responds to own security removal with Security Attack +1 and an attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-027", as: "oph" }], security: ["BT1-009"] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(observe(s.engine).keywordAmount(s.perm("oph"), "SecurityAttack")).toBe(1);
+    expect(s.perm("oph").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly responds during the opponent's turn with Recovery +1 instead of attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-027", as: "oph" }],
+          security: ["BT1-009"],
+          deck: [{ card: "BT1-009", as: "recovery" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovery").instanceId);
+    expect(s.perm("oph").isSuspended).toBe(false);
   });
 });

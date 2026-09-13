@@ -90,13 +90,13 @@ describe("BT13-080 ProtoGizmon", () => {
 
   it("draws one card and then trashes one card from hand on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-080", as: "proto" }], deck: ["BT1-001"], hand: ["BT1-002"] } },
+      { 0: { battleArea: [{ card: "BT13-080", as: "proto" }], deck: ["BT1-009"], hand: ["BT1-009"] } },
       { autoSelectCards: true },
     );
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("proto"));
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("reduces the hand play cost by deleting a level-2 Digi-Egg in breeding", async () => {

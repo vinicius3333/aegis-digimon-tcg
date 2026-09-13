@@ -28,9 +28,9 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
-              { tokens: ["Vegetation"], match: "trait" },
-              { tokens: ["Plant"], match: "trait" },
-              { tokens: ["Fairy"], match: "trait" },
+              { tokens: ["Vegetation"], match: "traitContains" },
+              { tokens: ["Plant"], match: "traitContains" },
+              { tokens: ["Fairy"], match: "traitContains" },
             ],
           },
           actions: [

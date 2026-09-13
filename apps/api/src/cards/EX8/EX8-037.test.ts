@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT11/BT11-100.js";
@@ -50,16 +51,18 @@ describe("EX8-037", () => {
       {
         0: {
           battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          deck: ["BT1-045", "BT1-045"],
           hand: [
             { card: "LM-029", as: "option" },
             { card: "LM-029", as: "secondOption" },
           ],
         },
-        1: { security: ["BT1-045", "BT1-045"] },
+        1: { security: ["BT1-045", "BT1-045", "BT1-045", "BT1-045", "BT1-045"], deck: ["BT1-045"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
+    const secondOptionId = s.inst("secondOption").instanceId;
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
@@ -87,6 +90,32 @@ describe("EX8-037", () => {
     await settle(() => s.perm("sakuyamon").isSuspended);
     expect(s.perm("sakuyamon").isSuspended).toBe(true);
     expect(player.hand.some((card) => card.instanceId === s.inst("secondOption").instanceId)).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("sakuyamon").isSuspended).toBe(false);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === secondOptionId));
+    expect(player.battleArea.some((permanent) => permanent.topCard?.instanceId === secondOptionId)).toBe(true);
+    expect(s.perm("sakuyamon").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("accepts the inclusive cost-5 single-color boundary and rejects multicolor cost 7", async () => {

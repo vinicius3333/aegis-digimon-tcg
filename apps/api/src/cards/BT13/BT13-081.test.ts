@@ -47,7 +47,10 @@ describe("BT13-081 Porcupamon", () => {
 
   it("deletes an opposing level 3 Digimon when this card is deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-081", as: "porcupamon" }] }, 1: { battleArea: [{ card: "BT13-078", as: "target" }] } },
+      {
+        0: { battleArea: [{ card: "BT13-081", as: "porcupamon" }] },
+        1: { battleArea: [{ card: "BT13-078", as: "target" }] },
+      },
       { autoSelectCards: true },
     );
     await s.ready();
@@ -58,13 +61,13 @@ describe("BT13-081 Porcupamon", () => {
 
   it("draws then trashes one card at the opponent's turn end from its inherited stack", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-081"] }], deck: ["BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT13-084", as: "host", under: ["BT13-081"] }], deck: ["BT1-009"] } },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 });

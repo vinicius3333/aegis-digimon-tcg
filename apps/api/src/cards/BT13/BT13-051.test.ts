@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-051.js";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
@@ -37,20 +35,27 @@ describe("BT13-051 Mikemon", () => {
   it("on play grants one own Digimon Piercing but not an opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-051", as: "mike" }, { card: "BT13-047", as: "ally" }] },
+        0: { hand: [{ card: "BT13-051", as: "mike" }], battleArea: [{ card: "BT13-047", as: "ally" }] },
         1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mike"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mike").instanceId })).toEqual({ ok: true });
     await settle(() => [s.perm("mike"), s.perm("ally")].some((p) => observe(s.engine).hasPierce(p)));
     expect([s.perm("mike"), s.perm("ally")].filter((p) => observe(s.engine).hasPierce(p))).toHaveLength(1);
     expect(observe(s.engine).hasPierce(s.perm("opponent"))).toBe(false);
   });
 
   it("gives an inherited Beast or Royal Knight host +2000 only on its controller's turn", async () => {
-    for (const [host, baseDP] of [["BT13-047", 1000], ["BT13-046", 13000]] as const) {
+    for (const [host, baseDP] of [
+      ["BT13-053", 7000],
+      ["BT13-046", 13000],
+    ] as const) {
+      // Mihiramon is a legal Holy Beast Lv.5 host for the inherited Lv.4 Mikemon source.
+      // The Royal Knight case intentionally seeds the source under the host to
+      // exercise the typed-trait aura independently of an evolution route.
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-051"] }] } });
       await s.ready();
       expect(s.perm("host").currentDP).toBe(baseDP + 2000);
@@ -61,7 +66,10 @@ describe("BT13-051 Mikemon", () => {
   });
 
   it("does not boost a Sea Animal or unrelated inherited host", async () => {
-    for (const [host, baseDP] of [["BT1-033", 4000], ["BT13-049", 1000]] as const) {
+    for (const [host, baseDP] of [
+      ["BT7-027", 7000],
+      ["BT13-054", 7000],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-051"] }] } });
       await s.ready();
       expect(s.perm("host").currentDP).toBe(baseDP);
@@ -73,12 +81,16 @@ describe("BT13-051 Mikemon", () => {
       0: { battleArea: [{ card: "BT13-049", as: "base" }], hand: [{ card: "BT13-051", as: "mike" }] },
     });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("mike").instanceId,
-    })).toEqual({ ok: true });
+    const baseId = s.inst("base").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mike").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-051");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

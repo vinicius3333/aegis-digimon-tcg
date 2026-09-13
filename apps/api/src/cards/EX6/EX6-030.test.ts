@@ -23,18 +23,54 @@ describe("EX6-030 Dominimon", () => {
     });
   });
 
-  it("publicly reduces an opposing Digimon by 7000 on digivolving", async () => {
+  it("publicly evolves Dominimon from level 5, pays four memory, and reduces an opposing Digimon by 7000", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-030", as: "dom" }], security: ["EX6-019"] },
+        0: { battleArea: [{ card: "EX6-021", as: "base" }], hand: [{ card: "EX6-030", as: "dom" }] },
         1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
     const before = s.perm("opponent").currentDP;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dom"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dom").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("dom").instanceId);
     expect(s.perm("opponent").currentDP).toBe(before - 7000);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-021"]);
+  });
+
+  it("may play a level 5 Angel found in security after evolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-021", as: "base" }],
+          hand: [{ card: "EX6-030", as: "dom" }],
+          security: [{ card: "EX6-019", as: "securityAngel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dom").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("securityAngel").instanceId),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("publicly prevents an Angel's non-battle deletion by trashing security", async () => {

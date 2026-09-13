@@ -3515,12 +3515,14 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(trashed[0]!.args[0]).toEqual(["H#1"]);
   });
 
-  // Comprehensive Rules 4-24-2: a multicolor card only has to contribute ONE color that
+  // Comprehensive Rules 4-25-2: a multicolor card only has to contribute ONE color that
   // no other pick uses, so the selection is legal whenever a distinct color can be
   // assigned to every chosen card — not only when their color sets are disjoint.
   const differentColorsTrash = async (
     hand: { instanceId: string; cardId: string }[],
     colorsByCardId: Record<string, string[]>,
+    upTo = false,
+    selectedInstanceIds = hand.map((entry) => entry.instanceId),
   ) => {
     const source = makeSource({ cardId: "Z-DIFFERENT-COLORS" });
     const recorder: Recorder = { calls: [] };
@@ -3533,7 +3535,7 @@ describe("v2 IR actions dispatch to real primitives", () => {
         if (colors) return makeFakeDefinition({ cardId, kinds: ["Digimon"] as never, colors: colors as never });
         return makeFakeDefinition({ cardId });
       },
-      selectCardsAnswer: () => hand.map((entry) => entry.instanceId),
+      selectCardsAnswer: () => selectedInstanceIds,
     });
     const module = irCardModule("Z-DIFFERENT-COLORS", {
       coverage: "full",
@@ -3544,7 +3546,7 @@ describe("v2 IR actions dispatch to real primitives", () => {
           actions: [
             {
               kind: "Trash",
-              target: { filter: { controller: "mine", zone: "hand", differentColors: true }, count: 2 },
+              target: { filter: { controller: "mine", zone: "hand", differentColors: true }, count: 2, upTo },
             },
           ],
         },
@@ -3587,6 +3589,59 @@ describe("v2 IR actions dispatch to real primitives", () => {
     // Exact count is mandatory: the invalid two-card selection rejects atomically, with no
     // partial trash of the first card.
     expect(trashed).toBeUndefined();
+  });
+
+  it("allows a partial different-color selection when the target is up to", async () => {
+    const trashed = await differentColorsTrash(
+      [
+        { instanceId: "HAND#red-a", cardId: "RED" },
+        { instanceId: "HAND#red-b", cardId: "RED" },
+      ],
+      { RED: ["Red"] },
+      true,
+    );
+    expect(trashed).toEqual(["HAND#red-a"]);
+  });
+
+  it("rejects a forged under-minimum fixed-count pick when two distinct colors are available", async () => {
+    const trashed = await differentColorsTrash(
+      [
+        { instanceId: "HAND#red-blue", cardId: "RED-BLUE" },
+        { instanceId: "HAND#blue-green", cardId: "BLUE-GREEN" },
+      ],
+      { "RED-BLUE": ["Red", "Blue"], "BLUE-GREEN": ["Blue", "Green"] },
+      false,
+      ["HAND#red-blue"],
+    );
+    expect(trashed).toBeUndefined();
+  });
+
+  it("keeps a fixed-count different-color trash cost atomic when only one color is feasible", async () => {
+    const source = makeSource({ cardId: "Z-DIFFERENT-COLORS-COST" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand: [
+        { instanceId: "HAND#red-a", cardId: "RED" },
+        { instanceId: "HAND#red-b", cardId: "RED" },
+      ],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] as never, colors: ["Red"] as never }),
+    });
+    const receipt = { paidCount: 0 };
+    expect(
+      await payCost(
+        ctx,
+        {
+          kind: "trash",
+          target: { filter: { controller: "mine", zone: "hand", differentColors: true }, count: 2 },
+        },
+        receipt,
+      ),
+    ).toBe(false);
+    expect(receipt.paidCount).toBe(0);
+    expect(recorder.calls.some((call) => call.verb === "trash")).toBe(false);
   });
 
   it("routes a token play to playToken primitive", async () => {

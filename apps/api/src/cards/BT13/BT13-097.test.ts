@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-097.js";
@@ -52,10 +51,20 @@ describe("BT13-097 Thomas H. Norstein", () => {
   });
 
   it("sets memory to three at the start of turn when below the threshold", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-097", as: "thomas" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-097", as: "thomas" }],
+        hand: [{ card: "BT1-009", as: "spare" }],
+        deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `draw${index + 1}` })),
+      },
+    });
     s.state.memory = 1;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("thomas"));
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("suspends the Tamer and draws for both players when the cost is accepted", async () => {
@@ -66,9 +75,9 @@ describe("BT13-097 Thomas H. Norstein", () => {
             { card: "BT13-097", as: "thomas" },
             { card: "BT13-021", as: "gaomon" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -92,9 +101,9 @@ describe("BT13-097 Thomas H. Norstein", () => {
             { card: "BT13-097", as: "thomas" },
             { card: "BT13-021", as: "gaomon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
-        1: { security: ["BT1-002"], deck: ["BT1-003"] },
+        1: { security: ["BT1-009"], deck: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -123,9 +132,9 @@ describe("BT13-097 Thomas H. Norstein", () => {
             { card: "BT13-097", as: "thomas" },
             { card: "BT13-021", as: "gaomon" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { deck: ["BT1-001"] },
+        1: { deck: ["BT1-009"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

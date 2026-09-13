@@ -1,9 +1,10 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-025.js";
+import "./EX6-024.js";
+import "../BT1/BT1-062.js";
 
 describe("EX6-025 Sanzomon", () => {
   it("during DigiXros grants Security Attack -1 and reveals four named cards", () => {
@@ -31,16 +32,36 @@ describe("EX6-025 Sanzomon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-025", as: "sanzo" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        0: {
+          hand: [
+            { card: "EX6-025", as: "sanzo" },
+            { card: "EX6-024", as: "material" },
+          ],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: Array(10).fill("BT1-009"),
+          security: Array(6).fill("BT1-009"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     await s.ready();
     preferred.push(s.perm("opponent").topCard!.instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
-    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sanzo").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sanzo").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 
@@ -49,17 +70,30 @@ describe("EX6-025 Sanzomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+          hand: [
             { card: "EX6-025", as: "sanzo" },
-            { card: "BT1-009", as: "ally" },
+            { card: "EX6-024", as: "material" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     await s.ready();
     preferred.push(s.perm("ally").topCard!.instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sanzo").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sanzo").instanceId),
+    );
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
   it("publicly reveals and adds all four named cards during DigiXros", async () => {
@@ -152,15 +186,33 @@ describe("EX6-025 Sanzomon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-025"] }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+        0: {
+          battleArea: [{ card: "BT1-062", as: "host", under: ["EX6-019", "EX6-025"] }],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-060", as: "opponent" }],
+          deck: Array(10).fill("BT1-009"),
+          security: Array(6).fill("BT1-009"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
     preferred.push(s.perm("opponent").topCard!.instanceId);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 5 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("shares one optional use between the On Play and When Attacking windows", async () => {
@@ -168,18 +220,99 @@ describe("EX6-025 Sanzomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+          hand: [
             { card: "EX6-025", as: "sanzo" },
-            { card: "BT1-009", as: "ally" },
+            { card: "EX6-024", as: "material" },
           ],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-060", as: "opponent" }],
+          deck: Array(10).fill("BT1-009"),
+          security: Array(6).fill("BT1-009"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     await s.ready();
-    preferred.push(s.inst("ally").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("sanzo"));
-    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.perm("opponent").topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sanzo").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sanzo").instanceId),
+    );
+    const opponentSecurityAfterPlay = s.state.players[1]!.security.length;
+    await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -1);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("sanzo").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sanzo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[1]!.security.length === opponentSecurityAfterPlay - 1,
+    );
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).verb.unsuspend([s.perm("sanzo").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sanzo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[1]!.security.length === opponentSecurityAfterPlay - 2,
+    );
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const secondOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await secondOpponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const rearmedTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.unsuspend([s.perm("sanzo").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sanzo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[1]!.security.length === opponentSecurityAfterPlay - 3,
+    );
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await rearmedTurn;
   });
 });

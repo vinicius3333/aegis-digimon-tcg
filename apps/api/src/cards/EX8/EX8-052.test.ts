@@ -92,8 +92,9 @@ describe("EX8-052", () => {
             { card: "EX8-070", as: "option" },
             { card: "EX8-070", as: "option2" },
           ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
-        1: { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"], deck: ["BT1-013", "BT1-014"] },
       },
       { autoSelectCards: true },
     );
@@ -130,6 +131,31 @@ describe("EX8-052", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("option2").instanceId,
       ),
     ).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option2").instanceId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option2").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("uses the Cyberdramon route and places a Device Option from hand in battle", async () => {

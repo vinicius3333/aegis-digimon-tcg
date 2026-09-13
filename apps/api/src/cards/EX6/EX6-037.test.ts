@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-037.js";
+import "./EX6-040.js";
 
 describe("EX6-037 Spadamon", () => {
   it("pays 1 and places itself under a level 3 or Legend-Arms Digimon to draw", () =>
@@ -79,12 +80,23 @@ describe("EX6-037 Spadamon", () => {
 
   it("publicly deletes an opposing 3000 DP Digimon from its inherited attack effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-037"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      0: { battleArea: [{ card: "EX6-040", as: "host", under: ["EX6-037"] }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "opponent" }],
+        security: Array(5).fill("BT1-009"),
+        deck: Array(10).fill("BT1-009"),
+      },
     });
+    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.pendingDecision && s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -92,23 +104,83 @@ describe("EX6-037 Spadamon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-037"] }] },
+        0: {
+          battleArea: [{ card: "EX6-040", as: "host", under: ["EX6-037"] }],
+          deck: Array(10).fill("BT1-009"),
+          hand: ["BT1-009"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-009", as: "second" },
           ],
+          security: Array(5).fill("BT1-009"),
+          deck: Array(10).fill("BT1-009"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
     await s.ready();
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     preferred.push(s.inst("first").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.pendingDecision &&
+        s.state.players[1]!.security.length === 4 &&
+        s.state.players[1]!.battleArea.length === 1,
+    );
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.pendingDecision && s.state.players[1]!.security.length === 3 && !observe(s.engine).isAttacking(),
+    );
     expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("second").instanceId);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.length = 0;
+    preferred.push(s.inst("second").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.pendingDecision &&
+        s.state.players[1]!.security.length === 2 &&
+        s.state.players[1]!.battleArea.length === 0,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnerTurn;
   });
 
   it("rejects the hand effect when no eligible host is present", async () => {

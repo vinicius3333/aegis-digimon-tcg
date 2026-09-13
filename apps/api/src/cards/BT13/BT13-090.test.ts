@@ -1,4 +1,3 @@
-import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -61,23 +60,37 @@ describe("BT13-090 LordKnightmon", () => {
 
   it("returns a Lucemon or Royal Knight card from trash on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-090", as: "lord" }], trash: [{ card: "BT13-075", as: "royal" }] } },
+      {
+        0: {
+          hand: [{ card: "BT13-090", as: "lord" }],
+          trash: [{ card: "BT13-075", as: "royal" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lord"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("lord").topCard.cardId === "BT13-090");
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT13-075");
   });
 
   it("may decline the On Play return and leave the matching card in trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-090", as: "lord" }], trash: [{ card: "BT13-075", as: "royal" }] } },
+      {
+        0: {
+          hand: [{ card: "BT13-090", as: "lord" }],
+          trash: [{ card: "BT13-075", as: "royal" }],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lord"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("lord").topCard.cardId === "BT13-090");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-075")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-075")).toBe(true);
   });
@@ -91,20 +104,27 @@ describe("BT13-090 LordKnightmon", () => {
             { card: "BT13-075", as: "royalOne" },
             { card: "BT13-087", as: "royalTwo" },
           ],
-          security: ["BT1-001", "BT1-001"],
+          hand: [{ card: "BT1-010", as: "ownSpare" }],
+          security: Array.from({ length: 6 }, (_, index) => ({ card: "BT1-010", as: `ownSecurity${index + 1}` })),
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-010", as: `ownDeck${index + 1}` })),
         },
         1: {
           battleArea: [
-            { card: "BT13-081", as: "attackerOne" },
-            { card: "BT13-082", as: "attackerTwo" },
+            { card: "BT1-009", as: "attackerOne" },
+            { card: "BT1-009", as: "attackerTwo" },
           ],
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `opponentDeck${index + 1}` })),
         },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 10;
+    s.state.memory = 5;
     await s.ready();
+    const lordId = s.perm("lord").permanentId;
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -112,8 +132,10 @@ describe("BT13-090 LordKnightmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 7 && s.state.phase === Phase.Main && !observe(s.engine).isAttacking());
-    expect(s.state.memory).toBe(7);
+    await settle(
+      () => s.state.memory === 2 && s.state.players[0]!.security.length === 5 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.memory).toBe(2);
 
     expect(
       s.engine.applyIntent(1, {
@@ -122,8 +144,38 @@ describe("BT13-090 LordKnightmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("attackerTwo").isSuspended);
-    expect(s.state.memory).toBe(7);
+    await settle(
+      () => s.state.memory === 2 && s.state.players[0]!.security.length === 4 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.memory).toBe(2);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const beforeNextAttack = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3 && !observe(s.engine).isAttacking());
+    expect(s.perm("lord").permanentId).toBe(lordId);
+    expect(s.state.memory).toBe(beforeNextAttack - 3);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("does not count a Royal Knight that exists only in breeding", async () => {
@@ -132,7 +184,7 @@ describe("BT13-090 LordKnightmon", () => {
         0: {
           battleArea: [{ card: "BT13-090", as: "lord" }],
           breeding: { card: "BT13-087", as: "breedingRoyal" },
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT13-081", as: "attacker" }] },
       },

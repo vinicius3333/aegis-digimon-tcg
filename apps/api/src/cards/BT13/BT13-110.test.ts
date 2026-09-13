@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-110.js";
@@ -155,8 +153,23 @@ describe("BT13-110 Royal Knights of the Purge", () => {
   });
 
   it("places itself in the battle area when revealed from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT13-110", as: "option", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    const s = setupEngine({
+      0: { security: [{ card: "BT13-110", as: "option" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("option").instanceId),
+    );
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-110")).toBe(true);
   });

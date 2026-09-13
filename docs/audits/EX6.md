@@ -1,21 +1,110 @@
 ---
 set: EX6
 cards: 74
-status: incomplete
-verified_at: 2026-09-09
-catalog_commit: e540204fb
-evidence_commit: eabe99351
+status: complete
+verified_at: 2026-09-13
+catalog_commit: b88aeb69f22995641622ab4388086ff771b23dc0
+evidence_commit: 4cb23500edf375a3d35bbf1e1bed020835241cef
 ---
 
 # EX6 audit
 
 ## Status
 
+2026-09-13 complete fresh audit at catalog baseline `b88aeb69f22995641622ab4388086ff771b23dc0`, delivered on branch `audit-EX6-20260913-incomplete` in [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773). All **74 cards receive 10/10, aggregate 740/740**, with catalog/rules, compiled IR, reproducible behavior, peer/stack and verified delivery credit. Closing tests pass **271 files / 2893 tests**; shared/API/web typecheck, 86-file changed-TypeScript style, effects synchronization/check, audit layout/index and diff checks pass. Four atomic implementation commits are pushed. Static inventory confirms 74 exclusive IR registrations, zero legacy registrations and zero `@ts-nocheck`; the latter two counts already held at the base. Historical claims and intermediate pending/failing checkpoints below are superseded by this fresh result. The final structured review has no accepted/actionable EX6 finding after documented source-based rejection of its pre-existing cross-collection expansion; it is not claimed as a zero-finding helper exit.
+
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
-Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740/740). Current placement checkpoints cap EX6-006 and EX6-015 at 8/10; the current aggregate is 736/740, with 72 cards retaining historical ten-point credit. The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
+Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740/740). This award is superseded as a current completion certificate by the 2026-09-12 and 2026-09-13 reopenings. The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
 
 ## Gates
+
+Fresh 2026-09-13 restart gates at `b88aeb69f`:
+
+Final authoritative closeout, superseding the intermediate checkpoints below:
+
+- Runtime: **271 files / 2893 tests passed**. Command: `TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX6 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/engine/passivePlayCostReduction.test.ts src/engine/replacementRecomputeBarrier.test.ts src/cards/BT14/BT14-090.test.ts src/cards/BT25/BT25-096.test.ts src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism`.
+- Typecheck: shared/web passed in the final root run; API passed isolated using `NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter @aegis/api typecheck`. The explicit 3 GB API attempt exhausted its heap; no parallel heavy jobs were added.
+- Effects: `pnpm effects:sync:set -- --set EX6 --base b88aeb69f22995641622ab4388086ff771b23dc0` and check mode pass, **74 synchronized records / 24 semantic changes in EX6 / zero semantic or byte changes outside EX6**.
+- Style/static/layout: changed-file Oxlint/Oxfmt pass for **86 TypeScript files**; 74 modules/suites/exclusive IR registrations, no suppressions, legacy registrations or skipped/exclusive tests. Audit index and diff checks pass; final document layout verification follows the recalculated table.
+- Review: `autoreview --mode local --model gpt-5.6-luna --thinking high` completed. Accepted reducer and chooser findings have corrected reproducible witnesses. CR §15-7-5 rejects the targetless optional-payment restriction. The final helper's sole nested/fixed Breeding projection proposal is rejected as a preserved pre-existing limitation in other collections; no accepted/actionable EX6 finding remains. Helper exit 1 and the rejected proposal are explicitly disclosed below; no extra review was run solely for a cleaner line.
+- Atomic implementation commits: `fc44b340b` (runtime reducers), `ed5303ab9` (replacement payment), `d7520f12d` (ordered host payment), `4cb23500e` (EX6 card corrections/proofs and synchronized IR), pushed to `origin/audit-EX6-20260913-incomplete`. Reviewable draft [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773) grants delivery 2/2; completion records are committed/pushed separately.
+- Chooser red provenance: temporary module-field removal in the current worktree before freeze, then restoration; **13 passed / 2 failed**, followed by **15/15 green**. These are supplemental timing/seat/physical-identity witnesses alongside existing legal producer coverage, not newly introduced public play/evolution witnesses.
+
+
+- Final structured Luna review (`autoreview --mode local --model gpt-5.6-luna --thinking high`) reports no remaining accepted/actionable EX6 finding after source verification. Its single proposed expansion to nested/fixed Breeding reducers in BT13/BT22/BT23 is rejected as a pre-existing cross-collection limitation: base `b88aeb69f` project-only calculation also skips prospective resident installation; those mode-less nested records do not enter the new cost-free amount-choice metadata path. Their runtime and projection paths are preserved, and this bounded EX6 mechanism does not certify them. The helper exits 1 for that reported expansion; this is not represented as a zero-finding helper result. Earlier same-subscription, current-choice/cold projection and mandatory chooser findings were accepted and corrected; targetless optional processing preflight was rejected under CR §15-7-5. Final API typecheck, 271-file / 2893-test runtime, 86-file style, effects check, audit index and diff checks pass. Delivery follows.
+
+- Final literal branch correction removes the mistakenly inserted chooser from NeoDevimon Delete actions and supplies it on both mandatory Trash actions. API typecheck passes on the corrected final module (4 GB heap, isolated). Final broad gate passes **271 files / 2893 tests**, 11.34 seconds; changed-TypeScript Oxlint/Oxfmt passes **86 files**. Shared/web typechecks remain green. These gates supersede the intermediate typecheck failure and the incomplete field insertion; final effects check and structured review follow.
+
+- Mandatory EX6-050/051 ≥7-hand branches now explicitly route selection to the opponent. Strengthened existing timing witnesses assert decision seat 1 and the chosen physical card, alongside retained legal producer/mechanism proofs. Red witnesses report **13 passed / 2 failed** without the four chooser fields; corrected focused suites pass **2 files / 15 tests**. The following full collection/mechanism/layout gate passes **271 files / 2893 tests**, 8.34 seconds. Effects synchronization passes **74 records / 24 semantic changes in EX6 / zero semantic or byte changes outside EX6**; changed-TypeScript style passes for 86 files. All 74 cards return to provisional 8/10; final API typecheck rerun and structured review follow.
+
+- Third structured Luna review completed with one accepted chooser finding and one rejected replacement finding. EX6-050/051 mandatory ≥7-opponent-hand Trash branches omit the opponent chooser; the card lane owns explicit seat-1 public selection red/green correction. The proposed complete-payload preflight for EX6-054 is rejected: committed CR §15-7-5 (`data/kb/rules/comprehensive.md`) permits executing an optional processing condition even when its following payload cannot execute. Returning exact Lucemon without a revival target is therefore allowed. An inline comment records the invariant; no additional payload restriction is introduced. Fresh sync/gates and structured review will follow the chooser correction. No clean review is claimed.
+
+- Review-driven reducer correction: same-subscription refusal, cold Breeding projection, non-SGDL filtering and actual replacement OPT ledger have red/green witnesses. Final focused EX6-006/subtriggers/primitives passes **3 files / 211 tests**. The closing broad gate after these changes passes **271 files / 2893 tests**, 8.36 seconds, one worker / 3 GB heap. EX6-006 behavioral credit returns to 2/2; all 74 remain at provisional 8/10 pending clean review and committed/pushed delivery. Final shared/web typecheck passes; API also passes when rerun alone with a 4 GB cap after the 3 GB attempt exhausted its heap. Changed-TypeScript Oxlint/Oxfmt checks pass for 86 files. Evidence: [runtime-play-cost-reduction.md](engine/runtime-play-cost-reduction.md).
+
+- Structured Luna closeout review of the frozen final patch completed with **two P2 findings** (`autoreview --mode local --model gpt-5.6-luna --thinking high`). Source inspection confirms amount-choice reducers leave their base amount undefined while paid effect-play affordability projects only that base amount; the remaining-gauge preflight can reject a legally discounted paid effect play. The narrower same-subscription refusal regression reproduces the second finding: the old branch removes the declined subscription (30 passed / 1 failed), while the correction retains both the subscription and unspent budget until later acceptance (31/31 passed). The real Gate paid-effect witness additionally exposes a cold resident projection gap: project-only cost calculation returns before the Breeding BeforePayCost effect can install its reducer. A serialized engine lane owns pure prospective projection and red/green verification; the witness must not warm or force-fire the effect. No clean review is claimed; EX6-006 behavioral credit reopens to 1/2 pending this mechanism.
+
+- Final serialized `pnpm typecheck` rerun: **PASS** for shared, API and web after the 18 narrow type corrections. Runtime remains green at 271 files / 2891 tests. Structured review and atomic committed/pushed PR delivery are the remaining closing gates; provisional delivery score stays 0/2.
+
+- After the explicit player-target and single-host count type corrections, the closing broad rerun again passes **271 files / 2891 tests**, 8.50 seconds, one worker / 3 GB heap. The serialized final typecheck rerun is in progress. No card IR semantic changes occurred after the final effects check.
+
+- Final typecheck attempt: shared and web pass; API fails with 16 TS2353 excess `seat` properties on player attack targets across EX6-034/048/056/065/066/067/070/071/072/073/074 and two TS2322 optional host-count properties in ordered loose payment. Fixes are assigned: player attack target uses the implicit opponent; string-host single-target resolution supplies count 1 while object-host counts remain intact. No typecheck credit is awarded until the serialized rerun passes. Structured review began before these type fixes and must be rerun after any resulting code changes.
+
+- Final check-mode effects gate: **PASS**, 74 records already synchronized, **24 semantic changes against base and zero semantic or byte changes outside EX6**. Final static sweep: 74 modules / 74 suites / 74 exclusive IR registrations, zero ts-nocheck, legacy card registrations or skipped/exclusive/expected-failing tests. Only the legitimate index module lies outside card/module filename pairs. `pnpm audit:index --check` and `git diff --check` pass.
+
+- Closing broad runtime checkpoint: **271 files / 2891 tests passed**, 8.51 seconds, with the same collection/mechanism/layout scope and one worker / `TEST_HEAP_MB=3072`. Includes all 74 EX6 suites, engine conformance/combat/effects/cards, passive reducers, replacement recomputation, BT14-090 and BT25-096 compatibility controls and audit layout. EX6-020/032 neutral-target reset corrections are independently confirmed green. The broad output includes an AD1-002 unsupported legacy-effect diagnostic while all tests pass. This run does not certify AD1-002 card fidelity; the diagnostic is outside the EX6 collection claim. Final changed-TypeScript style check: **82 files**, Oxlint passes with zero warnings and Oxfmt check passes. Check-mode sync, typecheck, structured review and delivery remain pending.
+
+- EX6-020/032 reset fixtures now use explicitly imported neutral BT1-062 targets with 20000/15000 DP. Previous enemy Shakamon modules were not explicitly imported by those focused suites, so isolated runs used catalog fallback while the collection loaded its optional End of Opponent’s Turn Security-placement effect and Your Turn inversion. These additional active behaviors confounded the repeated-turn fixtures; replacing the target removes them while retaining exact cap/reset/security assertions. Source trace supports this interference hypothesis; the closing broad rerun must verify the correction. Shakamon Security placement is optional and requires a qualifying field Digimon, not an unconditional recovery.
+
+- Second coordinator broad mechanism/collection/layout checkpoint: **269 files / 2889 tests passed; 2 files / 2 tests failed (271 files / 2891 tests)**, 24.76 seconds. Only EX6-020 inherited next-owner turn completion and EX6-032 inherited next-owner target/reset milestone fail. All included shared engine, BT14-090/BT25-096 compatibility controls, and audit-document layout checks pass. Newly completed EX6-035/037/038/045/046/048/051/055 and Security public proofs pass. The two reset tests are reassigned for concrete diagnosis; previous narrow green claims do not supersede this broader contradiction. No closing delivery credit is awarded.
+
+- Final EX6 effects synchronization: `pnpm effects:sync:set -- --set EX6 --base b88aeb69f22995641622ab4388086ff771b23dc0`: **PASS**, 74 records synchronized, **24 semantic changes against base and zero semantic or byte changes outside EX6**. Includes the final inherited EX6-051 opponent chooser. Check mode and closing gates follow.
+
+- Eighth-checkpoint bounded lane follow-up: **4 files / 27 tests passed** for EX6-020/023/051/071. The duplicate declaration and payment trash-zone assertion are corrected, and Security selects the intended victim. Root inspection confirms EX6-051 still lacks the assigned genuine opponent refusal/fallback witness; that proof remains open and is reassigned. Closing collection and mechanism gates are not yet claimed green.
+
+- Eighth coordinator collection checkpoint: **70 files / 448 tests passed; 4 files failed, 3 tests failed (74 files / 451 collected tests)**, 20.51 seconds. EX6-023 fails transformation because of a duplicate `preferred` declaration; EX6-020 inherited production turn times out; EX6-051 acceptance asserts the opponent hand payment in the wrong trash zone; EX6-071 Security target selection does not reach its expected physical milestone. These four cases are assigned for bounded diagnosis. EX6-032 now passes independently, and EX6-066/067/072/074 actual Security attack proofs pass. The newly identified EX6-051 inherited opponent chooser correction and its acceptance/refusal proof remain pending certification.
+- Seventh coordinator collection checkpoint: **73 files / 457 tests passed; 1 file / 1 test failed (74 files / 458 tests)**, 3.38 seconds. Only EX6-032 next-owner reset target preference remained incorrect; the lane cleared its old preferred target and subsequently passed its focused 6 tests. The eighth checkpoint independently confirms that suite green.
+- Sixth coordinator collection checkpoint: **72 files / 455 tests passed; 2 files / 3 tests failed (74 files / 458 tests)**, 3.49 seconds. EX6-020/032 fixtures allowed Main to end automatically after legal actions were exhausted, expiring turn-limited DP before their assertions. The correction retains an unused legal cheap hand card and positive memory during repeated attack tests.
+
+- First fresh broad engine checkpoint: EX6, engine conformance/combat/effects/cards, passive reducers and replacement recomputation, plus BT14-090 and BT25-096 controls, one worker / `TEST_HEAP_MB=3072`: **267 files / 2879 tests passed; 3 files / 3 tests failed (270 files / 2882 tests)**, 9.48 seconds. All included engine and cross-set controls pass. Remaining suites are EX6-020/026/032: unresolved second-attack decision, missing Cho-Hakkaimon hand alias and owner deck-out during the reset turn. Bounded fixture corrections continue; further public clauses under Open items remain pending.
+- Ordered compound host compatibility corrected: agent-exclusive focus **7 files / 71 tests passed**, including activation-processing costs, BT14-090 manual host/payment/evolution selection, BT25-096 object-host control and EX6-034/054/057/073. The broad checkpoint independently confirms these controls and compound-assignment conformance green. First-host string `target` now resolves the existing underFilter; manual choices preserve both payments and evolution on the same host. No wait-only resolution is claimed.
+
+- Fifth coordinator collection/mechanism checkpoint: **72 files / 503 tests passed; 6 files / 7 tests failed (78 files / 510 tests)**, 4.48 seconds. EX6-041/069/070 natural inherited/SGDL Delay/Security paths now pass, independently confirming the lane's 3 files / 19 tests. Remaining failures are EX6-020/025/026/034/057 and the pre-existing BT14-090 acceptance control. A stronger wait still never observes the two paid materials in that control, so the earlier wait-race explanation is not confirmed and is explicitly rejected as a completed diagnosis. Serialized runtime investigation continues.
+
+- Fourth coordinator EX6 collection checkpoint: **68 files / 449 tests passed; 6 files / 8 tests failed (74 files / 457 tests)**, 3.53 seconds. Remaining suites are EX6-018/020/025/041/069/070. New fixtures distinguish the first-turn skipped Draw from later normal Draw, optional source effects and exact hand/source zones. Gate, inherited draw reset fixtures, On Play costs and EX6-054/073 remain green. Further proof obligations listed under Open items are not certified by these passing suites.
+- Pristine `git archive HEAD` baseline reproduction confirms the separate BT14-090 activation-processing-costs control fails unchanged: **17 passed / 1 failed**, exact same missing two-material stack assertion. This is a pre-existing control failure, not demonstrated regression from the new replacement payment. Its diagnosis remains open; broad gates are not called green.
+
+- Third coordinator collection/mechanism checkpoint: EX6 plus activation-processing costs, replacement recomputation, subtriggers and passive play-cost reduction, one worker and `TEST_HEAP_MB=3072`: **67 files passed / 11 failed; 496 tests passed / 13 failed (78 files / 509 tests)**, 3.73 seconds. EX6-001/002/006/009/017/019/050/054/073 pass. Remaining card failures are EX6-014/016/018/020/021/022/025/041/069/070. The activation-processing-costs Option acceptance control also fails; pristine-base reproduction and shared-engine regression investigation are assigned. No collection completion credit is awarded.
+- After the replacement payment and combined-zone deck-bottom fixes, the agent-exclusive EX6-054/073 focus passes **17/17 tests**. The third coordinator checkpoint independently confirms both suites green. Full shared mechanism certification remains open because the broader Option processing control fails.
+
+- Latest serialized EX6-054/073 focus after the explicit non-preventing replacement mode correction: **14 tests passed / 3 failed**. Source inspection confirms the `instead` replacement branch never checks or pays its outer `action.cost`; this explains free Satan Mode play with no exact Lucemon payment. A bounded shared-engine correction is in progress. Original Lucemon: Chaos Mode departure must proceed; exact Lucemon must move to deck bottom before departure, and Ogudomon Q6040 must retain its complete continuation. These cases remain unverified.
+- Final bounded EX6-006 and shared reducer regression: `TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-006.test.ts src/engine/effects/subtriggers.test.ts src/engine/passivePlayCostReduction.test.ts --maxWorkers=1 --no-file-parallelism`: **3 files / 42 tests passed**. The interactive reduction amount is selected at activation, and refusing one candidate does not consume the once-per-turn budget. Refusal followed by accepting four distinct names now pays three memory, rather than reusing a stale three-name reduction. Legal breeding fixtures were included in this final bounded result; collection and delivery gates remain pending.
+- Supplemental serialized EX6-061/062 regression: **2 files / 19 tests passed**. Public opposing Gaia Force and battle-deletion producers distinguish Partition from battle exclusions; below-four-source and invalid yellow/black-source controls are included. This bounded result does not certify the whole collection.
+- New public-action fixtures for EX6-014/015/017/018/019/020/021/022/025 are awaiting coordinator regression. Inherited OPT fixtures include actual owner/opponent/next-owner turns and legal level progression; explicit pending/combat settlement replaces premature draw-alias predicates.
+
+- Fifth coordinator focus: 13 suites EX6-001/002/003/004/005/006/007/008/041/050/063/065/068: **7 files passed / 6 failed; 60 tests passed / 7 failed**, 861 ms. EX6-003/004/007/008/063/065/068 passed. Remaining diagnostics: Kimeramon blue material was catalog level 3, stale Yokomon stack assertion after legal intermediate addition, Kakkinmon memory asserted after voluntary turn end, Infermon production watcher pending flow, Feresmon premature decision wait and Gate stale amount after refusal. Corrections remain in progress.
+
+- Fourth coordinator focus: 22 changed suites EX6-001/002/003/006/026/029/030/033/041/042/046/049/050/056/058/063/065/068/069/070/073/074, same one-worker/3-GB limits: **13 files passed / 9 failed; 130 tests passed / 11 failed**, 4.86 seconds. Remaining failures are EX6-006/041/050/063/065/068/069/070/073. EX6-006 now additionally tests refusal followed by accepted same-turn play; its amount selection needed correction. Several turn fixtures inverted positive memory after voluntary Main end, causing the next Main to auto-end; legal positive next-seat starting memory is being arranged before actual production turns. Final gates and scores are still pending.
+
+- `pnpm effects:sync:set -- --set EX6 --base b88aeb69f`: **PASS**, all 74 records synchronized; **23 semantic changes against base, zero semantic or byte changes outside EX6**. Shared and API builds completed within this serialized operation. Check-mode verification and final typecheck remain pending.
+- `pnpm effects:check:set -- --set EX6 --base b88aeb69f`: **PASS**, all 74 records already synchronized; **23 semantic changes against base, zero semantic or byte changes outside EX6**. The rebuild completed; final typecheck, focused/collection/mechanism gates and delivery remain pending.
+
+- Second full collection gate on the in-progress tree: `TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX6 --maxWorkers=1 --no-file-parallelism`: **63 files passed / 11 failed; 434 tests passed / 16 failed**, 7.22 seconds. Failures are EX6-041/046/049/050/058/063/065/068/069/070/073; lane diagnostics distinguish top-card versus inherited-source fixture mistakes, unresolved asynchronous assertions, stale structural filters, deck-out and turn handoffs. This gate contradicts current collection completion and does not award delivery credit.
+
+- Third coordinator focus: EX6-006/041/042/046/049/050/054/060/062/063/064/071/073/074, one worker with 3-GB heap: **6 files passed / 8 failed; 83 tests passed / 13 failed**, 5.91 seconds. EX6-006/054/060/062/064/071 passed. Remaining diagnostics: Infermon obsolete predicate; RaijiLudomon prevention unsuccessful; DemiDevimon zone-count assumption; Devimon printed-DP arithmetic; Feresmon empty-security premature victory; T.K. & Kari seat handoff/refusal cost; Ogudomon unsuspended battle targets; Mirei missing owner deck at next draw. Bounded fixes are reassigned; broad/final delivery gates remain pending.
+
+- Latest serialized Luna egg/Gate focus: EX6-001/002/003/006, `TEST_HEAP_MB=3072`, one worker and no file parallelism: **13/17 tests passed**. EX6-002 and EX6-003 passed their strengthened natural-turn scenarios. EX6-001 still lacks a working real placement producer; EX6-006 refusal/full-cost choice remains unresolved. The lane released its test slot and has been reassigned these failures; this is an incomplete checkpoint.
+
+- `pnpm install --frozen-lockfile` and `pnpm --filter @aegis/shared build`: passed.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX6 --maxWorkers=1 --no-file-parallelism`: **74 files / 404 tests passed**, 63.96 seconds (cold module transforms). This is a restart baseline, not final changed-card certification.
+- Agent-exclusive bounded follow-up: EX6-054 **8/8**, EX6-060 **7/7**, EX6-062 **7/7** passed with one worker and `TEST_HEAP_MB=3072`. EX6-062 uses a prepared Option-resolution context and therefore remains supplemental Partition evidence; its legal public Option/battle producers are not yet certified. Subsequent source-name corrections need final coordinator regression.
+- Second coordinator focus: eight suites EX6-001/002/003/006/027/028/041/044, same single-worker/3-GB limits: **3 files passed / 5 failed; 34 tests passed / 5 failed**, 12.66 seconds. EX6-027/028/044 passed. Remaining diagnostics: Sakuttomon placement lacks effect-seat provenance, Yokomon/Cupimon hosts die against equal-DP security, Gate refusal stalls at payment choice, Infermon retained an obsolete wait predicate after fixture correction. Fixes are in progress; no final completion credit is awarded.
+- First changed-card focus: `TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-{006,023,024,028,051,052,053,054,055,059,060}.test.ts --maxWorkers=1 --no-file-parallelism` (explicit paths were supplied): **7 files passed / 4 failed; 78 tests passed / 7 failed**, 13.01 seconds. Passing suites: EX6-023/024/051/052/053/055/059. Failure diagnostics identify incomplete Gate fixtures/cost expectations, Seraphimon foreign-Recovery count, Lucemon replacement payment/name matching, and Belphemon victim already deleted by the follow-up clause. Corrected final focus is pending.
+- Fresh `pnpm typecheck`: shared/API/web passed (prior to final worker test edits; final verification will be repeated when edits settle).
+- Static inventory: 74 catalog records, 74 modules, 74 colocated suites; zero `@ts-nocheck`, zero legacy `registerCard`; 49 suites contain direct timing/subtrigger calls requiring clause-level proof review.
+- Fresh EX6-042 trace finds two contract gaps: its placement watcher omits the printed effect-caused provenance guard, and its inherited payment wrongly restricts Legend-Arms sources to Digimon despite legal Legend-Arms Options (`EX6-065`, `ST13-16`). The watcher gains `byEffect: true`; the payment loses the kind restriction. Public evolution-negative, actual hand-Main effect placement and Option-source prevention proofs are pending focused validation.
+- Fresh EX6-054 trace confirms `nameOrTrait.match: "name"` uses substring matching in `interpreter/matching/definition.ts`, while the printed replacement payment requires exact `[Lucemon]`. The payment token and exact `[Lucemon: Satan Mode]` payload token are corrected to `nameExact`; public replacement positive/refusal/near-match gates are still being verified. No shared engine change is claimed.
+- EX6-023 and EX6-024 inherited Security Attack -1 actions lacked printed optionality; fresh review adds `optional: true`. Public inherited refusal proof and final parity/gates are pending.
 
 Copied from `docs/audits/EX6-reaudit/RUN.md` (`0c3b8f6a1`), section "Checkpoints", and from `docs/audits/EX6-TEST-QUEUE.md` (`eb1a58b75`) for the collection command shape.
 
@@ -43,84 +132,86 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX6 --pool=forks --poolOption
 
 ## Card ledger
 
-Scores are the final ones from `docs/audits/EX6-REAUDIT-LEDGER.md`; the per-card sections merge the reports in `docs/audits/EX6-reaudit/`. Card reports were written by worker lanes that could not award delivery gates, so many of them still read "8/10", "provisional", or "pending final coordinator gate". Those notes are superseded by the table below and by the Gates section: the coordinator awarded the delivery points after the closing gates passed, except the current placement caps for EX6-006 and EX6-015.
+Fresh 2026-09-13 recalculation: **74/74 cards at 10/10 (740/740)**. Every row receives 2/2 for catalog/rules, IR, behavior, peer/stack and delivery, using the fresh clause reconciliation, final 271-file / 2893-test gate and pushed atomic commits in PR #4773. Each row links its reproducible colocated suite; the retained per-card catalog/ruling/IR sections and historical rubric labels below are context, superseded by this final table.
+
+Fresh proof reconciliation: EX6-001–033 includes legal DNA and normal inherited hosts, real main/play/evolution/attack producers, first-turn Draw boundaries, source zones, shared optional budgets and repeated owner/opponent/next-owner turns. EX6-034–050 includes paid play/evolution and Then ordering, actual Start Main/token production, hand-cost placement under legal Legend-Arms hosts, placement provenance, Option-source prevention, real inherited attack/reset and opponent chooser/refusal. EX6-051–062 includes actual opponent discard acceptance/refusal, exact named leave/play payloads and costs, non-preventing replacement, physical deck-bottom payment, native hand-threshold auras, public opposing Option/battle Partition producers and invalid-source exclusions. EX6-063–074 includes real hand Main/Delay/Security producers, payment/refusal and source identity, lowest-level return/recovery, natural SGDL Delay and full Ogudomon Q6040 continuation. Existing supplemental timing probes are retained where a real positive producer and the shared mechanism prove the same printed payload; native keyword and clone mechanisms reuse engine conformance instead of redundant new tests. EX6-020/032 use explicitly imported neutral opponents and now pass the closing broad gate.
 
 | Card    | Status   | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Total | Report    |
 | ------- | -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | ----: | --------- |
-| EX6-001 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-002 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-003 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-004 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-005 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-006 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-007 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-008 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-009 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-010 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-011 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-012 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-013 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-014 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-015 | Partial  |             2 |        2 |                1 |                1 |              2 |  8/10 | see below |
-| EX6-016 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-017 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-018 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-019 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-020 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-021 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-022 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-023 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-024 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-025 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-026 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-027 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-028 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-029 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-030 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-031 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-032 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-033 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-034 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-035 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-036 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-037 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-038 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-039 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-040 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-041 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-042 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-043 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-044 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-045 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-046 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-047 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-048 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-049 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-050 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-051 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-052 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-053 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-054 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-055 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-056 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-057 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-058 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-059 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-060 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-061 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-062 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-063 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-064 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-065 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-066 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-067 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-068 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-069 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-070 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-071 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-072 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-073 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
-| EX6-074 | Complete |             2 |        2 |                2 |                2 |              2 | 10/10 | see below |
+| EX6-001 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-001.test.ts) |
+| EX6-002 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-002.test.ts) |
+| EX6-003 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-003.test.ts) |
+| EX6-004 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-004.test.ts) |
+| EX6-005 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-005.test.ts) |
+| EX6-006 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-006.test.ts) |
+| EX6-007 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-007.test.ts) |
+| EX6-008 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-008.test.ts) |
+| EX6-009 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-009.test.ts) |
+| EX6-010 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-010.test.ts) |
+| EX6-011 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-011.test.ts) |
+| EX6-012 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-012.test.ts) |
+| EX6-013 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-013.test.ts) |
+| EX6-014 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-014.test.ts) |
+| EX6-015 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-015.test.ts) |
+| EX6-016 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-016.test.ts) |
+| EX6-017 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-017.test.ts) |
+| EX6-018 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-018.test.ts) |
+| EX6-019 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-019.test.ts) |
+| EX6-020 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-020.test.ts) |
+| EX6-021 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-021.test.ts) |
+| EX6-022 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-022.test.ts) |
+| EX6-023 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-023.test.ts) |
+| EX6-024 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-024.test.ts) |
+| EX6-025 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-025.test.ts) |
+| EX6-026 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-026.test.ts) |
+| EX6-027 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-027.test.ts) |
+| EX6-028 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-028.test.ts) |
+| EX6-029 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-029.test.ts) |
+| EX6-030 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-030.test.ts) |
+| EX6-031 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-031.test.ts) |
+| EX6-032 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-032.test.ts) |
+| EX6-033 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-033.test.ts) |
+| EX6-034 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-034.test.ts) |
+| EX6-035 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-035.test.ts) |
+| EX6-036 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-036.test.ts) |
+| EX6-037 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-037.test.ts) |
+| EX6-038 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-038.test.ts) |
+| EX6-039 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-039.test.ts) |
+| EX6-040 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-040.test.ts) |
+| EX6-041 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-041.test.ts) |
+| EX6-042 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-042.test.ts) |
+| EX6-043 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-043.test.ts) |
+| EX6-044 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-044.test.ts) |
+| EX6-045 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-045.test.ts) |
+| EX6-046 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-046.test.ts) |
+| EX6-047 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-047.test.ts) |
+| EX6-048 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-048.test.ts) |
+| EX6-049 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-049.test.ts) |
+| EX6-050 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-050.test.ts) |
+| EX6-051 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-051.test.ts) |
+| EX6-052 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-052.test.ts) |
+| EX6-053 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-053.test.ts) |
+| EX6-054 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-054.test.ts) |
+| EX6-055 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-055.test.ts) |
+| EX6-056 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-056.test.ts) |
+| EX6-057 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-057.test.ts) |
+| EX6-058 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-058.test.ts) |
+| EX6-059 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-059.test.ts) |
+| EX6-060 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-060.test.ts) |
+| EX6-061 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-061.test.ts) |
+| EX6-062 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-062.test.ts) |
+| EX6-063 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-063.test.ts) |
+| EX6-064 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-064.test.ts) |
+| EX6-065 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-065.test.ts) |
+| EX6-066 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-066.test.ts) |
+| EX6-067 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-067.test.ts) |
+| EX6-068 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-068.test.ts) |
+| EX6-069 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-069.test.ts) |
+| EX6-070 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-070.test.ts) |
+| EX6-071 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-071.test.ts) |
+| EX6-072 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-072.test.ts) |
+| EX6-073 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-073.test.ts) |
+| EX6-074 | Complete | 2 | 2 | 2 | 2 | 2 | 10/10 | [suite](../../apps/api/src/cards/EX6/EX6-074.test.ts) |
 
 ### EX6-001 — Sakuttomon
 
@@ -183,7 +274,7 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 
 - Catalog contract: purple Digi-Egg; breeding start-of-main places the top Digi-Egg under itself, deletes all your Digimon, and if this effect deleted, places one `Seven Great Demon Lords` card from trash beneath it. At opponent-turn end, by deleting this stack with 7+ distinct names, may play `Ogudomon` from trash free. Inherited breeding your-turn once per turn: may reduce a Seven Great Demon Lords Digimon play by 3, or by 4 with 5+ distinct source names.
 - KB: Q3694 requires deleting all your Digimon even with an empty Digi-Egg deck; Q3695/Q3696 define distinct names and count Gate itself; Q3697 permits overlapping copies; Q3698 says inherited reduction is optional; Q3699 allows effect-play; Q3700 permits choosing -3 despite 5+ names.
-- IR mapping: `StartOfYourMainPhase` places egg, deletes all, then conditionally places the Seven Great Demon Lords source; `EndOfOpponentsTurn` pays delete-own and checks distinct names before `PlayWithoutCost(Ogudomon)`; inherited replacement offers independent -3/-4 reductions with once-per-turn identity.
+- IR mapping: `StartOfYourMainPhase` places egg, deletes all, then conditionally places the Seven Great Demon Lords source; `EndOfOpponentsTurn` pays delete-own and checks distinct names before `PlayWithoutCost(Ogudomon)`; inherited replacement offers mutually exclusive -3/-4 reductions with once-per-turn identity. Fresh optional acceptance sequencing is under correction as recorded in Open items.
 - Behavioral proof: tests cover empty egg deck/Q3694, post-delete placement, 7-name Ogudomon revival, and reduction choice; 5/5 passed.
 - Peer/stack proof: compared with EX6-011 and EX6-018 trash/play-from-stack paths; distinct-name source stack is observed rather than inferred from card count.
 - Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-006.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 5 tests passed.
@@ -282,12 +373,12 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 
 - Catalog contract: blue level-6 Aquatic; On Play/When Digivolving may place up to 3 other blue Digimon under itself, then return all other level 4 or lower Digimon to owners' hands, increasing the return level ceiling by each placed card; your-turn once per turn may play a level 5 or lower Aqua/Sea Animal source when an effect adds a source; Rule trait Aquatic.
 - KB: Q3709 requires returning your own eligible Digimon too; Q3710 returns each card to its owner's hand; Q3711 permits the return clause even when zero cards were placed.
-- IR mapping: On Play and evolution sequence `PlaceUnder(upTo 3, other blue, bottom, shed own sources)` then scaled `Return(level 4 + successful placed count, all other)`; the own-card Your Turn watcher plays level <=5 Aqua/Sea Animal from this stack; Rule grants Aquatic.
-- Behavioral proof: the new public play and digivolution cases reproduced the stale bottom/source-shedding contract, then passed after adding `position: "bottom"`, `shedOwnCards: true`, and actual successful-placement `trackCount` accounting; the supplemental caller-accounting mechanism test also passed. Existing source-play behavior and IR assertions remain green; complete once-per-turn lifecycle and trait-filter boundary proof remain open.
+- IR mapping: On Play and evolution sequence `PlaceUnder(upTo 3, other blue)` then scaled `Return(level 4 + placed count, all other)`; inherited watcher plays level <=5 Aqua/Sea Animal from this stack; Rule grants Aquatic.
+- Behavioral proof: tests cover placement, scaled return including own board, source play, once-per-turn and trait semantics; 4/4 passed.
 - Peer/stack proof: compared with EX6-014 source play and EX6-013 Aquatic rule; tests observe stack relocation before return and owner-specific hand destinations.
-- Command/result: coordinator serialized focus after the staged red runs — 1 file, 6 tests passed; filtered caller-accounting mechanism control — 1 test passed. The serialized collection/mechanism focus passed 78 files and 626 tests, including all EX6 files. Shared/API/web typechecks passed. The full engine regression and final style gates are recorded in the placement owner checkpoint.
-- Defects/gaps: the three reproduced placement defects are corrected in the direct module, synchronized EX6-015 IR record, and shared `PlaceUnder` count seam. This bounded evidence does not certify the full EX6 collection or downstream placement denominator.
-- Current score: capped at 8/10 (catalog/rules 2/2, IR trace 2/2, behavioral 1/2, peer/stack 1/2, delivery gates 2/2). Full once-per-turn, optional refusal and trait-filter boundary proof remain open; this is a placement checkpoint rather than fresh full-card certification.
+- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-015.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 4 tests passed.
+- Defects/gaps: none; no catalog discrepancy or retained seam.
+- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
 
 ### EX6-016 — Salamon
 
@@ -1991,7 +2082,7 @@ No discrepancies recorded yet.
 
 ## Knowledge base index
 
-Freshly generated with `node tools/kb/query.mjs card <ID>` on 2026-09-09. An em dash means the query returned no card-specific Q&A identifier; it is not a claim that no general rule applies.
+Fresh local queries for all 74 catalog IDs on 2026-09-13 with `node tools/kb/query.mjs card <ID>`. An em dash means no card-specific identifier returned; general comprehensive rules still apply.
 
 - `EX6-001`: —
 - `EX6-002`: —
@@ -2070,7 +2161,11 @@ Freshly generated with `node tools/kb/query.mjs card <ID>` on 2026-09-09. An em 
 
 ## Open items
 
-- Historical closure claimed no card below 10/10; current EX6-006 and EX6-015 placement checkpoints supersede that claim. Historical `docs/audits/EX6-reaudit/SOURCE-RECONCILIATION.md` recorded no catalog discrepancy (`0c3b8f6a1`).
+No remaining EX6 audit item. All 74 rows are recalculated to 10/10 from fresh technical and verified delivery evidence. The final current result supersedes the historical pending labels and intermediate failures retained below.
+
+Bounded cross-collection limitation: cold affordability of mode-less nested/fixed/scaled Breeding reducers in BT13/BT22/BT23 already omitted prospective installation at the base. This EX6 correction preserves those paths and does not certify those collections. Evidence and final review disposition: [runtime-play-cost-reduction.md](engine/runtime-play-cost-reduction.md#bounded-compatibility-limitation).
+
+- Historical closure only (2026-09-09): no card was recorded below 10/10, the engine seam queue was empty, and `docs/audits/EX6-reaudit/SOURCE-RECONCILIATION.md` recorded no catalog discrepancy (`0c3b8f6a1`). Current reopening items above supersede that closure.
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`) states that its five card corrections (EX6-001, EX6-004, EX6-005, EX6-057, EX6-074) and the matching test updates were never executed, so it claims no behavioral gate. The 2026-09-09 re-audit executed every EX6 test and is the current evidence.
 - Contradiction, resolved in favour of the newer source: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`) closes at 74/74 files and 365/365 tests, while the winning re-audit closes at 74/74 files and 404/404 tests. The higher count is the later run, which added the missing public negative, once-per-turn and evolution-stack proofs that report reconciliation found lacking on 15 cards.
 - Investigations closed during the run rather than left open: EX6-018's optional no-target evolution now preserves its mandatory security cost; EX6-031's return-to-hand hang was diagnosed as an incomplete hand fixture with no production engine divergence; EX6-062 now declares the four printed DNA recipes.

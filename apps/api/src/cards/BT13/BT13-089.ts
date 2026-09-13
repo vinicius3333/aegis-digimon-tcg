@@ -39,8 +39,8 @@ export const compiled: CompiledCard = {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                { tokens: ["Bird"], match: "trait" },
-                { tokens: ["Avian"], match: "trait" },
+                { tokens: ["Bird"], match: "traitContains" },
+                { tokens: ["Avian"], match: "traitContains" },
               ],
             },
           },

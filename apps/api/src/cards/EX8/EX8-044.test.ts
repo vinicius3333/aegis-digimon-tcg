@@ -154,8 +154,13 @@ describe("EX8-044", () => {
             { card: "EX8-044", as: "hercules" },
             { card: "AD1-001", as: "ally" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 1000, suspended: true }], security: ["AD1-001"] },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "target", dp: 1000, suspended: true }],
+          security: ["AD1-001"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
@@ -188,7 +193,9 @@ describe("EX8-044", () => {
             { card: "EX8-044", as: "hercules" },
             { card: "AD1-001", as: "ally" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
@@ -199,6 +206,21 @@ describe("EX8-044", () => {
     await advance(s.engine).verb.unsuspend([s.perm("hercules").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
     expect(s.perm("ally").currentDP).toBe(8000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
+    expect(s.perm("ally").currentDP).toBe(8000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("Blast Digivolves from hand and resolves When Digivolving without paying memory", async () => {

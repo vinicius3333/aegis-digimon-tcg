@@ -214,20 +214,6 @@ describe("BT14-090", () => {
     const agumonAId = s.perm("agumonA").permanentId;
     const agumonBId = s.perm("agumonB").permanentId;
 
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const firstPaymentDecision = s.state.pendingDecision!;
-    const firstPaymentEntry = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId);
-    const firstPaymentRequest = firstPaymentEntry?.req;
-    expect(firstPaymentRequest?.kind).toBe("selectCards");
-    expect(firstPaymentRequest?.options?.candidateInstanceIds).toEqual([greymonId, s.inst("otherGreymon").instanceId]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: firstPaymentDecision.decisionId,
-        response: { kind: "selectCards", instanceIds: [greymonId] },
-      }),
-    ).toEqual({ ok: true });
-
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const firstHostDecision = s.state.pendingDecision!;
     const firstHostRequest = s.decisions.find(({ req }) => req.decisionId === firstHostDecision.decisionId)?.req;
@@ -240,6 +226,18 @@ describe("BT14-090", () => {
         type: "respondDecision",
         decisionId: firstHostDecision.decisionId,
         response: { kind: "chooseTargets", instanceIds: [agumonAId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const firstPaymentDecision = s.state.pendingDecision!;
+    const firstPaymentRequest = s.decisions.find(({ req }) => req.decisionId === firstPaymentDecision.decisionId)?.req;
+    expect(firstPaymentRequest?.options?.candidateInstanceIds).toEqual([greymonId, s.inst("otherGreymon").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstPaymentDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [greymonId] },
       }),
     ).toEqual({ ok: true });
 

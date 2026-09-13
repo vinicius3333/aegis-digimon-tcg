@@ -1,7 +1,7 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { definitionOf } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT13-040.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -79,7 +79,7 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna", under: ["BT3-021"] }],
           hand: ["BT3-021"],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -96,15 +96,23 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT3-021", as: "source-veemon" }] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const magnaId = s.perm("magna").topCard.instanceId;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-021"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(true);
@@ -120,13 +128,21 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
           hand: [{ card: "BT3-021", as: "hand-veemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId),
     );
@@ -142,11 +158,19 @@ describe("BT13-040 Magnamon", () => {
           battleArea: [{ card: "BT13-040", as: "magna" }],
           deck: [{ card: "BT3-021", as: "drawn-veemon" }],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId),
     );
@@ -161,34 +185,50 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [
             { card: "BT13-040", as: "magna" },
-            { card: "BT13-041", as: "other-host", under: [{ card: "BT12-021", as: "wrong-host-veemon" }] },
+            { card: "BT12-022", as: "other-host", under: [{ card: "BT12-021", as: "wrong-host-veemon" }] },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
     expect(
       s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId),
     ).toBe(true);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 
-  it("does not offer or play ExVeemon from hand or this stack", async () => {
+  it("does not offer or play ExVeemon from hand", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-022", as: "stack-exveemon" }] }],
+          battleArea: [{ card: "BT13-040", as: "magna" }],
           hand: [{ card: "BT12-022", as: "hand-exveemon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hand-exveemon").instanceId)).toBe(
       true,
@@ -204,13 +244,21 @@ describe("BT13-040 Magnamon", () => {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
           hand: [{ card: "BT3-021", as: "veemon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoDeclineOptional: true },
     );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040"));
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("veemon").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
@@ -225,6 +273,7 @@ describe("BT13-040 Magnamon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-040", as: "magna" }] },
       });
       s.state.memory = 5;
+      const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -233,6 +282,8 @@ describe("BT13-040 Magnamon", () => {
           ...(alternate ? { alternateRequirementIndex: 0 } : {}),
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
       await settle(() => s.perm("base").topCard.cardId === "BT13-040");
       expect(s.state.memory).toBe(expectedMemory);
     }

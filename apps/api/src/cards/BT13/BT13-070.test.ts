@@ -1,6 +1,6 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-070.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-070 RookChessmon", () => {
@@ -40,14 +40,28 @@ describe("BT13-070 RookChessmon", () => {
 
   it("plays a level-5 Chessmon after deletion during the opponent's turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-070", as: "rook" }], hand: ["BT13-042"] }, 1: { security: ["BT1-001"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-070", as: "rook", suspended: true }],
+          hand: [{ card: "BT13-042", as: "replacement" }],
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("rook").permanentId]);
+    const rookId = s.perm("rook").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("rook").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042"), 3000);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042")).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("replacement").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(rookId);
   });
 
   it("alternately digivolves from a level-4 Chessmon for 3 memory", async () => {
@@ -55,6 +69,7 @@ describe("BT13-070 RookChessmon", () => {
       0: { battleArea: [{ card: "BT13-068", as: "knight" }], hand: [{ card: "BT13-070", as: "rook" }] },
     });
     s.state.memory = 5;
+    const sourceId = s.inst("knight").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -65,6 +80,7 @@ describe("BT13-070 RookChessmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("knight").topCard?.cardId === "BT13-070");
     expect(s.state.memory).toBe(2);
+    expect(s.perm("knight").stack.map((card) => card.instanceId)).toEqual([sourceId]);
   });
 
   it("rejects the alternate evolution from a non-Chessmon level 4", () => {

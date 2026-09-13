@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -258,5 +259,74 @@ describe("EX8-027", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
+  });
+
+  it("reopens the optional DNA watcher after a new turn while refusing it twice in one turn", async () => {
+    const neutralDeck = Array.from({ length: 10 }, () => "BT1-009");
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-027", as: "plesiomon" },
+            { card: "EX8-026", as: "metal" },
+          ],
+          hand: [
+            { card: "EX8-029", as: "aegis" },
+            { card: "EX8-017", as: "first" },
+            { card: "EX8-017", as: "second" },
+            { card: "EX8-017", as: "third" },
+          ],
+          deck: neutralDeck,
+        },
+        1: { security: 5, deck: neutralDeck },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const declineOptional = async (): Promise<void> => {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const { decisionId } = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+    };
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await declineOptional();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first").instanceId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("second").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("aegis").instanceId)).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({ ok: true });
+    await declineOptional();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("third").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("aegis").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });

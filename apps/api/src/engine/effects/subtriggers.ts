@@ -1,4 +1,4 @@
-import { CardKind, type CardDefinition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
+import { CardKind, type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 
 /**
@@ -212,6 +212,10 @@ export interface ReplacementSubscriptionBase {
 export interface ReplacementSubscriptionReduceCost extends ReplacementSubscriptionBase {
   mode: "reduceCost";
   amount?: number;
+  /** Mutually-exclusive reductions selected when this replacement is activated. */
+  amountChoices?: { amount: number; condition?: Condition; raw?: string }[];
+  /** Read-only projection of the currently eligible mutually-exclusive amount choice. */
+  potentialAmount?: (target: Permanent, into: CardDefinition) => number;
   /**
    * Reduction computed from the card being digivolved INTO, for the forms that scale with a
    * property of the destination (e.g. "-1 for each of its colors"). Takes precedence over
@@ -712,6 +716,25 @@ export class SubTriggerRegistry {
     );
   }
 
+  hasInteractiveReductionForSource(
+    event: ReplacementEventName,
+    seat: Seat,
+    sourceInstanceId: string,
+    activationIdentityPrefix: string,
+    turnBudget?: SubTriggerTurnLedger,
+  ): boolean {
+    return this.replacements.some(
+      (replacement) =>
+        replacement.event === event &&
+        replacement.mode === "reduceCost" &&
+        replacement.activate !== undefined &&
+        replacement.controllerSeat === seat &&
+        replacement.sourceInstanceId === sourceInstanceId &&
+        replacement.activationIdentity?.startsWith(activationIdentityPrefix) === true &&
+        (replacement.oncePerTurnKey === undefined || turnBudget?.hasFired(replacement.oncePerTurnKey) !== true),
+    );
+  }
+
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */
   potentialInteractiveReductionFor(
     event: ReplacementEventName,
@@ -730,7 +753,7 @@ export class SubTriggerRegistry {
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         return sum;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
-      return sum + (replacement.amount ?? 0);
+      return sum + (replacement.potentialAmount?.(target, into) ?? replacement.amount ?? 0);
     }, 0);
   }
 
@@ -766,7 +789,9 @@ export class SubTriggerRegistry {
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
       const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials);
-      if (!activated) continue;
+      if (!activated) {
+        continue;
+      }
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);
       if (replacement.oncePerTurnKey !== undefined) turnBudget?.markFired(replacement.oncePerTurnKey);
       if (replacement.consumeOnActivate === true) consumed.add(replacement.id);

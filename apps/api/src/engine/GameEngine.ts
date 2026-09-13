@@ -2293,13 +2293,10 @@ export class GameEngine {
   }
 
   /**
-   * §8-3-2-1..3 Burst Digivolve's end-of-turn PENDING PROCESSING (§18-1): for every permanent
-   * flagged `burstDigivolvePendingTrash`, trash the card now stacked immediately under its top
-   * — but only when one is actually stacked there (§8-3-2-2: nothing stacked, nothing trashed)
-   * and it is STILL a Digimon card at this evaluation (§8-3-2-3: a card de-digivolved away by
-   * end of turn is spared). Both checks are re-read live here, not from state at digivolve time,
-   * matching §8-3-2-3's own "by the end of the turn" wording. The flag is cleared unconditionally
-   * so it can never re-fire on a later turn.
+   * §8-3-2-1 Burst Digivolve's end-of-turn pending processing: for every permanent flagged
+   * `burstDigivolvePendingTrash`, trash its current top card and promote the highest source.
+   * A permanent with no source, or whose current top is not a Digimon, is unchanged. The flag
+   * is cleared unconditionally so it cannot re-fire on a later turn.
    */
   private async processPendingBurstDigivolveTrash(): Promise<void> {
     for (const player of this.state.players) {
@@ -2307,11 +2304,11 @@ export class GameEngine {
       for (const perm of player.battleArea) {
         if (!perm.burstDigivolvePendingTrash) continue;
         perm.burstDigivolvePendingTrash = false;
-        const stackedTop = perm.stack[perm.stack.length - 1];
-        if (stackedTop === undefined) continue; // §8-3-2-2
-        const def = lookupDefinition(stackedTop.cardId);
-        if (def === undefined || !def.kinds.includes(CardKind.Digimon)) continue; // §8-3-2-3
-        await this.primitives.trashDigivolutionCards(perm.permanentId, [stackedTop.instanceId]);
+        const currentTop = perm.topCard;
+        if (perm.stack.length === 0 || currentTop === undefined) continue;
+        const def = lookupDefinition(currentTop.cardId);
+        if (def === undefined || !def.kinds.includes(CardKind.Digimon)) continue;
+        await this.primitives.trashStackTops(perm.permanentId, 1);
       }
     }
   }
@@ -4774,7 +4771,43 @@ export class GameEngine {
         },
         originZone,
       );
-      return Math.max(0, baseCost - selfReduction - interactiveReduction);
+      const turnBudget = {
+        hasFired: (key: string) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key: string) => this.tracker.register(key, "replacement"),
+      };
+      const prospectiveBreedingReduction = breedingResidentEffects.reduce(
+        (total, { effect, source: residentSource }) => {
+          if (effect.potentialPlayCostReduction === undefined) return total;
+          if (
+            effect.maxPerTurn > 0 &&
+            this.tracker.count(`${residentSource.instanceId}/${effect.effectKey}`, "replacement") > 0
+          )
+            return total;
+          if (
+            this.subTriggers.hasInteractiveReductionForSource(
+              "wouldBePlayed",
+              source.ownerSeat,
+              residentSource.instanceId,
+              effect.effectKey,
+              turnBudget,
+            )
+          )
+            return total;
+          const residentCtx: EffectContext = {
+            ...this.buildEffectContext(residentSource, {
+              wouldBePlayedInstanceId: instance.instanceId,
+              wouldBePlayedCardId: instance.cardId,
+              wouldBePlayedAsOption: useAsOption,
+            }),
+            selections: new Map(),
+          };
+          if (!canTrigger(effect, residentCtx, this.tracker) || !canActivate(effect, residentCtx, this.tracker))
+            return total;
+          return total + effect.potentialPlayCostReduction(residentCtx, playTarget);
+        },
+        0,
+      );
+      return Math.max(0, baseCost - selfReduction - interactiveReduction - prospectiveBreedingReduction);
     }
     // Everything below actually PAYS the reducers' costs. Mark the window so a cost deletion's
     // [On Deletion] joins this play's trigger batch instead of resolving in its own window.

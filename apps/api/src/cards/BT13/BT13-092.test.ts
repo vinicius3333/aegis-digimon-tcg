@@ -64,10 +64,10 @@ describe("BT13-092 BT13-092", () => {
         },
         1: {
           hand: [
-            { card: "BT1-001", as: "first" },
-            { card: "BT1-002", as: "second" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-009", as: "second" },
           ],
-          security: [{ card: "BT1-003", as: "security" }],
+          security: [{ card: "BT1-009", as: "security" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
@@ -79,6 +79,7 @@ describe("BT13-092 BT13-092", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("ravemon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -86,8 +87,11 @@ describe("BT13-092 BT13-092", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("ravemon").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("ravemon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("ravemon").topCard?.cardId === "BT13-092");
 
+    expect(s.state.memory).toBe(5);
     const trashIds = s.state.players[1]!.trash.map((card) => card.instanceId);
     const handIds = s.state.players[1]!.hand.map((card) => card.instanceId);
     expect(trashIds).toContain(firstId);
@@ -110,13 +114,21 @@ describe("BT13-092 BT13-092", () => {
             { card: "BT1-010", as: "different-name" },
           ],
           trash: [{ card: "BT1-009", as: "returned" }],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ravemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ravemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(
       s.state.players[1]!.battleArea.some(
@@ -168,6 +180,7 @@ describe("BT13-092 BT13-092", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-092");
+    expect(s.state.memory).toBe(5);
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
     expect(s.perm("base").stack.some((card) => card.instanceId === priorTopId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTopId)).toBe(false);
@@ -183,8 +196,13 @@ describe("BT13-092 BT13-092", () => {
         hand: [{ card: "BT13-092", as: "card" }],
       },
     });
+    s.state.memory = 3;
     const priorTopId = s.perm("base").topCard.instanceId;
+    const burstTopId = s.inst("card").instanceId;
+    const hostId = s.perm("base").permanentId;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -194,9 +212,14 @@ describe("BT13-092 BT13-092", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-092");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(priorTopId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("keenan").instanceId)).toBe(true);
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.perm("base").stack.some((card) => card.instanceId === priorTopId)).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTopId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("base").permanentId).toBe(hostId);
+    expect(s.perm("base").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 });

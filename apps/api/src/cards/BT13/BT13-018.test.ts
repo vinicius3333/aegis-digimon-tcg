@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-018.js";
+import "../BT12/BT12-092.js";
 
 describe("BT13-018 ShineGreymon", () => {
   it("uses substring RizeGreymon evolution but exact Marcus Damon targets", () => {
@@ -18,7 +19,7 @@ describe("BT13-018 ShineGreymon", () => {
     expect(compiled.effects[1]?.actions[2]).toMatchObject({ target: { sameTarget: true } });
   });
 
-  it("at Start of Main makes Marcus a 3000 DP Blocker Digimon that cannot digivolve", async () => {
+  it("at Start of Main publicly makes Marcus a 3000 DP Blocker Digimon that can attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -26,15 +27,32 @@ describe("BT13-018 ShineGreymon", () => {
             { card: "BT13-018", as: "shine" },
             { card: "BT12-092", as: "marcus" },
           ],
+          deck: ["BT1-010", "BT1-010"],
         },
+        1: { security: [{ card: "BT1-010", as: "weakSecurity" }], deck: ["BT1-010", "BT1-010"] },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("shine"));
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("marcus").currentDP === 3000);
     expect(s.perm("marcus").currentDP).toBe(3000);
     expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("weakSecurity").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("when digivolving from RizeGreymon for 3 grants the same Marcus effects", async () => {
@@ -52,6 +70,7 @@ describe("BT13-018 ShineGreymon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const evolutionMaterialId1 = s.perm("rize").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -60,6 +79,8 @@ describe("BT13-018 ShineGreymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("rize").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("rize").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("marcus").currentDP === 3000);
     await settle();
     expect(s.state.memory).toBe(7);
@@ -84,32 +105,78 @@ describe("BT13-018 ShineGreymon", () => {
     expect(observe(s.engine).isRestricted(s.perm("nearMarcus"), "digivolve")).toBe(false);
   });
 
-  it("once per turn gives one opposing Digimon -6000 DP when an allied red/yellow Tamer suspends", async () => {
+  it("publicly suspending Marcus after Start of Main gives one opposing Digimon -6000 DP", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT13-018", as: "shine" },
             { card: "BT12-092", as: "marcus" },
+            { card: "BT12-092", as: "secondMarcus" },
           ],
+          deck: ["BT1-010", "BT1-010"],
         },
         1: {
-          battleArea: [
-            { card: "BT1-021", as: "first" },
-            { card: "BT1-021", as: "second" },
-          ],
+          battleArea: [{ card: "BT1-021", as: "target" }],
+          security: [{ card: "BT1-010", as: "weakSecurity" }, "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
-    expect(s.state.players[1]!.battleArea.map((p) => p.currentDP).sort()).toEqual([1000, 7000]);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
-    expect(s.state.players[1]!.battleArea.map((p) => p.currentDP).sort()).toEqual([1000, 7000]);
+    const shineId = s.perm("shine").topCard.instanceId;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("marcus").currentDP === 3000);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.perm("shine").topCard.instanceId).toBe(shineId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondMarcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("target").currentDP).toBe(1000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("target").currentDP).toBe(7000);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.perm("shine").topCard.instanceId).toBe(shineId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
-  it("does not reduce DP when a blue-only Tamer suspends", async () => {
+  it("supplemental event ignores a blue-only Tamer suspension", async () => {
     const s = setupEngine({
       0: {
         battleArea: [

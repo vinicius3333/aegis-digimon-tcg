@@ -1,3 +1,4 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-039.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -40,13 +41,29 @@ describe("BT13-039 KnightChessmon", () => {
 
   it("plays another level-4 Chessmon from hand after deletion on its turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-039", as: "knight" }], hand: ["BT13-039"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-039", as: "knight" }],
+          hand: [{ card: "BT13-039", as: "replacement" }],
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const deletedId = s.perm("knight").topCard.instanceId;
+    const replacementId = s.inst("replacement").instanceId;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("knight").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039"), 3000);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("knight").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === replacementId));
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(replacementId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(deletedId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(replacementId);
   });
 
   it("cannot play a level-5 Chessmon after deletion", async () => {
@@ -72,7 +89,7 @@ describe("BT13-039 KnightChessmon", () => {
 
   it("inherited Reboot unsuspends its host during the opponent's active phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-039"], suspended: true }] },
+      0: { battleArea: [{ card: "BT13-042", as: "host", under: ["BT13-039"], suspended: true }] },
     });
     s.state.turnSeat = 1;
     s.state.memory = 1;
@@ -86,6 +103,7 @@ describe("BT13-039 KnightChessmon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-039", as: "knight" }] },
       });
       s.state.memory = 4;
+      const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -94,6 +112,8 @@ describe("BT13-039 KnightChessmon", () => {
           alternateRequirementIndex: 0,
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
       await settle(() => s.perm("base").topCard.cardId === "BT13-039");
       expect(s.state.memory).toBe(2);
     }
@@ -105,6 +125,7 @@ describe("BT13-039 KnightChessmon", () => {
         0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "BT13-039", as: "knight" }] },
       });
       s.state.memory = 4;
+      const evolutionMaterialId2 = s.perm("base").topCard!.instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -112,6 +133,8 @@ describe("BT13-039 KnightChessmon", () => {
           instanceId: s.inst("knight").instanceId,
         }),
       ).toEqual({ ok: true });
+      await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId2));
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
       await settle(() => s.perm("base").topCard.cardId === "BT13-039");
       expect(s.state.memory).toBe(1);
     }

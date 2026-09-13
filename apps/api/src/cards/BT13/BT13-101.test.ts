@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-101.js";
 import "./BT13-035.js";
@@ -56,12 +54,28 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
 
   it("plays PawnChessmon from hand through its on-play effect", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-101", as: "tamers" }], hand: [{ card: "BT13-035", as: "pawn" }] } },
+      {
+        0: {
+          hand: [
+            { card: "BT13-101", as: "tamers" },
+            { card: "BT13-035", as: "pawn" },
+          ],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tamers"));
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamers").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-035"));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-035")).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("pawn").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.deck).toHaveLength(7);
   });
 
   it("draws and gains memory for a black/yellow PawnChessmon, not a red/yellow Shoutmon X4", async () => {
@@ -70,7 +84,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         0: {
           battleArea: [{ card: "BT13-101", as: "tamers" }],
           hand: [{ card: "BT13-035", as: "pawn" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -80,7 +94,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     expect(eligible.engine.applyIntent(0, { type: "playCard", instanceId: eligible.inst("pawn").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => eligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    await settle(() => eligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(eligible.perm("tamers").isSuspended).toBe(true);
 
     const ineligible = setupEngine(
@@ -100,7 +114,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(ineligible.perm("tamers").isSuspended).toBe(false);
-    expect(ineligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(ineligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 
   it("may decline the suspend processing cost without drawing or gaining memory", async () => {
@@ -109,7 +123,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         0: {
           battleArea: [{ card: "BT13-101", as: "tamers" }],
           hand: [{ card: "BT13-035", as: "pawn" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -120,6 +134,6 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
 
     expect(s.perm("tamers").isSuspended).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 });

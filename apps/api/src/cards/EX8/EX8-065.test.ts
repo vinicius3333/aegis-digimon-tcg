@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -114,15 +114,24 @@ describe("EX8-065", () => {
   });
   it("gains memory at the real main-phase timing only while the opponent has a Digimon", async () => {
     const positive = setupEngine({
-      0: { battleArea: [{ card: "EX8-065", as: "tamer" }] },
-      1: { battleArea: ["BT1-010"] },
+      0: { battleArea: [{ card: "EX8-065", as: "tamer" }], deck: Array(8).fill("BT1-009") },
+      1: { battleArea: ["BT1-010"], deck: Array(8).fill("BT1-011") },
     });
-    await advance(positive.engine).fire(EffectTiming.StartOfYourMainPhase, positive.perm("tamer"));
+    const positiveTurn = positive.engine.runOneTurn();
+    await advance(positive.engine).waitForMainPhase(0);
     expect(positive.state.memory).toBe(1);
+    advance(positive.engine).endMainPhaseIfOpen(0);
+    await positiveTurn;
 
-    const negative = setupEngine({ 0: { battleArea: [{ card: "EX8-065", as: "tamer" }] } });
-    await advance(negative.engine).fire(EffectTiming.StartOfYourMainPhase, negative.perm("tamer"));
+    const negative = setupEngine({
+      0: { battleArea: [{ card: "EX8-065", as: "tamer" }], deck: Array(8).fill("BT1-009") },
+      1: { deck: Array(8).fill("BT1-011") },
+    });
+    const negativeTurn = negative.engine.runOneTurn();
+    await advance(negative.engine).waitForMainPhase(0);
     expect(negative.state.memory).toBe(0);
+    advance(negative.engine).endMainPhaseIfOpen(0);
+    await negativeTurn;
   });
   it("suspends this Tamer to digivolve a real Tyrannomon attacker from hand", async () => {
     const s = setupEngine(

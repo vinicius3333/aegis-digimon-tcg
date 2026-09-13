@@ -2,47 +2,57 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-032.js";
+import "./BT13-026.js";
+import "./BT13-027.js";
 
 describe("BT13-032 JumboGamemon", () => {
   it("keeps Blocker and the level-5 stack-play trigger", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Blocker" })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "OpponentsTurn",
-      actions: [expect.objectContaining({
-      kind: "SubTrigger",
-      event: "whenOpponentAttacks",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          optional: true,
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
-            count: 1,
-          },
-        },
-      ],
-      })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "Blocker" })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenOpponentAttacks",
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                optional: true,
+                target: {
+                  filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+                  count: 1,
+                },
+              },
+            ],
+          }),
+        ],
+      }),
+    );
   });
 
   it("plays a level 5 card from its own stack when the opponent attacks", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-031", "BT13-027"] }],
-          security: ["BT1-001"],
+          battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-026", { card: "BT13-027", as: "source" }] }],
+          security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("source").instanceId);
     s.state.turnSeat = 1;
     await s.ready();
     expect(
@@ -57,13 +67,16 @@ describe("BT13-032 JumboGamemon", () => {
       3000,
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-027")).toBe(true);
-    expect(s.perm("jumbo").stack.map(({ cardId }) => cardId)).toEqual(["BT13-031"]);
+    expect(s.perm("jumbo").stack.map(({ cardId }) => cardId)).toEqual(["BT13-026"]);
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
   });
 
   it("allows the controller to decline playing a source", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-027"] }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT13-032", as: "jumbo", under: ["BT13-027"] }], security: ["BT1-010"] },
         1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
       },
       { autoDeclineOptional: true },
@@ -81,13 +94,15 @@ describe("BT13-032 JumboGamemon", () => {
 
     expect(s.perm("jumbo").stack.map(({ cardId }) => cardId)).toEqual(["BT13-027"]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
   });
 
   it("uses Blocker to redirect an attack and delete the weaker attacker", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 5000 }] },
-        1: { battleArea: [{ card: "BT13-032", as: "jumbo" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT13-032", as: "jumbo" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true },
     );
@@ -121,6 +136,7 @@ describe("BT13-032 JumboGamemon", () => {
         },
       });
       s.state.memory = 5;
+      const baseId = s.inst("base").instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -130,6 +146,7 @@ describe("BT13-032 JumboGamemon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT13-032");
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     }
   });
 });

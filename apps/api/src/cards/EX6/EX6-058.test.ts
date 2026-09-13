@@ -1,8 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-058.js";
+import "../index.js";
 
 describe("EX6-058 Creepymon", () => {
   it("has Blocker and deletes the opponent's lowest-DP Digimon, then trashes cards based on its level", () => {
@@ -21,7 +21,7 @@ describe("EX6-058 Creepymon", () => {
         {
           kind: "PlaceUnder",
           target: { filter: { zone: "trash" } },
-          underFilter: { zone: "breeding", nameOrTrait: [{ match: "name", tokens: ["Gate of Deadly Sins"] }] },
+          underFilter: { zone: "breeding", nameOrTrait: [{ match: "nameExact", tokens: ["Gate of Deadly Sins"] }] },
           position: "bottom",
         },
       ],
@@ -29,7 +29,7 @@ describe("EX6-058 Creepymon", () => {
   it("publicly deletes the opponent's lowest-DP Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009"] },
+        0: { hand: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-009", dp: 1000, as: "low" },
@@ -39,11 +39,15 @@ describe("EX6-058 Creepymon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("creepy"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("creepy").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowId));
+    expect(s.state.memory).toBe(-2);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === highId)).toBe(true);
   });
@@ -52,7 +56,7 @@ describe("EX6-058 Creepymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-058", as: "creepy" }],
+          hand: [{ card: "EX6-058", as: "creepy" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
@@ -64,8 +68,11 @@ describe("EX6-058 Creepymon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("creepy"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("creepy").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
@@ -75,7 +82,7 @@ describe("EX6-058 Creepymon", () => {
   it("trashes no deck cards when the deleted lowest-DP Digimon has no level", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009", "BT1-010"] },
+        0: { hand: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009", "BT1-010"] },
         1: {
           battleArea: [
             { card: "BT19-077", as: "levelLess", dp: 1000 },
@@ -85,8 +92,11 @@ describe("EX6-058 Creepymon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("creepy"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("creepy").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT19-077"));
 
     expect(s.state.players[0]!.deck).toHaveLength(2);

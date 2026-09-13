@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-103.js";
+import "./BT13-088.js";
 import "./BT13-083.js";
 import "./BT13-091.js";
+import "./BT13-088.js";
+import "../ST1/ST1-10.js";
 
 describe("BT13-103 Akihiro Kurata", () => {
   it("reduces a Belphemon play by deleting a Gizmon Digimon for its play cost", () => {
@@ -44,6 +46,7 @@ describe("BT13-103 Akihiro Kurata", () => {
       target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [6] }, count: 1 },
       cost: {
         kind: "place",
+        targetIsPermanent: true,
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         destination: "digivolutionStack",
         position: "bottom",
@@ -61,24 +64,97 @@ describe("BT13-103 Akihiro Kurata", () => {
     });
   });
 
-  it("draws and trashes at the end of the opponent's turn", async () => {
+  it("declines placement after drawing and trashing, then resets and places itself to delete a level 6", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-103", as: "akihiro" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
-          hand: [
-            { card: "BT1-002", as: "discard" },
-            { card: "BT1-003", as: "keep" },
+          battleArea: [
+            { card: "BT13-088", as: "sleep" },
+            { card: "BT13-103", as: "akihiro" },
           ],
+          hand: [
+            { card: "BT1-009", as: "discardFirst" },
+            { card: "BT1-009", as: "discardNext" },
+          ],
+          security: Array.from({ length: 6 }, (_, index) => ({ card: "BT1-010", as: `ownSecurity${index + 1}` })),
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `ownDraw${index + 1}` })),
+        },
+        1: {
+          battleArea: [{ card: "ST1-10", as: "phoenix" }],
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `opponentDeck${index + 1}` })),
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const akihiroId = s.perm("akihiro").topCard!.instanceId;
+    const sleepId = s.perm("sleep").topCard!.instanceId;
+    const sleepPermanentId = s.perm("sleep").permanentId;
+    const firstDiscardId = s.inst("discardFirst").instanceId;
+    const nextDiscardId = s.inst("discardNext").instanceId;
+    const firstDrawId = s.inst("ownDraw1").instanceId;
+    const nextDrawId = s.inst("ownDraw3").instanceId;
+    const phoenixId = s.perm("phoenix").topCard!.instanceId;
+    preferred.push(firstDiscardId);
     s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("akihiro"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    s.state.memory = 5;
+    await s.ready();
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle();
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstKurataDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstKurataDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firstOpponentTurn;
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(7);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(firstDrawId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(firstDiscardId);
+    expect(s.perm("akihiro").topCard!.instanceId).toBe(akihiroId);
+    expect(s.perm("phoenix").topCard!.instanceId).toBe(phoenixId);
+
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    preferred.splice(0, preferred.length, nextDiscardId);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const nextDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: nextDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await nextOpponentTurn;
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(nextDrawId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(nextDiscardId);
+    expect(s.perm("sleep").topCard!.instanceId).toBe(sleepId);
+    expect(s.perm("sleep").permanentId).toBe(sleepPermanentId);
+    expect(s.perm("sleep").stack[0]?.instanceId).toBe(akihiroId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard!.instanceId === akihiroId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(phoenixId);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
   it("naturally replaces a Belphemon play by deleting a Gizmon and reducing its play cost", async () => {

@@ -7,7 +7,7 @@ describe("BT13-002 Chapmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-010", as: "host", dp: 5000, under: ["BT13-002"] },
+          { card: "BT1-030", as: "host", under: ["BT13-002"] },
           { card: "BT1-011", as: "other" },
         ],
       },
@@ -16,7 +16,7 @@ describe("BT13-002 Chapmon", () => {
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(4000);
     expect(s.perm("other").currentDP).toBe(s.perm("other").baseDP);
   });
 
@@ -24,7 +24,7 @@ describe("BT13-002 Chapmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-010", as: "host", dp: 5000, under: ["BT13-002"] },
+          { card: "BT1-030", as: "host", under: ["BT13-002"] },
           { card: "BT1-011", as: "other" },
         ],
       },
@@ -32,24 +32,24 @@ describe("BT13-002 Chapmon", () => {
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(3000);
   });
 
   it("does not count its own evolved stack as another Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "host", dp: 5000, under: ["BT13-002"] }] },
+      0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT13-002"] }] },
     });
     s.state.turnSeat = 1;
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(3000);
   });
 
   it("does not count a Digimon in the breeding area as another Digimon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "host", dp: 5000, under: ["BT13-002"] }],
+        battleArea: [{ card: "BT1-030", as: "host", under: ["BT13-002"] }],
         breeding: "BT1-011",
       },
     });
@@ -57,6 +57,6 @@ describe("BT13-002 Chapmon", () => {
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(3000);
   });
 });

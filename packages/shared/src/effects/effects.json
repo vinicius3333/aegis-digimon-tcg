@@ -22668,12 +22668,12 @@
             "add": [
               {
                 "filter": {
-                  "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
+                  "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }],
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
-                    { "tokens": ["Beast", "Animal"], "match": "trait" },
-                    { "tokens": ["Sovereign"], "match": "trait" }
+                    { "tokens": ["Beast", "Animal"], "match": "traitContains" },
+                    { "tokens": ["Sovereign"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -22708,13 +22708,15 @@
                   "conditions": [
                     {
                       "kind": "selfHasTrait",
-                      "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] }
+                      "filter": {
+                        "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }]
+                      }
                     },
                     {
                       "kind": "not",
                       "condition": {
                         "kind": "selfHasTrait",
-                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] }
+                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }] }
                       }
                     }
                   ]
@@ -22748,8 +22750,8 @@
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
                   "nameOrTrait": [
-                    { "tokens": ["Vegetation", "Plant"], "match": "trait" },
-                    { "tokens": ["Fairy"], "match": "trait" }
+                    { "tokens": ["Vegetation", "Plant"], "match": "traitContains" },
+                    { "tokens": ["Fairy"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -22809,7 +22811,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Fairy"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Fairy"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -22882,13 +22884,15 @@
                   "conditions": [
                     {
                       "kind": "selfHasTrait",
-                      "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] }
+                      "filter": {
+                        "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }]
+                      }
                     },
                     {
                       "kind": "not",
                       "condition": {
                         "kind": "selfHasTrait",
-                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] }
+                        "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }] }
                       }
                     }
                   ]
@@ -24143,7 +24147,7 @@
           {
             "kind": "Attack",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "mandatory": true,
+            "optional": true,
             "attackPlayer": true
           }
         ]
@@ -24882,8 +24886,8 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Bird"], "match": "trait" },
-                  { "tokens": ["Avian"], "match": "trait" }
+                  { "tokens": ["Bird"], "match": "traitContains" },
+                  { "tokens": ["Avian"], "match": "traitContains" }
                 ]
               }
             }
@@ -25167,7 +25171,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "raw": "you have a Digimon with [Avian] or [Bird] in one of its traits"
             }
@@ -25526,7 +25530,7 @@
           {
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "grant": "kinds",
+            "grant": "kind",
             "tokens": ["Digimon"],
             "staticEffect": { "kind": "SetBaseDP", "value": 3000 },
             "duration": "untilOpponentTurnEnd",
@@ -25596,9 +25600,9 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Vegetation"], "match": "trait" },
-                { "tokens": ["Plant"], "match": "trait" },
-                { "tokens": ["Fairy"], "match": "trait" }
+                { "tokens": ["Vegetation"], "match": "traitContains" },
+                { "tokens": ["Plant"], "match": "traitContains" },
+                { "tokens": ["Fairy"], "match": "traitContains" }
               ]
             },
             "actions": [
@@ -25805,6 +25809,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] }, "count": 1 },
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by placing this Tamer as the bottom digivolution card of 1 of your Digimon with [Belphemon] in its name",
               "underFilter": {
@@ -25997,7 +26002,7 @@
           },
           {
             "kind": "GrantAuraToOpponents",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
             "effectText": "[Opponent's Turn] This Digimon isn't affected by your opponent's Option cards.",
             "duration": "untilOpponentTurnEnd"
           }
@@ -169429,7 +169434,8 @@
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "optional": true
           }
         ],
         "isInherited": true,
@@ -169519,7 +169525,8 @@
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "optional": true
           }
         ],
         "isInherited": true,
@@ -170748,7 +170755,10 @@
           {
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
+            },
             "payCost": false,
             "ignoreReqs": false,
             "from": ["hand"],
@@ -170775,7 +170785,10 @@
           {
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
+            },
             "payCost": false,
             "ignoreReqs": false,
             "from": ["hand"],
@@ -170869,7 +170882,7 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "byEffect": true },
             "actions": [
               {
                 "kind": "GainKeyword",
@@ -170904,7 +170917,6 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": ["Digimon"],
                       "zone": "digivolutionCards",
                       "hostFilter": { "isSelfRef": true },
                       "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
@@ -171089,7 +171101,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "target": {
-              "filter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "name" }] },
+              "filter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "nameExact" }] },
               "count": 1,
               "isSelf": true
             },
@@ -171426,6 +171438,7 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
             "controller": "opponent",
+            "chooser": "opponent",
             "condition": {
               "kind": "zoneCount",
               "seat": "opponent",
@@ -171456,6 +171469,7 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
             "controller": "opponent",
+            "chooser": "opponent",
             "condition": {
               "kind": "zoneCount",
               "seat": "opponent",
@@ -171474,7 +171488,8 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
             "optional": true,
-            "controller": "opponent"
+            "controller": "opponent",
+            "chooser": "opponent"
           },
           {
             "kind": "PlayWithoutCost",
@@ -171522,6 +171537,7 @@
           {
             "kind": "Trash",
             "target": { "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
+            "chooser": "opponent",
             "condition": {
               "kind": "zoneCount",
               "seat": "opponent",
@@ -171558,6 +171574,7 @@
           {
             "kind": "Trash",
             "target": { "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
+            "chooser": "opponent",
             "condition": {
               "kind": "zoneCount",
               "seat": "opponent",
@@ -171575,7 +171592,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
@@ -171599,7 +171616,8 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
             "optional": true,
-            "controller": "opponent"
+            "controller": "opponent",
+            "chooser": "opponent"
           },
           {
             "kind": "PlayWithoutCost",
@@ -171691,7 +171709,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
               },
               "raw": "you have a [Mirei Mikagura]"
             }
@@ -171699,7 +171717,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["trash"],
@@ -171708,7 +171729,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
               },
               "raw": "you don't have a [Mirei Mikagura]"
             },
@@ -171733,7 +171754,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
               },
               "raw": "you have a [Mirei Mikagura]"
             }
@@ -171741,7 +171762,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["trash"],
@@ -171750,7 +171774,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mirei Mikagura"], "match": "nameExact" }]
               },
               "raw": "you don't have a [Mirei Mikagura]"
             },
@@ -171836,6 +171860,7 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "mode": "instead",
             "sourceFilter": { "isSelfRef": true },
             "optional": true,
             "cost": {
@@ -171845,7 +171870,7 @@
                   "controller": "mine",
                   "zone": ["trash", "digivolutionCards"],
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Lucemon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Lucemon"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "source": "thisDigimon"
@@ -171862,7 +171887,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "or": [
-                      { "nameOrTrait": [{ "tokens": ["Lucemon: Satan Mode"], "match": "name" }] },
+                      { "nameOrTrait": [{ "tokens": ["Lucemon: Satan Mode"], "match": "nameExact" }] },
                       { "levels": [6], "nameOrTrait": [{ "tokens": ["Seven Great Demon Lords"], "match": "trait" }] }
                     ]
                   },
@@ -172026,7 +172051,7 @@
                 "underFilter": {
                   "controller": "mine",
                   "zone": "breeding",
-                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }]
                 }
               }
             ]
@@ -172172,7 +172197,7 @@
                 "underFilter": {
                   "controller": "mine",
                   "zone": "breeding",
-                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }]
                 },
                 "position": "bottom"
               }
@@ -172343,7 +172368,7 @@
                 "underFilter": {
                   "controller": "mine",
                   "zone": "breeding",
-                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }]
                 },
                 "position": "bottom"
               }
@@ -172842,7 +172867,10 @@
             },
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Dominimon"], "match": "name" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Dominimon"], "match": "nameExact" }]
+              },
               "raw": "you don't have [Dominimon]"
             }
           },
@@ -172858,7 +172886,10 @@
             },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Dominimon"], "match": "name" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Dominimon"], "match": "nameExact" }]
+              },
               "raw": "you have [Dominimon]"
             }
           }

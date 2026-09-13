@@ -1,6 +1,7 @@
-import { dnaDigivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-059.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -46,15 +47,17 @@ describe("BT13-059 Examon", () => {
   it("suspends an opponent Digimon on play and keeps the selected target restricted", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "BT13-059", as: "examon" }] }, 1: { battleArea: [{ card: "BT1-015", as: "target" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 30;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("examon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("target").isSuspended, 3000);
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-4);
   });
 
   it("uses exact named DNA materials and enters unsuspended", async () => {
@@ -63,8 +66,12 @@ describe("BT13-059 Examon", () => {
     ]);
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-027", as: "slayer" }, { card: "BT1-026", as: "breaker" }],
+        battleArea: [
+          { card: "BT20-027", as: "slayer", suspended: true },
+          { card: "BT1-026", as: "breaker", suspended: true },
+        ],
         hand: [{ card: "BT13-059", as: "examon" }],
+        deck: [{ card: "BT1-010", as: "bonus" }],
       },
     });
     s.state.memory = 4;
@@ -78,7 +85,15 @@ describe("BT13-059 Examon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-059"));
     const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT13-059")!;
+    await settle();
     expect(result.isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(result.topCard.instanceId).toBe(s.inst("examon").instanceId);
+    expect(result.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("slayer").instanceId, s.inst("breaker").instanceId]),
+    );
+    expect(result.stack).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
   });
 
   it("rejects DNA materials whose names only extend Slayerdramon or Breakdramon", () => {
@@ -86,11 +101,13 @@ describe("BT13-059 Examon", () => {
     const slayer = getCardDefinition("BT20-027")!;
     const breaker = getCardDefinition("BT1-026")!;
 
-    expect(dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker])).toBeUndefined();
+    expect(
+      dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker]),
+    ).toBeUndefined();
     expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
   });
 
-  it("resolves the All Turns modal once across a second same-turn On Play event", async () => {
+  it("resolves the All Turns modal once for public attacks and resets next opponent turn", async () => {
     const preferredTargets: string[] = [];
     const s = setupEngine(
       {
@@ -100,14 +117,16 @@ describe("BT13-059 Examon", () => {
             { card: "BT1-015", as: "ally", suspended: true },
             { card: "BT1-015", as: "allySecond", suspended: true },
           ],
+          security: ["BT1-046", "BT1-046", "BT1-046"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
         1: {
           battleArea: [
-            { card: "BT1-015", as: "firstTarget" },
-            // The first target is locked by BT13-059, so this separate suspended Digimon
-            // provides a legal real-unsuspend transition for the same-turn repeat boundary.
-            { card: "BT1-015", as: "opponent", suspended: true },
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-010", as: "second" },
           ],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
       },
       {
@@ -118,30 +137,66 @@ describe("BT13-059 Examon", () => {
         preferOptionIndex: 1,
       },
     );
-    preferredTargets.push(s.perm("ally").permanentId, s.perm("ally").topCard!.instanceId);
+    preferredTargets.push(s.perm("ally").permanentId);
     await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
-
     const chooseOptionCount = () => s.decisions.filter((decision) => decision.req.kind === "chooseOption").length;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(chooseOptionCount()).toBe(1);
-    expect(s.perm("firstTarget").isSuspended).toBe(true);
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.perm("allySecond").isSuspended).toBe(true);
-
-    await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
-    expect(s.perm("opponent").isSuspended).toBe(false);
-    preferredTargets.splice(
-      0,
-      preferredTargets.length,
-      s.perm("opponent").permanentId,
-      s.perm("opponent").topCard!.instanceId,
-    );
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
-
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
     expect(chooseOptionCount()).toBe(1);
-    expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("allySecond").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("ally").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(chooseOptionCount()).toBe(2);
+    expect(s.perm("ally").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextTurn;
   });
 });

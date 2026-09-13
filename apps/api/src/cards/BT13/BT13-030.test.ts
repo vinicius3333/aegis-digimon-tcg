@@ -1,3 +1,5 @@
+import { advance } from "../../engine/testkit/advance.js";
+import "./BT13-097.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-030.js";
@@ -34,11 +36,11 @@ describe("BT13-030 UlforceVeedramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-040", as: "magnamon" }], hand: [{ card: "BT13-030", as: "ulforce" }] },
-        1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
       ok: true,
@@ -123,37 +125,69 @@ describe("BT13-030 UlforceVeedramon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(6);
   });
 
-  it("returns an empty-stack Digimon for a played blue Tamer only once per turn", async () => {
+  it("returns an empty-stack Digimon for a blue Tamer once per turn and resets next own turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-030", as: "ulforce" }],
           hand: [
-            { card: "BT9-086", as: "first-tamer" },
-            { card: "BT13-097", as: "second-tamer" },
+            { card: "BT13-097", as: "firstTamer" },
+            { card: "BT13-097", as: "secondTamer" },
+            { card: "BT13-097", as: "nextTamer" },
+            "BT1-010",
           ],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
         },
         1: {
           battleArea: [
-            { card: "BT1-015", as: "first-target" },
-            { card: "BT1-015", as: "second-target" },
+            { card: "BT1-015", as: "firstTarget" },
+            { card: "BT1-015", as: "nextTarget" },
           ],
+          hand: ["BT1-010"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first-tamer").instanceId })).toEqual({
+    const sourceId = s.perm("ulforce").permanentId;
+    const firstTargetId = s.inst("firstTarget").instanceId;
+    const nextTargetId = s.inst("nextTarget").instanceId;
+    preferred.push(s.perm("firstTarget").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTamer").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.hand.length === 1);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second-tamer").instanceId })).toEqual({
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === firstTargetId));
+    expect(s.state.memory).toBe(6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({
       ok: true,
     });
     await settle();
-
-    expect(s.state.players[1]!.hand).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === nextTargetId)).toBe(
+      true,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === nextTargetId));
+    expect(s.state.memory).toBe(-1);
+    expect(s.perm("ulforce").permanentId).toBe(sourceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("offers its self-play On Play and Your Turn effects for player ordering (Q2282/Q2283)", async () => {
@@ -164,7 +198,7 @@ describe("BT13-030 UlforceVeedramon", () => {
       },
       { autoOrderTriggers: false },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ulforce").instanceId })).toEqual({
       ok: true,
     });

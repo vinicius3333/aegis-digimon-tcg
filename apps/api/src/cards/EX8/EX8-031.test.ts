@@ -105,10 +105,12 @@ describe("EX8-031", () => {
       {
         0: {
           battleArea: [{ card: "BT1-051", as: "host", under: ["EX8-031"] }],
+          deck: ["BT1-045", "BT1-045", "BT1-045"],
           hand: [
             { card: "ST3-13", as: "cheap" },
             { card: "ST3-15", as: "qualifying" },
             { card: "ST3-15", as: "second" },
+            { card: "ST3-15", as: "nextTurn" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-045"] },
@@ -138,6 +140,19 @@ describe("EX8-031", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").currentDP).toBe(3000);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 1000);
+    expect(s.perm("target").currentDP).toBe(1000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not treat Security or Delay activation as using an Option (Q5512)", async () => {

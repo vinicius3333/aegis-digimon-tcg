@@ -101,7 +101,10 @@ describe("EX8-043", () => {
   });
   it("trashes the opponent's top security when its host deletes in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      0: {
+        battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }],
+        deck: ["BT1-009", "BT1-009"],
+      },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 1000, suspended: true }],
         security: [{ card: "BT1-010", as: "top" }],
@@ -122,16 +125,22 @@ describe("EX8-043", () => {
 
   it("trashes security only once across two real battles in one turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      0: {
+        battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
       1: {
         battleArea: [
           { card: "BT1-016", as: "first", dp: 1000, suspended: true },
           { card: "BT1-016", as: "second", dp: 1000, suspended: true },
+          { card: "BT1-016", as: "third", dp: 1000, suspended: true },
         ],
         security: [
           { card: "BT1-010", as: "firstSecurity" },
           { card: "BT1-010", as: "secondSecurity" },
+          { card: "BT1-010", as: "thirdSecurity" },
         ],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       },
     });
     await s.ready();
@@ -146,7 +155,7 @@ describe("EX8-043", () => {
     const firstId = s.perm("first").permanentId;
     await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== firstId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId)).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId)).toBe(true);
 
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
@@ -161,10 +170,42 @@ describe("EX8-043", () => {
     await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== secondId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(false);
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
       false,
     );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("third").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("third").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.every((p) => p.topCard?.instanceId !== s.inst("third").instanceId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === s.inst("thirdSecurity").instanceId)).toBe(
+      true,
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("de-digivolves and protects itself when already suspended at entry resolution", async () => {

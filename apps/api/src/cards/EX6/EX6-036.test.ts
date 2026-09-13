@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-036.js";
@@ -23,11 +22,15 @@ describe("EX6-036 Keramon", () => {
     }));
   it("publicly adds the matching Tamer and Option from its reveal", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-009"] } },
+      { 0: { hand: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("keramon").topCard?.cardId === "EX6-036" && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-090", "EX6-043"]));
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });

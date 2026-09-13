@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-072.js";
 
@@ -68,9 +66,21 @@ describe("EX6-072 Mega Digimon Assembly!", () => {
           { card: "BT1-009", as: "lower" },
         ],
       },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        deck: Array(10).fill("BT1-010"),
+        security: Array(6).fill("BT1-010"),
+      },
     });
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("levelSix").instanceId)).toBe(true);
