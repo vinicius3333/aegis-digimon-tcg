@@ -1,5 +1,5 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-011.js";
 import "./BT13-014.js";
@@ -62,10 +62,18 @@ describe("BT13-011 Aquilamon", () => {
   it("draws one when the Digimon carrying its inherited effect is deleted", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-014", as: "host", under: ["BT13-011"] }], deck: ["BT1-010"] },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
     });
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
 });
