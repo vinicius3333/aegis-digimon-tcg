@@ -3578,7 +3578,7 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(trashed).toEqual(["HAND#red-blue-a", "HAND#red-blue-b"]);
   });
 
-  it("rejects an exact-count selection when two picks cannot claim distinct colors", async () => {
+  it("keeps the largest feasible subset for an ordinary different-color effect", async () => {
     const trashed = await differentColorsTrash(
       [
         { instanceId: "HAND#red-a", cardId: "RED" },
@@ -3586,9 +3586,13 @@ describe("v2 IR actions dispatch to real primitives", () => {
       ],
       { RED: ["Red"] },
     );
-    // Exact count is mandatory: the invalid two-card selection rejects atomically, with no
-    // partial trash of the first card.
-    expect(trashed).toBeUndefined();
+    // Comprehensive Rules §15-10-2-1 (`comprehensive-0184`, SHA-256
+    // 394081fad7013ea5ff26975dc302fb0483dcd7e9c6d73bf11b5618e2a67d20af) requires "X cards or as
+    // many cards up to X as possible" for an ordinary effect. The submitted pair is
+    // invalid as a different-color set, so the resolver keeps the largest legal subset.
+    // Optional processing costs use the separate §15-7 all-or-nothing contract and are
+    // covered below.
+    expect(trashed).toEqual(["HAND#red-a"]);
   });
 
   it("allows a partial different-color selection when the target is up to", async () => {

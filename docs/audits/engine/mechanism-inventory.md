@@ -750,3 +750,173 @@ NODE
 These rows are mechanism evidence for the handoff’s finite fronts. They do
 not certify all cards, all replacement providers, all placement consumers, or
 all battle-duration encodings.
+
+## Current four-front consumer reconciliation (2026-09-13)
+
+Verified scoped audit on branch `audit-scoped-four-fronts-282-refs`, based on
+`85a465314d5ea85919ebb31f9fe2d4a0f1f0e56c`. This section supersedes the older
+producer counts in the priority matrix. The closed 46 keyword names, 22 cost
+kinds, 19 compound forms, zone and ordering contracts are retained as scope
+boundaries. This work is not whole-catalog or collection certification.
+
+The exact persisted fields `totalPlayCostBudget`,
+`totalPlayCostBudgetFromSelectionRef` and the reveal alias `costBudget` have
+15 occurrences across ten current cards. These are representation counts,
+not a denominator for every printed aggregate-cost clause. In particular,
+EX8-029's source-play maximum twelve is encoded as `totalCost`, separately
+from its return maximum fourteen.
+
+| Current producer | Field occurrences | Executable consumer anchor                                      |
+| ---------------- | ----------------: | --------------------------------------------------------------- |
+| BT11-044         |                 2 | RevealAdd, `costBudget: 7`, both entry timings                  |
+| BT11-056         |                 1 | RevealAdd, `totalPlayCostBudget: 10`                            |
+| BT11-107         |                 1 | SelectBind then permanent Delete, reference `budgetDigimon`     |
+| BT14-068         |                 1 | End-turn RevealAdd, `costBudget: 7`                             |
+| BT8-106          |                 1 | RevealAdd, `costBudget: 15`                                     |
+| EX4-049          |                 1 | Permanent Return, maximum six                                   |
+| EX7-047          |                 2 | RevealAdd, maximum seven, both entry timings                    |
+| EX8-029          |                 1 | Permanent Return, maximum fourteen                              |
+| EX8-064          |                 1 | Loose DNA PlayWithoutCost, maximum ten                          |
+| EX13-035         |                 4 | Loose PlayWithoutCost, base six/paid twelve, both entry timings |
+
+Each anchor is the direct `apps/api/src/cards/<SET>/<CARD-ID>.ts` module and
+its colocated test. The earlier six-provider matrix omitted EX13-035; the
+earlier budget-owner inventory omitted the selection-reference and reveal
+alias fields. None of those narrower discovery scans is exhaustive across
+other numeric encodings or nested selection-reference chains.
+
+The existing recursive scan above can reproduce this denominator by changing
+its field predicate to include `costBudget`. No catalog or persisted IR was
+changed to obtain these counts.
+
+### Normative selection distinction and current baseline
+
+Read the complete local chunks, rather than just a note attached to a test:
+
+| Obligation                                                             | Full committed normative citation                                                                                                          | SHA-256 of exact chunk text                                        |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Ordinary effects choose X cards or the largest feasible number up to X | `data/kb/rules-index.json`, `comprehensive-0184`, §15-10-2-1; full chunk §15-10-2 includes up-to, unique targets and all-target processing | `394081fad7013ea5ff26975dc302fb0483dcd7e9c6d73bf11b5618e2a67d20af` |
+| Multicolor cards can contribute distinct combinations                  | Same index, `comprehensive-0311`, full §4-25                                                                                               | `653018400b31c26a4998384c2007e1f4086145eda7f484b0c0d87e6622340e81` |
+| Optional processing conditions must be paid completely                 | Same index, `comprehensive-0169`, full §15-7-1–3                                                                                           | `255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b` |
+
+The [official comprehensive manual](https://world.digimoncard.com/rule/pdf/general_rule.pdf)
+was checked on 2026-09-13: version 4.2, updated 2026-08-18, §15-10-2-1 on
+printed page 29 and §15-7-3 on printed page 26 agree with that distinction.
+No KB refresh or complete fresh-source reconciliation is claimed.
+
+The unchanged current engine baseline passed 327 files / 7,859 tests and failed
+one file / one test (328 files / 7,860 tests total, 36.23 seconds). The sole
+failure was the ordinary two-card different-color Trash oracle expecting no
+discard despite only one feasible distinct-color card. Its expectation and
+title were corrected against §15-10-2-1, preserving the adjacent forged
+under-minimum and atomic cost controls. Production selection behavior was
+retained. The focused interpreter suite then passed 224 tests.
+
+The current named-budget focus passed nine files / 84 tests, covering the
+seven primary-field providers plus loose targeting and own-stack play. The
+reveal-alias focus passed four files / 15 tests, including BT11-044, BT14-068,
+BT8-106 and the new EX7-047 recording-port adapter. The latter passes the real
+compiled OnPlay action through `runRevealAdd`, observing equality, refusal,
+and a forged over-budget answer containing duplicate, ineligible and missing
+IDs. It asserts capped prompt metadata, each played identity exactly once and
+the complete remainder sent to deck bottom. It uses a recording port; the
+colocated EX7-047 public play/evolution tests supply the gameplay evidence.
+
+Commands use `TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072` and
+`--maxWorkers=1 --no-file-parallelism`. Tests are serialized across lanes.
+Integrity/layout baseline passed three files / twelve tests. Final scoped
+proof, citation reconciliation and review receipts appear below; broader
+provider obligations remain outside this finite evidence denominator.
+
+### Replacement source lifetime and placement derived state
+
+`effects/leavePrevention.ts` previously retained eligible replacement contexts
+through earlier sibling bodies without checking whether their source effect
+still existed. The handler now snapshots physical source role, visibility and
+top identity, then revalidates them and `appliesTo`/`protects` at activation.
+Inherited cards must remain face-up in the stack; promotion to the top loses
+the inherited effect. An inherited source still in the stack remains live when
+another card becomes the host top. Permanent-only subscriptions retain the
+original top identity check. Hidden/missing source cards are excluded before
+offering a later target's replacement choices. Instance-only delayed reactions
+retain their existing lifecycle.
+
+The normative source is the **full §15-4-4** chunk `comprehensive-0165` in
+`data/kb/rules-index.json`, SHA-256
+`a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0`:
+pending activation, sequential activation, new-card/effect loss and live trigger
+conditions. Immediate interruption is the **full §15-8-5** chunk
+`comprehensive-0177`, SHA-256
+`50033be9509953fb2b00c56799e11cee1838740d4c5c06a962969a748a6fcdde`.
+§4-17 concerns breeding movement and is not used as a blanket zone-change rule.
+
+`effects/breeding.ts` now refreshes continuous effects before both top/bottom
+Digi-Egg addition events. `effects/primitives.ts::placeUnderFromDeck` refreshes
+before its hidden-source addition event. Its new face-down source supplies no
+inherited effect, but its addition changes the physical source count and can
+activate an existing visible source's count-gated aura. The source-order,
+visibility and stacked-information contract remains the full §4-7 chunk
+`comprehensive-0292`, SHA-256
+`703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855`.
+
+| Finite contract                                                                                      | Observable witness                                                                                                                                                   | Evidence boundary                                                                                                 |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| A pending replacement cannot use a departed, hidden or promoted inherited source                     | `effects/leavePrevent.test.ts`: exact activation counts for source loss, inherited removal/promotion, hidden multi-target source and permanent-only top change       | Synthetic subscriptions exist only in this test; no printed provider intersection is inferred                     |
+| Current predicates must still allow activation; eligible inherited siblings survive another host top | Same suite: `appliesTo`/`protects` invalidation, no prevention payment, and retained stack-source positive control                                                   | Synthetic body transitions isolate the reusable activation contract                                               |
+| Egg bottom/top addition exposes already-live inherited DP                                            | `conformance/scoped-placement-consumers.test.ts`: legal BT1-004 egg enters face-up; actual dispatcher observes 5,000 rather than 3,000 host DP                       | Actual production primitives and card effects, invoked through a test-only seam rather than a printed card action |
+| Hidden additions update existing physical-count effects without leaking the hidden inheritance       | Same suite: legal ST1-03 main-deck source stays hidden; ST1-01's existing visible aura crosses three to four sources; dispatcher observes 9,000 rather than 8,000 DP | Seeded legal evolution stack; no formation-history or public producer certificate                                 |
+| Existing ordinary visible placement still refreshes correctly                                        | Same suite: hand ST1-03 gives 4,000 DP; its hidden-deck counterpart gives 3,000                                                                                      | Positive/negative visibility controls use real registered inheritance                                             |
+
+A final original-source probe restored `leavePrevention.ts`, `breeding.ts` and
+`primitives.ts` from `85a465314` temporarily. It reproduced **ten failures /
+35 passes** in two files / 45 tests: seven replacement activation/payment
+assertions and three placement DP assertions. It failed at the expected values,
+not a timeout. All three working sources were restored in `finally` and their
+exact bytes verified. An earlier invalid egg/trait fixture was rejected and
+replaced; it is not normative or defect evidence.
+
+### Current consumer anchors and finite residuals
+
+The recursive persisted-IR scan finds **54 current `onAddDigivolutionCards`
+consumer cards**, all with colocated test files. Those 54 suites plus nine
+placement, duration and test-seam suites passed **63 files / 504 tests**.
+This is consumer regression, not full printed-clause certification of 54 cards.
+Receiver identity, provenance, source filters and positions remain anchored
+in EX5-001/EX5-065, source-placement watcher scope, King Drasil batch/joint
+placement and Mother Eater suites. The source-shedding/old-top identity anchors
+remain `dnaDigivolve.test.ts` and `BT26-006.test.ts`.
+
+Battle/duration retains `combat/attackDuration.test.ts`'s distinct inner/outer
+tokens, battle-versus-attack expiration, and the real BT21-015 nested security
+route and BT24-036 reaction ownership/turn-expiry cases. The BT21-015 boundary
+probe supplements its real reaction with a seeded production-ledger grant.
+No current specifically battle-duration security-reaction card producer was
+demonstrated; no such producer was added to production or certified.
+
+The source-re-entry concern was traced through `movePermanentZone` →
+`GameEngine.fireTiming` → `runTimingWindow`: current code recomputes before
+OnMove activation and re-installs continuous subscriptions. The suspected
+missing inline refresh was withdrawn after that downstream trace, rather than
+being recorded as an additional defect.
+
+Broader public replacement groups, copied-provider/controller-turnover races,
+ordered mixed-material consumer snapshots and other numeric encodings remain
+explicitly outside these demonstrated finite samples. Existing owner ledgers
+retain their open obligations. Neither those residuals nor protected citation
+declarations are converted into whole-engine, whole-KB or collection credit.
+
+### Final serialized gates
+
+```sh
+TEST_MAX_WORKERS=1 TEST_HEAP_MB=3072 pnpm --filter @aegis/api exec vitest run \
+  src/engine src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism
+```
+
+Passed **331 files / 7,880 tests**, 24.93 seconds. The AD1-002 unsupported
+ActivateEffect logger receipt belongs to its passing negative regression.
+API and web typechecks passed sequentially; shared build passed. No Postgres
+lane was run or database behavior changed. The test scheduler was single-owner,
+one fork, 3,072 MB heap; memory snapshots retained free RAM throughout execution.
+Read-only Luna reviewers approved source-role semantics and citation/tooling
+scope after the invalid fixture and movement candidate were corrected/withdrawn.
+The complete tooling suite passed **38/38** tests with `node --test --test-concurrency=1 tools/*.test.mjs tools/kb/*.test.mjs`. Shared typecheck also passed. Oxfmt accepted all 43 changed/new TypeScript, JavaScript-tooling and Markdown files; `pnpm audit:index --check` confirmed the unchanged 66-set index, and `git diff --check` was clean. Scoped lint on the new tooling and behavioral changes had no findings; the citation-only migration retains 24 pre-existing lint warnings without altering assertion bodies or introducing suppressions. The citation checker reports 436/436 pinned references and one disclosed partial-note warning, with no unresolved references or fingerprint mismatches. Delivery is a reviewable branch/PR; this bounded engine audit does not certify any whole collection or authorize an Orca collection-complete status.
