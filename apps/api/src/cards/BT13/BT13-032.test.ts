@@ -136,6 +136,7 @@ describe("BT13-032 JumboGamemon", () => {
         },
       });
       s.state.memory = 5;
+      const baseId = s.inst("base").instanceId;
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -145,6 +146,7 @@ describe("BT13-032 JumboGamemon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT13-032");
       expect(s.state.memory).toBe(0);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     }
   });
 });

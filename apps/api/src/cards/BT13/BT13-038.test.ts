@@ -179,6 +179,7 @@ describe("BT13-038 Reppamon", () => {
       0: { battleArea: [{ card: "BT13-036", as: "base" }], hand: [{ card: "BT13-038", as: "reppa" }] },
     });
     s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -188,5 +189,6 @@ describe("BT13-038 Reppamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-038");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

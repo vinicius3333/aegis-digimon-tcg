@@ -128,6 +128,7 @@ describe("BT13-035 PawnChessmon", () => {
         },
       });
       s.state.memory = 3;
+      const baseId = s.inst("base").instanceId;
 
       expect(
         s.engine.applyIntent(0, {
@@ -138,6 +139,7 @@ describe("BT13-035 PawnChessmon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT13-035");
       expect(s.state.memory).toBe(2);
+      expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     }
   });
 });

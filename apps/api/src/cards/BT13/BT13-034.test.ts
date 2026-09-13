@@ -200,11 +200,12 @@ describe("BT13-034 Kudamon", () => {
   it("normally digivolves from a yellow level 2 for 0 memory", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-006", as: "cupimon" }],
+        breeding: { card: "BT1-006", as: "cupimon" },
         hand: [{ card: "BT13-034", as: "kudamon" }],
       },
     });
     s.state.memory = 3;
+    const baseId = s.inst("cupimon").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -215,5 +216,6 @@ describe("BT13-034 Kudamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("cupimon").topCard.cardId === "BT13-034");
     expect(s.state.memory).toBe(3);
+    expect(s.perm("cupimon").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

@@ -220,6 +220,7 @@ describe("BT13-036 Liollmon", () => {
       0: { breeding: { card: "BT1-006", as: "base" }, hand: [{ card: "BT13-036", as: "lioll" }] },
     });
     s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -230,5 +231,6 @@ describe("BT13-036 Liollmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-036");
     expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });
