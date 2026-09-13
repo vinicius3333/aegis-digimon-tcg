@@ -29,6 +29,9 @@ export const compiled: CompiledCard = {
             },
             raw: "By unsuspending this Digimon",
           },
+          optional: true,
+          abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
       ],
       keywords: [
