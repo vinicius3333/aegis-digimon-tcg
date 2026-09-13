@@ -603,11 +603,10 @@ export function permanentMatchesFilter(
       const stackDefinition = ctx.game.definitionOf(card);
       return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, stackDefinition));
     });
-    const hasHiddenStackCard = permanent.stack.some((card) => card.faceUp !== true);
     // A negated stack predicate means that NONE of the stacked cards may match the
     // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
     if (refs.every((ref) => ref.negate === true)) {
-      if (hit || hasHiddenStackCard) return false;
+      if (hit) return false;
     } else if (!hit) {
       return false;
     }
@@ -617,7 +616,6 @@ export function permanentMatchesFilter(
   // digivolution cards", BT17-100): reject if any stacked card has an excluded exact name.
   if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
     const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
-    if (permanent.stack.some((card) => card.faceUp !== true)) return false;
     const hasExcluded = permanent.stack.some((card) => {
       if (card.faceUp !== true) return false;
       const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();

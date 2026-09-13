@@ -32,12 +32,11 @@ source before activation, with a control where the source remains in place. Quan
 stack counts remain valid; the correction applies only when a filter asks for card information
 such as name, trait, kind, level or color.
 
-The new `stack-metadata-filtering.test.ts` uses the public EX5-070 play path: a hidden
-X-Antibody stack card cannot satisfy the negative “without X Antibody” requirement, while a
-visible host is selected. This exercises `permanentMatchesFilter` rather than only the
-Succession kernel. Negative predicates conservatively reject when any matching stack card is
-concealed because absence cannot be established from hidden information; this is the
-implementation's conservative interpretation of §4-7-9, not a separately quoted ruling.
+The new `stack-metadata-filtering.test.ts` uses the public P-062 attack path: a hidden
+Gammamon source does not trigger its `digivolutionStackNameOrTrait` watcher, while a visible
+Gammamon source does. It verifies exact security instances and the real Tamer suspension, so
+this exercises `permanentMatchesFilter` rather than only the Succession kernel. Negative
+identity predicates read only visible cards; hidden cards are not treated as positive matches.
 
 The three public sequences prove the demonstrated copied and inherited source leak. The legal Succession producer proof and the seeded visible-over-hidden cases now cover face-down filtering before highest-visible selection for the demonstrated Bacchusmon provider shapes; they do not expose source identity in the public decision payload. Existing green regressions do not certify the open reader classes in the finite map above. BT22's historical complete status is reopened and BT22-010 capped provisionally at 8/10; BT26-080 retains its existing cap. Independent read-only review found no blocker for this bounded change.
 
