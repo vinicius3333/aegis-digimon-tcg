@@ -1,4 +1,4 @@
-import { getCardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../effects/CardSource.js";
 import type { GameEngine } from "../GameEngine.js";
 import type { Restriction, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
@@ -6,6 +6,8 @@ import { internalsOf } from "./internals.js";
 import { attackedWithDigimonInCurrentOrPreviousTurn } from "../turnActivity.js";
 import { effectiveColors, effectiveNames } from "../effects/continuous.js";
 import { cardHasTrait } from "../cards/cardData.js";
+import { effectsOf } from "../effects/collect.js";
+import { passesPlacementGuard } from "../effects/kernel.js";
 
 export interface ActivatableEffectObservation {
   instanceId?: string;
@@ -37,6 +39,7 @@ export function observe(engine: GameEngine) {
     /** Record actual production bus calls while preserving their dispatch and restoring the observer. */
     async captureSubTriggers(
       run: () => Promise<void>,
+      onEvent?: (event: SubTriggerEventName, payload: TriggerInfo) => void,
     ): Promise<{ event: SubTriggerEventName; payload: TriggerInfo }[]> {
       const events: { event: SubTriggerEventName; payload: TriggerInfo }[] = [];
       const original = internals.fireSubTrigger;
@@ -50,6 +53,7 @@ export function observe(engine: GameEngine) {
               : {}),
           },
         });
+        onEvent?.(event, payload);
         await original.call(engine, event, payload);
       };
       try {
@@ -66,6 +70,22 @@ export function observe(engine: GameEngine) {
      */
     cardSource(card: CardInstance | Permanent): CardSource {
       return internals.cardSourceOf("topCard" in card ? card.topCard : card);
+    },
+
+    /** Whether an inherited effect from a named stack card currently passes its production placement guard. */
+    canUseInheritedEffect(permanent: Permanent, sourceCardId: string): boolean {
+      const sourceCard = permanent.stack.find(({ cardId }) => cardId === sourceCardId);
+      if (sourceCard === undefined) return false;
+      const source = internals.cardSourceOf(sourceCard);
+      const timings = Object.values(EffectTiming).filter(
+        (timing): timing is EffectTiming => typeof timing === "number",
+      );
+      return timings.some((timing) =>
+        effectsOf(timing, source).some((effect) => {
+          if (!effect.isInherited) return false;
+          return passesPlacementGuard(effect, internals.buildEffectContext(source, {}));
+        }),
+      );
     },
 
     /** Continuous restrictions currently applying to a permanent. */

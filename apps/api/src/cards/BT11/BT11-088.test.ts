@@ -13,6 +13,8 @@ import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
 import { compiled } from "./BT11-088.js";
 import "../ST18/ST18-12.js";
+import "../BT12/BT12-038.js";
+import "../BT17/BT17-087.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { cite } from "../../engine/conformance/_kb.js";
@@ -158,42 +160,50 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     expect(p1.security).toHaveLength(1);
   });
 
-  it("when opponent has 1 Digimon, trashes a card from their hand", async () => {
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    const p1 = s.state.players[1] as PlayerState;
+  it.each(["play", "digivolve"] as const)(
+    "when opponent has 1 Digimon, %s trashes an exact hand card",
+    async (mode) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: mode === "digivolve" ? [{ card: "BT6-063", as: "base" }] : [],
+            hand: [{ card: "BT11-088", as: "bagramon" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+            security: ["BT1-009", "BT1-009"],
+          },
+          1: {
+            battleArea: [{ card: "AD1-001", as: "oppDigimon", dp: 3000 }],
+            hand: [{ card: "BT1-009", as: "oppHandCard" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+            security: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const bagramonId = s.inst("bagramon").instanceId;
+      const oppHandCardId = s.inst("oppHandCard").instanceId;
+      const opponentPermanentId = s.perm("oppDigimon").permanentId;
+      const intent =
+        mode === "play"
+          ? { type: "playCard" as const, instanceId: bagramonId }
+          : { type: "digivolve" as const, instanceId: bagramonId, permanentId: s.perm("base").permanentId };
 
-    // Opponent has exactly 1 Digimon in play.
-    const oppDigimon = perm("AD1-001", 1, 3000);
-    p1.battleArea.push(oppDigimon);
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+      await settleEngine(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === oppHandCardId));
 
-    // Opponent has 1 card in hand (will be trashed).
-    const oppHandCard = inst("BT1-009", 1);
-    p1.hand.push(oppHandCard);
-
-    // Bagramon in seat 0's hand. playCost = 14, memory needs to cover it.
-    const bagramon = inst("BT11-088", 0);
-    p0.hand.push(bagramon);
-    s.state.memory = 10; // memory 10 for opponent seat → enough
-
-    const result = s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: bagramon.instanceId,
-    });
-
-    expect(result).toEqual({ ok: true });
-
-    // After [On Play]: opponent had 1 Digimon → their hand card should be trashed.
-    await settle(() => p1.trash.some((c) => c.instanceId === oppHandCard.instanceId));
-
-    expect(p1.trash.some((c) => c.instanceId === oppHandCard.instanceId)).toBe(true);
-    expect(p1.hand.some((c) => c.instanceId === oppHandCard.instanceId)).toBe(false);
-    expect(p1.battleArea).toHaveLength(1);
-    expect(p1.battleArea[0]!.permanentId).toBe(oppDigimon.permanentId);
-
-    // Bagramon on the battle area.
-    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT11-088")).toBe(true);
-  });
+      expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([oppHandCardId]);
+      expect(s.state.players[1]!.hand).toHaveLength(0);
+      expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([opponentPermanentId]);
+      const bagramon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === bagramonId);
+      expect(bagramon?.topCard.instanceId).toBe(bagramonId);
+      expect(bagramon?.stack.map(({ instanceId }) => instanceId)).toEqual(
+        mode === "digivolve" ? [s.inst("base").instanceId] : [],
+      );
+      expect(s.state.memory).toBe(mode === "play" ? -4 : 5);
+    },
+  );
 
   it("when opponent has 2+ Digimon, one is placed under their other Digimon", async () => {
     const s = setup();
@@ -494,6 +504,74 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     expect(s.state.memory).toBe(-4);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
+  });
+
+  it("Q2114: a placed GeoGreymon inherits under a temporarily Digimon-treated Marcus", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-088", as: "bagramon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          hand: [{ card: "BT17-087", as: "marcus" }],
+          battleArea: [{ card: "BT12-038", as: "oppGeo" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleEngine(() => s.perm("marcus").topCard.cardId === "BT17-087");
+    const geoId = s.perm("oppGeo").topCard.instanceId;
+    const marcusId = s.perm("marcus").permanentId;
+    const marcusStack = s.perm("marcus").stack.map(({ instanceId }) => instanceId);
+    const geoPermanentId = s.perm("oppGeo").permanentId;
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+    preferred.push(geoId, s.perm("oppGeo").permanentId, marcusId);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    let eligibleAtPlacement = false;
+    const placementEvents = await observe(s.engine).captureSubTriggers(
+      async () => {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bagramon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settleEngine(() => s.perm("marcus").stack.some(({ instanceId }) => instanceId === geoId));
+      },
+      (event, payload) => {
+        if (event === "onAddDigivolutionCards" && payload.subjectPermanentId === marcusId) {
+          eligibleAtPlacement = observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038");
+        }
+      },
+    );
+    expect(placementEvents.filter(({ event }) => event === "onAddDigivolutionCards")).toHaveLength(1);
+
+    expect(s.perm("marcus").permanentId).toBe(marcusId);
+    expect(s.perm("marcus").stack.map(({ instanceId }) => instanceId)).toEqual([geoId, ...marcusStack]);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === geoPermanentId)).toBe(false);
+    expect(eligibleAtPlacement).toBe(true);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual(securityIds);
+    expect(s.state.memory).toBe(-4);
+
+    // Q2114's inherited [Your Turn] suspension window is unavailable here: Marcus's
+    // temporary Digimon treatment expires at the end of this opponent turn before its
+    // controller receives a turn. This assertion proves the public gain/loss boundary.
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038")).toBe(false);
   });
 
   it.each([
