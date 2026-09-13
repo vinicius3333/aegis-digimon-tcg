@@ -212,6 +212,19 @@ claim that every persisted card carrying a kind has full public-cost evidence. T
 items above are concrete source/destination, target-selection, refusal, or multi-target classes,
 rather than a generic request to test every card.
 
+The current compound denominator is finite and is grouped by executable shape: named-pair
+placement (`BT14-090`, `BT15-091`); memory plus placement (`BT17-050`, `EX6-038`, `EX6-042`);
+borrowed processing (`BT23-060`); self-suspend plus return (`BT23-084`, `BT23-090`); nested
+delete-own plus breeding trash (`BT16-090`); self-suspend plus delete-own (`BT19-086`);
+self-suspend plus stack-top rotation (`EX5-064`); self-suspend plus saved-card placement
+(`EX10-067`); self-suspend plus hand/stack trash (`BT25-092`); Tamer-source payment plus
+named-pair placement (`EX13-071`); and ordered three-return (`EX3-035`). The public tests for
+these providers exercise the shared all-or-nothing compound transaction, while retaining
+provider-specific filters and destinations as bounded obligations. `BT17-085`, `BT25-096`,
+`ST17-10`, and `EX13-071` retain their distinct multi-placement ordering/filter cases. No
+additional current compound shape was found beyond the persisted 19 occurrences; arbitrary
+future overlap and unnamed variants are outside the current consumer scope.
+
 - 2026-09-12: initial optional-cost reproduction and correction on
   `audit/engine-mechanisms-20260912`; raw results recorded above.
 
