@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -27,33 +27,81 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
 
   it("places a Xros Heart card, gains memory and draws", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-095", as: "tamer" }], hand: ["BT10-008"], deck: ["BT1-009"] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-095", as: "tamer" },
+            { card: "BT1-086", as: "spare" },
+          ],
+          hand: [{ card: "BT10-008", as: "material" }],
+          deck: [
+            { card: "BT1-009", as: "normalDraw" },
+            { card: "BT1-010", as: "effectDraw" },
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"], security: ["BT1-009"] },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    const before = s.state.memory;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
-    expect(s.state.memory).toBe(before + 1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("tamer").stack.length === 1);
+
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("material").instanceId]);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("normalDraw").instanceId, s.inst("effectDraw").instanceId]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
-  it("does not gain memory or draw when the placement cost is declined", async () => {
+  it("does not gain memory, place a card or draw by the effect when its placement cost is declined", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-095", as: "tamer" }],
+          battleArea: [
+            { card: "BT11-095", as: "tamer" },
+            { card: "BT1-086", as: "spare" },
+          ],
           hand: [{ card: "BT10-008", as: "material" }],
-          deck: [{ card: "BT1-009", as: "deck-card" }],
+          deck: [
+            { card: "BT1-009", as: "normalDraw" },
+            { card: "BT1-010", as: "effectDraw" },
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
-    s.state.memory = 0;
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("deck-card").instanceId);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("material").instanceId, s.inst("normalDraw").instanceId]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("suspends itself to use a card under another Tamer for DigiXros", async () => {

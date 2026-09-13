@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -41,12 +41,28 @@ describe("BT11-111 Galacticmon", () => {
 
   it("trashes the opponent's top security at start of main", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-111", as: "galactic" }] },
-      1: { security: ["BT1-009", "BT1-009"] },
+      0: {
+        battleArea: [{ card: "BT11-111", as: "galactic" }, "BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
+        security: ["BT1-012", "BT1-013"],
+      },
+      1: {
+        deck: ["BT1-014", "BT1-015"],
+        security: [
+          { card: "BT1-016", as: "topSecurity" },
+          { card: "BT1-017", as: "remainingSecurity" },
+        ],
+      },
     });
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("galactic"));
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.security[0]?.instanceId).toBe(s.inst("remainingSecurity").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("places four trash Vemmon under the evolved Galacticmon at stack bottom and deletes at eight", async () => {
