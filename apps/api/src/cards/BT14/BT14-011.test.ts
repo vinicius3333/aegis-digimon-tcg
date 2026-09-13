@@ -24,8 +24,8 @@ it("legally evolves, suspends to block a player attack, and preserves security",
     1: {
       breeding: { card: "BT14-007", as: "agumon", under: ["BT14-001"] },
       hand: [{ card: "BT14-011", as: "monochromon" }],
-      deck: ["BT1-001"],
-      security: ["BT1-001"],
+      deck: ["BT1-009"],
+      security: ["BT1-009"],
     },
   });
   s.state.turnSeat = 1;

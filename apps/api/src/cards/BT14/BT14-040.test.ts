@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-040.js";
@@ -57,7 +58,7 @@ describe("BT14-040", () => {
             { card: "BT14-082", as: "tamer" },
             { card: "BT14-031", as: "rookie" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -67,7 +68,7 @@ describe("BT14-040", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.security[0]?.cardId === "BT14-082");
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT14-082", "BT1-001"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT14-082", "BT1-009"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT14-031");
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-040"]);
     expect(s.state.memory).toBe(0);
@@ -83,7 +84,7 @@ describe("BT14-040", () => {
             { card: "BT14-040", as: "jijimon" },
             { card: "BT14-083", as: "tamer" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -157,6 +158,81 @@ describe("BT14-040", () => {
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-082"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT14-031");
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-040"]);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the all-turns Tamer trigger on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-040", as: "jijimon" }],
+          hand: [
+            { card: "BT14-082", as: "firstTamer" },
+            { card: "BT14-083", as: "sameTurnTamer" },
+            { card: "BT14-082", as: "nextTurnTamer" },
+            { card: "BT14-031", as: "firstRookie" },
+            { card: "BT14-032", as: "secondRookie" },
+          ],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstRookieId = s.inst("firstRookie").instanceId;
+    const secondRookieId = s.inst("secondRookie").instanceId;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstRookieId),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === firstRookieId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(secondRookieId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sameTurnTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondRookieId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(secondRookieId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondRookieId),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondRookieId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(secondRookieId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

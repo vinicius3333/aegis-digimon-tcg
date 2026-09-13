@@ -23,7 +23,7 @@ it("survives a losing Security Digimon battle from a legal red evolution stack",
     0: {
       breeding: { card: "BT14-007", as: "agumon", under: ["BT14-001"] },
       hand: [{ card: "BT14-010", as: "kokatorimon" }],
-      deck: ["BT1-001"],
+      deck: ["BT1-009"],
     },
     1: { security: ["BT14-101"] },
   });

@@ -51,10 +51,10 @@ describe("BT14-041", () => {
         0: {
           battleArea: [{ card: "BT1-057", as: "base" }],
           hand: [{ card: "BT14-041", as: "seraph" }],
-          security: ["BT1-001"],
-          deck: ["BT1-002", "BT1-002"],
+          security: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }], security: ["BT1-003", "BT1-004", "BT1-005"] },
+        1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }], security: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -85,8 +85,8 @@ describe("BT14-041", () => {
         0: {
           battleArea: [{ card: "BT14-041", as: "seraph" }],
           hand: [{ card: "BT1-087", as: "tk" }],
-          security: [{ card: "BT14-035", as: "yellowChoice" }, "BT1-001"],
-          deck: [{ card: "BT1-002", as: "recovered" }],
+          security: [{ card: "BT14-035", as: "yellowChoice" }, "BT1-009"],
+          deck: [{ card: "BT1-009", as: "recovered" }],
         },
         1: { battleArea: [{ card: "BT14-026", as: "target", dp: 8000 }] },
       },
@@ -105,8 +105,8 @@ describe("BT14-041", () => {
   it("ignores opponent security additions and resolves only once for two own additions", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-041", as: "seraph" }], deck: ["BT1-001", "BT1-002"] },
-        1: { battleArea: [{ card: "BT14-026", as: "target", dp: 15000 }], deck: ["BT1-003"] },
+        0: { battleArea: [{ card: "BT14-041", as: "seraph" }], deck: ["BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT14-026", as: "target", dp: 15000 }], deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -121,6 +121,53 @@ describe("BT14-041", () => {
     await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 0 });
     await settle();
     expect(s.perm("target").currentDP).toBe(8000);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the security-addition watcher on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-041", as: "seraph", under: ["BT14-037", "BT1-051"] }],
+          hand: [{ card: "BT1-107", as: "firstWave" }, { card: "BT1-107", as: "secondWave" }, "BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          hand: ["BT1-009"],
+          battleArea: [{ card: "BT14-026", as: "target", dp: 15000 }],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstWave").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.perm("target").currentDP === 8000);
+    expect(observe(s.engine).keywordAmount(s.perm("seraph"), "SecurityAttack")).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(15000);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWave").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2 && s.perm("target").currentDP === 8000);
+    expect(s.perm("target").currentDP).toBe(8000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

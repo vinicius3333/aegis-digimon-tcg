@@ -54,7 +54,7 @@ describe("BT14-049", () => {
             { card: "BT14-042", as: "attacker", dp: 7000 },
             { card: "BT14-042", as: "target", dp: 4000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },

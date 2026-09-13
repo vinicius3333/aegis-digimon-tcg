@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-029.js";
@@ -71,7 +72,7 @@ describe("BT14-029", () => {
   it("Q2399 unsuspends with no opposing Digimon, but only once per turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT14-029", as: "plesio", under: ["BT14-028"] }] },
-      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     s.state.memory = 10;
     expect(
@@ -100,7 +101,7 @@ describe("BT14-029", () => {
       0: { battleArea: [{ card: "BT14-029", as: "plesio", under: ["BT14-028"] }] },
       1: {
         battleArea: [{ card: "BT14-016", as: "equal", under: ["BT14-012"] }],
-        security: ["BT1-001"],
+        security: ["BT1-009"],
       },
     });
     expect(
@@ -112,6 +113,79 @@ describe("BT14-029", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("plesio").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the conditional attack unsuspend on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT14-029",
+              as: "plesio",
+              under: ["BT14-002", "BT14-019", "BT14-024", "BT14-028"],
+            },
+          ],
+          hand: [{ card: "BT1-009", as: "ownHand" }],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-038", as: "opponentDigimon", under: ["BT14-024"] }],
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("plesio").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    expect(s.perm("plesio").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("plesio").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("plesio").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("plesio").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("plesio").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("plesio").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

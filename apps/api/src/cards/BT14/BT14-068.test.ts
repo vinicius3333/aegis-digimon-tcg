@@ -106,9 +106,9 @@ describe("BT14-068", () => {
       {
         0: {
           battleArea: [{ card: "BT14-068", as: "source" }],
-          deck: ["BT14-060", "BT14-086", "BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT14-060", "BT14-086", "BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -122,6 +122,47 @@ describe("BT14-068", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-060")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-086")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("resets the end-of-turn reveal and free-play budget on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-068", as: "source" }],
+          hand: ["BT1-009"],
+          deck: [
+            { card: "BT3-059", as: "firstCommandramon" },
+            { card: "ST5-05", as: "firstHeavy" },
+            { card: "BT1-009", as: "firstRest" },
+            "BT1-009",
+            { card: "BT3-059", as: "secondCommandramon" },
+            { card: "ST5-05", as: "secondHeavy" },
+            { card: "BT1-009", as: "secondRest" },
+            ...Array(8).fill("BT1-009"),
+          ],
+        },
+        1: { hand: ["BT1-009"], deck: Array(8).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+    const played = (alias: string) =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst(alias).instanceId);
+    expect(played("firstCommandramon")).toBe(true);
+    expect(played("firstHeavy")).toBe(true);
+    expect(played("secondCommandramon")).toBe(false);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("firstRest").instanceId)).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+    expect(played("secondCommandramon")).toBe(true);
+    expect(played("secondHeavy")).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("secondRest").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(5);
   });
 });

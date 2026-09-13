@@ -65,7 +65,7 @@ describe("BT14-025", () => {
   it("accepts Evade after losing a real Raid battle and survives", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-025", as: "shellmon" }], security: ["BT1-001"] },
+        0: { battleArea: [{ card: "BT14-025", as: "shellmon" }], security: ["BT1-009"] },
         1: { battleArea: [{ card: "AD1-004", as: "attacker" }] },
       },
       { autoSelectCards: true },

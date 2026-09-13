@@ -53,7 +53,7 @@ describe("BT14-101", () => {
             { card: "BT1-025", as: "highest" },
             { card: "BT14-069", as: "lower" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
