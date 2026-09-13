@@ -31,9 +31,9 @@ describe("BT3-057 MegaGargomon", () => {
     await unsuspendForActivePhase(1);
     expect(s.perm("target").isSuspended).toBe(true);
     s.state.turnSeat = 1;
-    await (
-      s.engine as unknown as { sweepDurations(boundary: "ownerActivePhaseEnd"): Promise<void> }
-    ).sweepDurations("ownerActivePhaseEnd");
+    await (s.engine as unknown as { sweepDurations(boundary: "ownerActivePhaseEnd"): Promise<void> }).sweepDurations(
+      "ownerActivePhaseEnd",
+    );
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
   });
 });
