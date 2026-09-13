@@ -39,7 +39,7 @@ describe("Blast DNA Digivolve public Counter consent", () => {
           deck: ["BT1-010", "BT1-010"],
           security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-009", as: "attacker" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT20-009", as: "attacker" }], security: ["BT1-010"], deck: ["BT1-011"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -49,6 +49,8 @@ describe("Blast DNA Digivolve public Counter consent", () => {
     const otherFieldId = s.perm("otherBreak").permanentId;
     const otherHandId = s.inst("otherSlayer").instanceId;
     const fieldSourceId = s.perm("fieldBreak").stack[0]!.instanceId;
+    const attackerId = s.inst("attacker").instanceId;
+    const drawId = s.state.players[0]!.deck[0]!.instanceId;
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await s.ready();
@@ -86,6 +88,9 @@ describe("Blast DNA Digivolve public Counter consent", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === otherFieldId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(attackerId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawId)).toBe(true);
     expect(s.state.memory).toBe(3);
   });
 
@@ -101,13 +106,15 @@ describe("Blast DNA Digivolve public Counter consent", () => {
           ],
           security: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-009", as: "attacker" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT20-009", as: "attacker" }], security: ["BT1-010"], deck: ["BT1-011"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     const fieldId = s.perm("fieldBreak").permanentId;
     const fieldTopId = s.inst("fieldBreak").instanceId;
     const handId = s.inst("handSlayer").instanceId;
+    const attackerId = s.inst("attacker").instanceId;
+    const defendingSecurityId = s.state.players[0]!.security[0]!.instanceId;
     s.state.turnSeat = 1;
     s.state.memory = 3;
     await s.ready();
@@ -129,6 +136,8 @@ describe("Blast DNA Digivolve public Counter consent", () => {
     ).toBe(fieldTopId);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === defendingSecurityId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === attackerId)).toBe(true);
     expect(s.state.memory).toBe(3);
   });
 });

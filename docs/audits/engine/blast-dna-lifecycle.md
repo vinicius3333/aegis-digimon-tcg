@@ -8,9 +8,9 @@ The current catalog contains seven distinct printed recipes: BT20-060 Alphamon +
 
 ## Public evidence
 
-`apps/api/src/engine/conformance/keyword-blast-dna-consent.test.ts` contains two public BT20-045 Examon cases. The accepted case exposes four real Counter choices (two Breakdramon field instances × two Slayerdramon hand instances), responds with the exact field and hand instance IDs, and verifies the resulting Examon stack `[hand Slayerdramon, field Breakdramon's source, field Breakdramon]`. The unused field/hand pair remains in its original zones. The refusal case responds to the Counter window without a recipe and verifies the field stack and hand IDs remain unchanged.
+`apps/api/src/engine/conformance/keyword-blast-dna-consent.test.ts` contains two public BT20-045 Examon cases. The accepted case exposes four real Counter choices (two Breakdramon field instances × two Slayerdramon hand instances), responds with the exact field and hand instance IDs, and verifies the resulting Examon stack `[hand Slayerdramon, field Breakdramon's source, field Breakdramon]`. The unused field/hand pair remains in its original zones. DNA's general resolution draw is asserted against a captured deck instance. The refusal case responds to the Counter window without a recipe and verifies the field stack and hand IDs remain unchanged.
 
-Both cases use memory 3 before the attack and verify memory remains 3, so the zero-cost Counter route does not pay ordinary memory. They settle the public attack to `isAttacking === false` with no pending decision and account for the security state: the refusal attack consumes the defending security card; the accepted Counter route completes the attack-resolution pipeline while preserving the defending security card under the current Counter semantics. No draw effect is printed by BT20-045, so draw/recovery behavior is outside this provider's claim.
+Both cases use memory 3 before the attack and verify memory remains 3, so the zero-cost Counter route does not pay ordinary memory. They settle the public attack to `isAttacking === false` with no pending decision and account for the security state. On accepted DNA, BT20-045's `WhenDigivolving` effect returns the opponent's highest-DP attacker to the exact bottom-deck instance, which ends the attack while preserving both security stacks; the test asserts that source identity and destination. On refusal, the ordinary attack continues: the defending security instance is moved to trash and the attacker is deleted by the security battle. No draw effect is printed by BT20-045; the asserted draw is the general DNA resolution draw.
 
 The exact physical source order and refusal behavior are therefore proved for one native printed recipe with multiple eligible field/hand pairs. Existing provider tests cover additional recipe-specific paths, including BT20-060 recovery, but recipe breadth, inherited/granted producers, and source departure/expiry classes remain open.
 
@@ -18,6 +18,6 @@ The exact physical source order and refusal behavior are therefore proved for on
 
 - **Proved:** public Counter timing; explicit accept/refuse; exact physical field and hand selection; two-pair candidate enumeration; zero memory payment; complete pending/attack settlement for BT20-045.
 - **Open:** independent public lifecycle evidence for the other six printed recipes; any inherited or runtime-granted Blast DNA producer if one is added; recipe-specific restrictions and any provider-specific draw/recovery sequencing.
-- **Not claimed:** whole-catalog certification, equivalence of all seven recipes, or draw behavior for BT20-045.
+- **Not claimed:** whole-catalog certification, equivalence of all seven recipes, or provider-specific draw/recovery behavior beyond the general DNA draw assertion.
 
 Focused command: `pnpm --filter @aegis/api exec vitest run src/engine/conformance/keyword-blast-dna-consent.test.ts` — 2 tests passed.
