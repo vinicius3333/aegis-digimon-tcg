@@ -13,7 +13,7 @@ opening a block window or suspending the blocker. Existing EX4-042 tests verify 
 catalog, grant targets, turn expiry, and `cantBeBlocked` restriction. The
 keyword remains outside the 46-name canonical union as a restriction encoding.
 
-The second case is a public plain BT1-080 control against the same AD1-005
+The second case is a public plain BT1-009 control against the same AD1-005
 Blocker: it opens a block window and resolves through the exact blocker and
 security instances. The runtime reader is the `cantBeBlocked` legality path in
 `engine/combat/legality.ts`; the provider is the compiled EX4-042 self/name
