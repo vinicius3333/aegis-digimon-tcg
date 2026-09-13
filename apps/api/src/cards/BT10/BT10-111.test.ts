@@ -140,7 +140,6 @@ describe("BT10-111 Shoutmon (King Version)", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    const memoryBeforePlay = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
       ok: true,
@@ -151,6 +150,7 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     )!;
     await settle(() => observe(s.engine).hasKeyword(kingPermanent, "DigiXrosSubstitute"));
 
+    const memoryBeforeDigiXros = s.state.memory;
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -164,7 +164,7 @@ describe("BT10-111 Shoutmon (King Version)", () => {
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-024")!;
     expect(played.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT10-111", "BT10-021"]));
-    expect(s.state.memory).toBeLessThan(memoryBeforePlay);
+    expect(s.state.memory).toBe(memoryBeforeDigiXros - 3);
     expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("kingVersion").instanceId);
     expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("mailbirdramon").instanceId);
   });
