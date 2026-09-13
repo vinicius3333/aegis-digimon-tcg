@@ -554,15 +554,18 @@ export async function pickLoose(
             candidates: matching.map((candidate) => candidate.instanceId),
             min: 1,
             max: 1,
+            ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost: maxTotalPlayCost - spent }),
             visible,
             visibleCards,
           })
         )[0];
       }
       if (picked === undefined || used.has(picked)) return [];
+      const pickedCandidate = matching.find((candidate) => candidate.instanceId === picked);
+      if (pickedCandidate === undefined) return [];
       used.add(picked);
       chosen.push(picked);
-      spent += playCostOf(candidates.find((candidate) => candidate.instanceId === picked)!);
+      spent += playCostOf(pickedCandidate);
     }
     return chosen;
   }
@@ -587,14 +590,17 @@ export async function pickLoose(
                 candidates: matching.map((candidate) => candidate.instanceId),
                 min: 1,
                 max: 1,
+                ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost: maxTotalPlayCost - spent }),
                 visible,
                 visibleCards,
               })
             )[0];
-      if (picked !== undefined && !used.has(picked)) {
+      const pickedCandidate =
+        picked === undefined ? undefined : matching.find((candidate) => candidate.instanceId === picked);
+      if (pickedCandidate !== undefined && !used.has(picked)) {
         used.add(picked);
         chosen.push(picked);
-        spent += playCostOf(candidates.find((candidate) => candidate.instanceId === picked)!);
+        spent += playCostOf(pickedCandidate);
       }
     }
     return chosen;
@@ -661,8 +667,10 @@ export async function pickLoose(
       });
       const id = picked[0];
       if (id !== undefined) {
+        const candidate = eligibleGroup.find((item) => item.instanceId === id);
+        if (candidate === undefined) break;
         chosen.push(id);
-        spent += playCostOf(eligibleGroup.find((candidate) => candidate.instanceId === id)!);
+        spent += playCostOf(candidate);
       }
     }
     return chosen;
@@ -727,7 +735,13 @@ export async function pickLoose(
         candidates: eligible.map((candidate) => candidate.instanceId),
         min: target.upTo ? 0 : 1,
         max: 1,
-        ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
+        ...(maxTotalPlayCost === undefined
+          ? {}
+          : {
+              maxTotalPlayCost:
+                maxTotalPlayCost -
+                chosen.reduce((sum, id) => sum + playCostOf(candidates.find((item) => item.instanceId === id)!), 0),
+            }),
         visible,
         visibleCards,
       });

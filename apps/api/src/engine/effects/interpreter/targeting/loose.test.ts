@@ -7,7 +7,7 @@ function candidate(instanceId: string, cardId: string): LooseCandidate {
   return { instanceId, cardId, ownerSeat: 0 };
 }
 
-function context(definitions: Record<string, number>): EffectContext {
+function context(definitions: Record<string, number>, promptBudgets: number[] = []): EffectContext {
   const source = { ownerSeat: 0, instanceId: "SOURCE" };
   return {
     source,
@@ -22,7 +22,10 @@ function context(definitions: Record<string, number>): EffectContext {
         }) as CardDefinition,
     },
     ask: {
-      selectCards: async (_ctx: EffectContext, options: { candidates: string[] }) => options.candidates,
+      selectCards: async (_ctx: EffectContext, options: { candidates: string[]; maxTotalPlayCost?: number }) => {
+        if (options.maxTotalPlayCost !== undefined) promptBudgets.push(options.maxTotalPlayCost);
+        return options.candidates;
+      },
     },
   } as unknown as EffectContext;
 }
@@ -50,5 +53,46 @@ describe("pickLoose aggregate play-cost budgets", () => {
     } as Target;
 
     await expect(pickLoose(ctx, target, [candidate("A", "A"), candidate("B", "B")])).resolves.toEqual([]);
+  });
+
+  it("publishes the remaining cap to sequential exact-name and level prompts", async () => {
+    const exactBudgets: number[] = [];
+    const exactContext = context({ A: 2, B: 3 }, exactBudgets);
+    const exactTarget = {
+      filter: {},
+      count: 2,
+      requiredNamesExact: ["A", "B"],
+      totalPlayCostBudget: 5,
+    } as Target;
+    await expect(
+      pickLoose(exactContext, exactTarget, [
+        candidate("A1", "A"),
+        candidate("A2", "A"),
+        candidate("B1", "B"),
+        candidate("B2", "B"),
+      ]),
+    ).resolves.toEqual(["A1", "B1"]);
+    expect(exactBudgets).toEqual([5, 3]);
+
+    const levelBudgets: number[] = [];
+    const levelContext = context({ A: 2, B: 3 }, levelBudgets);
+    const levelTarget = { filter: {}, count: 2, distinctLevels: true, totalPlayCostBudget: 5 } as Target;
+    await expect(
+      pickLoose(levelContext, levelTarget, [
+        candidate("A1", "A"),
+        candidate("A2", "A"),
+        candidate("B1", "B"),
+        candidate("B2", "B"),
+      ]),
+    ).resolves.toEqual(["A1", "B1"]);
+    expect(levelBudgets).toEqual([5, 3]);
+  });
+
+  it("ignores a decision ID that is outside a specialized candidate group", async () => {
+    const ctx = context({ A: 2 });
+    (ctx.ask as unknown as { selectCards: () => Promise<string[]> }).selectCards = async () => ["MISSING"];
+    const target = { filter: { distinctNames: true }, count: 1 } as Target;
+
+    await expect(pickLoose(ctx, target, [candidate("A1", "A"), candidate("A2", "A")])).resolves.toEqual([]);
   });
 });
