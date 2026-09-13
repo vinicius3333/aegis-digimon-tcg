@@ -67,7 +67,7 @@ describe("AD1-001 Greymon", () => {
         0: {
           battleArea: [{ card: baseCardId, as: "base" }],
           hand: [{ card: "AD1-001", as: "greymon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       });
       s.state.memory = 2;
@@ -95,7 +95,7 @@ describe("AD1-001 Greymon", () => {
             { card: "AD1-010", as: "garurumon" },
             { card: "BT1-021", as: "metalGreymon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -121,7 +121,7 @@ describe("AD1-001 Greymon", () => {
             { card: "BT1-085", as: "tai" },
             { card: "BT1-021", as: "metalGreymon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -145,7 +145,7 @@ describe("AD1-001 Greymon", () => {
             { card: "AD1-010", as: "garurumon" },
             { card: "BT1-021", as: "metalGreymon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -186,8 +186,8 @@ describe("AD1-001 Greymon", () => {
         0: { battleArea: [{ card: "BT1-021", dp: 7000, as: "attacker", under: ["AD1-001"] }] },
         1: {
           battleArea: [
-            { card: "BT1-001", dp: 9000, as: "highest" },
-            { card: "BT1-001", dp: 3000, as: "lower" },
+            { card: "BT1-010", dp: 9000, as: "highest" },
+            { card: "BT1-011", dp: 3000, as: "lower" },
           ],
         },
       },

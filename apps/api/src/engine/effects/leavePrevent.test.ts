@@ -41,7 +41,7 @@ interface Harness {
     permanentIds: string[],
     cause?: RemovalCause,
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean },
+    opts?: { isBounce?: boolean; isDigiXros?: boolean },
   ): Promise<Set<string>>;
   /** Install a prevent subscription by running a compiled prevent card's effect. */
   installPrevent(sourcePermanent: Permanent, compiled: CompiledCard): Promise<void>;
@@ -164,7 +164,11 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     offeredReplacementIds,
     replacementFiredKeys,
     consult: (ids, cause = "byEffect", resolvingSeat, o) =>
-      consultLeavePrevention(host, ids, cause, resolvingSeat, { isBounce: o?.isBounce, reentryGuard }),
+      consultLeavePrevention(host, ids, cause, resolvingSeat, {
+        isBounce: o?.isBounce,
+        isDigiXros: o?.isDigiXros,
+        reentryGuard,
+      }),
     installPrevent: async (sourcePermanent, compiled) => {
       // The IR files an AllTurns prevent under the continuous/static window (EffectTiming.None);
       // resolving it installs the prevent subscription via runReplacement -> subscribeReplacement.
@@ -228,6 +232,26 @@ function selfSuspendPrevent(cause: LeaveCause): CompiledCard {
 }
 
 describe("leave-area prevent: self-protect, suspend cost", () => {
+  it("skips an except-DigiXros replacement only during DigiXros material relocation", async () => {
+    const h = harness();
+    const self = putPermanent(h.state, 0, "p1");
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      sourcePermanentId: self.permanentId,
+      sourceInstanceId: self.topCard!.instanceId,
+      mode: "prevent",
+      exceptDigiXros: true,
+      description: "except DigiXros",
+      protects: () => true,
+      preventCheck: async () => true,
+    });
+
+    const duringDigiXros = await h.consult([self.permanentId], "byEffect", 0, { isDigiXros: true });
+    expect(duringDigiXros).toEqual(new Set());
+    const ordinaryLeave = await h.consult([self.permanentId], "byEffect", 0);
+    expect(ordinaryLeave).toEqual(new Set([self.permanentId]));
+  });
+
   it("prevents the deletion after paying the suspend cost", async () => {
     const h = harness({ turnSeat: 1 }); // opponent (seat 1) resolves the deletion
     const self = putPermanent(h.state, 0, "p1");

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-007 Siriusmon", () => {
@@ -92,6 +94,18 @@ describe("AD1-007 Siriusmon", () => {
           battleArea: [{ card: "BT10-011", as: "base" }],
           hand: [{ card: "AD1-007", as: "siriusmon" }],
           trash: ["BT10-011", "BT10-050", "BT10-078"],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
       },
@@ -133,6 +147,30 @@ describe("AD1-007 Siriusmon", () => {
             { card: "AD1-007", as: "siriusmon" },
             { card: "BT10-011", as: "only-material" },
           ],
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
       },
@@ -157,7 +195,7 @@ describe("AD1-007 Siriusmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-001"] }],
+          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-009"] }],
           hand: [
             { card: "AD1-007", as: "siriusmon" },
             { card: "BT10-011", as: "gamma-1" },
@@ -193,7 +231,7 @@ describe("AD1-007 Siriusmon", () => {
     }
     await settle(() => s.perm("base").stack.length === 4);
 
-    expect(s.perm("base").stack[3]?.cardId).toBe("BT1-001");
+    expect(s.perm("base").stack[3]?.cardId).toBe("BT1-009");
     expect(
       s
         .perm("base")
@@ -209,7 +247,7 @@ describe("AD1-007 Siriusmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-001"] }],
+          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-009"] }],
           hand: [
             { card: "AD1-007", as: "siriusmon" },
             { card: "BT10-011", as: "gamma-1" },
@@ -251,7 +289,7 @@ describe("AD1-007 Siriusmon", () => {
     await settle(() => s.perm("base").stack.length === 5);
 
     const stack = s.perm("base").stack.map((card) => card.cardId);
-    expect(stack).toEqual(["BT10-078", "BT10-050", "BT1-001", "BT10-011", "BT10-011"]);
+    expect(stack).toEqual(["BT10-078", "BT10-050", "BT1-009", "BT10-011", "BT10-011"]);
     const stackIds = s.perm("base").stack.map((card) => card.instanceId);
     expect(stackIds[0]).toBe(gamma3Id);
     expect(stackIds[1]).toBe(gamma2Id);
@@ -276,11 +314,45 @@ describe("AD1-007 Siriusmon", () => {
             { card: "BT1-010", as: "first-target", dp: 12000 },
             { card: "BT1-010", as: "second-target", dp: 12000, suspended: true },
           ],
+          security: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 5;
+    await s.ready();
+    for (const seat of [0, 1] as const) {
+      for (let n = 0; n < 10; n += 1) {
+        s.give(seat, Zone.Deck, "BT1-009");
+        s.give(seat, Zone.Security, "BT1-009");
+      }
+      s.give(seat, Zone.Hand, "BT1-010");
+    }
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -302,6 +374,22 @@ describe("AD1-007 Siriusmon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("base").stack).toHaveLength(4);
+    const survivorId = s.state.players[1]!.battleArea[0]!.permanentId;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === survivorId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("attacks without suspending at end of turn only with five digivolution cards", async () => {
@@ -313,11 +401,11 @@ describe("AD1-007 Siriusmon", () => {
               card: "AD1-007",
               as: "qualified",
               suspended: true,
-              under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+              under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
             },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -339,11 +427,11 @@ describe("AD1-007 Siriusmon", () => {
               card: "AD1-007",
               as: "unqualified",
               suspended: true,
-              under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+              under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
             },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );

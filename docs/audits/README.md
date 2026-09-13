@@ -32,7 +32,7 @@ docs/audits/
 
 ## Per-set template
 
-````markdown
+```markdown
 ---
 set: BT20
 cards: 102
@@ -75,7 +75,7 @@ file names and dates.
 
 One bullet per superseded file or directory: path, last commit SHA and date, one-line description.
 Group per-card directories as one bullet with the file count.
-````
+```
 
 ## Status index
 
@@ -86,7 +86,7 @@ build when it is stale.
 
 | Set  | Cards | Status      | Verified at | Doc                |
 | ---- | ----- | ----------- | ----------- | ------------------ |
-| AD1  | 25    | verified    | 2026-09-10  | [AD1.md](AD1.md)   |
+| AD1  | 25    | verified    | 2026-09-12  | [AD1.md](AD1.md)   |
 | BT1  | 115   | verified    | 2026-09-10  | [BT1.md](BT1.md)   |
 | BT2  | 112   | verified    | 2026-09-10  | [BT2.md](BT2.md)   |
 | BT3  | 112   | incomplete  | 2026-09-10  | [BT3.md](BT3.md)   |

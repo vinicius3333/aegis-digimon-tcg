@@ -194,6 +194,8 @@ export interface ReplacementSubscriptionBase {
    * deletion). Absent => the reaction fires regardless of cause.
    */
   causeAllows?: (cause: RemovalCause, resolvingSeat: Seat | undefined, isBounce: boolean) => boolean;
+  /** Skip this replacement for the player-action material relocation in DigiXros. */
+  exceptDigiXros?: boolean;
   /**
    * Produced by a PERSISTENT (static / `[Breeding]`) effect re-derived each continuous-recompute
    * pass. Cleared by `clearContinuous` and re-installed fresh so a Static/[Breeding] `reduceCost`

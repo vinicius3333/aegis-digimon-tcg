@@ -82,7 +82,7 @@ describe("AD1-016 ShineGreymon", () => {
             { card: "BT1-010", as: "first", dp: 12000 },
             { card: "BT1-010", as: "second", dp: 12000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoDeclineOptional: true },
@@ -118,23 +118,76 @@ describe("AD1-016 ShineGreymon", () => {
             { card: "AD1-016", as: "shine" },
             { card: "BT12-092", as: "marcus" },
           ],
+          hand: [
+            { card: "BT12-092", as: "marcus2" },
+            { card: "BT12-092", as: "marcus3" },
+          ],
+          deck: [
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+          ],
         },
         1: {
           battleArea: [
             { card: "BT1-010", as: "first", dp: 5000 },
             { card: "BT1-010", as: "second", dp: 6000 },
           ],
+          hand: ["BT1-009"],
+          deck: [
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-009",
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("marcus").permanentId });
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const firstTurn = s.state.turnCount;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.turnCount).toBe(firstTurn);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const survivorId = s.state.players[1]!.battleArea[0]!.permanentId;
 
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(survivorId);
+    expect(s.state.turnCount).toBe(firstTurn);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus3").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {

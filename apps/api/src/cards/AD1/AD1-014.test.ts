@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
@@ -101,7 +102,7 @@ describe("AD1-014 MetalGarurumon", () => {
             { card: "BT1-010", as: "attacker" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -176,5 +177,83 @@ describe("AD1-014 MetalGarurumon", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(observe(nonMatching.engine).isRestricted(nonMatching.perm("target"), "suspend")).toBe(false);
+  });
+
+  it("resets the suspend watcher on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-014", as: "metal", suspended: true },
+            { card: "BT1-010", as: "ally-one", dp: 20_000 },
+            { card: "BT1-010", as: "ally-two", dp: 20_000 },
+            { card: "BT1-010", as: "ally-three", dp: 20_000 },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          hand: ["BT1-013"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+          hand: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally-one").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("metal").isSuspended === false);
+    expect(s.perm("metal").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("metal").isSuspended === true);
+    expect(s.perm("metal").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally-two").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("metal").isSuspended).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("metal").isSuspended === true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally-three").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("metal").isSuspended === false);
+    expect(s.perm("metal").isSuspended).toBe(false);
   });
 });

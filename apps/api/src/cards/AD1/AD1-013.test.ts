@@ -98,6 +98,7 @@ describe("AD1-013 ZeigGreymon", () => {
     const replacementAction = replacement?.actions[0];
     const play = replacementAction?.kind === "Replacement" ? replacementAction.actions?.[0] : undefined;
     expect(play).toMatchObject({ kind: "PlayFromZone", from: ["digivolutionCards"] });
+    expect(replacementAction).toMatchObject({ exceptDigiXros: true });
     expect(play).not.toHaveProperty("digiXrosMaterialsFrom");
     expect(play).toMatchObject({ target: { filter: { hostFilter: { isSelfRef: true } } } });
   });
@@ -121,6 +122,39 @@ describe("AD1-013 ZeigGreymon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("other-host").topCard.cardId).toBe("AD1-006");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024")).toBe(false);
+  });
+
+  it("does not trigger its leave replacement when ZeigGreymon is consumed as DigiXros material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-013", as: "zeig", under: [{ card: "BT10-024", as: "eligible-source" }] },
+            { card: "BT11-015", as: "omni-shoutmon" },
+          ],
+          hand: [{ card: "BT11-018", as: "shoutmon-dx" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    const zeigId = s.inst("zeig").instanceId;
+    const omniId = s.inst("omni-shoutmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shoutmon-dx").instanceId,
+        digiXros: { materialInstanceIds: [omniId, zeigId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT11-018"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT11-015", "AD1-013"]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-024")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024")).toBe(false);
   });
 
