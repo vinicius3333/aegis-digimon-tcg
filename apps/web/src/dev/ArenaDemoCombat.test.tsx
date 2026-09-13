@@ -37,7 +37,7 @@ it.each([
     // Consume the trailing browser click: the pointerup already opened the panel.
     fireEvent.click(attacker);
   }
-  fireEvent.click(within(screen.getByRole("dialog", { name })).getByRole("button", { name: "Attack", exact: true }));
+  fireEvent.click(within(screen.getByRole("dialog", { name })).getByRole("button", { name: "Attack" }));
   expect(container.querySelector(".game-action-bar")).toBeNull();
   const security = container.querySelector<HTMLElement>('[data-drop="opp-security"]')!;
   const dobermon = container.querySelector<HTMLElement>('[data-drop="perm-opp"][data-id="opponent-dobermon"]')!;
@@ -47,9 +47,7 @@ it.each([
   expect(container.querySelector(".game-action-bar--idle")).toBeTruthy();
   fireEvent.change(screen.getByRole("combobox", { name: "Phase" }), { target: { value: Phase.Draw } });
   fireEvent.keyDown(attacker, { key: "Enter" });
-  expect(
-    within(screen.getByRole("dialog", { name })).queryByRole("button", { name: "Attack", exact: true }),
-  ).toBeNull();
+  expect(within(screen.getByRole("dialog", { name })).queryByRole("button", { name: "Attack" })).toBeNull();
 });
 
 it("drops target selection when changing phase invalidates the projected attack", () => {
@@ -63,7 +61,6 @@ it("drops target selection when changing phase invalidates the projected attack"
   fireEvent.click(
     within(screen.getByRole("dialog", { name: "Chronomon: Holy Mode" })).getByRole("button", {
       name: "Attack",
-      exact: true,
     }),
   );
   expect(container.querySelector(".game-action-bar")).toBeNull();
@@ -104,7 +101,6 @@ it("sends direct keyboard/click target intents and cancels by tapping the attack
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "Chronomon: Holy Mode" })).getByRole("button", {
         name: "Attack",
-        exact: true,
       }),
     );
     expect(container.querySelector(".game-action-bar")).toBeNull();
