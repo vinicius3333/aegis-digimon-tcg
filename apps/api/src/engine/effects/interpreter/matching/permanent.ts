@@ -32,9 +32,7 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
   const trash = ctx.game.player(ctx.source.ownerSeat).trash;
   return deletedStackIds.some((instanceId) => {
     const card = trash.find((candidate) => candidate.instanceId === instanceId);
-    // Normal deletion keeps the stack card's event-time face state when moving it to trash;
-    // cards whose producer normalized visibility before firing must carry an explicit snapshot
-    // state, which the current snapshot contract does not yet provide.
+    // Deletion LKI reads the moved stack instance, retaining its event-time visibility state.
     return card?.faceUp === true && definitionMatches(filter, ctx.game.definitionOf(card));
   });
 }
