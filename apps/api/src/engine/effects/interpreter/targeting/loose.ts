@@ -523,6 +523,14 @@ export async function pickLoose(
   // many cards may be selected, regardless of the IR `count`. It never widens the request.
   const requested = target.count === "all" ? candidates.length : effectiveTargetCount(ctx, target);
   const want = cap === undefined ? requested : Math.min(requested, cap);
+  const explicitMinimum = target.upTo ? (target.minimum ?? 0) : 0;
+  if (Math.min(want, candidates.length) < explicitMinimum) return [];
+  const finishSelection = (ids: string[]): string[] => {
+    const unique = [...new Set(ids)]
+      .filter((id) => candidates.some((candidate) => candidate.instanceId === id))
+      .slice(0, Math.max(0, want));
+    return unique.length < explicitMinimum ? [] : unique;
+  };
   // If differentColors constraint, we need to validate the selection even when every
   // candidate would otherwise be auto-selected.
   const requireDifferentColors = target.filter?.differentColors === true;
@@ -567,7 +575,7 @@ export async function pickLoose(
       chosen.push(picked);
       spent += playCostOf(pickedCandidate);
     }
-    return chosen;
+    return finishSelection(chosen);
   }
   if (requiredNamesExactUpTo.length > 0) {
     const chosen: string[] = [];
@@ -603,7 +611,7 @@ export async function pickLoose(
         spent += playCostOf(pickedCandidate);
       }
     }
-    return chosen;
+    return finishSelection(chosen);
   }
   if (requireDistinctNames) {
     const groups = new Map<string, LooseCandidate[]>();
@@ -617,12 +625,13 @@ export async function pickLoose(
     const groupList = [...groups.values()];
     if (groupList.length === 0) return [];
     const distinctWant = target.count === "all" ? groupList.length : Math.min(want, groupList.length);
+    if (distinctWant < explicitMinimum) return [];
     if (!target.upTo && groupList.length < distinctWant) return [];
     if (target.upTo) {
       const ids = groupList.flatMap((group) => group.map((candidate) => candidate.instanceId));
       const picked = await asker.selectCards(ctx, {
         candidates: ids,
-        min: 0,
+        min: explicitMinimum,
         max: distinctWant,
         ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
         visible,
@@ -642,7 +651,7 @@ export async function pickLoose(
         chosen.push(instanceId);
         spent += playCostOf(candidate);
       }
-      return chosen;
+      return finishSelection(chosen);
     }
     const chosen: string[] = [];
     let spent = 0;
@@ -673,7 +682,7 @@ export async function pickLoose(
         spent += playCostOf(candidate);
       }
     }
-    return chosen;
+    return finishSelection(chosen);
   }
   if (requireDistinctCardNumbers) {
     const groups = new Map<string, LooseCandidate[]>();
@@ -683,11 +692,12 @@ export async function pickLoose(
       groups.set(candidate.cardId, group);
     }
     const distinctWant = target.count === "all" ? groups.size : Math.min(want, groups.size);
+    if (distinctWant < explicitMinimum) return [];
     if (!target.upTo && groups.size < distinctWant) return [];
     const ids = [...groups.values()].flatMap((group) => group.map((candidate) => candidate.instanceId));
     const picked = await asker.selectCards(ctx, {
       candidates: ids,
-      min: target.upTo ? 0 : distinctWant,
+      min: target.upTo ? explicitMinimum : distinctWant,
       max: distinctWant,
       distinctCardIds: true,
       ...(maxTotalPlayCost === undefined ? {} : { maxTotalPlayCost }),
@@ -705,7 +715,7 @@ export async function pickLoose(
       chosen.push(instanceId);
       spent += playCostOf(candidate);
     }
-    return chosen;
+    return finishSelection(chosen);
   }
   if (requireDistinctLevels) {
     const chosen: string[] = [];
@@ -716,6 +726,7 @@ export async function pickLoose(
         .filter((level): level is number => level !== undefined),
     ).size;
     const distinctWant = target.count === "all" ? distinctLevelCount : Math.min(want, distinctLevelCount);
+    if (distinctWant < explicitMinimum) return [];
     if (!target.upTo && distinctLevelCount < want) return [];
     while (chosen.length < distinctWant) {
       const eligible = candidates.filter((candidate) => {
@@ -733,7 +744,7 @@ export async function pickLoose(
       if (eligible.length === 0) break;
       const picked = await asker.selectCards(ctx, {
         candidates: eligible.map((candidate) => candidate.instanceId),
-        min: target.upTo ? 0 : 1,
+        min: target.upTo && chosen.length >= explicitMinimum ? 0 : 1,
         max: 1,
         ...(maxTotalPlayCost === undefined
           ? {}
@@ -754,7 +765,7 @@ export async function pickLoose(
       usedLevels.add(level);
       chosen.push(instanceId);
     }
-    return chosen;
+    return finishSelection(chosen);
   }
   if (
     target.count === "all" &&
@@ -773,7 +784,7 @@ export async function pickLoose(
   )
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
-  const min = target.upTo ? Math.min(target.minimum ?? 0, candidates.length) : Math.min(want, candidates.length);
+  const min = target.upTo ? explicitMinimum : Math.min(want, candidates.length);
   // CR 15-10-2-1 requires the printed X for a fixed-count target. Different-color
   // feasibility validates the completed selection; it cannot silently turn an exact
   // two-card payment into a one-card payment. Only an up-to target may use its lower min.
@@ -828,5 +839,6 @@ export async function pickLoose(
       return true;
     });
   }
-  return !target.upTo && chosen.length < selectionMin ? [] : chosen;
+  const sanitized = finishSelection(chosen);
+  return !target.upTo && sanitized.length < selectionMin ? [] : sanitized;
 }

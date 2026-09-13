@@ -47,6 +47,7 @@ export type EnforcedRestriction =
   | "beSuspended" // "can't be suspended" by effects; combat self-suspend is exempt (BT19-101 KB Q3185)
   | "beTrashed"
   | "beReturned"
+  | "stackReturn" // Individual stacked-card returns, independently of whole-Digimon bounce.
   | "leaveBattleAreaExceptByDeletion"
   | "digivolve"
   | "digivolveToLevel7"

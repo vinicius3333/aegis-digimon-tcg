@@ -27,7 +27,7 @@ const protection = [
       {
         kind: "Restrict",
         target: { filter: {}, count: 1, fromSelectionRef: "protectedDigimon" },
-        restriction: "returnToHandOrDeck",
+        restriction: "stackReturn",
         duration: "untilOpponentTurnEnd",
         byOpponentEffectsOnly: true,
       },
