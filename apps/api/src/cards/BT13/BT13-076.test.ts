@@ -4,6 +4,8 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-076.js";
 import "./BT13-069.js";
+import "./BT13-112.js";
+import "../BT11/BT11-041.js";
 import "../BT14/BT14-038.js";
 
 describe("BT13-076 KingEtemon", () => {
@@ -128,22 +130,90 @@ describe("BT13-076 KingEtemon", () => {
     }
   });
 
-  it("reduces an opposing Digimon when your Etemon is deleted", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-076", as: "king" },
-          { card: "BT11-041", as: "etemon" },
-        ],
+  it("debuffs after a public Etemon battle deletion once per turn and resets next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-076", as: "king" },
+            { card: "BT11-041", as: "first" },
+            { card: "BT11-041", as: "second" },
+            { card: "BT11-041", as: "third" },
+          ],
+          hand: ["BT1-009"],
+          security: ["BT1-009"],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT13-112", as: "target", suspended: true }],
+          hand: ["BT1-009"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
       },
-      1: { battleArea: [{ card: "BT1-015", as: "target", dp: 9000 }] },
-    });
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
-
-    expect(s.perm("target").currentDP).toBe(6000);
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    for (const alias of ["first", "second"]) {
+      const attackerId = s.perm(alias).permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: attackerId,
+          target: { kind: "digimon", permanentId: s.perm("target").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
+      await settle();
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst(alias).instanceId);
+      expect(s.perm("target").currentDP).toBe(11000);
+      expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+    }
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("target").currentDP).toBe(14000);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
+    const thirdId = s.perm("third").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: thirdId,
+        target: { kind: "digimon", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === thirdId));
+    await settle();
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("third").instanceId);
+    expect(s.perm("target").currentDP).toBe(11000);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("also triggers when an opponent's Etemon is deleted (Q2314)", async () => {
