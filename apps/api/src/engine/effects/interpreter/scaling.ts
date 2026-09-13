@@ -19,45 +19,46 @@ import type { Filter, Scaling, Target } from "@aegis/shared";
  * is inaccessible to ordinary effects (§3-4-7-7/8); count it only when the filter
  * explicitly references `breeding`, alone or in a field-zone union.
  */
+const HIDDEN_STACK_INFORMATION_KEYS = [
+  "cardId",
+  "isToken",
+  "kind",
+  "forms",
+  "traits",
+  "traitContains",
+  "colors",
+  "colorsAll",
+  "excludeColors",
+  "multicolor",
+  "levels",
+  "levelComparison",
+  "levelLte",
+  "levelEq",
+  "dp",
+  "dpAtMost",
+  "playCostLte",
+  "playCostGte",
+  "playCostOneOf",
+  "nameOrTrait",
+  "keywords",
+  "excludeKeywords",
+  "hasInheritedEffects",
+  "hasLevel",
+  "excludeNames",
+  "excludeCardIds",
+  "excludeNameOrTrait",
+  "excludeCardsNamed",
+  "digivolutionStackNameOrTrait",
+  "stackKeywords",
+] as const;
+
+function hiddenStackCanMatchFilter(filter: Filter): boolean {
+  return !HIDDEN_STACK_INFORMATION_KEYS.some((key) => key in filter);
+}
+
 export function countMatching(ctx: EffectContext, filter: Filter): number {
   const seats = seatsForController(ctx, filter);
   let n = 0;
-  const hiddenStackCanMatch = (card: { faceUp?: boolean }): boolean => {
-    if (card.faceUp === true) return true;
-    const cardInfoKeys = [
-      "cardId",
-      "isToken",
-      "kind",
-      "forms",
-      "traits",
-      "traitContains",
-      "colors",
-      "colorsAll",
-      "excludeColors",
-      "multicolor",
-      "levels",
-      "levelComparison",
-      "levelLte",
-      "levelEq",
-      "dp",
-      "dpAtMost",
-      "playCostLte",
-      "playCostGte",
-      "playCostOneOf",
-      "nameOrTrait",
-      "keywords",
-      "excludeKeywords",
-      "hasInheritedEffects",
-      "hasLevel",
-      "excludeNames",
-      "excludeCardIds",
-      "excludeNameOrTrait",
-      "excludeCardsNamed",
-      "digivolutionStackNameOrTrait",
-      "stackKeywords",
-    ];
-    return !cardInfoKeys.some((key) => key in filter);
-  };
   // `filter.zone` may name several LOOSE-CARD zones to sum across (e.g. "in your trash
   // or your Digimon's digivolution cards" — EX9-054/EX9-005 Negamon archetype). A single
   // zone is treated as a one-element list so the existing single-zone behavior is
@@ -111,7 +112,7 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
               )
                 continue;
               for (const card of permanent.stack) {
-                if (!hiddenStackCanMatch(card)) continue;
+                if (card.faceUp !== true && !hiddenStackCanMatchFilter(filter)) continue;
                 if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
               }
             }
@@ -332,6 +333,7 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
             (card) =>
               (filter.faceDown !== true || !card.faceUp) &&
               (filter.faceUp !== true || card.faceUp) &&
+              (card.faceUp === true || hiddenStackCanMatchFilter(filter)) &&
               definitionMatches(filter, ctx.game.definitionOf(card)),
           ).length
         : 0;
@@ -341,6 +343,8 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       const self = ctx.source.permanent();
       const byLevel = new Map<number, number>();
       for (const card of self?.stack ?? []) {
+        // Level is card information; a face-down source contributes no readable level.
+        if (card.faceUp !== true) continue;
         const level = ctx.game.definitionOf(card).level;
         if (level === undefined) continue;
         byLevel.set(level, (byLevel.get(level) ?? 0) + 1);

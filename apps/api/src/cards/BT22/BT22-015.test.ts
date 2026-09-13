@@ -105,6 +105,44 @@ describe("BT22-015 Omnimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Blocker")).toBe(true);
   });
 
+  it("does not use hidden source levels for same-level pair scaling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-015",
+              as: "omnimon",
+              under: [
+                { card: "EX9-039", faceUp: false },
+                { card: "EX9-039", faceUp: false },
+                { card: "EX9-043", faceUp: false },
+                { card: "BT22-009", faceUp: true },
+                { card: "BT22-009", faceUp: true },
+              ],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omnimon"));
+
+    // Only the two face-up level-4 sources form one readable pair; the two hidden EX9-039 sources
+    // contribute no level information and therefore cannot create a second pair.
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("deletes exactly one lowest-DP opponent on play", async () => {
     const s = setupEngine(
       {

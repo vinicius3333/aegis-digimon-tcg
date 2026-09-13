@@ -40,3 +40,9 @@ The three public sequences prove the demonstrated copied and inherited source le
 ## Delivery gates
 
 Final full default API: **5112 files, 42359 tests passed**, zero expected failures, 54.67 seconds. Shared/API/web workspace typecheck passed. Scoped Oxlint, twelve-file Oxfmt, current 66-set index, layout (one file/four tests), clean diff check and independent read-only review pass. The exception remains a privileged preflight projection; hidden unpaid waiver, mixed static actions and DUAL consumer equivalence are not certified.
+
+## Scaling-reader regression
+
+The scaling reader now applies the §4-7-9 information boundary to both affected shapes. `sameLevelDigivolutionPairs` counts only face-up source levels, while `digivolutionCards` continues to count hidden cards only for quantity/state-only filters and refuses hidden cards when the filter requests identity information such as form, level, name, trait, kind, color, or DP. The shared information-key predicate is defined once in `apps/api/src/engine/effects/interpreter/scaling.ts`.
+
+`cards/BT22/BT22-015.test.ts` adds a real-card regression using hidden EX9-039/EX9-043 sources alongside two visible BT22-009 sources: only the visible level pair contributes to the public When Digivolving return count. Existing public EX9-039/EX9-043 and BT9-083 consumers remain in the focused gate; their hidden placement and form-filter paths resolve without exposing hidden definitions. This is a bounded reader regression, not a full hidden-information certificate.
