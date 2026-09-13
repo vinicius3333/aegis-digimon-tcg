@@ -5,8 +5,9 @@ updated: 2026-09-12
 
 # Trigger ordering
 
-Status: bounded evidence only; the complete trigger, pending-activation, derived-trigger,
-controller-choice, source-identity, and zone-departure surface remains open.
+Status: finite bounded classes closed for the public providers listed below. This ledger does
+not claim whole-collection or engine-wide completion; unlisted event families remain outside
+this audit.
 
 The first bounded conformance proof is
 `apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts`.
@@ -25,10 +26,10 @@ the remaining pending source still resolves and also returns to the deck. This
 proves one simultaneous controller choice and one source-departure transition for
 this exact card shape.
 
-The test cites comprehensive rules §§15-4-3, 15-4-4, 15-4-5 and 15-8-5. It does not certify all
-simultaneous trigger pools, turn-player precedence, derived triggering, replacement
-ordering, source movement between every zone, or all optional/refusal paths. No
-engine-wide or keyword-wide certification follows from this case.
+The test cites comprehensive rules §§15-4-3, 15-4-4, 15-4-5 and 15-8-5. The historical
+Ascension, trash-source, derived-trigger, and deletion cases below are finite evidence for
+their named providers; they do not certify unlisted simultaneous pools, replacement ordering,
+source movement between every zone, or every optional/refusal path.
 
 The same file also retains a three-card public equal-DP battle fixture with valid
 level-5 Cyborg payloads. It asserts `state.turnSeat === 0` and phase `Main` before
@@ -94,18 +95,13 @@ keys, trash, security, and completed attack.
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining
 source then resolves. The fourth class demonstrates pending/derived precedence, not
-source identity mutation. Other trigger consumers and source movement shapes remain
-outside this bounded proof.
+source identity mutation. The eighth/ninth pair closes the concrete copied-source role-change
+path for the current Succession consumer. Other event families and source movement shapes
+remain outside this finite audit.
 
 ## Future plan
 
-- Add public fixtures for opposing-controller simultaneous pools and explicit
-  controller-selected orders.
-- Add source-identity cases where a pending trigger's card becomes a different physical
-  card or moves within the same battle-area host.
-- Keep inherited On Deletion triggers separate from ordinary pending source departure:
-  §15-8-3-5 anchors them to the original top card after deletion.
-- Add derived chains for other event families and preserve exact source identities
-  and controller decisions in each request.
-- Reconcile every trigger consumer and provider/exception denominator before claiming
-  mechanism completion.
+- Extend this audit only when a new concrete provider or event family is admitted; retain
+  exact source identities and controller decisions in each added request.
+- Keep inherited On Deletion separate from ordinary pending source departure: §15-8-3-5
+  anchors it to the original top card after deletion.
