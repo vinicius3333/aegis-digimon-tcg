@@ -5,8 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-020.js";
 
-const HOST_CARD = "BT11-042";
-
 describe("BT11-020 Gaomon", () => {
   it("matches the catalog and carries both complete printed effects", () => {
     expect(getCardDefinition("BT11-020")).toMatchObject({
@@ -129,7 +127,6 @@ describe("BT11-020 Gaomon", () => {
     s.state.memory = 3;
     await s.ready();
     const hostId = s.perm("host").permanentId;
-    const firstId = s.perm("first").permanentId;
     const secondId = s.perm("second").permanentId;
     const firstInstanceId = s.inst("first").instanceId;
     const secondInstanceId = s.inst("second").instanceId;

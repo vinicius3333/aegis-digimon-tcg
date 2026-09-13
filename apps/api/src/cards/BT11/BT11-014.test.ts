@@ -162,7 +162,7 @@ describe("BT11-014 GrapLeomon", () => {
 
     const firstTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    for (const [index, victimId] of victimIds.entries()) {
+    for (const [index, victimId] of victimIds.slice(0, 2).entries()) {
       expect(
         s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
       ).toEqual({ ok: true });
@@ -173,11 +173,7 @@ describe("BT11-014 GrapLeomon", () => {
         securityIds[1],
         securityIds[2],
       ]);
-      if (index === 0) expect(s.perm("marsmon").isSuspended).toBe(false);
-      if (index === 1) {
-        expect(s.perm("marsmon").isSuspended).toBe(true);
-        break;
-      }
+      expect(s.perm("marsmon").isSuspended).toBe(index === 1);
     }
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityIds[0]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(securityIds[1]);

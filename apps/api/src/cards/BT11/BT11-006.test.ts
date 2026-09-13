@@ -98,7 +98,6 @@ describe("BT11-006 Tsunomon", () => {
     }
     s.state.memory = 10;
     const hostPermanentId = s.perm("host").permanentId;
-    const before = s.perm("host").currentDP;
     const eggSourceId = s.perm("host").stack[0]!.instanceId;
     const firstSourceId = s.perm("host").topCard!.instanceId;
     const firstEvoId = s.inst("first-evo").instanceId;
@@ -173,8 +172,8 @@ describe("BT11-006 Tsunomon", () => {
         ],
       },
     });
-    const before = s.perm("host").currentDP;
 
+    const before = s.perm("host").currentDP;
     await advance(s.engine).verb.trash([s.inst("first").instanceId]);
     await settle(() => s.perm("host").currentDP === before + 1000);
     await advance(s.engine).verb.trash([s.inst("second").instanceId]);
@@ -189,8 +188,8 @@ describe("BT11-006 Tsunomon", () => {
         hand: [{ card: "BT1-010", as: "discard" }],
       },
     });
-    const before = s.perm("host").currentDP;
 
+    const before = s.perm("host").currentDP;
     await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
       handTrashedSeat: 0,
       trashedFromHandCardId: "BT1-010",

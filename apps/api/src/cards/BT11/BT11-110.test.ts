@@ -12,7 +12,12 @@ describe("BT11-110 Evil Squall", () => {
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "Delete",
       target: {
-        filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+        filter: {
+          controller: "opponent",
+          unsuspended: true,
+          kind: ["Digimon"],
+          levelComparison: { op: "lte", value: 5 },
+        },
         count: 3,
       },
     });

@@ -6,9 +6,17 @@ import { compiled } from "./BT11-102.js";
 
 describe("BT11-102 High Mega Blaster", () => {
   it("maps catalog facts and each printed effect to IR", () => {
-    expect(getCardDefinition("BT11-102")).toMatchObject({ cardId: "BT11-102", colors: ["Green"], kinds: ["Option"], playCost: 3 });
+    expect(getCardDefinition("BT11-102")).toMatchObject({
+      cardId: "BT11-102",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 3,
+    });
     expect(compiled.effects).toMatchObject([
-      { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }] },
+      {
+        trigger: "Main",
+        actions: [{ kind: "SelectBind" }, { kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "Suspend" }] },
     ]);
   });

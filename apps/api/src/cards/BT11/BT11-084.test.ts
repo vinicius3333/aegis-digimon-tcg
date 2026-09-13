@@ -82,7 +82,6 @@ describe("BT11-084 BlueMeramon", () => {
     );
     preferred.push(s.inst("firstPlayed").instanceId, s.inst("nextPlayed").instanceId);
     s.state.memory = 10;
-    const hostId = s.perm("host").permanentId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMerva").instanceId })).toEqual({
       ok: true,
     });

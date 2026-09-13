@@ -98,7 +98,6 @@ describe("BT11-105 Fusionize", () => {
       },
       { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
     );
-    const optionId = s.inst("option").instanceId;
     const vemmonId = s.inst("vemmon").instanceId;
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));

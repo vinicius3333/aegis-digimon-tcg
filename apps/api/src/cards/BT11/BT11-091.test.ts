@@ -5,7 +5,12 @@ import { compiled } from "./BT11-091.js";
 
 describe("BT11-091 Taiga", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-091")).toMatchObject({ cardId: "BT11-091", colors: ["Green"], kinds: ["Tamer"], playCost: 3 });
+    expect(getCardDefinition("BT11-091")).toMatchObject({
+      cardId: "BT11-091",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      playCost: 3,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 1000 }] },
       { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve" }] },
