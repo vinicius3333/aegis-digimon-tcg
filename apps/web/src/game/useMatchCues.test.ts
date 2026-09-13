@@ -398,6 +398,124 @@ describe("match cues", () => {
     expect(result.current.phaseBanner).toBeNull();
   });
 
+  it("holds the pre-draw hand through unsuspend and locks actions through breeding's announcement", async () => {
+    const anchor = document.createElement("div");
+    vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
+    const drawAnchors = {
+      ...anchors,
+      board: { current: anchor },
+      yourDeck: { current: anchor },
+      yourHandDock: { current: anchor },
+    };
+    const before = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const after = {
+      ...before,
+      players: before.players.map((player, seat) => (seat === 0 ? { ...player, handCount: 6, deckCount: 39 } : player)),
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+        useMatchCues({
+          batches: feed(events),
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: drawAnchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { state: before, events: [] as readonly ServerEvent[] } },
+    );
+    await advance(0);
+    rerender({
+      state: after,
+      events: [UNSUSPEND_PHASE, { ...UNSUSPEND_PHASE, phase: "Draw" }, { ...UNSUSPEND_PHASE, phase: "Breeding" }],
+    });
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.phaseTransitionPending).toBe(true);
+    expect(result.current.heldDrawState?.players[0]?.handCount).toBe(5);
+    expect(result.current.drawFlights).toHaveLength(0);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner?.phase).toBe("Draw");
+    expect(result.current.heldDrawState).toBeUndefined();
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.phaseTransitionPending).toBe(true);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner?.phase).toBe("Breeding");
+    expect(result.current.phaseTransitionPending).toBe(true);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseTransitionPending).toBe(false);
+  });
+
+  it("releases the phase lock when the first turn skips drawing", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([UNSUSPEND_PHASE, { ...UNSUSPEND_PHASE, phase: "Breeding" }]);
+    await advance(0);
+    expect(result.current.phaseTransitionPending).toBe(true);
+    await advance(TIMINGS.phaseBanner * 2);
+    expect(result.current.phaseTransitionPending).toBe(false);
+    expect(result.current.heldDrawState).toBeUndefined();
+    expect(result.current.drawFlights).toHaveLength(0);
+  });
+
+  it("holds a mutable server hand before its patched batch closes, without replaying phase events", async () => {
+    const state = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, deckCount: 40, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const phases: ServerEvent[] = [
+      UNSUSPEND_PHASE,
+      { ...UNSUSPEND_PHASE, phase: "Draw" },
+      { ...UNSUSPEND_PHASE, phase: "Breeding" },
+    ];
+    const { result, rerender } = renderHook(
+      ({ phaseEvents, batches }: { phaseEvents: readonly ServerEvent[]; batches: readonly ServerBatch[] }) =>
+        useMatchCues({
+          state,
+          phaseEvents,
+          batches,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { phaseEvents: [] as readonly ServerEvent[], batches: [] as readonly ServerBatch[] } },
+    );
+    await advance(0);
+    // Events arrive before Colyseus mutates the existing state object. The close
+    // marker is sent after that patch, so these are three independent renders.
+    rerender({ phaseEvents: phases, batches: [] });
+    state.players[0]!.handCount = 6;
+    state.players[0]!.deckCount = 39;
+    rerender({ phaseEvents: phases, batches: [] });
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldDrawState?.players[0]?.handCount).toBe(5);
+    expect(result.current.heldDrawState?.players[0]?.deckCount).toBe(40);
+    expect(result.current.phaseTransitionPending).toBe(true);
+    rerender({ phaseEvents: phases, batches: [singleServerBatch(phases)] });
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner?.phase).toBe("Draw");
+    expect(result.current.heldDrawState).toBeUndefined();
+    await advance(TIMINGS.phaseBanner * 2);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.phaseTransitionPending).toBe(false);
+  });
+
+  it("does not lock actions or hold a hand when reconnecting to phase history", async () => {
+    const { result } = renderCues([
+      UNSUSPEND_PHASE,
+      { ...UNSUSPEND_PHASE, phase: "Draw" },
+      { ...UNSUSPEND_PHASE, phase: "Breeding" },
+    ]);
+    await advance(0);
+    expect(result.current.phaseTransitionPending).toBe(false);
+    expect(result.current.heldDrawState).toBeUndefined();
+    expect(result.current.phaseBanner).toBeNull();
+  });
+
   it("plays a live turn banner for its full time and then clears it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

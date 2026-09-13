@@ -3,15 +3,23 @@
    player does — the egg deck, the raising slot and the turn control. */
 
 import { fireEvent, screen } from "./testingLibrary";
+import { expect, vi } from "vitest";
 
-const TIMEOUT = 10_000;
+const TIMEOUT = 20_000;
 
 /**
  * The turn control only reads "End breeding" inside the viewer's own breeding
  * step, so finding it is also how a scenario waits for that step to open.
  */
-export function findEndBreedingControl(timeout = TIMEOUT): Promise<HTMLElement> {
-  return screen.findByRole("button", { name: /^end breeding$/i }, { timeout });
+export async function findEndBreedingControl(timeout = TIMEOUT): Promise<HTMLElement> {
+  const control = await screen.findByRole("button", { name: /^end breeding$/i }, { timeout });
+  await waitForBoardActions(timeout);
+  return control;
+}
+
+/** Phase state can arrive before its announcement finishes; wait for the visible lock. */
+export async function waitForBoardActions(timeout = TIMEOUT): Promise<void> {
+  await vi.waitFor(() => expect(screen.queryAllByTestId("board-input-lock")).toHaveLength(0), { timeout });
 }
 
 /** Ends the breeding step from the board's turn control. */
@@ -25,7 +33,7 @@ export async function endBreedingStep(timeout = TIMEOUT): Promise<void> {
  */
 export async function hatchDigiEgg(timeout = TIMEOUT): Promise<void> {
   await findEndBreedingControl(timeout);
-  fireEvent.click(await screen.findByRole("button", { name: /^eggs · \d+$/i }, { timeout }));
+  fireEvent.click(screen.getByRole("button", { name: /^eggs · \d+$/i }));
 }
 
 /**

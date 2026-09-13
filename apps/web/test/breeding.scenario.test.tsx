@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
-import { hatchDigiEgg, moveFromBreedingArea } from "./scenarioHarness/breedingStep";
+import { hatchDigiEgg, moveFromBreedingArea, waitForBoardActions } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -88,6 +88,7 @@ scenario("breeding", () => {
     // breeding area with it (free — memory cost 0) by clicking the breeding slot,
     // the same click-routing the battle area uses for on-field digivolution.
     const [biyomonImg] = await screen.findAllByRole("img", { name: /biyomon/i });
+    await waitForBoardActions();
     tap(biyomonImg!);
     fireEvent.click(yourBreedingSlot());
 
@@ -105,6 +106,7 @@ scenario("breeding", () => {
         opponent.endPhase();
       }
     });
+    await waitForBoardActions();
     fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
 
     // Back on the protagonist's second turn, the breeding step reopens — the
@@ -118,7 +120,7 @@ scenario("breeding", () => {
     expect(within(yourBreedingSlot()).getByText(/empty/i)).toBeTruthy();
 
     await opponent.leave();
-  }, 20_000);
+  }, 40_000);
 
   it("offers Mother D-Reaper's official DP-based move and renders it in battle", async () => {
     vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
@@ -155,6 +157,7 @@ scenario("breeding", () => {
         opponent.endPhase();
       }
     });
+    await waitForBoardActions();
     fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
 
     await moveFromBreedingArea();
@@ -164,5 +167,5 @@ scenario("breeding", () => {
     expect(opponent.room.state.players[0]!.battleArea[0]?.topCard.cardId).toBe("EX2-007");
 
     await opponent.leave();
-  }, 20_000);
+  }, 40_000);
 });

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
-import { endBreedingStep } from "./scenarioHarness/breedingStep";
+import { endBreedingStep, waitForBoardActions } from "./scenarioHarness/breedingStep";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -78,6 +78,7 @@ scenario("end-turn", () => {
     });
 
     // End the protagonist's own Main phase — this passes the turn.
+    await waitForBoardActions();
     fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
 
     // The turn indicator flips to the opponent. A transient "Opponent's turn"

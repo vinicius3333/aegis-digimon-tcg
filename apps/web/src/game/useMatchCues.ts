@@ -20,6 +20,7 @@
    (ARCHITECTURE.md §4). */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { snapshotGameState } from "../net/presentedState";
 import type { RefObject } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
@@ -299,6 +300,10 @@ export interface MatchCues {
   attackLunge: AttackLunge | null;
   /** "Breeding Phase" / "Main Phase", announced as the phase opens. */
   phaseBanner: PhaseBanner | null;
+  /** Turn actions wait until all queued phase announcements have finished. */
+  phaseTransitionPending: boolean;
+  /** Hand/deck presentation before the queued draw phase reaches the screen. */
+  heldDrawState: GameState | undefined;
   /** The full-screen cut-in currently playing, when the setting is on. */
   cutIn: DigivolutionCutIn | null;
   /** The zone-specific moment each activating effect source is currently playing. */
@@ -404,6 +409,7 @@ function buildCardSiteIndex(state: GameState): {
 
 export function useMatchCues({
   batches,
+  phaseEvents,
   state,
   viewerSeat,
   mulliganOpen,
@@ -415,6 +421,8 @@ export function useMatchCues({
 }: {
   /** The closed server batches, in order. One batch is one moment of the rules. */
   batches: readonly ServerBatch[];
+  /** Raw phase events arrive before the state patch and its batch-close marker. */
+  phaseEvents?: readonly ServerEvent[];
   state: GameState | undefined;
   viewerSeat: Seat;
   /** The opening hand and a mulligan redeal are dealt, not drawn. */
@@ -498,6 +506,12 @@ export function useMatchCues({
   const [permanentBursts, setPermanentBursts] = useState<ReadonlyMap<string, PermanentBurst>>(new Map());
   const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
+  const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
+  const [heldDrawState, setHeldDrawState] = useState<GameState | undefined>();
+  const previousDrawStateRef = useRef<GameState | undefined>(undefined);
+  const phaseBaselineRef = useRef(false);
+  const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" }> | undefined>(undefined);
+  const drawPhaseWaitingRef = useRef(false);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
@@ -1794,30 +1808,6 @@ export function useMatchCues({
         if (step) enqueue(step);
       }
     }
-    for (const openedPhase of fresh) {
-      if (openedPhase.kind !== "phaseChanged") continue;
-      phaseBannerKeyRef.current += 1;
-      const banner = phaseBannerFrom({
-        phase: openedPhase.phase,
-        turnSeat: openedPhase.turnSeat,
-        viewerSeat,
-        key: phaseBannerKeyRef.current,
-      });
-      if (banner) {
-        enqueue({
-          id: `phase-banner-${banner.key}`,
-          track: "phaseBanner",
-          // It names the phase the player is now in, so it keeps its time.
-          skippable: false,
-          async run(context) {
-            setPhaseBanner(banner);
-            await context.wait(TIMINGS.phaseBanner);
-            if (context.cancelled) return;
-            setPhaseBanner((current) => (current?.key === banner.key ? null : current));
-          },
-        });
-      }
-    }
     const unsuspendPhase = [...fresh]
       .reverse()
       .find((event) => event.kind === "phaseChanged" && event.phase === UNSUSPEND_PHASE);
@@ -1871,6 +1861,64 @@ export function useMatchCues({
       });
     }
   }
+
+  const phaseHistory = useMemo(
+    () => (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter((event) => event.kind === "phaseChanged"),
+    [phaseEvents, batches],
+  );
+  useEffect(() => {
+    const last = lastPhaseEventRef.current;
+    lastPhaseEventRef.current = phaseHistory.at(-1);
+    if (!phaseBaselineRef.current) {
+      phaseBaselineRef.current = true;
+      return;
+    }
+    const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
+    for (const openedPhase of fresh) {
+      if (openedPhase.kind !== "phaseChanged") continue;
+      phaseBannerKeyRef.current += 1;
+      const banner = phaseBannerFrom({
+        phase: openedPhase.phase,
+        turnSeat: openedPhase.turnSeat,
+        viewerSeat,
+        key: phaseBannerKeyRef.current,
+      });
+      if (banner) {
+        setPendingPhaseBanners((count) => count + 1);
+        if (banner.phase === UNSUSPEND_PHASE) {
+          drawPhaseWaitingRef.current = true;
+          setHeldDrawState(previousDrawStateRef.current);
+        }
+        queue.enqueue({
+          id: `phase-banner-${banner.key}`,
+          track: "phaseBanner",
+          // It names the phase the player is now in, so it keeps its time.
+          skippable: false,
+          async run(context) {
+            try {
+              setPhaseBanner(banner);
+              // The first turn can skip drawing; breeding also releases the hold.
+              if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
+                drawPhaseWaitingRef.current = false;
+                setHeldDrawState(undefined);
+              }
+              await context.wait(TIMINGS.phaseBanner);
+            } finally {
+              setPhaseBanner((current) => (current?.key === banner.key ? null : current));
+              setPendingPhaseBanners((count) => count - 1);
+              if (context.cancelled) {
+                drawPhaseWaitingRef.current = false;
+                setHeldDrawState(undefined);
+              }
+            }
+          },
+        });
+      }
+    }
+    // Raw events, rather than batch closes, own the phase clock: the server closes
+    // each batch only after sending its resulting state patch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phaseHistory]);
 
   useEffect(() => {
     // The first pass is the baseline: a reconnect replays history, which must not replay
@@ -2110,7 +2158,13 @@ export function useMatchCues({
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
   useEffect(() => {
+    if (!drawPhaseWaitingRef.current) {
+      previousDrawStateRef.current = state ? snapshotGameState(state) : undefined;
+    }
+  }, [state, state?.stateVersion, you?.handCount, opp?.handCount, phaseBanner]);
+  useEffect(() => {
     if (you === undefined || opp === undefined) return;
+    if (drawPhaseWaitingRef.current) return;
     const previous = handCountsRef.current;
     handCountsRef.current = { you: you.handCount, opp: opp.handCount };
     if (!previous || mulliganOpen) {
@@ -2122,7 +2176,7 @@ export function useMatchCues({
     if (opp.handCount > previous.opp) launchDrawFlight("opp", turnStart.opp);
     if (you.handCount > previous.you) launchDrawFlight("you", turnStart.you);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [you?.handCount, opp?.handCount]);
+  }, [you?.handCount, opp?.handCount, phaseBanner]);
 
   /** The card lands on the stack: the same shield bounce a recovery plays. */
   function launchSecurityGainFlight(seat: Seat) {
@@ -2490,6 +2544,8 @@ export function useMatchCues({
     deckRiffles,
     securityFlights,
     phaseBanner,
+    phaseTransitionPending: pendingPhaseBanners > 0,
+    heldDrawState,
     combatImpactIds,
     fieldClash,
     dpPulses,

@@ -1586,6 +1586,24 @@
   pointer-events: none;
 }
 
+/* Showing breeding guidance must not grow the footer and resize the battlefield.
+   Portrait places the dock in the field and positions its own guidance panel. */
+.game-player-dock > .game-breeding-dock {
+  position: relative;
+}
+
+.game-player-dock > .game-breeding-dock > .game-breeding-hint {
+  position: absolute;
+  z-index: 6;
+  bottom: calc(100% + 8px);
+  left: 12px;
+  right: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: var(--ds-surface);
+}
+
 .game-breeding-slot--focus .game-breeding-slot__box {
   outline: 2px solid var(--battle-amber);
   outline-offset: 5px;

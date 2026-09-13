@@ -7,11 +7,15 @@ export function ArenaDemoTools({
   deckCounts,
   onKeywords,
   onDraw,
+  onTurnStart,
+  disabled = false,
 }: {
   portuguese: boolean;
   deckCounts: readonly [number, number];
   onKeywords: () => void;
   onDraw: (seat: Seat) => void;
+  onTurnStart: () => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -38,6 +42,7 @@ export function ArenaDemoTools({
         ref={trigger}
         className="aegis-arena-demo-keywords"
         type="button"
+        disabled={disabled}
         aria-label={label}
         title={label}
         aria-haspopup="menu"
@@ -80,6 +85,17 @@ export function ArenaDemoTools({
             buttons[next]?.focus();
           }}
         >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={deckCounts[0] === 0}
+            onClick={() => {
+              close();
+              onTurnStart();
+            }}
+          >
+            {portuguese ? "Reproduzir início do turno" : "Preview turn start"}
+          </button>
           <button
             type="button"
             role="menuitem"

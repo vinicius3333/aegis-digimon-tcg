@@ -545,6 +545,7 @@ export function GameScreen({
   // component only renders what it reports.
   const cues = useMatchCues({
     batches: cueBatches,
+    phaseEvents: events,
     state,
     viewerSeat,
     mulliganOpen: decision?.kind === "mulligan",
@@ -1057,8 +1058,16 @@ export function GameScreen({
     }) ?? state;
 
   // Presentation (the seats as the board the narration has reached has them).
-  const shownYou = shownState?.players[viewerSeat] ?? you;
-  const shownOpp = shownState?.players[otherSeat(viewerSeat)] ?? opp;
+  const presentedYou = shownState?.players[viewerSeat] ?? you;
+  const presentedOpp = shownState?.players[otherSeat(viewerSeat)] ?? opp;
+  const heldYou = cues.heldDrawState?.players[viewerSeat];
+  const heldOpp = cues.heldDrawState?.players[otherSeat(viewerSeat)];
+  const shownYou = heldYou
+    ? { ...presentedYou, hand: heldYou.hand, handCount: heldYou.handCount, deckCount: heldYou.deckCount }
+    : presentedYou;
+  const shownOpp = heldOpp
+    ? { ...presentedOpp, handCount: heldOpp.handCount, deckCount: heldOpp.deckCount }
+    : presentedOpp;
   const isMyTurn = state.turnSeat === viewerSeat;
   /* A security check owns the board for as long as its scene plays. The reveal is on
      both screens at the same time, so an action sent inside that window lands on a
@@ -1070,8 +1079,9 @@ export function GameScreen({
      The opponent's narration locks the same way (docs/presentation-queue-plan.md §6
      decision 2): while their moment is on screen a tap advances it instead of acting on
      the board. The hold is the item itself, so it is bounded by the item's reading time
-     and never outlives the queue. */
-  const boardLocked = securityRevealPending && !state.gameOver;
+     and never outlives the queue. Phase announcements also hold actions until the
+     screen has finished introducing the phase the server already opened. */
+  const boardLocked = (securityRevealPending || cues.phaseTransitionPending) && !state.gameOver;
   /* The opponent's moment takes the pointer as well (docs/presentation-queue-plan.md §6
      decision 2): while it is on screen the viewer's tap lands on the lock, and the board's
      capture-phase handler turns it into "advance the narration" instead of an action. Only
@@ -3168,12 +3178,13 @@ export function GameScreen({
                 <MemoryGauge
                   value={memory}
                   compact={compactPiles}
-                  phaseLabel={t(`game.phase.${shownState.phase}` as const)}
+                  phaseLabel={t(`game.phase.${phaseBanner?.phase ?? shownState.phase}` as `game.phase.${Phase}`)}
                   phaseSweeping={unsuspendSweep !== null}
                   prediction={memoryPrediction}
                 />
                 <TurnControl
                   state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
+                  covered={boardLocked ? true : undefined}
                   onEndPhase={() => !boardLocked && room && intents.endPhase(room)}
                 />
               </div>

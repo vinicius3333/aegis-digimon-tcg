@@ -1,5 +1,5 @@
 /* Visual preview of the current arena, using the real match screen without a server. */
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   CATALOG_DECKS,
   CardInstance,
@@ -20,6 +20,7 @@ import {
 } from "../design/battlefield";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { GameScreen } from "../game/GameScreen";
+import { TIMINGS } from "../game/timings";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { prepareDemoCombat } from "./arenaDemoCombat";
@@ -178,6 +179,10 @@ export function ArenaDemo() {
   const [keywordGrants, setKeywordGrants] = useState<DemoKeywordGrants>({});
   const [keywordEditorOpen, setKeywordEditorOpen] = useState(false);
   const [drawCounts, setDrawCounts] = useState<readonly [number, number]>([0, 0]);
+  const [turnStartStep, setTurnStartStep] = useState<"prepare" | Phase.Active | Phase.Draw | Phase.Breeding | null>(
+    null,
+  );
+  const [turnStartRun, setTurnStartRun] = useState(0);
   const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
   const events = useMemo(() => batches.flatMap((batch) => batch.events), [batches]);
   const state = useMemo(() => {
@@ -185,8 +190,15 @@ export function ArenaDemo() {
     next.phase = phase;
     applyDemoKeywordGrants(next, keywordGrants);
     prepareDemoCombat(next);
+    if (turnStartStep !== null) {
+      for (const permanent of next.players[0]!.battleArea) {
+        permanent.isSuspended = turnStartStep === "prepare";
+        permanent.canAttackPlayer = false;
+        permanent.attackablePermanentIds.clear();
+      }
+    }
     return next;
-  }, [phase, keywordGrants, drawCounts]);
+  }, [phase, keywordGrants, drawCounts, turnStartStep]);
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
     setDrawCounts((previous) => (seat === 0 ? [previous[0] + 1, previous[1]] : [previous[0], previous[1] + 1]));
@@ -196,6 +208,39 @@ export function ArenaDemo() {
     const batch = singleServerBatch([{ kind: "phaseChanged", phase: next, turnSeat: 0, turnCount: 5 }]);
     setBatches((previous) => [...previous, batch]);
   }
+  function previewTurnStart() {
+    if (turnStartStep !== null || !state.players[0]!.deckCount) return;
+    // A fresh screen clears any individually queued phase previews and establishes
+    // the suspended board as the baseline before the unsuspend animation begins.
+    setTurnStartRun((run) => run + 1);
+    setBatches([]);
+    setPhase(Phase.Main);
+    setTurnStartStep("prepare");
+  }
+  useEffect(() => {
+    if (turnStartStep === null) return;
+    const timer = setTimeout(
+      () => {
+        const next =
+          turnStartStep === "prepare"
+            ? Phase.Active
+            : turnStartStep === Phase.Active
+              ? Phase.Draw
+              : turnStartStep === Phase.Draw
+                ? Phase.Breeding
+                : null;
+        if (next !== null) {
+          previewPhase(next);
+          if (next === Phase.Draw) drawCard(0);
+        }
+        setTurnStartStep(next);
+      },
+      turnStartStep === "prepare" ? 600 : TIMINGS.phaseBanner,
+    );
+    return () => clearTimeout(timer);
+    // Each step owns its timer; other demo controls are disabled during playback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turnStartStep]);
   const battlefieldId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, getBattlefieldId);
 
   return (
@@ -228,7 +273,11 @@ export function ArenaDemo() {
             <Icons.Clock size={16} />
           </span>
           <span className="aegis-arena-demo-field-label">{portuguese ? "Fase" : "Phase"}</span>
-          <select value={phase} onChange={(event) => previewPhase(event.target.value as Phase)}>
+          <select
+            disabled={turnStartStep !== null}
+            value={phase}
+            onChange={(event) => previewPhase(event.target.value as Phase)}
+          >
             {[Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End].map((item) => (
               <option key={item} value={item}>
                 {t(`game.phase.${item}`)}
@@ -240,6 +289,7 @@ export function ArenaDemo() {
           className="aegis-arena-demo-replay"
           type="button"
           onClick={() => previewPhase(phase)}
+          disabled={turnStartStep !== null}
           aria-label={portuguese ? "Repetir animação da fase" : "Replay phase animation"}
           title={portuguese ? "Repetir animação da fase" : "Replay phase animation"}
         >
@@ -253,8 +303,18 @@ export function ArenaDemo() {
           deckCounts={[state.players[0]!.deckCount, state.players[1]!.deckCount]}
           onKeywords={() => setKeywordEditorOpen(true)}
           onDraw={drawCard}
+          onTurnStart={previewTurnStart}
+          disabled={turnStartStep !== null}
         />
-        <span className="aegis-arena-demo-note">{portuguese ? "Sem partida ativa" : "No active match"}</span>
+        <span className="aegis-arena-demo-note" role="status">
+          {turnStartStep !== null
+            ? portuguese
+              ? "Reproduzindo início do turno…"
+              : "Playing turn start…"
+            : portuguese
+              ? "Sem partida ativa"
+              : "No active match"}
+        </span>
         <a className="aegis-arena-demo-back" href="/" aria-label={portuguese ? "Voltar ao início" : "Back to home"}>
           <span aria-hidden="true">
             <Icons.ArrowLeft size={16} />
@@ -263,6 +323,7 @@ export function ArenaDemo() {
         </a>
       </header>
       <GameScreen
+        key={turnStartRun}
         joinOptions={{
           displayName: ARENA_DECKS[0]!.name,
           deck: {
