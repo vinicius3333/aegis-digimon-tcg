@@ -13,6 +13,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "common.save": "Salvar",
   "common.import": "Importar",
   "common.export": "Exportar",
+  "game.debugId": "ID da partida",
+  "game.debugCopyFailed": "Falha ao copiar; selecione o ID para copiar.",
   "common.copy": "Copiar",
   "common.copied": "Copiado!",
   "common.edit": "Editar",

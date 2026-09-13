@@ -58,6 +58,7 @@ export function combatWindowKey(window: { kind: string; attackerPermanentId: str
  * documented behavior.
  */
 export class GameState extends Schema {
+  @type("string") matchLogId = "";
   @type("string") matchId = "";
   @type("string") roomCode = ""; // set for private rooms, empty for public
   @type("string") phase: Phase = Phase.None;
