@@ -275,6 +275,8 @@ export async function runSecurityCheck(
           };
     emit({
       kind: "securityRevealed",
+      ...(deps.isDigimon(revealed) ? { securityCardDP: deps.securityCardDp(revealed) } : {}),
+      attackerDP: deps.dpOf(attacker.permanentId),
       seat: defenderSeat,
       revealedCardId: revealed.cardId,
       attackerPermanentId: attacker.permanentId,
@@ -395,10 +397,12 @@ async function battleSecurityDigimon(
   const attackerPermanent = deps.permanentById(attacker.permanentId);
   if (attackerPermanent === undefined) return undefined;
 
+  const attackerDP = deps.dpOf(attacker.permanentId);
+  const securityCardDP = deps.securityCardDp(revealed);
   const outcome = resolveSecurityBattle({
     attackerPermanentId: attacker.permanentId,
-    attackerDP: deps.dpOf(attacker.permanentId),
-    securityCardDP: deps.securityCardDp(revealed),
+    attackerDP,
+    securityCardDP,
   });
   if (outcome.attackerDeleted) {
     // ＜Jamming＞ (§16-9): attacker with Jamming isn't deleted in Security Digimon battles.
@@ -423,7 +427,7 @@ async function battleSecurityDigimon(
   // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
   // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
   // an effect gave it an area — which is exactly what trashIfStillLoose applies.
-  return outcome;
+  return { ...outcome, attackerDP, securityCardDP };
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */

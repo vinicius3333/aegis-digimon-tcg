@@ -150,7 +150,7 @@ describe("runSecurityCheck", () => {
       seat: 1,
       revealedCardId: "SEC-EFFECT",
       resolution: "battle",
-      battle: { attackerDeleted: false, securityDigimonDeleted: true },
+      battle: { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 5000, securityCardDP: 3000 },
     });
   });
 
@@ -172,7 +172,7 @@ describe("runSecurityCheck", () => {
       seat: 1,
       revealedCardId: "DIGI-WEAK",
       resolution: "battle",
-      battle: { attackerDeleted: false, securityDigimonDeleted: true },
+      battle: { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 6000, securityCardDP: 3000 },
     });
   });
 
@@ -191,7 +191,7 @@ describe("runSecurityCheck", () => {
       seat: 1,
       revealedCardId: "DIGI-STRONG",
       resolution: "battle",
-      battle: { attackerDeleted: true, securityDigimonDeleted: false },
+      battle: { attackerDeleted: true, securityDigimonDeleted: false, attackerDP: 2000, securityCardDP: 9000 },
     });
   });
 
@@ -210,7 +210,7 @@ describe("runSecurityCheck", () => {
       seat: 1,
       revealedCardId: "DIGI-EVEN",
       resolution: "battle",
-      battle: { attackerDeleted: true, securityDigimonDeleted: true },
+      battle: { attackerDeleted: true, securityDigimonDeleted: true, attackerDP: 4000, securityCardDP: 4000 },
     });
   });
 
@@ -399,6 +399,8 @@ describe("runSecurityCheck: ordering and reveal hints", () => {
       attackerPermanentId: ATTACKER_ID,
       hasSecurityEffect: true,
       isDigimon: true,
+      attackerDP: 9000,
+      securityCardDP: 3000,
     });
   });
 
@@ -433,6 +435,7 @@ describe("runSecurityCheck: ordering and reveal hints", () => {
       seat: 1,
       revealedCardId: "OPTION-X",
       attackerPermanentId: ATTACKER_ID,
+      attackerDP: 5000,
     });
   });
 

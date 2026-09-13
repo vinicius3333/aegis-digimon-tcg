@@ -1499,6 +1499,8 @@ export function useMatchCues({
       const revealed = buildSecurityRevealScene({
         key,
         revealedCardId: securityReveal.revealedCardId,
+        securityCardDP: securityReveal.securityCardDP,
+        attackerDP: securityReveal.attackerDP,
         defenderSeat: securityReveal.seat,
         viewerSeat,
         attacker: securityAttackerRef.current,

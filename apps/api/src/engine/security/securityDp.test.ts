@@ -3,6 +3,21 @@ import { describe, expect, it } from "vitest";
 import { SecurityDpLedger } from "./securityDp.js";
 
 describe("SecurityDpLedger", () => {
+  it("publishes the net DP when effects stack, recompute and expire", () => {
+    const publicDeltas = [0, 0];
+    const ledger = new SecurityDpLedger((seat, delta) => {
+      publicDeltas[seat] = delta;
+    });
+    ledger.add(1, -3000);
+    ledger.add(1, -2000, { continuous: true });
+    ledger.add(0, 4000, { continuous: true });
+    expect(publicDeltas).toEqual([4000, -5000]);
+    ledger.clearContinuous();
+    expect(publicDeltas).toEqual([0, -3000]);
+    ledger.sweepTurnEnd(0);
+    expect(publicDeltas).toEqual([0, 0]);
+  });
+
   it("sweeps triggered modifiers at their seat-relative turn boundary", () => {
     const ledger = new SecurityDpLedger();
     ledger.add(0, 1000);

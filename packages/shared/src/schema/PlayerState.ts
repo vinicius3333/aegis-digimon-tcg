@@ -72,6 +72,8 @@ export class PlayerState extends Schema {
   @type("uint16") eggDeckCount = 0;
   @type("uint16") handCount = 0;
   @type("uint16") securityCount = 0;
+  /** Net effect modifier for this player's Security Digimon, public to all viewers. */
+  @type("int32") securityDpDelta = 0;
 
   // Public zones.
   @type([Permanent]) battleArea = new ArraySchema<Permanent>();

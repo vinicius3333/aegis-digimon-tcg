@@ -25,6 +25,9 @@ import type { AttackTarget } from "./intents.js";
  * keeps alive and CR 13-1-8-4 trashes regardless of the verdict.
  */
 export interface SecurityBattleResult {
+  /** Effective DP values used by the server for this comparison. */
+  attackerDP?: number;
+  securityCardDP?: number;
   attackerDeleted: boolean;
   securityDigimonDeleted: boolean;
 }
@@ -133,6 +136,8 @@ export type ServerEvent =
       // and play everything that follows from it as a consequence. `securityChecked` closes
       // the same check and carries the outcome; there is exactly one of each, in this order.
       kind: "securityRevealed";
+      securityCardDP?: number;
+      attackerDP?: number;
       seat: Seat;
       revealedCardId: string;
       attackerPermanentId: string;

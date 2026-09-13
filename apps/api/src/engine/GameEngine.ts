@@ -822,7 +822,10 @@ export class GameEngine {
   }
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
-  private readonly securityDp = new SecurityDpLedger();
+  private readonly securityDp = new SecurityDpLedger((seat, delta) => {
+    const player = this.state.players[seat];
+    if (player) player.securityDpDelta = delta;
+  });
   private battleScopeSequence = 0;
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
   private readonly deletionMaxDp = new DeletionMaxDpLedger();

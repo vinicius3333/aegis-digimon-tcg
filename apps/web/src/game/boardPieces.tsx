@@ -99,6 +99,7 @@ export function Pile({
   armed,
   breaking,
   shardSeed,
+  securityDpDelta = 0,
   faceUp,
   attackLabel,
   riffling,
@@ -124,6 +125,7 @@ export function Pile({
   /** Which break this is, so its shards are thrown differently from the last one's. */
   shardSeed?: number;
   /** The stack holds a card the opponent has already seen. */
+  securityDpDelta?: number;
   faceUp?: boolean;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
@@ -138,6 +140,8 @@ export function Pile({
 }) {
   const w = compact ? 42 : 62;
   if (shield) {
+    const dpLabel =
+      securityDpDelta !== 0 ? `${securityDpDelta > 0 ? "+" : "−"}${Math.abs(securityDpDelta)} DP` : undefined;
     const pane = (
       <div
         className={[
@@ -163,7 +167,7 @@ export function Pile({
         }
         role={onClick ? "button" : "img"}
         tabIndex={onClick ? 0 : undefined}
-        aria-label={`${label} · ${count}`}
+        aria-label={`${label} · ${count}${dpLabel ? ` · ${dpLabel}` : ""}`}
         {...(drop ?? {})}
         style={{ cursor: onClick ? "pointer" : "default", opacity: dim ? 0.5 : 1 }}
       >
@@ -203,13 +207,20 @@ export function Pile({
       </div>
     );
     // The shield is clipped to its own polygon, so the label has to sit outside it.
-    if (!attackLabel) return pane;
+    if (!attackLabel && !dpLabel) return pane;
     return (
       <span className="game-security-shield-wrap">
         {pane}
-        <span className="game-security-shield__attack-label" aria-hidden>
-          {attackLabel}
-        </span>
+        {dpLabel ? (
+          <span className="game-security-shield__dp-label" aria-hidden>
+            {dpLabel}
+          </span>
+        ) : null}
+        {attackLabel ? (
+          <span className="game-security-shield__attack-label" aria-hidden>
+            {attackLabel}
+          </span>
+        ) : null}
       </span>
     );
   }

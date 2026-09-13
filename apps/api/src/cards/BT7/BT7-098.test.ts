@@ -24,6 +24,7 @@ describe("BT7-098 Ultra Turbulence", () => {
     await settle(() => s.perm("target").currentDP === 1000);
     expect(s.perm("target").currentDP).toBe(1000);
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
+    expect(s.state.players[1]!.securityDpDelta).toBe(-3000);
   });
 
   it("applies the reduction in a live Security battle and expires at turn end", async () => {
@@ -68,5 +69,6 @@ describe("BT7-098 Ultra Turbulence", () => {
 
     await advance(s.engine).runTurn(0);
     expect(observe(s.engine).securityDp(1)).toBe(0);
+    expect(p1.securityDpDelta).toBe(0);
   });
 });

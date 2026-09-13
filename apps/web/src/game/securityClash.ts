@@ -245,6 +245,8 @@ export function buildSecurityRevealScene({
   defenderSeat,
   viewerSeat,
   attacker,
+  securityCardDP,
+  attackerDP,
 }: {
   key: number;
   revealedCardId: string;
@@ -252,6 +254,8 @@ export function buildSecurityRevealScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
   attacker?: SecurityClashAttacker;
+  securityCardDP?: number;
+  attackerDP?: number;
 }): SecurityClashScene {
   const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
   const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
@@ -261,8 +265,10 @@ export function buildSecurityRevealScene({
   return {
     key,
     resolution: "pending",
-    revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
-    ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
+    revealed: { cardId: revealedCardId, side: defenderSide, dp: securityCardDP ?? comparableDp(revealedCardId) },
+    ...(facing
+      ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: attackerDP ?? comparableDp(facing.cardId) } }
+      : {}),
   };
 }
 
@@ -274,6 +280,10 @@ export function settleSecurityClashScene(
   return {
     ...scene,
     resolution: normalizeSecurityClashResolution(resolution),
+    ...(battle?.securityCardDP === undefined ? {} : { revealed: { ...scene.revealed, dp: battle.securityCardDP } }),
+    ...(scene.attacker && battle?.attackerDP !== undefined
+      ? { attacker: { ...scene.attacker, dp: battle.attackerDP } }
+      : {}),
     ...(outcomeAtMs === undefined ? {} : { outcomeAtMs }),
     // Without an attacker on stage there is no side to claw, so the verdict is dropped
     // rather than shown against a card that is not there.

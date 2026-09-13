@@ -11,12 +11,21 @@ export class SecurityDpLedger {
   private readonly continuousBySeat = new Map<Seat, number>();
   private triggered: TriggeredSecurityDpModifier[] = [];
 
+  constructor(private readonly onChange?: (seat: Seat, delta: number) => void) {}
+
+  private publish(): void {
+    this.onChange?.(0, this.deltaFor(0));
+    this.onChange?.(1, this.deltaFor(1));
+  }
+
   add(seat: Seat, delta: number, opts?: { continuous?: boolean; duration?: EffectDuration }): void {
     if (opts?.continuous === true) {
       this.continuousBySeat.set(seat, (this.continuousBySeat.get(seat) ?? 0) + delta);
+      this.publish();
       return;
     }
     this.triggered.push({ seat, delta, duration: opts?.duration ?? EffectDuration.UntilEachTurnEnd });
+    this.publish();
   }
 
   deltaFor(seat: Seat): number {
@@ -32,6 +41,7 @@ export class SecurityDpLedger {
 
   clearContinuous(): void {
     this.continuousBySeat.clear();
+    this.publish();
   }
 
   sweepTurnEnd(turnSeat: Seat): void {
@@ -41,5 +51,6 @@ export class SecurityDpLedger {
       if (modifier.duration === EffectDuration.UntilOpponentTurnEnd) return modifier.seat === turnSeat;
       return false;
     });
+    this.publish();
   }
 }

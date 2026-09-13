@@ -2921,6 +2921,7 @@ export function GameScreen({
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
                 shardSeed={securityBreak?.key}
+                securityDpDelta={shownYou.securityDpDelta}
                 faceUp={hasFaceUpSecurity(shownYou.security)}
                 landing={securityFlights.has(viewerSeat)}
                 label={t("game.yourSecurityPile")}
@@ -3131,6 +3132,7 @@ export function GameScreen({
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
                   shardSeed={securityBreak?.key}
+                  securityDpDelta={shownOpp.securityDpDelta}
                   faceUp={hasFaceUpSecurity(shownOpp.security)}
                   landing={securityFlights.has(otherSeat(viewerSeat))}
                   attackLabel={
