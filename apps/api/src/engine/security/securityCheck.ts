@@ -77,7 +77,9 @@ export type SecurityCheckReason = "attack" | "piercing";
  */
 export interface SecurityCheckDeps {
   /** Expire battle-scoped grants after an actual Security Digimon battle and its reactions. */
-  sweepEndOfBattle?(): Promise<void>;
+  sweepEndOfBattle?(scopeId?: number): Promise<void>;
+  beginBattleScope?(): number;
+  endBattleScope?(scopeId: number): void;
   /** Re-derive live auras before deciding whether another check remains. */
   recomputeContinuousEffects?(): Promise<void>;
   /**
@@ -282,7 +284,13 @@ export async function runSecurityCheck(
     // CR 13-1-6: the checked card leaves security before triggered effects resolve.
     // Keep it accessible only by its exact identity while it has no area.
     extractCardAt(defender, Zone.Security, 0);
+    let securityBattleScopeId: number | undefined;
+    let securityBattleScopeClosed = false;
     await withCheckedCard(state, { card: revealed, seat: defenderSeat }, async () => {
+      securityBattleScopeId =
+        deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined
+          ? deps.beginBattleScope?.()
+          : undefined;
       const activateCheckTriggers = deps.prepareCheckTriggers?.({
         attackerPermanentId: attacker.permanentId,
         securityInstanceId: revealed.instanceId,
@@ -351,9 +359,18 @@ export async function runSecurityCheck(
           securityInstanceId: revealed.instanceId,
         });
       }
-      if (battle !== undefined) {
-        await deps.sweepEndOfBattle?.();
+      if (battle !== undefined && deps.sweepEndOfBattle !== undefined) {
+        await deps.sweepEndOfBattle?.(securityBattleScopeId);
+        securityBattleScopeClosed = true;
+      } else if (securityBattleScopeId !== undefined) {
+        deps.endBattleScope?.(securityBattleScopeId);
+        securityBattleScopeClosed = true;
       }
+    }).catch((error: unknown) => {
+      if (securityBattleScopeId !== undefined && !securityBattleScopeClosed) {
+        deps.endBattleScope?.(securityBattleScopeId);
+      }
+      throw error;
     });
 
     // A loss may have been flagged by an effect during resolution.
