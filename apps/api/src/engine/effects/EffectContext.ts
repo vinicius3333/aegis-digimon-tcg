@@ -181,6 +181,8 @@ export interface DiscardedStackSourceProof {
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** Host identity captured before a linked card is trashed; the host may then hit 0 DP. */
+  linkTrashedSubject?: Permanent;
   /** Stack-effect conferrals captured before a deleted host leaves play (Q2214). */
   stackEffectConferralsSnapshot?: readonly {
     targetPermanentId: string;

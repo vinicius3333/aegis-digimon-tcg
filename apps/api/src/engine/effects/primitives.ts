@@ -2722,7 +2722,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // excluded below (KB EX10-062 Q5172 / EX10-073 Q5188). The host
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
-    const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
+    const linkTrashed: { instanceId: string; hostPermanentId: string; hostSnapshot: Permanent }[] = [];
     // Rule-based link-limit cleanup suppresses whenLinkTrashed, but removing the old link
     // still changes the host's observable DP and linked keywords. Keep the host identity
     // separately so refreshing those values does not depend on emitting a subtrigger.
@@ -2735,7 +2735,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const host = hostOfLinkedInstance(state, instanceId);
       if (host !== undefined) {
         linkedHostByInstance.set(instanceId, host);
-        if (engine.fireSubTrigger && opts?.byRule !== true) linkTrashed.push({ instanceId, hostPermanentId: host });
+        if (engine.fireSubTrigger && opts?.byRule !== true) {
+          const hostPermanent = access.permanentById(host);
+          if (hostPermanent !== undefined)
+            linkTrashed.push({
+              instanceId,
+              hostPermanentId: host,
+              hostSnapshot: hostPermanent.clone(),
+            });
+        }
       }
     }
     // <Overflow> (CR §4-18) eligibility, recorded BEFORE removal: this verb also trashes loose
@@ -2833,7 +2841,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Fire AFTER the move, gated to instances that actually left the linked list.
     for (const entry of linkTrashed) {
       if (!movedIds.has(entry.instanceId)) continue;
-      await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
+      const currentHost = access.permanentById(entry.hostPermanentId) ?? entry.hostSnapshot;
+      await engine.fireSubTrigger!("whenLinkTrashed", {
+        subjectPermanentId: entry.hostPermanentId,
+        linkTrashedSubject: currentHost.clone(),
+      });
     }
     for (const { instanceId } of optionBattleAreaTrashed) {
       await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: instanceId });

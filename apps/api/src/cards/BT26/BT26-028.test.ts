@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appFusionCostFor, assemblyRequirementFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-028.js";
 import "../index.js";
 
@@ -338,5 +338,82 @@ describe("BT26-028 Medicmon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("medicmon"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("medicmon"), "Detach")).toBe(true);
+  });
+
+  it("accepts Barrier in battle without consuming Medicmon's eligible link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-028", as: "medicmon", suspended: true, linked: [{ card: "BT26-019", as: "link" }] },
+          ],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("medicmon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settleAcrossTimers(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
+    expect(s.perm("medicmon").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
+  });
+
+  it("after refusing Barrier, Detach pays with Medicmon's eligible link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-028", as: "medicmon", suspended: true, linked: [{ card: "BT26-019", as: "link" }] },
+          ],
+          security: [{ card: "BT1-009", as: "barrierCost" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("medicmon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: false })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const detach = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: detach.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("link").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(hostId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("barrierCost").instanceId,
+    ]);
   });
 });
