@@ -1139,7 +1139,7 @@ export function GameScreen({
             handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
               instanceId: ci.instanceId,
               cardId: ci.cardId,
-    artId: ci.artId,
+              artId: ci.artId,
               activatableEffectsJson: "",
               playableFromHand: false,
               projectedPlayCost: -1,
@@ -1192,14 +1192,19 @@ export function GameScreen({
         // runtime — "ArraySchema#flatMap() is not supported"), unlike `.map()`/`.filter()`;
         // build with `.map().flat()` over a real array instead.
         const lockedCandidates: DigiXrosCandidate[] = [
-          ...you.trash.map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, artId: ci.artId, zone: "trash" as const })),
+          ...you.trash.map((ci) => ({
+            instanceId: ci.instanceId,
+            cardId: ci.cardId,
+            artId: ci.artId,
+            zone: "trash" as const,
+          })),
           ...you.battleArea
             .map((p) => {
               if (!p.topCard || !getCardDefinition(p.topCard.cardId)?.kinds.includes(CardKind.Tamer)) return [];
               return p.stack.map((ci) => ({
                 instanceId: ci.instanceId,
                 cardId: ci.cardId,
-    artId: ci.artId,
+                artId: ci.artId,
                 zone: "underTamer" as const,
               }));
             })
@@ -1249,7 +1254,7 @@ export function GameScreen({
         const candidates: AssemblyCandidate[] = you.trash.map((ci) => ({
           instanceId: ci.instanceId,
           cardId: ci.cardId,
-    artId: ci.artId,
+          artId: ci.artId,
         }));
         const candidateDefinitions = candidates.flatMap((candidate) => {
           const definition = getCardDefinition(candidate.cardId);
@@ -1945,7 +1950,9 @@ export function GameScreen({
   const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
 
   const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
-  const decisionVisible = viewerDecision ? decisionVisibleCards(viewerDecision.options, instanceIndex, buildInstanceArtIndex(state)) : [];
+  const decisionVisible = viewerDecision
+    ? decisionVisibleCards(viewerDecision.options, instanceIndex, buildInstanceArtIndex(state))
+    : [];
   const decisionVisibleCardIds = new Map(decisionVisible.map((card) => [card.instanceId, card.cardId]));
   const decisionInstanceColors = decisionCardColors(decisionVisible);
   const decisionDifferentColors = viewerDecision?.options?.differentColors === true;
@@ -2427,7 +2434,9 @@ export function GameScreen({
 
       {cutIn && !state.gameOver ? <DigivolutionCutInView key={cutIn.key} cutIn={cutIn} /> : null}
 
-      {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} artId={zoomArtId} onClose={() => setZoomCardId(null)} /> : null}
+      {zoomCardId ? (
+        <CardZoomOverlay cardId={zoomCardId} artId={zoomArtId} onClose={() => setZoomCardId(null)} />
+      ) : null}
 
       {bugReportOpen ? (
         <BugReportDialog signedIn={signedIn} matchLogId={state.matchLogId} onClose={() => setBugReportOpen(false)} />
@@ -2776,7 +2785,12 @@ export function GameScreen({
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
     // decision dialogs — opens it through this one blow-up.
-    <CardOpenerProvider onOpenCard={(cardId, artId) => { setZoomCardId(cardId); setZoomArtId(artId); }}>
+    <CardOpenerProvider
+      onOpenCard={(cardId, artId) => {
+        setZoomCardId(cardId);
+        setZoomArtId(artId);
+      }}
+    >
       <main
         className="game-layout"
         style={{
@@ -3512,7 +3526,12 @@ export function GameScreen({
                       top: center.y - FIELD_CLASH_GHOST_HEIGHT / 2,
                     }}
                   >
-                    <CardFull cardId={cardId} artId={combatant.artId} width={FIELD_CLASH_GHOST_WIDTH} zoomOnHover={false} />
+                    <CardFull
+                      cardId={cardId}
+                      artId={combatant.artId}
+                      width={FIELD_CLASH_GHOST_WIDTH}
+                      zoomOnHover={false}
+                    />
                     {struck ? <ClawSlash /> : null}
                   </span>,
                 ];

@@ -30,6 +30,7 @@ import {
   type DeckListing,
 } from "../game/decks";
 import { DeckLevelCurve, DeckPreviewSections } from "./deckPreview";
+import { DeckArtworkPicker } from "./DeckArtworkPicker";
 import { DeckListCard, deckLegality } from "./DeckListCard";
 import { useTranslation } from "../i18n";
 import "./deckBuilder.css";
@@ -219,7 +220,7 @@ function DeckEditor({
     return result;
   });
   const [chosenArt, setChosenArt] = useState<Record<string, string>>({});
-  const [editingCopy, setEditingCopy] = useState<number | null>(null);
+  const [artPickerCard, setArtPickerCard] = useState<string | null>(null);
   const [name, setName] = useState(deck.name);
   const [coverCardId, setCoverCardId] = useState<string | undefined>(() => displayCoverCard(deck));
   const [sel, setSel] = useState<string | null>(null);
@@ -249,13 +250,7 @@ function DeckEditor({
     if (!eggCard && mainCount >= MAIN_TARGET) return;
     setArts((previous) => ({
       ...previous,
-      [cardId]: [
-        ...(previous[cardId] ?? []),
-        resolveCardArt(
-          cardId,
-          sel === cardId && editingCopy !== null ? previous[cardId]?.[editingCopy] : chosenArt[cardId],
-        ).artId,
-      ],
+      [cardId]: [...(previous[cardId] ?? []), resolveCardArt(cardId, chosenArt[cardId]).artId],
     }));
     (eggCard ? setEgg : setMain)({ ...map, [cardId]: cur + 1 });
   };
@@ -411,7 +406,6 @@ function DeckEditor({
                 onAdd={() => add(card.cardId)}
                 onRemove={() => remove(card.cardId)}
                 onOpen={() => {
-                  setEditingCopy(null);
                   setSel(card.cardId);
                 }}
                 selected={sel === card.cardId || inDeck > 0}
@@ -464,7 +458,10 @@ function DeckEditor({
             ×
           </button>
         </div>
-        <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--ds-border)" }}>
+        <div
+          className="deck-current__header"
+          style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--ds-border)" }}
+        >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -553,7 +550,7 @@ function DeckEditor({
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>
+        <div className="deck-current__body" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>
           <DeckPreviewSections
             main={main}
             egg={egg}
@@ -563,10 +560,7 @@ function DeckEditor({
             onAdd={add}
             onRemove={remove}
             arts={arts}
-            onEditArt={(cardId, copy) => {
-              setEditingCopy(copy);
-              setSel(cardId);
-            }}
+            onEditArt={(cardId) => setArtPickerCard(cardId)}
           />
 
           <div
@@ -585,6 +579,7 @@ function DeckEditor({
         </div>
 
         <div
+          className="deck-current__footer"
           style={{
             padding: 16,
             borderTop: "1px solid var(--ds-border)",
@@ -654,19 +649,31 @@ function DeckEditor({
         </span>
       </button>
 
+      {artPickerCard ? (
+        <DeckArtworkPicker
+          key={artPickerCard}
+          cardId={artPickerCard}
+          arts={arts[artPickerCard] ?? []}
+          count={main[artPickerCard] ?? egg[artPickerCard] ?? 0}
+          onClose={() => setArtPickerCard(null)}
+          onChoose={(artId, copy) =>
+            setArts((previous) => ({
+              ...previous,
+              [artPickerCard]: (
+                previous[artPickerCard] ??
+                Array.from({ length: main[artPickerCard] ?? egg[artPickerCard] ?? 0 }, () => artPickerCard)
+              ).map((current, index) => (copy === "all" || index === copy ? artId : current)),
+            }))
+          }
+        />
+      ) : null}
       {sel ? (
         <CardDetailDrawer
           key={sel}
           cardId={sel}
-          artId={editingCopy === null ? chosenArt[sel] : arts[sel]?.[editingCopy]}
+          artId={chosenArt[sel]}
           onArtChange={(artId) => {
             setChosenArt((previous) => ({ ...previous, [sel]: artId }));
-            if (editingCopy !== null)
-              setArts((previous) => {
-                const copies = [...(previous[sel] ?? [])];
-                copies[editingCopy] = artId;
-                return { ...previous, [sel]: copies };
-              });
           }}
           onClose={() => setSel(null)}
           footer={

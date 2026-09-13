@@ -86,7 +86,17 @@ function CardLinkButton({
  * word it; everything else reads the name off the id, so the link and the text
  * can never disagree.
  */
-export function CardLink({ cardId, artId, label, className }: { cardId?: string; artId?: string; label?: string; className?: string }) {
+export function CardLink({
+  cardId,
+  artId,
+  label,
+  className,
+}: {
+  cardId?: string;
+  artId?: string;
+  label?: string;
+  className?: string;
+}) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
   const text = label ?? cardDisplayName(cardId, t);

@@ -26,6 +26,20 @@ all deckable catalog entries remain visible, including preview cards. A deck
 containing beta-only cards needs the checkbox in Quick Match or Practice vs AI
 before launch.
 
+## Deck artwork
+
+Join decklists and saved account decks retain canonical `mainDeck` and `eggDeck`
+card ID arrays. Optional `mainDeckArts` and `eggDeckArts` contain printing IDs
+aligned by physical copy with those arrays. Supplied account-write arrays must
+contain strings and match the corresponding deck length. Missing, unknown, or
+foreign printing IDs resolve to the original art. Artwork does not affect deck
+legality or executable rules. Tournament deck snapshots freeze these choices.
+
+The engine assigns `CardInstance.artId` before shuffling. It moves with the
+physical instance and shares `cardId`'s visibility tag, so concealed cards do
+not disclose their printing. Public presentation events may include artwork IDs
+for the identities they already reveal.
+
 ## Intents
 
 Clients request actions with the discriminated intent union exported by
@@ -58,7 +72,8 @@ The shared schema exposes:
   area, and player flags;
 - `Permanent`: controller, top card, digivolution cards, linked cards, DP, and
   suspension/breeding state;
-- `CardInstance`: stable instance id, card id, owner, and visibility metadata.
+- `CardInstance`: stable instance id, canonical card id, cosmetic art id, owner,
+  and visibility metadata.
 
 Private zones are filtered per seat. The server must not expose hidden card
 identities through schema fields, decisions, events, or error messages.

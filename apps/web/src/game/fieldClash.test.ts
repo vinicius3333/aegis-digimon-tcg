@@ -144,14 +144,23 @@ describe("buildFieldClashScene", () => {
 
 it("keeps physical printing IDs and replaces the target art when a blocker intercepts", () => {
   const declared = trackOpenAttack(null, {
-    kind: "attackDeclared", seat: 0, attackerPermanentId: "attacker", attackerCardId: "BT1-010", attackerArtId: "BT1-010_P1",
-    target: { kind: "permanent", permanentId: "target" }, targetCardId: "BT1-010", targetArtId: "BT1-010_P2",
+    kind: "attackDeclared",
+    seat: 0,
+    attackerPermanentId: "attacker",
+    attackerCardId: "BT1-010",
+    attackerArtId: "BT1-010_P1",
+    target: { kind: "permanent", permanentId: "target" },
+    targetCardId: "BT1-010",
+    targetArtId: "BT1-010_P2",
   });
-  const blocked = trackOpenAttack(declared, { kind: "blocked", seat: 1, blockerPermanentId: "blocker" });
+  const blocked = trackOpenAttack(declared, { kind: "blocked", blockerPermanentId: "blocker" });
   const scene = buildFieldClashScene({
-    key: 1, open: blocked, viewerSeat: 0,
-    event: { kind: "combatResolved", attackerPermanentId: "attacker", deletedPermanentIds: [] },
-    cardIdOf: () => "BT1-010", artIdOf: () => "BT1-010_P3",
+    key: 1,
+    open: blocked,
+    viewerSeat: 0,
+    event: { kind: "combatResolved", seat: 0, attackerPermanentId: "attacker", deletedPermanentIds: [] },
+    cardIdOf: () => "BT1-010",
+    artIdOf: () => "BT1-010_P3",
   });
   expect(scene?.attacker.artId).toBe("BT1-010_P1");
   expect(scene?.defender.artId).toBe("BT1-010_P3");

@@ -390,15 +390,14 @@ export function decisionVisibleCards(
   instanceIndex: ReadonlyMap<string, string>,
   artIndex?: ReadonlyMap<string, string>,
 ): { instanceId: string; cardId?: string; artId?: string }[] {
-  const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
+  const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card]));
   const visible = options?.visibleInstanceIds ?? options?.candidateInstanceIds ?? [];
-  return visible.map((instanceId) => ({
-    instanceId,
-    cardId: authoritative.get(instanceId) ?? instanceIndex.get(instanceId),
-    ...(options?.visibleCards?.find((card) => card.instanceId === instanceId)?.artId || artIndex?.get(instanceId)
-      ? { artId: options?.visibleCards?.find((card) => card.instanceId === instanceId)?.artId ?? artIndex?.get(instanceId) }
-      : {}),
-  }));
+  return visible.map((instanceId) => {
+    const revealed = authoritative.get(instanceId);
+    const cardId = revealed?.cardId ?? instanceIndex.get(instanceId);
+    const artId = revealed?.artId ?? artIndex?.get(instanceId);
+    return { instanceId, cardId, ...(cardId && artId ? { artId } : {}) };
+  });
 }
 
 /** Resolve candidate colors from the same authoritative identities used to render a decision. */

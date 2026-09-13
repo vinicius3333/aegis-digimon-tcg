@@ -540,6 +540,26 @@ describe("digivolveBasePermanentIds", () => {
 });
 
 describe("decisionVisibleCards", () => {
+  it("keeps revealed printing IDs per copy and never projects art without a visible identity", () => {
+    const cards = decisionVisibleCards(
+      {
+        visibleInstanceIds: ["one", "two", "hidden"],
+        visibleCards: [{ instanceId: "one", cardId: "BT1-010", artId: "BT1-010_P1" }],
+      },
+      new Map([["two", "BT1-010"]]),
+      new Map([
+        ["one", "BT1-010_P2"],
+        ["two", "BT1-010_P3"],
+        ["hidden", "BT1-010_P4"],
+      ]),
+    );
+    expect(cards).toEqual([
+      { instanceId: "one", cardId: "BT1-010", artId: "BT1-010_P1" },
+      { instanceId: "two", cardId: "BT1-010", artId: "BT1-010_P3" },
+      { instanceId: "hidden", cardId: undefined },
+    ]);
+  });
+
   it("uses authoritative reveal identities when zone state has not indexed every card yet", () => {
     const staleIndex = new Map([["revealed-1", "ST12-10"]]);
     const cards = decisionVisibleCards(

@@ -51,35 +51,25 @@ describe("card artwork choices", () => {
         />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Copy 1 · Choose artwork/ }));
+    const opener = screen.getByRole("button", { name: "Agumon · Choose artwork" });
+    opener.focus();
+    fireEvent.click(opener);
+    expect(screen.getByRole("dialog", { name: "Choose artwork" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Alternate 1" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate()]));
-    fireEvent.click(screen.getByRole("button", { name: "Add to deck" }));
-    await waitFor(() =>
-      expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate(), alternate()]),
-    );
-    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]!);
+    fireEvent.click(screen.getByRole("button", { name: "Copy 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "Original" }));
+    await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), cardId]));
+    fireEvent.click(screen.getByRole("button", { name: "Apply selected art to all copies" }));
+    await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([cardId, cardId]));
+    fireEvent.click(screen.getByRole("button", { name: "Alternate 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply selected art to all copies" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate()]));
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Choose artwork" })).toBeNull();
+    expect(document.activeElement).toBe(opener);
     saveDecks([onSave.mock.lastCall![0]]);
     expect(loadDecks()[0]?.mainDeckArts).toEqual([alternate(), alternate()]);
     expect(loadDecks()[0]?.mainDeck).toEqual([cardId, cardId]);
-  });
-  it("adds the artwork currently displayed for an existing copy", async () => {
-    const onSave = vi.fn<(deck: DeckListing, setActive: boolean) => void>();
-    render(
-      <I18nProvider>
-        <DeckBuilder
-          decks={[deck()]}
-          activeDeckId="art-deck"
-          initialEditingDeck={deck()}
-          onSelectDeck={() => undefined}
-          onSaveDeck={onSave}
-          onNav={() => undefined}
-        />
-      </I18nProvider>,
-    );
-    fireEvent.click(screen.getByRole("button", { name: /Copy 2 · Choose artwork/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Add to deck" }));
-    await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([cardId, alternate(), alternate()]));
   });
 });

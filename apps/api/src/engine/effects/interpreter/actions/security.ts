@@ -241,6 +241,7 @@ export async function runSecurityManipulation(
                   visibleCards: visibleSecurity.map((card) => ({
                     instanceId: card.instanceId,
                     cardId: card.cardId,
+                    ...(card.artId ? { artId: card.artId } : {}),
                   })),
                 });
         for (const instanceId of chosen) {

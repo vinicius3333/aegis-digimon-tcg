@@ -704,6 +704,7 @@ export async function runRevealChooseDeleteBudget(
       visibleCards: revealed.map((card) => ({
         instanceId: card.instanceId,
         cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
       })),
       min: 1,
       max: 1,
@@ -769,6 +770,7 @@ export async function runRevealChooseDeleteBudget(
       visibleCards: revealed.map((card) => ({
         instanceId: card.instanceId,
         cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
       })),
       min: visible.length,
       max: visible.length,
@@ -816,6 +818,7 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
                 visibleCards: security.map((card) => ({
                   instanceId: card.instanceId,
                   cardId: card.cardId,
+                  ...(card.artId ? { artId: card.artId } : {}),
                 })),
               });
         const selected = candidates.filter((card) => selectedIds.includes(card.instanceId));

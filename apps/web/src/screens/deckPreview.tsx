@@ -272,20 +272,14 @@ function DeckPreviewCard({
           ) : null}
         </div>
         {onEditArt && getCardArts(cardId).length > 1 ? (
-          <div className="deck-copy-arts">
-            {Array.from({ length: count }, (_, copy) => (
-              <button
-                type="button"
-                key={copy}
-                title={t("deck.editArtwork")}
-                aria-label={`${definition.nameEn} · ${t("deck.copyArtwork", { number: copy + 1 })} · ${t("deck.editArtwork")}`}
-                onClick={() => onEditArt(copy)}
-              >
-                <CardFull cardId={cardId} artId={arts?.[copy]} width={28} />
-                <span>{copy + 1}</span>
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            className="deck-choose-art"
+            aria-label={`${definition.nameEn} · ${t("deck.editArtwork")}`}
+            onClick={() => onEditArt(0)}
+          >
+            {t("deck.editArtwork")}
+          </button>
         ) : null}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>

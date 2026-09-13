@@ -2160,7 +2160,10 @@ export function CardActionMenu({
   const { t } = useTranslation();
   const [zoomed, setZoomed] = useState<string | null>(null);
   const [zoomedArtId, setZoomedArtId] = useState<string | undefined>();
-  const openZoom = (id: string | null, selectedArtId?: string) => { setZoomed(id); setZoomedArtId(selectedArtId); };
+  const openZoom = (id: string | null, selectedArtId?: string) => {
+    setZoomed(id);
+    setZoomedArtId(selectedArtId);
+  };
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && zoomed === null) onClose();
@@ -2269,7 +2272,7 @@ export function CardActionMenu({
               <button
                 type="button"
                 className="card-action-sheet__zoom"
-                onClick={() => setZoomed(cardId)}
+                onClick={() => openZoom(cardId, artId)}
                 aria-label={t("overlay.zoomCard")}
               >
                 <CardFull cardId={cardId} artId={artId} width={190} />
@@ -2344,7 +2347,7 @@ export function CardActionMenu({
                     <span>{t(ROLE_LABEL_KEYS[role])}</span>
                     <div>
                       {group.map((c, i) => (
-                        <button type="button" key={`${c.cardId}-${i}`} onClick={() => setZoomed(c.cardId)}>
+                        <button type="button" key={`${c.cardId}-${i}`} onClick={() => openZoom(c.cardId, c.artId)}>
                           <CardArt cardId={c.cardId} artId={c.artId} width={54} />
                           <figcaption>{getCardDefinition(c.cardId)?.nameEn ?? c.cardId}</figcaption>
                         </button>
@@ -2822,9 +2825,13 @@ export function StackViewerOverlay({
   const [previewZoomed, setPreviewZoomed] = useState(false);
   const [zoomed, setZoomed] = useState<string | null>(null);
   const [zoomedArtId, setZoomedArtId] = useState<string | undefined>();
-  const openZoom = (id: string | null, selectedArtId?: string) => { setZoomed(id); setZoomedArtId(selectedArtId); };
+  const openZoom = (id: string | null, selectedArtId?: string) => {
+    setZoomed(id);
+    setZoomedArtId(selectedArtId);
+  };
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
-  const preview = (cards[activeIndex] ?? cards[0])?.cardId;
+  const previewCard = cards[activeIndex] ?? cards[0];
+  const preview = previewCard?.cardId;
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       // The card zoom sits on top and closes itself on Escape; the sheet under it stays.
@@ -3001,7 +3008,7 @@ export function StackViewerOverlay({
                 cursor: "zoom-in",
               }}
             >
-              <CardArt cardId={preview} artId={cards[activeIndex]?.artId} width={260} />
+              <CardArt cardId={preview} artId={previewCard?.artId} width={260} />
             </div>
           ) : null}
           <div className="game-actions-row" style={{ width: "100%" }}>
@@ -3090,7 +3097,13 @@ export function TrashViewerOverlay({
             </Button>
           </div>
         </div>
-        {zoomed ? <CardZoomOverlay cardId={zoomed} artId={zoomedIndex === null ? undefined : orderedArts[zoomedIndex]} onClose={() => setZoomedIndex(null)} /> : null}
+        {zoomed ? (
+          <CardZoomOverlay
+            cardId={zoomed}
+            artId={zoomedIndex === null ? undefined : orderedArts[zoomedIndex]}
+            onClose={() => setZoomedIndex(null)}
+          />
+        ) : null}
       </div>,
       document.body,
     );

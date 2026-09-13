@@ -1142,4 +1142,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.alternateArt": "Alternativa {number}",
   "deck.copyArtwork": "Cópia {number}",
   "deck.editArtwork": "Escolher arte",
+  "deck.artCopyPrompt": "Escolha uma cópia",
+  "deck.artEditingCopy": "Editando a cópia {number}. Escolha uma arte para salvar imediatamente.",
+  "deck.artApplyAll": "Aplicar arte selecionada a todas as cópias",
+  "deck.artSelected": "Selecionada",
+  "deck.artSelect": "Escolher",
+  "common.done": "Concluir",
 };

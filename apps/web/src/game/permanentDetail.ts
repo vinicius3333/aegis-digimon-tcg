@@ -71,15 +71,31 @@ export function buildPermanentDetail(
 ): PermanentDetail {
   const topCardId = permanent.topCard?.cardId ?? "";
   const cards: StackCard[] = [
-    ...(topCardId ? [{ cardId: topCardId, artId: permanent.topCard?.artId, role: "top" as const }] : []),
-    ...[...permanent.stack].map((card) => ({ cardId: card.cardId, artId: card.artId, role: "stack" as const })),
-    ...[...permanent.linked].map((card) => ({ cardId: card.cardId, artId: card.artId, role: "linked" as const })),
+    ...(topCardId
+      ? [
+          {
+            cardId: topCardId,
+            ...(permanent.topCard?.artId ? { artId: permanent.topCard.artId } : {}),
+            role: "top" as const,
+          },
+        ]
+      : []),
+    ...[...permanent.stack].map((card) => ({
+      cardId: card.cardId,
+      ...(card.artId ? { artId: card.artId } : {}),
+      role: "stack" as const,
+    })),
+    ...[...permanent.linked].map((card) => ({
+      cardId: card.cardId,
+      ...(card.artId ? { artId: card.artId } : {}),
+      role: "linked" as const,
+    })),
   ];
   const keywords = [...permanent.keywords];
   return {
     permanentId: permanent.permanentId,
     cardId: topCardId,
-    artId: permanent.topCard?.artId,
+    ...(permanent.topCard?.artId ? { artId: permanent.topCard.artId } : {}),
     name: getCardDefinition(topCardId)?.nameEn ?? topCardId,
     cards,
     currentDP: permanent.currentDP,
