@@ -6,12 +6,12 @@ describe("BT13-001 Pinamon", () => {
   it("deletes an opposing Digimon with exactly 2000 DP when its evolved stack is deleted", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "host", dp: 1000, suspended: true, under: ["BT13-001"] }],
+        battleArea: [{ card: "BT1-010", as: "host", suspended: true, under: ["BT13-001"] }],
       },
       1: {
         battleArea: [
-          { card: "BT1-010", as: "attacker", dp: 12000 },
-          { card: "BT1-010", as: "effectTarget", dp: 2000 },
+          { card: "ST1-10", as: "attacker" },
+          { card: "BT1-010", as: "effectTarget" },
         ],
       },
     });
@@ -34,12 +34,12 @@ describe("BT13-001 Pinamon", () => {
   it("does not delete an opposing Digimon above 2000 DP", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "host", dp: 1000, suspended: true, under: ["BT13-001"] }],
+        battleArea: [{ card: "BT1-010", as: "host", suspended: true, under: ["BT13-001"] }],
       },
       1: {
         battleArea: [
-          { card: "BT1-010", as: "attacker", dp: 12000 },
-          { card: "BT1-010", as: "ineligibleTarget", dp: 3000 },
+          { card: "ST1-10", as: "attacker" },
+          { card: "BT1-009", as: "ineligibleTarget" },
         ],
       },
     });
