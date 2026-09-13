@@ -29,3 +29,7 @@ Result: **17 tests passed**. The collection checkpoint also passes both suites. 
 ## Baseline control outside this seam
 
 The pristine baseline BT14-090 Option acceptance control initially reproduced **17 passed / 1 failed**, and a stronger wait still observed no paid materials. The separate ordered loose compound placement branch rejected string `host:"target"` despite the existing `underFilter` contract. Its narrow host-resolution correction now passes the 7-file / 71-test focus, including BT14-090, BT25-096 object-host control and the affected EX6 consumers. The first coordinator broad checkpoint independently confirms all included engine and cross-set controls green. Details belong to [activation-costs.md](activation-costs.md#ordered-loose-placement-host-checkpoint-2026-09-13). Closing gates and delivery remain pending; no wait-only diagnosis is claimed.
+
+### EX6 closing gate, 2026-09-13
+
+The corrected EX6 collection and included shared controls pass **271 files / 2893 tests** with one worker and a 3 GB test heap. Shared/API/web typecheck and 86-file changed-TypeScript style checks pass. Atomic implementation commits are pushed in [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773); final delivery supersedes the earlier pending checkpoints. This bounded gate does not certify all other card collections.

@@ -31,3 +31,7 @@ Result: **3 files / 211 tests passed**. The following coordinator broad gate inc
 ## Bounded compatibility limitation
 
 The final review proposes adding prospective projection for mode-less nested/fixed/scaled Breeding replacements in BT13-007, BT22-079/080 and BT23-073. Source comparison with `b88aeb69f` confirms their cold project-only omission already exists at base. These records do not enter the new cost-free amount-choice metadata path, so their actual runtime and existing projection behavior are preserved. This audit rejects the proposed expansion as outside the EX6 correction and does not certify those other consumers. No broad nested/paid/scaled projection claim is made.
+
+### EX6 closing gate, 2026-09-13
+
+The corrected EX6 collection and included shared controls pass **271 files / 2893 tests** with one worker and a 3 GB test heap. Shared/API/web typecheck and 86-file changed-TypeScript style checks pass. Atomic implementation commits are pushed in [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773); final delivery supersedes the earlier pending checkpoints. This bounded gate does not certify all other card collections.
