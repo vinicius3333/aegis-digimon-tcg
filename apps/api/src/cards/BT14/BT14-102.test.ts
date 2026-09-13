@@ -36,12 +36,12 @@ describe("BT14-102", () => {
             { card: "BT14-102", as: "angemon" },
             { card: "BT1-085", as: "tamer" },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
           eggDeck: [{ card: "BT14-003", as: "egg" }],
         },
         1: {
           battleArea: [{ card: "BT14-069", as: "virus" }],
-          security: ["BT1-002"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
@@ -59,11 +59,11 @@ describe("BT14-102", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-102"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angemonId)).toBe(false);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT14-102"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-102"]);
     expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("egg").instanceId);
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === virusId)).toBe(false);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT14-069"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-069"]);
     assertNoLoudGap(s);
   });
 
@@ -72,11 +72,11 @@ describe("BT14-102", () => {
       {
         0: {
           battleArea: [{ card: "BT14-102", as: "angemon" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT14-041", as: "target" }],
-          security: ["BT1-002"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
@@ -92,7 +92,7 @@ describe("BT14-102", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-102"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === angemonId)).toBe(false);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT14-102"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-102"]);
     expect(s.perm("target").currentDP).toBe(7000);
     expect(observe(s.engine).isAttacking()).toBe(false);
     assertNoLoudGap(s);
@@ -108,11 +108,11 @@ describe("BT14-102", () => {
           ],
           breeding: { card: "BT14-001", as: "occupant" },
           eggDeck: [{ card: "BT14-003", as: "egg" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: {
           battleArea: [{ card: "BT14-069", as: "virus" }],
-          security: ["BT1-002"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
@@ -127,7 +127,7 @@ describe("BT14-102", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-102"));
 
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT14-102"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-102"]);
     expect(s.perm("occupant").topCard?.cardId).toBe("BT14-001");
     expect(s.state.players[0]!.eggDeck).toHaveLength(1);
     assertNoLoudGap(s);
@@ -139,7 +139,7 @@ describe("BT14-102", () => {
         0: {
           battleArea: [{ card: "BT14-041", as: "host", under: ["BT14-102"] }],
           hand: [{ card: "BT14-035", as: "eligible" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
         1: { security: [{ card: "BT1-084", as: "securityOmnimon" }] },
       },
@@ -157,7 +157,7 @@ describe("BT14-102", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-035"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT14-035"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT14-035"]);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-035")).toBe(false);
     assertNoLoudGap(s);
   });

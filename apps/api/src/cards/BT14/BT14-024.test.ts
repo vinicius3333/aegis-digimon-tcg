@@ -105,7 +105,7 @@ describe("BT14-024", () => {
       {
         0: {
           battleArea: [{ card: "BT14-026", as: "holder", under: ["BT14-002", "BT14-020", "BT14-024"] }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -158,6 +158,86 @@ describe("BT14-024", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.perm("second").stack).toHaveLength(3);
+    assertNoLoudGap(s);
+  });
+
+  it("resets the inherited bottom-two trash on the next opposing turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "host", under: ["BT14-024"] }],
+          hand: [{ card: "BT1-009", as: "ownHand" }],
+          security: ["BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-043",
+              as: "attacker",
+              under: [
+                { card: "BT1-003", as: "bottomFirst" },
+                { card: "BT1-028", as: "bottomSecond" },
+                { card: "BT1-037", as: "remainingFirst" },
+                { card: "BT1-038", as: "remainingSecond" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT1-009", as: "opponentHand" }],
+          security: ["BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").stack.length === 2);
+    expect(s.perm("attacker").stack.map(({ cardId }) => cardId)).toEqual(["BT1-037", "BT1-038"]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bottomFirst").instanceId, s.inst("bottomSecond").instanceId]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").stack.length === 0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("bottomFirst").instanceId,
+        s.inst("bottomSecond").instanceId,
+        s.inst("remainingFirst").instanceId,
+        s.inst("remainingSecond").instanceId,
+      ]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

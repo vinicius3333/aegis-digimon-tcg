@@ -26,9 +26,9 @@ describe("BT14-099", () => {
         0: {
           battleArea: [{ card: "BT14-075", as: "devimon" }],
           hand: [{ card: "BT14-099", as: "option" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-004", "BT1-005"] },
+        1: { security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -39,15 +39,13 @@ describe("BT14-099", () => {
     });
     await settle(
       () =>
-        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-003") &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") &&
         observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack") === 1,
     );
 
     expect(
-      s.state.players[0]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map(
-        (card) => card.cardId,
-      ),
-    ).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+      s.state.players[0]!.trash.filter((card) => ["BT1-009"].includes(card.cardId)).map((card) => card.cardId),
+    ).toEqual(["BT1-009", "BT1-009", "BT1-009"]);
     expect(observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack")).toBe(1);
     expect(
       s.engine.applyIntent(0, {
@@ -67,7 +65,7 @@ describe("BT14-099", () => {
         1: {
           battleArea: [{ card: "BT14-075", as: "devimon" }],
           security: [{ card: "BT14-099", as: "securityOption" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -82,15 +80,13 @@ describe("BT14-099", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[1]!.trash.some((card) => card.cardId === "BT1-003") &&
+        s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009") &&
         observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack") === 1,
     );
 
     expect(
-      s.state.players[1]!.trash.filter((card) => ["BT1-001", "BT1-002", "BT1-003"].includes(card.cardId)).map(
-        (card) => card.cardId,
-      ),
-    ).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+      s.state.players[1]!.trash.filter((card) => ["BT1-009"].includes(card.cardId)).map((card) => card.cardId),
+    ).toEqual(["BT1-009", "BT1-009", "BT1-009"]);
     expect(observe(s.engine).keywordAmount(s.perm("devimon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT14-099")).toBe(true);
   });

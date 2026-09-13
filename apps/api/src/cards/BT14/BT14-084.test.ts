@@ -26,7 +26,7 @@ describe("BT14-084", () => {
             { card: "BT14-084", as: "tk" },
             { card: "P-074", as: "vaccine" },
           ],
-          security: [{ card: "BT1-001", as: "topSecurity" }],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

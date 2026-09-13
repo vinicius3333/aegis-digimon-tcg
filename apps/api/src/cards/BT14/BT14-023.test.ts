@@ -78,7 +78,7 @@ describe("BT14-023", () => {
         1: {
           battleArea: [{ card: "BT14-016", as: "target", under: ["BT14-001", "BT14-007"] }],
           hand: [{ card: "BT14-012", as: "extraSource" }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -107,7 +107,7 @@ describe("BT14-023", () => {
         },
         1: {
           battleArea: [{ card: "BT14-016", as: "target", under: ["BT14-001", "BT14-007", "BT14-012"] }],
-          security: ["BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -122,6 +122,92 @@ describe("BT14-023", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it.each([
+    {
+      label: "main restriction",
+      host: "BT14-023",
+      hostUnder: ["BT14-002", "BT14-020"],
+    },
+    {
+      label: "inherited restriction",
+      host: "BT14-026",
+      hostUnder: ["BT14-002", "BT14-020", "BT14-023"],
+    },
+  ])("resets the $label on the next natural turn", async ({ host, hostUnder }) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: host, as: "host", under: hostUnder }],
+          hand: ["BT1-009", "BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-037", as: "first", under: ["BT14-002", "BT14-020"] },
+            { card: "BT1-037", as: "second", under: ["BT14-002", "BT14-020"] },
+          ],
+          hand: ["BT1-009", "BT1-009"],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+          deck: Array(8).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.perm("first").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("first"), "attack"));
+    expect(observe(s.engine).isRestricted(s.perm("first"), "attack")).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    preferred.splice(0, preferred.length, s.perm("second").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "attack")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "attack")).toBe(false);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.splice(0, preferred.length, s.perm("second").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("second"), "attack"));
+    expect(observe(s.engine).isRestricted(s.perm("second"), "attack")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
     assertNoLoudGap(s);
   });
 });

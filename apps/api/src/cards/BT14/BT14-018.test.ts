@@ -73,7 +73,7 @@ describe("BT14-018", () => {
       0: {
         battleArea: [{ card: "BT14-015", as: "base" }],
         hand: [{ card: "BT14-018", as: "goldramon" }],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     s.state.memory = 10;
@@ -107,7 +107,7 @@ describe("BT14-018", () => {
           { card: AMON, as: "amon" },
           { card: UMON, as: "umon" },
         ],
-        deck: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009"],
         security: ["BT1-085"],
       },
     });
@@ -126,7 +126,7 @@ describe("BT14-018", () => {
           { card: "BT14-018", as: "goldramon" },
           { card: UMON, as: "umon" },
         ],
-        deck: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009"],
         security: ["BT1-085"],
       },
     });
@@ -146,7 +146,7 @@ describe("BT14-018", () => {
           { card: AMON, as: "amon" },
         ],
         hand: [{ card: "BT13-112", as: "omnimon" }],
-        deck: ["BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009"],
         security: ["BT1-085"],
       },
     });
@@ -171,7 +171,7 @@ describe("BT14-018", () => {
         0: {
           battleArea: [{ card: "BT14-018", as: "goldramon" }],
           hand: [{ card: "BT16-014", as: "goldramonX" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -206,7 +206,7 @@ describe("BT14-018", () => {
 
   it("does not recover when no token is deleted or when a token is deleted by another effect", async () => {
     const noToken = setupEngine({
-      0: { battleArea: [{ card: "BT14-018", as: "goldramon" }], deck: ["BT1-001"], security: ["BT1-085"] },
+      0: { battleArea: [{ card: "BT14-018", as: "goldramon" }], deck: ["BT1-009"], security: ["BT1-085"] },
     });
     await advance(noToken.engine).recompute();
     expect(
@@ -220,7 +220,7 @@ describe("BT14-018", () => {
           { card: "BT14-018", as: "goldramon" },
           { card: AMON, as: "amon" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
         security: ["BT1-085"],
       },
     });

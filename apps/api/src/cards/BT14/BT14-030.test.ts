@@ -51,7 +51,7 @@ describe("BT14-030", () => {
         0: {
           battleArea: [{ card: "BT14-028", as: "ownLevel5" }],
           hand: [{ card: "BT14-030", as: "marine" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [
@@ -104,7 +104,7 @@ describe("BT14-030", () => {
             { card: "BT14-020", as: "own" },
           ],
           hand: [{ card: "BT14-030", as: "marine" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true },
@@ -163,7 +163,7 @@ describe("BT14-030", () => {
         0: {
           battleArea: [{ card: "EX2-007", as: "mother" }],
           hand: [{ card: "BT14-030", as: "marine" }],
-          eggDeck: ["BT1-001"],
+          eggDeck: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-020", as: "opponent" }] },
       },
@@ -186,7 +186,7 @@ describe("BT14-030", () => {
         JSON.stringify({ motherResponse, pending: s.state.pendingDecision, request: s.decisions.at(-1)?.req }),
       );
     await settle(() => s.state.players[0]!.eggDeck.at(-1)?.cardId === "EX2-007");
-    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "EX2-007"]);
+    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-009", "EX2-007"]);
     expect(s.state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX2-007");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT14-020");
@@ -273,7 +273,7 @@ describe("BT14-030", () => {
 
   it("recovers for another opponent Digimon returning, only on its turn and once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-001", "BT1-002"] },
+      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-009", "BT1-009"] },
       1: {
         battleArea: [
           { card: "BT14-020", as: "first" },
@@ -298,7 +298,7 @@ describe("BT14-030", () => {
           { card: "BT14-030", as: "marine" },
           { card: "BT14-020", as: "other" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
     });
     own.state.turnSeat = 0;
@@ -308,7 +308,7 @@ describe("BT14-030", () => {
     expect(own.state.players[0]!.security).toHaveLength(1);
 
     const self = setupEngine({
-      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-009"] },
     });
     self.state.turnSeat = 0;
     await self.ready();
@@ -322,7 +322,7 @@ describe("BT14-030", () => {
           { card: "BT14-030", as: "marine" },
           { card: "BT14-021", as: "ownReturned" },
         ],
-        deck: ["BT1-001"],
+        deck: ["BT1-009"],
       },
       1: { battleArea: [{ card: "BT14-020", as: "opponentReturned" }] },
     });
@@ -337,5 +337,58 @@ describe("BT14-030", () => {
     assertNoLoudGap(own);
     assertNoLoudGap(self);
     assertNoLoudGap(opponentTurn);
+  });
+
+  it("resets recovery after another Digimon returns on the next natural turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-030", as: "marine", under: ["BT14-026"] }],
+          hand: [{ card: "ST2-16", as: "firstOption" }, { card: "ST2-16", as: "secondOption" }, "BT1-009"],
+          security: ["BT1-009"],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: {
+          hand: ["BT1-009"],
+          battleArea: [
+            { card: "BT14-020", as: "firstTarget" },
+            { card: "BT14-021", as: "secondTarget" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("firstTarget").topCard.instanceId);
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    preferInstanceIds.splice(0, preferInstanceIds.length, s.perm("secondTarget").topCard.instanceId);
+
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+    assertNoLoudGap(s);
   });
 });

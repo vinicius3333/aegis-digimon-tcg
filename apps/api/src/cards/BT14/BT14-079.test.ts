@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT14-079.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -34,7 +35,7 @@ describe("BT14-079", () => {
     }));
   it("trashes a hand card and gains memory when attacking", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-079", as: "source" }], hand: [{ card: "BT1-002", as: "cost" }] } },
+      { 0: { battleArea: [{ card: "BT14-079", as: "source" }], hand: [{ card: "BT1-009", as: "cost" }] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
@@ -45,8 +46,8 @@ describe("BT14-079", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002") && s.state.memory === 4);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") && s.state.memory === 4);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.memory).toBe(4);
   });
 
@@ -59,10 +60,10 @@ describe("BT14-079", () => {
             { card: "BT14-079", as: "source" },
             { card: "BT14-080", as: "finisher" },
             { card: "BT14-072", as: "fangmon" },
-            { card: "BT1-002", as: "discard" },
+            { card: "BT1-009", as: "discard" },
           ],
           trash: [{ card: "BT14-071", as: "playable" }],
-          deck: ["BT1-001", "BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -97,10 +98,10 @@ describe("BT14-079", () => {
       ok: true,
     });
     await settle(
-      () => !s.perm("host").isSuspended && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"),
+      () => !s.perm("host").isSuspended && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"),
     );
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("naturally uses the level-4 trash ceiling when Eiji is in the digivolution cards", async () => {
@@ -135,5 +136,77 @@ describe("BT14-079", () => {
     expect(
       s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("level4DarkAnimal").instanceId),
     ).toBe(false);
+  });
+
+  it("resets the inherited unsuspend watcher on the next natural turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-089", as: "host", suspended: true, under: ["BT14-079"] }],
+          hand: [
+            { card: "BT14-072", as: "fangmonA" },
+            { card: "BT14-072", as: "fangmonB" },
+            { card: "BT14-072", as: "fangmonC" },
+            { card: "BT1-009", as: "discardA" },
+            { card: "BT1-009", as: "discardB" },
+            { card: "BT1-009", as: "discardC" },
+          ],
+          trash: [{ card: "BT14-071", as: "darkAnimal" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-091", "BT1-091", "BT1-091"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("discardA").instanceId, s.inst("discardB").instanceId, s.inst("discardC").instanceId);
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonA").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended && s.state.memory === 6);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonB").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 2 && s.perm("host").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmonC").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended && s.state.memory === -1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });

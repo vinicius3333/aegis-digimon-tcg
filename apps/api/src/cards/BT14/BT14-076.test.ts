@@ -37,10 +37,10 @@ describe("BT14-076", () => {
           ],
           hand: [
             { card: "BT14-076", as: "source" },
-            { card: "BT1-002", as: "cost" },
+            { card: "BT1-009", as: "cost" },
           ],
           trash: [{ card: "ST1-03", as: "agumon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: { battleArea: [{ card: "BT14-069", as: "opponent" }] },
       },
@@ -56,10 +56,10 @@ describe("BT14-076", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002") &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009") &&
         s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST1-03"),
     );
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-076")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Rush")).toBe(true);

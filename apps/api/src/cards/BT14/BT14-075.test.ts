@@ -24,21 +24,21 @@ describe("BT14-075", () => {
     }));
   it("trashes three cards from the deck when played", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT14-075", as: "ogre" }], deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] } },
+      { 0: { hand: [{ card: "BT14-075", as: "ogre" }], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogre").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length >= 3);
-    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009", "BT1-009"]);
   });
   it("trashes three cards from the deck on a natural attack and updates DP scaling", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT14-075", as: "source" }],
-          trash: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
+          trash: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -52,17 +52,17 @@ describe("BT14-075", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 6 && s.perm("source").currentDP === 8000);
-    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-004", "BT1-005", "BT1-006"]);
+    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009", "BT1-009"]);
     expect(s.perm("source").currentDP).toBe(8000);
   });
   it("trashes a random opponent hand card on deletion", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-075", as: "source" }] }, 1: { hand: [{ card: "BT1-002", as: "victim" }] } },
+      { 0: { battleArea: [{ card: "BT14-075", as: "source" }] }, 1: { hand: [{ card: "BT1-009", as: "victim" }] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002"));
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("naturally trashes an opponent hand card when it is deleted in battle", async () => {
@@ -71,7 +71,7 @@ describe("BT14-075", () => {
         0: { battleArea: [{ card: "BT14-075", as: "devimon", dp: 1000, suspended: true }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }],
-          hand: [{ card: "BT1-002", as: "victim" }],
+          hand: [{ card: "BT1-009", as: "victim" }],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true },

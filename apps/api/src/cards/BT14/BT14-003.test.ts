@@ -23,10 +23,10 @@ it("draws once for your security addition, but ignores the opponent's addition",
   const s = setupEngine({
     0: {
       battleArea: [{ card: "BT14-007", as: "stack", under: ["BT14-003"] }],
-      deck: ["BT1-001", "BT1-001"],
-      security: ["BT1-001"],
+      deck: ["BT1-009", "BT1-009"],
+      security: ["BT1-009"],
     },
-    1: { security: ["BT1-001"] },
+    1: { security: ["BT1-009"] },
   });
   s.state.turnSeat = 0;
   await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("stack"));
@@ -50,7 +50,7 @@ it("draws from a real recovery after a legal Tokomon-to-Elecmon breeding evoluti
           { card: "BT14-031", as: "elecmon" },
           { card: "BT14-037", as: "magnaAngemon" },
         ],
-        deck: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
       },
       1: { battleArea: [{ card: "BT14-031", as: "dpTarget" }] },
     },
@@ -85,5 +85,53 @@ it("draws from a real recovery after a legal Tokomon-to-Elecmon breeding evoluti
   expect(s.state.players[0]!.security).toHaveLength(1);
   expect(s.state.players[0]!.hand).toHaveLength(2);
   expect(s.perm("tokomon").stack[0]?.cardId).toBe("BT14-003");
+  assertNoLoudGap(s);
+});
+
+it("resets after a natural recovery on the next turn", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT1-045", as: "host", under: ["BT14-003"] }],
+        hand: [
+          { card: "BT14-037", as: "firstMagna" },
+          { card: "BT14-037", as: "secondMagna" },
+        ],
+        security: ["BT1-009"],
+        deck: Array(8).fill("BT1-009"),
+      },
+      1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+
+  const firstTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const handBeforeFirst = s.state.players[0]!.hand.length;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMagna").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.security.length === 2);
+  expect(s.state.players[0]!.hand).toHaveLength(handBeforeFirst);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await firstTurn;
+
+  s.state.turnSeat = 1;
+  s.state.memory = 3;
+  await advance(s.engine).runTurn(1);
+  s.state.turnSeat = 0;
+  s.state.memory = 3;
+
+  const secondTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const handBeforeSecond = s.state.players[0]!.hand.length;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMagna").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.security.length === 3);
+  expect(s.state.players[0]!.hand).toHaveLength(handBeforeSecond);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await secondTurn;
   assertNoLoudGap(s);
 });

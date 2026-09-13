@@ -15,7 +15,6 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
-      frequency: "OncePerTurn",
       actions: [
         {
           kind: "SubTrigger",
