@@ -1,6 +1,6 @@
 ---
 title: Activation costs audit
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 # Activation costs audit
@@ -68,6 +68,32 @@ exercises payment with an absent payload target. The current finite consumer tab
 compound costs, replacements, and borrowed-effect overrides with their public
 proofs. Provider-specific variants outside the observed 22 kinds and 19
 compound classes remain outside this bounded denominator.
+
+## Ordered loose compound placement target host (2026-09-13)
+
+During EX12 delivery gates, BT14-090's existing public Option-use proofs failed:
+accepted compound payment left both required trash cards outside Agumon's stack.
+Both failures reproduce on pristine `git archive HEAD` sources at
+`b88aeb69f22995641622ab4388086ff771b23dc0`; the focused two-file baseline has
+18 passing and 2 failing tests. Installed dependencies and the unchanged shared
+build were reused; card/engine sources were pristine.
+
+`canPayCost` accepts a loose placement's `host: "target"` with `underFilter`,
+but `payCost`'s ordered compound loose-card branch accepted only an object host.
+The correction derives a canonical host target from either representation.
+Object-host choices retain their existing order; target-host choices preserve
+the loose-material-first sequence expected by BT14-090. Components still bind
+one host, exclude already chosen physical cards, collect/order the entire
+payment, and revalidate host and loose materials before moving anything.
+Refusal and unpayable compound processing remain atomic.
+
+Peer acceptance: BT14-090 and the object-host BT25-096 suites passed 23/23 tests
+with one worker and a 3072 MB heap. Both original-red conformance suites now pass
+20/20 tests; combined with the Guard lifecycle suite, 3 files / 41 tests pass.
+Final broad acceptance passed: EX12, conformance, combat, effects, engine card
+suites, BT14-090/BT25-096 and audit-document layout — 274 files / 3300 tests.
+Serialized shared/API/web typecheck passed with a 4096 MB heap. This section
+does not certify unobserved compound consumer shapes.
 
 ## Gates
 
