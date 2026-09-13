@@ -1,6 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
+import "../BT9/BT9-111.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-104.js";
 import "./BT13-095.js";
@@ -47,7 +46,7 @@ describe("BT13-104 Final Shining Burst", () => {
         },
         // Marcus's optional On Play suspension applies a further -3000 DP after
         // Final Shining Burst. Start high enough to observe both modifiers.
-        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
+        1: { battleArea: [{ card: "BT9-111", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -73,12 +72,21 @@ describe("BT13-104 Final Shining Burst", () => {
           security: [{ card: "BT13-104", as: "securityOption", faceUp: true }],
           hand: [{ card: "BT13-095", as: "marcus" }],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
+        1: { battleArea: [{ card: "BT9-111", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-095"));
     expect(s.perm("target").currentDP).toBe(1000);
   });
@@ -97,13 +105,15 @@ describe("BT13-104 Final Shining Burst", () => {
             { card: "BT13-095", as: "exactMarcus" },
           ],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
+        1: { battleArea: [{ card: "BT9-111", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-095"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-021")).toBe(false);

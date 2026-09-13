@@ -58,7 +58,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     expect(compiled.effects.some((effect) => effect.trigger === "EndOfYourTurn")).toBe(false);
   });
 
-  it("suspends an opposing Digimon and Tamer when digivolving", async () => {
+  it("[Supplemental] suspends an opposing Digimon and Tamer when digivolving", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-060", as: "roseBurst" }] },
       1: {
@@ -91,7 +91,10 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
       },
     });
     const priorTopId = s.perm("base").topCard.instanceId;
+    s.state.memory = 3;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -103,13 +106,18 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT13-060");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yoshino").instanceId)).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(priorTopId);
     expect(s.perm("digimon").isSuspended).toBe(true);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTopId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("base").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("burst").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
   it("requires an exact Yoshino Fujieda Tamer for Burst Digivolve", async () => {
@@ -157,10 +165,10 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("burst").instanceId)).toBe(true);
   });
 
-  it("does not count a suspended opponent breeding Digimon for attack security scaling", async () => {
+  it("[Supplemental] does not count a suspended opponent breeding Digimon for attack security scaling", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-060", as: "attacker" }] },
-      1: { breeding: { card: "BT1-015", as: "breedingOpponent", suspended: true }, security: ["BT1-001"] },
+      1: { breeding: { card: "BT1-015", as: "breedingOpponent", suspended: true }, security: ["BT1-009"] },
     });
     await s.ready();
 
@@ -177,12 +185,19 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
           { card: "BT1-015", as: "suspendedDigimon", suspended: true },
           { card: "BT13-100", as: "suspendedTamer", suspended: true },
         ],
-        security: ["BT1-001", "BT1-002"],
+        security: ["BT1-009", "BT1-010"],
       },
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("suspendedDigimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

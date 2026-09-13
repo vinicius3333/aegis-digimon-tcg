@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-086.js";
+import "../ST1/ST1-10.js";
 
 describe("BT13-086 BT13-086", () => {
   it("matches the printed cost reduction and play effects", () => {
@@ -93,7 +93,7 @@ describe("BT13-086 BT13-086", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    s.state.memory = 12;
+    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xt").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103")).toBe(true);
@@ -101,12 +101,33 @@ describe("BT13-086 BT13-086", () => {
 
   it("plays the exact ProtoGizmon from trash when deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-086", as: "xt" }], trash: [{ card: "BT13-080", as: "proto" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-086", as: "xt" }],
+          trash: [{ card: "BT13-080", as: "proto" }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("xt").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080")).toBe(true);
+    const xtId = s.perm("xt").topCard!.instanceId;
+    const protoId = s.inst("proto").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("xt").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === protoId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === protoId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(xtId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(protoId);
+    expect(s.state.memory).toBe(3);
   });
 
   it("reduces the 9-cost play by 6 after deleting an own level-4 Digimon", async () => {

@@ -47,7 +47,9 @@ describe("BT13-025 GaoGamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
+    const evolutionMaterialId1 = s.perm("gaomon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -55,6 +57,9 @@ describe("BT13-025 GaoGamon", () => {
         instanceId: s.inst("gaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("gaomon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
+    expect(s.state.memory).toBe(1);
     await settle(
       () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-097"),
       3000,
@@ -79,6 +84,8 @@ describe("BT13-025 GaoGamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    s.state.memory = 3;
+    const evolutionMaterialId2 = s.perm("gaomon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -86,6 +93,9 @@ describe("BT13-025 GaoGamon", () => {
         instanceId: s.inst("gaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(s.perm("gaomon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
+    expect(s.state.memory).toBe(1);
     await settle(() => s.perm("gaomon").topCard.cardId === "BT13-025");
 
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT13-097")).toHaveLength(1);
@@ -106,6 +116,8 @@ describe("BT13-025 GaoGamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    s.state.memory = 3;
+    const evolutionMaterialId3 = s.perm("gaomon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -113,6 +125,9 @@ describe("BT13-025 GaoGamon", () => {
         instanceId: s.inst("gaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").stack.some((card) => card.instanceId === evolutionMaterialId3));
+    expect(s.perm("gaomon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId3);
+    expect(s.state.memory).toBe(1);
     await settle(() => s.perm("gaomon").topCard.cardId === "BT13-025");
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -136,6 +151,8 @@ describe("BT13-025 GaoGamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    s.state.memory = 3;
+    const evolutionMaterialId4 = s.perm("gaomon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -143,6 +160,9 @@ describe("BT13-025 GaoGamon", () => {
         instanceId: s.inst("gaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").stack.some((card) => card.instanceId === evolutionMaterialId4));
+    expect(s.perm("gaomon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId4);
+    expect(s.state.memory).toBe(1);
     await settle(
       () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-097"),
       3000,
@@ -166,6 +186,8 @@ describe("BT13-025 GaoGamon", () => {
       { autoDeclineOptional: true },
     );
 
+    s.state.memory = 3;
+    const evolutionMaterialId5 = s.perm("gaomon").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -173,6 +195,9 @@ describe("BT13-025 GaoGamon", () => {
         instanceId: s.inst("gaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").stack.some((card) => card.instanceId === evolutionMaterialId5));
+    expect(s.perm("gaomon").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId5);
+    expect(s.state.memory).toBe(1);
     await settle(() => s.perm("gaomon").topCard.cardId === "BT13-025");
 
     expect(s.state.players[0]!.hand).toContain(s.inst("thomas"));
@@ -181,15 +206,15 @@ describe("BT13-025 GaoGamon", () => {
 
   it("gains the inherited 1000 DP exactly when the opponent reaches eight cards in hand", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "gaogamon", dp: 5000, under: ["BT13-025"] }] },
+      0: { battleArea: [{ card: "BT1-041", as: "gaogamon", under: ["BT13-025"] }] },
       1: { hand: Array.from({ length: 7 }, (_, index) => ({ card: "BT13-021", as: `opponent-${index}` })) },
     });
     await s.ready();
-    expect(s.perm("gaogamon").currentDP).toBe(5000);
+    expect(s.perm("gaogamon").currentDP).toBe(6000);
 
-    s.give(1, Zone.Hand, "BT1-002");
+    s.give(1, Zone.Hand, "BT1-010");
     await s.engine.recomputeContinuousEffects();
     expect(s.state.players[1]!.hand).toHaveLength(8);
-    expect(s.perm("gaogamon").currentDP).toBe(6000);
+    expect(s.perm("gaogamon").currentDP).toBe(7000);
   });
 });

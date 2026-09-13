@@ -1,5 +1,6 @@
+import "./BT13-060.js";
+import "./BT13-097.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-106.js";
@@ -34,14 +35,14 @@ describe("BT13-106 Odin's Breath", () => {
         0: {
           battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
           hand: [{ card: "BT13-106", as: "option" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
             { card: "BT13-111", as: "first" },
             { card: "BT13-111", as: "second" },
           ],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -67,17 +68,59 @@ describe("BT13-106 Odin's Breath", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
-          security: [{ card: "BT13-106", as: "option", faceUp: true }],
+          battleArea: [
+            { card: "BT1-009", as: "yellowDigimon", suspended: true },
+            { card: "BT13-097", as: "thomas", suspended: true },
+          ],
+          security: [{ card: "BT13-106", as: "option" }],
           hand: [],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target" }], security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT13-060", as: "target" }], security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
 
-    await advance(s.engine).verb.trash([s.inst("option").instanceId]);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("yellowDigimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 12000);
+    expect(s.perm("target").currentDP).toBe(12000);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("keeps the DP reduction but withholds Security Attack -1 above six total security cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
+          hand: [{ card: "BT13-106", as: "option" }],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT13-111", as: "target" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 10000);
+
     expect(s.perm("target").currentDP).toBe(10000);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
 });

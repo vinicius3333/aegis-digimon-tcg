@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
                 excludeNameOrTrait: [
                   {
                     tokens: ["Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
                 controllerDefault: "mine",
@@ -26,11 +26,11 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Beast", "Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                   {
                     tokens: ["Sovereign"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -80,13 +80,13 @@ export const compiled: CompiledCard = {
                 conditions: [
                   {
                     kind: "selfHasTrait",
-                    filter: { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "trait" }] },
+                    filter: { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }] },
                   },
                   {
                     kind: "not",
                     condition: {
                       kind: "selfHasTrait",
-                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
                     },
                   },
                 ],

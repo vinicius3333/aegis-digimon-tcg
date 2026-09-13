@@ -64,8 +64,8 @@ describe("BT13-083 Gizmon: AT", () => {
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "gizmon" }],
-          deck: ["BT1-001", "BT1-002"],
-          hand: ["BT1-003", "BT1-004"],
+          deck: ["BT1-009", "BT1-009"],
+          hand: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -73,9 +73,9 @@ describe("BT13-083 Gizmon: AT", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("gizmon"));
     await settle(() => s.state.players[0]!.trash.length === 2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-003", "BT1-004"]),
+      expect.arrayContaining(["BT1-009", "BT1-009"]),
     );
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-009"]));
   });
 
   it("returns exactly two Gizmon cards in any chosen order before playing Gizmon: XT on deletion", async () => {

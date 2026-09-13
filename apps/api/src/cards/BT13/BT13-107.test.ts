@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-107.js";
@@ -57,13 +56,39 @@ describe("BT13-107 Vulcan Crusher", () => {
   });
 
   it("suspends an opposing Digimon and returns itself when revealed in security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT13-107", as: "vulcan", faceUp: true }] },
-      1: { battleArea: [{ card: "BT1-012", as: "target" }] },
-    });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("vulcan"));
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT13-107", as: "vulcan" }], deck: ["BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "attacker" },
+            { card: "BT1-012", as: "target" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vulcan").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("returns the visible Leopardmon top while preserving an arbitrary undercard and unsuspends own Digimon", async () => {

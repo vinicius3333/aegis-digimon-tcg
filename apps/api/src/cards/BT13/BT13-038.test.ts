@@ -1,3 +1,4 @@
+import "../BT1/BT1-036.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT13-038.js";
@@ -26,8 +27,8 @@ describe("BT13-038 Reppamon", () => {
   it("trashes the exact top security card and gives an opposing Digimon Security Attack -2", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: [{ card: "BT1-001", as: "top" }] },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: [{ card: "BT1-010", as: "top" }] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -46,8 +47,8 @@ describe("BT13-038 Reppamon", () => {
   it("declining preserves security and grants no keyword", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "BT13-038", as: "reppa" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -66,7 +67,7 @@ describe("BT13-038 Reppamon", () => {
   it("does not offer the main effect when the security cost cannot be paid", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-038", as: "reppa" }] },
-      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT13-031", as: "target" }], security: ["BT1-009"] },
     });
     expect(
       s.engine.applyIntent(0, {
@@ -80,37 +81,90 @@ describe("BT13-038 Reppamon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
 
-  it("the inherited effect sums both security stacks and is once per turn at six (Q2290)", async () => {
+  it("the inherited effect sums both security stacks, debuffs an opponent, and is once per turn (inherited reset)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-038"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          battleArea: [{ card: "BT1-057", as: "host", under: [{ card: "BT13-038", as: "source" }] }],
+          hand: [
+            { card: "BT1-036", as: "garuru" },
+            { card: "BT1-010", as: "spare" },
+          ],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoSelectCards: true },
     );
     const baseDP = s.perm("target").currentDP;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.perm("target").currentDP === baseDP - 2000);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    const sourceId = s.inst("source").instanceId;
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
     expect(s.perm("target").currentDP).toBe(baseDP - 2000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garuru").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(4);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("target").currentDP).toBe(baseDP - 2000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    expect(s.perm("target").currentDP).toBe(baseDP);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.perm("target").currentDP).toBe(baseDP - 2000);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(sourceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("the inherited effect does not debuff above six combined security cards", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-038"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT13-038"] }],
+          security: ["BT1-010", "BT1-009", "BT1-015", "BT1-010"],
         },
         1: {
           battleArea: [{ card: "BT13-031", as: "target" }],
-          security: ["BT1-005", "BT1-006", "BT1-007"],
+          security: ["BT1-009", "BT1-015", "BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -125,6 +179,7 @@ describe("BT13-038 Reppamon", () => {
       0: { battleArea: [{ card: "BT13-036", as: "base" }], hand: [{ card: "BT13-038", as: "reppa" }] },
     });
     s.state.memory = 3;
+    const baseId = s.inst("base").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -134,5 +189,6 @@ describe("BT13-038 Reppamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-038");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });

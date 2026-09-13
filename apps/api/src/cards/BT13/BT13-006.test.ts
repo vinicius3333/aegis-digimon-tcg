@@ -1,3 +1,4 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-006.js";
@@ -15,12 +16,12 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
+          hand: [{ card: "BT1-010", as: "cost" }],
         },
         1: {
           battleArea: [
-            { card: "BT1-015", as: "attacker", dp: 12000 },
+            { card: "ST1-10", as: "attacker" },
             { card: "BT1-010", as: "level3Target" },
             { card: "BT1-016", as: "level4NonTarget" },
           ],
@@ -46,12 +47,12 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "kept" }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
+          hand: [{ card: "BT1-010", as: "kept" }],
         },
         1: {
           battleArea: [
-            { card: "BT1-015", as: "attacker", dp: 12000 },
+            { card: "ST1-10", as: "attacker" },
             { card: "BT1-010", as: "level3Target" },
           ],
         },
@@ -73,10 +74,10 @@ describe("BT13-006 Kapurimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-079", as: "host", dp: 1000, suspended: true, under: ["BT13-006"] }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          battleArea: [{ card: "BT2-067", as: "host", suspended: true, under: ["BT13-006"] }],
+          hand: [{ card: "BT1-010", as: "cost" }],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 12000 }] },
+        1: { battleArea: [{ card: "ST1-10", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

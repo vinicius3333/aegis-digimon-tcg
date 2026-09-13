@@ -1,6 +1,6 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-041.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -41,16 +41,23 @@ describe("BT13-041 Chirinmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT13-041", as: "chirin" }],
-        security: [{ card: "BT1-001", as: "top-security" }],
+        security: [{ card: "BT1-009", as: "top-security" }],
       },
+      1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("chirin").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chirin").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("chirin").permanentId, accept: true }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
@@ -66,11 +73,19 @@ describe("BT13-041 Chirinmon", () => {
           battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-041"] }],
           trash: [{ card: "BT13-034", as: "kudamon" }],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const before = s.state.memory;
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-034"));
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT13-034")!;
     expect(played.isSuspended).toBe(true);
@@ -85,10 +100,18 @@ describe("BT13-041 Chirinmon", () => {
             battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-041"] }],
             hand: [{ card: "BT13-034", as: "kudamon" }],
           },
+          1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
         },
         accept ? { autoAcceptOptional: true, autoSelectCards: true } : { autoDeclineOptional: true },
       );
-      await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-034")).toBe(accept);
       expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-034")).toBe(!accept);
     }
@@ -96,10 +119,20 @@ describe("BT13-041 Chirinmon", () => {
 
   it("does not offer the inherited play for a non-Kudamon card", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-041"] }], hand: ["BT13-036"] } },
+      {
+        0: { battleArea: [{ card: "BT13-045", as: "host", under: ["BT13-041"] }], hand: ["BT13-036"] },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
@@ -109,6 +142,7 @@ describe("BT13-041 Chirinmon", () => {
       0: { battleArea: [{ card: "BT13-038", as: "base" }], hand: [{ card: "BT13-041", as: "chirin" }] },
     });
     s.state.memory = 4;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -116,6 +150,8 @@ describe("BT13-041 Chirinmon", () => {
         instanceId: s.inst("chirin").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-041");
     expect(s.state.memory).toBe(1);
   });

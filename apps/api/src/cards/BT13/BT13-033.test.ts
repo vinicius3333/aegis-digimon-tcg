@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,7 +47,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     });
   });
 
-  it("Burst Digivolves for 0 by returning its controller's Thomas and trashes the prior top at turn end", async () => {
+  it("Burst Digivolves for 0 by returning its controller's Thomas and trashes its Burst top at turn end", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -61,6 +60,10 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     });
     s.state.memory = 3;
     const priorTopId = s.perm("base").topCard.instanceId;
+    const burstTopId = s.inst("burst").instanceId;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -75,9 +78,12 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-097")).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.perm("base").stack.some(({ instanceId }) => instanceId === priorTopId)).toBe(false);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === priorTopId)).toBe(true);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(priorTopId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("base").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
   it("cannot pay Burst Digivolve with an opponent's Thomas (Q2284)", () => {
@@ -130,11 +136,12 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
       },
       1: {
         battleArea: [{ card: "BT13-021", as: "target" }],
-        hand: Array.from({ length: 7 }, () => "BT1-001"),
+        hand: Array.from({ length: 7 }, () => "BT1-010"),
       },
     });
     s.state.memory = 10;
     const targetTop = s.perm("target").topCard;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -142,6 +149,8 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.state.players[1]!.hand.includes(targetTop));
 
     expect(s.state.players[1]!.hand).toHaveLength(8);
@@ -158,8 +167,8 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
             as: `hand-${index}`,
             faceUp: false,
           })),
-          deck: ["BT1-001"],
-          security: ["BT1-002"],
+          deck: ["BT1-009"],
+          security: ["BT1-015"],
         },
       },
       { autoAcceptOptional: true, autoOrderCards: false },
@@ -234,7 +243,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-033", as: "burst" }] },
-        1: { hand: Array.from({ length: 10 }, () => "BT13-021"), security: ["BT1-002"] },
+        1: { hand: Array.from({ length: 10 }, () => "BT13-021"), security: ["BT1-009"] },
       },
       { autoDeclineOptional: true },
     );
@@ -254,7 +263,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
   it("does not offer the attack effect at eight opposing hand cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-033", as: "burst" }] },
-      1: { hand: Array.from({ length: 8 }, () => "BT13-021"), security: ["BT1-002"] },
+      1: { hand: Array.from({ length: 8 }, () => "BT13-021"), security: ["BT1-009"] },
     });
     expect(
       s.engine.applyIntent(0, {

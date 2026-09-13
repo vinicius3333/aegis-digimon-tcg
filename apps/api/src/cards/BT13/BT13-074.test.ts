@@ -98,7 +98,7 @@ describe("BT13-074 PrinceMamemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("prince").instanceId })).toEqual({
@@ -112,6 +112,6 @@ describe("BT13-074 PrinceMamemon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-068")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-1);
   });
 });

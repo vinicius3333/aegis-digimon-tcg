@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-049.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -22,8 +21,8 @@ describe("BT13-049 Lalamon", () => {
               filter: {
                 kind: ["Digimon"],
                 nameOrTrait: [
-                  { match: "trait", tokens: ["Vegetation", "Plant"] },
-                  { match: "trait", tokens: ["Fairy"] },
+                  { match: "traitContains", tokens: ["Vegetation", "Plant"] },
+                  { match: "traitContains", tokens: ["Fairy"] },
                 ],
               },
             },
@@ -53,27 +52,31 @@ describe("BT13-049 Lalamon", () => {
     });
   });
 
-  it("adds one Vegetation Digimon and Yoshino while bottoming the nonmatch", async () => {
+  it("adds one Carnivorous Plant Digimon and Yoshino while bottoming the nonmatch", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
-            { card: "BT13-050", as: "vegetation" },
+            { card: "BT1-071", as: "vegetation" },
             { card: "BT13-100", as: "yoshino" },
             { card: "BT13-047", as: "nonmatch" },
-            "BT1-001",
+            "BT1-009",
           ],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lalamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("vegetation").instanceId, s.inst("yoshino").instanceId].sort(),
     );
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
   });
 
@@ -81,7 +84,7 @@ describe("BT13-049 Lalamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
             { card: "BT13-050", as: "vegetation" },
             { card: "ST24-14", as: "long-yoshino" },
@@ -91,43 +94,76 @@ describe("BT13-049 Lalamon", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lalamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
       [s.inst("long-yoshino").instanceId, s.inst("nonmatch").instanceId].sort(),
     );
   });
 
-  it("reduces its host's digivolution cost by 1 with an own green Tamer", async () => {
+  it("reduces legal evolution costs by 1 and resets on the next own turn", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT13-047", as: "host", under: ["BT13-049"] },
+          { card: "BT13-051", as: "host", under: ["BT13-049"] },
           { card: "BT13-100", as: "yoshino" },
         ],
-        hand: [{ card: "BT13-050", as: "sunflow" }],
+        hand: [
+          { card: "BT13-053", as: "mihiramon" },
+          { card: "BT1-080", as: "titamon" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
       },
+      1: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
     });
-    await s.ready();
-    s.state.memory = 3;
+    s.state.memory = 10;
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("sunflow").instanceId,
+        instanceId: s.inst("mihiramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.cardId === "BT13-050");
-    expect(s.state.memory).toBe(2);
+    await settle(() => s.perm("host").topCard.cardId === "BT13-053");
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT13-049")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const secondOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeSecondEvolution = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("titamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT1-080");
+    expect(s.state.memory).toBe(beforeSecondEvolution - 1);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT13-049")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondOwnTurn;
   });
 
   it("does not reduce without an own green Tamer", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-047", as: "host", under: ["BT13-049"] }],
-        hand: [{ card: "BT13-050", as: "sunflow" }],
+        battleArea: [{ card: "BT13-051", as: "host", under: ["BT13-049"] }],
+        hand: [{ card: "BT13-053", as: "mihiramon" }],
       },
       1: { battleArea: [{ card: "BT13-100", as: "opponent-yoshino" }] },
     });
@@ -137,18 +173,20 @@ describe("BT13-049 Lalamon", () => {
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("sunflow").instanceId,
+        instanceId: s.inst("mihiramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.cardId === "BT13-050");
-    expect(s.state.memory).toBe(1);
+    await settle(() => s.perm("host").topCard.cardId === "BT13-053");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT13-049")).toBe(true);
   });
 
   it("digivolves from a green level 2 for zero memory", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-004", as: "base" }], hand: [{ card: "BT13-049", as: "lalamon" }] },
+      0: { breeding: { card: "BT13-004", as: "base" }, hand: [{ card: "BT13-049", as: "lalamon" }] },
     });
     s.state.memory = 1;
+    const evolutionMaterialId1 = s.perm("base").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -156,6 +194,8 @@ describe("BT13-049 Lalamon", () => {
         instanceId: s.inst("lalamon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("base").topCard.cardId === "BT13-049");
     expect(s.state.memory).toBe(1);
   });

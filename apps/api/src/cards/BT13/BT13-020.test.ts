@@ -1,8 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT13-018.js";
+import "../BT12/BT12-092.js";
 import { compiled } from "./BT13-020.js";
 
 describe("BT13-020 ShineGreymon: Burst Mode", () => {
@@ -116,6 +117,9 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.memory).toBe(9);
     const fieldMarcusId = s.perm("fieldMarcus").permanentId;
     expect(
       s.engine.applyIntent(0, {
@@ -145,9 +149,12 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
 
     const priorTopId = s.perm("shine").stack.at(-1)?.instanceId;
     expect(priorTopId).toBeDefined();
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    expect(s.perm("shine").stack.some((card) => card.instanceId === priorTopId)).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTopId)).toBe(true);
+    expect(s.state.memory).toBe(9);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("shine").topCard.instanceId).toBe(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("burst").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
   it("may decline to play Marcus Damon after a normal digivolution", async () => {
@@ -166,6 +173,7 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     s.state.memory = 10;
     await s.ready();
 
+    const evolutionMaterialId1 = s.perm("shine").topCard!.instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -173,6 +181,8 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
         instanceId: s.inst("burst").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("shine").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(s.perm("shine").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
     await settle(() => s.perm("shine").topCard.cardId === "BT13-020");
     await settle();
 
@@ -181,26 +191,83 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  it("trashes only one top opposing security card across two Tamer suspensions on its turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-020", as: "burst" },
-          { card: "BT12-092", as: "marcus" },
-        ],
+  it("trashes one security before each fresh public Marcus attack, once per turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-020", as: "burst" },
+            { card: "BT12-092", as: "firstMarcus" },
+            { card: "BT12-092", as: "secondMarcus" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          security: [
+            { card: "BT1-010", as: "securityOne" },
+            { card: "BT1-011", as: "securityTwo" },
+            { card: "BT1-012", as: "securityThree" },
+            { card: "BT1-010", as: "securityFour" },
+            { card: "BT1-011", as: "securityFive" },
+            { card: "BT1-012", as: "securitySix" },
+            { card: "BT1-010", as: "securitySeven" },
+            { card: "BT1-011", as: "securityEight" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
       },
-      1: { security: ["BT1-001", "BT1-002"] },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("firstMarcus").topCard.instanceId, s.perm("secondMarcus").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      subjectPermanentId: s.perm("marcus").permanentId,
-    });
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      subjectPermanentId: s.perm("marcus").permanentId,
-    });
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("firstMarcus").currentDP === 3000 && s.perm("secondMarcus").currentDP === 3000);
+    expect(s.perm("firstMarcus").currentDP).toBe(3000);
+    expect(s.perm("secondMarcus").currentDP).toBe(3000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstMarcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 6 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityOne").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityTwo").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondMarcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 5 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityThree").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("securityFour").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstMarcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityFour").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("does not trash security for an allied Tamer suspension on the opponent's turn", async () => {
@@ -211,7 +278,7 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
           { card: "BT12-092", as: "marcus" },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-010"] },
     });
     s.state.turnSeat = 1;
     await s.ready();

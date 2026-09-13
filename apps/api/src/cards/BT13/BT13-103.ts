@@ -82,6 +82,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 isSelfRef: true,

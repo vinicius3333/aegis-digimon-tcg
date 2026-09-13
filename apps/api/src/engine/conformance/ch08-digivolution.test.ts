@@ -448,29 +448,38 @@ describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
     expect(base.stack.some((c) => c.cardId === "BT4-020")).toBe(true); // the prior top is now stacked
   });
 
-  it("NOW MET: the top stacked card of a burst-digivolved Digimon should be trashed at the end of the turn", async () => {
+  it("8-3-2-1: trashes the Burst top card and promotes the prior top at end of turn", async () => {
     const { s, base, burstCard } = layBurstScenario();
-    s.engine.applyIntent(0, {
+    const priorTopId = base.topCard!.instanceId;
+    const retainedSource = instance("BT1-009", 0, false);
+    base.stack.push(retainedSource);
+    s.state.memory = 3;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: base.permanentId,
       instanceId: burstCard.instanceId,
       useAlternateCost: true,
     });
+    expect(result).toEqual({ ok: true });
     await settle(() => base.topCard?.cardId === "BT13-020");
-    const stackedTopId = base.stack[base.stack.length - 1]?.instanceId;
-    expect(stackedTopId).toBeDefined();
+    expect(s.state.memory).toBe(3);
+    expect(base.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([priorTopId, retainedSource.instanceId]),
+    );
 
-    // Fire the real End-of-Turn window directly (the private seam GameEngine's own turn
-    // loop uses) — Comprehensive Rules 8-3-2-1 is pending processing that should trigger here.
+    // Fire the real end-of-turn window directly; the card-level public producer is covered by
+    // BT13 Burst tests, while this conformance case isolates §8-3-2-1 pending processing.
     await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
       EffectTiming.OnEndTurn,
     );
 
-    // DIVERGENCE: there is no engine-level tracking of "this permanent was burst-digivolved
-    // this turn" anywhere (no field on Permanent, no pending-processing queue consulted at
-    // OnEndTurn) — grep for pendingProcessing/burstDigivolve-at-end-of-turn across
-    // apps/api/src/engine returns zero hits. Today the stacked card survives end of turn.
-    expect(base.stack.some((c) => c.instanceId === stackedTopId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstCard.instanceId);
+    expect(base.topCard?.instanceId).toBe(priorTopId);
+    expect(base.stack.map((card) => card.instanceId)).toContain(retainedSource.instanceId);
+    expect(base.stack.map((card) => card.instanceId)).not.toContain(burstCard.instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(retainedSource.instanceId);
   });
 });
 

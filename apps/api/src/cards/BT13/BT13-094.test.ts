@@ -1,3 +1,4 @@
+import "../ST1/ST1-10.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
@@ -39,7 +40,7 @@ describe("BT13-094 BT13-094", () => {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }],
+              nameOrTrait: [{ match: "traitContains", tokens: ["Avian", "Bird"] }],
             },
           },
         },
@@ -71,12 +72,12 @@ describe("BT13-094 BT13-094", () => {
     expect(s.perm("card").topCard?.cardId).toBe("BT13-094");
   });
 
-  it("gains memory on real entry to the main phase when an Avian is present", async () => {
+  it("gains memory on real main-phase entry with a Mysterious Bird present", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT13-094", as: "kristy" },
-          { card: "BT13-079", as: "falcomon" },
+          { card: "BT13-085", as: "crowmon" },
         ],
         hand: ["BT1-012"],
       },
@@ -127,6 +128,7 @@ describe("BT13-094 BT13-094", () => {
             { card: "BT1-012", as: "biyomon" },
           ],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -138,7 +140,15 @@ describe("BT13-094 BT13-094", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("kristy").instanceId),
     );
     const recipientPermanentId = s.perm("recipient").permanentId;
-    await advance(s.engine).verb.deletePermanent([recipientPermanentId]);
+    const recipientId = s.perm("recipient").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: recipientPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === recipientId));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("biyomon").instanceId)).toBe(false);

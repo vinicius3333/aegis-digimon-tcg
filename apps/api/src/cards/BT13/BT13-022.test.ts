@@ -20,7 +20,7 @@ describe("BT13-022 Kamemon", () => {
 
   it("can suspend to redirect an opposing player attack and is deleted in the resulting battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "attacker", dp: 5000 }] },
+      0: { battleArea: [{ card: "ST1-10", as: "attacker" }] },
       1: { battleArea: [{ card: "BT13-022", as: "kamemon" }], security: ["BT1-010"] },
     });
     const attacker = s.perm("attacker");

@@ -69,7 +69,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       { 0: { hand: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sleep").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("sleep").stack.some((card) => card.cardId === "BT13-091"));
@@ -83,7 +83,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       { 0: { hand: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 11;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sleep").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.perm("sleep").stack.length === 0);
@@ -94,23 +94,44 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
   });
 
   it("ends one real opponent attack for two hand cards and does not repeat the watcher that turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-088", as: "sleep" }],
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          hand: [
+            { card: "BT1-009", as: "discardFirst1" },
+            { card: "BT1-009", as: "discardFirst2" },
+            { card: "BT1-009", as: "discardNext1" },
+            { card: "BT1-009", as: "discardNext2" },
+          ],
+          security: Array.from({ length: 6 }, (_, index) => ({ card: "BT1-010", as: `ownSecurity${index + 1}` })),
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-010", as: `ownDraw${index + 1}` })),
         },
         1: {
           battleArea: [
-            { card: "BT13-081", as: "attackerOne" },
-            { card: "BT13-082", as: "attackerTwo" },
+            { card: "BT1-009", as: "attackerOne" },
+            { card: "BT1-009", as: "attackerTwo" },
           ],
+          hand: [{ card: "BT1-009", as: "opponentSpare" }],
+          deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `opponentDraw${index + 1}` })),
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const sleepId = s.perm("sleep").permanentId;
+    const firstDiscard1Id = s.inst("discardFirst1").instanceId;
+    const firstDiscard2Id = s.inst("discardFirst2").instanceId;
+    const nextDiscard1Id = s.inst("discardNext1").instanceId;
+    const nextDiscard2Id = s.inst("discardNext2").instanceId;
+    const ownSecurity1Id = s.inst("ownSecurity1").instanceId;
+    preferred.push(firstDiscard1Id, firstDiscard2Id);
     s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
+
+    const firstOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -118,9 +139,13 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle(() => s.state.players[0]!.hand.length === 2 && !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([firstDiscard1Id, firstDiscard2Id]),
+    );
 
     expect(
       s.engine.applyIntent(1, {
@@ -129,9 +154,43 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("attackerTwo").isSuspended);
+    await settle(() => s.perm("attackerTwo").isSuspended && !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.hand).toHaveLength(2);
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(ownSecurity1Id);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstOpponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    preferred.splice(0, preferred.length, nextDiscard1Id, nextDiscard2Id);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("sleep").permanentId).toBe(sleepId);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    expect(s.state.players[0]!.trash).toHaveLength(5);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([firstDiscard1Id, firstDiscard2Id, nextDiscard1Id, nextDiscard2Id, ownSecurity1Id]),
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("uses an exact alternate digivolution name", () => {

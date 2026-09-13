@@ -18397,7 +18397,7 @@
       "Holy Warrior",
       "Royal Knight"
     ],
-    "effectText": "＜Blocker＞ [On Play][When Digivolving] Until the end of your opponent's turn, this Digimon isn't affected by the effects of your opponent's Digimon. [End of Opponent’s Turn] Choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
+    "effectText": "＜Blocker＞ [On Play][When Digivolving] Until the end of your opponent's turn, this Digimon isn't affected by the effects of your opponent's Digimon. [End of Opponent’s Turn] You may choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT13-077",

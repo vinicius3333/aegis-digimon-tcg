@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "GrantAuraToOpponents",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, sameTarget: true },
           effectText: "[Opponent's Turn] This Digimon isn't affected by your opponent's Option cards.",
           duration: "untilOpponentTurnEnd",
         },

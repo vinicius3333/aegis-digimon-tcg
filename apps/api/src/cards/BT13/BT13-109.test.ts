@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-109.js";
 
@@ -42,25 +40,36 @@ describe("BT13-109 BT13-109", () => {
   });
 
   it("loads the compiled implementation into a live permanent", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-109", as: "card" }] } });
+    const s = setupEngine({ 0: { security: [{ card: "BT13-109", as: "card" }] } });
     await s.ready();
-    expect(s.perm("card").topCard?.cardId).toBe("BT13-109");
+    expect(s.inst("card").cardId).toBe("BT13-109");
   });
 
   it("deletes an opponent Digimon at or below the trashed hand Digimon's level", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-109", as: "gift" }],
+          security: [{ card: "BT13-109", as: "gift" }],
           hand: [{ card: "BT13-077", as: "payment" }],
         },
-        1: { battleArea: [{ card: "BT13-077", as: "level-six" }] },
+        1: { battleArea: [{ card: "ST1-10", as: "level-six" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.Security, s.perm("gift"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const giftId = s.inst("gift").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("level-six").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === giftId));
+    expect(s.state.players[0]!.security).toHaveLength(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -70,7 +79,7 @@ describe("BT13-109 BT13-109", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-109", as: "gift" }],
+          security: [{ card: "BT13-109", as: "gift" }],
           hand: [{ card: "BT13-077", as: "payment" }],
         },
         1: { battleArea: [{ card: "BT13-092", as: "level-seven" }] },
@@ -79,7 +88,18 @@ describe("BT13-109 BT13-109", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.Security, s.perm("gift"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const giftId = s.inst("gift").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("level-seven").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === giftId));
+    expect(s.state.players[0]!.security).toHaveLength(0);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

@@ -2,8 +2,10 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT13-054.js";
+import "./BT13-057.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT13-100.js";
 
 describe("BT13-054 Lilamon", () => {
   it("plays Yoshino optionally and grants inherited Security Attack +1 conditionally", () => {
@@ -40,24 +42,71 @@ describe("BT13-054 Lilamon", () => {
 
   it("when digivolving may play Yoshino from hand for free", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: [{ card: "BT13-100", as: "yoshino" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-051", as: "base" }],
+          hand: [
+            { card: "BT13-054", as: "lila" },
+            { card: "BT13-100", as: "yoshino" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lila"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT13-100"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yoshino").instanceId),
+    );
+    // Yoshino can suspend for +1 after entering during this evolution.
     expect(s.state.memory).toBe(2);
+    expect(s.perm("yoshino").isSuspended).toBe(true);
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT13-051")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });
 
   it("may decline Yoshino and never offers a different Tamer", async () => {
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["BT13-100"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-051", as: "base" }],
+          hand: [
+            { card: "BT13-054", as: "lila" },
+            { card: "BT13-100", as: "yoshino" },
+          ],
+          deck: [{ card: "BT1-009", as: "bonusDraw" }],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    declined.state.memory = 4;
     await declined.ready();
-    await advance(declined.engine).fireForPermanent(EffectTiming.WhenDigivolving, declined.perm("lila"));
-    expect(declined.state.players[0]!.hand).toHaveLength(1);
+    const evolutionMaterialId1 = declined.perm("base").topCard!.instanceId;
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("base").permanentId,
+        instanceId: declined.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId1));
+    expect(declined.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId1);
+    await settle(() => declined.perm("base").topCard.cardId === "BT13-054");
+    expect(
+      declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("yoshino").instanceId),
+    ).toBe(true);
+    expect(
+      declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("bonusDraw").instanceId),
+    ).toBe(true);
+    expect(declined.state.memory).toBe(1);
 
     const wrong = setupEngine(
       { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["ST24-14"] } },
@@ -71,7 +120,7 @@ describe("BT13-054 Lilamon", () => {
 
   it("dynamically grants inherited Security Attack +1 only on its turn with a suspended opponent", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-053", as: "host", under: ["BT13-054"] }] },
+      0: { battleArea: [{ card: "BT13-057", as: "host", under: ["BT13-054"] }] },
       1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
     });
     await s.ready();
@@ -89,11 +138,16 @@ describe("BT13-054 Lilamon", () => {
       0: { battleArea: [{ card: "BT13-051", as: "base" }], hand: [{ card: "BT13-054", as: "lila" }] },
     });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lila").instanceId,
-    })).toEqual({ ok: true });
+    const evolutionMaterialId2 = s.perm("base").topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lila").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === evolutionMaterialId2));
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
     await settle(() => s.perm("base").topCard.cardId === "BT13-054");
     expect(s.state.memory).toBe(1);
   });

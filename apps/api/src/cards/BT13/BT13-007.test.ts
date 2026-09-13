@@ -112,7 +112,7 @@ describe("BT13-007 King Drasil_7D6", () => {
             { card: "BT13-110", as: "firstOption" },
             { card: "BT13-110", as: "secondOption" },
           ],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-010", "BT1-009"],
         },
       },
       { autoDeclineOptional: true },
@@ -134,5 +134,117 @@ describe("BT13-007 King Drasil_7D6", () => {
       () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT13-110").length === 2,
     );
     expect(s.state.memory).toBe(-1);
+  });
+
+  it("resets the Royal Knight play reduction on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT1-001"] },
+          hand: [
+            { card: "BT13-040", as: "firstKnight" },
+            { card: "BT13-040", as: "sameTurnKnight" },
+            { card: "BT13-040", as: "nextTurnKnight" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { hand: ["BT13-021"], deck: Array.from({ length: 10 }, () => "BT1-009") },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const initialOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstKnight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(8);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sameTurnKnight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await initialOwnTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnKnight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
+  it("resets the inherited Royal Knight Option memory trigger on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "host", under: ["BT13-007"] },
+          hand: [
+            { card: "BT13-110", as: "firstOption" },
+            { card: "BT13-110", as: "sameTurnOption" },
+            { card: "BT13-110", as: "nextTurnOption" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { hand: ["BT13-021"], deck: Array.from({ length: 10 }, () => "BT1-009") },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const initialOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(5);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sameTurnOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(-1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await initialOwnTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const memoryBeforeNextOption = s.state.memory;
+    expect(memoryBeforeNextOption).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.state.memory).toBe(memoryBeforeNextOption - 5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 });
