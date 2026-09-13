@@ -47,6 +47,15 @@ without remaining blockers in this bounded reconciliation change.
   `d2753b28e`. Reviewed pilot obligations pin both local §15-7 chunks.
 - Citation counts still do not establish obligation coverage. Retain honest
   residual reporting until a complete classified denominator exists.
+- The conformance directory currently contains 76 chapter `*.test.ts` files
+  (excluding `_kb.meta.test.ts`); three have neither `cite()` nor
+  `markNotTestable()`: `activation-cost-and-borrowed-gates.test.ts`,
+  `keyword-link-parameters.test.ts`, and
+  `keyword-security-attack-lifecycle.test.ts`. Because the meta-test's
+  observed-file guard requires every chapter file to register, its coverage
+  report is skipped for the current suite. Add an appropriate source citation
+  or an explicitly justified `markNotTestable()` call in each file before
+  treating the report as a complete file-level check.
 - Official comprehensive version 4.2 was downloaded and extracted (27559 words,
   286 provisional chunks before fixing history separation). Multi-source refresh
   failed on the removed glossary URL, then on ambiguous illustrated-manual OCR
@@ -100,15 +109,27 @@ without remaining blockers in this bounded reconciliation change.
 - One edit accidentally removed adjacent loop-fixture helpers with the invalid
   exclusion: 2 failed / 419 passed. The helpers were restored unchanged from
   baseline. Final conformance: 30 files / 421 tests passed.
-- Added 64 literal fingerprint arguments for reviewed topic/obligation citations;
-  current literal pins total 73 calls over 41 chunks. This is integrity coverage,
-  not a behavioral denominator or completion score.
+- The earlier migration added 64 literal fingerprint arguments and recorded 73
+  fingerprinted calls over 41 chunks at that checkpoint. The reproducible
+  read-only scan from the repository root is:
+  `rg -o '[0-9a-f]{64}' apps/api/src/engine/conformance --glob '*.test.ts' --glob '!_kb.meta.test.ts' | wc -l`
+  for the 142 literal hashes, paired with a balanced-parenthesis scan of the
+  same files that recognizes the first string argument of each `cite(...)` and
+  resolves file-local 64-hex constants. That scan reports 424 recognized calls,
+  142 fingerprinted calls over 82 chunk IDs, and 282 legacy two-argument calls.
+  `cite` deliberately permits those unpinned calls: `_kb.ts` compares text only
+  when `expectedFingerprint` is supplied, and `kb-citation-drift.test.ts`
+  preserves two-argument compatibility. The 282 calls are therefore an
+  integrity residual to pin before claiming drift protection, not a failed
+  helper contract. These counts are integrity coverage, not a behavioral
+  denominator or completion score.
 - Affected broad regression: 425 files / 4627 tests passed across conformance,
   combat, effects, engine cards, BT26, EX10, BT14 and audit layout. The expected
   unsupported-effect logger receipt belongs to its negative regression test.
-- Current tool gate: 30/30 passed, including malformed/archived CLI source
-  rejection. Independent review found no weakened behavioral assertions or
-  semantic blocker, with stale narrative references subsequently corrected.
+- At the historical checkpoint, the tool gate was 30/30 passed, including
+  malformed/archived CLI source rejection. Independent review found no weakened
+  behavioral assertions or semantic blocker, with stale narrative references
+  subsequently corrected.
 - Oxlint: zero new findings against an isolated HEAD snapshot; the same 23
   pre-existing conformance warnings remain. Final API typecheck passed. Formatter, audit layout
   (4/4), generated index and diff checks passed. Repeated reconciliation preserves
