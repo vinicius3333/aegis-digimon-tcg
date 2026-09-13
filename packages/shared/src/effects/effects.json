@@ -29527,7 +29527,6 @@
       },
       {
         "trigger": "YourTurn",
-        "frequency": "OncePerTurn",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -30034,6 +30033,7 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "compound",
+              "orderPlacedCards": true,
               "costs": [
                 {
                   "kind": "place",
