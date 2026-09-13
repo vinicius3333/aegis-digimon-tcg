@@ -547,6 +547,108 @@ export async function payCost(
       if (!canPayCost(ctx, cost)) return false;
       if (cost.orderPlacedCards === true) {
         const first = cost.costs[0]!;
+        const allLoose = cost.costs.every(
+          (nested) =>
+            nested.kind === "place" &&
+            nested.target !== undefined &&
+            nested.targetIsPermanent !== true &&
+            nested.destination === "digivolutionStack" &&
+            nested.position === "bottom" &&
+            zoneList((nested.target.from ?? ["hand"]) as ZoneRef | ZoneRef[]).every((zone) => zone === "trash") &&
+            nested.target.upTo !== true &&
+            nested.target.count !== "all" &&
+            (nested.target.count ?? 1) === 1,
+        );
+        if (
+          allLoose &&
+          ctx.fx.placeMixedMaterialsUnder !== undefined &&
+          ctx.ask.orderCards !== undefined &&
+          first.kind === "place" &&
+          first.target !== undefined &&
+          first.underFilter !== undefined &&
+          first.bindHostAs !== undefined &&
+          cost.costs
+            .slice(1)
+            .every(
+              (nested) =>
+                typeof nested.host === "object" &&
+                nested.host !== null &&
+                nested.host.filter.boundRef === first.bindHostAs,
+            )
+        ) {
+          // All-loose placement costs select the first material, bind the destination,
+          // then select the remaining materials and commit the ordered batch atomically.
+          const paymentCtx = { ...ctx, selections: new Map(ctx.selections) };
+          const chosen: string[] = [];
+          const looseSelections: { cost: Cost; id: string }[] = [];
+          let hostId: string | undefined;
+          for (const [index, nested] of cost.costs.entries()) {
+            const candidates = candidateLooseInstances(
+              paymentCtx,
+              nested.target!,
+              zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+            ).filter((candidate) => !chosen.includes(candidate.instanceId));
+            const picked = await pickLoose(paymentCtx, nested.target!, candidates);
+            if (picked.length !== 1 || !candidates.some((candidate) => candidate.instanceId === picked[0]))
+              return false;
+            chosen.push(picked[0]!);
+            looseSelections.push({ cost: nested, id: picked[0]! });
+            if (index === 0) {
+              const hosts = await resolvePermanentTargets(paymentCtx, {
+                filter: first.underFilter,
+                orFilters: first.underOrFilters,
+                count: 1,
+              });
+              if (hosts.length !== 1) return false;
+              hostId = hosts[0]!;
+              paymentCtx.selections.set(first.bindHostAs, hostId);
+            }
+          }
+          if (hostId === undefined) return false;
+          const visibleCards = chosen.map((instanceId) => {
+            const card = looseSelections
+              .flatMap(({ cost: nested }) =>
+                candidateLooseInstances(
+                  paymentCtx,
+                  nested.target!,
+                  zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+                ),
+              )
+              .find((candidate) => candidate.instanceId === instanceId);
+            return { instanceId, cardId: card?.cardId ?? instanceId };
+          });
+          const ordered = await ctx.ask.orderCards(paymentCtx, {
+            candidates: chosen,
+            visibleCards,
+            destination: "stackBottom",
+          });
+          if (
+            ordered.length !== chosen.length ||
+            new Set(ordered).size !== chosen.length ||
+            ordered.some((id) => !chosen.includes(id)) ||
+            !candidatePermanents(ctx, { filter: first.underFilter, orFilters: first.underOrFilters, count: 1 }).some(
+              (permanent) => permanent.permanentId === hostId,
+            ) ||
+            looseSelections.some(
+              ({ cost: nested, id }) =>
+                !candidateLooseInstances(
+                  paymentCtx,
+                  nested.target!,
+                  zoneList((nested.target!.from ?? ["hand"]) as ZoneRef | ZoneRef[]),
+                ).some((candidate) => candidate.instanceId === id),
+            )
+          )
+            return false;
+          const moved = await ctx.fx.placeMixedMaterialsUnder(hostId, ordered);
+          if (moved.length !== ordered.length || moved.some((card, index) => card.instanceId !== ordered[index]))
+            return false;
+          ctx.selections ??= new Map();
+          ctx.selections.set(first.bindHostAs, hostId);
+          ctx.lastPlacedUnderInstanceIds = ordered;
+          ctx.lastEffectActed = true;
+          if (out) out.paidCount = ordered.length;
+          return true;
+        }
         if (
           ctx.fx.placeMixedMaterialsUnder === undefined ||
           ctx.ask.orderCards === undefined ||
