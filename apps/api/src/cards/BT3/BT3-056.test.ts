@@ -12,9 +12,12 @@ import {
   getCompiledCard,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle } from "../../engine/testkit/harness.js";
 // Self-register every card module so the engine drives the REGISTERED BT3-056 hand-override
 // (its ＜Digisorption＞ Replacement + redirector registration) rather than a hand-built ledger.
 import { compiled } from "./BT3-056.js";
+import "../BT2/BT2-050.js";
 
 /**
  * A3 — BT3-056 Ceresmon: interactive ＜Digisorption -3＞ with the [Your Turn][Once Per Turn]
@@ -125,10 +128,6 @@ function setup(opts: { acceptDigisorption: boolean; chooseInstanceId?: () => str
   return { engine, state, events };
 }
 
-async function settle(predicate: () => boolean, maxTicks = 400): Promise<void> {
-  for (let i = 0; i < maxTicks && !predicate(); i++) await Promise.resolve();
-}
-
 // BT3-056 printed EvoCost: Green / Lv.6 / cost 5. AD1-011 is a Lv.5 Green base (used by the
 // BT2/BT3 Digisorption oracle fixtures), so digivolving into BT3-056 onto it pays a base 5.
 const BASE_CARD = "AD1-011";
@@ -235,5 +234,125 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     // The suspend ran through the real seam (primitives.suspend), which fires OnTappedAnyone /
     // whenSuspended for the opponent's permanent — observable as the suspend transition above.
     expect(before - s.state.memory).toBe(2); // 5 - 3, reduction still applied via the redirect
+  });
+
+  it("resets native redirect usage on the next own turn", async () => {
+    let firstTargetId: string | undefined;
+    const s = setup({ acceptDigisorption: true, chooseInstanceId: () => firstTargetId });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    p0.deck.push(...Array.from({ length: 8 }, () => instance("BT1-001", 0)));
+    p1.deck.push(...Array.from({ length: 8 }, () => instance("BT1-001", 1)));
+    const redirector = permanent(0, "BT3-056", 12000);
+    p0.battleArea.push(redirector);
+    const firstBase = permanent(0, BASE_CARD, BASE_DP);
+    const secondBase = permanent(0, BASE_CARD, BASE_DP);
+    p0.battleArea.push(firstBase, secondBase);
+    const firstTarget = permanent(1, "ST1-03", 2000);
+    const secondTarget = permanent(1, "ST1-03", 2000);
+    firstTargetId = firstTarget.topCard!.instanceId;
+    p1.battleArea.push(firstTarget, secondTarget);
+    p0.hand.push(instance("BT2-050", 0), instance("BT2-050", 0));
+    const firstEvolutionId = p0.hand[0]!.instanceId;
+    const secondEvolutionId = p0.hand[1]!.instanceId;
+    await s.engine.recomputeContinuousEffects();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: firstBase.permanentId,
+        instanceId: p0.hand[0]!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => firstTarget.isSuspended && s.state.memory !== 10);
+    expect(firstTarget.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.turnSeat).toBe(0);
+    firstTargetId = secondTarget.topCard!.instanceId;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: secondBase.permanentId,
+        instanceId: p0.hand[0]!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => secondTarget.isSuspended && s.state.memory !== 10);
+    expect(secondTarget.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+    expect(firstBase.topCard?.instanceId).toBe(firstEvolutionId);
+    expect(secondBase.topCard?.instanceId).toBe(secondEvolutionId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("tracks two native redirectors independently during one turn", async () => {
+    let targetId: string | undefined;
+    const s = setup({ acceptDigisorption: true, chooseInstanceId: () => targetId });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    p0.battleArea.push(permanent(0, "BT3-056", 12000), permanent(0, "BT3-056", 12000));
+    p0.battleArea.forEach((p) => (p.isSuspended = true));
+    const firstBase = permanent(0, BASE_CARD, BASE_DP);
+    const secondBase = permanent(0, BASE_CARD, BASE_DP);
+    const thirdBase = permanent(0, BASE_CARD, BASE_DP);
+    firstBase.isSuspended = true;
+    secondBase.isSuspended = true;
+    thirdBase.isSuspended = true;
+    p0.battleArea.push(firstBase, secondBase, thirdBase);
+    const firstTarget = permanent(1, "ST1-03", 2000);
+    const secondTarget = permanent(1, "ST1-03", 2000);
+    const thirdTarget = permanent(1, "ST1-03", 2000);
+    p1.battleArea.push(firstTarget, secondTarget, thirdTarget);
+    p0.hand.push(instance("BT2-050", 0), instance("BT2-050", 0), instance("BT2-050", 0));
+    const evolutionIds = p0.hand.map((card) => card.instanceId);
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+
+    targetId = firstTarget.topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: firstBase.permanentId,
+        instanceId: p0.hand[0]!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => firstTarget.isSuspended && s.state.memory !== 10);
+    targetId = secondTarget.topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: secondBase.permanentId,
+        instanceId: p0.hand[0]!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => secondTarget.isSuspended && s.state.memory !== 8);
+    targetId = undefined;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: thirdBase.permanentId,
+        instanceId: p0.hand[0]!.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && thirdBase.topCard?.instanceId === evolutionIds[2]);
+    expect(firstTarget.isSuspended).toBe(true);
+    expect(secondTarget.isSuspended).toBe(true);
+    expect(thirdTarget.isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
+    expect(firstBase.isSuspended).toBe(true);
+    expect(secondBase.isSuspended).toBe(true);
+    expect(thirdBase.isSuspended).toBe(true);
+    expect(firstBase.topCard?.instanceId).toBe(evolutionIds[0]);
+    expect(secondBase.topCard?.instanceId).toBe(evolutionIds[1]);
+    expect(thirdBase.topCard?.instanceId).toBe(evolutionIds[2]);
   });
 });

@@ -36,6 +36,8 @@ describe("BT3-071 MetalMamemon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("virusLevel7").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("virusLevel7").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongLevelAndAttribute").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongLevelAndAttribute").instanceId),
+    ).toBe(true);
   });
 });
