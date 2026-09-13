@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-093.js";
 import "./BT13-007.js";
+import "../ST1/ST1-10.js";
 
 describe("BT13-093 Omekamon", () => {
   it("draws on play and optionally places a Royal Knight from hand under a breeding-area King Drasil", () => {
@@ -36,11 +35,15 @@ describe("BT13-093 Omekamon", () => {
 
   it("draws a card through the live on-play effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-093", as: "omeka" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      0: { hand: [{ card: "BT13-093", as: "omeka" }], deck: [{ card: "BT1-009", as: "drawn" }] },
     });
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("omeka"));
+    const drawnId = s.inst("drawn").instanceId;
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omeka").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawnId);
+    expect(s.state.memory).toBe(1);
   });
 
   it("places one Royal Knight from hand under the exact breeding-area King Drasil", async () => {
@@ -51,15 +54,31 @@ describe("BT13-093 Omekamon", () => {
           breeding: { card: "BT13-007", as: "drasil" },
           hand: [{ card: "BT13-040", as: "royal" }],
         },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const omekaPermanentId = s.perm("omeka").permanentId;
     const omekaTopInstanceId = s.perm("omeka").topCard.instanceId;
-    expect(await advance(s.engine).verb.deletePermanent([omekaPermanentId])).toBe(1);
-    await settle(() => s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId));
+    const royalId = s.inst("royal").instanceId;
+    const drasilPermanentId = s.perm("drasil").permanentId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: omekaPermanentId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === omekaTopInstanceId) &&
+        s.perm("drasil").stack.some((card) => card.instanceId === royalId),
+    );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === omekaTopInstanceId)).toBe(true);
-    expect(s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(false);
+    expect(s.perm("drasil").permanentId).toBe(drasilPermanentId);
+    expect(s.perm("drasil").stack.some((card) => card.instanceId === royalId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === royalId)).toBe(false);
   });
 });
