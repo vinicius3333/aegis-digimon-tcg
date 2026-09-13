@@ -1,15 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
 
 describe("bounded Piercing lifecycle", () => {
-  it("performs exactly one security check when native Piercing wins and deletes in battle", async () => {
+  beforeEach(() =>
     cite(
-      "comprehensive-0227",
-      "Piercing triggers only when its attacker deletes an opponent Digimon in battle and survives",
-    );
+      "comprehensive-0225",
+      "§16-7 Piercing qualification, survival, mandatory security timing, and attack limit",
+      "f4d39e19988d50be36db0a6be32a7b3c639428df9116ff194f4a878181cc6cf5",
+    ),
+  );
+  it("performs exactly one security check when native Piercing wins and deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-026", as: "attacker" }] },
       1: {
@@ -77,7 +80,6 @@ describe("bounded Piercing lifecycle", () => {
   });
 
   it("does not check security when equal native Piercing attackers tie and both leave play", async () => {
-    cite("comprehensive-0227", "Piercing requires its attacking Digimon to survive the battle");
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-026", as: "attacker" }] },
       1: {
@@ -99,7 +101,6 @@ describe("bounded Piercing lifecycle", () => {
   });
 
   it("uses a public evolution grant to give an ally Piercing, then checks exactly one security", async () => {
-    cite("comprehensive-0227", "Piercing security processing is mandatory after the qualifying battle");
     const s = setupEngine(
       {
         0: {

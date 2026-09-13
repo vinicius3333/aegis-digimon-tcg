@@ -1,11 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
 describe("bounded Recovery parameters", () => {
+  beforeEach(() =>
+    cite(
+      "comprehensive-0224",
+      "§16-6 Recovery places the specified number of cards from the specified area face down on security",
+      "5639a0a98e8ef565e6fb4895f6e03d2beef6ce819056dae2015103762b7f655d",
+    ),
+  );
   it("publicly evolves BT7-038 and places the exact deck card face down on security", async () => {
-    cite("comprehensive-0224", "Recovery +1 places one card from the specified deck area face down on top of security");
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT7-035", as: "base" }],
@@ -89,7 +95,6 @@ describe("bounded Recovery parameters", () => {
   });
 
   it("publicly plays BT2-039 and places exactly two named deck instances on security in deck order", async () => {
-    cite("comprehensive-0224", "Recovery places the specified number of cards from the deck face down on security");
     const s = setupEngine({
       0: {
         hand: [{ card: "BT2-039", as: "source" }],

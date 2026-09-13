@@ -146,8 +146,14 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-024", as: "wrongBase" }],
-          hand: [{ card: "AD1-005", as: "gaiamon" }],
+          battleArea: [
+            { card: "AD1-024", as: "wrongBase" },
+            { card: "BT1-021", as: "validBase" },
+          ],
+          hand: [
+            { card: "AD1-005", as: "gaiamon" },
+            { card: "ST15-12", as: "wargreymon" },
+          ],
           security: ["BT1-009"],
           deck: ["BT1-013", "BT1-014"],
         },
@@ -157,14 +163,32 @@ describe("Blast Digivolve public Counter consent and host selection", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
+    const opened = await openCounter(s, "attacker");
+    const gaiamonWrongBase = opened.eligibleCounters.find(
+      (entry) =>
+        entry.instanceId === s.inst("gaiamon").instanceId &&
+        entry.effectKey === `blast-digivolve:${s.perm("wrongBase").permanentId}`,
+    );
+    expect(gaiamonWrongBase).toBeUndefined();
     expect(
       s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("wrongBase").permanentId,
-        instanceId: s.inst("gaiamon").instanceId,
-        useBlastDigivolve: true,
+        type: "respondCounter",
+        sourceInstanceId: s.inst("gaiamon").instanceId,
+        effectKey: `blast-digivolve:${s.perm("wrongBase").permanentId}`,
       }),
-    ).toMatchObject({ ok: false });
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    const legalCounter = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("wargreymon").instanceId);
+    expect(legalCounter).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: legalCounter!.instanceId,
+        effectKey: legalCounter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("AD1-005");
     expect(s.perm("wrongBase").topCard.cardId).toBe("AD1-024");
   });

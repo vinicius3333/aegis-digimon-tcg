@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { cite } from "./_kb.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
@@ -6,8 +6,19 @@ import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
 
 describe("inherited Blocker source and host changes", () => {
+  beforeEach(() => {
+    cite(
+      "comprehensive-0223",
+      "§16-5 Blocker permits a Digimon with the keyword to block and is persistent",
+      "f21e9a4a1278163e9b07ebe6f0776b3b15a6d1f9884771e498431baeb23e5a7d",
+    );
+    cite(
+      "comprehensive-0151",
+      "§12-1 block declaration and legality",
+      "1c4e669751a989f9da2bdc3b1b198b4c2c4a03210f54b17ac1f6ba87faa9a566",
+    );
+  });
   it("uses an inherited Blocker through a public opponent-turn block window", async () => {
-    cite("comprehensive-0221", "Blocker is an optional block declaration that suspends the blocking Digimon");
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX5-053", as: "host", under: ["EX5-051"] }] },
@@ -39,7 +50,6 @@ describe("inherited Blocker source and host changes", () => {
   });
 
   it("loses inherited Blocker when a public legal evolution changes the host", async () => {
-    cite("comprehensive-0221", "Blocker is supplied by the inherited effect of the source card");
     const s = setupEngine(
       {
         0: {
