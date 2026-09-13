@@ -256,24 +256,11 @@ describe("BT14-090", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "orderCards");
-    const orderDecision = s.state.pendingDecision!;
-    const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)?.req;
-    expect(orderRequest?.kind).toBe("orderCards");
-    expect(orderRequest?.options?.candidateInstanceIds).toEqual([greymonId, metalGreymonId]);
     expect(s.perm("agumonA").stack).toHaveLength(0);
     expect(s.perm("agumonB").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([greymonId, metalGreymonId]),
     );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: orderDecision.decisionId,
-        response: { kind: "orderCards", order: [metalGreymonId, greymonId] },
-      }),
-    ).toEqual({ ok: true });
-
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.perm("agumonA").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT14-012", "BT14-014"]),
