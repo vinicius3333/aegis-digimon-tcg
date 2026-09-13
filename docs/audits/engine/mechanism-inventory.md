@@ -502,6 +502,30 @@ Detach ([detach-lifecycle.md](detach-lifecycle.md)), Succession
 parameters participate ([activation-costs.md](activation-costs.md),
 [digivolution-card-placement.md](digivolution-card-placement.md)), and
 option-use reductions ([option-use-reductions.md](option-use-reductions.md)).
+
+The older chapter checklist contains historical divergence labels that must
+not be read as the current provider status. Current card-level public tests
+prove Fortitude replay and no-source boundaries in `BT20-034.test.ts`,
+`BT20-035.test.ts`, `BT24-038.test.ts`, and `BT24-049.test.ts`; Evade accept,
+refusal, near-miss, inherited, and public Option paths in `BT19-018.test.ts`
+and `BT24-050.test.ts`; Execute's end-of-turn attack and self-deletion in
+`BT20-072.test.ts`; Overclock's public end-of-turn attack and cost in
+`BT19-101.test.ts`; Partition's public Option deletion, refusal, and inherited
+DP-zero path in `BT20-037.test.ts`; Progress's in-attack immunity and outside-
+attack deletion boundary in `BT21-025.test.ts`; and Save's public placement,
+refusal, source filtering, and multiple-Tamer paths across the BT19 and BT21
+card tests. Scapegoat currently has provider/IR and inherited-trigger tests in
+`BT20-080.test.ts`, while the dedicated chapter fixture remains weaker on exact
+sacrificed-instance evidence. These provider tests update the status of the
+consumer seam; they do not close the inventory's separate printed/inherited/
+security, grant-shape, amount, duration, source-identity, and cross-keyword
+reconciliation obligations.
+
+Iceclad's current evidence remains delegated to combat keyword tests, so the
+inventory should retain that bounded attribution rather than infer full
+coverage from the chapter's structural check. Historical chapter labels for
+Fortitude, Evade, Execute, Overclock, and Partition are retained only as
+history and are not current claims of missing runtime behavior.
 The focused current command is:
 
 ```sh
