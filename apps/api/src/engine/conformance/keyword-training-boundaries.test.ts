@@ -145,7 +145,7 @@ describe("Training public boundaries", () => {
       expect(
         s.engine.applyIntent(0, {
           type: "activateEffect",
-          sourceInstanceId: first!.instanceId,
+          sourceInstanceId: s.perm("trainer").topCard.instanceId,
           effectKey: first!.effectKey,
         }),
       ).toEqual({ ok: true });
@@ -162,7 +162,7 @@ describe("Training public boundaries", () => {
       expect(
         s.engine.applyIntent(0, {
           type: "activateEffect",
-          sourceInstanceId: second!.instanceId,
+          sourceInstanceId: s.perm("trainer").topCard.instanceId,
           effectKey: second!.effectKey,
         }),
       ).toEqual({ ok: true });
