@@ -167,6 +167,7 @@ function countColors(ctx: EffectContext, filter: Filter): number {
     const self = ctx.source.permanent();
     if (self === undefined) return 0;
     for (const card of self.stack) {
+      if (card.faceUp !== true) continue;
       const definition = ctx.game.definitionOf(card);
       if (!definitionMatches(filter, definition)) continue;
       for (const color of definition.colors) colors.add(color);

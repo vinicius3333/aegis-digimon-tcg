@@ -13,9 +13,9 @@ describe("EX9-054", () => {
         0: {
           battleArea: [
             { card: "EX9-054", as: "source" },
-            { card: "EX9-047", as: "host", under: [{ card: "EX9-047", faceUp: false }] },
+            { card: "EX9-047", as: "host", under: [{ card: "EX9-005", faceUp: false }] },
           ],
-          trash: ["EX9-047"],
+          trash: ["EX9-005"],
           hand: [{ card: "EX9-054", as: "candidate" }],
         },
       },
