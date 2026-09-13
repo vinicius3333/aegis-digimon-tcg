@@ -368,6 +368,7 @@ export class CombatController {
     | {
         attackerPermanentId: string;
         attackerCardId: string;
+        attackerArtId?: string;
         seat: Seat;
         target: AttackTarget;
         piercingTriggered?: boolean;
@@ -539,8 +540,12 @@ export class CombatController {
       seat: this.currentAttack.seat,
       attackerPermanentId: this.currentAttack.attackerPermanentId,
       attackerCardId: this.currentAttack.attackerCardId,
+      ...(this.currentAttack.attackerArtId ? { attackerArtId: this.currentAttack.attackerArtId } : {}),
       target,
       ...(targetCardId === undefined ? {} : { targetCardId }),
+      ...(target.kind === "permanent" && this.access.permanentById(target.permanentId)?.topCard.artId
+        ? { targetArtId: this.access.permanentById(target.permanentId)!.topCard.artId }
+        : {}),
     });
     return true;
   }
@@ -666,6 +671,7 @@ export class CombatController {
     this.currentAttack = {
       attackerPermanentId: attacker.permanentId,
       attackerCardId: attacker.topCard.cardId,
+      ...(attacker.topCard.artId ? { attackerArtId: attacker.topCard.artId } : {}),
       seat: attackerSeat,
       target,
     };
@@ -683,8 +689,12 @@ export class CombatController {
         seat: attackerSeat,
         attackerPermanentId: attacker.permanentId,
         attackerCardId: attacker.topCard.cardId,
+        ...(attacker.topCard.artId ? { attackerArtId: attacker.topCard.artId } : {}),
         target,
         ...(targetCardId === undefined ? {} : { targetCardId }),
+        ...(target.kind === "permanent" && this.access.permanentById(target.permanentId)?.topCard.artId
+          ? { targetArtId: this.access.permanentById(target.permanentId)!.topCard.artId }
+          : {}),
       });
       // The declaration is complete. Resolve an attack-cost payload before suspension-triggered
       // and When Attacking effects while the in-flight attack remains open. Keeping this callback

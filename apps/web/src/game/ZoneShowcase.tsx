@@ -27,7 +27,7 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
           <CardBurst variant={digivolving ? "evolve" : "play"} color={showcase.color} />
         </span>
         <div className="battle-showcase__art">
-          <CardFull cardId={showcase.cardId} width={SHOWCASE_CARD_WIDTH} />
+          <CardFull cardId={showcase.cardId} artId={showcase.artId} width={SHOWCASE_CARD_WIDTH} />
         </div>
         <figcaption className="battle-showcase__caption">
           {t(digivolving ? "showcase.opponentDigivolved" : "showcase.opponentPlayed", { card: cardName })}

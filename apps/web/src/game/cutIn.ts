@@ -28,6 +28,7 @@ export type CutInTier = "base" | "digiXros" | "dna" | "burst";
 export interface DigivolutionCutIn {
   key: number;
   cardId: string;
+  artId?: string;
   seat: Seat;
   tier: CutInTier;
   /** The word across the band, which Blast changes without changing the tier. */
@@ -36,6 +37,7 @@ export interface DigivolutionCutIn {
   color: ColorName;
   /** The two cards that merged, flanking the result. DNA only (`JogressEffectObject.cs:24`). */
   sourceCardIds?: string[];
+  sourceArtIds?: string[];
 }
 
 /**
@@ -101,10 +103,12 @@ export function cutInFromEvent(event: ServerEvent, key: number, enabled: boolean
   return {
     key,
     cardId: event.cardId,
+    ...(event.artId ? { artId: event.artId } : {}),
     seat: event.seat,
     tier: tierFor(mechanic),
     label: labelFor(mechanic),
     color: colorKey(definition.colors[0]),
+    ...(event.kind === "cardPlayed" && event.sourceArtIds ? { sourceArtIds: event.sourceArtIds } : {}),
     ...(sourceCardIds && sourceCardIds.length > 0 ? { sourceCardIds } : {}),
   };
 }

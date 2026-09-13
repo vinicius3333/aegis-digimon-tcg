@@ -1,4 +1,5 @@
 import { CardInstance, PlayerState, Zone, type GameState, type Seat } from "@aegis/shared";
+import { resolveCardArt } from "@aegis/shared";
 import { clearBattleArea, clearZone, fillZone, insertCard, setBreeding, takeTop } from "./state/access.js";
 
 /**
@@ -79,11 +80,17 @@ export function shuffleInPlace<T>(items: T[], rng: Rng): T[] {
  * Cards in hidden zones start face-down (the visibility layer redacts them from the
  * opponent regardless; faceUp flips when a card enters a public zone).
  */
-function makeInstances(seat: Seat, cardIds: readonly string[], startOrdinal: number): CardInstance[] {
+function makeInstances(
+  seat: Seat,
+  cardIds: readonly string[],
+  startOrdinal: number,
+  artIds?: readonly string[],
+): CardInstance[] {
   return cardIds.map((cardId, offset) => {
     const card = new CardInstance();
     card.instanceId = `s${seat}-${startOrdinal + offset}`;
     card.cardId = cardId;
+    card.artId = resolveCardArt(cardId, artIds?.[offset]).artId;
     card.ownerSeat = seat;
     card.faceUp = false;
     return card;
@@ -94,6 +101,8 @@ function makeInstances(seat: Seat, cardIds: readonly string[], startOrdinal: num
 export interface Decklist {
   mainDeck: string[];
   eggDeck: string[];
+  mainDeckArts?: string[];
+  eggDeckArts?: string[];
 }
 
 /**
@@ -116,8 +125,8 @@ export interface Decklist {
 export function loadDeckInto(player: PlayerState, seat: Seat, deck: Decklist): PlayerState {
   player.seat = seat;
 
-  const mainInstances = makeInstances(seat, deck.mainDeck, 0);
-  const eggInstances = makeInstances(seat, deck.eggDeck, deck.mainDeck.length);
+  const mainInstances = makeInstances(seat, deck.mainDeck, 0, deck.mainDeckArts);
+  const eggInstances = makeInstances(seat, deck.eggDeck, deck.mainDeck.length, deck.eggDeckArts);
 
   fillZone(player, Zone.Deck, mainInstances);
   fillZone(player, Zone.EggDeck, eggInstances);

@@ -1,4 +1,10 @@
-import { effectiveCopyLimit as banlistLimit, getCardDefinition, isBanned, restrictionLabel } from "@aegis/shared";
+import {
+  effectiveCopyLimit as banlistLimit,
+  getCardDefinition,
+  getCardArts,
+  isBanned,
+  restrictionLabel,
+} from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { ColorDot } from "../design/primitives";
 import { colorKey, kindOf } from "../design/theme";
@@ -9,6 +15,8 @@ import { sortCardIds } from "./cardLibrary";
 type CountMap = Record<string, number>;
 
 interface DeckPreviewSectionsProps {
+  arts?: Record<string, string[]>;
+  onEditArt?: (cardId: string, copy: number) => void;
   main: CountMap;
   egg: CountMap;
   coverCardId?: string;
@@ -32,6 +40,8 @@ function countCards(cards: CountMap): number {
 export function DeckPreviewSections({
   main,
   egg,
+  arts,
+  onEditArt,
   coverCardId,
   pairConflictCardIds = new Set<string>(),
   onSetCover,
@@ -98,6 +108,8 @@ export function DeckPreviewSections({
               <DeckPreviewCard
                 key={cardId}
                 cardId={cardId}
+                arts={arts?.[cardId]}
+                onEditArt={onEditArt ? (copy) => onEditArt(cardId, copy) : undefined}
                 count={egg[cardId]!}
                 isCover={coverCardId === cardId}
                 pairConflict={pairConflictCardIds.has(cardId)}
@@ -117,6 +129,8 @@ export function DeckPreviewSections({
               <DeckPreviewCard
                 key={cardId}
                 cardId={cardId}
+                arts={arts?.[cardId]}
+                onEditArt={onEditArt ? (copy) => onEditArt(cardId, copy) : undefined}
                 count={(section.id === "eggs" ? egg : main)[cardId]!}
                 isCover={coverCardId === cardId}
                 pairConflict={pairConflictCardIds.has(cardId)}
@@ -164,6 +178,8 @@ function DeckPreviewEmpty({ children }: { children: React.ReactNode }) {
 
 function DeckPreviewCard({
   cardId,
+  arts,
+  onEditArt,
   count,
   isCover,
   pairConflict,
@@ -172,6 +188,8 @@ function DeckPreviewCard({
   onRemove,
 }: {
   cardId: string;
+  arts?: string[];
+  onEditArt?: (copy: number) => void;
   count: number;
   isCover: boolean;
   pairConflict: boolean;
@@ -203,7 +221,7 @@ function DeckPreviewCard({
       }}
     >
       <div style={{ width: 38, height: 53, flexShrink: 0, overflow: "hidden", borderRadius: 5 }}>
-        <CardFull cardId={cardId} width={38} />
+        <CardFull cardId={cardId} artId={arts?.[0]} width={38} />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
@@ -253,6 +271,22 @@ function DeckPreviewCard({
             </span>
           ) : null}
         </div>
+        {onEditArt && getCardArts(cardId).length > 1 ? (
+          <div className="deck-copy-arts">
+            {Array.from({ length: count }, (_, copy) => (
+              <button
+                type="button"
+                key={copy}
+                title={t("deck.editArtwork")}
+                aria-label={`${definition.nameEn} · ${t("deck.copyArtwork", { number: copy + 1 })} · ${t("deck.editArtwork")}`}
+                onClick={() => onEditArt(copy)}
+              >
+                <CardFull cardId={cardId} artId={arts?.[copy]} width={28} />
+                <span>{copy + 1}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
         {onSetCover ? (

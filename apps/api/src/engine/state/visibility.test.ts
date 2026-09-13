@@ -27,6 +27,7 @@ function makeCard(id: string, ownerSeat: Seat, faceUp = true): CardInstance {
   const card = new CardInstance();
   card.instanceId = id;
   card.cardId = "TEST-001";
+  card.artId = "TEST-001_P1";
   card.ownerSeat = ownerSeat;
   card.faceUp = faceUp;
   return card;
@@ -334,6 +335,8 @@ describe("buildStateView", () => {
     const opponentDecoder = new Decoder(new GameState());
     encodeAllForView(state, opponentView, opponentDecoder);
     expect(opponentDecoder.state.players[0]!.battleArea[0]!.stack[0]!.cardId).toBeUndefined();
+    expect(opponentDecoder.state.players[0]!.battleArea[0]!.stack[0]!.artId).toBe("");
+    expect(ownerDecoder.state.players[0]!.battleArea[0]!.stack[0]!.artId).toBe("TEST-001_P1");
   });
 
   it("keeps a face-down Delay card identifiable to its owner and hidden from the opponent", () => {
@@ -690,6 +693,7 @@ describe("hidden zone redaction (what the owner's own client receives)", () => {
     const revealed = mine.security.find((card) => card.faceUp);
     expect(revealed?.cardId).toBe("TEST-001");
     expect(mine.security.filter((card) => !card.faceUp).every((card) => !card.cardId)).toBe(true);
+    expect(mine.security.filter((card) => !card.faceUp).every((card) => !card.artId)).toBe(true);
   });
 
   it("keeps the opponent blind to every hidden zone", () => {

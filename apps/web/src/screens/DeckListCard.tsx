@@ -9,7 +9,7 @@ import { Badge, ColorDot } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons } from "../design/icons";
-import { deckBlurbLabel, displayCoverCard, type DeckListing } from "../game/decks";
+import { deckBlurbLabel, displayCoverCard, displayCoverArt, type DeckListing } from "../game/decks";
 import { useTranslation } from "../i18n";
 import "./deckListCard.css";
 
@@ -58,7 +58,9 @@ export function DeckListCard({
   const { legal, banViolations, pairViolations } = deckLegality(deck);
 
   return (
-    <article className={`deck-list-card${compact ? " is-compact" : ""}${active ? " is-active" : ""}${disabled ? " is-disabled" : ""}`}>
+    <article
+      className={`deck-list-card${compact ? " is-compact" : ""}${active ? " is-active" : ""}${disabled ? " is-disabled" : ""}`}
+    >
       {onSelect ? (
         <button
           type="button"
@@ -76,6 +78,7 @@ export function DeckListCard({
         <CoverThumb
           key={displayCoverCard(deck)}
           coverCardId={displayCoverCard(deck)}
+          artId={displayCoverArt(deck)}
           sigilColor={deck.color}
           sigilSize={64}
         />

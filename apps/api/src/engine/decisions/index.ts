@@ -305,16 +305,21 @@ function satisfiesMin(open: OpenDecision, response: DecisionResponse): boolean {
  */
 function withCardIdentities(state: GameState, seat: Seat, options: DecisionSpec["options"]): DecisionSpec["options"] {
   if (options === undefined) return options;
-  const offered = [...(options.candidateInstanceIds ?? []), ...(options.visibleInstanceIds ?? [])];
+  const offered = [
+    ...(options.candidateInstanceIds ?? []),
+    ...(options.visibleInstanceIds ?? []),
+    ...(options.visibleCards ?? []).map((card) => card.instanceId),
+  ];
   if (offered.length === 0) return options;
-  const alreadyNamed = new Set((options.visibleCards ?? []).map((card) => card.instanceId));
-  const filled = decisionCardIdentities(
-    state,
-    seat,
-    offered.filter((instanceId) => !alreadyNamed.has(instanceId)),
-  );
-  if (filled.length === 0) return options;
-  return { ...options, visibleCards: [...(options.visibleCards ?? []), ...filled] };
+  const identities = decisionCardIdentities(state, seat, offered);
+  const identitiesById = new Map(identities.map((card) => [card.instanceId, card]));
+  const existing = (options.visibleCards ?? []).map((card) => {
+    const known = identitiesById.get(card.instanceId);
+    return !card.artId && known?.cardId === card.cardId && known.artId ? { ...card, artId: known.artId } : card;
+  });
+  const alreadyNamed = new Set(existing.map((card) => card.instanceId));
+  const filled = identities.filter((card) => !alreadyNamed.has(card.instanceId));
+  return { ...options, visibleCards: [...existing, ...filled] };
 }
 
 /**

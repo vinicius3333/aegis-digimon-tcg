@@ -87,3 +87,24 @@ describe("famous deck presets", () => {
     expect(copy.eggDeck).not.toBe(preset.eggDeck);
   });
 });
+
+describe("artwork alignment", () => {
+  it("filters stale cards and their aligned printing together", () => {
+    const deck: DeckListing = {
+      id: "art",
+      name: "Art",
+      color: "Red",
+      blurb: "",
+      mainDeck: ["ZZ-999", "BT1-010"],
+      eggDeck: [],
+      mainDeckArts: ["ZZ-999", "BT1-010"],
+    };
+    expect(filterDeckToKnownCards(deck)).toMatchObject({ mainDeck: ["BT1-010"], mainDeckArts: ["BT1-010"] });
+  });
+  it("copies artwork arrays independently from a preset", () => {
+    const preset = { ...DECKS[0]!, mainDeckArts: ["BT1-009"] };
+    const copy = copyDeckPreset(preset, []);
+    copy.mainDeckArts!.push("BT1-010");
+    expect(preset.mainDeckArts).toEqual(["BT1-009"]);
+  });
+});

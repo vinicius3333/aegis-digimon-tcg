@@ -38,10 +38,10 @@ export function DigivolutionCutInView({ cutIn }: { cutIn: DigivolutionCutIn }) {
             key={`${sourceCardId}-${index}`}
             data-slot={index === 0 ? "left" : "right"}
           >
-            <CardFull cardId={sourceCardId} width={140} zoomOnHover={false} />
+            <CardFull cardId={sourceCardId} artId={cutIn.sourceArtIds?.[index]} width={140} zoomOnHover={false} />
           </span>
         ))}
-        <CardFull cardId={cutIn.cardId} width={240} zoomOnHover={false} />
+        <CardFull cardId={cutIn.cardId} artId={cutIn.artId} width={240} zoomOnHover={false} />
       </span>
       <span className="game-cut-in__word">{t(cutIn.label)}</span>
     </div>

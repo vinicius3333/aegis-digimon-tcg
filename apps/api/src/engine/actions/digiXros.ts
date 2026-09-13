@@ -394,6 +394,7 @@ export async function applyDigiXros(
     kind: "cardPlayed",
     seat,
     cardId: instance.cardId,
+    ...(instance.artId ? { artId: instance.artId } : {}),
     permanentId: permanent.permanentId,
     mechanic: "digiXros",
   });
@@ -445,6 +446,7 @@ export async function applyDigiXros(
     ok: true,
     outcome: {
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       instanceId: instance.instanceId,
       permanentId: permanent.permanentId,
       cost,

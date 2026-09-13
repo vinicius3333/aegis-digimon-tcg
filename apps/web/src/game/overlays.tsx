@@ -875,7 +875,7 @@ export function PermanentDetailInspector({
             const effect = card.role === "linked" ? def?.linkEffect : def?.inheritedEffectText;
             return (
               <div key={`${card.cardId}-${index}`}>
-                <CardArt cardId={card.cardId} width={38} />
+                <CardArt cardId={card.cardId} artId={card.artId} width={38} />
                 <div>
                   <strong>{def?.nameEn ?? card.cardId}</strong>
                   <span>{t(ROLE_LABEL_KEYS[card.role])}</span>
@@ -1254,6 +1254,7 @@ export function DecisionOverlay({
   candidates: {
     instanceId: string;
     cardId?: string;
+    artId?: string;
     selectable?: boolean;
     sourceCount?: number;
     currentDP?: number;
@@ -1616,7 +1617,7 @@ export function DecisionOverlay({
                       {abstractLabel}
                     </span>
                   ) : (
-                    <CardFull cardId={cand.cardId ?? ""} width={candidateCardWidth} selected={on} />
+                    <CardFull cardId={cand.cardId ?? ""} artId={cand.artId} width={candidateCardWidth} selected={on} />
                   )}
                   {on && max > 1 ? (
                     <span className="decision-overlay__order-badge" aria-hidden="true">
@@ -1716,7 +1717,7 @@ export function DecisionOverlay({
                   }}
                 >
                   <div className="decision-overlay__order-card">
-                    <CardFull cardId={card?.cardId ?? ""} width={wideDialog ? 86 : 62} />
+                    <CardFull cardId={card?.cardId ?? ""} artId={card?.artId} width={wideDialog ? 86 : 62} />
                     <span className="decision-overlay__order-badge" aria-hidden="true">
                       {index + 1}
                     </span>
@@ -2109,6 +2110,7 @@ export function CardActionMenu({
   x,
   y,
   cardId,
+  artId,
   sheet,
   dp,
   baseDP,
@@ -2133,6 +2135,7 @@ export function CardActionMenu({
   y: number;
   /** Card shown alongside the actions in `sheet` mode. */
   cardId?: string;
+  artId?: string;
   /** Render as a bottom sheet (touch layouts) instead of a menu anchored to the card. */
   sheet?: boolean;
   /** Live permanent stats, shown in `sheet` mode. */
@@ -2156,6 +2159,8 @@ export function CardActionMenu({
 }) {
   const { t } = useTranslation();
   const [zoomed, setZoomed] = useState<string | null>(null);
+  const [zoomedArtId, setZoomedArtId] = useState<string | undefined>();
+  const openZoom = (id: string | null, selectedArtId?: string) => { setZoomed(id); setZoomedArtId(selectedArtId); };
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && zoomed === null) onClose();
@@ -2171,7 +2176,7 @@ export function CardActionMenu({
           inspection={arenaInspection}
           fate={fate}
           zoomed={zoomed !== null}
-          onZoom={setZoomed}
+          onZoom={openZoom}
           onClose={onClose}
           actions={
             canAttack || (canVortex && onVortex) || link || effects?.length || promote ? (
@@ -2214,7 +2219,7 @@ export function CardActionMenu({
             ) : undefined
           }
         />
-        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+        {zoomed ? <CardZoomOverlay cardId={zoomed} artId={zoomedArtId} onClose={() => setZoomed(null)} /> : null}
       </>
     );
   }
@@ -2267,7 +2272,7 @@ export function CardActionMenu({
                 onClick={() => setZoomed(cardId)}
                 aria-label={t("overlay.zoomCard")}
               >
-                <CardFull cardId={cardId} width={190} />
+                <CardFull cardId={cardId} artId={artId} width={190} />
               </button>
             ) : null}
             <div className="card-action-sheet__info">
@@ -2340,7 +2345,7 @@ export function CardActionMenu({
                     <div>
                       {group.map((c, i) => (
                         <button type="button" key={`${c.cardId}-${i}`} onClick={() => setZoomed(c.cardId)}>
-                          <CardArt cardId={c.cardId} width={54} />
+                          <CardArt cardId={c.cardId} artId={c.artId} width={54} />
                           <figcaption>{getCardDefinition(c.cardId)?.nameEn ?? c.cardId}</figcaption>
                         </button>
                       ))}
@@ -2354,6 +2359,7 @@ export function CardActionMenu({
         {zoomed ? (
           <CardZoomOverlay
             cardId={zoomed}
+            artId={zoomedArtId}
             details={zoomed === cardId ? liveInfo : undefined}
             onClose={() => setZoomed(null)}
           />
@@ -2464,17 +2470,20 @@ export function CardActionMenu({
 
 export interface StackCard {
   cardId: string;
+  artId?: string;
   role: "top" | "stack" | "linked";
 }
 
 /** Full-screen blow-up of a single card; tap anywhere (or Escape) to dismiss. */
 export function CardZoomOverlay({
   cardId,
+  artId,
   onClose,
   inline,
   details,
 }: {
   cardId: string;
+  artId?: string;
   onClose: () => void;
   /** Render in place rather than portalling, so a fixture stage can hold the overlay. */
   inline?: boolean;
@@ -2497,7 +2506,7 @@ export function CardZoomOverlay({
       aria-label={getCardDefinition(cardId)?.nameEn ?? cardId}
       onClick={onClose}
     >
-      <CardFull cardId={cardId} width={340} />
+      <CardFull cardId={cardId} artId={artId} width={340} />
       <div className="card-zoom__details card-action-sheet__info" onClick={(e) => e.stopPropagation()}>
         {details ?? <PrintedCardInfo cardId={cardId} />}
       </div>
@@ -2537,10 +2546,11 @@ const ROLE_LABEL_KEYS: Record<StackCard["role"], "overlay.role.top" | "overlay.r
 };
 
 /** Self-contained card art with image fallback to the color Sigil (no hover zoom). */
-function CardArt({ cardId, width }: { cardId: string; width: number }) {
+function CardArt({ cardId, artId, width }: { cardId: string; artId?: string; width: number }) {
   const def = getCardDefinition(cardId);
-  const urls = cardImageUrls(def?.imageId ?? cardId);
+  const urls = cardImageUrls(cardId, artId);
   const [idx, setIdx] = useState(0);
+  useEffect(() => setIdx(0), [cardId, artId]);
   const h = Math.round(width * 1.4);
   if (!def) return <CardBack width={width} label={cardId} />;
   if (idx >= urls.length) {
@@ -2630,6 +2640,7 @@ function StackViewerSheet({
   detail,
   fate,
   zoomed,
+  zoomedArtId,
   onZoom,
   canAttack,
   canVortex,
@@ -2642,7 +2653,8 @@ function StackViewerSheet({
   detail?: PermanentDetail;
   fate?: PendingFateBadge;
   zoomed: string | null;
-  onZoom: (cardId: string | null) => void;
+  zoomedArtId?: string;
+  onZoom: (cardId: string | null, artId?: string) => void;
   canAttack: boolean;
   canVortex?: boolean;
   onAttack: () => void;
@@ -2696,10 +2708,10 @@ function StackViewerSheet({
             <button
               type="button"
               className="card-action-sheet__zoom"
-              onClick={() => onZoom(active.cardId)}
+              onClick={() => onZoom(active.cardId, active.artId)}
               aria-label={t("overlay.zoomCard")}
             >
-              <CardArt cardId={active.cardId} width={140} />
+              <CardArt cardId={active.cardId} artId={active.artId} width={140} />
             </button>
           ) : null}
           <div className="card-action-sheet__info">{header}</div>
@@ -2726,8 +2738,8 @@ function StackViewerSheet({
                 <span>{t(ROLE_LABEL_KEYS[role])}</span>
                 <div className="stack-sheet__grid">
                   {group.map((c, i) => (
-                    <button type="button" key={`${c.cardId}-${i}`} onClick={() => onZoom(c.cardId)}>
-                      <CardArt cardId={c.cardId} width={72} />
+                    <button type="button" key={`${c.cardId}-${i}`} onClick={() => onZoom(c.cardId, c.artId)}>
+                      <CardArt cardId={c.cardId} artId={c.artId} width={72} />
                       <figcaption>
                         {role === "stack" ? <b>{i + 1}</b> : null}
                         {getCardDefinition(c.cardId)?.nameEn ?? c.cardId}
@@ -2758,6 +2770,7 @@ function StackViewerSheet({
       {zoomed ? (
         <CardZoomOverlay
           cardId={zoomed}
+          artId={zoomedArtId}
           details={zoomed === active?.cardId ? header : undefined}
           onClose={() => onZoom(null)}
         />
@@ -2808,6 +2821,8 @@ export function StackViewerOverlay({
   const [activeIndex, setActiveIndex] = useState(0);
   const [previewZoomed, setPreviewZoomed] = useState(false);
   const [zoomed, setZoomed] = useState<string | null>(null);
+  const [zoomedArtId, setZoomedArtId] = useState<string | undefined>();
+  const openZoom = (id: string | null, selectedArtId?: string) => { setZoomed(id); setZoomedArtId(selectedArtId); };
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
   const preview = (cards[activeIndex] ?? cards[0])?.cardId;
   useEffect(() => {
@@ -2827,7 +2842,7 @@ export function StackViewerOverlay({
           inspection={arenaInspection}
           fate={fate}
           zoomed={zoomed !== null}
-          onZoom={setZoomed}
+          onZoom={openZoom}
           onClose={onClose}
           actions={
             canAttack || (canVortex && onVortex) ? (
@@ -2846,7 +2861,7 @@ export function StackViewerOverlay({
             ) : undefined
           }
         />
-        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+        {zoomed ? <CardZoomOverlay cardId={zoomed} artId={zoomedArtId} onClose={() => setZoomed(null)} /> : null}
       </>
     );
   }
@@ -2859,7 +2874,8 @@ export function StackViewerOverlay({
         detail={detail}
         fate={fate}
         zoomed={zoomed}
-        onZoom={setZoomed}
+        zoomedArtId={zoomedArtId}
+        onZoom={openZoom}
         canAttack={canAttack}
         canVortex={canVortex}
         onAttack={onAttack}
@@ -2938,7 +2954,7 @@ export function StackViewerOverlay({
                         transition: "background 120ms, border-color 120ms",
                       }}
                     >
-                      <CardArt cardId={c.cardId} width={42} />
+                      <CardArt cardId={c.cardId} artId={c.artId} width={42} />
                       <div style={{ overflow: "hidden" }}>
                         <div
                           style={{
@@ -2985,7 +3001,7 @@ export function StackViewerOverlay({
                 cursor: "zoom-in",
               }}
             >
-              <CardArt cardId={preview} width={260} />
+              <CardArt cardId={preview} artId={cards[activeIndex]?.artId} width={260} />
             </div>
           ) : null}
           <div className="game-actions-row" style={{ width: "100%" }}>
@@ -3018,6 +3034,7 @@ export function StackViewerOverlay({
  */
 export function TrashViewerOverlay({
   cardIds,
+  artIds,
   title,
   sheet,
   countLabel,
@@ -3025,6 +3042,7 @@ export function TrashViewerOverlay({
   onClose,
 }: {
   cardIds: string[];
+  artIds?: string[];
   title: string;
   /** Render as a bottom sheet with one scrollable row (touch layouts). */
   sheet?: boolean;
@@ -3038,9 +3056,12 @@ export function TrashViewerOverlay({
   const countText = countLabel ?? t("overlay.trashCount", { count: cardIds.length });
   const emptyText = emptyLabel ?? t("overlay.trashEmpty");
   const ordered = [...cardIds].reverse();
-  const [activeCardId, setActiveCardId] = useState(ordered[0]);
-  const [zoomed, setZoomed] = useState<string | null>(null);
-  const preview = activeCardId ?? ordered[0];
+  const orderedArts = cardIds.map((_, index) => artIds?.[index]).reverse();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
+  const zoomed = zoomedIndex === null ? undefined : ordered[zoomedIndex];
+  const effectiveIndex = activeIndex < ordered.length ? activeIndex : 0;
+  const preview = ordered[effectiveIndex];
 
   if (sheet) {
     return createPortal(
@@ -3056,8 +3077,8 @@ export function TrashViewerOverlay({
           ) : (
             <div className="trash-sheet__row">
               {ordered.map((cardId, i) => (
-                <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomed(cardId)}>
-                  <CardArt cardId={cardId} width={96} />
+                <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomedIndex(i)}>
+                  <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
                   <figcaption>{getCardDefinition(cardId)?.nameEn ?? cardId}</figcaption>
                 </button>
               ))}
@@ -3069,7 +3090,7 @@ export function TrashViewerOverlay({
             </Button>
           </div>
         </div>
-        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+        {zoomed ? <CardZoomOverlay cardId={zoomed} artId={zoomedIndex === null ? undefined : orderedArts[zoomedIndex]} onClose={() => setZoomedIndex(null)} /> : null}
       </div>,
       document.body,
     );
@@ -3132,12 +3153,12 @@ export function TrashViewerOverlay({
             >
               {ordered.map((cardId, i) => {
                 const def = getCardDefinition(cardId);
-                const sel = preview === cardId;
+                const sel = activeIndex === i;
                 return (
                   <button
                     key={`${cardId}-${i}`}
-                    onMouseEnter={() => setActiveCardId(cardId)}
-                    onClick={() => setActiveCardId(cardId)}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    onClick={() => setActiveIndex(i)}
                     title={def?.nameEn ?? cardId}
                     style={{
                       padding: 3,
@@ -3148,7 +3169,7 @@ export function TrashViewerOverlay({
                       transition: "background 120ms, border-color 120ms",
                     }}
                   >
-                    <CardArt cardId={cardId} width={64} />
+                    <CardArt cardId={cardId} artId={orderedArts[i]} width={64} />
                   </button>
                 );
               })}
@@ -3167,7 +3188,7 @@ export function TrashViewerOverlay({
             flexShrink: 0,
           }}
         >
-          {preview ? <CardArt cardId={preview} width={260} /> : null}
+          {preview ? <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} /> : null}
           <Button size="md" variant="ghost" full onClick={onClose}>
             {t("common.close")}
           </Button>
@@ -3181,6 +3202,7 @@ export function TrashViewerOverlay({
 
 /** A selectable DigiXros material entry. */
 export interface DigiXrosCandidate {
+  artId?: string;
   instanceId: string;
   cardId: string;
   zone: "hand" | "battle" | "trash" | "underTamer";
@@ -3371,7 +3393,7 @@ export function DigiXrosMaterialOverlay({
                 gap: 3,
               }}
             >
-              <CardArt cardId={c.cardId} width={72} />
+              <CardArt cardId={c.cardId} artId={c.artId} width={72} />
               <span
                 style={{
                   fontSize: 9.5,
@@ -3583,6 +3605,7 @@ export function DigiXrosMaterialOverlay({
 
 /** A selectable Assembly material entry: always a card in the player's own trash (§7-3-1). */
 export interface AssemblyCandidate {
+  artId?: string;
   instanceId: string;
   cardId: string;
 }
@@ -3731,7 +3754,7 @@ export function AssemblyMaterialOverlay({
                     gap: 3,
                   }}
                 >
-                  <CardArt cardId={candidate.cardId} width={72} />
+                  <CardArt cardId={candidate.cardId} artId={candidate.artId} width={72} />
                   <span
                     style={{
                       fontSize: 9.5,

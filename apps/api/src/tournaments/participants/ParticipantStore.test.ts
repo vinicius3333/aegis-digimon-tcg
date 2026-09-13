@@ -1,4 +1,4 @@
-import type { TournamentBanlistCard } from "@aegis/shared";
+import { getCardArts, type TournamentBanlistCard } from "@aegis/shared";
 import type { Pool } from "pg";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Account, AccountStore } from "../../accounts/AccountStore.js";
@@ -389,6 +389,25 @@ describe("ParticipantStore tournament status gate", () => {
 });
 
 describe("ParticipantStore deck freeze", () => {
+  it("freezes the selected printings and keeps them after the saved deck changes", async () => {
+    const { store, participants } = createFixture();
+    const player = await createPlayer(store, "Arts");
+    const mainDeckArts = RED_DECK.mainDeck.map((cardId) => getCardArts(cardId).at(-1)!.artId);
+    const deck = await store.saveDeck(player.id, {
+      name: "Selected arts",
+      mainDeck: [...RED_DECK.mainDeck],
+      eggDeck: [...RED_DECK.eggDeck],
+      mainDeckArts,
+    });
+    const tournamentId = await createTournament(store, player.id);
+    await participants.register({ tournamentId, accountId: player.id, savedDeckId: deck.id, now: T0 });
+    await participants.checkIn({ tournamentId, accountId: player.id, now: T0 + 1 });
+    await participants.closeCheckIn({ tournamentId, now: T0 + 2 });
+    expect((await participants.participants(tournamentId))[0]!.deckSnapshot!.mainDeckArts).toEqual(mainDeckArts);
+    await store.saveDeck(player.id, { ...deck, mainDeckArts: [...RED_DECK.mainDeck] });
+    expect((await participants.participants(tournamentId))[0]!.deckSnapshot!.mainDeckArts).toEqual(mainDeckArts);
+  });
+
   it("freezes the checked-in player's deck and ignores every later edit to the saved deck", async () => {
     const { store, participants } = createFixture();
     const player = await createPlayer(store, "Alice");

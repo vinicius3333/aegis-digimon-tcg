@@ -261,7 +261,7 @@ export function AegisClient({
       displayName: effectivePlayer.name,
       deckId: activeDeck?.id,
       deckName: activeDeck?.name,
-      deck: { mainDeck: activeDeck?.mainDeck ?? [], eggDeck: activeDeck?.eggDeck ?? [] },
+      deck: { mainDeck: activeDeck?.mainDeck ?? [], eggDeck: activeDeck?.eggDeck ?? [], mainDeckArts: activeDeck?.mainDeckArts, eggDeckArts: activeDeck?.eggDeckArts },
     }),
     [effectivePlayer.name, activeDeck],
   );

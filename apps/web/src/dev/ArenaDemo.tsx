@@ -26,6 +26,8 @@ import { useTranslation } from "../i18n";
 import { prepareDemoCombat } from "./arenaDemoCombat";
 import { ArenaKeywordEditor } from "./ArenaKeywordEditor";
 import { ArenaDemoTools } from "./ArenaDemoTools";
+import { ArenaVisualPlayer } from "./ArenaVisualPlayer";
+import { useArenaVisualPlayback } from "./arenaVisualPlayback";
 import {
   applyDemoKeywordGrants,
   demoDigimon,
@@ -199,6 +201,7 @@ export function ArenaDemo() {
     }
     return next;
   }, [phase, keywordGrants, drawCounts, turnStartStep]);
+  const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
     setDrawCounts((previous) => (seat === 0 ? [previous[0] + 1, previous[1]] : [previous[0], previous[1] + 1]));
@@ -245,7 +248,11 @@ export function ArenaDemo() {
 
   return (
     <div className="aegis-arena-demo">
-      <header className="aegis-arena-demo-toolbar">
+      <header
+        className="aegis-arena-demo-toolbar"
+        inert={playback.controller.active}
+        aria-hidden={playback.controller.active || undefined}
+      >
         <div className="aegis-arena-demo-brand">
           <span aria-hidden="true">
             <Icons.Hexagon size={20} />
@@ -303,6 +310,7 @@ export function ArenaDemo() {
           deckCounts={[state.players[0]!.deckCount, state.players[1]!.deckCount]}
           onKeywords={() => setKeywordEditorOpen(true)}
           onDraw={drawCard}
+          onVisualPlayback={playback.controller.controls.start}
           onTurnStart={previewTurnStart}
           disabled={turnStartStep !== null}
         />
@@ -322,8 +330,9 @@ export function ArenaDemo() {
           <span className="aegis-arena-demo-back-label">{portuguese ? "Voltar" : "Back"}</span>
         </a>
       </header>
+      {playback.controller.active ? <ArenaVisualPlayer playback={playback.controller} /> : null}
       <GameScreen
-        key={turnStartRun}
+        key={`${playback.gameKey}-${turnStartRun}`}
         joinOptions={{
           displayName: ARENA_DECKS[0]!.name,
           deck: {
@@ -335,11 +344,13 @@ export function ArenaDemo() {
         onExit={() => window.location.assign("/")}
         demoConnection={{
           room: undefined,
-          keywordLabels,
+          showCutIns: playback.controller.active ? true : undefined,
+          keywordLabels: playback.connection?.keywordLabels ?? keywordLabels,
           status: "connected",
-          state,
-          events,
-          batches,
+          state: playback.connection?.state ?? state,
+          events: playback.connection?.events ?? events,
+          batches: playback.connection?.batches ?? batches,
+          snapshots: playback.connection?.snapshots,
           decision: undefined,
           acknowledgeDecision: () => {},
           error: undefined,

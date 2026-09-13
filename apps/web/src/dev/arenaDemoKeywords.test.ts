@@ -87,3 +87,24 @@ it("keeps printed numeric and textual parameters separate from canonical keyword
     own: { Succession: "Succession ([Ceresmon])" },
   });
 });
+
+it.each(DEMO_KEYWORDS)("preserves resolved printed/existing grants when adding and removing demo %s", (keyword) => {
+  const grants = upsertDemoKeywordGrant({}, "digimon-0", {
+    keyword,
+    ...(keyword === "SecurityAttack" ? { amount: -2 } : {}),
+  });
+  const added = fixture();
+  applyDemoKeywordGrants(added, grants);
+  const own = added.players[0]!.battleArea[0]!;
+  expect([...own.keywords]).toEqual([...new Set(["Piercing", "Jamming", keyword])]);
+  expect([...own.grantedKeywords]).toEqual([...new Set(["Jamming", keyword])]);
+  expect(own.securityAttack).toBe(keyword === "SecurityAttack" ? 1 : 3);
+  for (const next of [removeDemoKeywordGrant(grants, "digimon-0", keyword), {}]) {
+    const rebuilt = fixture();
+    applyDemoKeywordGrants(rebuilt, next);
+    expect([...rebuilt.players[0]!.battleArea[0]!.keywords]).toEqual(["Piercing", "Jamming"]);
+    expect([...rebuilt.players[0]!.battleArea[0]!.grantedKeywords]).toEqual(["Jamming"]);
+    expect(rebuilt.players[0]!.battleArea[0]!.securityAttack).toBe(3);
+    expect([...rebuilt.players[1]!.battleArea[0]!.keywords]).toEqual(["Piercing", "Jamming"]);
+  }
+});

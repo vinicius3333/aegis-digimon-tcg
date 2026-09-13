@@ -8,6 +8,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import {
   bannedPairViolations,
   getCardDefinition,
+  resolveCardArt,
   type CardDefinition,
   isBanned,
   restrictionLabel,
@@ -207,6 +208,18 @@ function DeckEditor({
   const filter = useCardFilter(pool, { colorFilterMode: "all" });
   const [main, setMain] = useState<CountMap>(() => toCountMap(deck.mainDeck));
   const [egg, setEgg] = useState<CountMap>(() => toCountMap(deck.eggDeck));
+  const [arts, setArts] = useState<Record<string, string[]>>(() => {
+    const result: Record<string, string[]> = {};
+    for (const [ids, choices] of [
+      [deck.mainDeck, deck.mainDeckArts],
+      [deck.eggDeck, deck.eggDeckArts],
+    ] as const) {
+      ids.forEach((id, index) => (result[id] ??= []).push(resolveCardArt(id, choices?.[index]).artId));
+    }
+    return result;
+  });
+  const [chosenArt, setChosenArt] = useState<Record<string, string>>({});
+  const [editingCopy, setEditingCopy] = useState<number | null>(null);
   const [name, setName] = useState(deck.name);
   const [coverCardId, setCoverCardId] = useState<string | undefined>(() => displayCoverCard(deck));
   const [sel, setSel] = useState<string | null>(null);
@@ -234,6 +247,16 @@ function DeckEditor({
     if (cur >= cap) return;
     if (eggCard && eggCount >= EGG_TARGET) return;
     if (!eggCard && mainCount >= MAIN_TARGET) return;
+    setArts((previous) => ({
+      ...previous,
+      [cardId]: [
+        ...(previous[cardId] ?? []),
+        resolveCardArt(
+          cardId,
+          sel === cardId && editingCopy !== null ? previous[cardId]?.[editingCopy] : chosenArt[cardId],
+        ).artId,
+      ],
+    }));
     (eggCard ? setEgg : setMain)({ ...map, [cardId]: cur + 1 });
   };
   const remove = (cardId: string) => {
@@ -246,6 +269,7 @@ function DeckEditor({
     const next = { ...map };
     if (cur === 1) delete next[cardId];
     else next[cardId] = cur - 1;
+    setArts((previous) => ({ ...previous, [cardId]: (previous[cardId] ?? []).slice(0, cur - 1) }));
     (eggCard ? setEgg : setMain)(next);
   };
 
@@ -276,6 +300,12 @@ function DeckEditor({
         mainDeck,
         eggDeck,
         coverCardId,
+        mainDeckArts: Object.entries(main).flatMap(([id, count]) =>
+          Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
+        ),
+        eggDeckArts: Object.entries(egg).flatMap(([id, count]) =>
+          Array.from({ length: count }, (_, i) => resolveCardArt(id, arts[id]?.[i]).artId),
+        ),
       },
       setActive,
     );
@@ -283,7 +313,7 @@ function DeckEditor({
 
   useEffect(() => {
     persist(false);
-  }, [main, egg, name, coverCardId]);
+  }, [main, egg, name, coverCardId, arts]);
 
   const play = () => {
     persist(true);
@@ -292,6 +322,7 @@ function DeckEditor({
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
+    setArts({});
     setMain(toCountMap(result.mainDeck));
     setEgg(toCountMap(result.eggDeck));
     setImporting(false);
@@ -379,7 +410,10 @@ function DeckEditor({
                 pairConflict={pairedCardIds.has(card.cardId)}
                 onAdd={() => add(card.cardId)}
                 onRemove={() => remove(card.cardId)}
-                onOpen={() => setSel(card.cardId)}
+                onOpen={() => {
+                  setEditingCopy(null);
+                  setSel(card.cardId);
+                }}
                 selected={sel === card.cardId || inDeck > 0}
               />
             );
@@ -467,6 +501,7 @@ function DeckEditor({
               <CoverThumb
                 key={coverCardId}
                 coverCardId={coverCardId}
+                artId={coverCardId ? arts[coverCardId]?.[0] : undefined}
                 sigilColor={dominantColor(expand(main))}
                 sigilSize={22}
               />
@@ -527,6 +562,11 @@ function DeckEditor({
             onSetCover={setCoverCardId}
             onAdd={add}
             onRemove={remove}
+            arts={arts}
+            onEditArt={(cardId, copy) => {
+              setEditingCopy(copy);
+              setSel(cardId);
+            }}
           />
 
           <div
@@ -616,7 +656,18 @@ function DeckEditor({
 
       {sel ? (
         <CardDetailDrawer
+          key={sel}
           cardId={sel}
+          artId={editingCopy === null ? chosenArt[sel] : arts[sel]?.[editingCopy]}
+          onArtChange={(artId) => {
+            setChosenArt((previous) => ({ ...previous, [sel]: artId }));
+            if (editingCopy !== null)
+              setArts((previous) => {
+                const copies = [...(previous[sel] ?? [])];
+                copies[editingCopy] = artId;
+                return { ...previous, [sel]: copies };
+              });
+          }}
           onClose={() => setSel(null)}
           footer={
             <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 8 }}>

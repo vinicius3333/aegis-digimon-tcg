@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CUSTOM_BATTLEFIELD_ID,
   battlefieldStyle,
@@ -30,7 +30,7 @@ describe("custom battlefield", () => {
     setCustomBattlefield(image);
     clearCustomBattlefield();
 
-    expect(getBattlefieldId()).toBe("classic");
+    expect(getBattlefieldId()).toBe("tropical");
     expect(getCustomBattlefieldSrc()).toBeUndefined();
   });
 
@@ -38,5 +38,33 @@ describe("custom battlefield", () => {
     setBattlefieldId(CUSTOM_BATTLEFIELD_ID);
 
     expect(getBattlefieldId()).toBe("classic");
+  });
+});
+
+describe("initial battlefield preference", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it("uses Tropical Arena and its art when no choice was saved", async () => {
+    const fresh = await import("./battlefield");
+    expect(fresh.getBattlefieldId()).toBe("tropical");
+    expect(String(fresh.battlefieldStyle(fresh.getBattlefieldId()).backgroundImage)).toContain(
+      "aegis-arena-tropical.webp",
+    );
+  });
+
+  it.each(["classic", "sanctum", "tropical"])("preserves the explicit saved %s choice", async (choice) => {
+    localStorage.setItem("aegis.battlefield", choice);
+    const fresh = await import("./battlefield");
+    expect(fresh.getBattlefieldId()).toBe(choice);
+  });
+
+  it("uses Tropical Arena for an unavailable saved playmat", async () => {
+    localStorage.setItem("aegis.battlefield", "removed-playmat");
+    const fresh = await import("./battlefield");
+    expect(fresh.getBattlefieldId()).toBe("tropical");
+    expect(fresh.battlefieldById("removed-playmat").id).toBe("tropical");
   });
 });

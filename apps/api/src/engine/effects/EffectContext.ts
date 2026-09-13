@@ -1968,7 +1968,7 @@ export interface SeatScopedDecisionApi {
       min: number;
       max: number;
       visible?: string[];
-      visibleCards?: { instanceId: string; cardId: string }[];
+      visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
       maxTotalPlayCost?: number;
       differentColors?: boolean;
       distinctCardIds?: boolean;
@@ -1979,7 +1979,7 @@ export interface SeatScopedDecisionApi {
     ctx: EffectContext,
     opts: {
       candidates: string[];
-      visibleCards?: { instanceId: string; cardId: string }[];
+      visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
       destination?: "deckTop" | "deckBottom" | "stackBottom";
     },
   ): Promise<string[]>;

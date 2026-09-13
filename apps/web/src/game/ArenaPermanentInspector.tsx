@@ -43,7 +43,7 @@ export function ArenaPermanentInspector({
   fate?: PendingFateBadge;
   actions?: ReactNode;
   zoomed?: boolean;
-  onZoom: (cardId: string) => void;
+  onZoom: (cardId: string, artId?: string) => void;
   onClose: () => void;
 }) {
   const { locale, t } = useTranslation();
@@ -103,10 +103,10 @@ export function ArenaPermanentInspector({
         <button
           type="button"
           className="arena-permanent-inspector__art"
-          onClick={() => onZoom(detail.cardId)}
+          onClick={() => onZoom(detail.cardId, detail.artId)}
           aria-label={t("overlay.zoomCard")}
         >
-          <CardFull cardId={detail.cardId} width={190} zoomOnHover={false} />
+          <CardFull cardId={detail.cardId} artId={detail.artId} width={190} zoomOnHover={false} />
         </button>
         <div className="arena-permanent-inspector__reading">
           <header className="arena-permanent-inspector__header">
@@ -244,10 +244,10 @@ export function ArenaPermanentInspector({
                   <button
                     type="button"
                     className="arena-permanent-inspector__source"
-                    onClick={() => onZoom(card.cardId)}
+                    onClick={() => onZoom(card.cardId, card.artId)}
                     aria-label={t("feed.openCard", { card: definition?.nameEn ?? card.cardId })}
                   >
-                    <CardFull cardId={card.cardId} width={34} zoomOnHover={false} />
+                    <CardFull cardId={card.cardId} artId={card.artId} width={34} zoomOnHover={false} />
                   </button>
                   <div>
                     <span className="arena-permanent-inspector__effect-label">

@@ -14,7 +14,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { useTranslation, type Translate } from "../i18n";
 import { logSegments, type NamedCard } from "./matchLogLinks";
 
-const CardOpenerContext = createContext<((cardId: string) => void) | undefined>(undefined);
+const CardOpenerContext = createContext<((cardId: string, artId?: string) => void) | undefined>(undefined);
 
 /**
  * Lets everything below open a card.
@@ -28,13 +28,13 @@ export function CardOpenerProvider({
   onOpenCard,
   children,
 }: {
-  onOpenCard: (cardId: string) => void;
+  onOpenCard: (cardId: string, artId?: string) => void;
   children: ReactNode;
 }) {
   return <CardOpenerContext.Provider value={onOpenCard}>{children}</CardOpenerContext.Provider>;
 }
 
-export function useCardOpener(): ((cardId: string) => void) | undefined {
+export function useCardOpener(): ((cardId: string, artId?: string) => void) | undefined {
   return useContext(CardOpenerContext);
 }
 
@@ -55,14 +55,16 @@ function namedCards(cardIds: readonly (string | undefined)[] | undefined): Named
 
 function CardLinkButton({
   cardId,
+  artId,
   text,
   className,
   onOpenCard,
 }: {
   cardId: string;
+  artId?: string;
   text: string;
   className?: string;
-  onOpenCard: (cardId: string) => void;
+  onOpenCard: (cardId: string, artId?: string) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -70,7 +72,7 @@ function CardLinkButton({
       type="button"
       className={className ? `card-link ${className}` : "card-link"}
       aria-label={t("feed.openCard", { card: text })}
-      onClick={() => onOpenCard(cardId)}
+      onClick={() => onOpenCard(cardId, artId)}
     >
       {text}
     </button>
@@ -84,12 +86,12 @@ function CardLinkButton({
  * word it; everything else reads the name off the id, so the link and the text
  * can never disagree.
  */
-export function CardLink({ cardId, label, className }: { cardId?: string; label?: string; className?: string }) {
+export function CardLink({ cardId, artId, label, className }: { cardId?: string; artId?: string; label?: string; className?: string }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
   const text = label ?? cardDisplayName(cardId, t);
   if (!openCard || !cardId || !getCardDefinition(cardId)) return <span className={className}>{text}</span>;
-  return <CardLinkButton cardId={cardId} text={text} className={className} onOpenCard={openCard} />;
+  return <CardLinkButton cardId={cardId} artId={artId} text={text} className={className} onOpenCard={openCard} />;
 }
 
 /**
@@ -107,7 +109,7 @@ export function CardLinkedText({
 }: {
   text: string;
   cardIds?: readonly (string | undefined)[];
-  onOpenCard?: (cardId: string) => void;
+  onOpenCard?: (cardId: string, artId?: string) => void;
 }) {
   const contextOpener = useCardOpener();
   const openCard = onOpenCard ?? contextOpener;

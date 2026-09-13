@@ -388,12 +388,16 @@ export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<stri
 export function decisionVisibleCards(
   options: DecisionRequest["options"],
   instanceIndex: ReadonlyMap<string, string>,
-): { instanceId: string; cardId?: string }[] {
+  artIndex?: ReadonlyMap<string, string>,
+): { instanceId: string; cardId?: string; artId?: string }[] {
   const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
   const visible = options?.visibleInstanceIds ?? options?.candidateInstanceIds ?? [];
   return visible.map((instanceId) => ({
     instanceId,
     cardId: authoritative.get(instanceId) ?? instanceIndex.get(instanceId),
+    ...(options?.visibleCards?.find((card) => card.instanceId === instanceId)?.artId || artIndex?.get(instanceId)
+      ? { artId: options?.visibleCards?.find((card) => card.instanceId === instanceId)?.artId ?? artIndex?.get(instanceId) }
+      : {}),
   }));
 }
 

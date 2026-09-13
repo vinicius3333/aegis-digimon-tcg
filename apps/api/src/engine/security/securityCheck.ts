@@ -275,6 +275,10 @@ export async function runSecurityCheck(
           };
     emit({
       kind: "securityRevealed",
+      ...(revealed.artId ? { artId: revealed.artId } : {}),
+      ...(deps.permanentById(attacker.permanentId)?.topCard.artId
+        ? { attackerArtId: deps.permanentById(attacker.permanentId)!.topCard.artId }
+        : {}),
       ...(deps.isDigimon(revealed) ? { securityCardDP: deps.securityCardDp(revealed) } : {}),
       attackerDP: deps.dpOf(attacker.permanentId),
       seat: defenderSeat,
@@ -339,6 +343,10 @@ export async function runSecurityCheck(
       const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed) : undefined;
       emit({
         kind: "securityChecked",
+        ...(revealed.artId ? { artId: revealed.artId } : {}),
+        ...(deps.permanentById(attacker.permanentId)?.topCard.artId
+          ? { attackerArtId: deps.permanentById(attacker.permanentId)!.topCard.artId }
+          : {}),
         seat: defenderSeat,
         revealedCardId: revealed.cardId,
         resolution,

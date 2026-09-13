@@ -193,3 +193,26 @@ describe("runSetup / finalizeSecurity (full deal)", () => {
     }
   });
 });
+
+describe("physical printing identity", () => {
+  it("retains each copy's art while shuffling, drawing, redrawing and setting security", () => {
+    const player = buildPlayerState(0, "s", "Arts", {
+      mainDeck: Array.from({ length: 20 }, () => "AD1-001"),
+      eggDeck: ["AD1-001"],
+      mainDeckArts: Array.from({ length: 20 }, (_, index) => (index % 2 ? "AD1-001_P1" : "AD1-001")),
+      eggDeckArts: ["AD1-002_P1"],
+    });
+    const expected = new Map(player.deck.map((card) => [card.instanceId, card.artId]));
+    expect(player.eggDeck[0]!.artId).toBe("AD1-001");
+    shuffleDecks(player, makeRng(123));
+    dealOpeningHand(player);
+    mulliganRedraw(player, makeRng(321));
+    setSecurityStack(player);
+    const cards = [...player.deck, ...player.hand, ...player.security];
+    expect(cards).toHaveLength(20);
+    for (const card of cards) {
+      expect(card.cardId).toBe("AD1-001");
+      expect(card.artId).toBe(expected.get(card.instanceId));
+    }
+  });
+});

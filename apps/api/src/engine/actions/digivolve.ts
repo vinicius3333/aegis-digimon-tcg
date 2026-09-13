@@ -890,6 +890,7 @@ export async function applyDigivolve(
     seat,
     permanentId: permanent.permanentId,
     cardId: evolving.cardId,
+    ...(evolving.artId ? { artId: evolving.artId } : {}),
     mechanic: digivolveMechanicOf(check),
     inBreeding: permanent.inBreeding,
   });

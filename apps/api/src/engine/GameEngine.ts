@@ -241,7 +241,7 @@ export interface GameEngineHooks {
  */
 export interface SeatJoinOptions {
   displayName: string;
-  deck: { mainDeck: string[]; eggDeck: string[] }; // arrays of card ids
+  deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   /**
    * Opts this seat's deck into beta battle mode, the only mode where a card from an
    * announced-but-unreleased product (`isBetaOnlyCard`) is legal. Both seats must set

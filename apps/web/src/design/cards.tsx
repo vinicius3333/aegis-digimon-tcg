@@ -150,18 +150,21 @@ const ZOOM_GAP = 14;
 /** Fixed-position large card image rendered into document.body via portal. */
 function CardZoomPreview({
   cardId,
+  artId,
   x,
   y,
   fallbackIndex,
 }: {
   cardId: string;
+  artId?: string;
   x: number;
   y: number;
   fallbackIndex: number;
 }) {
   const def = getCardDefinition(cardId);
-  const urls = cardImageUrls(def?.imageId ?? cardId);
+  const urls = cardImageUrls(cardId, artId);
   const [extra, setExtra] = useState(0);
+  useEffect(() => setExtra(0), [cardId, artId]);
   const idx = fallbackIndex + extra;
 
   const vw = window.innerWidth;
@@ -213,6 +216,7 @@ function CardZoomPreview({
 /** Full card (≈200×280 baseline; scale via `width`). For grids and detail. */
 export function CardFull({
   cardId,
+  artId,
   width = 200,
   selected = false,
   dim = false,
@@ -221,6 +225,7 @@ export function CardFull({
   zoomOnHover = true,
 }: {
   cardId: string;
+  artId?: string;
   width?: number;
   selected?: boolean;
   dim?: boolean;
@@ -233,8 +238,9 @@ export function CardFull({
   zoomOnHover?: boolean;
 }) {
   const def = getCardDefinition(cardId);
-  const urls = cardImageUrls(def?.imageId ?? cardId);
+  const urls = cardImageUrls(cardId, artId);
   const [urlIndex, setUrlIndex] = useState(0);
+  useEffect(() => setUrlIndex(0), [artId, cardId]);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const zoomEnabled = useHoverZoomEnabled();
   if (!def) return <CardBack width={width} label={cardId} />;
@@ -316,7 +322,7 @@ export function CardFull({
       ) : null}
 
       {zoomEnabled && zoomOnHover && mousePos ? (
-        <CardZoomPreview cardId={cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
+        <CardZoomPreview cardId={cardId} artId={artId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
       ) : null}
     </div>
   );
@@ -328,16 +334,19 @@ export function CardFull({
  */
 export function CoverThumb({
   coverCardId,
+  artId,
   sigilColor = "Neutral",
   sigilSize = 64,
 }: {
   coverCardId?: string;
+  artId?: string;
   sigilColor?: string;
   sigilSize?: number;
 }) {
   const [urlIndex, setUrlIndex] = useState(0);
+  useEffect(() => setUrlIndex(0), [artId, coverCardId]);
   if (!coverCardId) return <Sigil emblem="crest" color={sigilColor} size={sigilSize} />;
-  const urls = cardImageUrls(coverCardId);
+  const urls = cardImageUrls(coverCardId, artId);
   if (urlIndex >= urls.length) return <Sigil emblem="crest" color={sigilColor} size={sigilSize} />;
   return (
     <img
@@ -492,6 +501,7 @@ const SUSPEND_ROTATE_MS = 200;
 
 export function CardMini({
   cardId,
+  artId,
   width = 88,
   suspended = false,
   suspendDelayMs = 0,
@@ -504,6 +514,7 @@ export function CardMini({
   zoomOnHover = true,
 }: {
   cardId?: string;
+  artId?: string;
   width?: number;
   suspended?: boolean;
   /** Staggers the rotation, so an unsuspend phase sweeps the board instead of snapping. */
@@ -518,8 +529,9 @@ export function CardMini({
   zoomOnHover?: boolean;
 }) {
   const def = cardId ? getCardDefinition(cardId) : undefined;
-  const urls = cardImageUrls(def?.imageId ?? cardId ?? "");
+  const urls = cardImageUrls(cardId, artId);
   const [urlIndex, setUrlIndex] = useState(0);
+  useEffect(() => setUrlIndex(0), [artId, cardId]);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const zoomEnabled = useHoverZoomEnabled();
   if (faceDown || !def) return <CardBack width={width} />;
@@ -581,7 +593,7 @@ export function CardMini({
       {info ? <TokenInfo def={def} width={width} dp={dp} /> : null}
 
       {zoomEnabled && zoomOnHover && mousePos ? (
-        <CardZoomPreview cardId={def.cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
+        <CardZoomPreview cardId={def.cardId} artId={artId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
       ) : null}
     </div>
   );

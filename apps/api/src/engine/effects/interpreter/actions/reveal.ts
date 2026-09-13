@@ -103,7 +103,11 @@ export async function runLook(ctx: EffectContext, action: Extract<Action, { kind
     min: 0,
     max: 0,
     visible: lookedAt.map((card) => card.instanceId),
-    visibleCards: lookedAt.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+    visibleCards: lookedAt.map((card) => ({
+      instanceId: card.instanceId,
+      cardId: card.cardId,
+      ...(card.artId ? { artId: card.artId } : {}),
+    })),
   });
 }
 
@@ -207,7 +211,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const chosen = await ctx.ask.selectCards(ctx, {
         candidates: compatible.map((card) => card.instanceId),
         visible: revealed.map((card) => card.instanceId),
-        visibleCards: revealed.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+        visibleCards: revealed.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          ...(card.artId ? { artId: card.artId } : {}),
+        })),
         min: option.optional === true ? 0 : 1,
         max: 1,
       });
@@ -290,7 +298,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const ids = await ctx.ask.selectCards(ctx, {
           candidates: affordable.map((c) => c.instanceId),
           visible: revealed.map((c) => c.instanceId),
-          visibleCards: revealed.map((c) => ({ instanceId: c.instanceId, cardId: c.cardId })),
+          visibleCards: revealed.map((c) => ({
+            instanceId: c.instanceId,
+            cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
+          })),
           min: 0,
           max: affordable.length,
           maxTotalPlayCost: budget,
@@ -331,7 +343,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const ids = await ctx.ask.selectCards(ctx, {
         candidates: matches.map((c) => c.instanceId),
         visible: revealed.map((c) => c.instanceId),
-        visibleCards: revealed.map((c) => ({ instanceId: c.instanceId, cardId: c.cardId })),
+        visibleCards: revealed.map((c) => ({
+          instanceId: c.instanceId,
+          cardId: c.cardId,
+          ...(c.artId ? { artId: c.artId } : {}),
+        })),
         min: spec.optional || spec.upTo ? 0 : Math.min(want, matches.length),
         max: want,
         differentColors: requireDifferentColors,
@@ -579,7 +595,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
             candidates: rest,
             visibleCards: revealed
               .filter((card) => rest.includes(card.instanceId))
-              .map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              .map((card) => ({
+                instanceId: card.instanceId,
+                cardId: card.cardId,
+                ...(card.artId ? { artId: card.artId } : {}),
+              })),
             destination: choice === 0 ? "deckTop" : "deckBottom",
           })) ?? rest;
       }
@@ -595,7 +615,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
             candidates: rest,
             visibleCards: revealed
               .filter((card) => rest.includes(card.instanceId))
-              .map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              .map((card) => ({
+                instanceId: card.instanceId,
+                cardId: card.cardId,
+                ...(card.artId ? { artId: card.artId } : {}),
+              })),
             destination: action.rest === "deckTop" ? "deckTop" : "deckBottom",
           })) ?? rest;
       }
@@ -846,7 +870,11 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         // Security is private and therefore absent from the normal client instance index.
         // Send the authoritative identities with the decision so the search modal renders
         // real cards instead of anonymous placeholders (ST10-06 / Mastemon).
-        visibleCards: security.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+        visibleCards: security.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          ...(card.artId ? { artId: card.artId } : {}),
+        })),
       });
       if (selectedIds.length === 0) {
         ctx.lastEffectActed = false;

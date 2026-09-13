@@ -10,7 +10,7 @@ import { useSyncExternalStore, type CSSProperties } from "react";
 const STORAGE_KEY = "aegis.battlefield";
 const CUSTOM_IMAGE_KEY = "aegis.battlefield.custom";
 
-/** The board surface used before any art shipped; still the default. */
+/** The original plain board surface, available as an explicit player choice. */
 const CLASSIC_SURFACE = "radial-gradient(120% 80% at 50% 50%, var(--ds-surface), var(--ds-background))";
 
 export interface Battlefield {
@@ -22,20 +22,23 @@ export interface Battlefield {
   scrim?: string;
 }
 
-/** The default option, and the fallback whenever a stored id no longer exists. */
+/** The original plain-gradient option. */
 export const CLASSIC_BATTLEFIELD: Battlefield = {
   id: "classic",
   label: "Classic",
 };
 
+/** Default for fresh preferences and selections that are no longer available. */
+export const DEFAULT_BATTLEFIELD: Battlefield = {
+  id: "tropical",
+  label: "Tropical Arena",
+  src: "/battlefield/aegis-arena-tropical.webp",
+  scrim: "linear-gradient(rgba(32,24,18,0.06), rgba(32,24,18,0.06))",
+};
+
 export const BATTLEFIELDS: readonly Battlefield[] = [
   CLASSIC_BATTLEFIELD,
-  {
-    id: "tropical",
-    label: "Tropical Arena",
-    src: "/battlefield/aegis-arena-tropical.webp",
-    scrim: "linear-gradient(rgba(32,24,18,0.06), rgba(32,24,18,0.06))",
-  },
+  DEFAULT_BATTLEFIELD,
   {
     id: "sanctum",
     label: "Sanctum",
@@ -74,7 +77,7 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
   },
 ];
 
-const DEFAULT_ID = CLASSIC_BATTLEFIELD.id;
+const DEFAULT_ID = DEFAULT_BATTLEFIELD.id;
 
 /** The image the player uploaded, kept as a data URL on this device only. */
 export const CUSTOM_BATTLEFIELD_ID = "custom";
@@ -161,7 +164,7 @@ export function battlefieldById(id: string): Battlefield {
   if (id === CUSTOM_BATTLEFIELD_ID && customSrc) {
     return { id, label: "Custom", src: customSrc, scrim: CUSTOM_SCRIM };
   }
-  return BATTLEFIELDS.find((b) => b.id === id) ?? CLASSIC_BATTLEFIELD;
+  return BATTLEFIELDS.find((b) => b.id === id) ?? DEFAULT_BATTLEFIELD;
 }
 
 /** Board-surface style for a battlefield: scrim over art, or the plain gradient. */

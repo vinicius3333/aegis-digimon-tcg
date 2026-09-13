@@ -20,6 +20,8 @@
 }
 
 .game-board .game-arena-counter {
+  padding: 0;
+  cursor: help;
   width: 2.75rem;
   height: 2.75rem;
   border: 1px solid rgb(167 228 236 / 65%);
@@ -30,6 +32,36 @@
     inset 0 -2px 0 rgb(0 0 0 / 35%),
     0 3px 0 #0c202b,
     0 5px 8px rgb(0 0 0 / 32%);
+}
+
+.game-arena-counter__icon {
+  display: grid;
+  place-items: center;
+}
+
+.game-board .game-arena-counter:focus-visible {
+  outline: 3px solid #e5faff;
+  outline-offset: 3px;
+}
+
+/* A portal keeps counter descriptions clear of the clipped hand and mobile HUD. */
+.game-arena-counter-tooltip {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: min(15rem, calc(100vw - 1rem));
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #8bb9ca;
+  border-radius: 0.5rem;
+  color: #edfaff;
+  background: #102630;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 40%);
+  font: 500 0.8125rem/1.4 var(--ds-font-sans, sans-serif);
+  overflow-wrap: anywhere;
+}
+
+.game-arena-counter-tooltip[data-above="true"] {
+  transform: translateY(-100%);
 }
 
 .game-board .game-arena-counter[data-counter="eggs"] {

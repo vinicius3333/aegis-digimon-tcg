@@ -19,6 +19,7 @@ const BASE_SECURITY_ATTACK = 1;
 export interface PermanentDetail {
   permanentId: string;
   cardId: string;
+  artId?: string;
   name: string;
   /** Top card, digivolution sources bottom-up, then linked cards. */
   cards: StackCard[];
@@ -70,14 +71,15 @@ export function buildPermanentDetail(
 ): PermanentDetail {
   const topCardId = permanent.topCard?.cardId ?? "";
   const cards: StackCard[] = [
-    ...(topCardId ? [{ cardId: topCardId, role: "top" as const }] : []),
-    ...[...permanent.stack].map((card) => ({ cardId: card.cardId, role: "stack" as const })),
-    ...[...permanent.linked].map((card) => ({ cardId: card.cardId, role: "linked" as const })),
+    ...(topCardId ? [{ cardId: topCardId, artId: permanent.topCard?.artId, role: "top" as const }] : []),
+    ...[...permanent.stack].map((card) => ({ cardId: card.cardId, artId: card.artId, role: "stack" as const })),
+    ...[...permanent.linked].map((card) => ({ cardId: card.cardId, artId: card.artId, role: "linked" as const })),
   ];
   const keywords = [...permanent.keywords];
   return {
     permanentId: permanent.permanentId,
     cardId: topCardId,
+    artId: permanent.topCard?.artId,
     name: getCardDefinition(topCardId)?.nameEn ?? topCardId,
     cards,
     currentDP: permanent.currentDP,
@@ -98,6 +100,7 @@ export function buildPermanentDetail(
 export type CardInspectionDetail = Pick<
   PermanentDetail,
   | "cardId"
+  | "artId"
   | "name"
   | "cards"
   | "currentDP"
@@ -111,13 +114,14 @@ export type CardInspectionDetail = Pick<
   | "suspended"
 > & { printedOnly?: boolean };
 
-export function buildPrintedCardDetail(cardId: string): CardInspectionDetail {
+export function buildPrintedCardDetail(cardId: string, artId?: string): CardInspectionDetail {
   const definition = getCardDefinition(cardId);
   return {
     cardId,
+    artId,
     printedOnly: true,
     name: definition?.nameEn ?? cardId,
-    cards: [{ cardId, role: "top" }],
+    cards: [{ cardId, artId, role: "top" }],
     currentDP: definition?.dp ?? 0,
     baseDP: definition?.dp ?? 0,
     dpDelta: 0,

@@ -37,13 +37,13 @@ export function decisionCardIdentities(
   state: GameState,
   seat: Seat,
   instanceIds: readonly string[],
-): { instanceId: string; cardId: string }[] {
+): { instanceId: string; cardId: string; artId?: string }[] {
   const wanted = new Set(instanceIds);
   if (wanted.size === 0) return [];
-  const named: { instanceId: string; cardId: string }[] = [];
+  const named: { instanceId: string; cardId: string; artId?: string }[] = [];
   const take = (card: CardInstance) => {
     if (!wanted.delete(card.instanceId) || !card.cardId) return;
-    named.push({ instanceId: card.instanceId, cardId: card.cardId });
+    named.push({ instanceId: card.instanceId, cardId: card.cardId, ...(card.artId ? { artId: card.artId } : {}) });
   };
   for (const player of state.players) {
     if (wanted.size === 0) break;

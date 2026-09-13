@@ -299,7 +299,12 @@ export class AegisRoom extends Room<GameState> {
       if (!accountId) return undefined;
       // The frozen competitive deck is the only deck a tournament game is played with. Whatever the
       // client sent is discarded here, before onJoin can hand it to the engine.
-      options.deck = { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] };
+      options.deck = {
+        mainDeck: [...deck.mainDeck],
+        eggDeck: [...deck.eggDeck],
+        mainDeckArts: deck.mainDeckArts?.slice(),
+        eggDeckArts: deck.eggDeckArts?.slice(),
+      };
       options.deckId = deck.deckId ?? undefined;
       options.deckName = deck.name;
       return {
@@ -626,7 +631,12 @@ export class AegisRoom extends Room<GameState> {
     this.withBatch(() =>
       this.engine.seatPlayer(seat, `bot:${participantId}`, {
         displayName,
-        deck: { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] },
+        deck: {
+          mainDeck: [...deck.mainDeck],
+          eggDeck: [...deck.eggDeck],
+          mainDeckArts: deck.mainDeckArts?.slice(),
+          eggDeckArts: deck.eggDeckArts?.slice(),
+        },
       }),
     );
     // The bot announces readiness through the ordinary intent, so the ready gate closes for the
@@ -681,6 +691,8 @@ export class AegisRoom extends Room<GameState> {
       deckName: options.deckName ?? "Deck sem nome",
       mainDeck: [...options.deck.mainDeck],
       eggDeck: [...options.deck.eggDeck],
+      mainDeckArts: options.deck.mainDeckArts?.slice(),
+      eggDeckArts: options.deck.eggDeckArts?.slice(),
     });
     // Assign the first free seat instead of using clients.length - 1, which
     // breaks when a client disconnects and reconnects (e.g. React StrictMode

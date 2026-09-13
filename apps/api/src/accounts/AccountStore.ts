@@ -6,6 +6,7 @@ import type {
   TournamentRules,
   TournamentStructure,
 } from "@aegis/shared";
+import { resolveCardArt } from "@aegis/shared";
 import { Pool, type PoolClient, type PoolConfig } from "pg";
 import { migrations } from "../db/migrations/index.js";
 import { type Queryable, runMigrations } from "../db/migrator.js";
@@ -17,7 +18,15 @@ export type Account = {
   avatarId: DigimonWorldAvatarId | null;
   isAdmin: boolean;
 };
-export type Deck = { id: string; name: string; mainDeck: string[]; eggDeck: string[]; revision: number };
+export type Deck = {
+  id: string;
+  name: string;
+  mainDeck: string[];
+  eggDeck: string[];
+  mainDeckArts?: string[];
+  eggDeckArts?: string[];
+  revision: number;
+};
 export type AuthSession = { id: string; account: Account; expiresAt: number };
 export type RoomTicket = { account: Account; tournamentMatchId: string | null };
 export type PlayerStats = {
@@ -31,7 +40,14 @@ export type PlayerStats = {
   tournamentsPlayed: number;
   tournamentsWon: number;
 };
-export type DeckSnapshot = { deckId: string | null; deckName: string; mainDeck: string[]; eggDeck: string[] };
+export type DeckSnapshot = {
+  deckId: string | null;
+  deckName: string;
+  mainDeck: string[];
+  eggDeck: string[];
+  mainDeckArts?: string[];
+  eggDeckArts?: string[];
+};
 export type DeckStat = DeckSnapshot & {
   snapshotId: string;
   wins: number;
@@ -348,18 +364,27 @@ export class AccountStore {
       main_deck: string[];
       egg_deck: string[];
       revision: number;
-    }>("SELECT id,name,main_deck,egg_deck,revision FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC", [
-      accountId,
-    ]);
+      main_deck_arts: string[];
+      egg_deck_arts: string[];
+    }>(
+      "SELECT id,name,main_deck,egg_deck,main_deck_arts,egg_deck_arts,revision FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC",
+      [accountId],
+    );
     return result.rows.map((row) => ({
       id: row.id,
       name: row.name,
       mainDeck: row.main_deck,
       eggDeck: row.egg_deck,
+      mainDeckArts: row.main_deck_arts,
+      eggDeckArts: row.egg_deck_arts,
       revision: row.revision,
     }));
   }
   async saveDeck(accountId: string, input: Omit<Deck, "id" | "revision"> & { id?: string }): Promise<Deck> {
+    const mainDeckArts = input.mainDeck.map(
+      (cardId, index) => resolveCardArt(cardId, input.mainDeckArts?.[index]).artId,
+    );
+    const eggDeckArts = input.eggDeck.map((cardId, index) => resolveCardArt(cardId, input.eggDeckArts?.[index]).artId);
     return this.transaction(async (client) => {
       await client.query("SELECT 1 FROM accounts WHERE id=$1 FOR UPDATE", [accountId]);
       const id = input.id ?? randomUUID();
@@ -370,7 +395,7 @@ export class AccountStore {
       const revision = (current.rows[0]?.revision ?? 0) + 1;
       if (current.rows[0])
         await client.query(
-          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5 WHERE account_id=$6 AND id=$7",
+          "UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5,main_deck_arts=$8,egg_deck_arts=$9 WHERE account_id=$6 AND id=$7",
           [
             input.name,
             JSON.stringify(input.mainDeck),
@@ -379,6 +404,8 @@ export class AccountStore {
             Date.now(),
             accountId,
             id,
+            JSON.stringify(mainDeckArts),
+            JSON.stringify(eggDeckArts),
           ],
         );
       else {
@@ -389,7 +416,7 @@ export class AccountStore {
         if (Number(count.rows[0]?.count) >= MAX_SAVED_DECKS)
           throw new DeckLimitError(`accounts may save at most ${MAX_SAVED_DECKS} decks`);
         await client.query(
-          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+          "INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at,main_deck_arts,egg_deck_arts) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
           [
             id,
             accountId,
@@ -398,10 +425,20 @@ export class AccountStore {
             JSON.stringify(input.eggDeck),
             revision,
             Date.now(),
+            JSON.stringify(mainDeckArts),
+            JSON.stringify(eggDeckArts),
           ],
         );
       }
-      return { id, name: input.name, mainDeck: input.mainDeck, eggDeck: input.eggDeck, revision };
+      return {
+        id,
+        name: input.name,
+        mainDeck: input.mainDeck,
+        eggDeck: input.eggDeck,
+        mainDeckArts,
+        eggDeckArts,
+        revision,
+      };
     });
   }
   async deleteDeck(accountId: string, id: string): Promise<boolean> {

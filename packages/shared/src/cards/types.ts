@@ -1,5 +1,11 @@
 import { CardColor, CardKind } from "../schema/enums.js";
 
+export interface CardArt {
+  artId: string;
+  imageId: string;
+  label?: string;
+}
+
 /**
  * A color + level requirement to digivolve. Each entry records the memory paid to
  * digivolve onto a base Digimon of `Color` at most `Level`. A card lists one
@@ -46,7 +52,7 @@ export interface CardDefinition {
   maxCountInDeck: number; // usually 4
 
   // Display only; resolved by the client to a CDN/static path. Never used by rules.
-  // Alternate-art (`_P<n>`) variants collapse to the base card's image id.
+  // Alternate printing metadata is stored separately in data/arts.json.
   imageId?: string;
 
   // --- Optional / advanced mechanics (present only when the card uses them) ---

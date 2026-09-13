@@ -19,9 +19,11 @@
  *     (machine-readable, uncapped diff; see tools/import-taka-cards-validate.test.mjs)
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { sourceCardArts } from "./lib/card-arts.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CARDS_PATH = resolve(ROOT, "packages/shared/src/cards/data/cards.json");
@@ -254,5 +256,14 @@ if (validateSet) {
   }
   existing.sort((a, b) => a.cardId.localeCompare(b.cardId, "en"));
   writeFileSync(CARDS_PATH, JSON.stringify(existing, null, 2) + "\n");
+  // Refresh the selected cards' cosmetic printing inventory independently of rules data.
+  const artsPath = resolve(ROOT, "packages/shared/src/cards/data/arts.json");
+  const arts = existsSync(artsPath) ? JSON.parse(readFileSync(artsPath, "utf8")) : {};
+  for (const card of cards) {
+    const variants = sourceCardArts(card);
+    if (variants.length) arts[card.cardNumber] = variants;
+    else delete arts[card.cardNumber];
+  }
+  writeFileSync(artsPath, JSON.stringify(Object.fromEntries(Object.entries(arts).sort(([a], [b]) => a.localeCompare(b, "en"))), null, 2) + "\n");
   console.log(`Added ${added.length} cards: ${added.sort().join(", ")}`);
 }

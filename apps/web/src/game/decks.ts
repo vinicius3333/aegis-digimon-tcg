@@ -5,6 +5,7 @@
 
 import {
   allCards,
+  resolveCardArt,
   famousDeckGroups,
   getCardDefinition,
   effectiveCopyLimit as banlistLimit,
@@ -75,6 +76,8 @@ export interface DeckListing {
   blurb: string;
   mainDeck: string[];
   eggDeck: string[];
+  mainDeckArts?: string[];
+  eggDeckArts?: string[];
   coverCardId?: string;
 }
 
@@ -127,6 +130,8 @@ export function copyDeckPreset(preset: DeckListing, personalDecks: readonly Deck
     name: `${preset.name} (copy)`,
     mainDeck: [...preset.mainDeck],
     eggDeck: [...preset.eggDeck],
+    mainDeckArts: preset.mainDeckArts?.slice(),
+    eggDeckArts: preset.eggDeckArts?.slice(),
   };
 }
 
@@ -143,10 +148,16 @@ export function activeCollectionCards(): CardDefinition[] {
 /** Drops ids the card registry no longer knows, so stale storage cannot break a deck. */
 export function filterDeckToKnownCards(deck: DeckListing): DeckListing {
   const isKnown = (cardId: string): boolean => getCardDefinition(cardId) !== undefined;
-  const mainDeck = deck.mainDeck.filter(isKnown);
-  const eggDeck = deck.eggDeck.filter(isKnown);
+  const mainIndices = deck.mainDeck.flatMap((id, i) => (isKnown(id) ? [i] : []));
+  const eggIndices = deck.eggDeck.flatMap((id, i) => (isKnown(id) ? [i] : []));
+  const mainDeck = mainIndices.map((i) => deck.mainDeck[i]!);
+  const eggDeck = eggIndices.map((i) => deck.eggDeck[i]!);
+  const mainDeckArts =
+    deck.mainDeckArts && mainIndices.map((i) => resolveCardArt(deck.mainDeck[i]!, deck.mainDeckArts?.[i]).artId);
+  const eggDeckArts =
+    deck.eggDeckArts && eggIndices.map((i) => resolveCardArt(deck.eggDeck[i]!, deck.eggDeckArts?.[i]).artId);
   const coverCardId = deck.coverCardId && isKnown(deck.coverCardId) ? deck.coverCardId : undefined;
-  return { ...deck, mainDeck, eggDeck, coverCardId };
+  return { ...deck, mainDeck, eggDeck, mainDeckArts, eggDeckArts, coverCardId };
 }
 
 /** Picks a random unique card from the main deck to use as the deck cover. */
@@ -348,4 +359,12 @@ export function serializeDeckList(deck: DeckListing): string {
     lines.push(`${countMap.get(cardId)} ${name} ${cardId}`);
   }
   return lines.join("\n");
+}
+
+/** Artwork of the first matching copy, so covers follow the saved deck. */
+export function displayCoverArt(deck: DeckListing): string | undefined {
+  const id = displayCoverCard(deck);
+  if (!id) return undefined;
+  const index = deck.mainDeck.indexOf(id);
+  return index >= 0 ? deck.mainDeckArts?.[index] : deck.eggDeckArts?.[deck.eggDeck.indexOf(id)];
 }

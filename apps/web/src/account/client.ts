@@ -79,12 +79,27 @@ export const accountApi = {
     request<{ ok: true }>("/auth/magic-link", { method: "POST", body: JSON.stringify({ email }) }),
   logout: () => fetch(`${apiBase}/auth/logout`, { method: "POST", credentials: "include" }),
   decks: async (): Promise<DeckListing[]> =>
-    (await request<Array<{ id: string; name: string; mainDeck: string[]; eggDeck: string[] }>>("/account/decks")).map(
-      (deck) => ({ ...deck, color: dominantColor([...deck.mainDeck, ...deck.eggDeck]), blurb: "deck.blurbSaved" }),
-    ),
+    (
+      await request<
+        Array<{
+          id: string;
+          name: string;
+          mainDeck: string[];
+          eggDeck: string[];
+          mainDeckArts?: string[];
+          eggDeckArts?: string[];
+        }>
+      >("/account/decks")
+    ).map((deck) => ({ ...deck, color: dominantColor([...deck.mainDeck, ...deck.eggDeck]), blurb: "deck.blurbSaved" })),
   saveDeck: (deck: DeckListing) =>
     request(`/account/decks/${encodeURIComponent(deck.id)}`, {
       method: "PUT",
-      body: JSON.stringify({ name: deck.name, mainDeck: deck.mainDeck, eggDeck: deck.eggDeck }),
+      body: JSON.stringify({
+        name: deck.name,
+        mainDeck: deck.mainDeck,
+        eggDeck: deck.eggDeck,
+        mainDeckArts: deck.mainDeckArts,
+        eggDeckArts: deck.eggDeckArts,
+      }),
     }),
 };

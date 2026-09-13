@@ -138,17 +138,20 @@ describe("runSecurityCheck", () => {
 
   it("a Security Digimon still battles after resolving its [Security] effect", async () => {
     const card = makeSecurityCard(1, 0, "SEC-EFFECT");
+    card.artId = "SEC-EFFECT_P1";
     const emitted: ServerEvent[] = [];
     const h = harness([card], {
       resolveSecurityEffect: async () => true,
       isDigimon: () => true,
     });
     await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+    expect(emitted.find((event) => event.kind === "securityChecked")).toMatchObject({ artId: "SEC-EFFECT_P1" });
 
     expect(emitted).toContainEqual({
       kind: "securityChecked",
       seat: 1,
       revealedCardId: "SEC-EFFECT",
+      artId: "SEC-EFFECT_P1",
       resolution: "battle",
       battle: { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 5000, securityCardDP: 3000 },
     });

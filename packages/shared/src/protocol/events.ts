@@ -64,6 +64,7 @@ export type ServerEvent =
   | { kind: "phaseChanged"; phase: string; turnSeat: Seat; turnCount: number }
   | {
       kind: "cardPlayed";
+      artId?: string;
       seat: Seat;
       cardId: string;
       permanentId?: string;
@@ -75,9 +76,11 @@ export type ServerEvent =
        * card images (JogressEffectObject.cs:24). DNA only — every one of them was a face-up
        * battle-area top card a moment ago, so this reveals nothing new. */
       sourceCardIds?: string[];
+      sourceArtIds?: string[];
     }
   | {
       kind: "digivolved";
+      artId?: string;
       seat: Seat;
       permanentId: string;
       cardId: string;
@@ -95,9 +98,11 @@ export type ServerEvent =
       seat: Seat;
       attackerPermanentId: string;
       attackerCardId: string;
+      attackerArtId?: string;
       target: AttackTarget;
       /** Public identity of a permanent target at declaration time. */
       targetCardId?: string;
+      targetArtId?: string;
     }
   | {
       kind: "blockWindowOpened";
@@ -136,6 +141,8 @@ export type ServerEvent =
       // and play everything that follows from it as a consequence. `securityChecked` closes
       // the same check and carries the outcome; there is exactly one of each, in this order.
       kind: "securityRevealed";
+      artId?: string;
+      attackerArtId?: string;
       securityCardDP?: number;
       attackerDP?: number;
       seat: Seat;
@@ -154,6 +161,8 @@ export type ServerEvent =
     }
   | {
       kind: "securityChecked";
+      artId?: string;
+      attackerArtId?: string;
       seat: Seat;
       revealedCardId: string;
       resolution: "effect" | "battle" | "trashed";
@@ -167,7 +176,7 @@ export type ServerEvent =
   // every printed "shuffle" in the card pool shuffles a SECURITY stack instead, and §3-2-3
   // forbids reordering a deck otherwise. Carries no card identity, so it reveals nothing.
   | { kind: "deckShuffled"; seat: Seat; deck: "deck" | "eggDeck" }
-  | { kind: "cardRevealed"; seat: Seat; cardId: string; sourceCardId?: string }
+  | { kind: "cardRevealed"; seat: Seat; cardId: string; artId?: string; sourceCardId?: string }
   | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
       // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
@@ -225,6 +234,7 @@ export type ServerEvent =
        * panel can name the cards without racing the state patch.
        */
       cardIds?: string[];
+      artIds?: string[];
       /**
        * The seat whose zone the movement is about, when the event names one: the stack
        * the cards left (with `cardIds`, an effect trashing security cards) or the stack
@@ -398,7 +408,7 @@ export interface DecisionRequest {
     candidateInstanceIds?: string[]; // selectable cards/permanents
     visibleInstanceIds?: string[]; // full display set (e.g. all revealed cards); ids absent from candidateInstanceIds render disabled
     /** Authoritative identities for temporarily revealed cards that may not yet exist in the client's zone index. */
-    visibleCards?: { instanceId: string; cardId: string }[];
+    visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
     min?: number;
     max?: number; // selection count bounds
     maxTotalPlayCost?: number; // summed printed play-cost budget for multi-card selections

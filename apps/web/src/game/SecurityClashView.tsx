@@ -77,7 +77,7 @@ function ClashCard({
     >
       <div className="battle-clash__frame">
         <div className="battle-clash__art">
-          <CardFull cardId={fighter.cardId} width={width} />
+          <CardFull cardId={fighter.cardId} artId={fighter.artId} width={width} />
           {/* Inside the art box so the cracks go with the card the moment its shards fly. */}
           {destroyed ? <CardCracks /> : null}
         </div>
@@ -85,7 +85,7 @@ function ClashCard({
             the claw both reach past the card's edge. */}
         {spent ? (
           <span className="battle-clash__shatter" aria-hidden="true">
-            <CardShatter cardId={fighter.cardId} width={width} color={clashShatterColor(fighter.cardId)} />
+            <CardShatter cardId={fighter.cardId} artId={fighter.artId} width={width} color={clashShatterColor(fighter.cardId)} />
           </span>
         ) : null}
         {fate === "beaten" ? <ClawSlash /> : null}
@@ -234,7 +234,7 @@ export function SecurityBranch({ scene }: { scene: SecurityBranchScene }) {
       role="status"
     >
       <figure className="battle-security-branch__frame">
-        <CardFull cardId={scene.cardId} width={BRANCH_CARD_WIDTH} />
+        <CardFull cardId={scene.cardId} artId={scene.artId} width={BRANCH_CARD_WIDTH} />
         <figcaption className="battle-security-branch__caption">
           {t("overlay.securityResolving")}
           <br />

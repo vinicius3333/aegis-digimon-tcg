@@ -28,14 +28,15 @@ function SidePanelCardView({ card, numbered }: { card: SidePanelCard; numbered: 
       <span className="side-panel__art" aria-hidden="true">
         <CardMini
           cardId={card.cardId}
+          artId={card.artId}
           width={PANEL_CARD_WIDTH}
           zoomOnHover={false}
-          onClick={openCard ? () => openCard(card.cardId) : undefined}
+          onClick={openCard ? () => openCard(card.cardId, card.artId) : undefined}
         />
         {/* Numbered only when the event put its cards in an order worth reading. */}
         {numbered ? <span className="side-panel__badge">{card.badge}</span> : null}
       </span>
-      <CardLink cardId={card.cardId} className="side-panel__name" />
+      <CardLink cardId={card.cardId} artId={card.artId} className="side-panel__name" />
     </li>
   );
 }
@@ -92,7 +93,7 @@ export function SidePanelStack({
 export function AttackAnnouncementBanner({ announcement }: { announcement: AttackAnnouncement }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
-  const { cardId } = announcement;
+  const { cardId, artId } = announcement;
   return (
     <div
       className="attack-announcement"
@@ -103,9 +104,10 @@ export function AttackAnnouncementBanner({ announcement }: { announcement: Attac
       <span aria-hidden="true">
         <CardMini
           cardId={cardId}
+          artId={artId}
           width={44}
           zoomOnHover={false}
-          onClick={openCard ? () => openCard(cardId) : undefined}
+          onClick={openCard ? () => openCard(cardId, announcement.artId) : undefined}
         />
       </span>
       <strong className="attack-announcement__copy">

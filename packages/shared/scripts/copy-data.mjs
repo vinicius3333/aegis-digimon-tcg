@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(here, "..");
 
-const jsonAssets = ["cards/data/cards.json", "effects/effects.json", "effects/generated-digivolve-overrides.json"];
+const jsonAssets = ["cards/data/cards.json", "cards/data/arts.json", "effects/effects.json", "effects/generated-digivolve-overrides.json"];
 
 for (const relPath of jsonAssets) {
   const from = join(packageRoot, "src", relPath);

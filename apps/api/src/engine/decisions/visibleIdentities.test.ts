@@ -21,6 +21,16 @@ function board(): GameState {
 }
 
 describe("identities a decision has to carry", () => {
+  it("carries printing only alongside an authorized identity", () => {
+    const state = board();
+    const selected = card("selected", "BT1-010");
+    selected.artId = "BT1-010_P1";
+    state.players[0]!.deck.push(selected);
+    expect(decisionCardIdentities(state, 0, ["selected"])).toEqual([
+      { instanceId: "selected", cardId: "BT1-010", artId: "BT1-010_P1" },
+    ]);
+    expect(decisionCardIdentities(state, 1, ["selected"])).toEqual([]);
+  });
   it("names a seat's own deck cards to that seat", () => {
     const state = board();
     state.players[0]!.deck.push(card("deck-1", "BT1-010"));

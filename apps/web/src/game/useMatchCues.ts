@@ -30,6 +30,7 @@ import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents"
 import {
   attackAnnouncementFromEvent,
   buildInstanceSeatIndex,
+  buildInstanceArtIndex,
   sidePanelFromEvent,
   type AttackAnnouncement,
   type SidePanel,
@@ -418,6 +419,7 @@ export function useMatchCues({
   decisionStateVersion,
   anchors,
   onActionRejected,
+  cutInsEnabled,
 }: {
   /** The closed server batches, in order. One batch is one moment of the rules. */
   batches: readonly ServerBatch[];
@@ -443,6 +445,8 @@ export function useMatchCues({
   decisionStateVersion?: number;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
+  /** A visual showcase can show existing cut-ins without changing the saved preference. */
+  cutInsEnabled?: boolean;
 }): MatchCues {
   // How far the presentation has got, in server revisions. Every step is counted into the
   // batch it was enqueued for, so the board can be rendered from the snapshot of the batch
@@ -578,6 +582,7 @@ export function useMatchCues({
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
   // The card the checked player is defending against. A security check carries no
   // attacker, so it is remembered from the attack that opened the check.
+  const lastVisibleArtRef = useRef(new Map<string, string>());
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const securityClashKeyRef = useRef(0);
   const queuedSecurityKeyRef = useRef<number | null>(null);
@@ -655,7 +660,9 @@ export function useMatchCues({
     if (!state) return;
     const cardIds = buildInstanceIndex(state, viewerSeat);
     const seats = buildInstanceSeatIndex(state);
-    sidePanelLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
+    const arts = buildInstanceArtIndex(state);
+    for (const [id, artId] of arts) lastVisibleArtRef.current.set(id, artId);
+    sidePanelLookupRef.current = { artId: (id) => arts.get(id), cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
     cardSiteRef.current = buildCardSiteIndex(state);
   });
 
@@ -881,6 +888,7 @@ export function useMatchCues({
           event,
           viewerSeat,
           cardIdOf: (permanentId) => anchors.permanentCardId?.(permanentId),
+          artIdOf: (permanentId) => lastVisibleArtRef.current.get(permanentId),
         });
         if (scene) {
           clashScenes.push(scene);
@@ -994,7 +1002,7 @@ export function useMatchCues({
       // motion or a hidden tab.
       for (const event of fresh) {
         cutInKeyRef.current += 1;
-        const announced = cutInFromEvent(event, cutInKeyRef.current, areCutInsEnabled());
+        const announced = cutInFromEvent(event, cutInKeyRef.current, cutInsEnabled ?? areCutInsEnabled());
         if (!announced) continue;
         // A cut-in replaces the track, so only the last one enqueued in a batch ever
         // plays: what it costs the beats behind it is its own length, not the sum.
@@ -1269,6 +1277,7 @@ export function useMatchCues({
       securityAttackerRef.current = {
         seat: securityAttack.seat,
         cardId: securityAttack.attackerCardId,
+        artId: securityAttack.attackerArtId,
         permanentId: securityAttack.attackerPermanentId,
         // Captured while the attacker is still on the field: an effect deletion names
         // the card instance rather than the permanent, so both ways in are kept.
@@ -1513,11 +1522,14 @@ export function useMatchCues({
       const revealed = buildSecurityRevealScene({
         key,
         revealedCardId: securityReveal.revealedCardId,
+        revealedArtId: securityReveal.artId,
         securityCardDP: securityReveal.securityCardDP,
         attackerDP: securityReveal.attackerDP,
         defenderSeat: securityReveal.seat,
         viewerSeat,
-        attacker: securityAttackerRef.current,
+        attacker: securityAttackerRef.current
+          ? { ...securityAttackerRef.current, artId: securityReveal.attackerArtId ?? securityAttackerRef.current.artId }
+          : undefined,
       });
       // A check that closes inside this same batch never shows the pending state: its
       // outcome is already known, so the scene is staged settled and reads the way it
@@ -1546,6 +1558,7 @@ export function useMatchCues({
           buildSecurityDockScene({
             key,
             revealedCardId: securityReveal.revealedCardId,
+        revealedArtId: securityReveal.artId,
             defenderSeat: securityReveal.seat,
             viewerSeat,
           }),
@@ -1587,9 +1600,12 @@ export function useMatchCues({
           buildSecurityRevealScene({
             key,
             revealedCardId: securityCheck.revealedCardId,
+            revealedArtId: securityCheck.artId,
             defenderSeat: securityCheck.seat,
             viewerSeat,
-            attacker: securityAttackerRef.current,
+            attacker: securityAttackerRef.current
+              ? { ...securityAttackerRef.current, artId: securityCheck.attackerArtId ?? securityAttackerRef.current.artId }
+              : undefined,
           }),
         { ...securityCheck, ...(heldOnStage ? { outcomeAtMs: 0 } : {}) },
       );
@@ -1609,6 +1625,7 @@ export function useMatchCues({
         : buildSecurityBranchScene({
             key,
             revealedCardId: securityCheck.revealedCardId,
+            revealedArtId: securityCheck.artId,
             resolution: securityCheck.resolution,
             defenderSeat: securityCheck.seat,
             viewerSeat,
@@ -1699,6 +1716,7 @@ export function useMatchCues({
       const scene = buildSecurityDestructionScene({
         key,
         cardId: destruction.cardId,
+        artId: destruction.artId,
         trashedSeat: destruction.seat,
         viewerSeat,
       });

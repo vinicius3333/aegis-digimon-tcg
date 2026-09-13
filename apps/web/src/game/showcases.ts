@@ -19,6 +19,7 @@ import { COLORS, colorKey, type ColorName } from "../design/theme";
 export interface ZoneShowcase {
   key: number;
   cardId: string;
+  artId?: string;
   seat: Seat;
   /** What the hold announces: a card arriving from hand or one digivolving in breeding. */
   kind: "play" | "digivolve";
@@ -59,6 +60,7 @@ export function zoneShowcaseFromEvent(event: ServerEvent, viewerSeat: Seat, key:
   return {
     key,
     cardId: event.cardId,
+    ...(event.artId ? { artId: event.artId } : {}),
     seat: event.seat,
     kind: event.kind === "digivolved" ? "digivolve" : "play",
     color: burstColorFor(event.cardId),

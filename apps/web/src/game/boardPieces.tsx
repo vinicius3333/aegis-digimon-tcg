@@ -38,6 +38,7 @@ function formatDpDelta(amount: number): string {
 }
 
 export interface HandEntry {
+  artId?: string;
   instanceId: string;
   cardId: string;
   activatableEffectsJson: string;
@@ -92,6 +93,7 @@ export function Pile({
   label,
   className,
   topCardId,
+  topArtId,
   dim,
   glow,
   compact,
@@ -115,6 +117,7 @@ export function Pile({
   label: string;
   className?: string;
   topCardId?: string;
+  topArtId?: string;
   dim?: boolean;
   glow?: boolean;
   compact?: boolean;
@@ -295,7 +298,7 @@ export function Pile({
             }}
           >
             {topCardId ? (
-              <CardMini cardId={topCardId} width={w} />
+              <CardMini cardId={topCardId} artId={topArtId} width={w} />
             ) : (
               <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} egg={egg} />
             )}
@@ -591,7 +594,7 @@ export function PermanentView({
                 transform: "rotate(-90deg) translateX(-100%)",
               }}
             >
-              <CardMini cardId={ci.cardId} width={slot.height} info zoomOnHover={false} />
+              <CardMini cardId={ci.cardId} artId={ci.artId} width={slot.height} info zoomOnHover={false} />
             </div>
           </div>
         );
@@ -614,6 +617,7 @@ export function PermanentView({
         {effectSource ? <span className="game-effect-source-spark" aria-hidden="true" /> : null}
         <CardMini
           cardId={topId}
+          artId={perm.topCard?.artId}
           width={permanentWidth}
           suspended={perm.isSuspended}
           suspendDelayMs={suspendDelayMs}
@@ -1454,7 +1458,7 @@ export function Hand({
                   : style
               }
             >
-              <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} zoomOnHover={false} />
+              <CardFull cardId={entry.cardId} artId={entry.artId} width={cardWidth} selected={sel} zoomOnHover={false} />
               {picked ? (
                 <span
                   className="game-hand-card__pick-badge"

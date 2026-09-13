@@ -965,6 +965,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         kind: "cardPlayed",
         seat: owner.seat,
         cardId: instance.cardId,
+        ...(instance.artId ? { artId: instance.artId } : {}),
         permanentId: permanent.permanentId,
       });
       engine.emit({
@@ -1006,6 +1007,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       kind: "cardPlayed",
       seat: owner.seat,
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       permanentId: permanent.permanentId,
     });
     engine.emit({
@@ -1158,6 +1160,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         kind: "cardPlayed",
         seat: ownerPlayer.seat,
         cardId: instance.cardId,
+        ...(instance.artId ? { artId: instance.artId } : {}),
         permanentId: permanent.permanentId,
       });
       engine.emit({
@@ -1275,6 +1278,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       kind: "cardPlayed",
       seat: ownerPlayer.seat,
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       permanentId: permanent.permanentId,
     });
     engine.emit({
@@ -1619,10 +1623,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // the result with the two faces that merged (JogressEffectObject.cs:24), and they are about
     // to be buried in the new stack where the client can no longer tell them from older cards.
     const materialSourceCardIds: string[] = [];
+    const materialSourceArtIds: string[] = [];
     for (const mat of materials) {
       for (const c of mat.stack) materialStackCards.push(c);
       if (mat.topCard !== undefined) {
         materialSourceCardIds.push(mat.topCard.cardId);
+        materialSourceArtIds.push(mat.topCard.artId || mat.topCard.cardId);
         materialStackCards.push(mat.topCard);
       }
       for (const c of mat.linked) {
@@ -1707,9 +1713,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       kind: "cardPlayed",
       seat,
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       permanentId: permanent.permanentId,
       mechanic: "dna",
       sourceCardIds,
+      sourceArtIds: opts?.extraMaterialsOnBottom
+        ? [...extraStackCards.map((card) => card.artId || card.cardId), ...materialSourceArtIds]
+        : [...materialSourceArtIds, ...extraStackCards.map((card) => card.artId || card.cardId)],
     });
     // CR 8-2-3-3: the DNA digivolution procedure itself draws 1 card — unconditional, part of
     // the placement procedure (mirrors applyDigivolve step 6), not an optional card effect.
@@ -1884,6 +1894,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       kind: "digivolved",
       seat,
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       permanentId: permanent.permanentId,
       mechanic: "appFusion",
       inBreeding: false,
@@ -3469,6 +3480,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // identities are public. Carried on the event because it is broadcast before
         // the state patch lands them in the trash a client could look them up in.
         cardIds: moved.map((c) => c.cardId),
+        artIds: moved.map((c) => c.artId || c.cardId),
         seat,
       });
       // SubTrigger bus: a resolving EFFECT removed cards from `seat`'s security stack
@@ -5040,7 +5052,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // synchronized state never carries its identity — the event is the only channel that makes
     // the reveal public. Security reveals narrate through `revealCard` at their own call sites
     // and never route through here, so nothing is announced twice.
-    for (const card of revealed) engine.emit({ kind: "cardRevealed", seat, cardId: card.cardId });
+    for (const card of revealed)
+      engine.emit({ kind: "cardRevealed", seat, cardId: card.cardId, ...(card.artId ? { artId: card.artId } : {}) });
     return revealed;
   };
 

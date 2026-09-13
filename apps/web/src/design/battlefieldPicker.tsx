@@ -6,7 +6,7 @@
 import { useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import {
   BATTLEFIELDS,
-  CLASSIC_BATTLEFIELD,
+  DEFAULT_BATTLEFIELD,
   CUSTOM_BATTLEFIELD_ID,
   battlefieldStyle,
   clearCustomBattlefield,
@@ -49,7 +49,7 @@ const tileStyle = (selected: boolean): CSSProperties => ({
 
 export function BattlefieldPicker() {
   const { t } = useTranslation();
-  const selectedId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, () => CLASSIC_BATTLEFIELD.id);
+  const selectedId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, () => DEFAULT_BATTLEFIELD.id);
   const customSrc = useSyncExternalStore(subscribeBattlefield, getCustomBattlefieldSrc, () => undefined);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string>();

@@ -27,6 +27,7 @@ export type SecurityClashSide = "you" | "opp";
 export interface SecurityClashAttacker {
   seat: Seat;
   cardId: string;
+  artId?: string;
   /** The attacker's board identity, so a deletion naming it can be recognized. */
   permanentId?: string;
   /** Its top card's instance id: an effect deletion names instances, not permanents. */
@@ -35,6 +36,7 @@ export interface SecurityClashAttacker {
 
 export interface SecurityClashFighter {
   cardId: string;
+  artId?: string;
   side: SecurityClashSide;
   /** Only Digimon carry a comparable DP; anything else omits the number. */
   dp?: number;
@@ -166,6 +168,7 @@ export type SecurityBranchState = "docked" | "closing" | "settled";
 export interface SecurityBranchScene {
   key: number;
   cardId: string;
+  artId?: string;
   side: SecurityClashSide;
   state: SecurityBranchState;
 }
@@ -190,15 +193,17 @@ export function buildSecurityBreakScene({
 export function buildSecurityDockScene({
   key,
   revealedCardId,
+  revealedArtId,
   defenderSeat,
   viewerSeat,
 }: {
   key: number;
   revealedCardId: string;
+  revealedArtId?: string;
   defenderSeat: Seat;
   viewerSeat: Seat;
 }): SecurityBranchScene {
-  return { key, cardId: revealedCardId, side: defenderSeat === viewerSeat ? "you" : "opp", state: "docked" };
+  return { key, cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSeat === viewerSeat ? "you" : "opp", state: "docked" };
 }
 
 /**
@@ -209,18 +214,20 @@ export function buildSecurityDockScene({
 export function buildSecurityBranchScene({
   key,
   revealedCardId,
+  revealedArtId,
   resolution,
   defenderSeat,
   viewerSeat,
 }: {
   key: number;
   revealedCardId: string;
+  revealedArtId?: string;
   resolution: string;
   defenderSeat: Seat;
   viewerSeat: Seat;
 }): SecurityBranchScene | null {
   if (normalizeSecurityClashResolution(resolution) !== "effect") return null;
-  return { key, cardId: revealedCardId, side: defenderSeat === viewerSeat ? "you" : "opp", state: "settled" };
+  return { key, cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSeat === viewerSeat ? "you" : "opp", state: "settled" };
 }
 
 const RESOLUTIONS: readonly string[] = ["battle", "effect", "trashed"];
@@ -242,6 +249,7 @@ function comparableDp(cardId: string): number | undefined {
 export function buildSecurityRevealScene({
   key,
   revealedCardId,
+  revealedArtId,
   defenderSeat,
   viewerSeat,
   attacker,
@@ -250,6 +258,7 @@ export function buildSecurityRevealScene({
 }: {
   key: number;
   revealedCardId: string;
+  revealedArtId?: string;
   /** Seat whose security was checked, i.e. the `securityRevealed` seat. */
   defenderSeat: Seat;
   viewerSeat: Seat;
@@ -265,9 +274,9 @@ export function buildSecurityRevealScene({
   return {
     key,
     resolution: "pending",
-    revealed: { cardId: revealedCardId, side: defenderSide, dp: securityCardDP ?? comparableDp(revealedCardId) },
+    revealed: { cardId: revealedCardId, ...(revealedArtId ? { artId: revealedArtId } : {}), side: defenderSide, dp: securityCardDP ?? comparableDp(revealedCardId) },
     ...(facing
-      ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: attackerDP ?? comparableDp(facing.cardId) } }
+      ? { attacker: { cardId: facing.cardId, ...(facing.artId ? { artId: facing.artId } : {}), side: attackerSide, dp: attackerDP ?? comparableDp(facing.cardId) } }
       : {}),
   };
 }
@@ -301,6 +310,7 @@ export function buildSecurityClashScene({
 }: {
   key: number;
   revealedCardId: string;
+  revealedArtId?: string;
   resolution: string;
   /** Seat whose security was checked, i.e. the `securityChecked` seat. */
   defenderSeat: Seat;
@@ -326,17 +336,19 @@ export function buildSecurityClashScene({
 export function buildSecurityDestructionScene({
   key,
   cardId,
+  artId,
   trashedSeat,
   viewerSeat,
 }: {
   key: number;
   cardId: string;
+  artId?: string;
   /** Seat whose security stack lost the card. */
   trashedSeat: Seat;
   viewerSeat: Seat;
 }): SecurityClashScene {
   return {
-    ...buildSecurityRevealScene({ key, revealedCardId: cardId, defenderSeat: trashedSeat, viewerSeat }),
+    ...buildSecurityRevealScene({ key, revealedCardId: cardId, revealedArtId: artId, defenderSeat: trashedSeat, viewerSeat }),
     resolution: "trashed",
     cause: "destruction",
     outcomeAtMs: DESTROY_OUTCOME_AT_MS,
@@ -368,6 +380,7 @@ const TRASH_ZONE = "trash";
 /** One security card an effect spent, resolved to the identity a scene can draw. */
 export interface SecurityDestruction {
   cardId: string;
+  artId?: string;
   /** The seat whose stack lost it. */
   seat: Seat;
 }
@@ -385,7 +398,7 @@ export interface SecurityDestruction {
  */
 export function securityDestructionsFromEvents(
   events: readonly ServerEvent[],
-  lookup: { cardId: (instanceId: string) => string | undefined; seat: (instanceId: string) => Seat | undefined },
+  lookup: { artId?: (instanceId: string) => string | undefined; cardId: (instanceId: string) => string | undefined; seat: (instanceId: string) => Seat | undefined },
 ): readonly SecurityDestruction[] {
   const destroyed: SecurityDestruction[] = [];
   for (const event of events) {
@@ -394,7 +407,8 @@ export function securityDestructionsFromEvents(
       const cardId = event.cardIds?.[index] ?? lookup.cardId(instanceId);
       const seat = event.seat ?? lookup.seat(instanceId);
       if (cardId === undefined || seat === undefined) return;
-      destroyed.push({ cardId, seat });
+      const artId = event.artIds?.[index] ?? lookup.artId?.(instanceId);
+      destroyed.push({ cardId, seat, ...(artId ? { artId } : {}) });
     });
   }
   return destroyed;

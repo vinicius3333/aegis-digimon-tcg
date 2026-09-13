@@ -10,6 +10,8 @@ export type ParticipantDeckSnapshot = {
   name: string;
   mainDeck: string[];
   eggDeck: string[];
+  mainDeckArts?: string[];
+  eggDeckArts?: string[];
   revision: number;
 };
 
@@ -420,6 +422,8 @@ export class ParticipantStore {
       name: deck.name,
       mainDeck: [...deck.mainDeck],
       eggDeck: [...deck.eggDeck],
+      mainDeckArts: deck.mainDeckArts?.slice(),
+      eggDeckArts: deck.eggDeckArts?.slice(),
       revision: deck.revision,
     };
     const legal = validateCompetitiveDeck(snapshot, banlist).legal;
@@ -601,8 +605,16 @@ export class ParticipantStore {
   ): Promise<Deck | undefined> {
     if (!savedDeckId) return undefined;
     const row = (
-      await client.query<{ id: string; name: string; main_deck: string[]; egg_deck: string[]; revision: number }>(
-        "SELECT id, name, main_deck, egg_deck, revision FROM saved_decks WHERE account_id=$1 AND id=$2",
+      await client.query<{
+        id: string;
+        name: string;
+        main_deck: string[];
+        egg_deck: string[];
+        main_deck_arts: string[];
+        egg_deck_arts: string[];
+        revision: number;
+      }>(
+        "SELECT id, name, main_deck, egg_deck, main_deck_arts, egg_deck_arts, revision FROM saved_decks WHERE account_id=$1 AND id=$2",
         [accountId, savedDeckId],
       )
     ).rows[0];
@@ -612,6 +624,8 @@ export class ParticipantStore {
         name: row.name,
         mainDeck: row.main_deck,
         eggDeck: row.egg_deck,
+        mainDeckArts: row.main_deck_arts,
+        eggDeckArts: row.egg_deck_arts,
         revision: Number(row.revision),
       }
     );

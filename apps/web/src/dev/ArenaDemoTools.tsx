@@ -7,6 +7,7 @@ export function ArenaDemoTools({
   deckCounts,
   onKeywords,
   onDraw,
+  onVisualPlayback,
   onTurnStart,
   disabled = false,
 }: {
@@ -14,6 +15,7 @@ export function ArenaDemoTools({
   deckCounts: readonly [number, number];
   onKeywords: () => void;
   onDraw: (seat: Seat) => void;
+  onVisualPlayback: () => void;
   onTurnStart: () => void;
   disabled?: boolean;
 }) {
@@ -95,6 +97,16 @@ export function ArenaDemoTools({
             }}
           >
             {portuguese ? "Reproduzir início do turno" : "Preview turn start"}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              close();
+              onVisualPlayback();
+            }}
+          >
+            {portuguese ? "Reproduzir keywords automaticamente" : "Automatically preview keywords"}
           </button>
           <button
             type="button"

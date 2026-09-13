@@ -182,7 +182,13 @@ export async function applyAssembly(
 
   const permanent = placePermanent(deps, player, instance, definition);
   permanent.enterFieldTurnCount = state.turnCount;
-  deps.emit?.({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+  deps.emit?.({
+    kind: "cardPlayed",
+    seat,
+    cardId: instance.cardId,
+    ...(instance.artId ? { artId: instance.artId } : {}),
+    permanentId: permanent.permanentId,
+  });
 
   // §7-3-2-6: cards are placed in stacking order so the card shown on the LEFT of the Assembly
   // requirements ends up ON TOP (closest to the played card). `placeUnder`'s default (non-belowTop)
@@ -203,6 +209,7 @@ export async function applyAssembly(
     ok: true,
     outcome: {
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       instanceId: instance.instanceId,
       permanentId: permanent.permanentId,
       cost,

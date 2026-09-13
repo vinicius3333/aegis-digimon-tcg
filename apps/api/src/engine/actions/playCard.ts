@@ -89,7 +89,7 @@ export type PlayCardCheck =
 
 /** Events this action narrates (subset of @aegis/shared ServerEvent). */
 export type PlayCardEvent =
-  | { kind: "cardPlayed"; seat: Seat; cardId: string; permanentId?: string }
+  | { kind: "cardPlayed"; seat: Seat; cardId: string; artId?: string; permanentId?: string }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
   | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string };
 
@@ -400,6 +400,7 @@ export async function applyPlayCard(
       kind: "cardPlayed",
       seat,
       cardId: instance.cardId,
+      ...(instance.artId ? { artId: instance.artId } : {}),
       permanentId: permanent.permanentId,
     });
     deps.emit?.({
@@ -433,7 +434,12 @@ export async function applyPlayCard(
 
   // (3b) Option: never becomes a permanent. Resolve its effect, then route it:
   //      ＜Delay＞ keyword → face-down in delay zone (KB §16-17); otherwise → trash.
-  deps.emit?.({ kind: "cardPlayed", seat, cardId: instance.cardId });
+  deps.emit?.({
+    kind: "cardPlayed",
+    seat,
+    cardId: instance.cardId,
+    ...(instance.artId ? { artId: instance.artId } : {}),
+  });
 
   // §9-1-4: a used Option is treated as being in NO area for the whole window from
   // activation of its 1st [Main] effect until it resolves — it must NOT be visible in
@@ -520,7 +526,12 @@ export async function applyPlayCard(
 
   return {
     ok: true,
-    outcome: { cardId: instance.cardId, instanceId: instance.instanceId, mode, cost },
+    outcome: {
+      cardId: instance.cardId,
+      instanceId: instance.instanceId,
+      mode,
+      cost,
+    },
   };
 }
 

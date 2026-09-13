@@ -8,6 +8,22 @@ function createStore(): AccountStore {
 }
 
 describe("AccountStore", () => {
+  it("persists each copy's art and normalizes foreign arts on save and update", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("discord", "art-owner", "Art Owner");
+    const deck = await store.saveDeck(account.id, {
+      name: "Alternate copies",
+      mainDeck: ["AD1-001", "AD1-001"],
+      eggDeck: [],
+      mainDeckArts: ["AD1-001_P1", "AD1-002_P1"],
+    });
+    expect(deck.mainDeckArts).toEqual(["AD1-001_P1", "AD1-001"]);
+    expect(await store.decks(account.id)).toEqual([deck]);
+    const updated = await store.saveDeck(account.id, { ...deck, mainDeckArts: ["AD1-001", "AD1-001_P1"] });
+    expect(updated.mainDeckArts).toEqual(["AD1-001", "AD1-001_P1"]);
+    expect(await store.decks(account.id)).toEqual([updated]);
+    await store.close();
+  });
   it("keeps a verified email account, session and decks together", async () => {
     const store = createStore();
     const link = await store.createMagicLink("Player@example.com");

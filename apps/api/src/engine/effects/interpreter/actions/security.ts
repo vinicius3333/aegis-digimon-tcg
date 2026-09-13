@@ -109,7 +109,11 @@ export async function runSecurityManipulation(
         min: 1,
         max: 1,
         visible: security.map((card) => card.instanceId),
-        visibleCards: security.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+        visibleCards: security.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          ...(card.artId ? { artId: card.artId } : {}),
+        })),
       });
       if (selected.length === 0) return;
       const selectedIndex = security.findIndex((card) => card.instanceId === selected[0]);

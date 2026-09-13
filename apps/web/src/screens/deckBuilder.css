@@ -217,3 +217,38 @@
     opacity: 1 !important;
   }
 }
+
+.deck-copy-arts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.deck-copy-arts button {
+  position: relative;
+  padding: 2px;
+  border: 1px solid var(--ds-border-strong);
+  background: var(--ds-surface);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.deck-copy-arts button:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 2px;
+}
+.deck-copy-arts button span {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  background: var(--ds-surface);
+  color: var(--ds-foreground);
+  font-size: 9px;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+@media (pointer: coarse) {
+  .deck-copy-arts button {
+    min-width: var(--ds-touch-target, 44px);
+    min-height: var(--ds-touch-target, 44px);
+  }
+}

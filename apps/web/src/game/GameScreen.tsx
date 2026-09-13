@@ -137,6 +137,7 @@ import {
 import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner } from "./SidePanelStack";
 import { NarrationStack } from "./NarrationStack";
+import { buildInstanceArtIndex } from "./sidePanels";
 import { CardOpenerProvider } from "./cardLinks";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
@@ -254,6 +255,7 @@ type DragState =
       index: number;
       instanceId: string;
       cardId: string;
+      artId?: string;
       x: number;
       y: number;
       ox: number;
@@ -264,6 +266,7 @@ type DragState =
       kind: "attack";
       permId: string;
       cardId: string;
+      artId?: string;
       x: number;
       y: number;
       ox: number;
@@ -299,6 +302,7 @@ export function GameScreen({
   > & {
     /** Canonical keyword names mapped to printed parameters in the visual demo. */
     keywordLabels?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+    showCutIns?: boolean;
     acknowledgeBlockWindow?: (blockerPermanentId?: string) => void;
     /** A fabricated connection has no server batches; its whole event list is one moment. */
     batches?: readonly ServerBatch[];
@@ -424,6 +428,7 @@ export function GameScreen({
   const [historyOpen, setHistoryOpen] = useState(false);
   // A card name clicked in the play log opens the card itself, without closing the log.
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
+  const [zoomArtId, setZoomArtId] = useState<string | undefined>();
   const [bugReportOpen, setBugReportOpen] = useState(false);
   /** The decision whose prompt is already on screen, so no hold can take it back off. */
   const shownDecisionIdRef = useRef<string | undefined>(undefined);
@@ -544,6 +549,7 @@ export function GameScreen({
   // the draw flights. The hook sequences them on the animation queue; this
   // component only renders what it reports.
   const cues = useMatchCues({
+    cutInsEnabled: demoConnection?.showCutIns,
     batches: cueBatches,
     phaseEvents: events,
     state,
@@ -1106,6 +1112,7 @@ export function GameScreen({
   const handEntries: HandEntry[] = you.hand.map((ci) => ({
     instanceId: ci.instanceId,
     cardId: ci.cardId,
+    artId: ci.artId,
     activatableEffectsJson: ci.activatableEffectsJson,
     playableFromHand: ci.playableFromHand,
     projectedPlayCost: ci.projectedPlayCost,
@@ -1132,6 +1139,7 @@ export function GameScreen({
             handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
               instanceId: ci.instanceId,
               cardId: ci.cardId,
+    artId: ci.artId,
               activatableEffectsJson: "",
               playableFromHand: false,
               projectedPlayCost: -1,
@@ -1168,12 +1176,13 @@ export function GameScreen({
         const candidates: DigiXrosCandidate[] = [
           ...you.hand
             .filter((ci) => ci.instanceId !== instanceId)
-            .map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, zone: "hand" as const })),
+            .map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, artId: ci.artId, zone: "hand" as const })),
           ...you.battleArea
             .filter((p) => p.topCard)
             .map((p) => ({
               instanceId: p.topCard!.instanceId,
               cardId: p.topCard!.cardId,
+              artId: p.topCard!.artId,
               zone: "battle" as const,
               digiXrosNames: [...p.digiXrosNames],
               canSubstitute: p.keywords.includes("DigiXrosSubstitute"),
@@ -1183,13 +1192,14 @@ export function GameScreen({
         // runtime — "ArraySchema#flatMap() is not supported"), unlike `.map()`/`.filter()`;
         // build with `.map().flat()` over a real array instead.
         const lockedCandidates: DigiXrosCandidate[] = [
-          ...you.trash.map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, zone: "trash" as const })),
+          ...you.trash.map((ci) => ({ instanceId: ci.instanceId, cardId: ci.cardId, artId: ci.artId, zone: "trash" as const })),
           ...you.battleArea
             .map((p) => {
               if (!p.topCard || !getCardDefinition(p.topCard.cardId)?.kinds.includes(CardKind.Tamer)) return [];
               return p.stack.map((ci) => ({
                 instanceId: ci.instanceId,
                 cardId: ci.cardId,
+    artId: ci.artId,
                 zone: "underTamer" as const,
               }));
             })
@@ -1239,6 +1249,7 @@ export function GameScreen({
         const candidates: AssemblyCandidate[] = you.trash.map((ci) => ({
           instanceId: ci.instanceId,
           cardId: ci.cardId,
+    artId: ci.artId,
         }));
         const candidateDefinitions = candidates.flatMap((candidate) => {
           const definition = getCardDefinition(candidate.cardId);
@@ -1580,6 +1591,7 @@ export function GameScreen({
       index,
       instanceId: entry.instanceId,
       cardId: entry.cardId,
+      artId: entry.artId,
       x: e.clientX,
       y: e.clientY,
       ox: e.clientX,
@@ -1602,6 +1614,7 @@ export function GameScreen({
       kind: "attack",
       permId: perm.permanentId,
       cardId: perm.topCard?.cardId ?? "",
+      artId: perm.topCard?.artId,
       x: e.clientX,
       y: e.clientY,
       ox: e.clientX,
@@ -1774,9 +1787,9 @@ export function GameScreen({
   /** Flatten a permanent into its [active, digivolution…, linked…] cards for the modal. */
   const stackCardsOf = (perm: Permanent): StackCard[] => {
     const cards: StackCard[] = [];
-    if (perm.topCard?.cardId) cards.push({ cardId: perm.topCard.cardId, role: "top" });
-    for (const ci of perm.stack) cards.push({ cardId: ci.cardId, role: "stack" });
-    for (const ci of perm.linked) cards.push({ cardId: ci.cardId, role: "linked" });
+    if (perm.topCard?.cardId) cards.push({ cardId: perm.topCard.cardId, artId: perm.topCard.artId, role: "top" });
+    for (const ci of perm.stack) cards.push({ cardId: ci.cardId, artId: ci.artId, role: "stack" });
+    for (const ci of perm.linked) cards.push({ cardId: ci.cardId, artId: ci.artId, role: "linked" });
     return cards;
   };
 
@@ -1932,7 +1945,7 @@ export function GameScreen({
   const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
 
   const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
-  const decisionVisible = viewerDecision ? decisionVisibleCards(viewerDecision.options, instanceIndex) : [];
+  const decisionVisible = viewerDecision ? decisionVisibleCards(viewerDecision.options, instanceIndex, buildInstanceArtIndex(state)) : [];
   const decisionVisibleCardIds = new Map(decisionVisible.map((card) => [card.instanceId, card.cardId]));
   const decisionInstanceColors = decisionCardColors(decisionVisible);
   const decisionDifferentColors = viewerDecision?.options?.differentColors === true;
@@ -2188,6 +2201,7 @@ export function GameScreen({
               ],
           }}
           cardId={handPreviewEntry.cardId}
+          artId={handPreviewEntry.artId}
           activatableEffects={parseActivatable(handPreviewActions?.activatableEffectsJson ?? "")}
           canPlay={handPreviewActions?.playableFromHand === true}
           canDigivolve={
@@ -2234,6 +2248,7 @@ export function GameScreen({
                   return {
                     instanceId: card.instanceId,
                     cardId: card.cardId,
+                    artId: card.artId,
                     selectable: decisionAllowsPick(card.instanceId),
                     sourceCount: sourceCounts.get(card.instanceId),
                     currentDP: details?.currentDP,
@@ -2412,7 +2427,7 @@ export function GameScreen({
 
       {cutIn && !state.gameOver ? <DigivolutionCutInView key={cutIn.key} cutIn={cutIn} /> : null}
 
-      {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} onClose={() => setZoomCardId(null)} /> : null}
+      {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} artId={zoomArtId} onClose={() => setZoomCardId(null)} /> : null}
 
       {bugReportOpen ? (
         <BugReportDialog signedIn={signedIn} matchLogId={state.matchLogId} onClose={() => setBugReportOpen(false)} />
@@ -2622,6 +2637,7 @@ export function GameScreen({
                 x={cardMenu.x}
                 y={cardMenu.y}
                 cardId={perm.topCard?.cardId}
+                artId={perm.topCard?.artId}
                 sheet={narrowGameLayout}
                 dp={perm.currentDP}
                 baseDP={perm.baseDP}
@@ -2722,6 +2738,7 @@ export function GameScreen({
               <TrashViewerOverlay
                 title={ownerLabel}
                 cardIds={owner.trash.map((c) => c.cardId)}
+                artIds={owner.trash.map((c) => c.artId)}
                 sheet={narrowGameLayout}
                 onClose={() => setTrashView(null)}
               />
@@ -2738,13 +2755,13 @@ export function GameScreen({
                 : t("game.oppSecurityPile", { name: shownOpp.displayName || t("game.opponent") });
             // Only face-up security cards are public; face-down cards stay hidden
             // even from their owner (the stack cannot be looked at, per the rules).
-            const faceUpCardIds = Array.from(owner.security ?? [])
-              .filter((card) => card?.faceUp)
-              .map((card) => card.cardId);
+            const faceUpCards = Array.from(owner.security ?? []).filter((card) => card?.faceUp);
+            const faceUpCardIds = faceUpCards.map((card) => card.cardId);
             return (
               <TrashViewerOverlay
                 title={ownerLabel}
                 cardIds={faceUpCardIds}
+                artIds={faceUpCards.map((card) => card.artId)}
                 countLabel={t("overlay.securityCount", { faceUp: faceUpCardIds.length, count: owner.securityCount })}
                 emptyLabel={t("overlay.securityNoFaceUp")}
                 sheet={narrowGameLayout}
@@ -2759,7 +2776,7 @@ export function GameScreen({
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
     // decision dialogs — opens it through this one blow-up.
-    <CardOpenerProvider onOpenCard={setZoomCardId}>
+    <CardOpenerProvider onOpenCard={(cardId, artId) => { setZoomCardId(cardId); setZoomArtId(artId); }}>
       <main
         className="game-layout"
         style={{
@@ -3077,6 +3094,7 @@ export function GameScreen({
                   count={shownOpp.trash.length}
                   label={t("game.pile.trash")}
                   topCardId={shownOpp.trash[shownOpp.trash.length - 1]?.cardId}
+                  topArtId={shownOpp.trash[shownOpp.trash.length - 1]?.artId}
                   onClick={shownOpp.trash.length ? () => setTrashView("opp") : undefined}
                   useSelectedSleeve={false}
                 />
@@ -3364,6 +3382,7 @@ export function GameScreen({
                   count={shownYou.trash.length}
                   label={t("game.pile.trash")}
                   topCardId={shownYou.trash[shownYou.trash.length - 1]?.cardId}
+                  topArtId={shownYou.trash[shownYou.trash.length - 1]?.artId}
                   onClick={shownYou.trash.length ? () => setTrashView("you") : undefined}
                 />
               </div>
@@ -3493,7 +3512,7 @@ export function GameScreen({
                       top: center.y - FIELD_CLASH_GHOST_HEIGHT / 2,
                     }}
                   >
-                    <CardFull cardId={cardId} width={FIELD_CLASH_GHOST_WIDTH} zoomOnHover={false} />
+                    <CardFull cardId={cardId} artId={combatant.artId} width={FIELD_CLASH_GHOST_WIDTH} zoomOnHover={false} />
                     {struck ? <ClawSlash /> : null}
                   </span>,
                 ];
@@ -3584,7 +3603,7 @@ export function GameScreen({
                   filter: "drop-shadow(0 18px 30px rgba(15,23,42,0.4))",
                 }}
               >
-                <CardFull cardId={dragCardId} width={124} />
+                <CardFull cardId={dragCardId} artId={drag?.artId} width={124} />
               </div>,
               document.body,
             )
@@ -3617,6 +3636,7 @@ function BoardShell({ children }: { children: React.ReactNode }) {
 
 export function HandCardPreview({
   cardId,
+  artId,
   arenaInspection,
   activatableEffects,
   canPlay,
@@ -3629,6 +3649,7 @@ export function HandCardPreview({
   onCancel,
 }: {
   cardId: string;
+  artId?: string;
   arenaInspection?: ArenaInspectionOptions;
   activatableEffects: ActivatableEntry[];
   canPlay: boolean;
@@ -3679,14 +3700,14 @@ export function HandCardPreview({
     return (
       <>
         <ArenaPermanentInspector
-          detail={buildPrintedCardDetail(cardId)}
+          detail={buildPrintedCardDetail(cardId, artId)}
           inspection={arenaInspection}
           actions={actions}
           zoomed={zoomed}
           onZoom={() => setZoomed(true)}
           onClose={onCancel}
         />
-        {zoomed ? <CardZoomOverlay cardId={cardId} onClose={() => setZoomed(false)} /> : null}
+        {zoomed ? <CardZoomOverlay cardId={cardId} artId={artId} onClose={() => setZoomed(false)} /> : null}
       </>
     );
   }
@@ -3709,7 +3730,7 @@ export function HandCardPreview({
             onClick={() => setZoomed(true)}
             aria-label={t("overlay.zoomCard")}
           >
-            <CardFull cardId={cardId} width={190} />
+            <CardFull cardId={cardId} artId={artId} width={190} />
           </button>
           <div className="card-action-sheet__info">
             <strong>{card?.nameEn ?? cardId}</strong>
@@ -3769,7 +3790,7 @@ export function HandCardPreview({
             {t("common.cancel")}
           </Button>
         </div>
-        {zoomed ? <CardZoomOverlay cardId={cardId} onClose={() => setZoomed(false)} /> : null}
+        {zoomed ? <CardZoomOverlay cardId={cardId} artId={artId} onClose={() => setZoomed(false)} /> : null}
       </div>
     </div>,
     document.body,

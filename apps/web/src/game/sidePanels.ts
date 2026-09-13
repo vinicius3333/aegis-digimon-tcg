@@ -49,6 +49,7 @@ export type SidePanelSide = "you" | "opp";
 
 export interface SidePanelCard {
   cardId: string;
+  artId?: string;
   badge: number;
 }
 
@@ -65,6 +66,7 @@ export interface SidePanel {
 export interface AttackAnnouncement {
   id: string;
   cardId: string;
+  artId?: string;
   side: SidePanelSide;
   createdAt: number;
 }
@@ -72,6 +74,7 @@ export interface AttackAnnouncement {
 /** Resolves the instance ids carried by `cardsMoved` into identities the panel can show. */
 export interface SidePanelLookup {
   cardId: (instanceId: string) => string | undefined;
+  artId?: (instanceId: string) => string | undefined;
   seat: (instanceId: string) => Seat | undefined;
 }
 
@@ -97,6 +100,27 @@ export function buildInstanceSeatIndex(state: GameState): Map<string, Seat> {
     addPermanent(player.breeding);
     if (player.hand) player.hand.forEach((card) => add(card?.instanceId));
   });
+  return index;
+}
+
+/** Reads only visible physical copies; concealed identities never enter this index. */
+export function buildInstanceArtIndex(state: GameState): Map<string, string> {
+  const index = new Map<string, string>();
+  const add = (card?: { instanceId?: string; cardId?: string; artId?: string }) => {
+    if (card?.instanceId && card.cardId && card.artId) index.set(card.instanceId, card.artId);
+  };
+  for (const player of state.players) {
+    for (const zone of [player.hand, player.trash, player.delayZone, player.security]) zone?.forEach(add);
+    add(player.resolvingOption);
+    for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
+      add(permanent.topCard);
+      if (permanent.permanentId && permanent.topCard?.cardId && permanent.topCard.artId) {
+        index.set(permanent.permanentId, permanent.topCard.artId);
+      }
+      permanent.stack?.forEach(add);
+      permanent.linked?.forEach(add);
+    }
+  }
   return index;
 }
 
@@ -147,8 +171,8 @@ function sideOf(seat: Seat, viewerSeat: Seat): SidePanelSide {
   return seat === viewerSeat ? "you" : "opp";
 }
 
-function numbered(cardIds: readonly string[]): SidePanelCard[] {
-  return cardIds.map((cardId, index) => ({ cardId, badge: index + 1 }));
+function numbered(cards: readonly (string | Omit<SidePanelCard, "badge">)[]): SidePanelCard[] {
+  return cards.map((card, index) => ({ ...(typeof card === "string" ? { cardId: card } : card), badge: index + 1 }));
 }
 
 /**
@@ -175,7 +199,8 @@ export function sidePanelFromEvent(
       // the movement the event narrates (see securityDestructionsFromEvents).
       const cardIds = event.instanceIds.flatMap((instanceId, index) => {
         const cardId = event.cardIds?.[index] ?? lookup.cardId(instanceId);
-        return cardId ? [cardId] : [];
+        const artId = event.artIds?.[index] ?? lookup.artId?.(instanceId);
+        return cardId ? [{ cardId, ...(artId ? { artId } : {}) }] : [];
       });
       if (cardIds.length === 0) return null;
       const owner =
@@ -198,7 +223,7 @@ export function sidePanelFromEvent(
         id,
         titleKey: "panel.revealedCards",
         side: "opp",
-        cards: numbered([event.cardId]),
+        cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         // A reveal is shown in the order it came off the deck, so it is numbered
         // from the first card even before a second one joins it.
         ordered: true,
@@ -213,7 +238,7 @@ export function sidePanelFromEvent(
         id,
         titleKey: "panel.playedCard",
         side: "opp",
-        cards: numbered([event.cardId]),
+        cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         ordered: false,
         createdAt: nowMs,
       };
@@ -227,7 +252,7 @@ export function sidePanelFromEvent(
         id,
         titleKey: "panel.digivolutionCards",
         side: "opp",
-        cards: numbered([event.cardId]),
+        cards: numbered([{ cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) }]),
         ordered: false,
         createdAt: nowMs,
       };
@@ -244,7 +269,7 @@ export function attackAnnouncementFromEvent(
   nowMs: number,
 ): AttackAnnouncement | null {
   if (event.kind !== "attackDeclared") return null;
-  return { id, cardId: event.attackerCardId, side: sideOf(event.seat, viewerSeat), createdAt: nowMs };
+  return { id, cardId: event.attackerCardId, ...(event.attackerArtId ? { artId: event.attackerArtId } : {}), side: sideOf(event.seat, viewerSeat), createdAt: nowMs };
 }
 
 function sameSlot(a: SidePanel, b: SidePanel): boolean {
@@ -269,7 +294,7 @@ export function pushSidePanel(
       incoming.createdAt - existing.createdAt <= mergeWindowMs
         ? {
             ...incoming,
-            cards: numbered([...existing.cards, ...incoming.cards].map((card) => card.cardId)),
+            cards: numbered([...existing.cards, ...incoming.cards]),
             ordered: existing.ordered || incoming.ordered,
           }
         : incoming;

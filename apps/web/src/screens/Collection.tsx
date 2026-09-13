@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CardDefinition } from "@aegis/shared";
-import { releaseDateForCard } from "@aegis/shared";
+import { getCardArts, releaseDateForCard } from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { activeCollectionCards } from "../game/decks";
@@ -83,13 +83,19 @@ export function Collection() {
             }}
           >
             {shown.map((c) => (
-              <CardFull
-                key={c.cardId}
-                cardId={c.cardId}
-                width={150}
-                selected={selected === c.cardId}
-                onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
-              />
+              <div key={c.cardId} className="collection-card-entry">
+                <CardFull
+                  cardId={c.cardId}
+                  width={150}
+                  selected={selected === c.cardId}
+                  onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
+                />
+                {getCardArts(c.cardId).length > 1 ? (
+                  <button type="button" className="collection-art-count" onClick={() => setSelected(c.cardId)}>
+                    {t("library.artworks")} · {getCardArts(c.cardId).length}
+                  </button>
+                ) : null}
+              </div>
             ))}
           </div>
         )}

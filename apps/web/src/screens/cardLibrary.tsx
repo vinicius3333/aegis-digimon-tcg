@@ -6,6 +6,8 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import {
   effectiveCopyLimit,
   getCardDefinition,
+  getCardArts,
+  resolveCardArt,
   restrictionLabel,
   type CardColor,
   type CardDefinition,
@@ -704,12 +706,22 @@ export function CardDetailDrawer({
   cardId,
   onClose,
   footer,
+  artId,
+  onArtChange,
 }: {
   cardId: string;
   onClose: () => void;
   footer?: ReactNode;
+  artId?: string;
+  onArtChange?: (artId: string) => void;
 }) {
   const { t } = useTranslation();
+  const [browsedArt, setBrowsedArt] = useState<{ cardId: string; artId: string } | null>(null);
+  const selectedArt = resolveCardArt(
+    cardId,
+    artId ?? (browsedArt?.cardId === cardId ? browsedArt.artId : undefined),
+  ).artId;
+  const arts = getCardArts(cardId);
   const def = getCardDefinition(cardId);
   if (!def) return null;
   const isDigi = kindOf(def) === "Digimon";
@@ -744,7 +756,34 @@ export function CardDetailDrawer({
       </div>
       <div className="card-detail-overview">
         <div className="card-detail-preview">
-          <CardFull cardId={def.cardId} width={228} />
+          <CardFull cardId={def.cardId} artId={selectedArt} width={228} />
+          {arts.length > 1 ? (
+            <div className="card-art-selector" role="group" aria-label={t("library.artworks")}>
+              <div className="card-art-selector__label">
+                {t("library.artworks")} · {arts.length}
+              </div>
+              <div className="card-art-selector__choices">
+                {arts.map((art, index) => {
+                  const label = index === 0 ? t("library.baseArt") : t("library.alternateArt", { number: index });
+                  return (
+                    <button
+                      type="button"
+                      key={art.artId}
+                      aria-label={label}
+                      aria-pressed={art.artId === selectedArt}
+                      onClick={() => {
+                        setBrowsedArt({ cardId, artId: art.artId });
+                        onArtChange?.(art.artId);
+                      }}
+                    >
+                      <CardFull cardId={cardId} artId={art.artId} width={56} />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
         <div className="card-detail-summary">
           <div className="card-detail-limit">

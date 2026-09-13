@@ -16,16 +16,19 @@ export interface OpenAttack {
   seat: Seat;
   attackerPermanentId: string;
   attackerCardId: string;
+  attackerArtId?: string;
   /** The permanent under attack; null while the attack points at the player. */
   targetPermanentId: string | null;
   /** The target's public identity at declaration; a blocker arrives without one. */
   targetCardId?: string;
+  targetArtId?: string;
 }
 
 export interface FieldClashCombatant {
   permanentId: string;
   /** Known from the declaration or the board's last measurement; a ghost without one stays unrendered. */
   cardId?: string;
+  artId?: string;
 }
 
 /** One board battle, cut from the open attack when its `combatResolved` arrives. */
@@ -64,12 +67,14 @@ export function trackOpenAttack(open: OpenAttack | null, event: ServerEvent): Op
       seat: event.seat,
       attackerPermanentId: event.attackerPermanentId,
       attackerCardId: event.attackerCardId,
+      ...(event.attackerArtId ? { attackerArtId: event.attackerArtId } : {}),
       targetPermanentId: event.target.kind === "permanent" ? event.target.permanentId : null,
+      ...(event.targetArtId ? { targetArtId: event.targetArtId } : {}),
       ...(event.targetCardId ? { targetCardId: event.targetCardId } : {}),
     };
   }
   if (event.kind === "blocked" && open) {
-    const { targetCardId: _dropped, ...rest } = open;
+    const { targetCardId: _dropped, targetArtId: _droppedArt, ...rest } = open;
     return { ...rest, targetPermanentId: event.blockerPermanentId };
   }
   return closesAttack(event) ? null : open;
@@ -86,6 +91,7 @@ export function buildFieldClashScene({
   event,
   viewerSeat,
   cardIdOf,
+  artIdOf,
 }: {
   key: number;
   open: OpenAttack | null;
@@ -93,14 +99,17 @@ export function buildFieldClashScene({
   viewerSeat: Seat;
   /** The board's last memory of a permanent's top card, for a blocker the declaration never named. */
   cardIdOf: (permanentId: string) => string | undefined;
+  artIdOf?: (permanentId: string) => string | undefined;
 }): FieldClashScene | null {
   if (!open || open.targetPermanentId === null) return null;
   if (open.attackerPermanentId !== event.attackerPermanentId) return null;
+  const attackerArtId = open.attackerArtId ?? artIdOf?.(open.attackerPermanentId);
+  const defenderArtId = open.targetArtId ?? artIdOf?.(open.targetPermanentId);
   const defenderCardId = open.targetCardId ?? cardIdOf(open.targetPermanentId);
   return {
     key,
-    attacker: { permanentId: open.attackerPermanentId, cardId: open.attackerCardId },
-    defender: { permanentId: open.targetPermanentId, ...(defenderCardId ? { cardId: defenderCardId } : {}) },
+    attacker: { permanentId: open.attackerPermanentId, cardId: open.attackerCardId, ...(attackerArtId ? { artId: attackerArtId } : {}) },
+    defender: { permanentId: open.targetPermanentId, ...(defenderCardId ? { cardId: defenderCardId } : {}), ...(defenderArtId ? { artId: defenderArtId } : {}) },
     loserPermanentIds: event.deletedPermanentIds,
     direction: open.seat === viewerSeat ? "up" : "down",
   };

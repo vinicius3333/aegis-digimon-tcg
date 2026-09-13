@@ -162,19 +162,42 @@ export function installAccountRoutes(
   put("/account/decks/:id?", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
-    const { name, mainDeck, eggDeck } = req.body as { name?: unknown; mainDeck?: unknown; eggDeck?: unknown };
+    const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts } = req.body as {
+      name?: unknown;
+      mainDeck?: unknown;
+      eggDeck?: unknown;
+      mainDeckArts?: unknown;
+      eggDeckArts?: unknown;
+    };
     if (
       typeof name !== "string" ||
       !Array.isArray(mainDeck) ||
       !Array.isArray(eggDeck) ||
       !mainDeck.every((v) => typeof v === "string") ||
-      !eggDeck.every((v) => typeof v === "string")
+      !eggDeck.every((v) => typeof v === "string") ||
+      (mainDeckArts !== undefined &&
+        (!Array.isArray(mainDeckArts) ||
+          mainDeckArts.length !== mainDeck.length ||
+          !mainDeckArts.every((v) => typeof v === "string"))) ||
+      (eggDeckArts !== undefined &&
+        (!Array.isArray(eggDeckArts) ||
+          eggDeckArts.length !== eggDeck.length ||
+          !eggDeckArts.every((v) => typeof v === "string")))
     ) {
       res.status(400).json({ error: "invalid deck" });
       return;
     }
     try {
-      res.json(await store.saveDeck(session.account.id, { id: req.params.id!, name, mainDeck, eggDeck }));
+      res.json(
+        await store.saveDeck(session.account.id, {
+          id: req.params.id!,
+          name,
+          mainDeck,
+          eggDeck,
+          mainDeckArts: mainDeckArts as string[] | undefined,
+          eggDeckArts: eggDeckArts as string[] | undefined,
+        }),
+      );
     } catch (error) {
       if (error instanceof DeckLimitError) {
         res.status(409).json({ error: "deck limit reached", limit: MAX_SAVED_DECKS });

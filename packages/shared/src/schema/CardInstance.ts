@@ -20,6 +20,8 @@ export class AppFusionRoute extends Schema {
 export class CardInstance extends Schema {
   @type("string") instanceId!: string; // unique within the match
   @view(CARD_ID_VIEW_TAG) @type("string") cardId!: string; // e.g. "BT7-089"; key into CardDefinition registry
+  /** Chosen printing for this physical copy; hidden with its canonical identity. */
+  @view(CARD_ID_VIEW_TAG) @type("string") artId = "";
   @type("uint8") ownerSeat!: Seat; // who owns it (not necessarily who controls it)
   @type("boolean") faceUp = true; // false => redacted for opponents (see Visibility)
   /** Owner-visible activated abilities available while this loose card is in hand. */

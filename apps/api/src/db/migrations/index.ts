@@ -14,6 +14,8 @@ import { accountAvatar } from "./012-account-avatar.js";
 import { accountAdmin } from "./013-account-admin.js";
 import { accountDisplayNameChange } from "./014-account-display-name-change.js";
 
+import { deckCardArts } from "./015-deck-card-arts.js";
+
 export const migrations: readonly Migration[] = [
   initialSchema,
   tournamentProgramColumns,
@@ -29,4 +31,5 @@ export const migrations: readonly Migration[] = [
   accountAvatar,
   accountAdmin,
   accountDisplayNameChange,
+  deckCardArts,
 ];
