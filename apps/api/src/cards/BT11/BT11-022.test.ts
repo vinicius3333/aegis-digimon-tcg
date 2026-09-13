@@ -1,3 +1,4 @@
+import { advance } from "../../engine/testkit/advance.js";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -94,22 +95,58 @@ describe("BT11-022 Dracomon", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("notDrawn").instanceId);
   });
 
-  it("inherited effect gains 1 memory for the same qualifying play", async () => {
+  it("gains 1 memory only for the first qualifying public play each turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT11-025", as: "carrier", under: ["BT11-022"] }],
-        hand: [{ card: "BT19-022", as: "qualifier" }],
+        battleArea: [
+          { card: "BT1-037", as: "carrier", under: ["BT11-022"] },
+          { card: "BT1-086", as: "tamer" },
+          { card: "BT1-013", as: "spare" },
+        ],
+        hand: [
+          { card: "BT19-022", as: "first" },
+          { card: "BT19-022", as: "second" },
+          { card: "BT19-022", as: "third" },
+        ],
+        deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
       },
+      1: { deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"] },
     });
     s.state.memory = 10;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("qualifier").instanceId })).toEqual({
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first").instanceId),
+    );
+    expect(s.state.memory).toBe(6);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 6);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("second").instanceId),
+    );
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    // MailBirdramon costs 5 to play, then Dracomon's inherited effect gains 1.
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("third").instanceId),
+    );
     expect(s.state.memory).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("draws for the Dramon-name branch only once across two qualifying plays", async () => {

@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-014.js";
+import "./BT11-017.js";
 
 describe("BT11-014 GrapLeomon", () => {
   it("matches the catalog and carries both complete printed contracts", () => {
@@ -117,23 +118,92 @@ describe("BT11-014 GrapLeomon", () => {
     expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
   });
 
-  it("trashes one opposing security card when its host's attack target is switched", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-064", as: "host", under: ["BT11-014"] }] },
-      1: { security: ["BT1-009", "BT1-010"] },
-    });
+  it("trashes security once on the first public Raid switch, then again next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-017", as: "marsmon", under: ["BT1-009", "BT1-016", "BT11-014"] },
+            { card: "BT1-013", as: "spare" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "victim6000", dp: 6000 },
+            { card: "BT1-013", as: "victim5000", dp: 5000 },
+            { card: "BT1-013", as: "victim4000", dp: 4000 },
+          ],
+          security: [
+            { card: "BT1-009", as: "security0" },
+            { card: "BT1-010", as: "security1" },
+            { card: "BT1-013", as: "security2" },
+          ],
+          deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const marsmonId = s.perm("marsmon").permanentId;
+    const victimIds = [
+      s.perm("victim6000").permanentId,
+      s.perm("victim5000").permanentId,
+      s.perm("victim4000").permanentId,
+    ];
+    const securityIds = [
+      s.inst("security0").instanceId,
+      s.inst("security1").instanceId,
+      s.inst("security2").instanceId,
+    ];
+    expect(s.perm("marsmon").topCard.cardId).toBe("BT11-017");
+    expect(s.perm("marsmon").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-016", "BT11-014"]);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    for (const [index, victimId] of victimIds.entries()) {
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId));
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
+        securityIds[1],
+        securityIds[2],
+      ]);
+      if (index === 0) expect(s.perm("marsmon").isSuspended).toBe(false);
+      if (index === 1) {
+        expect(s.perm("marsmon").isSuspended).toBe(true);
+        break;
+      }
+    }
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityIds[0]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(securityIds[1]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
-
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: marsmonId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimIds[2]));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([securityIds[2]]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityIds[1]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(securityIds[2]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("does not trash security for another Digimon's target switch", async () => {

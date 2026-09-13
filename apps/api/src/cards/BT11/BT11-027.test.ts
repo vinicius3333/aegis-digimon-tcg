@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-027.js";
 
@@ -104,28 +105,53 @@ describe("BT11-027 Veedramon", () => {
     expect(s.state.memory).toBe(8);
   });
 
-  it("draws only once across two qualifying blue Tamer plays", async () => {
+  it("resets both blue Tamer play watchers after a real turn change", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT11-027", as: "veedramon" }],
-        hand: [
-          { card: "BT11-090", as: "first" },
-          { card: "BT11-090", as: "second" },
+        battleArea: [
+          { card: "BT11-027", as: "veedramon" },
+          { card: "ST2-08", as: "host", under: ["BT11-027"] },
+          "BT1-009",
         ],
-        deck: [
-          { card: "BT1-009", as: "drawn" },
-          { card: "BT1-009", as: "notDrawn" },
-        ],
+        hand: ["first", "second", "third"].map((as) => ({ card: "BT11-090", as })),
+        deck: Array.from({ length: 8 }, (_, index) => ({ card: "BT1-009", as: `draw-${index}` })),
       },
+      1: { battleArea: ["BT1-009"], deck: Array.from({ length: 5 }, () => "BT1-009") },
     });
+    s.state.isFirstPlayersFirstTurn = false;
     s.state.memory = 10;
-    for (const alias of ["first", "second"] as const) {
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
-      await settle(() =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst(alias).instanceId),
-      );
-    }
-    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("drawn").instanceId);
-    expect(s.state.players[0]!.deck.map((c) => c.instanceId)).toContain(s.inst("notDrawn").instanceId);
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 8 && s.state.players[0]!.deck.length === 6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 5 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.deck).toHaveLength(6);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual([
+      s.inst("third").instanceId,
+      s.inst("draw-0").instanceId,
+      s.inst("draw-1").instanceId,
+    ]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("third").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && s.state.players[0]!.deck.length === 4);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual(
+      [0, 1, 2, 3].map((index) => s.inst(`draw-${index}`).instanceId),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 });
