@@ -7,6 +7,7 @@ import "./BT26-032.js";
 import "../BT25/BT25-077.js";
 import "../BT25/BT25-059.js";
 import "../BT3/BT3-056.js";
+import "../BT24/BT24-102.js";
 
 describe("BT26-032 compiled fidelity", () => {
   it("matches the catalog and encodes both DUAL faces without residual behavior", () => {
@@ -189,6 +190,75 @@ describe("BT26-032 compiled fidelity", () => {
 
     expect(s.perm("suspended").currentDP).toBe(6000);
     expect(s.perm("unsuspended").currentDP).toBe(11000);
+  });
+
+  it("offers only the native and nested Ceresmon When Digivolving bodies to public Homeros activation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "homeros" },
+            { card: "BT26-032", as: "host", under: [{ card: "BT26-032", as: "nested" }] },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", suspended: true, dp: 12000 }],
+          deck: ["BT1-009", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+
+    const optional = s.decisions.find((decision) => decision.req.kind === "optional");
+    expect(optional).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional!.req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
+
+    const choose = s.decisions.find((decision) => decision.req.kind === "chooseOption");
+    expect(choose?.req.options?.choices).toHaveLength(2);
+    expect(choose?.req.options?.choices).toEqual([
+      "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+      "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choose!.req.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    const suspend = s.state.pendingDecision;
+    expect(suspend?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspend!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 7000);
+    expect(s.perm("target").currentDP).toBe(7000);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("nested").instanceId]);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("may suspend either player's Digimon to pay the continuation (Q7001)", async () => {
