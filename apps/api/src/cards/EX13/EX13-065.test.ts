@@ -1,12 +1,39 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import {
+  compiledEffects,
+  digivolutionRequirementsFor,
+  getCardDefinition,
+  Phase,
+  type CardDefinition,
+} from "@aegis/shared";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { registeredCompiledCards, registeredIrModules } from "../../engine/effects/interpreter/compiledCards.js";
+import { unregisterCard } from "../../engine/effects/registry.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import "../index.js";
 import "./EX13-065.js";
 import { compiled } from "./EX13-065.js";
+
+// Ensure a previously cached engine also reads this file's synthetic definitions.
+vi.hoisted(() => vi.resetModules());
+vi.mock("@aegis/shared", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@aegis/shared")>();
+  const { syntheticCardLookups, syntheticDefinitions: fixtures } =
+    await import("../../engine/testkit/syntheticDefinitions.js");
+  return { ...actual, ...syntheticCardLookups(actual, fixtures) };
+});
+afterEach(() => {
+  for (const id of syntheticDefinitions.keys()) {
+    unregisterCard(id);
+    delete compiledEffects[id];
+    registeredCompiledCards.delete(id);
+    registeredIrModules.delete(id);
+  }
+  syntheticDefinitions.clear();
+});
 
 const cardId = "EX13-065";
 
@@ -251,12 +278,94 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
   // ---------------------------------------------------------------------------
   // [Digivolve] Lv.2 w/[Huckmon] in text: Cost 1
   //
-  // RETAINED GAP (catalog, not engine): no Lv.2 card in `cards.json` carries the [Huckmon]
-  // token anywhere in its printed information — EX13 is only 60/77 revealed and the set's
-  // Huckmon-line Digi-Egg (EX13-004) is not yet imported. The route is therefore proven only
-  // negatively: the requirement is published (above) and a Lv.2 Digi-Egg WITHOUT [Huckmon] is
-  // refused. Re-run the positive once the missing Digi-Egg lands.
+  // No matching production egg exists. These explicitly synthetic lookup fixtures
+  // exercise the real route through public hatch/evolution without changing EX13-065.
   // ---------------------------------------------------------------------------
+
+  it.each(["nameEn", "effectText", "inheritedEffectText"] as const)(
+    "takes the cost-one Lv.2 route with synthetic printed %s",
+    async (field) => {
+      const eggId = `TEST-EX13-065-${field}`;
+      const referenceText = getCardDefinition("ST12-04")!.inheritedEffectText!;
+      const inheritedAura = runtimeCompiledCard("ST12-04")!.effects.find((effect) => effect.isInherited)!;
+      const egg: CardDefinition = {
+        ...getCardDefinition(EGG_NO_HUCKMON)!,
+        cardId: eggId,
+        nameEn: "Synthetic Text Egg",
+        effectText: undefined,
+        inheritedEffectText: undefined,
+        [field]: field === "nameEn" ? "Huckmon Test Egg" : referenceText,
+      };
+      syntheticDefinitions.set(eggId, egg);
+      // Reuse the real ST12-04 conditional aura for effect-bearing fixtures. It is
+      // inactive in breeding and does not buff Sistermon Blanc after evolution.
+      registerIrCard(eggId, {
+        effects: field === "nameEn" ? [] : [{ ...inheritedAura, isInherited: field === "inheritedEffectText" }],
+        coverage: "full",
+        residual: [],
+      });
+      const s = setupEngine({
+        0: {
+          eggDeck: [{ card: eggId, as: "egg" }],
+          hand: [{ card: cardId, as: "awakened" }],
+          deck: [{ card: NEUTRAL_LV3, as: "evolutionDraw" }, ...inertDeck],
+        },
+        1: { security: [SENTINEL], deck: inertDeck },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await settle(() => s.state.phase === Phase.Breeding);
+      expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      try {
+        const memoryBefore = s.state.memory;
+        expect(s.perm("egg").topCard.cardId).toBe(eggId);
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("egg").permanentId,
+            instanceId: s.inst("awakened").instanceId,
+            useAlternateCost: true,
+          }),
+        ).toEqual({ ok: true });
+        await settle(
+          () =>
+            s.perm("egg").topCard.cardId === cardId &&
+            s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId),
+        );
+        expect(s.state.memory).toBe(memoryBefore - 1);
+        expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual([eggId]);
+        expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
+        expect(s.state.players[0]!.breeding?.permanentId).toBe(s.perm("egg").permanentId);
+        expect(s.state.players[0]!.battleArea).toHaveLength(0);
+        assertNoLoudGap(s);
+      } finally {
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await turn;
+      }
+    },
+  );
+
+  it("rejects real Lv.3 Huckmon printed text without paying or moving cards", () => {
+    const sourceId = "ST12-04";
+    const s = setupEngine({
+      0: { battleArea: [{ card: sourceId, as: "base" }], hand: [{ card: cardId, as: "awakened" }], deck: inertDeck },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("awakened").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("base").topCard.cardId).toBe(sourceId);
+    expect(s.perm("base").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([cardId]);
+  });
 
   it("refuses a Lv.2 source with no [Huckmon] in its text", () => {
     const s = setupEngine({
