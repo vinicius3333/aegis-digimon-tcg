@@ -199,6 +199,7 @@ export interface PrimitivesEngine {
   ) => Promise<number>;
   /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
+  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
   /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
   finalizeEffectDigivolveCost?: (
     target: Permanent,
@@ -1059,6 +1060,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       effectSourceCardId?: string;
       playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
+      digiXrosMaterialInstanceIdsByPlay?: Record<string, string[]>;
       assemblyMaterialInstanceIds?: string[];
       hostPermanentIds?: Record<string, string>;
     },
@@ -1088,7 +1090,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (continuous.isPlayBlocked(effectSeat, definition, "play", true, originByInstance.get(instanceId))) continue;
       if (opts?.payCost) {
         const requirement = digiXrosRequirementFor(definition.cardId)?.[0];
-        const materialCount = opts.digiXrosMaterialInstanceIds?.length ?? 0;
+        const playMaterials = opts.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts.digiXrosMaterialInstanceIds;
+        const materialCount = playMaterials?.length ?? 0;
         const perMaterialReduction =
           requirement?.count === "∞" ? (requirement.costReduction ?? 1) : (requirement?.count ?? 0);
         const digiXrosReduction = materialCount * perMaterialReduction;
@@ -1127,8 +1130,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         setBreeding(ownerPlayer, permanent);
       }
       created.push(permanent);
-      if ((opts?.digiXrosMaterialInstanceIds?.length ?? 0) > 0) {
-        for (const materialInstanceId of opts!.digiXrosMaterialInstanceIds!) {
+      const playMaterials = opts?.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts?.digiXrosMaterialInstanceIds;
+      if ((playMaterials?.length ?? 0) > 0) {
+        for (const materialInstanceId of playMaterials!) {
           let fieldMaterial: Permanent | undefined;
           for (const candidatePlayer of state.players) {
             fieldMaterial = candidatePlayer.battleArea.find(
@@ -1183,6 +1187,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (opts?.suppressOnPlayEffects !== true) {
         for (const permanent of created) {
           if (permanent.topCard === undefined) continue;
+          const playMaterials =
+            opts?.digiXrosMaterialInstanceIdsByPlay?.[permanent.topCard.instanceId] ??
+            opts?.digiXrosMaterialInstanceIds;
           await engine.fireEnteredByEffect?.(
             EffectTiming.OnPlay,
             permanent.topCard.instanceId,
@@ -1191,9 +1198,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               ...(originByInstance.get(permanent.topCard.instanceId) !== undefined
                 ? { playedFromZone: originByInstance.get(permanent.topCard.instanceId)! }
                 : {}),
-              ...(opts?.digiXrosMaterialInstanceIds !== undefined
-                ? { digiXrosMaterialCount: opts.digiXrosMaterialInstanceIds.length }
-                : {}),
+              ...(playMaterials !== undefined ? { digiXrosMaterialCount: playMaterials.length } : {}),
               ...(opts?.effectSourceCardId !== undefined
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
@@ -6232,6 +6237,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     digiXrosPlayExpansionCount,
     consumeDigiXrosPlayExpansions,
     prepareDigiXrosPlay: async (instanceId) => engine.prepareDigiXrosPlay?.(instanceId) ?? [],
+    prepareDigiXrosPlays: async (instanceIds) => {
+      if (engine.prepareDigiXrosPlays !== undefined) return engine.prepareDigiXrosPlays(instanceIds);
+      const prepared: Record<string, string[]> = {};
+      for (const instanceId of instanceIds)
+        prepared[instanceId] = (await engine.prepareDigiXrosPlay?.(instanceId)) ?? [];
+      return prepared;
+    },
     playToken,
     modifySecurityDp,
     addDeletionMaxDp,

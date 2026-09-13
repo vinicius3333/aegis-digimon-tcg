@@ -386,6 +386,67 @@ describe("EX10-058 Lilithmon", () => {
     expect(s.perm("lilithmon").stack).toHaveLength(2);
   });
 
+  it("shares one use across a public battle deletion and a later public play in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "lilithmon",
+              suspended: true,
+              under: ["BT1-009", "BT1-045", "BT1-009", "BT1-045"],
+            },
+          ],
+          trash: [
+            { card: "BT10-071", as: "firstPayoff" },
+            { card: "BT10-071", as: "secondPayoff" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "BT1-013", as: "laterPlay" }],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+
+    // The opponent's public attack deletes its small attacker against Lilithmon.
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("lilithmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lilithmon").stack.length === 2);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT10-071");
+
+    // The same opponent turn now plays another Digimon. The shared key was spent by the
+    // battle deletion, so this second event must not trash another source or play the second payoff.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laterPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleAcrossTimers(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-013"),
+    );
+    expect(s.perm("lilithmon").stack).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT10-071")).toHaveLength(1);
+    expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "BT10-071")).toHaveLength(1);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("[Once Per Turn] pays once per turn across the real turn loop and resets on the opponent's next turn", async () => {
     const s = setupEngine(
       {

@@ -2931,6 +2931,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     digiXrosPlayExpansionCount: true,
     consumeDigiXrosPlayExpansions: true,
     prepareDigiXrosPlay: true,
+    prepareDigiXrosPlays: true,
     disableSecurityEffect: true,
     disableSecurityEffectsForSeat: true,
     disableTimingEffect: true,
