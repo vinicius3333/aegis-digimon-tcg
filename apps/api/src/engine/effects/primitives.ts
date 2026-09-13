@@ -177,6 +177,8 @@ export interface PrimitivesEngine {
   trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Complete a rule check before an effect-driven digivolution's own timing window. */
+  processRulesBeforeWhenDigivolving?: () => Promise<void>;
   /** Resolve the normal When Digivolving window for a public digivolution-like entry. */
   fireWhenDigivolving?: (seat: Seat, permanent: Permanent, previousLevel?: number) => Promise<void>;
   /** Run the would-digivolve and before-cost windows for effect-driven App Fusion. */
@@ -1330,6 +1332,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
+      processRulesBeforeWhenDigivolving?: boolean;
       suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined> => {
@@ -1501,6 +1504,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // the undefined default false silently skipped the bonus for nearly every card module.
     if (opts?.draw !== false) await draw(seat, 1);
     await opts?.beforeWhenDigivolving?.();
+    if (opts?.processRulesBeforeWhenDigivolving) {
+      await engine.processRulesBeforeWhenDigivolving?.();
+    }
+    // A replacement digivolution can itself be removed by the nested rule check (for
+    // example, a newly evolved Digimon still at 0 DP). Its entry timing cannot activate
+    // after that physical removal; the outer rule pass retains and orders its reactions.
+    if (opts?.processRulesBeforeWhenDigivolving) {
+      if (
+        access.permanentById(permanent.permanentId) !== permanent ||
+        permanent.topCard?.instanceId !== instance.instanceId
+      ) {
+        return permanent;
+      }
+    }
     // The digivolved-into card's OWN [When Digivolving] fires (it was digivolved BY AN EFFECT),
     // with `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate).
     if (opts?.suppressWhenDigivolving !== true) {

@@ -1156,6 +1156,18 @@ export class GameEngine {
       fireSubTrigger: (event, payload, sourceScope) => this.fireSubTrigger(event, payload, sourceScope),
       trashTopSecurityForBarrier: (seat) => this.payBarrierSecurityCost(seat),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
+      processRulesBeforeWhenDigivolving: async () => {
+        await this.recomputeContinuousEffects();
+        if (this.ruleProcessing || this.ruleTriggerPool !== undefined) {
+          // A trash replacement is entered from the active rule pass. Run only the DP
+          // movement processes: the outer pass owns the pooled reactions and its latch.
+          await this.trashNoDpPermanents();
+          await this.deleteZeroDpDigimon();
+        } else {
+          const pool = await this.collectRuleProcessMovements();
+          if (!this.state.gameOver) await this.flushRuleTriggerPool(pool);
+        }
+      },
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         // A selected security card can still be face down in its origin zone.
         // Locate only this instance; do not expose hidden security to timing scans.

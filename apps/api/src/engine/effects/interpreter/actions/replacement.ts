@@ -328,8 +328,10 @@ export async function runReplacement(
           const targetId = subCtx.trigger.deletedPermanentId;
           if (targetId === undefined) return false;
           return (
-            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !==
-            undefined
+            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, {
+              payCost: false,
+              processRulesBeforeWhenDigivolving: true,
+            })) !== undefined
           );
         }
         if (action.playAndRelocateSourceUnder !== undefined) {
