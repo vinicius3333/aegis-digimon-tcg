@@ -318,6 +318,11 @@ describe("BT26-078 compiled behavior", () => {
         s.inst("playedTitan").instanceId,
       );
       expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute")).toBe(false);
+      expect(
+        observe(s.engine)
+          .customEffectGrants(s.perm("playedTitan"))
+          .some(({ token }) => token === "Execute"),
+      ).toBe(false);
     } finally {
       if (s.state.pendingDecision === undefined && s.state.phase === "Main")
         s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
