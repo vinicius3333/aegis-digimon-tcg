@@ -57,7 +57,7 @@ describe("P-235 engine behavior", () => {
       {
         0: {
           hand: [{ card: "P-235", as: "squad" }],
-          deck: [{ card: "AD1-016", as: "dataSquad" }, "BT1-001", "BT1-002"],
+          deck: [{ card: "AD1-016", as: "dataSquad" }, "BT1-009", "BT1-009"],
           battleArea: ["BT1-063"],
         },
       },
@@ -73,7 +73,7 @@ describe("P-235 engine behavior", () => {
 
   it("places itself after resolving its Security reveal", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "P-235", as: "squad" }], deck: ["AD1-016", "BT1-001", "BT1-002"] } },
+      { 0: { security: [{ card: "P-235", as: "squad" }], deck: ["AD1-016", "BT1-009", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

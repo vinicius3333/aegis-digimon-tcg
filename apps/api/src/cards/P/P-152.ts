@@ -84,13 +84,13 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Shoutmon"],
+      namesExact: ["Shoutmon"],
       basePlayCostMax: 4,
       cost: 0,
       isAlternate: true,
     },
     {
-      names: ["Dorulumon"],
+      namesExact: ["Dorulumon"],
       basePlayCostMax: 4,
       cost: 0,
       isAlternate: true,

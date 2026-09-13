@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 // P-250 registers itself on import; `../index.js` supplies every peer module the fixtures use.
 // (`../index.js` does not list P-250 yet — wiring it in is a coordinator-owned step.)
@@ -114,34 +114,63 @@ describe("P-250 Ogremon (X Antibody)", () => {
     });
   });
 
-  it("digivolves a [Demon] Lv.3 into the trash copy at five hand cards and pays the Purple Lv.3 cost", async () => {
+  it("digivolves the trash copy at a natural owner-turn end and pays the Purple Lv.3 cost", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT3-078", as: "demon" }],
-          hand: [...HAND_FIVE],
-          deck: ["BT3-076", "BT3-076"],
+          hand: [{ card: "BT3-076", as: "grantCost" }, ...HAND_FIVE.slice(1)],
+          deck: Array.from({ length: 20 }, () => "BT3-076"),
           trash: [{ card: "P-250", as: "ogremonX" }],
+          security: Array.from({ length: 5 }, () => "BT3-076"),
+        },
+        1: {
+          hand: [{ card: "BT3-076", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT3-076"),
+          security: Array.from({ length: 5 }, () => "BT3-076"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const baseId = s.perm("demon").topCard.instanceId;
-    s.state.memory = 3;
+    const hostId = s.perm("demon").permanentId;
+    const sourceId = s.inst("ogremonX").instanceId;
+    // The voluntary pass frames the outgoing turn at -3 before its EndOfYourTurn window;
+    // the exact memoryChanged receipt below proves the normal Purple Lv.3 payment.
+    s.state.memory = 6;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("ogremonX"));
-    await settle(() => s.perm("demon").topCard.instanceId === s.inst("ogremonX").instanceId);
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    let evolvedAtNaturalEnd = false;
+    // This is a real EndOfYourTurn proof: the source is collected from the trash during the
+    // natural boundary and pays the ordinary Purple Lv.3 cost against the outgoing gauge.
+    await settle(() => {
+      if (s.perm("demon").topCard.instanceId === sourceId) evolvedAtNaturalEnd = true;
+      return evolvedAtNaturalEnd;
+    });
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("demon").topCard.cardId).toBe("P-250");
     expect(s.perm("demon").stack.map((card) => card.instanceId)).toEqual([baseId]);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("ogremonX").instanceId);
-    // Purple Lv.3 -> P-250 costs 3 memory; the printed text grants no waiver.
-    expect(s.state.memory).toBe(0);
+    expect(s.perm("demon").permanentId).toBe(hostId);
+    expect(s.perm("demon").topCard.instanceId).toBe(sourceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(sourceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("grantCost").instanceId);
+    // Purple Lv.3 -> P-250 costs 3 memory; the printed text grants no waiver. The event
+    // receipt is sampled after the natural window, so it does not depend on a transient gauge.
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: -3, to: -6, reason: "digivolve" });
     // 5 in hand, +1 from the digivolution draw, -1 trashed for the [When Digivolving] grant cost.
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(observe(s.engine).hasKeyword(s.perm("demon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("demon"), "Retaliation")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("refuses the trash digivolve at six hand cards — the boundary is 5 or fewer", async () => {
@@ -399,49 +428,122 @@ describe("P-250 Ogremon (X Antibody)", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
   });
 
-  it("spends the shared Once Per Turn use: the second timing in the same turn grants nothing", async () => {
+  it("shares one use across digivolving and attacking, then resets after a natural turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "P-250", as: "ogremonX", under: ["BT3-078"] },
+            { card: "BT11-051", as: "host" },
             { card: "BT3-078", as: "demon" },
             { card: "BT1-057", as: "shaman" },
           ],
           hand: [
+            { card: "P-250", as: "ogremonX" },
             { card: "BT3-076", as: "firstFodder" },
             { card: "BT3-076", as: "secondFodder" },
           ],
-          deck: ["BT3-076", "BT3-076"],
+          deck: [{ card: "BT3-076", as: "evolutionDraw" }, ...Array.from({ length: 19 }, () => "BT3-076")],
+          security: Array.from({ length: 5 }, () => "BT3-076"),
         },
-        1: { security: 1, deck: ["BT3-076"] },
+        1: {
+          hand: [{ card: "BT3-076", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT3-076"),
+          security: Array.from({ length: 5 }, () => "BT3-076"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("demon").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
     await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("ogremonX"));
+    const hostId = s.perm("host").permanentId;
+    const baseId = s.inst("host").instanceId;
+    const sourceId = s.inst("ogremonX").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.perm("demon").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: sourceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("demon"), "Retaliation"));
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.perm("host").topCard.instanceId).toBe(sourceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([baseId]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstFodder").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstFodder").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("demon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("demon"), "Retaliation")).toBe(true);
 
-    preferred.length = 0;
-    preferred.push(s.perm("shaman").topCard.instanceId);
+    const finishAttack = async (securityCount: number): Promise<void> => {
+      await settle(
+        () =>
+          s.events.filter((event) => event.kind === "securityChecked").length === securityCount &&
+          s.state.pendingDecision === undefined &&
+          !observe(s.engine).isAttacking(),
+      );
+      expect(s.perm("host").permanentId).toBe(hostId);
+      expect(s.perm("host").topCard.instanceId).toBe(sourceId);
+      expect(s.perm("host").stack.some((card) => card.instanceId === baseId)).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    };
+
+    await advance(s.engine).verb.unsuspend([hostId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("ogremonX").permanentId,
+        attackerPermanentId: hostId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    await settle();
+    await finishAttack(1);
 
-    // Same physical card, different timing — one shared per-turn use, already spent.
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(s.perm("shaman").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await finishAttack(2);
     expect(observe(s.engine).hasKeyword(s.perm("shaman"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("shaman"), "Retaliation")).toBe(false);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondFodder").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("secondFodder").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    preferred.length = 0;
+    preferred.push(s.perm("shaman").topCard.instanceId);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await finishAttack(3);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(observe(s.engine).hasKeyword(s.perm("shaman"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("shaman"), "Retaliation")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondFodder").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("keeps both grants through the opponent's turn and drops them when that turn ends", async () => {
@@ -480,7 +582,7 @@ describe("P-250 Ogremon (X Antibody)", () => {
   it("inherits On Deletion: deletes an opposing play-cost-6-or-less Digimon and spares a dearer one", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT3-084", as: "host", under: ["P-250"] }] },
+        0: { battleArea: [{ card: "BT3-084", as: "host", under: [{ card: "P-250", as: "source" }] }] },
         1: {
           battleArea: [
             { card: "BT3-078", as: "cheap" },
@@ -493,14 +595,17 @@ describe("P-250 Ogremon (X Antibody)", () => {
     const cheapId = s.perm("cheap").permanentId;
     const cheapInstanceId = s.inst("cheap").instanceId;
     const dearId = s.perm("dear").permanentId;
+    const sourceId = s.inst("source").instanceId;
+    const hostId = s.perm("host").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapId));
 
     // BT3-078 play cost 3 is deletable; BT1-080 play cost 10 is not a legal choice.
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([dearId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(cheapInstanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sourceId);
   });
 
   it("does not fire the inherited On Deletion when no opposing Digimon costs 6 or less", async () => {

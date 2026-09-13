@@ -18,6 +18,7 @@ const tuckAndReturn: Action = {
     },
     destination: "digivolutionStack",
     targetIsPermanent: true,
+    shedOwnCards: true,
     position: "bottom",
     host: "target",
     raw: "by placing this Digimon under another Digimon with Seadramon in its text",
@@ -116,7 +117,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Betamon", "ModokiBetamon"], cost: 2, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Betamon", "ModokiBetamon"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("P-214", compiled);

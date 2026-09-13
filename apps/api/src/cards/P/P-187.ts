@@ -19,12 +19,13 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      actions: [],
-      keywords: [
+      actions: [
         {
-          keyword: "Recovery",
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
           amount: 1,
-          raw: "＜Recovery +1 (Deck)＞",
         },
       ],
     },
@@ -38,11 +39,13 @@ const compiled: CompiledCard = {
           amount: 1,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "any",
                 excludeSelf: true,
                 kind: ["Digimon", "Tamer"],
+                zone: "battleArea",
               },
               count: 1,
             },

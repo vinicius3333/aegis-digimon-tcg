@@ -15,7 +15,7 @@ describe("P-022 DNA Digivolution-Hearts United", () => {
             { card: "BT3-050", as: "stingmon" },
             { card: "BT3-027", as: "paildramon" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },

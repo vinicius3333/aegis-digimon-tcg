@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Zone } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-052.js";
 
 type EngineInternals = {
@@ -128,7 +129,7 @@ describe("P-052 Vikemon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
 
-    const addedSource = s.give(1, Zone.Hand, "BT1-001");
+    const addedSource = s.give(1, Zone.Hand, "BT1-009");
     await (s.engine as unknown as EngineInternals).primitives.placeUnder(s.perm("target").permanentId, [
       addedSource.instanceId,
     ]);
@@ -174,12 +175,19 @@ describe("P-052 Vikemon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-052", as: "attacker" }] },
+        0: {
+          battleArea: [{ card: "P-052", as: "attacker" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-009", "BT1-010"],
+        },
         1: {
-          security: ["BT1-028", "BT1-028"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-009", "BT1-010"],
+          security: ["BT1-028", "BT1-028", "BT1-028"],
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
+            { card: "BT1-011", as: "third" },
           ],
         },
       },
@@ -188,7 +196,11 @@ describe("P-052 Vikemon", () => {
     preferred.push(s.perm("first").topCard!.instanceId);
     const firstTopId = s.perm("first").topCard!.instanceId;
     const secondPermanentId = s.perm("second").permanentId;
+    const thirdPermanentId = s.perm("third").permanentId;
+    const thirdTopId = s.perm("third").topCard!.instanceId;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -203,7 +215,7 @@ describe("P-052 Vikemon", () => {
     await settle(
       () =>
         s.state.players[1]!.hand.some((card) => card.instanceId === firstTopId) &&
-        s.state.players[1]!.security.length === 1,
+        s.state.players[1]!.security.length === 2,
     );
 
     await (
@@ -218,8 +230,34 @@ describe("P-052 Vikemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondPermanentId)).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    preferred.push(s.perm("third").topCard!.instanceId);
+    await (
+      s.engine as unknown as { primitives: { unsuspend(permanentIds: string[]): Promise<void> } }
+    ).primitives.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === thirdTopId) &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === thirdPermanentId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

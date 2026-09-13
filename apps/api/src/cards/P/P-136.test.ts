@@ -64,4 +64,68 @@ describe("P-136 Arisa Kinosaki", () => {
     await settle();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("arisa").instanceId)).toBe(true);
   });
+
+  it("uses the Puppet watcher once per turn and resets on the next natural turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-136", as: "arisa" },
+            { card: "BT3-033", as: "host1" },
+            { card: "BT3-033", as: "host2" },
+            { card: "BT3-033", as: "host3" },
+          ],
+          hand: [
+            { card: "BT13-039", as: "puppet1" },
+            { card: "BT13-039", as: "puppet2" },
+            { card: "BT13-039", as: "puppet3" },
+            { card: "BT3-033", as: "spare" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const digivolve = async (host: string, card: string) => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(host).permanentId,
+          instanceId: s.inst(card).instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.perm(host).topCard.instanceId === s.inst(card).instanceId && s.state.pendingDecision === undefined,
+      );
+      expect(s.perm(host).stack.map(({ instanceId }) => instanceId)).toEqual([s.inst(host).instanceId]);
+    };
+
+    await digivolve("host1", "puppet1");
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("arisa").isSuspended).toBe(true);
+    const memoryAfterFirst = s.state.memory;
+    await advance(s.engine).verb.unsuspend([s.perm("arisa").permanentId]);
+    await digivolve("host2", "puppet2");
+    expect(s.perm("arisa").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(memoryAfterFirst - 3);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const memoryBeforeThird = s.state.memory;
+    await digivolve("host3", "puppet3");
+    expect(s.perm("arisa").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(memoryBeforeThird - 2);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

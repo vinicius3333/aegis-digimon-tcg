@@ -17,7 +17,7 @@ describe("P-076 Deltamon", () => {
             { card: "BT1-009", as: "first", dp: 3000 },
             { card: "BT1-014", as: "second", dp: 3000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -59,7 +59,7 @@ describe("P-076 Deltamon", () => {
         0: {
           battleArea: [{ card: "P-076", as: "deltamon" }],
           hand: [{ card: "BT8-084", as: "kimeramon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true },

@@ -8,9 +8,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     only red Digimon are legal <Delay> digivolve targets (Q4188).
 //   - Marked the Digivolve `optional: true` — the <Delay> "1 of your Digimon MAY digivolve",
 //     and Q4191 confirms the controller may choose not to digivolve.
-//   - Added `costDelta: -2`. NOTE: runDigivolve does not
-//     yet apply costDelta (documented v1 limitation), so the reduction is not realized;
-//     P-103.test.ts keeps that assertion as it.fails until digivolveFromInstance honors it.
+//   - Added `costDelta: -2`; the compiled digivolve path applies this reduction when the
+//     delayed digivolution is paid.
 //   - Dropped the first [Main] clause's `Return{zone:"trash"}` action: it has no basis in the
 //     printed text or the documented behavior `SimplifiedRevealDeckTopCardsAndSelect` + `PlaceDelayOptionCards`
 //     pair — the reveal is followed directly by self-placement, nothing returns from trash.

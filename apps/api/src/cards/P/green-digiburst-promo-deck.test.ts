@@ -24,7 +24,7 @@ describe("Green Digi-Burst promo deck", () => {
         },
         1: {
           security: ["BT1-083", "BT1-084", "BT1-085"],
-          deck: ["BT1-001"],
+          deck: ["BT1-067"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

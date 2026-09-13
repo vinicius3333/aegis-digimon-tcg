@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./P-245.js";
 
 /**
@@ -107,6 +108,103 @@ describe("P-245 Kakkinmon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.perm("blocker").isSuspended).toBe(true);
+  });
+
+  it("uses one exact egg source through own, opponent, and next-own end windows", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-060", as: "host", under: [{ card: "P-245", as: "source" }] },
+            { card: "BT5-061", as: "blocker" },
+          ],
+          hand: [{ card: "BT3-059", as: "playableFirst" }, "BT3-059", "BT3-059", "BT3-059", "BT3-059"],
+          deck: [
+            { card: "BT3-059", as: "drawnOwn" },
+            { card: "BT3-059", as: "drawnOpponent" },
+            { card: "BT3-059", as: "naturalNextOwn" },
+            { card: "BT3-059", as: "drawnNextOwn" },
+            ...Array.from({ length: 16 }, () => "BT3-059"),
+          ],
+          security: Array.from({ length: 5 }, () => "BT3-059"),
+        },
+        1: {
+          hand: [{ card: "BT3-059", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT3-059"),
+          security: Array.from({ length: 5 }, () => "BT3-059"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.inst("source").instanceId;
+    const loop = s.engine.startTurnLoop();
+    const assertSourceAndWindow = (): void => {
+      expect(s.perm("host").permanentId).toBe(hostId);
+      expect(s.perm("host").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    };
+
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnOwn").instanceId)).toBe(true);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    assertSourceAndWindow();
+
+    await advance(s.engine).verb.unsuspend([s.perm("blocker").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    let secondWindowPaid = false;
+    await settle(() => {
+      if (
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnOpponent").instanceId) &&
+        s.perm("blocker").isSuspended
+      ) {
+        secondWindowPaid = true;
+      }
+      return secondWindowPaid;
+    });
+    expect(secondWindowPaid).toBe(true);
+    assertSourceAndWindow();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnOpponent").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("naturalNextOwn").instanceId)).toBe(true);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    assertSourceAndWindow();
+
+    expect(observe(s.engine).hasAnyMainPhaseAction(0)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playableFirst").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("playableFirst").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnNextOwn").instanceId) &&
+        s.perm("blocker").isSuspended,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnNextOwn").instanceId)).toBe(true);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    assertSourceAndWindow();
+
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 
   it("pays only with a black ＜Blocker＞, leaving a black non-blocker and a purple blocker alone", async () => {
@@ -263,70 +361,84 @@ describe("P-245 Kakkinmon", () => {
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("undrawn").instanceId)).toBe(true);
   });
 
-  it("draws only once per turn even when the end-of-turn window fires twice", async () => {
+  it("keeps the inherited clause inactive in breeding, then fires after a public move", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT3-060", as: "host", under: ["P-245"] },
-            { card: "BT5-061", as: "first" },
-            { card: "ST5-03", as: "second" },
-          ],
-          deck: [{ card: "BT3-059", as: "drawn" }, { card: "BT3-059", as: "undrawn" }, "BT3-059"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-    await s.ready();
-
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle();
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle();
-
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
-    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("undrawn").instanceId)).toBe(true);
-  });
-
-  it("keeps the inherited clause after a real breeding digivolution onto the egg", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "P-245", as: "egg" },
-          hand: [{ card: "BT3-060", as: "evolving" }],
+          eggDeck: [{ card: "P-245", as: "egg" }],
+          hand: [{ card: "BT5-061", as: "evolving" }, "BT3-059", "BT3-059", "BT3-059", "BT3-059", "BT3-059"],
           battleArea: [{ card: "BT5-061", as: "blocker" }],
-          deck: [{ card: "BT3-059", as: "drawn" }, "BT3-059"],
+          deck: [
+            { card: "BT3-059", as: "evolutionDraw" },
+            { card: "BT3-059", as: "naturalNextOwn" },
+            { card: "BT3-059", as: "inheritedDraw" },
+            "BT3-059",
+          ],
+          security: Array.from({ length: 5 }, () => "BT3-059"),
+        },
+        1: {
+          hand: [{ card: "BT3-059", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT3-059"),
+          security: Array.from({ length: 5 }, () => "BT3-059"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 0;
-    s.state.memory = 3;
+    s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.engine.applyIntent(0, { type: "hatchEgg" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "P-245");
+    const eggInstanceId = s.state.players[0]!.breeding!.topCard!.instanceId;
+    const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
+    expect(s.state.players[0]!.eggDeck).toHaveLength(0);
 
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
+        permanentId: eggPermanentId,
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard?.cardId === "BT3-060");
-    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["P-245"]);
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT5-061");
+    expect(s.state.players[0]!.breeding!.stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("evolving").instanceId);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("naturalNextOwn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("inheritedDraw").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
 
-    s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
-      ok: true,
-    });
-    await settle(() => !s.perm("egg").inBreeding);
-    s.state.phase = Phase.Main;
+    await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("naturalNextOwn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("inheritedDraw").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: eggPermanentId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === eggPermanentId));
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.perm("egg").topCard?.cardId).toBe("BT5-061");
+    expect(s.perm("egg").stack.map((card) => card.instanceId)).toEqual([eggInstanceId]);
 
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle();
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("inheritedDraw").instanceId));
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("naturalNextOwn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("inheritedDraw").instanceId)).toBe(true);
     expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.perm("egg").permanentId).toBe(eggPermanentId);
+    expect(s.perm("egg").stack.map((card) => card.instanceId)).toContain(eggInstanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 });

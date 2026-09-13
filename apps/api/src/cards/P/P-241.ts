@@ -79,11 +79,10 @@ const compiled: CompiledCard = {
                   ],
                 },
                 count: 1,
+                sameTarget: true,
               },
               amount: 3000,
               duration: "forTheTurn",
-              optional: true,
-              abortOnDecline: true,
             },
             {
               kind: "AppFuse",

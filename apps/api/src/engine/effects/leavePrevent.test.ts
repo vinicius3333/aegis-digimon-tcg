@@ -353,7 +353,7 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     expect(log).toEqual(["prevent", "instead"]);
   });
 
-  it("a successful prevent suppresses only later prevent candidates", async () => {
+  it("allows each eligible prevent candidate to pay for the same leave event", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source");
     const log: string[] = [];
@@ -370,7 +370,7 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
         },
       });
     await h.consult([source.permanentId]);
-    expect(log).toEqual(["first"]);
+    expect(log).toEqual(["first", "second"]);
   });
 
   it("a failed or declined prevent permits the next prevent candidate", async () => {

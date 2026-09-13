@@ -11,7 +11,7 @@ describe("P-063 Ruli Tsukiyono", () => {
           { card: "BT10-051", as: "attacker", under: ["P-060"] },
         ],
       },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     const printedDP = s.perm("attacker").baseDP;
 
@@ -68,7 +68,7 @@ describe("P-063 Ruli Tsukiyono", () => {
             { card: "BT10-051", as: "attacker", under: ["P-060"] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );
@@ -95,7 +95,7 @@ describe("P-063 Ruli Tsukiyono", () => {
             { card: "BT10-054", as: "attacker", under: ["BT10-051"] },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
     );

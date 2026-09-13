@@ -16,8 +16,8 @@ describe("Security promo gauntlet", () => {
       {
         0: {
           deck: [
-            { card: "BT1-001", as: "firstDraw" },
-            { card: "BT1-002", as: "secondDraw" },
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-009", as: "secondDraw" },
             { card: "BT2-052", as: "blackReveal" },
           ],
           trash: [{ card: "BT2-069", as: "purpleRookie" }],
@@ -51,7 +51,6 @@ describe("Security promo gauntlet", () => {
           attackerPermanentId: s.perm(`attacker${index}`).permanentId,
           target: { kind: "player" },
         }),
-        promos[index],
       ).toEqual({ ok: true });
       await settle(
         () =>

@@ -96,7 +96,7 @@ describe("P-159 Rook Device", () => {
             { card: "BT19-062", as: "attacker" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

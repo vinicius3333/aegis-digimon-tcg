@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -34,24 +32,43 @@ describe("P-192 Bakemon", () => {
 
 describe("P-192 engine behavior", () => {
   it("exposes inherited Retaliation on a real evolution stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-192"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-076", as: "host", under: ["P-192"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
 
-  it("trashes a hand card and deletes an opposing Digimon when digivolving", async () => {
+  it("publicly pays the evolution cost, preserves its source, and deletes an opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-192", as: "demidevimon" }], hand: [{ card: "BT1-001", as: "cost" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        0: {
+          battleArea: [{ card: "BT10-071", as: "host" }],
+          hand: [
+            { card: "P-192", as: "demidevimon" },
+            { card: "ST1-16", as: "cost" },
+          ],
+          deck: Array(20).fill("BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], deck: Array(20).fill("BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const hostPermanentId = s.perm("host").permanentId;
+    const sourceInstanceId = s.inst("host").instanceId;
+    s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("demidevimon"));
-    await settle();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostPermanentId,
+        instanceId: s.inst("demidevimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("demidevimon").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 5, to: 3, reason: "digivolve" });
+    expect(s.perm("host").permanentId).toBe(hostPermanentId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceInstanceId]);
   });
 });
 describe("P-192 engine behavior", () => {
@@ -61,7 +78,7 @@ describe("P-192 engine behavior", () => {
         0: {
           hand: [
             { card: "P-192", as: "demidevimon" },
-            { card: "BT1-001", as: "cost" },
+            { card: "ST1-16", as: "cost" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },

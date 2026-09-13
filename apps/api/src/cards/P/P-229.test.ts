@@ -74,7 +74,7 @@ describe("P-229 engine behavior", () => {
       {
         0: {
           hand: [{ card: "P-229", as: "emblem" }],
-          deck: [{ card: "BT1-038", as: "puppet" }, { card: "BT18-060", as: "liberator" }, "BT1-001"],
+          deck: [{ card: "BT1-038", as: "puppet" }, { card: "BT18-060", as: "liberator" }, "BT1-009"],
           battleArea: ["BT1-009", "BT1-037", "BT1-063", "BT1-088", "P-016", "ST6-03", "BT1-084"],
         },
       },
@@ -93,7 +93,7 @@ describe("P-229 engine behavior", () => {
 
   it("runs its Puppet/LIBERATOR reveal when checked from Security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "P-229", as: "emblem" }], deck: ["BT1-038", "BT18-060", "BT1-001"] } },
+      { 0: { security: [{ card: "P-229", as: "emblem" }], deck: ["BT1-038", "BT18-060", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();

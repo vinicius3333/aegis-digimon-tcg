@@ -63,10 +63,8 @@ const compiled: CompiledCard = {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                {
-                  tokens: ["Leomon", "X Antibody"],
-                  match: "name",
-                },
+                { tokens: ["Leomon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[Leomon]/[X Antibody] is in this Digimon's digivolution cards",
@@ -92,10 +90,8 @@ const compiled: CompiledCard = {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                {
-                  tokens: ["Leomon", "X Antibody"],
-                  match: "name",
-                },
+                { tokens: ["Leomon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[Leomon]/[X Antibody] is in this Digimon's digivolution cards",

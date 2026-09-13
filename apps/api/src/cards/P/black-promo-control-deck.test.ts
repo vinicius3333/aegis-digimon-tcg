@@ -22,7 +22,7 @@ describe("Black/red promo control deck", () => {
             { card: "BT1-009", dp: 3000 },
             { card: "BT1-014", dp: 3000 },
           ],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

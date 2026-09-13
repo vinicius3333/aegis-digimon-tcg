@@ -2,10 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5135: "my opponent chose this card as the target to return to the hand"
-// — singular target. "[When Digivolving] Return 1 of your opponent's level 3,
-// level 4 and level 5 to the hand" means return 1 card from among those levels
-// (levels:[3,4,5] union), not one card per level.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -16,22 +12,20 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        {
-          kind: "Return",
-          target: {
-            filter: { controller: "opponent", levels: [3, 4, 5] },
-            count: 1,
-          },
-          to: "hand",
-        },
+        // These queued actions all resolve before the effect settles; each level
+        // has its own one-card quota, preserving the printed one-each requirement.
+        ...([3, 4, 5] as const).map((level) => ({
+          kind: "Return" as const,
+          target: { filter: { controller: "opponent" as const, levels: [level] }, count: 1 },
+          to: "hand" as const,
+        })),
       ],
     },
     {
       // [End of Attack] By placing this Digimon's top card as your top security card,
       // unsuspend this Digimon or Tamer.
-      // The cost moves the top digivolution card from the source Digimon's stack to
-      // the top of the owner's security stack. This requires capability:
-      // placeOwnTopDigivolutionCardAsSecurity (see engine-todo/LANE_E.md).
+      // The existing detachPermanentTop seam promotes the visible top card from
+      // this permanent to the top of its owner's security stack.
       trigger: "EndOfAttack",
       actions: [
         {
@@ -60,13 +54,14 @@ const compiled: CompiledCard = {
           ],
           cost: {
             kind: "place",
+            targetIsPermanent: true,
+            detachPermanentTop: true,
             destination: "security",
             position: "top",
             target: {
               filter: { isSelfRef: true },
               count: 1,
               isSelf: true,
-              from: ["digivolutionCards"],
             },
             raw: "By placing this Digimon's top card as your top security card",
           },

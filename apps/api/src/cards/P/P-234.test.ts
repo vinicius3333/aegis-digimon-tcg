@@ -64,7 +64,7 @@ describe("P-234 Yujin Ozora", () => {
 describe("P-234 engine behavior", () => {
   it("reveals four cards and adds one System/Life/Transmutation-family card on play", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "P-234", as: "yujin" }], deck: ["BT21-047", "BT1-001", "BT1-002", "BT1-003"] } },
+      { 0: { hand: [{ card: "P-234", as: "yujin" }], deck: ["BT21-047", "BT1-009", "BT1-028", "BT1-048"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;

@@ -27,7 +27,7 @@ describe("P-131 Pteromon", () => {
   });
 
   it("gives its inherited host +2000 DP on your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", dp: 3000, as: "host", under: ["P-131"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-069", dp: 3000, as: "host", under: ["P-131"] }] } });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(5000);
     assertNoLoudGap(s);

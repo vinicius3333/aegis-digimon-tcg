@@ -112,7 +112,7 @@ describe("P-095 Pause Plug-In P", () => {
         1: {
           battleArea: [{ card: "BT1-075", dp: 12000, as: "affectedHost" }],
           hand: [{ card: "P-090", as: "evolver" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true },

@@ -190506,7 +190506,7 @@
   "P-004": {
     "effects": [
       {
-        "trigger": "AllTurns",
+        "trigger": "YourTurn",
         "isInherited": true,
         "actions": [
           {
@@ -190522,7 +190522,8 @@
             ],
             "raw": "[Inherited] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory."
           }
-        ]
+        ],
+        "frequency": "OncePerTurn"
       }
     ],
     "coverage": "full",
@@ -191448,7 +191449,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DanDevimon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
@@ -192230,7 +192231,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Hiro Amanokawa"], "match": "nameExact" }]
               },
               "raw": "you have a [Hiro Amanokawa] in play"
             }
@@ -192255,7 +192256,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Ruli Tsukiyono"], "match": "nameExact" }]
               },
               "raw": "you have a [Ruli Tsukiyono] in play"
             }
@@ -192282,7 +192283,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Kiyoshiro Higashimitarai"], "match": "nameExact" }]
               },
               "raw": "you have a [Kiyoshiro Higashimitarai] in play"
             }
@@ -193127,7 +193128,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "name" }] },
+            "sourceFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "nameExact" }] },
             "cost": {
               "kind": "suspend",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -193312,7 +193313,7 @@
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "condition": {
                   "kind": "selfDigivolutionStackHasTrait",
-                  "filter": { "nameOrTrait": [{ "tokens": ["Angoramon"], "match": "name" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Angoramon"], "match": "nameExact" }] },
                   "raw": "[Angoramon] is in this Digimon's digivolution cards"
                 }
               }
@@ -193367,14 +193368,17 @@
             "event": "whenPlayed",
             "sourceFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "nameExact" }]
             },
             "actions": [
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": {
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "nameExact" }]
+                  },
                   "count": 1
                 },
                 "payCost": 3,
@@ -193393,14 +193397,17 @@
             "event": "whenPlayed",
             "sourceFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Groundramon"], "match": "nameExact" }]
             },
             "actions": [
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": {
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Wingdramon"], "match": "nameExact" }]
+                  },
                   "count": 1
                 },
                 "payCost": false,
@@ -193470,7 +193477,7 @@
             "upTo": true,
             "scaling": {
               "per": 1,
-              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }] },
               "unit": "digivolutionCards",
               "budgetAdd": 1
             }
@@ -193487,7 +193494,7 @@
             "upTo": true,
             "scaling": {
               "per": 1,
-              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }] },
               "unit": "digivolutionCards",
               "budgetAdd": 1
             }
@@ -193512,7 +193519,7 @@
                       "zone": "digivolutionCards",
                       "controller": "mine",
                       "sameHost": true,
-                      "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }],
+                      "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }],
                       "hostFilter": {
                         "controller": "mine",
                         "kind": ["Digimon"],
@@ -194297,7 +194304,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["trash"],
@@ -194313,7 +194323,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Veemon", "Wormmon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -194395,14 +194408,17 @@
             "revealCount": 3,
             "add": [
               {
-                "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "name" }] },
+                "filter": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }]
+                },
                 "count": 1,
                 "to": "hand"
               },
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Menoa Bellucci"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Menoa Bellucci"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -194413,7 +194429,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Menoa Bellucci"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Menoa Bellucci"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand"],
@@ -194425,7 +194444,7 @@
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "target",
-              "underFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "name" }] },
+              "underFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }] },
               "raw": "by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card"
             },
             "optional": true,
@@ -194442,13 +194461,16 @@
             "sourceFilter": {
               "controllerDefault": "mine",
               "excludeSelf": true,
-              "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }]
             },
             "actions": [
               {
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "name" }] },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }]
+                },
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCost": 3,
@@ -194538,7 +194560,10 @@
                   "raise": 2,
                   "per": 1,
                   "unit": "cards",
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
+                  },
                   "raw": "For each of your [Diaboromon], add 2 to this effect's play cost maximum."
                 },
                 "optional": true
@@ -194965,7 +194990,7 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon"], "match": "name" }] },
+                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Veemon"], "match": "nameExact" }] },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -194977,7 +195002,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["ExVeemon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["ExVeemon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
@@ -195033,7 +195061,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Wormmon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Wormmon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195045,7 +195076,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Stingmon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["Stingmon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
@@ -195101,7 +195135,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Hawkmon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Hawkmon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195115,7 +195152,7 @@
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Aquilamon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Aquilamon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
@@ -195168,7 +195205,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Salamon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Salamon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195180,7 +195220,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Gatomon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["Gatomon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
@@ -195238,7 +195281,7 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Armadillomon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Armadillomon"], "match": "nameExact" }]
                     },
                     "count": 1
                   },
@@ -195253,7 +195296,7 @@
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Ankylomon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Ankylomon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
@@ -195306,7 +195349,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Patamon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Patamon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -195318,7 +195364,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Angemon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["Angemon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
@@ -195457,7 +195506,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Shoto Kazama"], "match": "nameExact" }]
               },
               "raw": "you have [Shoto Kazama]"
             }
@@ -195488,7 +195537,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pteromon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Pteromon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -195604,7 +195653,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Arisa Kinosaki"], "match": "nameExact" }]
               },
               "raw": "you have [Arisa Kinosaki]"
             }
@@ -195636,7 +195685,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoemon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shoemon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -195813,7 +195862,12 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } },
             "while": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Leomon", "X Antibody"], "match": "name" }] },
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Leomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
               "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
             }
           },
@@ -195823,7 +195877,12 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Fortitude", "raw": "＜Fortitude＞" } },
             "while": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Leomon", "X Antibody"], "match": "name" }] },
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Leomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
               "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
             }
           }
@@ -196029,8 +196088,8 @@
             "duration": "permanent",
             "condition": {
               "kind": "selfLacksInDigivolutionCards",
-              "filter": { "nameOrTrait": [{ "tokens": ["Gotsumon"], "match": "name" }] },
-              "raw": "this Digimon has no [Gotsumon] name in its digivolution cards"
+              "filter": { "nameOrTrait": [{ "tokens": ["Gotsumon", "X Antibody"], "match": "nameExact" }] },
+              "raw": "this Digimon has no [Gotsumon] or [X Antibody] name in its digivolution cards"
             }
           }
         ]
@@ -196129,8 +196188,8 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "or": [
-                  { "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "name" }] },
-                  { "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "trait" }] }
+                  { "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "nameExact" }] },
+                  { "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "nameExact" }] }
                 ]
               },
               "raw": "[Myotismon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -196169,7 +196228,8 @@
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "forTheTurn"
           }
-        ]
+        ],
+        "isSecurity": true
       },
       {
         "trigger": "Main",
@@ -196188,20 +196248,26 @@
             "kind": "Replacement",
             "event": "wouldBeDeleted",
             "leaveCause": "byBattle",
+            "mode": "prevent",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Prevent",
                 "cost": {
                   "kind": "place",
+                  "destination": "security",
+                  "position": "bottom",
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Reload Plug-In Q"], "match": "trait" }]
+                      "kind": ["Option"],
+                      "zone": "digivolutionCards",
+                      "sameHost": true,
+                      "hostFilter": { "isSelfRef": true },
+                      "nameOrTrait": [{ "tokens": ["Reload Plug-In Q"], "match": "nameExact" }]
                     },
                     "count": 1,
-                    "from": ["security", "digivolutionCards"]
+                    "from": ["digivolutionCards"]
                   },
                   "raw": "by placing 1 [Reload Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack"
                 },
@@ -196212,38 +196278,6 @@
           }
         ],
         "isInherited": true
-      },
-      {
-        "trigger": "AllTurns",
-        "actions": [
-          {
-            "kind": "Replacement",
-            "event": "wouldBeDeleted",
-            "leaveCause": "byBattle",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Prevent",
-                "cost": {
-                  "kind": "place",
-                  "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["Recharge Plug-In Q"], "match": "name" }]
-                    },
-                    "count": 1,
-                    "from": ["security", "digivolutionCards"]
-                  },
-                  "raw": "by placing 1 [Recharge Plug-In Q] from this Digimon's digivolution cards at the bottom of your security stack"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
-          }
-        ],
-        "isSecurity": true
       }
     ],
     "coverage": "full",
@@ -196536,8 +196570,8 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Shoutmon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true },
-      { "names": ["Dorulumon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true }
+      { "namesExact": ["Shoutmon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true },
+      { "namesExact": ["Dorulumon"], "basePlayCostMax": 4, "cost": 0, "isAlternate": true }
     ],
     "digiXrosRequirement": [
       { "materials": [{ "names": ["Shoutmon"] }], "count": 1 },
@@ -196552,7 +196586,17 @@
         "actions": [
           {
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "levels": [3, 4, 5] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "levels": [3] }, "count": 1 },
+            "to": "hand"
+          },
+          {
+            "kind": "Return",
+            "target": { "filter": { "controller": "opponent", "levels": [4] }, "count": 1 },
+            "to": "hand"
+          },
+          {
+            "kind": "Return",
+            "target": { "filter": { "controller": "opponent", "levels": [5] }, "count": 1 },
             "to": "hand"
           }
         ]
@@ -196569,9 +196613,11 @@
             ],
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
+              "detachPermanentTop": true,
               "destination": "security",
               "position": "top",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["digivolutionCards"] },
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By placing this Digimon's top card as your top security card"
             },
             "optional": true,
@@ -196599,11 +196645,13 @@
               "nameOrTrait": [{ "tokens": ["Knightmon"], "match": "text" }]
             },
             "leaveCause": "byOpponentEffect",
+            "affectsAll": true,
             "actions": [],
             "cost": {
               "kind": "place",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "triggerSource",
@@ -196634,7 +196682,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Pawn Device"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Pawn Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Pawn Device]"
             }
@@ -196842,7 +196890,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Rook Device"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Rook Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Rook Device]"
             }
@@ -196945,7 +196993,7 @@
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Tyrannomon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "a card with [Tyrannomon] in its name or [X Antibody] is in this Digimon's digivolution cards"
@@ -196978,7 +197026,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Bishop Device"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Bishop Device"], "match": "nameExact" }]
               },
               "raw": "you don't have [Bishop Device]"
             }
@@ -198064,11 +198112,8 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 9 }, "count": 1 },
             "cost": {
               "kind": "trash",
-              "target": {
-                "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] },
-                "count": 1
-              },
-              "raw": "By trashing 1 of your opponent's Option cards in the battle area"
+              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 },
+              "raw": "By trashing 1 of your Option cards in the battle area"
             },
             "optional": true,
             "abortOnDecline": true
@@ -198085,11 +198130,8 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 9 }, "count": 1 },
             "cost": {
               "kind": "trash",
-              "target": {
-                "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] },
-                "count": 1
-              },
-              "raw": "By trashing 1 of your opponent's Option cards in the battle area"
+              "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Option"] }, "count": 1 },
+              "raw": "By trashing 1 of your Option cards in the battle area"
             },
             "optional": true,
             "abortOnDecline": true
@@ -198102,7 +198144,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Justimon: Blitz Arm", "Justimon: Accel Arm"], "cost": 1, "isAlternate": true }
+      { "namesExact": ["Justimon: Blitz Arm", "Justimon: Accel Arm"], "cost": 1, "isAlternate": true }
     ]
   },
   "P-180": {
@@ -198358,7 +198400,7 @@
             },
             "condition": {
               "kind": "selfDigivolutionStackHasTrait",
-              "filter": { "nameOrTrait": [{ "tokens": ["Kosuke Kisakata"], "match": "name" }] },
+              "filter": { "nameOrTrait": [{ "tokens": ["Kosuke Kisakata"], "match": "nameExact" }] },
               "raw": "[Kosuke Kisakata] is in this Digimon's digivolution cards"
             }
           }
@@ -198399,7 +198441,11 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "amount": 1000,
             "duration": "permanent",
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "colors" }
+            "scaling": {
+              "per": 1,
+              "filter": { "controllerDefault": "mine", "zone": "digivolutionCards" },
+              "unit": "colors"
+            }
           }
         ]
       },
@@ -198413,7 +198459,7 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Takuya Kanbara"],
+        "namesExact": ["Takuya Kanbara"],
         "cost": 4,
         "isAlternate": true,
         "baseIsTamer": true,
@@ -198457,7 +198503,7 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 13000 } },
+              "filter": { "controller": "any", "kind": ["Digimon"], "dp": { "op": "gte", "value": 13000 } },
               "count": 1
             }
           },
@@ -198477,7 +198523,7 @@
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 13000 } },
+              "filter": { "controller": "any", "kind": ["Digimon"], "dp": { "op": "gte", "value": 13000 } },
               "count": 1
             }
           },
@@ -198500,8 +198546,9 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
-        "actions": [],
-        "keywords": [{ "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1 (Deck)＞" }]
+        "actions": [
+          { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -198513,8 +198560,14 @@
             "amount": 1,
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
               "target": {
-                "filter": { "controller": "any", "excludeSelf": true, "kind": ["Digimon", "Tamer"] },
+                "filter": {
+                  "controller": "any",
+                  "excludeSelf": true,
+                  "kind": ["Digimon", "Tamer"],
+                  "zone": "battleArea"
+                },
                 "count": 1
               },
               "destination": "security",
@@ -198695,16 +198748,7 @@
           {
             "kind": "DeleteByDPBudget",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000,
-            "budgetBonus": {
-              "per": 1,
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }]
-              },
-              "unit": "cards"
-            }
+            "baseBudget": 7000
           }
         ]
       },
@@ -198729,16 +198773,7 @@
           {
             "kind": "DeleteByDPBudget",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "baseBudget": 7000,
-            "budgetBonus": {
-              "per": 1,
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }]
-              },
-              "unit": "cards"
-            }
+            "baseBudget": 7000
           }
         ]
       },
@@ -198748,7 +198783,11 @@
           {
             "kind": "DnaDigivolve",
             "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "name" }] },
+            "into": {
+              "controllerDefault": "mine",
+              "zone": "hand",
+              "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "nameExact" }]
+            },
             "payCost": true,
             "optional": true
           },
@@ -198776,7 +198815,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Light Fang", "Night Claw"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Light Fang", "Night Claw"], "cost": 3, "isAlternate": true }]
   },
   "P-192": {
     "effects": [
@@ -198860,7 +198899,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "PlaceInBattleAreaSelf", "optional": true }
+          { "kind": "PlaceInBattleAreaSelf" }
         ]
       },
       {
@@ -198881,7 +198920,10 @@
             "cost": {
               "kind": "deleteOwn",
               "target": {
-                "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "name" }] },
+                "filter": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "nameExact" }]
+                },
                 "count": 1
               },
               "raw": "By deleting 1 of your [Millenniummon]"
@@ -198939,7 +198981,10 @@
                 {
                   "kind": "PlayWithoutCost",
                   "target": {
-                    "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Elecmon"], "match": "name" }] },
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [{ "tokens": ["Elecmon"], "match": "nameExact" }]
+                    },
                     "count": 1
                   },
                   "from": ["hand"],
@@ -198951,7 +198996,10 @@
                 {
                   "kind": "Digivolve",
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-                  "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "name" }] },
+                  "into": {
+                    "controllerDefault": "mine",
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "nameExact" }]
+                  },
                   "payCost": false,
                   "from": ["hand"],
                   "optional": true
@@ -199410,8 +199458,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenTrashedByEffect",
-            "sourceFilter": { "zone": "battleArea", "kind": ["Option"] },
+            "event": "whenOptionInBattleAreaTrashed",
             "actions": [
               {
                 "kind": "Restrict",
@@ -199438,7 +199485,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Justimon: Blitz Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["Justimon: Blitz Arm", "Justimon: Critical Arm"], "cost": 1, "isAlternate": true },
       { "level": 5, "names": ["Cyberdramon"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -199471,6 +199518,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -199478,38 +199526,33 @@
             "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [
+                      { "tokens": ["Grademon"], "match": "nameExact" },
+                      { "tokens": ["Chronicle"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "levelComparison": { "op": "lte", "value": 6 },
+                  "nameOrTrait": [
+                    { "tokens": ["Alphamon"], "match": "nameExact" },
+                    { "tokens": ["Chronicle"], "match": "trait" }
+                  ]
+                },
+                "payCost": false,
+                "from": ["hand"],
+                "optional": true,
+                "condition": { "kind": "attackTargetsPlayer", "raw": "Digimon attack players" }
               }
             ]
-          },
-          {
-            "kind": "Digivolve",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
-                  { "tokens": ["Grademon"], "match": "name" },
-                  { "tokens": ["Chronicle"], "match": "trait" }
-                ]
-              },
-              "count": 1
-            },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "lte", "value": 6 },
-              "nameOrTrait": [
-                { "tokens": ["Alphamon"], "match": "name" },
-                { "tokens": ["Chronicle"], "match": "trait" }
-              ]
-            },
-            "payCost": false,
-            "from": ["hand"],
-            "optional": true
           }
         ]
       },
@@ -199666,8 +199709,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199690,8 +199740,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199714,8 +199771,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199747,8 +199811,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199771,8 +199842,15 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
-                  { "tokens": ["TS"], "match": "trait" }
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  }
                 ]
               },
               "count": 1
@@ -199860,7 +199938,7 @@
                   "filter": {
                     "controller": "mine",
                     "levelComparison": { "op": "lte", "value": 4 },
-                    "nameOrTrait": [{ "tokens": ["Demon"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Demon", "Titan"], "match": "trait" }]
                   },
                   "count": 1
                 },
@@ -200027,6 +200105,37 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Raid", "raw": "＜Raid＞" }] },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }] },
       {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanBattle",
+            "raw": "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "trigger": "WhenDigivolving",
         "actions": [
           {
@@ -200070,6 +200179,38 @@
         "actions": [],
         "isInherited": true,
         "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanBattle",
+            "raw": "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Aegiomon"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "isInherited": true
       }
     ],
     "coverage": "full",
@@ -200127,6 +200268,7 @@
               },
               "destination": "digivolutionStack",
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "position": "bottom",
               "host": "target",
               "raw": "by placing this Digimon under another Digimon with Seadramon in its text"
@@ -200178,6 +200320,7 @@
               },
               "destination": "digivolutionStack",
               "targetIsPermanent": true,
+              "shedOwnCards": true,
               "position": "bottom",
               "host": "target",
               "raw": "by placing this Digimon under another Digimon with Seadramon in its text"
@@ -200242,7 +200385,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Betamon", "ModokiBetamon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Betamon", "ModokiBetamon"], "cost": 0, "isAlternate": true }]
   },
   "P-215": {
     "effects": [
@@ -200684,7 +200827,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Creepymon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Creepymon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["trash"],
@@ -200920,7 +201063,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Delete",
@@ -200943,29 +201086,24 @@
   "P-223": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "BeforePayCost",
         "actions": [
           {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldBePlayed",
-                "mode": "reduceCost",
-                "amount": 4,
-                "raw": "reduce the play cost by 4",
-                "condition": {
-                  "kind": "zoneCount",
-                  "seat": "mine",
-                  "zone": "security",
-                  "op": "lte",
-                  "value": 3,
-                  "raw": "you have 3 or fewer security cards"
-                }
-              }
-            ]
+            "kind": "CostModifier",
+            "costType": "play",
+            "mode": "reduce",
+            "amount": 4,
+            "handResident": true,
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "duration": "permanent",
+            "condition": {
+              "kind": "zoneCount",
+              "seat": "mine",
+              "zone": "security",
+              "op": "lte",
+              "value": 3,
+              "raw": "you have 3 or fewer security cards"
+            }
           }
         ]
       },
@@ -201012,6 +201150,17 @@
           }
         ],
         "frequency": "OncePerTurn"
+      },
+      {
+        "trigger": "Rule",
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "grant": "name",
+            "tokens": ["Sakuyamon"]
+          }
+        ]
       }
     ],
     "coverage": "full",
@@ -201215,7 +201364,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Ryutaro Williams"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Ryutaro Williams"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -201283,7 +201432,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Suzune Kazuki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Suzune Kazuki"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -201351,7 +201500,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Mirai Kinosaki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Mirai Kinosaki"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -201418,7 +201567,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Winr"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Winr"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -201486,7 +201635,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Altea"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Altea"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -201554,7 +201703,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -202152,7 +202301,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Proximamon"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -202227,12 +202376,11 @@
                     "kind": ["Digimon"],
                     "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }]
                   },
-                  "count": 1
+                  "count": 1,
+                  "sameTarget": true
                 },
                 "amount": 3000,
-                "duration": "forTheTurn",
-                "optional": true,
-                "abortOnDecline": true
+                "duration": "forTheTurn"
               },
               {
                 "kind": "AppFuse",
@@ -202372,30 +202520,26 @@
             "amount": 2,
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": ["hand"] }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           },
           { "kind": "PlaceInBattleAreaSelf" }
         ]
       },
       {
         "trigger": "StartOfYourTurn",
+        "condition": {
+          "kind": "opponentHas",
+          "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+          "raw": "your opponent has a Digimon"
+        },
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
-            "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-            "duration": "permanent",
-            "condition": {
-              "kind": "opponentHas",
-              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
-              "raw": "your opponent has a Digimon"
-            }
-          },
-          {
             "kind": "PlayWithoutCost",
-            "requiresDelayArmed": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -202408,9 +202552,11 @@
             "payCost": false,
             "cost": {
               "kind": "return",
+              "to": "deckTop",
               "target": {
                 "filter": {
                   "controller": "mine",
+                  "zone": ["trash"],
                   "kind": ["Digimon"],
                   "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }]
                 },
@@ -202455,7 +202601,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Vemmon", "Zenith"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Vemmon", "Zenith"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -202467,14 +202616,14 @@
       },
       {
         "effectKey": "P-244/delay-digivolve",
-        "trigger": "AllTurns",
+        "trigger": "YourTurn",
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
-            "addedDigivolutionCardFilter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "text" }] },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "byEffect": true },
+            "addedDigivolutionCardFilter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "nameExact" }] },
             "actions": [
               {
                 "kind": "Digivolve",

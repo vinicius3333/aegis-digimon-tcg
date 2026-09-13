@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -12,6 +11,18 @@ type MemoryBoostCase = {
 };
 
 export function memoryBoostTests(testCase: MemoryBoostCase): void {
+  const matchingColorFiller =
+    (
+      {
+        "BT1-009": "ST1-16",
+        "BT1-027": "BT1-101",
+        "BT1-045": "BT1-107",
+        "BT1-064": "BT1-108",
+        "BT2-052": "BT10-105",
+        "BT10-079": "BT10-107",
+      } as Record<string, string>
+    )[testCase.colorSource] ?? "ST1-16";
+
   describe(`${testCase.cardId} ${testCase.name}`, () => {
     it("shows all 4 revealed cards, enables only the matching-color Digimon, and orders the rest", async () => {
       const s = setupEngine(
@@ -85,8 +96,8 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
             deck: [
               { card: testCase.matchingDigimon, as: "matching" },
               { card: testCase.offColorDigimon, as: "offColor" },
-              "BT1-001",
-              "BT1-002",
+              matchingColorFiller,
+              matchingColorFiller,
             ],
           },
         },
@@ -159,13 +170,39 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       ).toEqual({ ok: false, reason: "color-requirement-unmet" });
     });
 
-    it("places itself from security and offers Delay only from the next turn, without a color source", async () => {
+    it("places itself from a real security attack and offers Delay on the next natural turn", async () => {
       const s = setupEngine({
-        0: { security: [{ card: testCase.cardId, as: "securityBoost", faceUp: true }] },
+        0: {
+          security: [{ card: testCase.cardId, as: "securityBoost", faceUp: true }],
+          hand: ["ST1-16"],
+          deck: Array.from({ length: 20 }, () => "ST1-16"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }],
+          deck: Array.from({ length: 20 }, () => "ST1-16"),
+        },
       });
       const optionId = s.inst("securityBoost").instanceId;
 
-      await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityBoost"));
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId) &&
+          s.state.pendingDecision === undefined &&
+          s.state.players[0]!.security.length === 0 &&
+          !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+      );
       const delay = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === optionId);
       expect(delay).toBeDefined();
       if (!delay) return;
@@ -173,7 +210,8 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
       expect(JSON.parse(delay.activatableEffectsJson || "[]")).toHaveLength(0);
 
-      delay.enterFieldTurnCount = s.state.turnCount - 1;
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await advance(s.engine).waitForMainPhase(0);
       (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
       const entries = JSON.parse(delay.activatableEffectsJson || "[]") as Array<{
         instanceId: string;
@@ -182,7 +220,7 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       }>;
       const entry = entries.find(({ description }) => /delay/i.test(description));
       expect(entry).toBeDefined();
-      s.state.memory = 0;
+      const beforeMemory = s.state.memory;
 
       expect(
         s.engine.applyIntent(0, {
@@ -191,9 +229,11 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
           effectKey: entry!.effectKey,
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.state.memory === 2);
+      await settle(() => s.state.memory === beforeMemory + 2);
 
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
     });
   });
 }

@@ -9,7 +9,7 @@ const budgetDelete: Action = {
   scaling: {
     per: 1,
     filter: {
-      nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+      nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
     },
     unit: "digivolutionCards",
     budgetAdd: 1,
@@ -38,7 +38,7 @@ const compiled: CompiledCard = {
                     zone: "digivolutionCards",
                     controller: "mine",
                     sameHost: true,
-                    nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
                     hostFilter: {
                       controller: "mine",
                       kind: ["Digimon"],

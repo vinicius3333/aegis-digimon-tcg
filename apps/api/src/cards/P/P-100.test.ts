@@ -10,14 +10,14 @@ describe("P-100 Kuwagamon", () => {
       {
         0: {
           hand: [{ card: "P-100", as: "kuwagamon" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-009", "BT1-009", "BT1-028"],
         },
         1: {
           battleArea: [
             { card: "BT1-028", suspended: true, as: "digimon" },
             { card: "BT8-090", suspended: true, as: "tamer" },
           ],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-028", "BT1-048", "BT1-067"],
         },
       },
       { autoSelectCards: false },
@@ -93,7 +93,7 @@ describe("P-100 Kuwagamon", () => {
         0: {
           battleArea: [{ card: "BT1-066", as: "base" }],
           hand: [{ card: "P-100", as: "kuwagamon" }],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [

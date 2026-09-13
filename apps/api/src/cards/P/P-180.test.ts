@@ -102,9 +102,9 @@ describe("P-180 Bind Red Trigger", () => {
         0: {
           hand: [{ card: "P-180", as: "option" }],
           battleArea: [{ card: "BT6-112", as: "musketeer" }],
-          security: ["BT1-005"],
+          security: ["BT1-048"],
         },
-        1: { security: ["BT1-006", "BT1-007"] },
+        1: { security: ["BT1-067", "BT1-067"] },
       },
       { autoSelectCards: true },
     );
@@ -128,9 +128,9 @@ describe("P-180 Bind Red Trigger", () => {
         0: {
           hand: [{ card: "P-180", as: "option" }],
           battleArea: [{ card: "BT6-112", as: "musketeer" }],
-          security: ["BT1-005"],
+          security: ["BT1-048"],
         },
-        1: { security: ["BT1-006"] },
+        1: { security: ["BT1-067"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

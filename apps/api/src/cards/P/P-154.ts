@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
             ],
           },
           leaveCause: "byOpponentEffect",
+          affectsAll: true,
           actions: [],
           cost: {
             kind: "place",
@@ -32,6 +33,7 @@ const compiled: CompiledCard = {
               isSelf: true,
             },
             targetIsPermanent: true,
+            shedOwnCards: true,
             destination: "digivolutionStack",
             position: "bottom",
             host: "triggerSource",

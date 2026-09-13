@@ -42,7 +42,7 @@ describe("P-068 Herissmon", () => {
         0: {
           security: [
             { card: "P-068", as: "herissmon" },
-            { card: "BT1-001", as: "remainingSecurity" },
+            { card: "BT1-009", as: "remainingSecurity" },
           ],
         },
         1: { battleArea: [{ card: "BT2-018", as: "attacker", dp: 10000 }] },

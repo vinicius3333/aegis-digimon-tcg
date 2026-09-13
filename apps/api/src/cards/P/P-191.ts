@@ -56,15 +56,6 @@ const compiled: CompiledCard = {
             count: "all",
           },
           baseBudget: 7000,
-          budgetBonus: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }],
-            },
-            unit: "cards",
-          },
         },
       ],
     },
@@ -107,15 +98,6 @@ const compiled: CompiledCard = {
             count: "all",
           },
           baseBudget: 7000,
-          budgetBonus: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }],
-            },
-            unit: "cards",
-          },
         },
       ],
     },
@@ -133,10 +115,11 @@ const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
+            zone: "hand",
             nameOrTrait: [
               {
                 tokens: ["GraceNovamon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -183,7 +166,7 @@ const compiled: CompiledCard = {
     {
       level: 5,
       traits: ["Light Fang", "Night Claw"],
-      cost: 4,
+      cost: 3,
       isAlternate: true,
     },
   ],

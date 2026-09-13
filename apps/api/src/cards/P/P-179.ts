@@ -40,8 +40,8 @@ const compiled: CompiledCard = {
     },
     {
       // [When Digivolving] [When Attacking] [Once Per Turn]
-      // By trashing 1 of your opponent's Option cards in the battle area (Q4849), delete
-      // 1 opponent Digimon with play cost 9 or less.
+      // By trashing 1 of your Option cards in the battle area, delete 1 opponent Digimon
+      // with play cost 9 or less.
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -59,12 +59,12 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "battleArea",
-                controller: "opponent",
+                controller: "mine",
                 kind: ["Option"],
               },
               count: 1,
             },
-            raw: "By trashing 1 of your opponent's Option cards in the battle area",
+            raw: "By trashing 1 of your Option cards in the battle area",
           },
           optional: true,
           abortOnDecline: true,
@@ -91,12 +91,12 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "battleArea",
-                controller: "opponent",
+                controller: "mine",
                 kind: ["Option"],
               },
               count: 1,
             },
-            raw: "By trashing 1 of your opponent's Option cards in the battle area",
+            raw: "By trashing 1 of your Option cards in the battle area",
           },
           optional: true,
           abortOnDecline: true,
@@ -110,7 +110,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Justimon: Blitz Arm", "Justimon: Accel Arm"],
+      namesExact: ["Justimon: Blitz Arm", "Justimon: Accel Arm"],
       cost: 1,
       isAlternate: true,
     },

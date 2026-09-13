@@ -18,10 +18,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   belonging to either player are trashed.
 //
 // Fixes:
-// - [All Turns] is a SubTrigger watcher on whenTrashedByEffect (Option in battleArea,
-//   either controller — the previously-dead "whenEffectTrashes" name collapsed onto this
-//   already-live event, broadened to match any qualifying permanent, not just the watcher's
-//   own anchor) not an unconditional continuous effect.
+// - [All Turns] watches the engine's canonical whenOptionInBattleAreaTrashed event, which covers
+//   either controller (Q5198), rather than running as an unconditional continuous effect.
 // - Restrict target is Digimon only (not Option).
 // - Two separate Restrict actions for "digivolve" and "attackPlayers".
 // - Option cost in OnPlay/WhenDigivolving/WhenAttacking has no controller restriction.
@@ -218,11 +216,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenTrashedByEffect",
-          sourceFilter: {
-            zone: "battleArea",
-            kind: ["Option"],
-          },
+          event: "whenOptionInBattleAreaTrashed",
           actions: [
             {
               kind: "Restrict",
@@ -259,7 +253,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Justimon: Blitz Arm", "Justimon: Critical Arm"],
+      namesExact: ["Justimon: Blitz Arm", "Justimon: Critical Arm"],
       cost: 1,
       isAlternate: true,
     },

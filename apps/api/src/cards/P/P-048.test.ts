@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Zone } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for P-048 (UlforceVeedramon Zero) — [When Digivolving] effect:
@@ -35,6 +36,7 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     );
     const p0 = s.state.players[0]!;
     const basePerm = s.perm("basePerm");
+    const baseSourceInstanceId = basePerm.topCard.instanceId;
 
     // Enough memory to digivolve (cost 4 from Blue Lv5).
     s.state.memory = 4;
@@ -59,6 +61,7 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     expect(perm?.isSuspended).toBe(false);
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.state.memory).toBe(1); // Paid 4, then the once-per-turn return trigger gained 1.
+    expect(perm!.stack.some((card) => card.instanceId === baseSourceInstanceId)).toBe(true);
 
     const another = s.give(0, Zone.Trash, "BT1-009");
     await (
@@ -175,5 +178,46 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.perm("attacker").currentDP).toBe(baseDp + 2000);
     assertNoLoudGap(s);
+  });
+
+  it("resets the trash-return memory trigger on the next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: P_048, as: "ulforce" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          trash: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const returnToDeck = (instanceId: string) =>
+      (
+        s.engine as unknown as { primitives: { returnToDeck(ids: string[]): Promise<unknown> } }
+      ).primitives.returnToDeck([instanceId]);
+    const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+
+    await returnToDeck(trashIds[0]!);
+    await settle(() => s.state.memory === 1 && s.state.pendingDecision === undefined);
+    await returnToDeck(trashIds[1]!);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeThird = s.state.memory;
+    await returnToDeck(trashIds[2]!);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(beforeThird + 1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

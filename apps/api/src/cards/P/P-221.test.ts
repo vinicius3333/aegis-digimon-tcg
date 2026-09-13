@@ -53,7 +53,7 @@ describe("P-221 engine behavior", () => {
   it("reduces an opposing Digimon by exactly 10000 DP when attacking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "P-221", as: "chaosmon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }], security: ["BT1-009"] },
     });
     await s.ready();
     expect(

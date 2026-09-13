@@ -8,7 +8,7 @@ describe("P-115 SkullKnightmon", () => {
   it("grants Security Attack +1 to a level-5 Bagra Army/Twilight host on your turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT10-066", as: "host", under: ["P-115"] }] },
-      1: { security: ["BT1-001"] },
+      1: { security: ["BT1-009"] },
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);

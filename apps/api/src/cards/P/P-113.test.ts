@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { advance, observe } from "../../engine/testkit/index.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./P-113.js";
 
 describe("P-113 RustTyrannomon", () => {
   it("suspends every opposing Digimon at or below its DP when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX3-060", as: "base" }], hand: [{ card: "P-113", as: "rust" }], deck: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX3-060", as: "base" }], hand: [{ card: "P-113", as: "rust" }], deck: ["BT1-009"] },
         1: {
           battleArea: [
             { card: "BT1-025", dp: 11000, as: "small" },
@@ -16,6 +18,8 @@ describe("P-113 RustTyrannomon", () => {
       },
       { autoSelectCards: true },
     );
+    const baseInstanceId = s.inst("base").instanceId;
+    const rustInstanceId = s.inst("rust").instanceId;
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
@@ -27,6 +31,9 @@ describe("P-113 RustTyrannomon", () => {
     await settle(() => s.perm("small").isSuspended);
     expect(s.perm("small").isSuspended).toBe(true);
     expect(s.perm("large").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").topCard.instanceId).toBe(rustInstanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseInstanceId);
     assertNoLoudGap(s);
   });
 
@@ -37,11 +44,13 @@ describe("P-113 RustTyrannomon", () => {
         1: {
           battleArea: [{ card: "BT1-024", as: "base" }],
           hand: [{ card: "P-113", as: "rust" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
     );
+    const baseInstanceId = s.inst("base").instanceId;
+    const rustInstanceId = s.inst("rust").instanceId;
     s.state.memory = 0;
     expect(
       s.engine.applyIntent(0, {
@@ -64,30 +73,44 @@ describe("P-113 RustTyrannomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "P-113");
     expect(s.perm("base").topCard.cardId).toBe("P-113");
+    expect(s.perm("base").topCard.instanceId).toBe(rustInstanceId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseInstanceId);
     expect(s.state.memory).toBe(0);
   });
 
   it("encodes the Q4219 battle-deletion watcher and once-per-turn security trash", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "P-113", as: "rust" },
-          { card: "ST18-08", as: "attackerOne" },
-          { card: "ST18-08", as: "attackerTwo" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-113", as: "rust" },
+            { card: "BT1-025", as: "attackerOne" },
+            { card: "BT1-025", as: "attackerTwo" },
+            { card: "BT1-025", as: "attackerThree" },
+          ],
+          hand: ["BT1-009"],
+          deck: Array(20).fill("BT1-013"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetOne", suspended: true },
+            { card: "BT1-009", as: "targetTwo", suspended: true },
+            { card: "BT1-009", as: "targetThree", suspended: true },
+          ],
+          deck: Array(20).fill("BT1-013"),
+          security: ["BT1-085", "BT1-085", "BT1-085"],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "targetOne", suspended: true },
-          { card: "BT1-009", as: "targetTwo", suspended: true },
-        ],
-        security: ["BT1-001", "BT1-001"],
-      },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const rustPermanentId = s.perm("rust").permanentId;
     const targetOnePermanentId = s.perm("targetOne").permanentId;
     const targetTwoPermanentId = s.perm("targetTwo").permanentId;
-    await s.ready();
-    s.state.memory = 10;
+    const targetThreePermanentId = s.perm("targetThree").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -95,8 +118,13 @@ describe("P-113 RustTyrannomon", () => {
         target: { kind: "permanent", permanentId: targetOnePermanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetOnePermanentId));
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetOnePermanentId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
 
     expect(
       s.engine.applyIntent(0, {
@@ -105,11 +133,39 @@ describe("P-113 RustTyrannomon", () => {
         target: { kind: "permanent", permanentId: targetTwoPermanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetTwoPermanentId));
-    // [Once Per Turn] prevents the second battle deletion from trashing the next
-    // security card, even though it is caused by a different attacker.
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetTwoPermanentId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([targetThreePermanentId]);
+    expect(s.perm("rust").permanentId).toBe(rustPermanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerThree").permanentId,
+        target: { kind: "permanent", permanentId: targetThreePermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetThreePermanentId),
+    );
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("rust").permanentId).toBe(rustPermanentId);
     assertNoLoudGap(s);
+    s.engine.applyIntent(0, { type: "surrender" });
+    await loop;
   });
 
   it("does not trigger when the opponent deletes your other Digimon", async () => {
@@ -121,7 +177,7 @@ describe("P-113 RustTyrannomon", () => {
             { card: "BT1-009", as: "victim", dp: 1000, suspended: true },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], security: ["BT1-001", "BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }], security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

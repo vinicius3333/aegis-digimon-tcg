@@ -7,7 +7,7 @@ describe("P-034 DemiDevimon", () => {
   function thresholdBoard(): BoardSpec {
     return {
       0: {
-        battleArea: [{ card: "BT2-069", as: "host", under: ["P-034"] }],
+        battleArea: [{ card: "BT3-083", as: "host", under: ["P-034"] }],
         trash: [
           { card: "BT4-088", as: "danDevimon" },
           { card: "BT4-088", as: "otherDanDevimon" },

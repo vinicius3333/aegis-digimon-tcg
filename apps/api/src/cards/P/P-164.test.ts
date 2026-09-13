@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-164.js";
 
@@ -60,17 +59,27 @@ describe("P-164 Shellmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "P-164", as: "shellmon" }],
-          hand: [{ card: "BT1-033", as: "aqua" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          battleArea: [{ card: "BT1-030", as: "host" }],
+          hand: [
+            { card: "P-164", as: "shellmon" },
+            { card: "BT1-033", as: "aqua" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shellmon"));
-    await settle();
-    expect(s.perm("shellmon").stack.some((card) => card.instanceId === s.inst("aqua").instanceId)).toBe(true);
+    const aquaId = s.inst("aqua").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shellmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.pendingDecision === undefined && s.perm("host").stack.some((card) => card.instanceId === aquaId),
+    );
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("host").stack.some((card) => card.instanceId === aquaId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
@@ -78,18 +87,32 @@ describe("P-164 Shellmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "P-164", as: "shellmon" }],
-          hand: [{ card: "BT1-033", as: "aqua" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          battleArea: [{ card: "BT1-030", as: "base" }],
+          hand: [
+            { card: "P-164", as: "shellmon" },
+            { card: "BT1-033", as: "aqua" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
+    const baseSourceId = s.perm("base").topCard.instanceId;
+    const shellmonId = s.inst("shellmon").instanceId;
     await s.ready();
-    expect(observe(s.engine).hasEffectiveTrait(s.perm("shellmon"), "Aquatic")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shellmon"));
-    await settle();
-    expect(s.perm("shellmon").stack.some((card) => card.instanceId === s.inst("aqua").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: shellmonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === shellmonId && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").stack.some((card) => card.instanceId === baseSourceId)).toBe(true);
+    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("aqua").instanceId)).toBe(true);
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("base"), "Aquatic")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
@@ -97,15 +120,51 @@ describe("P-164 Shellmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["P-164"] }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          battleArea: [{ card: "BT1-038", as: "host", under: ["P-164"] }],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+            { card: "BT1-011", as: "drawC" },
+            ...Array.from({ length: 20 }, () => "BT1-012"),
+          ],
+        },
+        1: {
+          battleArea: [],
+          deck: Array.from({ length: 20 }, () => "BT1-012"),
+          security: ["BT1-011", "BT1-011", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const drawAId = s.inst("drawA").instanceId;
+    const drawBId = s.inst("drawB").instanceId;
+    const drawCId = s.inst("drawC").instanceId;
+    const p164SourceId = s.perm("host").stack.find((card) => card.cardId === "P-164")!.instanceId;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
-    await settle();
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const hostId = s.perm("host").permanentId;
+    const attack = async () => {
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    };
+    await attack();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawAId)).toBe(true);
+    await advance(s.engine).verb.unsuspend([hostId]);
+    await attack();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawBId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawBId)).toBe(true);
+    await attack();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawCId)).toBe(true);
+    expect(s.perm("host").stack.some((card) => card.instanceId === p164SourceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    assertNoLoudGap(s);
   });
 });

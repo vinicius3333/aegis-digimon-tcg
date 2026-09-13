@@ -42,8 +42,8 @@ export interface LeavePreventionHost {
  *   opponent's effect" reaction must not fire on the controller's own deletion; "other than by
  *   battle" must not fire on combat), (b) PROTECT that permanent (self-reaction => only its own
  *   source; a filtered reaction => any matching permanent), and (c) successfully run its
- *   preventCheck (prompt + pay the all-or-nothing cost). The first successful one per leaving
- *   permanent wins and stops the search for that permanent.
+ *   preventCheck (prompt + pay the all-or-nothing cost). Each eligible prevention may pay its
+ *   own cost for the same leave event; once-per-turn and re-entry keys still gate reactivation.
  *
  * When both modes apply, the affected player orders the reactions. Returns the subset whose
  * original removal was prevented or superseded by a true relocation replacement.
@@ -130,7 +130,6 @@ export async function consultLeavePrevention(
         .filter((value) => value !== undefined);
     }
 
-    let preventSucceeded = false;
     // The source whose "instead" replacement already replaced this leave event, if any.
     let insteadAppliedBySource: string | undefined;
     for (const { repl, ctx, activationKey } of ordered) {
@@ -164,10 +163,12 @@ export async function consultLeavePrevention(
         if (applied !== false) insteadAppliedBySource = repl.sourcePermanentId ?? repl.sourceInstanceId ?? "";
         continue;
       }
-      if (repl.mode !== "prevent" || preventSucceeded) continue;
+      // Q4261/Q4262: each eligible prevention may pay for the same leave event. The
+      // activation key/reentry guard still prevents only the replacement already resolving
+      // from recursively re-entering itself.
+      if (repl.mode !== "prevent") continue;
       if (repl.affectsAll && firedAll.has(repl.id)) {
         prevented.add(leavingId);
-        preventSucceeded = true;
         continue;
       }
       if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
@@ -180,7 +181,6 @@ export async function consultLeavePrevention(
       }
       if (!did) continue;
       prevented.add(leavingId);
-      preventSucceeded = true;
       if (repl.affectsAll) {
         firedAll.add(repl.id);
         for (const simultaneousId of permanentIds) {

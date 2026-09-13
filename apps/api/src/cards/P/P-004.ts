@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
+      trigger: "YourTurn",
       isInherited: true,
       actions: [
         {
@@ -38,6 +38,7 @@ const compiled: CompiledCard = {
           raw: "[Inherited] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory.",
         },
       ],
+      frequency: "OncePerTurn",
     },
   ],
   coverage: "full",

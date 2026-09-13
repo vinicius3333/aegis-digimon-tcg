@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -73,7 +72,7 @@ describe("P-174 Boltmon", () => {
   it("has Blocker and de-digivolves before deleting the resulting level 4 Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "P-174", as: "boltmon" }] },
+        0: { battleArea: [{ card: "BT10-080", as: "base" }], hand: [{ card: "P-174", as: "boltmon" }] },
         1: {
           battleArea: [
             { card: "BT1-020", as: "stackedTarget", under: [{ card: "BT1-014", as: "level4" }] },
@@ -85,12 +84,23 @@ describe("P-174 Boltmon", () => {
     );
     const stackedTargetId = s.perm("stackedTarget").permanentId;
     const level5Id = s.perm("level5").permanentId;
+    const baseSourceId = s.perm("base").topCard.instanceId;
+    s.state.memory = 10;
+    const boltmonId = s.inst("boltmon").instanceId;
     await s.ready();
-
-    expect(observe(s.engine).hasKeyword(s.perm("boltmon"), "Blocker")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("boltmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: boltmonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === boltmonId && s.state.pendingDecision === undefined);
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === stackedTargetId));
 
+    expect(s.state.memory).toBe(7);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    expect(s.perm("base").stack.some((card) => card.instanceId === baseSourceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === level5Id)).toBe(true);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT1-020", "BT1-014"]),
