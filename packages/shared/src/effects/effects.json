@@ -90473,6 +90473,7 @@
             "payCost": false,
             "breeding": true,
             "requiresEmpty": "breedingArea",
+            "allowCostWithoutTarget": true,
             "cost": {
               "kind": "compound",
               "costs": [

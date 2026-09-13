@@ -183,7 +183,7 @@ is rejected by `canPayCost`.
 | Kind                              | Current consumer/class anchor                              | Public executable evidence                                                                  | Status and precise boundary                                                                                    |
 | --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `attack`                          | AD1-020 printed attack payment                             | `cards/AD1/AD1-020.test.ts`                                                                 | sole current structured attack-cost consumer is covered; no second attack-cost form was found in the current scan |
-| `compound`                        | BT14-090 named pair; BT17-050, EX6-038, EX6-042 memory+placement; BT23-060 borrowed; BT16/19/23/25/EX5/EX10/EX13 mixed shapes | `activation-cost-compound-assignment.test.ts`, `cards/BT17/BT17-050.test.ts`, `cards/EX6/EX6-038.test.ts`, `cards/EX6/EX6-042.test.ts`, `activation-cost-borrowed-effects.test.ts` | whole-clause, host/payment preflight, and borrowed paths are publicly covered for these classes; remaining current consumers are classified by shape, with no same-card overlap found, but their distinct filters/order are not certified |
+| `compound`                        | BT14-090 named pair; BT17-050, EX6-038, EX6-042 memory+placement; BT23-060 borrowed; BT23-084/BT23-090 self-suspend + Hudie return; BT16/19/23/25/EX5/EX10/EX13 mixed shapes | `activation-cost-compound-assignment.test.ts`, `cards/BT17/BT17-050.test.ts`, `cards/EX6/EX6-038.test.ts`, `cards/EX6/EX6-042.test.ts`, `cards/BT23/BT23-084.test.ts`, `cards/BT23/BT23-090.test.ts`, `activation-cost-borrowed-effects.test.ts` | whole-clause, host/payment preflight, borrowed, and Hudie self-suspend/return paths are publicly covered for these classes; BT23-084 and BT23-090 accept/refusal/insufficient-component cases preserve exact physical identities and perform no partial payment. Remaining current consumers are classified by shape, with no same-card overlap found, but their distinct filters/order are not certified |
 | `deleteOwn`                       | BT19-086 suspend + delete-own CostGatedBlock               | `activation-cost-targetless-payload.test.ts`                                                | all-or-nothing targetless payload boundary proved for this shape; other target filters unreviewed              |
 | `digivolve`                       | BT18-100 printed digivolve cost                            | `cards/BT18/BT18-100.test.ts`                                                               | sole current structured digivolve-cost consumer is covered; no alternate cost consumer was found in the current scan |
 | `flipSecurity`                    | BT23-043 / BT23-045 printed security flips                 | `cards/BT23/BT23-043.test.ts`, `cards/BT23/BT23-045.test.ts`                                  | exact physical security identity and face transition are covered; alternate replacement contexts remain bounded |
@@ -272,6 +272,26 @@ Each occurrence below retains its IR path. Component summaries omit filters and 
 | `EX13-071` | `effects[2].actions[0].cost` | `trashBottomFaceDownUnderTamer`, `place`, `place` | `orderReturnedCards=false` |
 
 `canPayCost(compound)` checks each component independently; general payment executes components sequentially. The ordered-return branch collects selections before moving cards but does not currently exclude earlier selections from later candidates. Candidate overlap is a hypothesis to reproduce with an actual printed consumer, not a proven defect.
+
+### BT23-084 and BT23-090 Hudie compound costs
+
+The public end-of-turn route in `cards/BT23/BT23-084.test.ts` and
+`cards/BT23/BT23-090.test.ts` exercises the same current executor shape: the
+controller must accept an optional compound cost, suspend the exact Tamer, and
+return exactly one of that controller's physical [Hudie] Digimon to the hand
+before the free play resolves. Both files also prove voluntary refusal and an
+unpayable component (no eligible [Hudie] Digimon) without suspending the Tamer,
+moving a Digimon, or creating a partial payment. The opponent-[Hudie] control in
+`BT23-090.test.ts` confirms controller filtering. The 32-test focused run passed
+on 2026-09-13. These two providers are equivalent for the compound-cost
+executor, while their free-play destinations and filters remain card-specific.
+
+This does not close the other mixed compound classes: `BT16-090`'s nested
+`trashBreeding` payment and `EX3-035`'s three-component ordered return require
+their own source-specific payment and identity evidence. The existing EX3
+ordered-return proof covers its disjoint exact-name case, but it does not certify
+general compound assignment or arbitrary overlap; BT16-090 remains unproved for
+its nested breeding-source transaction.
 
 ## Exact-name payment boundary, 2026-09-12
 
