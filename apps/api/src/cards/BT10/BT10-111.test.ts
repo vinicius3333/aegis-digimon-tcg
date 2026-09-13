@@ -4,6 +4,23 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-111.js";
+import { cite } from "../../engine/conformance/_kb.js";
+
+const DIGIXROS_RULE_SHA = "1ebbe9afb14fc39b5aee3c498e606dd9178970b2425fd882f84777cdfac157ae";
+const DIGIXROS_RULES_CONTINUATION_SHA = "b69edb2cf7ad45544307bbc8650afb7eaa424284b67933c8bb3a4a73c0c4e973";
+
+function citeDigiXrosSubstitute(): void {
+  cite(
+    "comprehensive-0117",
+    "§7-2: DigiXros materials and substitution are resolved through the public play procedure.",
+    DIGIXROS_RULE_SHA,
+  );
+  cite(
+    "comprehensive-0118",
+    "§7-2 continuation: a substituted requirement remains part of the declared DigiXros material set.",
+    DIGIXROS_RULES_CONTINUATION_SHA,
+  );
+}
 
 describe("BT10-111 Shoutmon (King Version)", () => {
   it("registers one Xros Heart DigiXros material for a two-memory reduction", () => {
@@ -111,6 +128,7 @@ describe("BT10-111 Shoutmon (King Version)", () => {
   });
 
   it("replaces exactly one DigiXros requirement for the turn", async () => {
+    citeDigiXrosSubstitute();
     const s = setupEngine(
       {
         0: {
@@ -122,6 +140,7 @@ describe("BT10-111 Shoutmon (King Version)", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
+    const memoryBeforePlay = s.state.memory;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
       ok: true,
@@ -145,6 +164,63 @@ describe("BT10-111 Shoutmon (King Version)", () => {
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-024")!;
     expect(played.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT10-111", "BT10-021"]));
+    expect(s.state.memory).toBeLessThan(memoryBeforePlay);
+    expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("kingVersion").instanceId);
+    expect(played.stack.map((card) => card.instanceId)).toContain(s.inst("mailbirdramon").instanceId);
+  });
+
+  it("expires the substitute at a natural turn boundary before moving or paying DigiXros materials", async () => {
+    citeDigiXrosSubstitute();
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-021", as: "mailbirdramon" }],
+          hand: [{ card: "BT10-111", as: "kingVersion" }],
+          trash: [{ card: "BT10-024", as: "metalGreymon" }],
+          deck: ["BT1-010", "BT1-048", "BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId),
+      );
+      const king = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard.instanceId === s.inst("kingVersion").instanceId,
+      )!;
+      const kingId = king.topCard.instanceId;
+      const hostId = s.perm("mailbirdramon").topCard.instanceId;
+      expect(observe(s.engine).hasKeyword(king, "DigiXrosSubstitute")).toBe(true);
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(observe(s.engine).hasKeyword(king, "DigiXrosSubstitute")).toBe(false);
+      const memoryBefore = s.state.memory;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("metalGreymon").instanceId,
+          digiXros: { materialInstanceIds: [kingId, hostId] },
+        }),
+      ).toEqual({ ok: false, reason: "invalid-material" });
+      expect(s.state.memory).toBe(memoryBefore);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("metalGreymon").instanceId);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === kingId)).toBe(true);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === hostId)).toBe(true);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    }
   });
 
   it("cannot be added as an extra material when every DigiXros requirement is already satisfied", async () => {
