@@ -49,6 +49,18 @@ describe("describeAction", () => {
   it("leaves an unmapped kind as a bare identifier for the client to replace", () => {
     expect(describeAction({ kind: "Aura" } as Action)).toBe("Aura");
   });
+
+  it("keeps Homeros's cost-bearing unmapped action eligible for the printed-clause fallback", () => {
+    const action = {
+      kind: "ActivateForeignEffect",
+      zone: "battleArea",
+      fromTriggers: ["OnPlay", "WhenDigivolving"],
+      count: 1,
+      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+      optional: true,
+    } as Action;
+    expect(describeAction(action)).toBe("ActivateForeignEffect");
+  });
 });
 
 describe("describeCost", () => {

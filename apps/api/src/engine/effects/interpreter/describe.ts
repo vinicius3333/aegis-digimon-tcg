@@ -77,6 +77,9 @@ export function describeAction(action: Action): string {
   if (printed !== undefined) return printed;
   const cost = actionPaidCost(action);
   const body = describeActionBody(action);
+  // Preserve the bare-kind sentinel so the client can use the printed clause.
+  // A cost prefix would make an internal kind look like readable card text.
+  if (body === action.kind) return body;
   return cost === undefined ? body : `By paying: ${describeCost(cost)} → ${body}`;
 }
 
