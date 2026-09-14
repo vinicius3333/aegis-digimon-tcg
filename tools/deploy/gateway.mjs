@@ -39,6 +39,15 @@ function isApiPath(path, headers) {
 export function createGateway({ state, upstreamFor = (slot, index) => `http://aegis-${slot}-api${index}:2567` }) {
   let roundRobin = 0;
   const healthy = new Map();
+  const healthRevisions = new Map();
+
+  function syncHealthRevisions(manifest) {
+    for (const { slot, revision } of [manifest.active, ...manifest.draining]) {
+      if (healthRevisions.get(slot) === revision) continue;
+      healthRevisions.set(slot, revision);
+      for (const index of [1, 2, 3]) healthy.delete(`${slot}:${index}`);
+    }
+  }
 
   async function refreshHealth() {
     let manifest;
@@ -47,14 +56,15 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
     } catch {
       return;
     }
+    syncHealthRevisions(manifest);
     await Promise.all(
-      [manifest.active, ...manifest.draining].flatMap(({ slot }) =>
+      [manifest.active, ...manifest.draining].flatMap(({ slot, revision }) =>
         [1, 2, 3].map(async (index) => {
           try {
             const response = await fetch(`${upstreamFor(slot, index)}/ready`, { signal: AbortSignal.timeout(1500) });
-            healthy.set(`${slot}:${index}`, response.ok);
+            if (healthRevisions.get(slot) === revision) healthy.set(`${slot}:${index}`, response.ok);
           } catch {
-            healthy.set(`${slot}:${index}`, false);
+            if (healthRevisions.get(slot) === revision) healthy.set(`${slot}:${index}`, false);
           }
         }),
       ),
@@ -62,6 +72,7 @@ export function createGateway({ state, upstreamFor = (slot, index) => `http://ae
   }
 
   function target(request, manifest) {
+    syncHealthRevisions(manifest);
     const url = new URL(request.url, "http://gateway");
     const slotRoute = /^\/api\/(blue|green)(?:\/p([123]))?(?=\/|$)/.exec(url.pathname);
     const legacyOwner = /^\/p([123])(?=\/|$)/.exec(url.pathname);

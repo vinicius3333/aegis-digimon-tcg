@@ -111,4 +111,14 @@ test("cutover retains established sockets, routes reconnect to the old owner, an
     await fetch(`${origin}/matchmake/reconnect/old-room`, { method: "POST", body: "{}" })
   ).json();
   assert.equal(legacyDuringOutage.slot, "blue");
+  // A reused slot must not inherit failed health from the removed release.
+  for (const index of [1, 2, 3]) {
+    const server = createServer((request, response) => response.end(JSON.stringify({ slot: "green", index })));
+    servers.push(server);
+    origins.set(`green:${index}`, await listen(server));
+  }
+  publish({ slot: "green", revision: "v3" }, [{ slot: "blue", revision: "v1" }]);
+  const reused = await fetch(`${origin}/api/green/matchmake/create/aegis`, { method: "POST" });
+  assert.equal(reused.status, 200);
+  assert.equal((await reused.json()).slot, "green");
 });
