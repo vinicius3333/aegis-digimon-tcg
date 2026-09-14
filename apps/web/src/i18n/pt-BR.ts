@@ -332,6 +332,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.opponentIsSelecting": "O oponente está selecionando cartas.",
   "game.pickCard": "Escolher {card}",
   "game.pickPosition": "escolha {position}",
+  "game.fieldScrollLeft": "Mostrar cartas à esquerda",
+  "game.fieldScrollRight": "Mostrar cartas à direita",
   "game.handScrollBack": "Mostrar cartas anteriores da mão",
   "game.handScrollForward": "Mostrar cartas seguintes da mão",
   "game.digiEgg": " · Digi-Egg",

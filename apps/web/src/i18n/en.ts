@@ -329,6 +329,8 @@ export const en = {
   "game.opponentIsSelecting": "The opponent is selecting cards.",
   "game.pickCard": "Pick {card}",
   "game.pickPosition": "pick {position}",
+  "game.fieldScrollLeft": "Show cards to the left",
+  "game.fieldScrollRight": "Show cards to the right",
   "game.handScrollBack": "Show earlier cards in hand",
   "game.handScrollForward": "Show later cards in hand",
   "game.digiEgg": " · Digi-Egg",

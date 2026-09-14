@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Phase, type GameState, type ServerEvent } from "@aegis/shared";
+import { CardInstance, Permanent, Phase, type GameState, type ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
@@ -28,6 +28,7 @@ import {
 import { NARRATION_TICK_MS } from "./narration";
 import { REJECTION_LIFETIME_MS } from "./notices";
 import { SIDE_PANEL_LIFETIME_MS } from "./sidePanels";
+import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 
 /**
@@ -217,13 +218,19 @@ function batchFeed(): (cumulative: readonly ServerEvent[]) => readonly ServerBat
   };
 }
 
-function renderCues(initialEvents: readonly ServerEvent[] = [], onActionRejected = vi.fn<(reason: string) => void>()) {
+function renderCues(
+  initialEvents: readonly ServerEvent[] = [],
+  onActionRejected = vi.fn<(reason: string) => void>(),
+  rawPhases = false,
+) {
   const feed = batchFeed();
+  let latestEvents = initialEvents;
   const view = renderHook(
     (batches: readonly ServerBatch[]) =>
       useMatchCues({
         narrationLimit: 3,
         batches,
+        phaseEvents: rawPhases ? latestEvents : undefined,
         state: undefined,
         viewerSeat: VIEWER,
         mulliganOpen: false,
@@ -234,7 +241,10 @@ function renderCues(initialEvents: readonly ServerEvent[] = [], onActionRejected
   );
   return {
     ...view,
-    rerender: (events: readonly ServerEvent[]) => view.rerender(feed(events)),
+    rerender: (events: readonly ServerEvent[]) => {
+      latestEvents = events;
+      view.rerender(feed(events));
+    },
     onActionRejected,
   };
 }
@@ -282,7 +292,7 @@ const SECURITY_TRASHED: ServerEvent = {
 };
 
 /** The same hook over a board, so movements the events name resolve to real cards. */
-function renderCuesOverBoard(state: GameState) {
+function renderCuesOverBoard(state: GameState, snapshots?: readonly StateSnapshot[]) {
   const feed = batchFeed();
   const view = renderHook(
     (batches: readonly ServerBatch[]) =>
@@ -290,6 +300,7 @@ function renderCuesOverBoard(state: GameState) {
         narrationLimit: 3,
         batches,
         state,
+        snapshots,
         viewerSeat: VIEWER,
         mulliganOpen: false,
         anchors,
@@ -437,6 +448,68 @@ describe("match cues", () => {
     expect(result.current.attackAnnouncement).toBeNull();
     expect(result.current.sidePanels).toEqual([]);
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("finishes a visible phase ribbon before presenting a fast bot's next play", async () => {
+    const { result, rerender } = renderCues();
+    const main: ServerEvent = { kind: "phaseChanged", phase: "Main", turnSeat: 1, turnCount: 4 };
+    rerender([main]);
+    await advance(0);
+    expect(result.current.phaseBanner?.phase).toBe("Main");
+    await advance(100);
+    rerender([main, OPP_PLAY]);
+    await advance(0);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.phaseBanner?.phase).toBe("Main");
+    await advance(TIMINGS.phaseBanner - 100 + TIMINGS.phaseBannerGap + 16);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.zoneShowcase).not.toBeNull();
+  });
+
+  it.each(["separate", "combined", "raw"])(
+    "does not let a bot attack overtake queued turn phases (%s batch)",
+    async (delivery) => {
+      const { result, rerender } = renderCues([], undefined, delivery === "raw");
+      const phases: ServerEvent[] = [
+        TURN_END,
+        ...["Active", "Draw", "Breeding", "Main"].map((phase) => ({
+          kind: "phaseChanged" as const,
+          phase,
+          turnSeat: 1 as const,
+          turnCount: 4,
+        })),
+      ];
+      rerender(delivery !== "separate" ? [...phases, ATTACK, REVEAL, CHECK] : phases);
+      await advance(100);
+      if (delivery === "separate") rerender([...phases, ATTACK, REVEAL, CHECK]);
+      await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
+      for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
+        expect(result.current.phaseBanner?.phase).toBe(phase);
+        expect(result.current.attackAnnouncement).toBeNull();
+        expect(result.current.attackLunge).toBeNull();
+        expect(result.current.securityClash).toBeNull();
+        await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
+      }
+      await advance(16);
+      expect(result.current.attackAnnouncement).not.toBeNull();
+    },
+  );
+
+  it("finishes the turn ribbon before presenting a security check arriving from the bot", async () => {
+    const { result, rerender } = renderCues();
+    rerender([TURN_END]);
+    await advance(100);
+    expect(result.current.turnTransition).not.toBeNull();
+    rerender([TURN_END, ATTACK, REVEAL, CHECK]);
+    await advance(0);
+    expect(result.current.securityBreak).toBeNull();
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.turnTransition).not.toBeNull();
+    await advance(TIMINGS.turnBanner - 100 + TIMINGS.phaseBannerGap + 16);
+    expect(result.current.turnTransition).toBeNull();
+    expect(result.current.securityBreak).not.toBeNull();
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash).not.toBeNull();
   });
 
   it("waits for the opponent's card arrival and field burst before ending the turn", async () => {
@@ -609,6 +682,82 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
     expect(result.current.heldDrawState).toBeUndefined();
     expect(result.current.drawFlights).toHaveLength(0);
+  });
+
+  it("holds the opponent's hatch until Breeding finishes and keeps phase text stable between ribbons", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    const garurumon = new Permanent();
+    garurumon.permanentId = "garurumon";
+    garurumon.isSuspended = true;
+    state.players[1]!.battleArea.push(garurumon);
+    const frozen = new Permanent();
+    frozen.permanentId = "frozen";
+    frozen.isSuspended = true;
+    state.players[1]!.battleArea.push(frozen);
+    const snapshots: StateSnapshot[] = [];
+    const { result, rerender } = renderCuesOverBoard(state, snapshots);
+    await advance(0);
+    const phases: ServerEvent[] = [
+      ...["Active", "Draw", "Breeding", "Main"].map((phase) => ({
+        kind: "phaseChanged" as const,
+        phase,
+        turnSeat: 1 as const,
+        turnCount: 2,
+      })),
+    ];
+    const unsuspend: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["garurumon"],
+      from: "suspended",
+      to: "unsuspended",
+    };
+    const opening = [phases[0]!, unsuspend, ...phases.slice(1, 3)];
+    rerender(opening);
+    await advance(0);
+    // The live schema changes while Unsuspend is still on screen.
+    state.players[1]!.eggDeckCount = 3;
+    const egg = new Permanent();
+    egg.permanentId = "egg";
+    egg.topCard = new CardInstance();
+    egg.topCard.cardId = "BT24-007";
+    state.players[1]!.breeding = egg;
+    snapshots.push({ stateVersion: 2, state: snapshotGameState(state) });
+    // Main has already evolved that same stack in the live state.
+    egg.topCard.cardId = "ST2-03";
+    garurumon.isSuspended = true;
+    rerender([...opening, { kind: "hatched", seat: 1, cardId: "BT24-007", permanentId: "egg" }, phases[3]!]);
+    for (const phase of ["Active", "Draw", "Breeding"]) {
+      expect(result.current.phaseBanner?.phase).toBe(phase);
+      expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
+      expect(result.current.heldPhaseState?.players[1]?.battleArea[1]?.isSuspended).toBe(true);
+      expect(result.current.heldBreedingState?.seat).toBe(1);
+      expect(result.current.heldBreedingState?.player.eggDeckCount).toBe(4);
+      await advance(TIMINGS.phaseBanner);
+      expect(result.current.phaseBanner).toBeNull();
+      expect(result.current.displayedPhase).toBe(phase);
+      expect(result.current.heldBreedingState?.player.eggDeckCount).toBe(phase === "Breeding" ? 3 : 4);
+      await advance(TIMINGS.phaseBannerGap);
+    }
+    expect(result.current.heldBreedingState?.player.breeding?.topCard.cardId).toBe("BT24-007");
+    await advance(16);
+    expect(result.current.permanentBursts.has("egg")).toBe(true);
+    await advance(TIMINGS.cardBurst + 32);
+    expect(result.current.phaseBanner?.phase).toBe("Main");
+    expect(result.current.displayedPhase).toBe("Main");
+    expect(result.current.heldPhaseState?.players[1]?.battleArea[0]?.isSuspended).toBe(false);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.heldBreedingState).toBeUndefined();
+    expect(result.current.heldPhaseState).toBeUndefined();
   });
 
   it("holds a mutable server hand before its patched batch closes, without replaying phase events", async () => {
@@ -2747,7 +2896,7 @@ describe("triggered effect source prelude", () => {
     expect(result.current.phaseBanner).not.toBeNull();
     expect(result.current.effectSources).toHaveLength(0);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
+    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 16);
     expect(result.current.effectSources).toHaveLength(1);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
     await advance(TIMINGS.effectSourceHold);

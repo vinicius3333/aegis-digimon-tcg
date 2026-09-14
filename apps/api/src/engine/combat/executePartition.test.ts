@@ -118,6 +118,34 @@ describe("§16-38 <Execute> — may attack (including unsuspended Digimon) at en
 });
 
 describe("§16-29 <Partition> — replay the specified digivolution cards for free on a qualifying deletion", () => {
+  it("does not offer Partition when its holder loses a security battle", async () => {
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const holder = digimon(0, 8000, "BT16-025");
+    // AD1-010 grants inherited Jamming, so use a vanilla blue material for this battle.
+    holder.stack.push(instance("BT1-037", 0, true), instance(GREEN_LV4, 0, true));
+    p0.battleArea.push(holder);
+    p1.security.push(instance("P-220", 1, false));
+    await s.engine.recomputeContinuousEffects();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: holder.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"), 1000);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      battle: { attackerDeleted: true },
+    });
+    expect(s.decisions.some(({ req }) => req.promptText.includes("Partition"))).toBe(false);
+    expect(p0.battleArea).toHaveLength(0);
+    expect(p0.trash.some((card) => card.cardId === "BT1-037")).toBe(true);
+    expect(p0.trash.some((card) => card.cardId === GREEN_LV4)).toBe(true);
+  });
+
   it("an opponent-effect deletion of a <Partition> Digimon replays its 1-of-each specified digivolution cards for free", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;

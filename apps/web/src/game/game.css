@@ -1058,6 +1058,28 @@
   scrollbar-width: thin;
 }
 
+.game-battle-scroll-arrow {
+  position: fixed;
+  z-index: 8;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #79dfef;
+  border-radius: 10px;
+  color: #e9fbff;
+  background: #17313e;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  cursor: pointer;
+}
+.game-battle-scroll-arrow:hover,
+.game-battle-scroll-arrow:focus-visible {
+  color: #79dfef;
+  outline: 2px solid #79dfef;
+  outline-offset: 2px;
+}
+
 .game-memory-gauge__side {
   overflow: hidden;
   white-space: nowrap;

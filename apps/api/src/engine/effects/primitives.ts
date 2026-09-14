@@ -4040,13 +4040,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // from the battle area OTHER THAN by one of your effects or a battle, you may play 1 of
     // each of the specified cards from the digivolution cards without paying their costs" — an
     // optional (§16-29-3), all-or-nothing (§16-29-4) immediate-type reaction. Battle deaths
-    // never reach this primitive at all (they go through GameStateAccess.deletePermanent
-    // directly), so the cause gate here only needs to exclude the holder's OWN controller's
-    // effect deletions (mirrors the ＜Scapegoat＞ gate above). Captured pre-deletion (same
+    // are excluded explicitly: security battles also use this primitive's deletion pipeline.
+    // The cause gate also excludes the holder's OWN controller's effect deletions
+    // (mirrors the ＜Scapegoat＞ gate above). Captured pre-deletion (same
     // reason as Fortitude/Ascension) so the live stack can be matched against the specifier;
     // the actual replay happens after the movement below, once the cards are loose in trash.
     const partitionCandidates = toDelete
       .map((permanentId) => {
+        if (cause === "byBattle") return undefined;
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) return undefined;
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;

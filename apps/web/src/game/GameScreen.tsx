@@ -43,6 +43,7 @@ import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
 import "./arena.css";
+import { BattleRow } from "./BattleRow";
 import { ArenaCounters } from "./ArenaCounters";
 import "./arenaMobile.css";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
@@ -542,6 +543,7 @@ export function GameScreen({
   // the draw flights. The hook sequences them on the animation queue; this
   // component only renders what it reports.
   const cues = useMatchCues({
+    snapshots,
     cutInsEnabled: demoConnection?.showCutIns,
     batches: cueBatches,
     phaseEvents: events,
@@ -1044,8 +1046,9 @@ export function GameScreen({
    * `state` is the live synchronized state and is the ONLY thing legality is read off:
    * what may be played, what may be attacked, which decision is open. `shownState` is the
    * board the presentation has reached — the snapshot at the revision of the batch the
-   * queue is narrating — and is the only thing the board, the piles, the counts and the
-   * gauge are drawn from. They are the same object whenever the queue is caught up.
+   * queue is narrating — and drives the field, piles and gauge. Hands follow confirmed
+   * server changes independently of narration, except during the turn-start draw hold.
+   * They are the same object whenever the queue is caught up.
    */
   const shownState =
     selectPresentedState({
@@ -1055,8 +1058,24 @@ export function GameScreen({
     }) ?? state;
 
   // Presentation (the seats as the board the narration has reached has them).
-  const presentedYou = shownState?.players[viewerSeat] ?? you;
-  const presentedOpp = shownState?.players[otherSeat(viewerSeat)] ?? opp;
+  const presentedYouBase = shownState?.players[viewerSeat] ?? you;
+  const presentedOppBase = shownState?.players[otherSeat(viewerSeat)] ?? opp;
+  const phaseYou = cues.heldPhaseState?.players[viewerSeat];
+  const phaseOpp = cues.heldPhaseState?.players[otherSeat(viewerSeat)];
+  function phaseField(player: typeof presentedYouBase, held: typeof phaseYou) {
+    if (!held) return player;
+    return {
+      ...player,
+      // Hold rotation, not membership: a start-turn effect may introduce a
+      // permanent that the viewer must select before Main can open.
+      battleArea: player.battleArea.map((permanent) => {
+        const previous = held.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
+        return previous ? ({ ...permanent, isSuspended: previous.isSuspended } as Permanent) : permanent;
+      }),
+    };
+  }
+  const presentedYou = phaseField(presentedYouBase, phaseYou);
+  const presentedOpp = phaseField(presentedOppBase, phaseOpp);
   const heldYou = cues.heldDrawState?.players[viewerSeat];
   const heldOpp = cues.heldDrawState?.players[otherSeat(viewerSeat)];
   const shownYou = heldYou
@@ -1065,6 +1084,11 @@ export function GameScreen({
   const shownOpp = heldOpp
     ? { ...presentedOpp, handCount: heldOpp.handCount, deckCount: heldOpp.deckCount }
     : presentedOpp;
+  const breedingYou = cues.heldBreedingState?.seat === viewerSeat ? cues.heldBreedingState.player : shownYou;
+  const breedingOpp = cues.heldBreedingState?.seat === otherSeat(viewerSeat) ? cues.heldBreedingState.player : shownOpp;
+  const shownHand = heldYou?.hand ?? you.hand;
+  const shownHandCount = heldYou?.handCount ?? you.handCount;
+  const shownOpponentHandCount = heldOpp?.handCount ?? opp.handCount;
   const isMyTurn = state.turnSeat === viewerSeat;
   // Ordinary actions wait for the presented board to catch up, then follow the live
   // match, decision, turn and phase guards. Effect responses use their own controls.
@@ -1110,29 +1134,26 @@ export function GameScreen({
     })),
   }));
   /**
-   * The hand as the screen shows it: the cards the presented board holds, each carrying the
-   * LIVE legality of that same instance. A card the narration has not reached yet is drawn
-   * but offers nothing (the live hand does not hold it, so no projection is found), and a
-   * card already gone from the live hand cannot be acted on either — every intent below
-   * resolves through `handEntries`, which is live.
+   * The hand follows the live server state independently of older field narration.
+   * Only the turn-start draw may retain an earlier hand; retained cards still use live
+   * legality, and a card already removed by the server cannot be acted on.
    */
-  const shownHandEntries: HandEntry[] =
-    shownYou === you
-      ? handEntries
-      : [...(shownYou.hand ?? [])].map(
-          (ci) =>
-            handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
-              instanceId: ci.instanceId,
-              cardId: ci.cardId,
-              artId: ci.artId,
-              activatableEffectsJson: "",
-              playableFromHand: false,
-              projectedPlayCost: -1,
-              digivolveTargetPermanentIds: [],
-              linkTargetPermanentIds: [],
-              appFusionRoutes: [],
-            },
-        );
+  const shownHandEntries: HandEntry[] = !heldYou
+    ? handEntries
+    : [...(shownHand ?? [])].map(
+        (ci) =>
+          handEntries.find((entry) => entry.instanceId === ci.instanceId) ?? {
+            instanceId: ci.instanceId,
+            cardId: ci.cardId,
+            artId: ci.artId,
+            activatableEffectsJson: "",
+            playableFromHand: false,
+            projectedPlayCost: -1,
+            digivolveTargetPermanentIds: [],
+            linkTargetPermanentIds: [],
+            appFusionRoutes: [],
+          },
+      );
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
@@ -2093,7 +2114,7 @@ export function GameScreen({
           width={arenaPileWidth}
           className={`game-utility-slot game-utility-slot--you-eggs${breedingActionsOpen && canHatchEgg ? " game-egg-deck--hatchable" : ""}`}
           compact={compactPiles}
-          count={shownYou.eggDeckCount}
+          count={breedingYou.eggDeckCount}
           egg
           label={t("game.pile.eggs")}
           glow={breedingActionsOpen && canHatchEgg}
@@ -2102,21 +2123,21 @@ export function GameScreen({
         />
         <div className="game-utility-slot game-utility-slot--you-raising">
           <BreedingSlot
-            perm={shownYou.breeding}
+            perm={breedingYou.breeding}
             keywordLabels={
-              shownYou.breeding ? demoConnection?.keywordLabels?.[shownYou.breeding.permanentId] : undefined
+              breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
             }
             label={t("game.pile.raising")}
             compact={compactPiles}
-            burst={shownYou.breeding ? permanentBursts.get(shownYou.breeding.permanentId) : undefined}
+            burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
             // On a phone the dock is a row above the hand; a smaller slot gives
             // its height back to the battle rows while staying a 44px+ target.
             width={arenaPileWidth}
             candidate={
               (breedingActionsOpen && canMoveOutOfBreeding) ||
-              (!!shownYou.breeding &&
-                (eligibleBase(shownYou.breeding) ||
-                  (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(shownYou.breeding.permanentId))))
+              (!!breedingYou.breeding &&
+                (eligibleBase(breedingYou.breeding) ||
+                  (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(breedingYou.breeding.permanentId))))
             }
             focused={breedingActionsOpen}
             drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
@@ -2819,8 +2840,8 @@ export function GameScreen({
           >
             <ArenaCounters
               side="opp"
-              eggs={shownOpp.eggDeckCount}
-              hand={shownOpp.handCount}
+              eggs={breedingOpp.eggDeckCount}
+              hand={shownOpponentHandCount}
               deck={shownOpp.deckCount}
               trash={shownOpp.trash.length}
             />
@@ -2828,19 +2849,19 @@ export function GameScreen({
               className="game-opponent-hand"
               ref={oppHandStripRef}
               role="img"
-              aria-label={t("game.handCount", { count: shownOpp.handCount })}
+              aria-label={t("game.handCount", { count: shownOpponentHandCount })}
               data-testid="opponent-hand"
-              data-hand-count={shownOpp.handCount}
+              data-hand-count={shownOpponentHandCount}
               style={
                 {
                   display: "flex",
                   alignItems: "center",
                   gap: 7,
-                  "--arena-opponent-hand-count": Math.max(1, Math.min(shownOpp.handCount, 8)),
+                  "--arena-opponent-hand-count": Math.max(1, Math.min(shownOpponentHandCount, 8)),
                 } as CSSProperties
               }
             >
-              {Array.from({ length: Math.min(shownOpp.handCount, 8) }).map((_, i) => (
+              {Array.from({ length: Math.min(shownOpponentHandCount, 8) }).map((_, i) => (
                 <div
                   key={i}
                   aria-hidden
@@ -2848,7 +2869,7 @@ export function GameScreen({
                     {
                       marginLeft: i ? -22 : 0,
                       "--arena-opponent-position":
-                        shownOpp.handCount < 2 ? 0.5 : i / (Math.min(shownOpp.handCount, 8) - 1),
+                        shownOpponentHandCount < 2 ? 0.5 : i / (Math.min(shownOpponentHandCount, 8) - 1),
                     } as CSSProperties
                   }
                 >
@@ -2863,7 +2884,7 @@ export function GameScreen({
                   marginLeft: 8,
                 }}
               >
-                {t("game.handCount", { count: shownOpp.handCount })}
+                {t("game.handCount", { count: shownOpponentHandCount })}
               </span>
             </div>
             <div className="game-mobile-turn">
@@ -3114,7 +3135,7 @@ export function GameScreen({
               className="game-battle-zones"
               style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
             >
-              <div
+              <BattleRow
                 className="game-battle-row game-battle-row--opp"
                 role="group"
                 aria-label={t("game.oppBattleArea")}
@@ -3175,7 +3196,7 @@ export function GameScreen({
                     />
                   );
                 })}
-              </div>
+              </BattleRow>
               <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
                 {phaseBanner ? (
                   <div className="game-phase-banner" data-side={phaseBanner.side} key={phaseBanner.key} role="status">
@@ -3186,7 +3207,7 @@ export function GameScreen({
                 <MemoryGauge
                   value={memory}
                   compact={compactPiles}
-                  phaseLabel={t(`game.phase.${phaseBanner?.phase ?? shownState.phase}` as `game.phase.${Phase}`)}
+                  phaseLabel={t(`game.phase.${cues.displayedPhase ?? shownState.phase}` as `game.phase.${Phase}`)}
                   phaseSweeping={unsuspendSweep !== null}
                   prediction={memoryPrediction}
                 />
@@ -3196,7 +3217,7 @@ export function GameScreen({
                   onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}
                 />
               </div>
-              <div
+              <BattleRow
                 data-drop="battle-you"
                 {...dropIntentAttrs("battle-you")}
                 className="game-battle-row game-battle-row--you"
@@ -3274,7 +3295,7 @@ export function GameScreen({
                     />
                   );
                 })}
-              </div>
+              </BattleRow>
             </section>
 
             {portraitArena ? yourBreedingDock : null}
@@ -3299,7 +3320,7 @@ export function GameScreen({
                     className="game-utility-slot game-utility-slot--opp-eggs"
                     width={arenaPileWidth}
                     compact={compactPiles}
-                    count={shownOpp.eggDeckCount}
+                    count={breedingOpp.eggDeckCount}
                     egg
                     label={t("game.pile.eggs")}
                     useSelectedSleeve={false}
@@ -3307,14 +3328,14 @@ export function GameScreen({
                   />
                   <div className="game-utility-slot game-utility-slot--opp-raising">
                     <BreedingSlot
-                      perm={shownOpp.breeding}
+                      perm={breedingOpp.breeding}
                       label={t("game.pile.raising")}
                       compact={compactPiles}
-                      burst={shownOpp.breeding ? permanentBursts.get(shownOpp.breeding.permanentId) : undefined}
+                      burst={breedingOpp.breeding ? permanentBursts.get(breedingOpp.breeding.permanentId) : undefined}
                       width={arenaPileWidth}
                       onClick={
-                        narrowGameLayout && shownOpp.breeding
-                          ? () => showCardMenu(shownOpp.breeding!.permanentId, "opp")
+                        narrowGameLayout && breedingOpp.breeding
+                          ? () => showCardMenu(breedingOpp.breeding!.permanentId, "opp")
                           : undefined
                       }
                     />
@@ -3454,8 +3475,8 @@ export function GameScreen({
             </div>
             <ArenaCounters
               side="you"
-              eggs={shownYou.eggDeckCount}
-              hand={shownYou.handCount}
+              eggs={breedingYou.eggDeckCount}
+              hand={shownHandCount}
               deck={shownYou.deckCount}
               trash={shownYou.trash.length}
             />

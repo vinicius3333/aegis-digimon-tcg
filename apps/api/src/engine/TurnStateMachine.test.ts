@@ -82,6 +82,31 @@ describe("TurnStateMachine - single turn", () => {
     fillDeck(state, 1, 10);
   });
 
+  it.each([0, 1])("resumes the same Main phase after end-turn memory returns to %i", async (returnedMemory) => {
+    const events: ServerEvent[] = [];
+    const timings: EffectTiming[] = [];
+    let mainWindows = 0;
+    let endWindows = 0;
+    const { hooks } = makeHooks(state, {
+      runMainPhase: async () => {
+        mainWindows += 1;
+        expect(state.turnSeat).toBe(0);
+        expect(state.turnCount).toBe(1);
+        state.memory = -1;
+        return "crossed";
+      },
+      fireTiming: async (timing) => {
+        timings.push(timing);
+        if (timing === EffectTiming.OnEndTurn && endWindows++ === 0) state.memory = returnedMemory;
+      },
+    });
+    await new TurnStateMachine(state, hooks, undefined, (event) => events.push(event)).runTurn();
+    expect(mainWindows).toBe(2);
+    expect(timings.filter((timing) => timing === EffectTiming.OnStartMainPhase)).toHaveLength(1);
+    expect(events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(1);
+    expect(events.filter((event) => event.kind === "turnEnded")).toHaveLength(1);
+  });
+
   it("runs Active -> Draw -> Breeding -> Main -> End in order", async () => {
     const phases: string[] = [];
     const events: ServerEvent[] = [];

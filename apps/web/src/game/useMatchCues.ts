@@ -20,7 +20,7 @@
    (ARCHITECTURE.md §4). */
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { snapshotGameState } from "../net/presentedState";
+import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import type { RefObject } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
@@ -95,7 +95,7 @@ import {
 } from "./effectSource";
 import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
 import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "./fieldClash";
-import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
+import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
@@ -301,6 +301,12 @@ export interface MatchCues {
   phaseTransitionPending: boolean;
   /** Hand/deck presentation before the queued draw phase reaches the screen. */
   heldDrawState: GameState | undefined;
+  /** Keep card rotation from exposing a Main attack before its phase announcement. */
+  heldPhaseState: GameState | undefined;
+  /** Keep the raising area unchanged until its Breeding announcement finishes. */
+  heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
+  /** The last announced phase persists through the gaps between ribbons. */
+  displayedPhase: GameState["phase"] | undefined;
   /** Keep last turn's suspended cards rotated until their Unsuspend announcement starts. */
   heldSuspendedIds: ReadonlySet<string>;
   /** The full-screen cut-in currently playing, when the setting is on. */
@@ -436,6 +442,7 @@ export function useMatchCues({
   batches,
   phaseEvents,
   state,
+  snapshots,
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
@@ -450,6 +457,7 @@ export function useMatchCues({
   /** Raw phase events arrive before the state patch and its batch-close marker. */
   phaseEvents?: readonly ServerEvent[];
   state: GameState | undefined;
+  snapshots?: readonly StateSnapshot[];
   viewerSeat: Seat;
   /** The opening hand and a mulligan redeal are dealt, not drawn. */
   mulliganOpen: boolean;
@@ -485,16 +493,86 @@ export function useMatchCues({
   );
   const [decisionAnimationsPending, setDecisionAnimationsPending] = useState(false);
   const queueChangedRef = useRef<() => void>(() => {});
+  const visiblePhaseBannerRef = useRef(false);
+  // A cue belongs after its preceding phase announcement, not merely after whichever
+  // ribbon happens to be visible when its batch arrives. Phase prerequisites exclude
+  // future cues so a later attack cannot hold back the very phase it is waiting for.
+  const completedPhaseOrderRef = useRef(0);
+  const nextPhaseOrderRef = useRef(0);
+  const phaseOrdersRef = useRef(new Map<ServerEvent, number>());
+  const enqueuePhaseOrderRef = useRef<number | undefined>(undefined);
+  const stepPhaseOrdersRef = useRef(new WeakMap<AnimationStep, number>());
+  const eventTimeline = phaseEvents ?? batches.flatMap((batch) => batch.events);
+  const phaseStateRef = useRef({ events: eventTimeline, snapshots });
+  phaseStateRef.current = { events: eventTimeline, snapshots };
+  function phaseOrderFor(events: readonly ServerEvent[]): number {
+    const first = events[0];
+    let order = completedPhaseOrderRef.current;
+    // Fabricated previews may provide raw, unsequenced phase events separately
+    // from cloned batch events. Use batch order there, matching phase identities.
+    const timeline = phaseEvents?.some((event) => !("seq" in event))
+      ? batches.flatMap((batch) => batch.events)
+      : eventTimeline;
+    for (const event of timeline) {
+      const phaseOrder =
+        phaseOrdersRef.current.get(event) ??
+        [...phaseOrdersRef.current].find(([phase]) =>
+          phase.kind === "phaseChanged" && event.kind === "phaseChanged"
+            ? phase.phase === event.phase && phase.turnSeat === event.turnSeat && phase.turnCount === event.turnCount
+            : phase.kind === "turnEnded" &&
+              event.kind === "turnEnded" &&
+              phase.turnCount === event.turnCount &&
+              phase.endingSeat === event.endingSeat,
+        )?.[1];
+      order = phaseOrder ?? order;
+      if (
+        event === first ||
+        (first &&
+          "seq" in first &&
+          "batch" in first &&
+          "seq" in event &&
+          "batch" in event &&
+          first.seq === event.seq &&
+          first.batch === event.batch)
+      )
+        return order;
+    }
+    return completedPhaseOrderRef.current;
+  }
   const queue = useMemo(() => {
     const inner = createAnimationQueue({
       mode: liveMode(),
       onChange: () => queueChangedRef.current(),
       onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
     });
-    const counted = (step: AnimationStep): AnimationStep =>
+    const counted = (step: AnimationStep): AnimationStep => {
+      const phaseOrder = enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current;
+      const gated =
+        step.track === "phaseBanner" || step.track === "unsuspendSweep" || step.track?.startsWith("turnDrawFlight-")
+          ? step
+          : {
+              ...step,
+              async run(context: AnimationStepContext) {
+                // Later server batches may arrive while a ribbon is still on screen.
+                // Keep their visual cues behind that ribbon, preserving its full duration.
+                while (
+                  (visiblePhaseBannerRef.current || completedPhaseOrderRef.current < phaseOrder) &&
+                  !context.cancelled &&
+                  !context.skipping &&
+                  context.mode === "live"
+                ) {
+                  await context.wait(16);
+                }
+                await step.run(context);
+              },
+            };
       // A replayed or drained step presents no moment of its own: reconnect history and a
       // screen with no animation to watch both render the live board (presentedState.ts).
-      inner.getMode() !== "live" || step.mode === "replay" || !holdsTheBoard(step) ? step : progress.track(step);
+      const countedStep =
+        inner.getMode() !== "live" || step.mode === "replay" || !holdsTheBoard(step) ? gated : progress.track(gated);
+      stepPhaseOrdersRef.current.set(countedStep, phaseOrder);
+      return countedStep;
+    };
     return {
       ...inner,
       enqueue(step: AnimationStep | readonly AnimationStep[]) {
@@ -547,6 +625,9 @@ export function useMatchCues({
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
   const [heldDrawState, setHeldDrawState] = useState<GameState | undefined>();
+  const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
+  const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
+  const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [heldSuspendedIds, setHeldSuspendedIds] = useState<ReadonlySet<string>>(new Set());
   const previousDrawStateRef = useRef<GameState | undefined>(undefined);
   const phaseBaselineRef = useRef(false);
@@ -782,9 +863,8 @@ export function useMatchCues({
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
     // Follow the actual arrival track, including its field burst, rather than
     // estimating when a normal play, evolution or cut-in will be finished.
-    const track = /start.*main.*phase/i.test(timing)
-      ? "phaseBanner"
-      : /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
+    const track =
+      /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
         ? `burst-${initialSite.permanentId}`
         : "narration";
     queue.enqueue({
@@ -900,13 +980,20 @@ export function useMatchCues({
     replayingHistory: boolean,
     continuingBatch = false,
   ) {
-    const segments = securityCheckSegments(fresh);
+    const phaseSegments: ServerEvent[][] = [];
+    for (const event of fresh) {
+      if (phaseSegments.length === 0 || event.kind === "phaseChanged" || event.kind === "turnEnded")
+        phaseSegments.push([]);
+      phaseSegments.at(-1)!.push(event);
+    }
+    const segments = phaseSegments.flatMap(securityCheckSegments);
     if (segments.length > 1) {
       for (const [index, segment] of segments.entries()) {
         presentBatch(batchId, stateVersion, segment, replayingHistory, continuingBatch || index > 0);
       }
       return;
     }
+    enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
     lastBatchIdRef.current = batchId;
     // Everything enqueued from here belongs to this batch, and the board it is narrated
     // over is the board this batch produced.
@@ -1003,7 +1090,8 @@ export function useMatchCues({
     if (!replayingHistory) {
       for (const event of fresh) {
         const cue = soundForEvent(event, viewerSeat);
-        if (cue) playCue(cue);
+        if (cue && event.kind !== "turnEnded")
+          enqueue({ id: `sound-${batchId}-${event.kind}`, track: "sound", run: () => playCue(cue) });
       }
       const now = Date.now();
       let announcement: AttackAnnouncement | null = null;
@@ -1955,7 +2043,11 @@ export function useMatchCues({
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
 
-  async function waitForPhasePrerequisites(context: AnimationStepContext, arrivals: readonly ServerEvent[]) {
+  async function waitForPhasePrerequisites(
+    context: AnimationStepContext,
+    arrivals: readonly ServerEvent[],
+    phaseOrder: number,
+  ) {
     // Batch presentation registers its cues in the following layout effect.
     await Promise.resolve();
     const batchDeadline = Date.now() + PRESENTED_BOARD_BUDGET_MS;
@@ -1980,7 +2072,10 @@ export function useMatchCues({
             ),
         );
       const awaitingCue = queue.hasPendingStep(
-        (step) => step.track !== "phaseBanner" && step.track !== SECURITY_DOCK_TRACK,
+        (step) =>
+          step.track !== "phaseBanner" &&
+          step.track !== SECURITY_DOCK_TRACK &&
+          (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
       );
       if (!awaitingBatch && !awaitingCue) return;
       await context.wait(16);
@@ -1996,6 +2091,11 @@ export function useMatchCues({
   );
   // Establish the old hand/rotation before paint when a patch and its phases arrive together.
   useLayoutEffect(() => {
+    for (const [event, order] of phaseOrdersRef.current) {
+      if (order <= completedPhaseOrderRef.current && !phaseHistory.includes(event as (typeof phaseHistory)[number])) {
+        phaseOrdersRef.current.delete(event);
+      }
+    }
     const last = lastPhaseEventRef.current;
     lastPhaseEventRef.current = phaseHistory.at(-1);
     if (!phaseBaselineRef.current) {
@@ -2004,8 +2104,11 @@ export function useMatchCues({
     }
     const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
     for (const openedPhase of fresh) {
-      const arrivals = (phaseEvents ?? [])
-        .slice(last ? phaseEvents!.lastIndexOf(last) + 1 : 0, phaseEvents?.indexOf(openedPhase))
+      if (openedPhase.kind === "phaseChanged" && !isAnnouncedPhase(openedPhase.phase)) continue;
+      const phaseOrder = ++nextPhaseOrderRef.current;
+      phaseOrdersRef.current.set(openedPhase, phaseOrder);
+      const arrivals = eventTimeline
+        .slice(last ? eventTimeline.lastIndexOf(last) + 1 : 0, eventTimeline.indexOf(openedPhase))
         .filter((event) => event.kind === "cardPlayed" || event.kind === "digivolved");
       if (openedPhase.kind === "turnEnded") {
         const transition: TurnTransitionCue = {
@@ -2019,13 +2122,17 @@ export function useMatchCues({
           track: "phaseBanner",
           async run(context) {
             try {
-              await waitForPhasePrerequisites(context, arrivals);
+              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
+              visiblePhaseBannerRef.current = true;
+              playCue("turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
               setTurnTransition((current) => (current === transition ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
+              visiblePhaseBannerRef.current = false;
+              completedPhaseOrderRef.current = phaseOrder;
               setTurnTransition((current) => (current === transition ? null : current));
               setPendingPhaseBanners((count) => count - 1);
             }
@@ -2046,6 +2153,9 @@ export function useMatchCues({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = true;
           setHeldDrawState(previousDrawStateRef.current);
+          setHeldPhaseState(previousDrawStateRef.current);
+          const player = previousDrawStateRef.current?.players[openedPhase.turnSeat];
+          if (player) setHeldBreedingState({ seat: openedPhase.turnSeat, player });
           setHeldSuspendedIds(
             new Set(
               previousDrawStateRef.current?.players[openedPhase.turnSeat]?.battleArea
@@ -2061,15 +2171,52 @@ export function useMatchCues({
             try {
               if (context.mode !== "live") {
                 setHeldSuspendedIds(new Set());
+                setHeldPhaseState(undefined);
+                setHeldBreedingState(undefined);
                 drawPhaseWaitingRef.current = false;
                 setHeldDrawState(undefined);
                 return;
               }
-              await waitForPhasePrerequisites(context, arrivals);
+              await waitForPhasePrerequisites(context, arrivals, phaseOrder);
               if (context.cancelled || context.mode !== "live") return;
+              visiblePhaseBannerRef.current = true;
+              if (isAnnouncedPhase(openedPhase.phase)) setAnnouncedPhase(openedPhase.phase);
               setPhaseBanner(banner);
               if (banner.phase === UNSUSPEND_PHASE) {
                 setHeldSuspendedIds(new Set());
+                const timeline = phaseStateRef.current.events;
+                const activeIndex = timeline.indexOf(openedPhase);
+                const afterActive = timeline.slice(activeIndex + 1);
+                const nextPhaseIndex = afterActive.findIndex((event) => event.kind === "phaseChanged");
+                const unsuspendedIds = new Set(
+                  afterActive
+                    .slice(0, nextPhaseIndex < 0 ? undefined : nextPhaseIndex)
+                    .flatMap((event) =>
+                      event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
+                        ? event.instanceIds
+                        : [],
+                    ),
+                );
+                setHeldPhaseState((held) =>
+                  held
+                    ? ({
+                        ...held,
+                        players: held.players.map((player, seat) =>
+                          seat === openedPhase.turnSeat
+                            ? {
+                                ...player,
+                                battleArea: player.battleArea.map((permanent) => ({
+                                  ...permanent,
+                                  isSuspended: unsuspendedIds.has(permanent.permanentId)
+                                    ? false
+                                    : permanent.isSuspended,
+                                })),
+                              }
+                            : player,
+                        ),
+                      } as GameState)
+                    : held,
+                );
                 const sweep: UnsuspendSweep = { seat: openedPhase.turnSeat, key: ++unsuspendSweepKeyRef.current };
                 queue.enqueue({
                   id: `unsuspend-sweep-${sweep.key}`,
@@ -2092,13 +2239,52 @@ export function useMatchCues({
                 setHeldDrawState(undefined);
               }
               await context.wait(TIMINGS.phaseBanner);
+              if (banner.phase === "Breeding") {
+                // A fast bot may already have evolved in Main. Present the raising
+                // area at the Main boundary first, so its hatch remains visible.
+                const main = phaseStateRef.current.events.find(
+                  (event) =>
+                    event.kind === "phaseChanged" &&
+                    event.phase === "Main" &&
+                    event.turnSeat === openedPhase.turnSeat &&
+                    event.turnCount === openedPhase.turnCount,
+                );
+                // Event revisions precede the patch. The closed batch names the
+                // resulting revision, including a hatch coalesced with Main's patch.
+                const mainBatch =
+                  main &&
+                  phaseBatchesRef.current.find((batch) =>
+                    batch.events.some(
+                      (event) =>
+                        event.kind === "phaseChanged" &&
+                        event.phase === "Main" &&
+                        event.turnSeat === openedPhase.turnSeat &&
+                        event.turnCount === openedPhase.turnCount,
+                    ),
+                  );
+                const version =
+                  mainBatch?.stateVersion ?? (main && "stateVersion" in main ? main.stateVersion : undefined);
+                const snapshot =
+                  version === undefined
+                    ? undefined
+                    : phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= version).at(-1);
+                const player = snapshot?.state.players[openedPhase.turnSeat];
+                setHeldBreedingState(player ? { seat: openedPhase.turnSeat, player } : undefined);
+              } else if (banner.phase === "Main") {
+                setHeldBreedingState(undefined);
+                setHeldPhaseState(undefined);
+              }
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
+              visiblePhaseBannerRef.current = false;
+              completedPhaseOrderRef.current = phaseOrder;
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));
               setPendingPhaseBanners((count) => count - 1);
-              if (context.cancelled) {
+              if (context.cancelled || context.mode !== "live") {
                 setHeldSuspendedIds(new Set());
+                setHeldPhaseState(undefined);
+                setHeldBreedingState(undefined);
                 drawPhaseWaitingRef.current = false;
                 setHeldDrawState(undefined);
               }
@@ -2126,7 +2312,11 @@ export function useMatchCues({
     if (pending.length === 0) return;
     lastCueBatchRef.current = pending.at(-1)!.id;
     // Each batch is its own moment, in order, even when several arrive in one render.
-    for (const batch of pending) presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
+    for (const batch of pending) {
+      enqueuePhaseOrderRef.current = phaseOrderFor(batch.events);
+      presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
+    }
+    enqueuePhaseOrderRef.current = undefined;
     // presentBatch is rebuilt every render and reads only refs and setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batches]);
@@ -2624,7 +2814,7 @@ export function useMatchCues({
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
-      track: `drawFlight-${key}`,
+      track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);
@@ -2763,6 +2953,9 @@ export function useMatchCues({
     phaseBanner,
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,
+    heldPhaseState,
+    heldBreedingState,
+    displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     heldSuspendedIds,
     combatImpactIds,
     fieldClash,

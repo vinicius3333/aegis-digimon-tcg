@@ -190,11 +190,12 @@ export class TurnStateMachine {
 
     // §6-6-4: an OnEndTurn effect can move the memory back to 0 or more on the turn player's
     // side, which postpones the end of the turn and continues the current phase. Each
-    // postponement re-runs the Main phase and re-opens the end-of-turn window.
+    // postponement resumes Main input and re-opens the end-of-turn window without
+    // starting a new Main phase or triggering its start effects again.
     for (let postponements = 0; postponements < MAX_END_TURN_POSTPONEMENTS; postponements++) {
       if (!(await this.endTurnWindow(ending))) break;
       if (this.hooks.isGameOver()) return;
-      ending = await this.mainPhase();
+      ending = await this.mainPhase(true);
       if (this.hooks.isGameOver()) return;
     }
 
@@ -251,8 +252,8 @@ export class TurnStateMachine {
   // --- Main phase ---------------------------------------------------------------
   // source TurnStateMachine.MainPhase: fire OnStartMainPhase, run the interactive verb
   // loop until the turn ends, then fire OnEndMainPhase (the source `EndMainPhase:` exit).
-  private async mainPhase(): Promise<MainPhaseEnd> {
-    this.setPhase(Phase.Main);
+  private async mainPhase(resuming = false): Promise<MainPhaseEnd> {
+    if (!resuming) this.setPhase(Phase.Main);
 
     // Open the authoritative Main input window before any phase patch can reach a
     // client. `fireTiming` is asynchronous even when no start-of-main effect needs
@@ -261,7 +262,7 @@ export class TurnStateMachine {
     // the turn when that play crossed memory.
     const endingWindow = this.hooks.runMainPhase(this.state.turnSeat);
 
-    await this.hooks.fireTiming(EffectTiming.OnStartMainPhase);
+    if (!resuming) await this.hooks.fireTiming(EffectTiming.OnStartMainPhase);
     if (this.hooks.isGameOver()) {
       return "crossed";
     }
