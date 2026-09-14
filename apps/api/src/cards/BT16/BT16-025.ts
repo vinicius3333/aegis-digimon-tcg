@@ -20,6 +20,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Suspend all of your opponent's Digimon with as many or fewer digivolution cards as this Digimon.",
           kind: "Suspend",
           target: {
             filter: {

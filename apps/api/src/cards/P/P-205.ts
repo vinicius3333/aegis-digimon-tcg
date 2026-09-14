@@ -99,11 +99,13 @@ const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart: "[Security] ＜Draw 2＞ and trash 2 cards in your hand.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "[Security] ＜Draw 2＞ and trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: { controller: "mine", zone: "hand" },

@@ -6246,3 +6246,7 @@ None. All 74 cards have current reproducible 10/10 evidence. The historical EX5-
 - `docs/audits/EX5-REAUDIT-LEDGER.md` — last at `1edc556bf`, 2026-09-09. Winning scoring table; merged into the Card ledger section above.
 - `docs/audits/EX5-reaudit/` — last at `8d9fb67af`, 2026-09-09. 74 per-card reports plus `KB-INDEX.md`, `RUN.md`, `REVIEW-NOTES.md` and `WORKER-BRIEF.md`; all merged above except the worker brief, which was process instruction only.
 - `docs/audits/collections-summary.md` — never committed (untracked), generated 2026-08-22. Cross-set status table, deleted in favour of the generated index in `docs/audits/README.md`. It was the only record of this delivery evidence for EX5: commit `737e4fd80`.
+
+### 2026-09-14 optional activation correction — EX5-034
+
+A declined optional target selection preserves the enclosing watcher’s once-per-turn use; no following payload resolves. A second eligible event in the same turn offers the effect again. Proof: `apps/api/src/cards/EX5/EX5-034.test.ts` (7 focused tests, including the repeated-event refusal regression). This focused correction does not recertify the whole collection.

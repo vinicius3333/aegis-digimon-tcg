@@ -20,7 +20,7 @@ import {
 } from "./memoryArc";
 import { pressGesture } from "./pressGesture";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
-import { formatKeyword } from "./keywordDisplay";
+import { formatResolvedKeyword } from "./keywordDisplay";
 import { hasBlocker, restrictionBadges, sourceCountBadge } from "./fieldBadges";
 import { SecurityCardSlot } from "./SecurityCardSlot";
 import { deckLayerCount } from "./deckChrome";
@@ -483,7 +483,12 @@ export function PermanentView({
   const def = getCardDefinition(topId);
   const delta = perm.currentDP - perm.baseDP;
   const hasDpDelta = delta !== 0;
-  const activeKeywords = [...perm.grantedKeywords].map((keyword) => keywordLabels?.[keyword] ?? formatKeyword(keyword));
+  const badgeKeywords = new Set(perm.grantedKeywords);
+  if (perm.securityAttackModifier !== 0 && perm.keywords.includes("SecurityAttack"))
+    badgeKeywords.add("SecurityAttack");
+  const activeKeywords = [...badgeKeywords].map((keyword) =>
+    formatResolvedKeyword(keyword, perm.securityAttackModifier, keywordLabels?.[keyword]),
+  );
   const visibleKeywords = activeKeywords.slice(0, 3);
   const hiddenKeywordCount = activeKeywords.length - visibleKeywords.length;
   // Server truth (`Permanent.keywords`): the resolved keyword list already folds a

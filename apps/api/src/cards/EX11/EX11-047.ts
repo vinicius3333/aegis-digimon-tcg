@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart: "[Start of Your Main Phase] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -21,6 +22,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
         },

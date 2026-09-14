@@ -18,6 +18,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Main] [Once Per Turn] By paying 3 cost, delete 1 of your opponent's level 5 or lower Digimon. If this effect didn't delete, this Digimon gains ＜Security A. +1＞ for the turn.",
               kind: "Delete",
               target: {
                 filter: {
@@ -29,6 +31,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "[Main] [Once Per Turn] By paying 3 cost, delete 1 of your opponent's level 5 or lower Digimon. If this effect didn't delete, this Digimon gains ＜Security A. +1＞ for the turn.",
               kind: "GainKeyword",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
@@ -36,6 +40,7 @@ export const compiled: CompiledCard = {
               condition: { kind: "ifThisEffectDidNotDelete", raw: "if this effect didn't delete" },
             },
             {
+              effectTextPart: "Then, this Digimon may attack.",
               kind: "Attack",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               withoutSuspending: false,

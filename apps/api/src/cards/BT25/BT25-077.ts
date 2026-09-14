@@ -101,6 +101,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may suspend 1 Digimon.",
               kind: "Suspend",
               target: {
                 filter: {
@@ -113,6 +115,8 @@ export const compiled: CompiledCard = {
               preserveOncePerTurnOnDecline: true,
             },
             {
+              effectTextPart:
+                "Then, if played or digivolved by an effect, delete 1 of your opponent's lowest DP Digimon.",
               kind: "Delete",
               target: {
                 filter: {
@@ -139,6 +143,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may suspend 1 Digimon.",
               kind: "Suspend",
               target: {
                 filter: {
@@ -151,6 +157,8 @@ export const compiled: CompiledCard = {
               preserveOncePerTurnOnDecline: true,
             },
             {
+              effectTextPart:
+                "Then, if played or digivolved by an effect, delete 1 of your opponent's lowest DP Digimon.",
               kind: "Delete",
               target: {
                 filter: {

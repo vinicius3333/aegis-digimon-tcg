@@ -68,6 +68,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends.",
           kind: "Suspend",
           target: {
             fromSelectionRef: "onPlayTarget",
@@ -86,6 +88,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -109,6 +113,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -145,6 +151,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends.",
           kind: "Suspend",
           target: {
             fromSelectionRef: "whenDigivolvingTarget",
@@ -163,6 +171,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -186,6 +196,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 3 or fewer security cards, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n(Rule) Trait: Has [Vegetation] Type.",
           kind: "ModifyDP",
           target: {
             filter: {

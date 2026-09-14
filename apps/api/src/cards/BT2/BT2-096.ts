@@ -11,6 +11,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Return 1 of your opponent's level 5 or lower Digimon to their hand. (Trash all of the digivolution cards of that Digimon.)",
           kind: "Return",
           target: {
             filter: {
@@ -26,6 +28,7 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart: "Then, if you have a blue Tamer in play, unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

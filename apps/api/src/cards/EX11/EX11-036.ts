@@ -23,6 +23,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -52,6 +54,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -81,6 +85,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -146,6 +152,8 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When this Digimon gets linked, suspend 1 of your opponent's Digimon.",
               kind: "Suspend",
               target: {
                 filter: {
@@ -156,6 +164,7 @@ const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, this Digimon may attack.",
               kind: "Attack",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               withoutSuspending: false,

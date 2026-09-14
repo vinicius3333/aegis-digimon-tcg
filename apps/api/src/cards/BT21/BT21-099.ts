@@ -6,6 +6,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place 1 Digimon card with ＜Save＞ in its text from your hand or trash under any of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -25,6 +27,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may digivolve into a Digimon card with ＜Save＞ in its text in the trash.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -48,6 +52,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 card with ＜Save＞ in its text and a play cost of 5 or less from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

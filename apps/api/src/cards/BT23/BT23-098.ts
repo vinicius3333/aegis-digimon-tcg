@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 [Ghostmon] or [Violet Inboots] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

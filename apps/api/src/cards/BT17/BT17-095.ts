@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [Agumon]/[Gabumon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -83,6 +84,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 card with [Tai Kamiya]/[Matt Ishida] in its name from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

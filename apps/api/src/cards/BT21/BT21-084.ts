@@ -32,6 +32,7 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart: "[Your Turn] When your Digimon get linked, by suspending this Tamer, ＜Draw 1＞.",
               kind: "Draw",
               controller: "mine",
               amount: 1,

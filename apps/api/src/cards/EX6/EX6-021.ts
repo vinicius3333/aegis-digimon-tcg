@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
           actions: [
             {
+              effectTextPart:
+                "[On Play] [When Digivolving] By adding the top or bottom card of your security stack to the hand, 1 of your opponent's Digimon gets -4000 DP for the turn.",
               kind: "ModifyDP",
               target: {
                 filter: {
@@ -73,6 +75,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
           actions: [
             {
+              effectTextPart:
+                "[On Play] [When Digivolving] By adding the top or bottom card of your security stack to the hand, 1 of your opponent's Digimon gets -4000 DP for the turn.",
               kind: "ModifyDP",
               target: {
                 filter: {

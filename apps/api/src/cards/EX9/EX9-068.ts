@@ -29,9 +29,22 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
           actions: [
-            { kind: "Draw", controller: "mine", amount: 1 },
-            { kind: "GainMemory", amount: 1 },
             {
+              effectTextPart:
+                "[Your Turn] When any of your play cost 7 or higher [Cyborg], [Machine] or [DM] trait Digimon are played, by suspending this Tamer, ＜Draw 1＞ and gain 1 memory.",
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+            {
+              effectTextPart:
+                "[Your Turn] When any of your play cost 7 or higher [Cyborg], [Machine] or [DM] trait Digimon are played, by suspending this Tamer, ＜Draw 1＞ and gain 1 memory.",
+              kind: "GainMemory",
+              amount: 1,
+            },
+            {
+              effectTextPart:
+                "Then, you may place 1 card from your hand face down as any of those Digimon's bottom digivolution card.",
               kind: "PlaceUnder",
               target: { filter: { zone: "hand", controller: "mine" }, count: 1, allowZero: true },
               from: ["hand"],

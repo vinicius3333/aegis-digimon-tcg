@@ -33,6 +33,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 10 or more cards in their trash, you may play 1 level 4 or lower [Evil] or [Fallen Angel] Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -82,6 +84,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 10 or more cards in their trash, you may play 1 level 4 or lower [Evil] or [Fallen Angel] Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

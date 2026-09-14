@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] ＜De-Digivolve 1＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -22,6 +23,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with a play cost of 5 or less. If no Digimon is deleted by this effect, none of your opponent's unsuspended Digimon can digivolve until the end of your opponent's turn.",
           kind: "Delete",
           target: {
             filter: {

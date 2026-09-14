@@ -6,8 +6,16 @@ const opponentLowDp = { controller: "opponent", kind: ["Digimon"], dp: { op: "lt
 const ownDigimon = { controller: "mine", kind: ["Digimon"] } satisfies Filter;
 
 const onPlayBody = [
-  { kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -4000, duration: "untilOpponentTurnEnd" },
   {
+    effectTextPart: "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP until their turn ends.",
+    kind: "ModifyDP",
+    target: { filter: opponentDigimon, count: 1 },
+    amount: -4000,
+    duration: "untilOpponentTurnEnd",
+  },
+  {
+    effectTextPart:
+      "Then, by returning 1 card in your trash to the bottom of the deck, delete 1 of your opponent's 5000 DP or lower Digimon.",
     kind: "Return",
     target: { filter: { controller: "mine", zone: "trash" }, count: 1 },
     from: ["trash"],
@@ -15,7 +23,13 @@ const onPlayBody = [
     optional: true,
     trackCount: "returnedTrash",
   },
-  { kind: "Delete", target: { filter: opponentLowDp, count: 1 }, condition: { kind: "ifThisEffectActed" } },
+  {
+    effectTextPart:
+      "Then, by returning 1 card in your trash to the bottom of the deck, delete 1 of your opponent's 5000 DP or lower Digimon.",
+    kind: "Delete",
+    target: { filter: opponentLowDp, count: 1 },
+    condition: { kind: "ifThisEffectActed" },
+  },
 ] satisfies Action[];
 
 const reactiveBuff = [
@@ -24,6 +38,7 @@ const reactiveBuff = [
     target: { filter: ownDigimon, count: 1, bindAs: "buffTarget" },
     optional: true,
     abortOnDecline: true,
+    preserveOncePerTurnOnDecline: true,
   },
   {
     kind: "ModifyDP",
@@ -64,7 +79,12 @@ export const compiled: CompiledCard = {
           },
           actions: [
             // "...may unsuspend": the unsuspension is the optional half of the printed clause.
-            { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+            {
+              kind: "Unsuspend",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              optional: true,
+              preserveOncePerTurnOnDecline: true,
+            },
           ],
         },
       ],

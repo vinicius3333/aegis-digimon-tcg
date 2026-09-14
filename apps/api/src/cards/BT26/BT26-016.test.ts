@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Zone } from "@aegis/shared";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-016.js";
@@ -102,6 +102,14 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("holy").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
 
+    const printed = getCardDefinition(CARD_ID)!.effectText!;
+    const recoveryPart = printed.slice(printed.indexOf("Then, by returning 3"), printed.indexOf("[All Turns]")).trim();
+    const recoveryDecisions = s.decisions.filter(
+      ({ req }) => req.sourceCardId === CARD_ID && req.options?.effectTextPart === recoveryPart,
+    );
+    expect(recoveryDecisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(recoveryDecisions.some(({ req }) => req.kind === "selectCards")).toBe(true);
+    expect(recoveryDecisions.some(({ req }) => req.kind === "orderCards")).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
       s.inst("overBoundary").instanceId,
     ]);

@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Attacking] Return 1 purple Digimon card with the [Dark Animal] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -44,6 +46,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Attacking] Return 1 purple Digimon card with the [Dark Animal] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

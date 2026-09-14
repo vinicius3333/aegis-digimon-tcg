@@ -10,12 +10,14 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash the top card of your security stack.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
         },

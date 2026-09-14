@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card with the [Night Claw]/[Light Fang] trait from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

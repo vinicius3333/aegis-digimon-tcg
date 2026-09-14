@@ -10,11 +10,13 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 2＞ and trash 2 cards in your hand.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "[Main] ＜Draw 2＞ and trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -71,6 +73,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 level 4 or lower [Titan] trait Digimon card from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

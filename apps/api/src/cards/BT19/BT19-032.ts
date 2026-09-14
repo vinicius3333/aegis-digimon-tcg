@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -1＞until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: {

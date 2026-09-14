@@ -21,6 +21,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, this Digimon may digivolve into a [Dark Dragon] or [Evil Dragon] trait Digimon card in the trash with the digivolution cost reduced by 2.",
           kind: "Digivolve",
           target: {
             filter: {

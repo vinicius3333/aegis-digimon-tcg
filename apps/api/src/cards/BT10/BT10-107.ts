@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
           rest: "trash",
         },
         {
+          effectTextPart:
+            "Then, you may place 1 Digimon card with [Bagra Army] in its traits from your trash under one of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -60,6 +62,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Yuu Amano] from your hand or trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -81,6 +81,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any of your Digimon are played, ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
               kind: "DeDigivolve",
               target: {
                 filter: {
@@ -92,6 +94,7 @@ export const compiled: CompiledCard = {
               amount: 2,
             },
             {
+              effectTextPart: "Then, 1 of their Digimon gets -6000 DP until their turn ends.",
               kind: "ModifyDP",
               target: {
                 filter: {

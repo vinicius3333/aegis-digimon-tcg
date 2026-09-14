@@ -32,6 +32,8 @@ export const compiled: CompiledCard = {
           to: "revealed",
         },
         {
+          effectTextPart:
+            "[Start of Your Main Phase] Search your security stack. This Digimon may digivolve into a yellow Digimon card with the [Vaccine] trait among them without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {

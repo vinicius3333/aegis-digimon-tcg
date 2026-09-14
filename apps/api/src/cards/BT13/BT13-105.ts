@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 1 of your opponent's Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -21,6 +22,7 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart: "Then, gain 1 memory for every 4 cards in your opponent's hand.",
           kind: "GainMemory",
           amount: 1,
           scaling: {

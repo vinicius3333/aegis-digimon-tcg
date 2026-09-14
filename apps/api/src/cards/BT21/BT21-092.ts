@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Place all Digimon cards in 1 of your [Xros Heart] trait Digimon's digivolution cards under 1 of your Tamers.",
           kind: "PlaceUnder",
           target: { filter: xrosHeartDigimon, count: 1 },
           fromSelectedPermanentDigivolutionCards: true,
@@ -33,6 +35,8 @@ export const compiled: CompiledCard = {
           trackCount: "placedXrosSources",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Digimon card with the [Xros Heart] trait from your hand with the play cost reduced by 1 for each card this effect placed.",
           kind: "PlayWithoutCost",
           target: { filter: xrosHeartDigimon, count: 1 },
           from: ["hand"],

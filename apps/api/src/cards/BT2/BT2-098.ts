@@ -10,11 +10,13 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon gets -1000 DP for each card in your hand for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

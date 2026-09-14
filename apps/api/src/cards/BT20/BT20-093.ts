@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 Digimon card with [Dracomon]/[Examon] in its text from your hand with the play cost reduced by 3.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -80,6 +82,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Digimon card with [Dracomon] in its name from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

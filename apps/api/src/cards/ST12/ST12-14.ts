@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your Digimon gets +2000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -23,6 +24,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
           kind: "GainMemory",
           amount: 1,
           condition: {
@@ -40,6 +43,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
           kind: "GainKeyword",
           target: {
             filter: {

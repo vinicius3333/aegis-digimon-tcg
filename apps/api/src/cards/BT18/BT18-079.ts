@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
           trackCount: "trashedThisEffect",
         },
         {
+          effectTextPart: "Then, this Digimon gets +1000 DP for each card trashed by this effect for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -60,6 +61,7 @@ const compiled: CompiledCard = {
           trackCount: "trashedThisEffect",
         },
         {
+          effectTextPart: "Then, this Digimon gets +1000 DP for each card trashed by this effect for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

@@ -99,6 +99,8 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "[Security] Reveal the top 3 cards of your deck. Add 1 card with the [SoC] trait among them to the hand. Return the rest to the bottom of the deck. If this effect added to a hand, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

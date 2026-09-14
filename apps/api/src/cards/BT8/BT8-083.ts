@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
           amount: 5,
         },
         {
+          effectTextPart: "Then, if there's a card with [Myotismon] in its name in your trash, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

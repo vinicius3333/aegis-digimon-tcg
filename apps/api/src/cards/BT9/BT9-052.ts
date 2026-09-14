@@ -11,6 +11,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If [Okuwamon] or [X Antibody] is in this Digimon’s digivolution cards, suspend 1 of your opponent’s Digimon.",
           kind: "Suspend",
           target: {
             filter: {

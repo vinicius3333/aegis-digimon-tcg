@@ -45,6 +45,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Delete all of your opponent's Digimon with the lowest DP. If this effect didn't delete, trash 1 of your opponent's Option cards in the battle area.",
           kind: "Delete",
           target: {
             filter: {
@@ -56,6 +58,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Delete all of your opponent's Digimon with the lowest DP. If this effect didn't delete, trash 1 of your opponent's Option cards in the battle area.",
           kind: "Trash",
           target: {
             filter: {
@@ -72,6 +76,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: {
             filter: {

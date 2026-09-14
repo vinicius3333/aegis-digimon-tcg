@@ -53,6 +53,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Delete all of your opponent's lowest level Digimon.",
           kind: "Delete",
           target: {
             filter: {

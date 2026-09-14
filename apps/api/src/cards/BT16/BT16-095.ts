@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Suspend 2 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +21,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, return all of your opponent's suspended Digimon with the lowest DP to the bottom of the deck. All of your Digimon get +3000 DP until the end of your opponent's turn.",
           kind: "Return",
           target: {
             filter: {
@@ -33,6 +36,8 @@ const compiled: CompiledCard = {
           to: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, return all of your opponent's suspended Digimon with the lowest DP to the bottom of the deck. All of your Digimon get +3000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {

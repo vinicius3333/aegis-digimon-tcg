@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If DNA digivolving, you may place up to 2 level 6 cards from your trash as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -37,6 +39,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for each level 6 card in this Digimon's digivolution cards, return 1 of your opponent's Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

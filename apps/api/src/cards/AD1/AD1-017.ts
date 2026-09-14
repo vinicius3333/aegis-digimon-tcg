@@ -167,6 +167,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of their Digimon gets -3000 DP until your turn ends.",
           kind: "ModifyDP",
           target: {
             fromSelectionRef: "securityDebuffTarget",

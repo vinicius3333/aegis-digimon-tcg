@@ -44,6 +44,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Choose any number of your opponent's Digimon and Tamers whose combined play costs are less than or equal to the play cost of 1 of your Digimon with [Greymon] in its name, and delete all of the chosen cards.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
@@ -53,6 +55,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, 1 of your Digimon with [Greymon] in its name may attack a player.",
           kind: "Attack",
           target: {
             filter: {

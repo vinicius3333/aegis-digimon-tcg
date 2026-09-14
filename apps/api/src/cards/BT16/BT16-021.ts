@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When an opponent's Digimon becomes suspended, trash the top digivolution card of 1 of their Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {

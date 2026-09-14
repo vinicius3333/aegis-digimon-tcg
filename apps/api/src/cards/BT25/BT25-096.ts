@@ -78,6 +78,8 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Gaomon] or [Thomas H. Norstein] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

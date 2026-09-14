@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

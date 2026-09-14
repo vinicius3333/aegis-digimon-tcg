@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -66,6 +68,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

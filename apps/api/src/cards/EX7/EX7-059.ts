@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Return 1 Option card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -30,6 +31,8 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
@@ -51,6 +54,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Return 1 Option card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -63,6 +67,8 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],

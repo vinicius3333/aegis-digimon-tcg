@@ -111,6 +111,8 @@ export const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any of your Digimon are played, you may delete 1 of your opponent's lowest DP Digimon.",
               kind: "Delete",
               target: {
                 filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
@@ -119,6 +121,8 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart:
+                "Then, if you don't have [Atho or René & Por], you may play 1 [Atho, René & Por] Token. (Digimon/White/6000 DP/＜Reboot＞ ＜Blocker＞ ＜Decoy (Red)/(Black)＞)",
               kind: "PlayToken",
               tokens: [
                 {

@@ -52,6 +52,8 @@ const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
               kind: "GainKeyword",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
@@ -63,6 +65,7 @@ const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               withoutSuspending: false,
@@ -77,6 +80,8 @@ const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
               kind: "GainKeyword",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
@@ -88,6 +93,7 @@ const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               withoutSuspending: false,

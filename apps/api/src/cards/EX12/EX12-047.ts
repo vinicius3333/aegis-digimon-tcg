@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's lowest DP Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -52,6 +53,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by returning 2 cards from their trash to the bottom of the deck, for the turn, this Digimon gets +6000 DP and, to 1 of their Digimon, give -5000 DP for each of those returned cards' colors.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -78,6 +81,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by returning 2 cards from their trash to the bottom of the deck, for the turn, this Digimon gets +6000 DP and, to 1 of their Digimon, give -5000 DP for each of those returned cards' colors.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -100,6 +105,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's lowest DP Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -111,6 +117,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by returning 2 cards from their trash to the bottom of the deck, for the turn, this Digimon gets +6000 DP and, to 1 of their Digimon, give -5000 DP for each of those returned cards' colors.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -137,6 +145,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by returning 2 cards from their trash to the bottom of the deck, for the turn, this Digimon gets +6000 DP and, to 1 of their Digimon, give -5000 DP for each of those returned cards' colors.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -159,6 +169,7 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] You may return 1 [TB] trait card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -177,6 +188,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 5 or lower [TB] trait Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

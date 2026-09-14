@@ -17,12 +17,16 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. It further gets -3000 DP for each of this Digimon's level 5 digivolution cards.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -8000,
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. It further gets -3000 DP for each of this Digimon's level 5 digivolution cards.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
           amount: -3000,
@@ -34,6 +38,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           withoutSuspending: false,
@@ -45,12 +50,16 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. It further gets -3000 DP for each of this Digimon's level 5 digivolution cards.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -8000,
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP until their turn ends. It further gets -3000 DP for each of this Digimon's level 5 digivolution cards.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
           amount: -3000,
@@ -62,6 +71,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           withoutSuspending: false,

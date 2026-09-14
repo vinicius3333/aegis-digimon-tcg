@@ -82,6 +82,8 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 play cost 5 or lower [Appmon] trait card from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: appmon, count: 1 },
           from: ["hand", "trash"],

@@ -35,8 +35,15 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenAttacking",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
         {
+          effectTextPart: "[When Attacking] ＜Draw 1＞",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart:
+            "Then, if your hand has 6 or more cards, return 1 card in your hand to the bottom of the deck.",
           kind: "Return",
           target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
           to: "deckBottom",

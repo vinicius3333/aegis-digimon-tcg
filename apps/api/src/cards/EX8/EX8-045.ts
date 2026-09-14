@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +21,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of their suspended Tamers to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

@@ -26,6 +26,8 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid] trait cards with different colors from your hand or trash under this Tamer. If this effect placed, ＜Draw 1＞",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -48,12 +50,15 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid] trait cards with different colors from your hand or trash under this Tamer. If this effect placed, ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
           condition: { kind: "ifThisEffectActed", raw: "this effect placed" },
         },
         {
+          effectTextPart: "Then, if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {
@@ -69,6 +74,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid] trait cards with different colors from your hand or trash under this Tamer. If this effect placed, ＜Draw 1＞",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -91,12 +98,15 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid] trait cards with different colors from your hand or trash under this Tamer. If this effect placed, ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
           condition: { kind: "ifThisEffectActed", raw: "this effect placed" },
         },
         {
+          effectTextPart: "Then, if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {

@@ -48,8 +48,18 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: false },
         {
+          effectTextPart:
+            "[Main] Add your bottom security card to the hand and place this card face up as the bottom security card.",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
+        },
+        {
+          effectTextPart:
+            "[Main] Add your bottom security card to the hand and place this card face up as the bottom security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -57,6 +67,8 @@ export const compiled: CompiledCard = {
           faceUp: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 green or yellow [TS] trait Digimon card from your hand with the play cost reduced by 3.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

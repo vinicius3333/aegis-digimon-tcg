@@ -38,12 +38,15 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Trash the top digivolution card of 1 of your opponent's Digimon for each of that Digimon's colors.",
           kind: "TrashDigivolution",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: 1,
           scaling: { per: 1, unit: "targetColors" },
         },
         {
+          effectTextPart: "Then, return 1 of your opponent's Digimon with no digivolution cards to the hand.",
           kind: "Return",
           target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 1 },
           to: "hand",

@@ -122,6 +122,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 level 5 or lower Digimon card with [Knightmon] in its text from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -3,11 +3,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const deDigivolveAndDelete: Action[] = [
   {
+    effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
     kind: "DeDigivolve",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     amount: 2,
   },
   {
+    effectTextPart: "Then, you may delete 1 Digimon.",
     kind: "Delete",
     target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 },
     optional: true,

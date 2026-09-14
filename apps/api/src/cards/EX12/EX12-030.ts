@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon with 5000 DP or less to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -100,6 +101,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon with 5000 DP or less to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

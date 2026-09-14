@@ -961,3 +961,31 @@ describe("EX13-064 LordKnightmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+it("EX13-064 offers its optional attack again after declining an earlier play", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: cardId, as: "lord" }],
+        hand: [
+          { card: NO_TEXT_LV4, as: "firstPlay" },
+          { card: NO_TEXT_LV4, as: "secondPlay" },
+        ],
+        deck: DECK,
+      },
+      1: { security: ["BT1-011", "BT1-011", "BT1-011"], deck: DECK },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  for (const as of ["firstPlay", "secondPlay"]) {
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(as).instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst(as).instanceId));
+    await settle();
+  }
+  expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
+  expect(observe(s.engine).hasKeyword(s.perm("lord"), "Rush")).toBe(false);
+  expect(observe(s.engine).hasKeyword(s.perm("lord"), "Collision")).toBe(false);
+  expect(s.perm("lord").isSuspended).toBe(false);
+});

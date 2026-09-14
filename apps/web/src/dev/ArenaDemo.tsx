@@ -9,6 +9,8 @@ import {
   Phase,
   PlayerState,
   getCardDefinition,
+  type DecisionRequest,
+  type DecisionResponse,
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
@@ -182,6 +184,50 @@ export function ArenaDemo() {
   const { locale, t } = useTranslation();
   const portuguese = locale === "pt-BR";
   const securityScenario = new URLSearchParams(window.location.search).get("scenario") === "security";
+  const [imperialStep, setImperialStep] = useState<0 | 1 | 2 | 3>(() =>
+    new URLSearchParams(window.location.search).get("scenario") === "imperial" ? 1 : 0,
+  );
+  const [imperialActivated, setImperialActivated] = useState(false);
+  const [imperialReturned, setImperialReturned] = useState(false);
+  const imperialText = getCardDefinition("AD1-024")!
+    .effectText!.split("\n")
+    .find((line) => line.startsWith("[All Turns]"))!;
+  const imperialParts = imperialText.split(" Then, ");
+  const imperialDecision: DecisionRequest | undefined =
+    imperialStep === 1 || imperialStep === 2
+      ? {
+          decisionId: `imperial-part-${imperialStep}`,
+          seat: 0,
+          kind: "optional",
+          sourceCardId: "AD1-024",
+          sourcePermanentId: "demo-imperial",
+          sourceInstanceId: "demo-imperial-top",
+          promptText: "Activate this triggered effect?",
+          options: {
+            timing: "AllTurns",
+            effectText: imperialText,
+            effectTextPart: imperialStep === 1 ? imperialParts[0] : `Then, ${imperialParts[1]}`,
+          },
+        }
+      : undefined;
+  function previewImperial() {
+    setBatches([]);
+    setEffectPreview(null);
+    setEffectDemoDeleted(false);
+    setImperialReturned(false);
+    setImperialActivated(false);
+    setImperialStep(1);
+  }
+  function respondImperial(response: DecisionResponse) {
+    if (response.kind !== "optional") return;
+    if (imperialStep === 1) {
+      setImperialActivated(response.accept);
+      setImperialStep(response.accept ? 2 : 3);
+    } else if (imperialStep === 2) {
+      setImperialReturned(response.accept);
+      setImperialStep(3);
+    }
+  }
   const [securityFaceDownCount, setSecurityFaceDownCount] = useState(0);
   const [effectPreview, setEffectPreview] = useState<
     "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion" | null
@@ -202,6 +248,19 @@ export function ArenaDemo() {
   const state = useMemo(() => {
     const next = createArenaDemoState(drawCounts);
     next.phase = phase;
+    if (imperialStep !== 0) {
+      const imperial = fighter("AD1-024", "demo-imperial", 0);
+      imperial.isSuspended = !imperialActivated;
+      next.players[0]!.battleArea.splice(0, next.players[0]!.battleArea.length, imperial);
+      const opponent = fighter("BT1-010", "demo-imperial-opponent", 1);
+      opponent.isSuspended = imperialActivated;
+      next.players[1]!.battleArea.splice(
+        0,
+        next.players[1]!.battleArea.length,
+        ...(imperialReturned ? [] : [opponent]),
+      );
+      if (imperialReturned) next.players[1]!.deckCount += 1;
+    }
     if (effectDemoDeleted) {
       const removed = next.players[0]!.battleArea.splice(0, 1)[0];
       if (removed) next.players[0]!.trash.push(removed.topCard);
@@ -228,7 +287,18 @@ export function ArenaDemo() {
       }
     }
     return next;
-  }, [phase, keywordGrants, drawCounts, turnStartStep, securityScenario, securityFaceDownCount, effectDemoDeleted]);
+  }, [
+    phase,
+    keywordGrants,
+    drawCounts,
+    turnStartStep,
+    securityScenario,
+    securityFaceDownCount,
+    effectDemoDeleted,
+    imperialStep,
+    imperialReturned,
+    imperialActivated,
+  ]);
   const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
@@ -436,6 +506,7 @@ export function ArenaDemo() {
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}
           onTurnStart={previewTurnStart}
+          onImperial={previewImperial}
           onEffects={previewEffects}
           onEffectActivation={previewEffectActivation}
           disabled={turnStartStep !== null}
@@ -477,7 +548,8 @@ export function ArenaDemo() {
           events: playback.connection?.events ?? events,
           batches: playback.connection?.batches ?? batches,
           snapshots: playback.connection?.snapshots,
-          decision: undefined,
+          decision: imperialDecision,
+          respondDecision: respondImperial,
           acknowledgeDecision: () => {},
           error: undefined,
           sessionId: "arena-demo-0",

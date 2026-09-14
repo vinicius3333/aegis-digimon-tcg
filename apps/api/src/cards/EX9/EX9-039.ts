@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card in your hand face down as this Digimon's bottom digivolution card. For each of this Digimon's face-down digivolution cards, suspend 1 of your opponent's Digimon.",
           kind: "PlaceUnder",
           faceDown: true,
           from: ["hand"],
@@ -33,6 +35,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card in your hand face down as this Digimon's bottom digivolution card. For each of this Digimon's face-down digivolution cards, suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -51,6 +55,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack your opponent's Digimon.",
           kind: "Attack",
           target: {
             filter: {
@@ -68,6 +73,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card in your hand face down as this Digimon's bottom digivolution card. For each of this Digimon's face-down digivolution cards, suspend 1 of your opponent's Digimon.",
           kind: "PlaceUnder",
           faceDown: true,
           from: ["hand"],
@@ -81,6 +88,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card in your hand face down as this Digimon's bottom digivolution card. For each of this Digimon's face-down digivolution cards, suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -99,6 +108,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack your opponent's Digimon.",
           kind: "Attack",
           target: {
             filter: {

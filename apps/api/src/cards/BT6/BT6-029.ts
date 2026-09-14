@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Trash 1 digivolution card from the bottom of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -22,6 +24,7 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart: "Then, gain 1 memory for each of your opponent's Digimon with no digivolution cards.",
           kind: "GainMemory",
           amount: 1,
           scaling: {

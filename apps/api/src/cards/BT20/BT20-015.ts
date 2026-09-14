@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 [Dorumon]/[Ryudamon] from your hand to your empty breeding area without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -30,6 +32,8 @@ export const compiled: CompiledCard = {
           requiresEmpty: "breedingArea",
         },
         {
+          effectTextPart:
+            "Then, if during an attack, until the end of your opponent's turn, 1 of your Digimon gains ＜Security A. +1＞ and gets +5000 DP.",
           kind: "GainKeyword",
           target: {
             filter: { controller: "mine", kind: ["Digimon"] },
@@ -41,6 +45,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "duringAttack", raw: "during an attack" },
         },
         {
+          effectTextPart:
+            "Then, if during an attack, until the end of your opponent's turn, 1 of your Digimon gains ＜Security A. +1＞ and gets +5000 DP.",
           kind: "ModifyDP",
           target: { filter: {}, count: 1, fromSelectionRef: "hisyaryumonBoostTarget" },
           amount: 5000,
@@ -53,6 +59,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 [Dorumon]/[Ryudamon] from your hand to your empty breeding area without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -73,6 +81,8 @@ export const compiled: CompiledCard = {
           requiresEmpty: "breedingArea",
         },
         {
+          effectTextPart:
+            "Then, if during an attack, until the end of your opponent's turn, 1 of your Digimon gains ＜Security A. +1＞ and gets +5000 DP.",
           kind: "GainKeyword",
           target: {
             filter: { controller: "mine", kind: ["Digimon"] },
@@ -84,6 +94,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "duringAttack", raw: "during an attack" },
         },
         {
+          effectTextPart:
+            "Then, if during an attack, until the end of your opponent's turn, 1 of your Digimon gains ＜Security A. +1＞ and gets +5000 DP.",
           kind: "ModifyDP",
           target: { filter: {}, count: 1, fromSelectionRef: "hisyaryumonBoostTarget" },
           amount: 5000,

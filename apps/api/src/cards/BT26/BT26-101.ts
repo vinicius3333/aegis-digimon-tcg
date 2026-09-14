@@ -38,6 +38,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] If you have a Tamer with [Dan Yuki] or [Kanan Yuki] in its name, all of your [TS] trait Digimon gain ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
           kind: "GainKeyword",
           target: { filter: ts, count: "all" },
           keyword: { keyword: "Blocker" },
@@ -45,6 +47,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "youHave", filter: namedTamer },
         },
         {
+          effectTextPart:
+            "[Main] If you have a Tamer with [Dan Yuki] or [Kanan Yuki] in its name, all of your [TS] trait Digimon gain ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: { filter: ts, count: "all" },
           amount: 3000,

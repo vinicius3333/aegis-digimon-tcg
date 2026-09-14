@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

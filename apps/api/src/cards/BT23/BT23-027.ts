@@ -20,11 +20,13 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Shakkoumon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -59,11 +61,13 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Shakkoumon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {

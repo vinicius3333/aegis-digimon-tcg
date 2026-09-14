@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon with [Seadramon] in its name in play, return 1 of your opponent's level 4 or lower Digimon to the bottom of its owner's deck.",
           kind: "Return",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },

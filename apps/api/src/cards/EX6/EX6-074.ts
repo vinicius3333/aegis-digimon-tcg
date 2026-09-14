@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When one of your Digimon with the [Holy Beast]/[Archangel]/[Fallen Angel] trait is played, by suspending this Tamer, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
               cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
@@ -31,6 +33,8 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart:
+                "Then, 1 of your Digimon may digivolve into [Angewomon]/[LadyDevimon] in your trash with the cost reduced by 1.",
               kind: "Digivolve",
               // The printed clause says "1 of your Digimon", not "that Digimon";
               // the played trait Digimon only arms this watcher.

@@ -17,6 +17,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] For each of this Digimon's digivolution cards, trash any 1 digivolution card from 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -61,6 +63,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] For each of this Digimon's digivolution cards, trash any 1 digivolution card from 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {

@@ -48,11 +48,13 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -68,11 +70,13 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking][Once Per Turn] ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

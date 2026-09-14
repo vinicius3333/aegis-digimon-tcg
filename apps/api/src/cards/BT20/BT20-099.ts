@@ -56,6 +56,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 Digimon card with the [ACCEL] trait from your hand with the play cost reduced by 4.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -76,6 +78,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card as any of your Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

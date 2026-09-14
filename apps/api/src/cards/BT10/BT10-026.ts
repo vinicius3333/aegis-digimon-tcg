@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Digivolving] You may place 1 Digimon card with [Blue Flare] in its traits from your hand or from under one of your Tamers under this Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -61,6 +63,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Digivolving] You may place 1 Digimon card with [Blue Flare] in its traits from your hand or from under one of your Tamers under this Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

@@ -47,6 +47,8 @@ export const compiled: CompiledCard = {
               amount: 1,
             },
             {
+              effectTextPart:
+                "Then, if the attacking Digimon is [Beelzemon], you may digivolve it into a [Beelzemon Blast Mode] in your trash for a digivolution cost of 3.",
               kind: "Digivolve",
               target: {
                 filter: {},

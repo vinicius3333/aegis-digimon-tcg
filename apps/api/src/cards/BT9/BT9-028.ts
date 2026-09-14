@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -20,6 +21,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if [WereGarurumon] or [X Antibody] is in this Digimon’s digivolution cards, return 1 of your opponent’s level 4 or lower Digimon to its owner’s hand.",
           kind: "Return",
           target: {
             filter: {

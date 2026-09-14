@@ -40,6 +40,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -60,6 +62,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of their Digimon with as much DP as this Digimon or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -79,6 +82,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -99,6 +104,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of their Digimon with as much DP as this Digimon or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -118,6 +124,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -140,6 +147,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

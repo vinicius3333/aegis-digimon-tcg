@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] By returning this Tamer to the bottom of the deck, ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -43,6 +44,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card with [Tai Kamiya]/[Kari Kamiya] in its name from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

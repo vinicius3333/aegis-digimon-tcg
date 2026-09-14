@@ -15,17 +15,32 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] You may suspend 1 of your Digimon.",
           kind: "Suspend",
           target: { filter: { controller: "mine", kind: ["Digimon"], unsuspended: true }, count: 1 },
           optional: true,
         },
-        { kind: "GainMemory", amount: 1, scaling: { per: 1, unit: "cards", filter: bloom } },
+        {
+          effectTextPart:
+            "Then, gain 1 memory for each suspended Digimon with [Vegetation] or [Fairy] in their traits you have in play. If you gain 2 or more memory by this effect, unsuspend this Digimon and it gains ＜Piercing＞ for the turn.",
+          kind: "GainMemory",
+          amount: 1,
+          scaling: { per: 1, unit: "cards", filter: bloom },
+        },
         {
           kind: "ConditionalBranch",
           condition: { kind: "permanentCount", op: "gte", value: 2, filter: bloom },
           ifTrue: [
-            { kind: "Unsuspend", target: self },
-            { kind: "GainKeyword", target: self, keyword: { keyword: "Piercing" }, duration: "forTheTurn" },
+            {
+              kind: "Unsuspend",
+              target: self,
+            },
+            {
+              kind: "GainKeyword",
+              target: self,
+              keyword: { keyword: "Piercing" },
+              duration: "forTheTurn",
+            },
           ],
         },
       ],

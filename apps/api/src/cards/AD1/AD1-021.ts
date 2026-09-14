@@ -50,11 +50,14 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart: "[Your Turn] When this Tamer suspends, ＜Draw 1＞",
               kind: "Draw",
               controller: "mine",
               amount: 1,
             },
             {
+              effectTextPart:
+                "Then, 1 of your Digimon may digivolve into a yellow Digimon card with [Greymon] in its name in the hand with the digivolution cost reduced by 3.",
               kind: "Digivolve",
               target: {
                 filter: {
@@ -100,6 +103,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "[End of Your Turn] [Once Per Turn] If you have a yellow Digimon with [Agumon] or [Greymon] in its name, for the turn, 1 of your [Marcus Damon]s is also treated as a 6000 DP Digimon, gains ＜Rush＞ and can't digivolve.",
           kind: "GainKeyword",
           target: chosenMarcusTarget,
           keyword: {
@@ -115,6 +120,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

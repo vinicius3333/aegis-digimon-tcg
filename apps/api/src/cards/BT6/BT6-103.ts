@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Suspend all of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +21,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, gain 1 memory for each of your opponent's suspended Digimon.",
           kind: "GainMemory",
           amount: 1,
           scaling: {

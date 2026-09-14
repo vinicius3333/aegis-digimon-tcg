@@ -70,6 +70,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] <De-Digivolve 3> 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -81,6 +82,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, 1 of their Digimon gets -8000 DP for the turn. [End of Opponent’s Turn] Trash the top card of both players' security stacks. (Rule) Trait: Has [Boss] and [D-Brigade].",
           kind: "ModifyDP",
           target: {
             filter: {

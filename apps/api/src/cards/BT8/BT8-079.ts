@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, return 1 card with [Demon Lord] in its traits from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

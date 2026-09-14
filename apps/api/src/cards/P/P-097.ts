@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] By placing this card under 1 of your other Digimon in play as its bottom digivolution card, reveal the top 3 cards of your deck. Place those cards at either the top or bottom of your deck in any order.",
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: {
@@ -21,6 +23,7 @@ const compiled: CompiledCard = {
         },
         { kind: "RevealAdd", revealCount: 3, add: [], rest: "deckTopOrBottom" },
         {
+          effectTextPart: "Then, if you have a Digimon with the [Legend-Arms] trait in play, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {

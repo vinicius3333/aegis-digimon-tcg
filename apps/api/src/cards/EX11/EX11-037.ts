@@ -22,8 +22,15 @@ const compiled: CompiledCard = {
             raw: "this effect didn't flip",
           },
           ifTrue: [
-            { kind: "Draw", controller: "mine", amount: 1 },
-            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
         },
       ],
@@ -43,8 +50,15 @@ const compiled: CompiledCard = {
             raw: "this effect didn't flip",
           },
           ifTrue: [
-            { kind: "Draw", controller: "mine", amount: 1 },
-            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
         },
       ],

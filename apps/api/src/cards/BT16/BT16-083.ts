@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] Return all Tamers to their owners' hands.",
           kind: "Return",
           target: {
             filter: {
@@ -18,6 +19,8 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card from your hand and 1 [Ukkomon] from your trash without paying the costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -32,6 +35,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card from your hand and 1 [Ukkomon] from your trash without paying the costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -57,6 +62,8 @@ const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart:
+            "[End of Your Turn] [Once Per Turn] By returning 1 Digi-Egg card from your trash to the bottom of the Digi-Egg deck, delete 1 of your opponent's Digimon with the lowest level.",
           kind: "Delete",
           target: {
             filter: {
@@ -81,6 +88,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 4 or lower Digimon card from your hand to an empty space in your breeding area without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

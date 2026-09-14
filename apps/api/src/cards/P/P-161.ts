@@ -79,6 +79,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Return 1 of your opponent's level 5 or lower Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

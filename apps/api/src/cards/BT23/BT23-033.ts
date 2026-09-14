@@ -90,6 +90,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "Then, to 1 of your opponent's Digimon, give -1000 DP until their turn ends for each of your security cards.",
               kind: "ModifyDP",
               target: {
                 filter: {

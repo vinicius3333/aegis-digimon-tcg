@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 red Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -25,6 +27,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have a Tamer with [Sora Takenouchi] in its name, return 1 red Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

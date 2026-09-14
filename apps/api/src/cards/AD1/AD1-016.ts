@@ -27,6 +27,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may play 1 [Marcus Damon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -45,6 +47,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, give -3000 DP for each of your Digimon and Tamers until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -72,6 +76,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may play 1 [Marcus Damon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -90,6 +96,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, give -3000 DP for each of your Digimon and Tamers until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {

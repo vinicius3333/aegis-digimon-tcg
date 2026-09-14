@@ -12,6 +12,8 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart:
+            "[End of Your Turn] By suspending this Tamer, 1 of your [TS] trait Digimon gains +1000 DP for the turn for each memory your opponent has.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -43,6 +45,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, it may attack.",
           kind: "Attack",
           target: {
             filter: {

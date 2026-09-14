@@ -33,6 +33,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may return 1 Digimon card with the [Hybrid] trait or [Ten Warriors] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -57,6 +59,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Digimon card with the [Ten Warriors] trait or 1 Tamer card with inherited effects from your hand with the play cost reduced by 4.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -92,6 +96,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Tamer card with an inherited effect from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

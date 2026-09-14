@@ -136,9 +136,7 @@ it.each(DEMO_KEYWORDS)("grants, inspects, removes and resets %s through the actu
   fireEvent.change(screen.getByRole("combobox", { name: "Phase" }), { target: { value: Phase.End } });
   const panel = ui.inspect();
   const active = within(panel).getByRole("region", { name: "Active keywords" });
-  expect(active.querySelector('[data-granted="true"]')?.textContent).toBe(
-    keyword === "SecurityAttack" ? `${label} ×3` : label,
-  );
+  expect(active.querySelector('[data-granted="true"]')?.textContent).toBe(label);
   expect(panel.querySelector('[data-role="top"] p')!.textContent).toBe(printed);
   expect([...panel.querySelectorAll('[data-role="stack"]')].map((source) => source.textContent)).toEqual(sources);
   expect(ui.container.querySelectorAll(".game-hand-card")).toHaveLength(20);
@@ -170,9 +168,7 @@ it("renders all 44 grants together with a compact field summary and complete foc
   const active = within(panel).getByRole("region", { name: "Active keywords" });
   expect(active.getAttribute("tabindex")).toBe("0");
   expect([...active.querySelectorAll('[data-granted="true"]')].map((chip) => chip.textContent)).toEqual(
-    DEMO_KEYWORDS.map((keyword) =>
-      keyword === "SecurityAttack" ? `${printedLabel(keyword)} ×3` : printedLabel(keyword),
-    ),
+    DEMO_KEYWORDS.map((keyword) => printedLabel(keyword)),
   );
   ui.closeDetail();
   ui.editor();
@@ -187,9 +183,7 @@ it("replaces a signed Security Attack grant rather than accumulating it and rest
   ui.grant("SecurityAttack", 2);
   ui.grant("SecurityAttack", -2);
   ui.closeEditor();
-  expect(within(ui.inspect()).getByRole("region", { name: "Active keywords" }).textContent).toBe(
-    "Security Attack -2 ×0",
-  );
+  expect(within(ui.inspect()).getByRole("region", { name: "Active keywords" }).textContent).toBe("Security Attack -2");
   ui.closeDetail();
   ui.editor();
   expect(within(screen.getByRole("group", { name: "Granted keywords" })).getAllByRole("button")).toHaveLength(1);

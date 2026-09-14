@@ -44,6 +44,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[When Digivolving] For each of your Digimon, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             fromSelectionRef: "deDigivolveTarget",

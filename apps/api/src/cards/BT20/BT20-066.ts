@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's level 3 Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -21,6 +22,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if it's your turn, 2 of your Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -57,6 +60,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's level 3 Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -68,6 +72,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if it's your turn, 2 of your Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {

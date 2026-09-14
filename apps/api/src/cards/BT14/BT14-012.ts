@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] This Digimon gets +2000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, if you have a Tamer with [Tai Kamiya] in its name, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

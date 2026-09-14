@@ -53,6 +53,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When any of your other Digimon are played, delete 1 of your opponent's Digimon with 8000 DP or less.",
               kind: "Delete",
               target: {
                 filter: {
@@ -67,6 +69,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: {
                 filter: { controller: "mine", kind: ["Digimon"] },

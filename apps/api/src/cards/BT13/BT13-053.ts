@@ -14,6 +14,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Suspend 1 of your opponent's Digimon with 7000 DP or less.",
           kind: "Suspend",
           target: {
             filter: {

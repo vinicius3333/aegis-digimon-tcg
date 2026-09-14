@@ -25,6 +25,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel]/[Fallen Angel] trait from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -48,6 +50,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, place 1 other Digimon at the bottom of its owner's security stack, and trash cards from the top of your opponent's security stack until it has 4 left.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -67,6 +71,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, place 1 other Digimon at the bottom of its owner's security stack, and trash cards from the top of your opponent's security stack until it has 4 left.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -82,6 +88,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel]/[Fallen Angel] trait from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -105,6 +113,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, place 1 other Digimon at the bottom of its owner's security stack, and trash cards from the top of your opponent's security stack until it has 4 left.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -124,6 +134,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, place 1 other Digimon at the bottom of its owner's security stack, and trash cards from the top of your opponent's security stack until it has 4 left.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

@@ -38,6 +38,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] 1 of your opponent's Digimon gets -16000 DP for the turn. If DNA digivolving, you may set your the opponent's memory to 3.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -16000,
@@ -51,6 +53,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has a Tamer in its digivolution cards, gain 1 memory and ＜Recovery +1 (Deck)＞",
           kind: "GainMemory",
           amount: 1,
           condition: {

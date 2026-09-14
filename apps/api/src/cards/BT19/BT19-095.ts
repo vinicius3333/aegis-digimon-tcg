@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -51,6 +52,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "[Main] 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -108,6 +110,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Suspend 2 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {

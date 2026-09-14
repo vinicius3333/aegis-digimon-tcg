@@ -6,6 +6,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may place up to 4 [Vemmon] from your trash under this Digimon as its bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
@@ -18,6 +20,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if there are 8 or more [Vemmon] in this Digimon's digivolution cards, delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           condition: {

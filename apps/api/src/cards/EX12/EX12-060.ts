@@ -73,6 +73,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -84,6 +86,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards, delete 2 of your opponent's Digimon with as high or lower a play cost as the number of this Digimon's digivolution cards.",
           kind: "Delete",
           target: {
             filter: {
@@ -132,6 +136,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -143,6 +149,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards, delete 2 of your opponent's Digimon with as high or lower a play cost as the number of this Digimon's digivolution cards.",
           kind: "Delete",
           target: {
             filter: {
@@ -191,6 +199,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -202,6 +212,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards, delete 2 of your opponent's Digimon with as high or lower a play cost as the number of this Digimon's digivolution cards.",
           kind: "Delete",
           target: {
             filter: {

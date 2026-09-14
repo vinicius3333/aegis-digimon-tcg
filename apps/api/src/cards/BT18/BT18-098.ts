@@ -94,6 +94,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] By trashing your top security card, 1 of your opponent's Digimon gets -6000 DP until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -145,6 +147,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

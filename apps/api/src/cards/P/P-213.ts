@@ -71,6 +71,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If you have 3 or fewer security cards, this Digimon gains ＜Rush＞ and +3000 DP until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -94,6 +96,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[When Digivolving] If you have 3 or fewer security cards, this Digimon gains ＜Rush＞ and +3000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -114,6 +118,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] [Once Per Turn] By paying 2 cost, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -31,6 +33,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "[Main] [Once Per Turn] By paying 2 cost, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -46,6 +50,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

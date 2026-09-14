@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +21,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if your opponent has a level 7 Digimon in play, trash the top card of their security stack.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

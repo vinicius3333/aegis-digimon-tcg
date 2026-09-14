@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -91,6 +92,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

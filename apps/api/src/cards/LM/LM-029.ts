@@ -12,6 +12,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your yellow Digimon may digivolve into a yellow Digimon card in the hand with the digivolution cost reduced by 3.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -54,6 +56,8 @@ const compiled: CompiledCard = {
       },
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Turn] If your opponent has a Digimon, ＜Delay＞ \n・ Return 1 yellow Digimon card from your trash to the top of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -68,6 +72,8 @@ const compiled: CompiledCard = {
           from: ["trash"],
         },
         {
+          effectTextPart:
+            "Then, if you don't have a Digimon, you may play 1 yellow Digimon card with 2000 DP or less from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -99,6 +105,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 yellow Digimon card with 2000 DP or less from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

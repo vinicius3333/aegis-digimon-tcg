@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,

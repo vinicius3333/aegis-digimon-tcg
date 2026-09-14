@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trash any 4 digivolution cards of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -45,6 +46,8 @@ export const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart:
+            "Then, if your opponent has no Digimon with digivolution cards, return 1 of your opponent's Tamers to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

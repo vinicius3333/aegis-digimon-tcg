@@ -18,6 +18,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [End of Attack] Trash 2 cards in your hand and delete 1 of your opponent's unsuspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -29,6 +31,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 4 or fewer cards in your hand, you may play 1 level 5 or lower [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -75,6 +79,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [End of Attack] Trash 2 cards in your hand and delete 1 of your opponent's unsuspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -86,6 +92,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 4 or fewer cards in your hand, you may play 1 level 5 or lower [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -132,6 +140,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [End of Attack] Trash 2 cards in your hand and delete 1 of your opponent's unsuspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -143,6 +153,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 4 or fewer cards in your hand, you may play 1 level 5 or lower [Evil], [Dark Dragon] or [Evil Dragon] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

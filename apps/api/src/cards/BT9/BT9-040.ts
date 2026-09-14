@@ -14,6 +14,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] 1 of your opponent's Digimon gains ＜Security Attack -1＞ (This Digimon checks 1 fewer security cards) until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -30,6 +32,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[When Digivolving] 1 of your opponent's Digimon gains ＜Security Attack -1＞ (This Digimon checks 1 fewer security cards) until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {

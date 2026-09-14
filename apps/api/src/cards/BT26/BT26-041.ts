@@ -1,9 +1,27 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const action = [
-  { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1 },
-  { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 },
-  { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
+  {
+    effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞",
+    kind: "SecurityManipulation",
+    op: "toHand",
+    controller: "mine",
+    amount: 1,
+  },
+  {
+    effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞",
+    kind: "SecurityManipulation",
+    op: "addTop",
+    controller: "mine",
+    source: "deck",
+    amount: 1,
+  },
+  {
+    effectTextPart: "Then, you may suspend 1 Digimon.",
+    kind: "Suspend",
+    target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } },
+    optional: true,
+  },
 ] satisfies Action[];
 export const compiled: CompiledCard = {
   effects: [

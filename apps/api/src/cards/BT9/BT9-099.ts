@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent’s Digimon gets -3000 DP for the turn for each yellow and/or red Tamer you have in play.",
           kind: "ModifyDP",
           target: {
             filter: {

@@ -41,6 +41,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] For each color in this Digimon's digivolution cards, all of your opponent's Digimon get -1000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -61,6 +63,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may play 1 [ShootingStarmon] from under your Tamers without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

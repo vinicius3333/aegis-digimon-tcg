@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -47,6 +49,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {

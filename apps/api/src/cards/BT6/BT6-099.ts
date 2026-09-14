@@ -10,12 +10,14 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash the top card of your security stack.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon gets -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

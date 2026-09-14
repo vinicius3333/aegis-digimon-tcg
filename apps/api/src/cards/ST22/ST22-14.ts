@@ -85,12 +85,15 @@ const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart:
+            "[End of Your Turn] [Once Per Turn] If your opponent has 6 or more cards in their hand, they trash 1 of them.",
           kind: "Trash",
           target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
           chooser: "opponent",
           condition: handAtLeastSix,
         },
         {
+          effectTextPart: "Then, if they have 5 or fewer, delete 1 of their lowest level Digimon.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" }, count: 1 },
           condition: handAtMostFive,

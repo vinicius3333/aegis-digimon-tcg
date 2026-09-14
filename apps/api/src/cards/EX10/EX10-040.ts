@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, if they have 10 or more cards in their trash, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

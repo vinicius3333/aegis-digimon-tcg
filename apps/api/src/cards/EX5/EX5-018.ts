@@ -14,11 +14,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜Draw 2＞ (Draw 2 cards from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, trash 2 cards in your hand. If [Garurumon] or [X Antibody] is in this Digimon's digivolution cards, gain 1 memory.",
           kind: "Trash",
           target: {
             filter: {
@@ -29,6 +32,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, trash 2 cards in your hand. If [Garurumon] or [X Antibody] is in this Digimon's digivolution cards, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

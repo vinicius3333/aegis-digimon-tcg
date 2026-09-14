@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
           rest: "trash",
         },
         {
+          effectTextPart:
+            "Then, if there are 5 or more [Vemmon] in this Digimon's digivolution cards, delete 1 of your opponent's Tamers.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },
           condition: {

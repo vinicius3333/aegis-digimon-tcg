@@ -7,6 +7,8 @@ const trashPool = {
 } satisfies Filter;
 
 const deleteAndRecover = {
+  effectTextPart:
+    "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may delete 1 of your opponent's Digimon with as much DP as this Digimon or less.",
   kind: "Delete",
   target: {
     filter: { controllerDefault: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
@@ -15,6 +17,7 @@ const deleteAndRecover = {
   optional: true,
 } satisfies Action;
 const recovery = {
+  effectTextPart: "Then, by returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞",
   kind: "SecurityManipulation",
   op: "addTop",
   controller: "mine",

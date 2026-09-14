@@ -39,8 +39,14 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
         {
+          effectTextPart: "[Main] ＜Draw 1＞",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart: "Then, place this card face up as the bottom security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

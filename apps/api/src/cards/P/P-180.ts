@@ -71,6 +71,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash your opponent's top security card.",
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
@@ -78,6 +79,8 @@ const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart:
+            "Then, place this card as the bottom digivolution card of 1 of your [Three Musketeers] trait Digimon.",
           kind: "PlaceUnder",
           target: {
             filter: {

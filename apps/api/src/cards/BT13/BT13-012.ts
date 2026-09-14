@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Search your security stack, and you may play 1 red or yellow Tamer card among it without paying the cost. If you did, ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
           kind: "PlayWithoutCost",
           target: {
             filter: {

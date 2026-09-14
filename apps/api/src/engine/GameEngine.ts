@@ -3826,6 +3826,11 @@ export class GameEngine {
       "cannotActivateWhenDigivolving",
     );
     perm.securityAttack = this.securityStrikeFor(perm.permanentId);
+    const invert = this.continuous.securityAttackInverted(perm.permanentId);
+    perm.securityAttackModifier = this.continuous
+      .grantedKeywords(perm.permanentId)
+      .filter((grant) => grant.keyword === "SecurityAttack")
+      .reduce((sum, grant) => sum + (grant.amount ?? 1) * (invert ? -1 : 1), 0);
   }
 
   /**

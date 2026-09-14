@@ -22,12 +22,19 @@ const ceresmon = {
 } satisfies Filter;
 const digivolveBody = [
   {
+    effectTextPart: "[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends.",
     kind: "ModifyDP",
     target: { filter: opponentSuspendedDigimon, count: "all" },
     amount: -5000,
     duration: "untilOpponentTurnEnd",
   },
-  { kind: "Suspend", target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 }, optional: true },
+  {
+    effectTextPart:
+      "Then, by suspending 1 Digimon, if it's your turn, you may play or use 1 [Vegetation] or [TS] trait card from your hand with the cost reduced by 5.",
+    kind: "Suspend",
+    target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 },
+    optional: true,
+  },
   {
     kind: "Modal",
     choose: 1,

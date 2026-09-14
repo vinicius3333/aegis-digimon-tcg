@@ -41,10 +41,13 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon with the [Eater] trait are played, by suspending this Tamer, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
             },
             {
+              effectTextPart: "Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞",
               kind: "Draw",
               controller: "mine",
               amount: 1,

@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] 1 of your opponent’s Digimon gets -2000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -21,6 +22,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, by placing 1 Digimon card with the [Xros Heart] trait in this Digimon’s digivolution cards under 1 of your Tamers, delete 1 of their Digimon with 3000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

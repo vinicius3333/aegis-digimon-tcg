@@ -37,6 +37,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if [Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards, trash your opponent's top security card.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

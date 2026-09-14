@@ -7,8 +7,17 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnDeletion",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          effectTextPart: "[On Deletion] ＜Draw 1＞. (Draw 1 card from your deck.)",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart: "Then, trash 1 card in your hand.",
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
       ],
     },
   ],

@@ -7,12 +7,15 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your Digimon gets +2000 DP for the turn.",
           kind: "ModifyDP",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 2000,
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, by placing 1 Digimon card with [Gammamon] in its name from your hand under 1 of your Digimon as its bottom digivolution card, ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "PlaceUnder",
           target: {
             filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
@@ -25,6 +28,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, by placing 1 Digimon card with [Gammamon] in its name from your hand under 1 of your Digimon as its bottom digivolution card, ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,

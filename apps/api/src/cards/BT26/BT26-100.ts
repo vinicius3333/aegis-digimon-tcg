@@ -55,9 +55,27 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: false },
-        { kind: "SecurityManipulation", op: "placeAsSecurity", controller: "mine", toTop: false, faceUp: true },
         {
+          effectTextPart:
+            "[Main] Add your bottom security card to the hand and place this card face up as the bottom security card.",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
+        },
+        {
+          effectTextPart:
+            "[Main] Add your bottom security card to the hand and place this card face up as the bottom security card.",
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          toTop: false,
+          faceUp: true,
+        },
+        {
+          effectTextPart:
+            "Then, you may play 1 level 4 or lower [Titan] trait card from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: titanCard, count: 1 },
           from: ["hand", "trash"],

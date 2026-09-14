@@ -56,6 +56,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, for each of your link cards, ＜De-Digivolve 1＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -101,6 +102,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, for each of your link cards, ＜De-Digivolve 1＞ all of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

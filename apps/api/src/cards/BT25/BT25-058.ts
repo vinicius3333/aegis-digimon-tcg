@@ -53,6 +53,8 @@ export const compiled: CompiledCard = {
           sourceFilter: triggeredDigimon,
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When effects play or digivolve any Digimon, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
               kind: "DeDigivolve",
               target: { filter: opponentDigimon, count: 1 },
               amount: 1,
@@ -73,6 +75,8 @@ export const compiled: CompiledCard = {
           sourceFilter: triggeredDigimon,
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When effects play or digivolve any Digimon, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
               kind: "DeDigivolve",
               target: { filter: opponentDigimon, count: 1 },
               amount: 1,

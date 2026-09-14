@@ -51,6 +51,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -62,6 +63,7 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, delete 1 of their level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -81,6 +83,7 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -92,6 +95,7 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, delete 1 of their level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

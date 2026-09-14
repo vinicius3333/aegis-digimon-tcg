@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [End of Attack] You may delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -47,6 +49,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by returning 1 card from your opponent's trash to the bottom of the deck, they play 1 [Petrification] Token. (Digimon/White/3000 DP/",
           kind: "PlayToken",
           tokens: ["Petrification Token"],
           count: 1,
@@ -74,6 +78,8 @@ const compiled: CompiledCard = {
       trigger: "EndOfAttack",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [End of Attack] You may delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -89,6 +95,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by returning 1 card from your opponent's trash to the bottom of the deck, they play 1 [Petrification] Token. (Digimon/White/3000 DP/",
           kind: "PlayToken",
           tokens: ["Petrification Token"],
           count: 1,

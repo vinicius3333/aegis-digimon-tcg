@@ -27,6 +27,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -15000 DP until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -39,6 +41,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, trash your opponent's top security card and ＜Recovery +1 (Deck)＞",
           kind: "Trash",
           target: {
             filter: {
@@ -79,6 +83,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -15000 DP until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -91,6 +97,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, trash your opponent's top security card and ＜Recovery +1 (Deck)＞",
           kind: "Trash",
           target: {
             filter: {

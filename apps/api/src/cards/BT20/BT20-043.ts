@@ -45,6 +45,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend all of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn.",
           kind: "Suspend",
           target: {
             filter: {
@@ -55,12 +57,15 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend all of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 3000,
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -78,6 +83,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend all of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn.",
           kind: "Suspend",
           target: {
             filter: {
@@ -88,12 +95,15 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend all of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 3000,
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -132,6 +142,7 @@ export const compiled: CompiledCard = {
           bindResultAs: "dnaDigivolvedByThisEffect",
         },
         {
+          effectTextPart: "Then, the DNA digivolved Digimon may attack.",
           kind: "Attack",
           // Q4361: resolve the DNA result's pending effects before Counter timing.
           drainTimingWindowDuringAttack: true,

@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] trash the top 2 digivolution cards of all of your opponent's Digimon. If this effect didn't trash, you may play 1 level 4 or lower Digimon card with the [Ice-Snow] trait from your hand without paying the cost.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -22,6 +24,8 @@ export const compiled: CompiledCard = {
           fromTop: true,
         },
         {
+          effectTextPart:
+            "[Main] trash the top 2 digivolution cards of all of your opponent's Digimon. If this effect didn't trash, you may play 1 level 4 or lower Digimon card with the [Ice-Snow] trait from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

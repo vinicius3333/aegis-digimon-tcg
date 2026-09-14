@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import {
   CardKind,
   Phase,
+  PRESENTATION_CHANNEL,
   assemblyRequirementFor,
   digiXrosRequirementFor,
   digiXrosTrashNameAllowanceFor,
@@ -303,6 +304,7 @@ export function GameScreen({
     /** Canonical keyword names mapped to printed parameters in the visual demo. */
     keywordLabels?: Readonly<Record<string, Readonly<Record<string, string>>>>;
     showCutIns?: boolean;
+    respondDecision?: (response: DecisionResponse) => void;
     acknowledgeBlockWindow?: (blockerPermanentId?: string) => void;
     /** A fabricated connection has no server batches; its whole event list is one moment. */
     batches?: readonly ServerBatch[];
@@ -571,6 +573,9 @@ export function GameScreen({
       oppHandStrip: oppHandStripRef,
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
+    onPresentationReport: (report) => {
+      room?.send(PRESENTATION_CHANNEL, report);
+    },
   });
   // The dialog that asks the viewer whether to activate their own effect already names the
   // card and prints its clause, so the matching corner notice would only repeat it.
@@ -1330,6 +1335,7 @@ export function GameScreen({
     if (decision && (room || demoConnection)) {
       playSound("confirm");
       if (room) intents.respondDecision(room, decision.decisionId, response);
+      else demoConnection?.respondDecision?.(response);
       acknowledgeDecision?.(decision.decisionId);
     }
     setPicks([]);
@@ -2260,8 +2266,10 @@ export function GameScreen({
                   cardId: decisionSourceCardId,
                   timing: viewerDecision.options?.timing,
                   description: viewerDecision.options?.effectText,
+                  effectTextPart: viewerDecision.options?.effectTextPart,
+                  isInherited: viewerDecision.options?.isInherited,
                 })
-              : viewerDecision.options?.effectText
+              : undefined
           }
           min={decisionMin}
           max={decisionMax}
@@ -2284,8 +2292,10 @@ export function GameScreen({
                   cardId: decisionSourceCardId,
                   timing: viewerDecision.options?.timing,
                   description: viewerDecision.options?.effectText,
+                  effectTextPart: viewerDecision.options?.effectTextPart,
+                  isInherited: viewerDecision.options?.isInherited,
                 })
-              : viewerDecision.options?.effectText
+              : undefined
           }
           onUse={() => respondDecision({ kind: "optional", accept: true })}
           onDecline={() => respondDecision({ kind: "optional", accept: false })}

@@ -7,13 +7,19 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        {
+          effectTextPart: "[When Digivolving] Unsuspend this Digimon.",
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
         {
           kind: "GrantCanAttackUnsuspended",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           duration: "untilEndOfAttack",
         },
         {
+          effectTextPart:
+            "Then, it can attack your opponent's Digimon. This effect allows you to attack unsuspended Digimon as well.",
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           attackPlayer: false,

@@ -41,6 +41,8 @@ export const compiled: CompiledCard = {
           trackCount: "trashedThisEffect",
         },
         {
+          effectTextPart:
+            "Then, play 1 8000 DP or lower Digimon card from your trash without paying the cost. For each card this effect trashed, remove 2000 from this effect's DP maximum.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -76,6 +78,8 @@ export const compiled: CompiledCard = {
           trackCount: "trashedThisEffect",
         },
         {
+          effectTextPart:
+            "Then, play 1 8000 DP or lower Digimon card from your trash without paying the cost. For each card this effect trashed, remove 2000 from this effect's DP maximum.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

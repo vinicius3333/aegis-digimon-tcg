@@ -30,11 +30,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜Draw 1＞ (Draw 1 card from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, trash 1 card in your hand. If a Digimon card with [Cerberusmon] in its name or [X Antibody] is in this Digimon's digivolution cards, activate this Digimon's [On Play] effects.",
           kind: "Trash",
           target: {
             filter: {

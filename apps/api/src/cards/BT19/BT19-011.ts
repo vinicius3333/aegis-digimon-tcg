@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, for each Digimon deleted by this effect, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           scaling: {
@@ -76,6 +77,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, for each Digimon deleted by this effect, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           scaling: {

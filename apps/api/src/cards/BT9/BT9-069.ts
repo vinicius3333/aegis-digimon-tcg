@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Unsuspend up to 2 Digimon and/or Tamers.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -29,6 +30,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, gain 1 memory for each of your opponent's unsuspended Digimon and Tamers.",
           kind: "GainMemory",
           amount: 1,
           scaling: {

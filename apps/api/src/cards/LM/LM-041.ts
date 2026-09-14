@@ -81,6 +81,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] If you have 1 or more memory, your opponent adds their top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "opponent",

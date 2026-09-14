@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trash the bottom digivolution card of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -33,6 +34,7 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon with no digivolution cards gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

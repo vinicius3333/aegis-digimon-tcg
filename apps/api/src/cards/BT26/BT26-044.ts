@@ -37,14 +37,24 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "Suspend", target: opponentTarget, optional: true },
+        {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or Tamers.",
+          kind: "Suspend",
+          target: opponentTarget,
+          optional: true,
+        },
         { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
       ],
     },
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Suspend", target: opponentTarget, optional: true },
+        {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or Tamers.",
+          kind: "Suspend",
+          target: opponentTarget,
+          optional: true,
+        },
         { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
       ],
     },

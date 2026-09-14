@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, if you have 5 or more cards in your trash, this Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -38,6 +40,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 5 or more cards in your trash, this Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -71,6 +75,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, if you have 5 or more cards in your trash, this Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -94,6 +100,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 5 or more cards in your trash, this Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {

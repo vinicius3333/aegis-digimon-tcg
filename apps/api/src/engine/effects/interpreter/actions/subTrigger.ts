@@ -1120,6 +1120,8 @@ export async function runSubTrigger(
       // opponent-target prompt lost its [Your Turn] label entirely).
       subCtx.activeTiming ??= ctx.activeTiming;
       subCtx.activeEffectText ??= ctx.activeEffectText;
+      subCtx.activeEffectTextPart = action.effectTextPart;
+      subCtx.activeEffectIsInherited = isInheritedSource;
       // The body is resolving a triggered event even when its watcher was installed by a
       // continuous effect. Any duration-scoped effects it creates must survive the trailing
       // continuous recompute instead of being mistaken for static contributions.

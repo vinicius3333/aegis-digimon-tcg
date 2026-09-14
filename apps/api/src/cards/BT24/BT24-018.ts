@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] You may trash any 1 of your opponent's security cards.",
           kind: "Trash",
           target: {
             filter: {
@@ -80,6 +81,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, this Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {

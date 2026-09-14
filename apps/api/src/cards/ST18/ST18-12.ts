@@ -34,6 +34,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -44,6 +45,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, unsuspend 1 Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

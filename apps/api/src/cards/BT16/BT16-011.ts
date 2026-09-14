@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may return 1 red Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -24,6 +25,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [Garudamon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent’s Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -59,6 +62,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may return 1 red Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -73,6 +77,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [Garudamon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent’s Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {

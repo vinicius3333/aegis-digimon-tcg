@@ -7,7 +7,7 @@ import { Icons } from "../design/icons";
 import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
-import { formatKeyword } from "./keywordDisplay";
+import { formatResolvedKeyword } from "./keywordDisplay";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
 import "./arenaPermanentInspector.css";
@@ -172,10 +172,7 @@ export function ArenaPermanentInspector({
           >
             {detail.keywords.map((keyword) => (
               <span key={keyword} data-granted={detail.grantedKeywords.includes(keyword) || undefined}>
-                {detail.keywordLabels?.[keyword] ?? formatKeyword(keyword)}
-                {keyword === "SecurityAttack" && detail.securityAttack !== undefined
-                  ? ` ×${detail.securityAttack}`
-                  : ""}
+                {formatResolvedKeyword(keyword, detail.securityAttackModifier, detail.keywordLabels?.[keyword])}
               </span>
             ))}
             {detail.suspended ? <span>{t("overlay.suspended")}</span> : null}

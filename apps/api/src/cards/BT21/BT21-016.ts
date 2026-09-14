@@ -40,6 +40,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may place 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your hand or trash under any of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -63,6 +65,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[On Deletion] You may place 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your hand or trash under any of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {

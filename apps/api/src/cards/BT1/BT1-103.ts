@@ -15,7 +15,15 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }],
+      actions: [
+        {
+          effectTextPart: "[Security] Trigger <Draw 1＞. (Draw 1 card from your deck.)",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        { kind: "AddToHandSelf" },
+      ],
       isSecurity: true,
     },
   ],

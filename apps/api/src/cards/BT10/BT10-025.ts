@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Hand][Main] If you have a Digimon with [Blue Flare] in its traits in play, by paying 3 memory, place this card under 1 of those Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -63,6 +65,7 @@ export const compiled: CompiledCard = {
           bindHostAs: "bt10025PlaceHost",
         },
         {
+          effectTextPart: "Then, unsuspend that Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

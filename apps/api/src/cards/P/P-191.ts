@@ -21,6 +21,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -63,6 +65,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] To 1 of your opponent’s Digimon, give -4000 DP for the turn for each of your Digimon with the [Olympos XII] trait.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -105,6 +109,7 @@ const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -127,6 +132,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

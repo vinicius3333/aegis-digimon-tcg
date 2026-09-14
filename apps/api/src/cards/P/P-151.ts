@@ -59,6 +59,8 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 card with the [LIBERATOR] trait and a play cost of 3 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

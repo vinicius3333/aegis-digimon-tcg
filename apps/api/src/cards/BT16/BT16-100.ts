@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's level 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
@@ -42,6 +43,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 2 or fewer security cards, place this card at the bottom of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

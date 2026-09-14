@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon get linked, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.",
               kind: "Draw",
               controller: "mine",
               amount: 1,

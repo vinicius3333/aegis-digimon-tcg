@@ -47,10 +47,12 @@ const compiled: CompiledCard = {
           event: "whenEffectAddsToHand",
           actions: [
             {
+              effectTextPart: "[Your Turn] [Once Per Turn] When an effect adds cards to your hand, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
             },
             {
+              effectTextPart: "Then, this Digimon gains ＜Jamming＞for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: {

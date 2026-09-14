@@ -20,6 +20,29 @@ function recorder() {
 }
 
 describe("animation queue", () => {
+  it("reports replaced queued steps, cancelled running steps and fast-forwarded completion", async () => {
+    const events: import("./animationQueue").AnimationStepEvent[] = [];
+    const { step } = recorder();
+    const queue = createAnimationQueue({ onStep: (event) => events.push(event) });
+    queue.enqueue(step("running", 100));
+    queue.enqueue(step("queued", 100));
+    queue.enqueue(step("replacement", 100, { replace: true }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(events.find((event) => event.step.id === "queued" && event.phase === "dropped")?.cancelled).toBe(true);
+    expect(events.find((event) => event.step.id === "running" && event.phase === "finished")?.cancelled).toBe(true);
+    queue.skip();
+    await queue.idle();
+    expect(events.find((event) => event.step.id === "replacement" && event.phase === "finished")).toMatchObject({
+      skipping: true,
+      failed: false,
+      mode: "live",
+    });
+    expect(events.filter((event) => event.step.id === "replacement").map((event) => event.phase)).toEqual([
+      "queued",
+      "started",
+      "finished",
+    ]);
+  });
   it("runs steps on one track in order, each waiting out its own time", async () => {
     const { log, step } = recorder();
     const queue = createAnimationQueue();

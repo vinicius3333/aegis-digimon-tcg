@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Attacking] Trash up to 2 digivolution cards from the bottom of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -23,6 +25,8 @@ const compiled: CompiledCard = {
           upTo: true,
         },
         {
+          effectTextPart:
+            "Then, if your opponent has a Digimon with no digivolution cards in play, this Digimon gains ＜Jamming＞ (This Digimon can't be deleted in battles against Security Digimon) for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

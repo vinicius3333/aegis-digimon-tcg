@@ -12,6 +12,8 @@ const appmonStack: Filter = {
 
 const linkThenAttack: Action[] = [
   {
+    effectTextPart:
+      "[On Play] [When Digivolving] You may link up to 7 [Appmon] trait cards with different names from this Digimon's digivolution cards to this Digimon without paying the costs.",
     kind: "Link",
     target: { filter: appmonStack, count: 7, upTo: true, distinctNames: true },
     differentNames: true,
@@ -20,7 +22,13 @@ const linkThenAttack: Action[] = [
     payCost: false,
     optional: true,
   },
-  { kind: "Attack", target: self, withoutSuspending: true, optional: true },
+  {
+    effectTextPart: "Then, this Digimon may attack without suspending.",
+    kind: "Attack",
+    target: self,
+    withoutSuspending: true,
+    optional: true,
+  },
 ];
 
 export const compiled: CompiledCard = {
@@ -47,11 +55,15 @@ export const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When this Digimon gets linked, you may delete 1 of your opponent's Digimon.",
               kind: "Delete",
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               optional: true,
             },
             {
+              effectTextPart:
+                "Then, if this Digimon has 7 link cards, return your opponent's top security card to the bottom of the deck.",
               kind: "Return",
               target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
               to: "deckBottom",

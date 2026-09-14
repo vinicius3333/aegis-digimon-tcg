@@ -10,11 +10,13 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] Trigger ＜Draw 2＞. (Draw 2 cards from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

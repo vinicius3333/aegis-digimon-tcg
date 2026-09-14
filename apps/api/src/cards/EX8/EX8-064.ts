@@ -16,6 +16,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -39,6 +43,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

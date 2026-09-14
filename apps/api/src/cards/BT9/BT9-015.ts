@@ -11,6 +11,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] This Digimon gains ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has [MetalGreymon] or [X Antibody] in its digivolution cards, this Digimon gets +3000 DP until the end of your opponent’s next turn.",
           kind: "ModifyDP",
           target: {
             filter: {

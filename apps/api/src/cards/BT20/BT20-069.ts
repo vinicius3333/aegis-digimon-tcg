@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -20,6 +21,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, until the end of your opponent's turn, 1 of your Digimon gains ＜Blocker＞ and ＜Retaliation＞.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -35,6 +38,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, until the end of your opponent's turn, 1 of your Digimon gains ＜Blocker＞ and ＜Retaliation＞.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -56,6 +61,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -66,6 +72,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, until the end of your opponent's turn, 1 of your Digimon gains ＜Blocker＞ and ＜Retaliation＞.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -81,6 +89,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, until the end of your opponent's turn, 1 of your Digimon gains ＜Blocker＞ and ＜Retaliation＞.",
           kind: "GainKeyword",
           target: {
             filter: {

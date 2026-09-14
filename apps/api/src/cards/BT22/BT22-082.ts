@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -33,6 +34,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -61,6 +64,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -75,6 +79,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

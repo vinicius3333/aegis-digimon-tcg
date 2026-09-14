@@ -113,6 +113,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -124,6 +125,7 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with a play cost of 3 or less.",
           kind: "Delete",
           target: {
             filter: {

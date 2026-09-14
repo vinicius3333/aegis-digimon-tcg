@@ -292,7 +292,11 @@ const SECURITY_TRASHED: ServerEvent = {
 };
 
 /** The same hook over a board, so movements the events name resolve to real cards. */
-function renderCuesOverBoard(state: GameState, snapshots?: readonly StateSnapshot[]) {
+function renderCuesOverBoard(
+  state: GameState,
+  snapshots?: readonly StateSnapshot[],
+  onPresentationReport?: (report: import("@aegis/shared").PresentationReport) => void,
+) {
   const feed = batchFeed();
   const view = renderHook(
     (batches: readonly ServerBatch[]) =>
@@ -301,6 +305,7 @@ function renderCuesOverBoard(state: GameState, snapshots?: readonly StateSnapsho
         batches,
         state,
         snapshots,
+        onPresentationReport,
         viewerSeat: VIEWER,
         mulliganOpen: false,
         anchors,
@@ -2940,6 +2945,56 @@ describe("triggered effect source prelude", () => {
   );
 });
 
+it("shows Analog Youth's On Play before its trash result across server batches", async () => {
+  const board = {
+    players: [
+      { battleArea: [], hand: [], trash: [] },
+      {
+        battleArea: [{ permanentId: "perm-4", topCard: { cardId: "EX1-066", instanceId: "s1-42" } }],
+        hand: [],
+        trash: [
+          { instanceId: "s1-47", cardId: "P-205" },
+          { instanceId: "s1-31", cardId: "BT18-019" },
+        ],
+      },
+    ],
+  } as unknown as GameState;
+  const reports: import("@aegis/shared").PresentationReport[] = [];
+  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) => reports.push(report));
+  const play: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "EX1-066", permanentId: "perm-4" };
+  const effect: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: "EX1-066",
+    sourcePermanentId: "perm-4",
+    sourceInstanceId: "s1-42",
+    effectKey: "EX1-066/ir-6-0",
+    timing: "OnPlay",
+    description: "Reveal top 3 and add",
+  };
+  rerender([play]);
+  await advance(12);
+  rerender([play, effect]);
+  await advance(0);
+  expect(result.current.effectSources).toHaveLength(0);
+  expect(result.current.notices).toHaveLength(0);
+  await advance(2348);
+  rerender([play, effect, { kind: "cardsMoved", instanceIds: ["s1-47", "s1-31"], from: "various", to: "trash" }]);
+  await advance(0);
+  expect(result.current.sidePanels.filter((panel) => panel.titleKey === "panel.trashedCards")).toHaveLength(0);
+  await advance(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst + TIMINGS.effectSourceHold - 2360);
+  expect(
+    result.current.notices.some((notice) => notice.body.variant === "effect" && notice.body.cardId === "EX1-066"),
+  ).toBe(true);
+  await advance(TIMINGS.effectAnnounce);
+  expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.trashedCards")).toBe(true);
+  const arrivalReport = reports.find((report) => report.stepId.startsWith("zone-change-") && report.phase === "queued");
+  expect(reports.find((report) => report.stepId.startsWith("burst-") && report.phase === "started")).toMatchObject({
+    batchId: arrivalReport?.batchId,
+    stateVersion: 1,
+  });
+});
+
 it("plays the security battle when the server closes the check after its reveal has exited", async () => {
   const { result, rerender } = renderCues();
   rerender([ATTACK]);
@@ -3152,4 +3207,59 @@ describe("Taiki hand-play reveal on a single narration slot", () => {
     await advance(1000);
     expect(result.current.sidePanels.at(-1)?.cards.map((card) => card.cardId)).toEqual(cardIds);
   });
+});
+
+it("presents Imperial's late security consequence before the next turn phases", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "imperial", topCard: { cardId: "AD1-024", instanceId: "imperial-card" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const reports: import("@aegis/shared").PresentationReport[] = [];
+  const { result, rerender } = renderCuesOverBoard(board, undefined, (report) => reports.push(report));
+  const imperial: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "AD1-024",
+    sourcePermanentId: "imperial",
+    sourceInstanceId: "imperial-card",
+    effectKey: "entry-response",
+    timing: "AllTurns",
+    description: "Suspend, then unsuspend.",
+  };
+  rerender([ATTACK, REVEAL]);
+  await advance(100);
+  rerender([ATTACK, REVEAL, imperial]);
+  await advance(0);
+  rerender([
+    ATTACK,
+    REVEAL,
+    imperial,
+    CHECK,
+    TURN_END,
+    { kind: "phaseChanged", phase: Phase.Main, turnSeat: 0, turnCount: 4 },
+  ]);
+  let sourceBeforePhase = false;
+  let observedPhase = false;
+  for (let tick = 0; tick < 200; tick++) {
+    await advance(100);
+    if (reports.some((report) => report.phase === "shown" && report.sourceCardId === "AD1-024"))
+      sourceBeforePhase = true;
+    if (result.current.phaseBanner !== null) {
+      observedPhase = true;
+      break;
+    }
+  }
+  expect(observedPhase).toBe(true);
+  expect(sourceBeforePhase).toBe(true);
+  const source = reports.findIndex((report) => report.phase === "shown" && report.sourceCardId === "AD1-024");
+
+  expect(source).toBeGreaterThanOrEqual(0);
+
+  expect(reports[source]).toMatchObject({ stateVersion: 2 });
 });

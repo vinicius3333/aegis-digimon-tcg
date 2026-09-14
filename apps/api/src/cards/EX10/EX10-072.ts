@@ -36,6 +36,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 2＞",
           kind: "Draw",
           controller: "mine",
           amount: 2,
@@ -91,6 +92,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Digimon card with the [Dark Masters] trait from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -132,6 +135,7 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart: "Then, add this card to the hand. At turn end, delete the Digimon this effect played.",
               kind: "Delete",
               target: {
                 filter: {

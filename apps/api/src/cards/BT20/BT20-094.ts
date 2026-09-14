@@ -9,6 +9,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 [Free] trait Digimon card from your trash with the play cost reduced by 5.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -71,6 +73,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 level 3 Digimon card with the [Free] trait from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -375,3 +375,64 @@ describe("BT26-015 compiled fidelity", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+it.each([false, true])("BT26-015 preserves a declined deck-add reaction (inherited=%s)", async (inherited) => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: inherited
+          ? [{ card: "BT26-009", as: "host", suspended: true, under: [{ card: "BT26-015" }] }]
+          : [{ card: "BT26-015", as: "host" }],
+        hand: [
+          { card: "BT26-023", as: "firstPlay" },
+          { card: "BT26-023", as: "secondPlay" },
+          { card: "BT1-009", as: "firstMaterial" },
+          { card: "BT1-009", as: "secondMaterial" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT26-039", as: "firstTarget" },
+          { card: "BT26-039", as: "secondTarget" },
+        ],
+      },
+    },
+    { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.inst("firstMaterial").instanceId, s.inst("secondMaterial").instanceId);
+  s.state.memory = 20;
+  await s.ready();
+  for (const as of ["firstPlay", "secondPlay"]) {
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(as).instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const payment = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: payment.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== payment.decisionId,
+    );
+    const reaction = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: reaction.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+  expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(4);
+  expect(
+    s.decisions
+      .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT26-015")
+      .map(({ req }) => req.options?.isInherited === true),
+  ).toEqual([inherited, inherited]);
+  expect(s.perm("host").isSuspended).toBe(inherited);
+  expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+});

@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] For each color in this Digimon's digivolution cards, trash any 1 digivolution card from your opponent's Digimon and suspend 1 of their Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -28,6 +30,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[When Digivolving] For each color in this Digimon's digivolution cards, trash any 1 digivolution card from your opponent's Digimon and suspend 1 of their Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -46,6 +50,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

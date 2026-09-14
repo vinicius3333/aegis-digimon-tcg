@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if DigiXrosing, this Digimon gets +3000 DP and ＜Blocker＞until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -42,6 +46,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -67,6 +73,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -84,6 +92,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if DigiXrosing, this Digimon gets +3000 DP and ＜Blocker＞until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -99,6 +109,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {

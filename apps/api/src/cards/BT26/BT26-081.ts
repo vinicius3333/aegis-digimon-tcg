@@ -29,6 +29,8 @@ const main: Action[] = [
     optional: true,
   },
   {
+    effectTextPart:
+      "Then, to 1 of your opponent's Digimon, give -4000 DP until their turn ends for each of your [Iliad] or [TS] trait Digimon or Tamers.",
     kind: "ModifyDP",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     amount: -4000,

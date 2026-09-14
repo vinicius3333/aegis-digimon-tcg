@@ -30,6 +30,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 5 differently named Digimon cards with [Gammamon] in their names from your trash as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -52,6 +54,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -71,6 +74,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 5 differently named Digimon cards with [Gammamon] in their names from your trash as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -93,6 +98,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {

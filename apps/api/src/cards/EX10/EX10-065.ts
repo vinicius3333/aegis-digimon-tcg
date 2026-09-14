@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When any of your Digimon with [Myotismon] in their names are played, by deleting this Tamer, 1 of those Digimon gains ＜Rush＞ for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: {},
@@ -60,6 +62,7 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart: "Then, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
             },

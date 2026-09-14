@@ -46,6 +46,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash the top card of your opponent's security stack and Digimon isn't affected by your opponent's effects until the end of their turn.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -65,6 +67,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, ＜De-Digivolve1＞ all of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -81,6 +85,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, ＜De-Digivolve1＞ all of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -100,6 +106,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash the top card of your opponent's security stack and Digimon isn't affected by your opponent's effects until the end of their turn.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -119,6 +127,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, ＜De-Digivolve1＞ all of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -135,6 +145,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, ＜De-Digivolve1＞ all of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon.",
           kind: "Delete",
           target: {
             filter: {

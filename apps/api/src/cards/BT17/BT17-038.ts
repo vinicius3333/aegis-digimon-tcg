@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -35,6 +36,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with [Plug-In] in its name in its name or 1 yellow Option card with a cost of 5 or less from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             controller: "mine",

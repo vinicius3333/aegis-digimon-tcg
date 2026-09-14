@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -18,6 +19,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent’s Digimon with as much or less DP as 1 of your [Dark Dragon] or [Evil Dragon] trait Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -46,6 +49,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -56,6 +60,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent’s Digimon with as much or less DP as 1 of your [Dark Dragon] or [Evil Dragon] trait Digimon.",
           kind: "Delete",
           target: {
             filter: {

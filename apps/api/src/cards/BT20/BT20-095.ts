@@ -83,6 +83,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Chronicle] trait card with a play cost of 5 or less from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

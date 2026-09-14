@@ -7,8 +7,17 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "PlayToken", tokens: ["Diaboromon"], count: 1, payCost: false },
         {
+          effectTextPart:
+            "[Main] Play 1 [Diaboromon] Token without paying the cost (Digimon/Cost 14/Lv.6/White/Mega/Unknown/Unidentified/3000 DP).",
+          kind: "PlayToken",
+          tokens: ["Diaboromon"],
+          count: 1,
+          payCost: false,
+        },
+        {
+          effectTextPart:
+            "Then, place this card as the bottom digivolution card of 1 of your[Diaboromon] without [Doomsday Clock] in its digivolution cards.",
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           position: "bottom",

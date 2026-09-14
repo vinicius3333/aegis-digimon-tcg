@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -42,6 +45,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -67,6 +72,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -79,6 +85,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -99,6 +107,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

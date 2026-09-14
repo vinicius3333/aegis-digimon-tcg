@@ -57,6 +57,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When Tamer cards are placed in this Digimon's digivolution cards, suspend 1 of your opponent's Digimon.",
               kind: "Suspend",
               target: {
                 filter: {
@@ -67,6 +69,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, this Digimon may attack your opponent's Digimon.",
               kind: "Attack",
               target: {
                 filter: {

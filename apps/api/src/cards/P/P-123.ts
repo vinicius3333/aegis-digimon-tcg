@@ -14,7 +14,11 @@ const compiled: CompiledCard = {
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           actions: [
             { kind: "Hatch", optional: true },
-            { kind: "GainMemory", amount: 1 },
+            {
+              effectTextPart: "Then, gain 1 memory.",
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
         },
       ],

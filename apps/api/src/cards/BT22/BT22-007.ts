@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Breeding] [Start of Your Main Phase] Look at your Digi-Egg deck's top card. Among them, you may place [Mother Eater]s as this Digimon's top digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -29,6 +31,8 @@ export const compiled: CompiledCard = {
           raw: "Among them, you may place [Mother Eater]s as this Digimon's top digivolution cards",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has 10 or more digivolution cards, you may play 3 [Mother Eater]s from its digivolution cards without paying the costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -56,7 +56,11 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenEffectAddsToHand",
           actions: [
-            { kind: "GainMemory", amount: 1 },
+            {
+              effectTextPart: "[Your Turn][Once Per Turn] When an effect adds a card to your hand, gain 1 memory.",
+              kind: "GainMemory",
+              amount: 1,
+            },
             {
               kind: "Restrict",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

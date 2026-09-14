@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -86,6 +87,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -132,6 +134,7 @@ const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -153,6 +156,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

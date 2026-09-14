@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon get linked, by suspending this Tamer, 1 of your Digimon with the [Appmon] trait gains ＜Vortex＞ and +3000 DP for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: {
@@ -66,6 +68,8 @@ const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon get linked, by suspending this Tamer, 1 of your Digimon with the [Appmon] trait gains ＜Vortex＞ and +3000 DP for the turn.",
               kind: "ModifyDP",
               target: {
                 filter: {

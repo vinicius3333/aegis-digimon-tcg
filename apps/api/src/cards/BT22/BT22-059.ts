@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with a play cost of 5 or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -52,6 +54,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with a play cost of 5 or less.",
           kind: "Delete",
           target: {
             filter: {

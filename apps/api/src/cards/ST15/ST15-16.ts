@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

@@ -83,6 +83,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 level 3 Digimon card with the [CS] trait from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

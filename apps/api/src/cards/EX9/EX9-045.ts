@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] you may play 1 play cost 7 or lower [WG] trait Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -50,6 +52,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, you may return up to 2 of your opponent's Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

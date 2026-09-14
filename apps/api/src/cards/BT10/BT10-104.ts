@@ -26,6 +26,7 @@ const compiled: CompiledCard = {
       actions: [
         { kind: "TrashTopDeck", controller: "mine", amount: 3 },
         {
+ effectTextPart: "Then, you may play 1 [DarkKnightmon] from your trash for its memory cost. If you play a Digimon card with DigiXros requirements by this effect, you may also place cards from your trash in digivolution cards for a DigiXros.",
           kind: "PlayFromZone",
           target: {
             filter: {

@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for every 2 [Vemmon] in this Digimon's digivolution cards.",
           kind: "DeDigivolve",
           target: {
             filter: {

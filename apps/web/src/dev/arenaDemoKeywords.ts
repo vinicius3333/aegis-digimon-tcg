@@ -106,8 +106,10 @@ export function applyDemoKeywordGrants(state: GameState, grants: DemoKeywordGran
       if (!DEMO_KEYWORDS.includes(addition.keyword)) continue;
       active.add(addition.keyword);
       granted.add(addition.keyword);
-      if (addition.keyword === "SecurityAttack")
+      if (addition.keyword === "SecurityAttack") {
+        permanent.securityAttackModifier += addition.amount ?? 1;
         permanent.securityAttack = Math.max(0, Math.min(255, permanent.securityAttack + (addition.amount ?? 1)));
+      }
     }
     permanent.keywords.clear();
     permanent.keywords.push(...active);

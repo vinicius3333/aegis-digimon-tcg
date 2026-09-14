@@ -23,6 +23,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -53,6 +55,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {

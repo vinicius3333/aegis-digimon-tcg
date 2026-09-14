@@ -50,6 +50,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may play 1 [Tuwarmon] with a play cost of 7 or less from under your Tamers without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

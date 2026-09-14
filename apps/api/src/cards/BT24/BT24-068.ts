@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

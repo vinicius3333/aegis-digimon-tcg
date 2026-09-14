@@ -59,6 +59,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -70,6 +71,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -81,6 +83,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's level 3 Digimon, level 4 Digimon, and level 5 Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -92,6 +95,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, place this card as the bottom digivolution card of 1 of your Digimon with the [Three Musketeers] trait.",
           kind: "PlaceUnder",
           target: {
             filter: {

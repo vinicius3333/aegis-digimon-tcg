@@ -29,6 +29,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -40,6 +42,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -68,6 +72,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -91,6 +97,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -102,6 +110,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -130,6 +140,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -153,6 +165,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -164,6 +178,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -192,6 +208,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 Option card in the battle area, this Digimon gains ＜Piercing＞ and ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

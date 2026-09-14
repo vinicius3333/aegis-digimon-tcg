@@ -574,6 +574,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   ctxWithSelections.activeTiming =
     effect.timingOverride ?? (ctx.activeTiming === "None" ? undefined : ctx.activeTiming) ?? effect.trigger;
+  ctxWithSelections.activeEffectIsInherited = effect.isInherited === true;
   ctxWithSelections.activeEffectText =
     effect.description ??
     (effect.isInherited

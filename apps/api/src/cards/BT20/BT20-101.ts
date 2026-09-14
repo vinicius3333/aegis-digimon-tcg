@@ -89,6 +89,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -100,6 +101,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for every 2 suspended Digimon, you may return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -127,6 +130,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -138,6 +142,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for every 2 suspended Digimon, you may return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

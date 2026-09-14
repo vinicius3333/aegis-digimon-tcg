@@ -14,6 +14,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if [MetalGreymon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
           condition: {

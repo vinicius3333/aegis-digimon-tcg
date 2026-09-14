@@ -46,6 +46,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, place 1 of your opponent's Digimon with as high or lower a level as the number of cards in your or their security stack at the bottom of their security stack.(Rule) Trait: Has [Angel] type.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "opponent",

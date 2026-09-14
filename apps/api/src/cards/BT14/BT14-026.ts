@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play][When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -34,6 +35,7 @@ export const compiled: CompiledCard = {
           scope: "acrossDigimon",
         },
         {
+          effectTextPart: "Then, return 1 of your opponent's Digimon with no digivolution cards to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -51,6 +53,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play][When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -64,6 +67,7 @@ export const compiled: CompiledCard = {
           scope: "acrossDigimon",
         },
         {
+          effectTextPart: "Then, return 1 of your opponent's Digimon with no digivolution cards to the hand.",
           kind: "Return",
           target: {
             filter: {

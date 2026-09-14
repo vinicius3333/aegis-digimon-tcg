@@ -58,6 +58,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] If your opponent has 8 or more cards in their hand, they trash 1 card in their hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -78,6 +80,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 7 or fewer cards in their hand, they add the top card of their security stack to their hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "opponent",

@@ -113,6 +113,8 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 play cost 5 or lower [TS] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: tsSecurity, count: 1 },
           from: ["hand"],

@@ -2,6 +2,8 @@ import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const place = {
+  effectTextPart:
+    "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may place 1 card in your hand face down as this Digimon's bottom digivolution card.",
   kind: "PlaceUnder",
   target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
   underFilter: { isSelfRef: true },

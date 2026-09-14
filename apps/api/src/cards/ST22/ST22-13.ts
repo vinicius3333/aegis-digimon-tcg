@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -51,6 +52,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -68,6 +70,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -80,6 +83,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -97,6 +101,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -109,6 +114,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

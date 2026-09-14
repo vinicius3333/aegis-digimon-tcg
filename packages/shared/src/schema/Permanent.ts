@@ -102,6 +102,8 @@ export class Permanent extends Schema {
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can
   // never disagree with what an attack would actually do.
   @type("uint8") securityAttack = 1;
+  // Signed Security Attack modifier before the check count is floored at zero.
+  @type("int16") securityAttackModifier = 0;
   // Server-projected opponent permanents this Digimon may legally attack right now.
   // The client must not reconstruct combat rules from suspension or card text: grants
   // such as ST12-08 and target-scoped restrictions are already resolved here.

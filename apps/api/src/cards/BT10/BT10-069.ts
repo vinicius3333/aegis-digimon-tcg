@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Return 1 black or purple non-[DarkKnightmon (X Antibody)] Digimon card from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {
@@ -37,6 +39,8 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, if [DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 Tamer, and unsuspend this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -58,6 +62,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if [DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 Tamer, and unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

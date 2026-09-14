@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] If this Digimon's name is[Koromon], it gains +3000 DP for the turn.",
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           amount: 3000,
@@ -20,6 +21,7 @@ export const compiled: CompiledCard = {
           condition: { kind: "selfHasName", names: ["Koromon"] },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },

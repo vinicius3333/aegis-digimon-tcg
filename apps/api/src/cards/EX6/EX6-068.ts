@@ -6,6 +6,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place 1 Digimon card with the [Angel]/[Archangel]/[Three Great Angels] trait from your hand at the bottom of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -46,7 +48,12 @@ export const compiled: CompiledCard = {
                 },
                 count: 1,
               },
-              then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
+              then: {
+                kind: "PlayWithoutCost",
+                source: "security",
+                payCost: false,
+                optional: true,
+              },
             },
             { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
           ],

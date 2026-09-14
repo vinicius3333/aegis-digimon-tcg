@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -30,6 +31,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may digivolve 1 of your Digimon into a Digimon card with [Shoutmon] in its name in your hand for its digivolution cost.",
           kind: "Digivolve",
           target: {
             filter: {

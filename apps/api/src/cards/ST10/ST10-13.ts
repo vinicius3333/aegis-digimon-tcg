@@ -25,6 +25,7 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart: "Then, return 1 Digimon card from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

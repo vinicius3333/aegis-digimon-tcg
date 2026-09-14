@@ -88,6 +88,8 @@ export const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When this Digimon suspends, if [Kyoko Kuremi] is in this Digimon's digivolution cards or if this Digimon's stack has 2 or more same-level cards, it gets +3000 DP until your opponent's turn ends.",
               kind: "ModifyDP",
               target: {
                 filter: {

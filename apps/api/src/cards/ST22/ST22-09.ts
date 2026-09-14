@@ -53,6 +53,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may link this card to 1 of your Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {

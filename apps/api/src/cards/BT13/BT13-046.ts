@@ -8,7 +8,11 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "GainMemory", amount: 3, condition: securityCondition },
+        {
+          kind: "GainMemory",
+          amount: 3,
+          condition: securityCondition,
+        },
         {
           kind: "HandRevealAdd",
           target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
@@ -21,7 +25,11 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "GainMemory", amount: 3, condition: securityCondition },
+        {
+          kind: "GainMemory",
+          amount: 3,
+          condition: securityCondition,
+        },
         {
           kind: "HandRevealAdd",
           target: { filter: { controller: "mine", zone: "hand" }, count: 1 },

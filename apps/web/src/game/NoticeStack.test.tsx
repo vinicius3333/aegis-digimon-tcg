@@ -34,10 +34,19 @@ function renderNotice(
 
 describe("NoticeStack", () => {
   it("shows the resolving clause under its printed timing label", () => {
-    renderNotice();
+    renderNotice(
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "BT26-059",
+          timing: "OnPlay",
+          description: "Trash 1, then play a Titan with cost reduced by 7.",
+        },
+      }),
+    );
     const shown = screen.getByTestId("match-notice");
     expect(shown.textContent).toContain("On Play");
-    expect(shown.textContent).toContain("Draw 1 card.");
+    expect(shown.textContent).toContain("This effect can't play [Plutomon].");
   });
 
   it("slices the attacking clause when the engine names the timing by its enum key", () => {
@@ -94,8 +103,17 @@ describe("NoticeStack", () => {
   it("always prints the clause, on every layout", () => {
     // It is the one thing on the notice the player cannot read off the board, and the
     // phone's slot now shows one moment at a time, so there is room for it.
-    renderNotice();
-    expect(screen.getByTestId("match-notice").textContent).toContain("Draw 1 card.");
+    renderNotice(
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "BT26-059",
+          timing: "OnPlay",
+          description: "Trash 1, then play a Titan with cost reduced by 7.",
+        },
+      }),
+    );
+    expect(screen.getByTestId("match-notice").textContent).toContain("This effect can't play [Plutomon].");
     expect(screen.queryByRole("button", { name: /effect text$/ })).toBeNull();
   });
 

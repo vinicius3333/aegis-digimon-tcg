@@ -23,6 +23,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -44,6 +46,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -61,6 +64,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -82,6 +87,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -108,6 +114,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: {
@@ -128,6 +136,7 @@ const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: {
                 filter: {
@@ -151,6 +160,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: {
@@ -171,6 +182,7 @@ const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: {
                 filter: {

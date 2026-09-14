@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's Digimon with as much or less DP as this Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -26,6 +28,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, this Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -44,6 +47,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's Digimon with as much or less DP as this Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -60,6 +65,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, this Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -78,6 +84,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's Digimon with as much or less DP as this Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -94,6 +102,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, this Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {

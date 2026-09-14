@@ -39,6 +39,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon or Tamers may digivolve into [Susanoomon] in the hand or trash without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -61,6 +63,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by placing up to 4 of your Tamers with different colors under 1 of your [Susanoomon] as its bottom digivolution cards, gain 1 memory for each placed card.",
           kind: "GainMemory",
           amount: 1,
           cost: {
@@ -105,6 +109,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

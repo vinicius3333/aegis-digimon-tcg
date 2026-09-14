@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may play 1 [ShootingStarmon] from under your Tamers without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -45,6 +47,8 @@ export const compiled: CompiledCard = {
           bindResultAs: "playedShootingStarmon",
         },
         {
+          effectTextPart:
+            "Then, place 1 [Starmons] and 1 [Pickmons] from your trash as that Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -73,6 +77,8 @@ export const compiled: CompiledCard = {
           position: "bottom",
         },
         {
+          effectTextPart:
+            "Then, place 1 [Starmons] and 1 [Pickmons] from your trash as that Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {

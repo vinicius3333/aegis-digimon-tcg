@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -49,6 +50,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, this Digimon may digivolve into a Digimon card with the [Blue Flare] trait from under your Tamers without paying the cost.\n\n[DigiXros -2] Blue [Greymon] x [MailBirdramon]",
           kind: "Digivolve",
           target: {
             filter: {

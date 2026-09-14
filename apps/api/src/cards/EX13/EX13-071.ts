@@ -37,6 +37,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // `abortOnDecline`: "Then, ... gain 1 memory" still resolves after a declined placement.
 const startOfMainPhaseActions: Action[] = [
   {
+    effectTextPart:
+      "[Start of Your Main Phase] [On Play] You may place your deck's top card face down under this Tamer.",
     kind: "PlaceUnder",
     target: { filter: { controller: "mine" }, count: 1 },
     fromDeckTop: true,
@@ -45,6 +47,7 @@ const startOfMainPhaseActions: Action[] = [
     optional: true,
   },
   {
+    effectTextPart: "Then, if your opponent has a Digimon, gain 1 memory.",
     kind: "GainMemory",
     amount: 1,
     condition: {

@@ -75,6 +75,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, that DNA digivolved Digimon may attack.",
               kind: "Attack",
               target: {
                 filter: {
@@ -136,6 +137,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, that DNA digivolved Digimon may attack.",
               kind: "Attack",
               target: {
                 filter: {

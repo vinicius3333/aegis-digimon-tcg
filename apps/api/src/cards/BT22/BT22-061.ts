@@ -62,6 +62,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -73,6 +75,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing this Digimon's bottom face-down digivolution card, return 1 of your opponent's play cost 4 or lower Digimon or Tamers to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -107,6 +111,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -118,6 +124,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing this Digimon's bottom face-down digivolution card, return 1 of your opponent's play cost 4 or lower Digimon or Tamers to the hand.",
           kind: "Return",
           target: {
             filter: {

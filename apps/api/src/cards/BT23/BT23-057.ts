@@ -68,6 +68,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with a play cost of 6 or less. For each of your other Digimon, add 3 to this effect's play cost maximum.",
           kind: "Delete",
           target: {
             filter: {
@@ -112,6 +114,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with a play cost of 6 or less. For each of your other Digimon, add 3 to this effect's play cost maximum.",
           kind: "Delete",
           target: {
             filter: {

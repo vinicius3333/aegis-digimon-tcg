@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] For each card with [Mega] in their traits in this Digimon’s digivolution cards, delete 1 of your opponent’s Digimon.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, forceSelection: true },
           scaling: {

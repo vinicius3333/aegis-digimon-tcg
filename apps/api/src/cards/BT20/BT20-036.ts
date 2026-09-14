@@ -45,6 +45,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -56,6 +57,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, 1 of their Digimon gets -5000 DP until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -73,6 +75,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -84,6 +87,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, 1 of their Digimon gets -5000 DP until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -122,6 +126,7 @@ export const compiled: CompiledCard = {
           bindResultAs: "dnaDigivolvedByThisEffect",
         },
         {
+          effectTextPart: "Then, the DNA digivolved Digimon may attack.",
           kind: "Attack",
           // Q4345/Q4346: finish simultaneous evolution/attack triggers before Counter timing.
           drainTimingWindowDuringAttack: true,

@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may return 1 Digimon card with the [Evil]/[Dark Dragon]/[Evil Dragon] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

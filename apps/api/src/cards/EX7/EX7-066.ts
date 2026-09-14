@@ -67,6 +67,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Delete 1 of your opponent's Digimon with 9000 DP or less. For each your Digimon with the [Three Musketeers] trait with different names, add 3000 to this DP-Based deletion effects maximum.",
           kind: "Delete",
           target: {
             filter: {
@@ -96,6 +98,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, place this card as the bottom digivolution card of 1 of your Digimon with the [Three Musketeers] trait.",
           kind: "PlaceUnder",
           target: {
             filter: {

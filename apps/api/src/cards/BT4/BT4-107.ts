@@ -38,6 +38,7 @@ const compiled: CompiledCard = {
           trackCount: "addedByPollenSpray",
         },
         {
+          effectTextPart: "Then, suspend 1 of your opponent's Digimon for each card added to your hand by this effect.",
           kind: "Suspend",
           target: {
             filter: {

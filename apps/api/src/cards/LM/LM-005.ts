@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
           raw: "For each one, trash any 1 card under your opponent's Digimon or Tamers",
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon or Tamers without cards under it to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -113,6 +114,7 @@ const compiled: CompiledCard = {
           raw: "For each one, trash any 1 card under your opponent's Digimon or Tamers",
         },
         {
+          effectTextPart: "Then, return 1 of their Digimon or Tamers without cards under it to the hand.",
           kind: "Return",
           target: {
             filter: {

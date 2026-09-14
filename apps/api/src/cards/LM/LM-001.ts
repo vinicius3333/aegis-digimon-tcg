@@ -36,6 +36,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card with [Gammamon]&#160;in its text from your hand as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -74,6 +76,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with 8000 DP or less. For each color in this Digimon's digivolution cards, add 1000 to this DP deletion effect's maximum.",
           kind: "Delete",
           target: {
             filter: {
@@ -93,6 +97,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 card with [Gammamon]&#160;in its text from your hand as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -131,6 +137,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with 8000 DP or less. For each color in this Digimon's digivolution cards, add 1000 to this DP deletion effect's maximum.",
           kind: "Delete",
           target: {
             filter: {

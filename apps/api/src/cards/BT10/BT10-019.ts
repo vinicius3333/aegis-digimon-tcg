@@ -19,7 +19,14 @@ const compiled: CompiledCard = {
           choose: 1,
           labels: ["Return 1 MetalGreymon from trash", "Reveal 4 cards"],
           options: [
-            [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
+            [
+              {
+                kind: "Return",
+                target: { filter: metalGreymon, count: 1 },
+                from: ["trash"],
+                to: "hand",
+              },
+            ],
             [
               {
                 kind: "RevealAdd",

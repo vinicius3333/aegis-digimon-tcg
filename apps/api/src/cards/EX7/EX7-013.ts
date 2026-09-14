@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
@@ -23,6 +25,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, draw cards until there are 6 cards in your hand.",
           kind: "Draw",
           amount: 1,
           untilHandSize: 6,
@@ -34,6 +37,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may use 1 Option card with the [Three Musketeers] trait from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
@@ -50,6 +55,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, draw cards until there are 6 cards in your hand.",
           kind: "Draw",
           amount: 1,
           untilHandSize: 6,

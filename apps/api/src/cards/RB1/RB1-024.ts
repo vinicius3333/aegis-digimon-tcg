@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] This Digimon gains ＜Piercing＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -25,6 +26,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if a Digimon card with [Angoramon] in its name is in this Digimon's digivolution cards, suspend 1 of your opponent’s Digimon.",
           kind: "Suspend",
           target: {
             filter: {

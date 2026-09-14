@@ -12,6 +12,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -24,6 +25,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -59,6 +62,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -71,6 +75,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {

@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -98,6 +99,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {

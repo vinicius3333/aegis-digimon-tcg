@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] By trashing 1 card in your hand, <Draw 1>.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -69,6 +70,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] By trashing 1 card in your hand, <Draw 1>.",
           kind: "Draw",
           controller: "mine",
           amount: 1,

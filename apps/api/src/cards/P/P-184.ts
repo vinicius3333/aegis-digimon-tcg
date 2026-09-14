@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] This Digimon gets +3000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -43,6 +44,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if [Kosuke Kisakata] is in this Digimon's digivolution cards, all of your Digimon with the [SoC] trait unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {

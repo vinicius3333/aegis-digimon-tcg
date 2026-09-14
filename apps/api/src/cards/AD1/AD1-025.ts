@@ -40,6 +40,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Return all of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -52,6 +54,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -67,6 +70,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Return all of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -79,6 +84,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {

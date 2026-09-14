@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -86,6 +87,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

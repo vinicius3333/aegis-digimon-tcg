@@ -17,6 +17,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -2000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -29,6 +31,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Shakkoumon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -60,6 +63,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -2000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -72,6 +77,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, if it's your turn, 2 of your Digimon may DNA digivolve into [Shakkoumon] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {

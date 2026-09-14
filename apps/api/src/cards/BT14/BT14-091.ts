@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -55,6 +56,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have a Tamer with [Joe Kido] in its name, choose 1 of your Digimon. If your opponent has no Digimon with more digivolution cards than the chosen Digimon, unsuspend it.",
           kind: "Unsuspend",
           target: {
             fromSelectionRef: "chosen",

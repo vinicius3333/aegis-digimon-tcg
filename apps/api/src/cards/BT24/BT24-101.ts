@@ -36,6 +36,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash your top security card and 1 of your opponent's Digimon gets -13000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -74,6 +76,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash your top security card and 1 of your opponent's Digimon gets -13000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {

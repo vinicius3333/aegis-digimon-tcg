@@ -109,6 +109,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When your security stack is removed from, you may play 1 level 4 or lower [Angel] or [Iliad] trait card from your hand without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {
@@ -131,6 +133,8 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart:
+                "Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.\n(Rule) Trait: Has [Angel] Type.",
               kind: "GainKeyword",
               target: {
                 filter: {
@@ -146,6 +150,8 @@ export const compiled: CompiledCard = {
               duration: "untilOpponentTurnEnd",
             },
             {
+              effectTextPart:
+                "Then, 2 of your Digimon gain ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.\n(Rule) Trait: Has [Angel] Type.",
               kind: "GainKeyword",
               target: {
                 filter: {

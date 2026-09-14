@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -52,6 +53,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, return 1 of their suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -69,6 +71,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -80,6 +83,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, return 1 of their suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

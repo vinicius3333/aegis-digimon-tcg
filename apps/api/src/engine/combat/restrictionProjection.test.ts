@@ -182,6 +182,7 @@ describe("Permanent.securityAttack projection", () => {
 
     await s.engine.recomputeContinuousEffects();
     expect(perm.securityAttack).toBe(1);
+    expect(perm.securityAttackModifier).toBe(0);
   });
 
   it("adds every ＜Security Attack +N＞ grant the engine resolved", async () => {
@@ -194,6 +195,7 @@ describe("Permanent.securityAttack projection", () => {
 
     await s.engine.recomputeContinuousEffects();
     expect(perm.securityAttack).toBe(3);
+    expect(perm.securityAttackModifier).toBe(2);
   });
 
   it("floors at 0 under a negative modifier (Comprehensive Rules §16-4-4)", async () => {
@@ -210,5 +212,6 @@ describe("Permanent.securityAttack projection", () => {
 
     await s.engine.recomputeContinuousEffects();
     expect(perm.securityAttack).toBe(0);
+    expect(perm.securityAttackModifier).toBe(-3);
   });
 });

@@ -3,10 +3,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const suspendAndReward: Action[] = [
   {
+    effectTextPart: "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
     kind: "Suspend",
     target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
   },
   {
+    effectTextPart: "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",
     kind: "GainMemory",
     amount: 1,
     condition: {

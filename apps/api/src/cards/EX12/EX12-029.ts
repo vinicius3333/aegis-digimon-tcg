@@ -32,6 +32,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -55,6 +56,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -89,6 +91,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -112,6 +115,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -134,6 +138,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Attacking] [Once Per Turn] Trash the bottom 2 digivolution cards of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {

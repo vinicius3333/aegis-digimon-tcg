@@ -15,6 +15,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. (Trash 1 card from the top of 1 of your opponent's Digimon. Stop trashing when you would trash a level 3 card or the Digimon's last card.)",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -27,6 +29,7 @@ export const compiled: CompiledCard = {
           stopAtLevel: 3,
         },
         {
+          effectTextPart: "Then, you may play 1 [Hina Kurihara] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

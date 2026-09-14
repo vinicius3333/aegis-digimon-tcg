@@ -20,6 +20,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 purple level 4 or lower Digimon card from your trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

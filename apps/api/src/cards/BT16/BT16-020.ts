@@ -6,8 +6,15 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Draw", controller: "both", amount: 1 },
         {
+          effectTextPart: "[When Digivolving] Both players draw 1 card from their decks.",
+          kind: "Draw",
+          controller: "both",
+          amount: 1,
+        },
+        {
+          effectTextPart:
+            "Then, if your opponent has 8 or more cards in their hand or this Digimon has 3 or more digivolution cards, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

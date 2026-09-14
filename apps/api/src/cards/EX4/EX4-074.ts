@@ -46,6 +46,8 @@ export const compiled: CompiledCard = {
       trigger: "EndOfAttack",
       actions: [
         {
+          effectTextPart:
+            "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
           kind: "Delete",
           target: {
             filter: {
@@ -56,6 +58,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
           kind: "Delete",
           target: {
             filter: {
@@ -66,6 +70,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
           kind: "SecurityManipulation",
           op: "placeFromDeck",
           controller: "mine",

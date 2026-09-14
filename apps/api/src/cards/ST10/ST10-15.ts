@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, if you have a yellow Digimon in play, return 1 yellow or purple Digimon card from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

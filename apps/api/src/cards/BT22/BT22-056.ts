@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -43,6 +46,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -55,6 +59,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

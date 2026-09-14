@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -68,6 +69,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, choose 1 of each player's Digimon with the highest play cost and delete all other Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -83,6 +86,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -120,6 +124,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, choose 1 of each player's Digimon with the highest play cost and delete all other Digimon.",
           kind: "Delete",
           target: {
             filter: {

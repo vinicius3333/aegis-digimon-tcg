@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash the top card of 1 of your Digimon with [Armor Form] in its traits.",
           kind: "Trash",
           target: {
             filter: {
@@ -54,6 +55,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may digivolve 1 of your Digimon into a Digimon card in your hand with [Armor Form] in its traits for its digivolution cost. If you do, unsuspend that Digimon.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -78,6 +81,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may digivolve 1 of your Digimon into a Digimon card in your hand with [Armor Form] in its traits for its digivolution cost. If you do, unsuspend that Digimon.",
           kind: "Unsuspend",
           target: {
             fromSelectionRef: "digivolveTarget",

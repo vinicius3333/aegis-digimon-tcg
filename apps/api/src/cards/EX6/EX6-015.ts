@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 3 of your other blue Digimon as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -29,6 +31,8 @@ export const compiled: CompiledCard = {
           shedOwnCards: true,
         },
         {
+          effectTextPart:
+            "Then, return all other level 4 or lower Digimon to the hand. For each card placed in this Digimon's digivolution cards, add 1 to the level this effect may return.",
           kind: "Return",
           target: {
             filter: {
@@ -54,6 +58,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 3 of your other blue Digimon as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -73,6 +79,8 @@ export const compiled: CompiledCard = {
           shedOwnCards: true,
         },
         {
+          effectTextPart:
+            "Then, return all other level 4 or lower Digimon to the hand. For each card placed in this Digimon's digivolution cards, add 1 to the level this effect may return.",
           kind: "Return",
           target: {
             filter: {

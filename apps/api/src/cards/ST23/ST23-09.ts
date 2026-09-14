@@ -82,6 +82,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with the lowest DP.",
           kind: "Delete",
           target: {
             filter: {
@@ -112,6 +113,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with the lowest DP.",
           kind: "Delete",
           target: {
             filter: {

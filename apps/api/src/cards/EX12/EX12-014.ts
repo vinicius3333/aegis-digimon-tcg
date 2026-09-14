@@ -60,6 +60,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 level 5 or lower Digimon card with [Gammamon] in its text or the [VB] trait from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -87,6 +89,7 @@ const compiled: CompiledCard = {
           position: "bottom",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -104,6 +107,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 level 5 or lower Digimon card with [Gammamon] in its text or the [VB] trait from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -131,6 +136,7 @@ const compiled: CompiledCard = {
           position: "bottom",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

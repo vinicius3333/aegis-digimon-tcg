@@ -3,6 +3,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const enterActions: Action[] = [
   {
+    effectTextPart:
+      "[On Play][When Digivolving] You may place 1 Digimon card with [Knightmon] in its name or [Bagra Army] in its traits from your hand or trash under this Digimon as its top digivolution card.",
     kind: "PlaceUnder",
     target: {
       filter: {
@@ -21,6 +23,8 @@ const enterActions: Action[] = [
     optional: true,
   },
   {
+    effectTextPart:
+      "Then, if [Tuwarmon] is in this Digimon's digivolution cards, ＜De-Digivolve 1＞ 3 of your opponent's Digimon.",
     kind: "DeDigivolve",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
     amount: 1,

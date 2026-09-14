@@ -8,11 +8,14 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Trigger ＜De-Digivolve 1＞ on all of your opponent's Digimon. (Trash a card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
           kind: "DeDigivolve",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           amount: 1,
         },
         {
+          effectTextPart: "Then, delete all of your opponent's Digimon with 5000 DP or less.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } },

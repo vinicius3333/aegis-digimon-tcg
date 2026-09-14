@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],
       actions: [
         {
+          effectTextPart: "[On Deletion] You may play 1 [Nene Amano] from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

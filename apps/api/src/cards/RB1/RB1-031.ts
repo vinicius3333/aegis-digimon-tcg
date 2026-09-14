@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may place 1 Digimon card with [Gammamon] in its text from your trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           position: "bottom",
           target: {
@@ -30,6 +32,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may delete 1 Digimon with a level less than or equal to the number of this Digimon's digivolution cards.",
           kind: "Delete",
           target: {
             filter: {
@@ -53,6 +57,7 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] You may return 1 Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -66,6 +71,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing 1 [Siriusmon] in your hand, you may play 1 [Proximamon] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

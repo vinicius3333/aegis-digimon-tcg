@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         { kind: "TrashTopDeck", controller: "mine", amount: 3 },
         {
+          effectTextPart:
+            "Then, you may play up to 2 black and/or purple Digimon cards with play costs of 8 or less from your trash without paying their memory costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

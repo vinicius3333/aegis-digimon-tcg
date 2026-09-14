@@ -26,6 +26,8 @@ const compiled: CompiledCard = {
           purpose: "digivolveAmongRevealed",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If it's your turn, search your security stack. This Digimon may digivolve into a Digimon card with the [Angel] or [Three Great Angels] trait among them with the digivolution cost reduced by 2.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -108,6 +110,8 @@ const compiled: CompiledCard = {
           purpose: "digivolveAmongRevealed",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If it's your turn, search your security stack. This Digimon may digivolve into a Digimon card with the [Angel] or [Three Great Angels] trait among them with the digivolution cost reduced by 2.",
           kind: "Digivolve",
           target: {
             filter: {

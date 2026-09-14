@@ -53,6 +53,7 @@ export const compiled: CompiledCard = {
           whileMatchesTargetFilter: true,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's unsuspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -83,6 +84,7 @@ export const compiled: CompiledCard = {
           whileMatchesTargetFilter: true,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's unsuspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -107,6 +109,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may trash any 4 digivolution cards from your opponent's Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {
@@ -121,6 +125,7 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart: "Then, 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.",
               kind: "DnaDigivolve",
               materials: {
                 filter: {
@@ -153,6 +158,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When any Digimon are played or digivolve, you may trash any 4 digivolution cards from your opponent's Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {
@@ -167,6 +174,7 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart: "Then, 2 of your Digimon may DNA digivolve into [GraceNovamon] in the hand.",
               kind: "DnaDigivolve",
               materials: {
                 filter: {

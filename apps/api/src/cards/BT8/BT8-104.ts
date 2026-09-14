@@ -6,6 +6,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. (Trash 1 card from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -17,6 +19,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 card with [X-Antibody] in its traits from your hand as the bottom digivolution card of 1 of your black Digimon with [X-Antibody] in its traits to delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -46,6 +50,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 card with [X-Antibody] in its traits from your hand as the bottom digivolution card of 1 of your black Digimon with [X-Antibody] in its traits to delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -66,6 +72,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -77,6 +84,7 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {

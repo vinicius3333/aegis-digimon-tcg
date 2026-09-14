@@ -15,6 +15,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Choose 1 of your Digimon with [Insect] in one of its traits. Suspend 2 of your opponent's Digimon with DP less than or equal to the DP of the chosen Digimon.",
           kind: "Suspend",
           target: {
             filter: {

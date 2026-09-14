@@ -42,6 +42,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimon (Trash up to 3 cards from the top. You can't trash past level 3 cards).",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -54,6 +56,8 @@ export const compiled: CompiledCard = {
           stopAtLevel: 3,
         },
         {
+          effectTextPart:
+            "Then, if [Dorugoramon] is in this Digimon's digivolution cards or this card is digivolving from the trash, delete all of your opponent's Digimon with the lowest level.",
           kind: "Delete",
           target: {
             filter: {

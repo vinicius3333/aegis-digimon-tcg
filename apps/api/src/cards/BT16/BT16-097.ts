@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [Ankylomon] or [Angemon] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -28,6 +29,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. If this effect DNA digivolved, <Recovery +1 (Deck)>.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -44,6 +47,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. If this effect DNA digivolved, <Recovery +1 (Deck)>.",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
@@ -60,6 +65,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Armadillomon] or [Patamon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

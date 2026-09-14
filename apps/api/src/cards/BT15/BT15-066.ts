@@ -63,6 +63,7 @@ const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
+          effectTextPart: "[End of Opponent's Turn] Delete this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -73,6 +74,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Digimon card with the [Dark Masters]&#160;trait, other than [Machinedramon], from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

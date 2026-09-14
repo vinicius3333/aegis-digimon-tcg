@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, you may return 1 card with the [Four Great Dragons] trait from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

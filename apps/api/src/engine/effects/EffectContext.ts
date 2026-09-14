@@ -2022,6 +2022,8 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  activeEffectTextPart?: string;
+  activeEffectIsInherited?: boolean;
   /**
    * Context-specific rules applied while a borrowed CardEffect resolves. This is seeded only by
    * an ActivateForeignEffect action and never mutates the lender's compiled IR.

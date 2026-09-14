@@ -70,6 +70,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your opponent's Digimon gets -3000 DP and that Digimon's [When Digivolving] effects don't activate until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -3000,
@@ -97,6 +99,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] 2 of your opponent's Digimon gain ＜Security A. -2＞for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

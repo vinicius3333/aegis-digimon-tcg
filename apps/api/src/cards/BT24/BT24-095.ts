@@ -57,6 +57,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend in their next unsuspend phase.",
           kind: "Suspend",
           target: {
             filter: {
@@ -77,6 +79,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {
+          effectTextPart: "Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: {
             filter: { isSelfRef: true },

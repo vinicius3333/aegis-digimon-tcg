@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent’s Digimon with the lowest play cost.",
           kind: "Delete",
           target: {
             filter: {
@@ -74,6 +75,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 card with [Vemmon] in its text and a play cost of 6 or less from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

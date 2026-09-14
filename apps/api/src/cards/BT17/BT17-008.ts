@@ -24,7 +24,11 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
             },
-            { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectDidNotDelete" } },
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: { kind: "ifThisEffectDidNotDelete" },
+            },
           ],
         },
       ],

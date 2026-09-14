@@ -11,6 +11,7 @@ export function ArenaDemoTools({
   onSecurityBattle,
   onTurnStart,
   onEffects,
+  onImperial,
   onEffectActivation,
   onSecurityFlip,
   securityFaceUpCount,
@@ -24,6 +25,7 @@ export function ArenaDemoTools({
   onSecurityBattle?: () => void;
   onTurnStart: () => void;
   onEffects?: () => void;
+  onImperial?: () => void;
   onEffectActivation?: (
     timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
   ) => void;
@@ -139,6 +141,18 @@ export function ArenaDemoTools({
                 ),
               )
             : null}
+          {onImperial ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onImperial();
+              }}
+            >
+              {portuguese ? "Reproduzir Imperial: All Turns (2 partes)" : "Preview Imperial: All Turns (2 parts)"}
+            </button>
+          ) : null}
           {onEffects ? (
             <button
               type="button"

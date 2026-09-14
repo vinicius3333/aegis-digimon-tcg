@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend 1 of your opponent's Digimon for each Tamer you have in play.",
           kind: "Suspend",
           target: {
             filter: {
@@ -46,6 +47,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, up to 3 of your opponent's suspended Digimon get -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

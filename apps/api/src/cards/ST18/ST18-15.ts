@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +22,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -36,6 +40,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, unsuspend 1 Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

@@ -11,6 +11,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Choose 1 of your opponent's highest play cost Digimon and delete all of their other Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -29,6 +31,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has 4 or more [Vemmon] in its digivolution cards, until your opponent's turn ends, it gains ＜Blocker＞ and isn't affected by their effects.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -84,6 +88,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Choose 1 of your opponent's highest play cost Digimon and delete all of their other Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -102,6 +108,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has 4 or more [Vemmon] in its digivolution cards, until your opponent's turn ends, it gains ＜Blocker＞ and isn't affected by their effects.",
           kind: "GainKeyword",
           target: {
             filter: {

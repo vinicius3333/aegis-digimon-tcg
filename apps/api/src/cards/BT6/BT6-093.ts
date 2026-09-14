@@ -41,6 +41,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Digimon card with [Sistermon] in its name from your hand or trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

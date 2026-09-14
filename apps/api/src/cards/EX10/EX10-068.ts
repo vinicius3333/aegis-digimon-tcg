@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Delete 1 of your opponent's play cost 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

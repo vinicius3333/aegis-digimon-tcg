@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Trash the bottom digivolution card of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -23,6 +24,8 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart:
+            "Then, if your opponent has no Digimon with digivolution cards,  (Draw 1 card from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 1,

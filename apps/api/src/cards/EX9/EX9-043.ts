@@ -42,6 +42,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of this Digimon's face-down digivolution cards.",
           // "By placing 1 Digimon card from your trash face down as this Digimon's bottom
           // digivolution card" — PlaceUnder is the "by" cost gating all subsequent actions.
           kind: "PlaceUnder",
@@ -63,6 +65,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of this Digimon's face-down digivolution cards.",
           // "to 1 of your opponent's Digimon, <De-Digivolve 1> for each of this Digimon's
           // face-down digivolution cards" — amount is dynamic.
           kind: "DeDigivolve",
@@ -76,6 +80,7 @@ export const compiled: CompiledCard = {
           amount: { kind: "countFaceDownDigivolutionCards", host: "self" },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's 3000 DP or lower Digimon.",
           // "Then, delete 1 of your opponent's 3000 DP or lower Digimon"
           // conditional on the "by" cost having been paid (PlaceUnder succeeded).
           kind: "Delete",
@@ -97,6 +102,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of this Digimon's face-down digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -116,6 +123,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of this Digimon's face-down digivolution cards.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -127,6 +136,7 @@ export const compiled: CompiledCard = {
           amount: { kind: "countFaceDownDigivolutionCards", host: "self" },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's 3000 DP or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

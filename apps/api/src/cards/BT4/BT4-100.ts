@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -24,6 +25,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card with a play cost of 4 or less from your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

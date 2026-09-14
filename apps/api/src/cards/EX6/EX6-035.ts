@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 level 4 or lower green or yellow Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -49,6 +51,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent's Digimon gets -4000 DP for each of your other Digimon until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -75,6 +79,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 level 4 or lower green or yellow Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -93,6 +99,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent's Digimon gets -4000 DP for each of your other Digimon until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: {

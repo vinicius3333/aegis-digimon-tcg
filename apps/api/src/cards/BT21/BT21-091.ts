@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] By trashing 1 card with the [Hybrid] trait from your hand, ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
@@ -96,6 +97,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

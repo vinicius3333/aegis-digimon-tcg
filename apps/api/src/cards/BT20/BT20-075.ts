@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -19,6 +20,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -32,6 +34,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "GainKeyword",
           target: {
             filter: {},
@@ -45,6 +48,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "GainKeyword",
           target: {
             filter: {},
@@ -63,6 +67,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash 2 cards in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -73,6 +78,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -86,6 +92,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "GainKeyword",
           target: {
             filter: {},
@@ -99,6 +106,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
           kind: "GainKeyword",
           target: {
             filter: {},

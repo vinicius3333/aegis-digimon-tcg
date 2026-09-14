@@ -27,6 +27,8 @@ const compiled: CompiledCard = {
           payCost: false,
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon with [Myotismon] in its name in play, 1 of your Digimon gains ＜Blocker＞ until the end of your opponent's next turn. (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.)",
           kind: "GainKeyword",
           target: {
             filter: {

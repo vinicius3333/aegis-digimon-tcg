@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Delete all of your opponent's Digimon with the highest level.",
           kind: "Delete",
           target: {
             filter: {

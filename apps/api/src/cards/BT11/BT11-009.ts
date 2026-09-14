@@ -19,12 +19,15 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] 1 of your opponent's Digimon gets -3000 DP for the turn.",
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -3000,
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if DigiXrosing with 2 cards, delete 1 of your opponent's Digimon with 2000 DP or less.",
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 2000 } }, count: 1 },
           condition: { kind: "digiXrosCount", minimum: 2, raw: "DigiXrosing with 2 cards" },

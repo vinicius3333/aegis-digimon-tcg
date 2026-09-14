@@ -79,6 +79,8 @@ const compiled: CompiledCard = {
           abortOnDecline: false,
         },
         {
+          effectTextPart:
+            "Then, you may return 1 of your opponent’s Digimon with no digivolution cards to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -151,6 +153,8 @@ const compiled: CompiledCard = {
           abortOnDecline: false,
         },
         {
+          effectTextPart:
+            "Then, you may return 1 of your opponent’s Digimon with no digivolution cards to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

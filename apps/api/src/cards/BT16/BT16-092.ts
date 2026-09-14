@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [ExVeemon] or [Stingmon] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -28,6 +29,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. Until the end of your opponent's turn, the Digimon this effect DNA digivolved can't be deleted in battle and gains <Blocker>.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -81,6 +84,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Veemon] or [Wormmon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -68,6 +68,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by deleting 1 of your [Evil] or [Fallen Angel] trait Digimon, you may play 1 [Creepymon] from your trash without paying the cost. The Digimon this effect played gains ＜Rush＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -104,6 +106,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, by deleting 1 of your [Evil] or [Fallen Angel] trait Digimon, you may play 1 [Creepymon] from your trash without paying the cost. The Digimon this effect played gains ＜Rush＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -120,6 +124,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, by deleting 1 of your [Evil] or [Fallen Angel] trait Digimon, you may play 1 [Creepymon] from your trash without paying the cost. The Digimon this effect played gains ＜Rush＞ and ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {

@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trash 1 card from the top of both players' security stacks.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "any",
@@ -17,6 +18,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 purple or yellow Digimon card with a level of 4 or less from your trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

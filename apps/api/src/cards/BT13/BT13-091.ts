@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart: "[Start of Your Main Phase] Delete all of your opponent's level 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -24,6 +25,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 6 or fewer cards in your hand, this Digimon gets +3000 DP and gains ＜Security Attack +1＞ for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -44,6 +47,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 6 or fewer cards in your hand, this Digimon gets +3000 DP and gains ＜Security Attack +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

@@ -43,6 +43,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Search your security stack. You may play 1 yellow level 4 or lower Digimon card among it without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

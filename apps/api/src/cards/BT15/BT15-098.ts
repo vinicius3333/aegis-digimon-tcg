@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
           actions: [
             {
+              effectTextPart:
+                "[Main] By deleting 1 of your Digimon, you may play 1 [Myotismon] from your trash without paying the cost.",
               kind: "PlayWithoutCost",
               target: { filter: myotismon, count: 1 },
               from: ["trash"],
@@ -51,6 +53,8 @@ export const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          effectTextPart:
+            "[Main] By deleting 1 of your Digimon, you may play 1 [Myotismon] from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: venomMyotismon, count: 1 },
           from: ["trash"],

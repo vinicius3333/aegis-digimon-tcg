@@ -890,7 +890,13 @@ has an unresolved clause or residual handwritten behavior.
 
 - IR trace: [direct module](../../apps/api/src/cards/AD1/AD1-024.ts); triggers Static, WhenDigivolving, WhenAttacking, AllTurns; operations/predicates Return, SubTrigger, Suspend, Unsuspend, triggerPlayedOrDigivolvedByEffect. Exclusive `registerIrCard`, full coverage, zero residual.
 
-- Proof: [focused suite](../../apps/api/src/cards/AD1/AD1-024.test.ts), 8 test titles:
+- Proof: [focused suite](../../apps/api/src/cards/AD1/AD1-024.test.ts), 11 test titles:
+
+  - `offers All Turns again after a declined play trigger in the same turn`
+
+  - `can accept a later effect-play after declining earlier play and evolution occurrences`
+
+  - `does not offer All Turns again after accepting a normal play (Q6519)`
 
   - `matches committed metadata and publishes fully covered compiled IR`
 
@@ -907,6 +913,8 @@ has an unresolved clause or residual handwritten behavior.
   - `resets the shared lowest-DP return on the next own turn`
 
   - `uses both alternate evolution routes and publishes its two keywords`
+
+- 2026-09-14 correction: match `5b253b3e-2f56-4ecc-8fea-10069c440ab7` exposed a missing refusal contract in the original proof. The new same-turn repeated-play test failed with `expected 1 to be greater than 1`: refusing the internal Suspend action still executed Unsuspend and consumed the watcher use. Both watchers now make the whole activation optional and Suspend mandatory after acceptance, matching Q6518/Q6916. The focused proofs cover refusal without board mutation, later effect-driven play through ST9-06, and accepted-use exclusion across play/evolution per Q6519. This is a focused regression correction, not a new collection-wide certification.
 
 - Score: **10/10** — catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack proof 2/2; delivery 2/2. The printed clauses are covered by the traces and named proofs above and the final mechanism/collection gates. No unresolved interpretation or behavioral limitation; evidence `5b8ad19ea`.
 
@@ -1038,3 +1046,5 @@ Ruling IDs cited by the per-card entries above (85): Q6050, Q6051, Q6052, Q6053,
   `docs/audits/AD1-018-025-LUNA-AUDIT.md` — 3 files, last in `f221ae2cf`, 2026-09-05. Luna
   clause-level range reports supplying printed clauses, exact test titles and KB tracing.
 - `docs/audits/collections-summary.md` — never committed (untracked), generated 2026-08-22. Cross-set status table, deleted in favour of the generated index in `docs/audits/README.md`. It was the only record of this delivery evidence for AD1: PR #4596; commit `929e245f0`.
+
+- 2026-09-14 presentation correction: AD1-024’s two All Turns watchers carry the exact printed suspend/unsuspend passage into activation and target decisions; the conditional Return action carries its separate printed passage. The existing later-effect-play public-intent proof now verifies both distinct decision passages against the catalog while preserving Q6518/Q6519/Q6916 behavior.

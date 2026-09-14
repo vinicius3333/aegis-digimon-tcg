@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon, it performs any security checks it normally would.)",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -25,6 +27,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon in play with [Angoramon] in its name or digivolution cards, suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -63,6 +67,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {

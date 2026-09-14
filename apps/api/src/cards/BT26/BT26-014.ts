@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] You may return 1 [Shambala] trait card from your trash to the hand.",
           kind: "Return",
           to: "hand",
           target: {

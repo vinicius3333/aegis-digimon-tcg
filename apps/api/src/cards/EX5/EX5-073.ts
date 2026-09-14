@@ -18,6 +18,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] If DNA digivolving, trash any 8 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -35,6 +37,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of their Digimon with as many or fewer digivolution cards as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -51,6 +54,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "Then, delete 1 of their Digimon with as many or fewer digivolution cards as this Digimon.",
           kind: "Delete",
           target: {
             filter: {

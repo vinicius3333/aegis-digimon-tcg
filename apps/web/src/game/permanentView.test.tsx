@@ -8,6 +8,31 @@ import { PermanentView } from "./boardPieces";
 
 afterEach(() => cleanup());
 
+it("shows printed and granted Security Attack modifiers in field badges", () => {
+  const printed = new Permanent();
+  printed.permanentId = "fighter";
+  printed.topCard = Object.assign(new CardInstance(), { cardId: "AD1-024" });
+  printed.keywords.push("SecurityAttack");
+  printed.securityAttack = 2;
+  printed.securityAttackModifier = 1;
+  const reduced = new Permanent();
+  reduced.permanentId = "reduced";
+  reduced.topCard = Object.assign(new CardInstance(), { cardId: "ST2-03" });
+  reduced.keywords.push("SecurityAttack");
+  reduced.grantedKeywords.push("SecurityAttack");
+  reduced.securityAttack = 0;
+  reduced.securityAttackModifier = -3;
+  render(
+    <I18nProvider>
+      <PermanentView perm={printed} />
+      <PermanentView perm={reduced} />
+    </I18nProvider>,
+  );
+  expect(screen.getByLabelText("Active keywords: Security Attack +1")).toBeTruthy();
+  expect(screen.getByLabelText("Active keywords: Security Attack -3")).toBeTruthy();
+  expect(screen.queryByText("Security Attack ×2")).toBeNull();
+});
+
 function opponentWithDpDown(): Permanent {
   const permanent = new Permanent();
   permanent.permanentId = "opponent-target";

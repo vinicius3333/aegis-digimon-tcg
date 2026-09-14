@@ -56,6 +56,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[End of Attack] [On Deletion] You may trash 1 [Hybrid] or [Ten Warriors] trait card from your hand. If this effect trashed, ＜Draw 2＞",
           kind: "Draw",
           controller: "mine",
           amount: 2,
@@ -65,6 +67,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 red, blue or green Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -102,6 +106,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[End of Attack] [On Deletion] You may trash 1 [Hybrid] or [Ten Warriors] trait card from your hand. If this effect trashed, ＜Draw 2＞",
           kind: "Draw",
           controller: "mine",
           amount: 2,
@@ -111,6 +117,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 red, blue or green Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

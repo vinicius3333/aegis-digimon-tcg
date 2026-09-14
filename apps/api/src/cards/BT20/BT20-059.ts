@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

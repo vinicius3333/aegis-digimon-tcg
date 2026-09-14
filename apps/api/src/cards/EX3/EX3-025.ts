@@ -8,11 +8,13 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] ＜Draw 2＞. (Draw 2 cards from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "Then, if this card was played by [Trial of the Four Great Dragons]'s effect, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {

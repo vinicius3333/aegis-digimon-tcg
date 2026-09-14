@@ -33,6 +33,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 [Pteromon], [Muchomon] or [Shoto Kazama] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

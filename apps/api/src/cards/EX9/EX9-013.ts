@@ -73,6 +73,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -94,6 +95,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

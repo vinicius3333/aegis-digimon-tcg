@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend all of your opponent's Digimon and Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -54,6 +55,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of their suspended Digimon or Tamers.",
           kind: "Delete",
           target: {
             filter: {

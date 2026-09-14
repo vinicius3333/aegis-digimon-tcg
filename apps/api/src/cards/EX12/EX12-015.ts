@@ -28,6 +28,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -40,6 +42,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, 1 of your other Digimon with the [SW] trait may gain ＜Alliance＞ and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -63,6 +66,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your other Digimon with the [SW] trait may gain ＜Alliance＞ and attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -85,6 +89,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP until their turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -97,6 +103,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, 1 of your other Digimon with the [SW] trait may gain ＜Alliance＞ and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -120,6 +127,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your other Digimon with the [SW] trait may gain ＜Alliance＞ and attack.",
           kind: "Attack",
           target: {
             filter: {

@@ -42,6 +42,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] If you have 1 or fewer security cards, you may play 1 [Omnimon (X Antibody)] from your hand or under your [King Drasil_7D6]s on the field without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -73,6 +75,7 @@ export const compiled: CompiledCard = {
         // "Then, place this card ..." is mandatory once the play resolved; it must not open a
         // second "you may". With no play it resolves to no host and quietly does nothing.
         {
+          effectTextPart: "Then, place this card as the played Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: { controller: "mine", boundRef: "playedOmnimonX", lastPlayed: true },

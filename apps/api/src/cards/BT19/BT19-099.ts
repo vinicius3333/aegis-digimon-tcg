@@ -11,6 +11,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 Digimon with the [Composite] trait card from your trash with the play cost reduced by 4.",
           kind: "PlayFromZone",
           target: {
             filter: {

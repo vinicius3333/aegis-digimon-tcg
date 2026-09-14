@@ -32,6 +32,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

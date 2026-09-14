@@ -4,7 +4,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const opponentTarget: Target = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
 const ownDigimon: Target = { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 };
 const body: Action[] = [
-  { kind: "Suspend", target: opponentTarget },
+  {
+    effectTextPart:
+      "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
+    kind: "Suspend",
+    target: opponentTarget,
+  },
   { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
   { kind: "Restrict", target: ownDigimon, restriction: "beDeletedInBattle", duration: "untilOpponentTurnEnd" },
 ];

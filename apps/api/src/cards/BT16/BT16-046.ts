@@ -33,6 +33,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 2 of your opponent's Digimon or Tamers. Cards this effect suspended can't unsuspend during your opponent's next unsuspend phase.",
           kind: "Suspend",
           target: {
             fromSelectionRef: "effectSuspended",
@@ -51,6 +53,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, delete 1 of their suspended Tamers.",
           kind: "Delete",
           target: {
             filter: {
@@ -79,6 +82,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 2 of your opponent's Digimon or Tamers. Cards this effect suspended can't unsuspend during your opponent's next unsuspend phase.",
           kind: "Suspend",
           target: {
             fromSelectionRef: "effectSuspended",
@@ -97,6 +102,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, delete 1 of their suspended Tamers.",
           kind: "Delete",
           target: {
             filter: {

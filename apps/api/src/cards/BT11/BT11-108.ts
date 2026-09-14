@@ -30,12 +30,18 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] ＜De-Digivolve 1＞ 3 of your opponent's Digimon. (Trash 1 card from the top of 3 of your opponent's Digimon. Stop trashing when you would trash a level 3 card or the Digimon's last card.)",
           kind: "DeDigivolve",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
           amount: 1,
           stopAtLevel: 3,
         },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 3 } },
+        {
+          effectTextPart: "Then, delete 3 of your opponent's Digimon with play costs of 6 or less.",
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 3 },
+        },
       ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },

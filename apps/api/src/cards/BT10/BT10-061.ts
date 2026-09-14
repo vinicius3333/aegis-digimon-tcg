@@ -45,6 +45,8 @@ export const compiled: CompiledCard = {
           rest: "trash",
         },
         {
+          effectTextPart:
+            "Then, if DigiXrosing with 2 cards, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {

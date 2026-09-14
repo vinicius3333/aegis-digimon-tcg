@@ -48,6 +48,8 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card, you may play 1 [Menoa Bellucci] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

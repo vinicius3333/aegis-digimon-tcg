@@ -14,6 +14,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may trash up to 3 cards in your hand. For each one, suspend 1 of your opponent's level 5 or lower Digimon.",
           kind: "Trash",
           target: {
             filter: {
@@ -29,6 +31,8 @@ export const compiled: CompiledCard = {
           kind: "RepeatPerCount",
           countSource: "trashedCards",
           action: {
+            effectTextPart:
+              "[On Play] [When Digivolving] You may trash up to 3 cards in your hand. For each one, suspend 1 of your opponent's level 5 or lower Digimon.",
             kind: "Suspend",
             target: {
               filter: {
@@ -45,6 +49,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete all of their lowest play cost suspended Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -62,6 +67,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may trash up to 3 cards in your hand. For each one, suspend 1 of your opponent's level 5 or lower Digimon.",
           kind: "Trash",
           target: {
             filter: {
@@ -77,6 +84,8 @@ export const compiled: CompiledCard = {
           kind: "RepeatPerCount",
           countSource: "trashedCards",
           action: {
+            effectTextPart:
+              "[On Play] [When Digivolving] You may trash up to 3 cards in your hand. For each one, suspend 1 of your opponent's level 5 or lower Digimon.",
             kind: "Suspend",
             target: {
               filter: {
@@ -93,6 +102,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete all of their lowest play cost suspended Digimon.",
           kind: "Delete",
           target: {
             filter: {

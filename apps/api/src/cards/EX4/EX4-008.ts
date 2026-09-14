@@ -15,6 +15,8 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, you may return 1 [Guilmon] or 1 card with [Growlmon] or [Gallantmon] in its name from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

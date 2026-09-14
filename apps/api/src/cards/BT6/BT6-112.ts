@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Return 1 Option card with a memory cost of 7 from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {
@@ -51,6 +52,8 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, use 1 Option card with a memory cost of 7 in your hand without paying its memory cost.",
           kind: "UseOptionWithoutCost",
           filter: { kind: ["Option"], playCostOneOf: [7] },
           from: ["hand"],

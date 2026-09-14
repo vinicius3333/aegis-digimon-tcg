@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
           actions: [
             {
+              effectTextPart:
+                "[End of Opponent's Turn] By deleting this Digimon, you may play 1 [Rosemon]/[Jijimon] from your hand without paying the cost.",
               kind: "PlayWithoutCost",
               from: ["hand"],
               payCost: false,

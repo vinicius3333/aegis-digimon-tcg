@@ -54,7 +54,12 @@ export const compiled: CompiledCard = {
           event: "whenSuspended",
           sourceFilter: { controller: "any", kind: ["Digimon"] },
           actions: [
-            { kind: "Unsuspend", target: self, optional: true },
+            {
+              effectTextPart: "[All Turns] [Once Per Turn] When any Digimon suspend, this Digimon may unsuspend.",
+              kind: "Unsuspend",
+              target: self,
+              optional: true,
+            },
             { kind: "Battle", attacker: self, defender: opponentDigimon, optional: true },
           ],
         },

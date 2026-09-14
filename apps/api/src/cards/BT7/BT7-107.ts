@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -20,6 +21,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return up to 2 purple Digimon cards from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

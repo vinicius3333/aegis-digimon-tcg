@@ -68,6 +68,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Suspend 2 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {

@@ -25,8 +25,17 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          effectTextPart: "[Main] ＜Draw 1＞ and trash 1 card in your hand.",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart: "[Main] ＜Draw 1＞ and trash 1 card in your hand.",
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     },
@@ -64,7 +73,14 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "GainMemory", amount: 1 }, { kind: "PlaceInBattleAreaSelf" }],
+      actions: [
+        {
+          effectTextPart: "[Security] Gain 1 memory.",
+          kind: "GainMemory",
+          amount: 1,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
       isSecurity: true,
     },
   ],

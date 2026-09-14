@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] You may play 1 tamer card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1 },
           from: ["hand"],

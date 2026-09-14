@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Raid＞ and ＜Retaliation＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -30,6 +31,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Raid＞ and ＜Retaliation＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -55,6 +57,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Raid＞ and ＜Retaliation＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -70,6 +73,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Raid＞ and ＜Retaliation＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {

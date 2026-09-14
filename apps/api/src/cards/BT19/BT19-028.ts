@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -40,6 +41,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by placing 1 of your other Digimon with [Aqua]/[Sea Animal] in one of its traits as this Digimon's bottom digivolution card, gain 3 memory.",
           kind: "GainMemory",
           amount: 3,
           cost: {

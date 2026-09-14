@@ -26,6 +26,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon digivolve into a Digimon with [Growlmon]/[Gallantmon] in its name, by suspending this Tamer, that Digimon gains ＜Raid＞for the turn.",
               kind: "GainKeyword",
               target: {
                 filter: { controllerDefault: "mine", kind: ["Digimon"] },

@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "[Main] Unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             fromSelectionRef: "chosen",

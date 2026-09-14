@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [RizeGreymon] or [X Antibody] is in this Digimon’s digivolution cards, 1 of your opponent's Digimon gets -2000 DP for the turn for each yellow or red Tamer you have in play.",
           kind: "ModifyDP",
           target: {
             filter: {

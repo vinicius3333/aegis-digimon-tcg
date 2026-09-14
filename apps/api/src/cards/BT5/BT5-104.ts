@@ -11,6 +11,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Trigger ＜De-Digivolve 2＞ on 1 of your opponent's Digimon. (Trash up to 2 cards from the top of one of your opponent's Digimon. If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards.)",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -22,6 +24,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, if you have a [Diaboromon] in play, you may play 1 [Diaboromon] Token without paying its memory cost. (Diaboromon Tokens are level 6 white Digimon with a memory cost of 14, 3000 DP, and are Mega form, Unidentified type, and Unknown attribute.)",
           kind: "PlayToken",
           tokens: ["Diaboromon"],
           count: 1,

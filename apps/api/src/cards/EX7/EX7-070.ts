@@ -48,8 +48,14 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Delete", target: lowestCost },
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's Digimon with the lowest play cost.",
+          kind: "Delete",
+          target: lowestCost,
+        },
+        {
+          effectTextPart:
+            "Then, place this card as the bottom digivolution card of 1 of your Digimon with the [Three Musketeers] trait.",
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           underFilter: {

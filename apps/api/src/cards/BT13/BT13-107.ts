@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, by returning the top card of one of your [Leopardmon: Leopard Mode] to the hand, unsuspend all of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -65,6 +67,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {

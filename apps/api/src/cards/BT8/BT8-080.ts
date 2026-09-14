@@ -15,6 +15,7 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, you may play 1 [Yukio Oikawa] from your trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

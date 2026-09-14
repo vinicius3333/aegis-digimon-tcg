@@ -14,6 +14,8 @@ const trashOpponentHand: Action = {
   abortOnDecline: true,
   actions: [
     {
+      effectTextPart:
+        "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.",
       kind: "Trash",
       chooser: "opponent",
       target: { filter: { controllerDefault: "opponent", zone: "hand" }, count: 1 },
@@ -58,7 +60,14 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      actions: [{ kind: "Delete", target: { filter: opponentLv4, count: 1 } }, trashOpponentHand],
+      actions: [
+        {
+          effectTextPart: "[When Digivolving] Delete 1 of your opponent's level 4 or lower Digimon.",
+          kind: "Delete",
+          target: { filter: opponentLv4, count: 1 },
+        },
+        trashOpponentHand,
+      ],
     },
     {
       trigger: "YourTurn",

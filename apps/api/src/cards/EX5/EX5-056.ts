@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] For each of your opponent's Digimon, ＜Draw 1＞ (Draw 1 card from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -23,6 +24,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

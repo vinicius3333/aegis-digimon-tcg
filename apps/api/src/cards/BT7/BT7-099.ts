@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, if you have 3 security cards, unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

@@ -52,6 +52,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may link this card to 1 of your Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -68,6 +69,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, until your opponent's turn ends, 1 of your Digimon gains ＜Reboot＞ and +3000 DP.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -84,6 +86,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, until your opponent's turn ends, 1 of your Digimon gains ＜Reboot＞ and +3000 DP.",
           kind: "ModifyDP",
           target: { filter: {}, count: 1, fromSelectionRef: "rebootRecipient" },
           amount: 3000,

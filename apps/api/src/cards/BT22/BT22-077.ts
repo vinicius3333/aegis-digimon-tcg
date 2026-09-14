@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If this Digimon's stack has 2 or more same-level cards, trash any 4 digivolution cards from your opponent's Digimon.",
           // Conditional: only if this Digimon's stack has 2+ same-level cards.
           kind: "TrashDigivolution",
           target: {
@@ -46,6 +48,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, return 1 of your opponent's Digimon with 1 or fewer digivolution cards to the bottom of the deck.",
           // Unconditional per KB Q4942 — can execute even if condition above wasn't met.
           kind: "Return",
           target: {

@@ -52,6 +52,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers. None of your opponent's Digimon can unsuspend in their next unsuspend phase.",
           kind: "Suspend",
           target: {
             filter: {
@@ -74,6 +76,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -91,6 +94,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Suspend 5 of your opponent's Digimon or Tamers. None of your opponent's Digimon can unsuspend in their next unsuspend phase.",
           kind: "Suspend",
           target: {
             filter: {
@@ -113,6 +118,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -137,6 +143,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When your opponent's security stack is removed from, trash 1 of their Option cards in the battle area.",
               kind: "Trash",
               target: {
                 filter: {
@@ -149,6 +157,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, delete 1 of their suspended Digimon or Tamers.",
               kind: "Delete",
               target: {
                 filter: {

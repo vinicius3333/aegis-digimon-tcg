@@ -56,6 +56,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Return all of your opponent's lowest level Digimon to the hand. If this effect returned, 1 of your [TS] trait Digimon unsuspends.",
           kind: "Return",
           target: {
             filter: {
@@ -90,6 +92,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: {
             filter: {

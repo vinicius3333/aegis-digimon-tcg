@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Suspend 1 of your opponent's level 6 or lower Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -24,6 +25,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by placing this Digimon as the bottom digivolution card of 1 of your Digimon with [Ravemon] in its name, that Digimon may attack an opponent's Digimon.",
           kind: "Attack",
           target: {
             filter: {

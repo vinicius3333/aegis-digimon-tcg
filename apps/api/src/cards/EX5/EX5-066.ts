@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's Digimon with the lowest DP.",
           kind: "Delete",
           target: {
             filter: {
@@ -21,6 +22,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have a Tamer, return 1 Digimon card with the [Light Fang], [Night Claw] or [Galaxy] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

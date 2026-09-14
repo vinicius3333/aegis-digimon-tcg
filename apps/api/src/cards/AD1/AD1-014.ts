@@ -30,6 +30,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's level 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -71,6 +73,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's level 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -112,6 +116,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's level 5 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

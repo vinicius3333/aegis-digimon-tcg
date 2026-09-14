@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may play 1 level 5 or lower [Eosmon] from your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -33,6 +35,8 @@ const compiled: CompiledCard = {
           bindResultAs: "playedEosmon",
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's Digimon with DP less than or equal to the Digimon played with this effect.",
           kind: "Delete",
           target: {
             filter: {

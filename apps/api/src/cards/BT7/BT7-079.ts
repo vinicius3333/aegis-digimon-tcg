@@ -24,6 +24,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for each Tamer you have in play, delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

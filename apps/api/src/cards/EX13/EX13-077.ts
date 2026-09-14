@@ -30,7 +30,13 @@ const battleOrRecovery: Action = {
 };
 
 const onPlayOrDigivolve: Action[] = [
-  { kind: "Attack", target: { filter: ownDigimon, count: 1 }, withoutSuspending: true, optional: true },
+  {
+    effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon may attack without suspending.",
+    kind: "Attack",
+    target: { filter: ownDigimon, count: 1 },
+    withoutSuspending: true,
+    optional: true,
+  },
   battleOrRecovery,
 ];
 

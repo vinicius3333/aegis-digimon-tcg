@@ -3,6 +3,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const playActions: Action[] = [
   {
+    effectTextPart:
+      "[On Play][When Digivolving] You may place 1 Digimon card with [Blue Flare] in its traits from your hand, or from under your Tamers, under this Digimon as its bottom digivolution card.",
     kind: "PlaceUnder",
     target: {
       filter: {
@@ -18,11 +20,15 @@ const playActions: Action[] = [
     optional: true,
   },
   {
+    effectTextPart:
+      "Then, return 1 of your opponent's level 3 Digimon to the bottom of its owner's deck. If [Cyberdramon] is in this Digimon's digivolution cards, return 1 of your opponent's level 4 or lower Digimon to the bottom of its owner's deck.",
     kind: "Return",
     target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
     to: "deckBottom",
   },
   {
+    effectTextPart:
+      "Then, return 1 of your opponent's level 3 Digimon to the bottom of its owner's deck. If [Cyberdramon] is in this Digimon's digivolution cards, return 1 of your opponent's level 4 or lower Digimon to the bottom of its owner's deck.",
     kind: "Return",
     target: {
       filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },

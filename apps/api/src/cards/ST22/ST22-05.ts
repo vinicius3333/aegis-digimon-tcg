@@ -28,6 +28,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 [Pipe Fox] Token. (Digimon/Yellow/6000 DP/＜Blocker＞)",
           kind: "PlayToken",
           tokens: ["Pipe Fox"],
           count: 1,
@@ -35,6 +37,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with the [Onmyōjutsu] or [Plug-In] trait from your hand or under your Tamers without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
@@ -56,6 +60,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 [Pipe Fox] Token. (Digimon/Yellow/6000 DP/＜Blocker＞)",
           kind: "PlayToken",
           tokens: ["Pipe Fox"],
           count: 1,
@@ -63,6 +69,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with the [Onmyōjutsu] or [Plug-In] trait from your hand or under your Tamers without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
@@ -84,6 +92,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 [Pipe Fox] Token. (Digimon/Yellow/6000 DP/＜Blocker＞)",
           kind: "PlayToken",
           tokens: ["Pipe Fox"],
           count: 1,
@@ -91,6 +101,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may use 1 Option card with the [Onmyōjutsu] or [Plug-In] trait from your hand or under your Tamers without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],

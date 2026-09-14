@@ -422,9 +422,11 @@ describe("effectClauseForTiming", () => {
     expect(printed).toContain("Delete 1 of your opponent's level 5 or lower Digimon");
   });
 
-  it("preserves explicit human-readable effect descriptions", () => {
+  it("replaces readable summaries with the complete printed clause", () => {
     const description = "[When Attacking][Inherited] You may play 1 [Sistermon].";
-    expect(playerFacingEffectClause({ cardId: "ST12-08", timing: "OnAllyAttack", description })).toBe(description);
+    expect(playerFacingEffectClause({ cardId: "ST12-08", timing: "OnAllyAttack", description })).toBe(
+      cardEffectClauseForTiming("ST12-08", "OnAllyAttack"),
+    );
   });
 
   it("shows Jazamon's friendly printed Hina action instead of the generated SubTrigger name", () => {
@@ -551,4 +553,79 @@ it("shows Plutomon's All Turns clause for its hand-trash watcher", () => {
   ).toBe(
     "[All Turns] [Once Per Turn] When hands are trashed from, you may delete all of your opponent's lowest level Digimon.",
   );
+});
+
+it("shows Plutomon's complete printed clause instead of a supplied summary", () => {
+  const expected = cardEffectClauseForTiming("BT26-059", "OnPlay");
+  expect(
+    playerFacingEffectClause({
+      cardId: "BT26-059",
+      timing: "OnPlay",
+      description: "Trash 1 card, then play a Titan with cost -7.",
+    }),
+  ).toBe(expected);
+  expect(expected).toContain("This effect can't play [Plutomon].");
+  expect(expected).toContain("[Once Per Turn]");
+});
+
+it("shows only the explicitly authored printed part of Imperial's confirmation", () => {
+  const part =
+    "Then, if played or digivolved by effects, you may return 1 of your opponent's suspended Digimon to the bottom of the deck.";
+  expect(
+    playerFacingEffectClause({
+      cardId: "AD1-024",
+      timing: "AllTurns",
+      description: "Return 1 target(s)",
+      effectTextPart: part,
+    }),
+  ).toBe(part);
+  expect(
+    playerFacingEffectClause({
+      cardId: "AD1-024",
+      timing: "AllTurns",
+      description: "Return 1 target(s)",
+      effectTextPart: "Return 1 target(s)",
+    }),
+  ).toBe(cardEffectClauseForTiming("AD1-024", "AllTurns"));
+});
+
+it.each(["", "   ", "\n\t"])("does not hide a printed clause for a blank authored part (%j)", (effectTextPart) => {
+  expect(
+    playerFacingEffectClause({ cardId: "AD1-024", timing: "AllTurns", description: "Suspend", effectTextPart }),
+  ).toBe(cardEffectClauseForTiming("AD1-024", "AllTurns"));
+});
+
+it("renders every authored compound passage with its printed timing and source box", async () => {
+  const { readFileSync } = await import("node:fs");
+  const records = JSON.parse(
+    readFileSync(new URL("../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+  ) as Record<string, import("@aegis/shared").CompiledCard>;
+  const failures: string[] = [];
+  for (const [cardId, card] of Object.entries(records)) {
+    const definition = getCardDefinition(cardId);
+    for (const effect of card.effects) {
+      function visit(value: unknown) {
+        if (Array.isArray(value)) return value.forEach(visit);
+        if (!value || typeof value !== "object") return;
+        const action = value as Record<string, unknown>;
+        if (typeof action.effectTextPart === "string") {
+          const rendered = playerFacingEffectClause({
+            cardId,
+            timing: effect.trigger,
+            description: effect.isInherited
+              ? definition?.inheritedEffectText
+              : effect.trigger === "Security"
+                ? definition?.securityEffectText
+                : definition?.effectText,
+            isInherited: effect.isInherited === true,
+            effectTextPart: action.effectTextPart,
+          });
+          if (rendered !== action.effectTextPart) failures.push(`${cardId}/${effect.trigger}/${action.kind}`);
+        }
+        Object.values(action).forEach(visit);
+      }
+      visit(effect.actions);
+    }
+  }
+  expect(failures).toEqual([]);
 });

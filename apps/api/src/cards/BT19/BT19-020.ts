@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] If you have 1 or fewer Tamers, you may play 1 [Kiriha Aonuma] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

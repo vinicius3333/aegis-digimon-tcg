@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
           rest: "deckTopOrBottom",
         },
         {
+          effectTextPart: "Then, if you have a Tamer, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -80,6 +81,7 @@ const compiled: CompiledCard = {
           rest: "deckTopOrBottom",
         },
         {
+          effectTextPart: "Then, if you have a Tamer, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

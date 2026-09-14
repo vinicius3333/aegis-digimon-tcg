@@ -27,11 +27,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, you may use 1 single-color Option card with a cost of 5 or less from your hand without paying the cost.",
           kind: "UseOptionWithoutCost",
           filter: {
             controller: "mine",

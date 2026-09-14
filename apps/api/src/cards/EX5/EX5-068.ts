@@ -36,6 +36,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Suspend 1 of your opponent's Digimon, and 1 of your opponent's Digimon gets -12000 DP for the turn.",
           kind: "Suspend",
           target: {
             filter: {
@@ -46,6 +48,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Suspend 1 of your opponent's Digimon, and 1 of your opponent's Digimon gets -12000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -58,6 +62,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon with [Leomon]/[Bancho] in its name may attack.",
           kind: "Attack",
           target: {
             filter: {

@@ -15,6 +15,7 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon with [Devimon] in its name gains ＜Security A. +1＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

@@ -7,10 +7,16 @@ const securityWipeAndDeletes: Action[] = [
   {
     kind: "RepeatPerCount",
     countSource: "trashedSecurity",
-    action: { kind: "Delete", target: opponentDigimon },
+    action: {
+      effectTextPart:
+        "[On Play] [When Digivolving] Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon.",
+      kind: "Delete",
+      target: opponentDigimon,
+    },
     raw: "For each card this effect trashed, delete 1 of your opponent's Digimon",
   },
   {
+    effectTextPart: "Then, ＜Recovery +3＞ (Place the top 3 cards of your deck as your top security card.)",
     kind: "SecurityManipulation",
     op: "placeFromDeck",
     controller: "mine",

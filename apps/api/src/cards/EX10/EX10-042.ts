@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 Digimon card with [Gammamon] in its name from your trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -45,6 +47,8 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 Digimon card with [Gammamon] in its name from your trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

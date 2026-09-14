@@ -25,6 +25,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -36,6 +37,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, if this Digimon is suspended, it gets +4000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           amount: 4000,
@@ -48,6 +50,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -59,6 +62,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, if this Digimon is suspended, it gets +4000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           amount: 4000,

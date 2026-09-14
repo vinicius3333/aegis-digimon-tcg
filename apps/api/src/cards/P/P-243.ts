@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] By trashing 1 card in your hand, ＜Draw 2＞",
           kind: "Draw",
           controller: "mine",
           amount: 2,

@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend up to 2 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -69,6 +70,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend up to 2 Digimon.",
           kind: "Suspend",
           target: {
             filter: {

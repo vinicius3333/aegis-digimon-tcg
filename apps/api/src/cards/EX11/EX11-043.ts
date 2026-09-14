@@ -34,6 +34,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and return 1 of their lowest play cost Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -46,6 +48,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Security A. +1＞ until your turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -73,6 +76,8 @@ const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and return 1 of their lowest play cost Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -85,6 +90,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
         },
         {
+          effectTextPart: "Then, this Digimon gains ＜Security A. +1＞ until your turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {

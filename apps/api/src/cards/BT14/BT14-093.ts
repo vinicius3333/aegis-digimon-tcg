@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Search your security stack. 1 of your Digimon may digivolve into 1 yellow level 6 or lower Digimon card with the [Vaccine] trait among them without paying the cost.",
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           from: ["security"],
@@ -59,6 +61,7 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart: "[Security] You may play 1 [Patamon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Patamon"], match: "nameExact" }] },

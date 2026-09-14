@@ -55,6 +55,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
           kind: "GainKeyword",
           target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
@@ -64,6 +66,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
           kind: "GainKeyword",
           target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
@@ -73,6 +77,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -125,6 +130,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
           kind: "GainKeyword",
           target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
@@ -134,6 +141,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] For the turn, 1 of your [Marcus Damon]s is also treated as a 3000 DP Digimon, can't digivolve, and gains ＜Rush＞ and ＜Alliance＞.",
           kind: "GainKeyword",
           target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
@@ -143,6 +152,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

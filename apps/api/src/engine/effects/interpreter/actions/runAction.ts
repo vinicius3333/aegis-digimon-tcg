@@ -259,6 +259,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // picked target instead of reading its fate out of printed English. Restored
   // afterwards because a nested action (a branch, a repeat) resolves its own
   // targets and must not inherit the outer action's fate.
+  const outerEffectTextPart = ctx.activeEffectTextPart;
+  if (action.kind !== "RawUnparsed" && action.effectTextPart !== undefined)
+    ctx.activeEffectTextPart = action.effectTextPart;
   const outerFate = ctx.activeTargetFate;
   const outerDelayArmedConsumed = ctx.delayArmedConsumed;
   const outerPendingRotationHostPermanentId = ctx.pendingRotationHostPermanentId;
@@ -267,6 +270,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     return await runActionInner(ctx, action);
   } finally {
     ctx.activeTargetFate = outerFate;
+    ctx.activeEffectTextPart = outerEffectTextPart;
     // `requiresDelayArmed` is scoped to this action resolution. Some focused
     // contexts are intentionally reused across timing windows; leaking the
     // consumed flag would let the same payload run again without a new grant.

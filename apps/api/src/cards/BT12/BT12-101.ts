@@ -23,8 +23,16 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "TrashDigivolution", target: opposingDigimon, amount: 3, fromTop: true },
         {
+          effectTextPart: "[Main] Trash the top 3 digivolution cards of 1 of your opponent's Digimon.",
+          kind: "TrashDigivolution",
+          target: opposingDigimon,
+          amount: 3,
+          fromTop: true,
+        },
+        {
+          effectTextPart:
+            "Then, if you have a green Digimon in play, you may play 1 level 4 or lower blue Digimon card with a [Free] trait from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: freeBlue,
           from: ["hand"],

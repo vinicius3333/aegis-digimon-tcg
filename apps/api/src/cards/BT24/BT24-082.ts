@@ -100,6 +100,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon digivolve into a [Reptile] or [Dragonkin] Digimon, by suspending this Tamer, that Digimon gets +3000 DP for the turn.",
               kind: "ModifyDP",
               target: {
                 sourceRef: "triggerSubject",
@@ -110,6 +112,7 @@ export const compiled: CompiledCard = {
               duration: "forTheTurn",
             },
             {
+              effectTextPart: "Then, it may attack.",
               kind: "Attack",
               target: {
                 sourceRef: "triggerSubject",

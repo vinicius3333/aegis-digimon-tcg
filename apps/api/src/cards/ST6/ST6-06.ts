@@ -7,8 +7,14 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       isInherited: true,
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
         {
+          effectTextPart: "[When Attacking] Trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: { zone: "hand", controller: "mine" },

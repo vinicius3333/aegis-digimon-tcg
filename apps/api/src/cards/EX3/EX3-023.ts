@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may play 1 blue level 3 Digimon card or 1 level 4 or lower Digimon card with [Aqua] or [Sea Animal] in one of its traits from one of your blue Digimon's digivolution cards without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -44,6 +46,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 blue Digimon card from your hand under this Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

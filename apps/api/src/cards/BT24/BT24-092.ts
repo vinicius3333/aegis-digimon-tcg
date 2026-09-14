@@ -57,6 +57,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -69,6 +70,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           recipient: {

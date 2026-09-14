@@ -114,6 +114,7 @@ const compiled: CompiledCard = {
               },
               optional: true,
               abortOnDecline: true,
+              preserveOncePerTurnOnDecline: true,
             },
             {
               kind: "Suspend",

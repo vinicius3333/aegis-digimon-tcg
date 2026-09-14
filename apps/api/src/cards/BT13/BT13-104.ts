@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -12000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -22,6 +23,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, you may play 1 [Marcus Damon] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

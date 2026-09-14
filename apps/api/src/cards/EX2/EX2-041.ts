@@ -51,6 +51,7 @@ export const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart: "Then, return 1 purple Digimon card or 1 purple Tamer card from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {

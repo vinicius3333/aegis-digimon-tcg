@@ -45,6 +45,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with 9000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -59,6 +61,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may return up to 3 non-Digi-Egg cards from their trash to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -80,6 +83,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with 9000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -94,6 +99,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may return up to 3 non-Digi-Egg cards from their trash to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -115,6 +121,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with 9000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -129,6 +137,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may return up to 3 non-Digi-Egg cards from their trash to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

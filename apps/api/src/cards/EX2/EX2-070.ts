@@ -31,11 +31,14 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, you may digivolve 1 of your Digimon into a Digimon card in your hand that can digivolve for a digivolution cost of 3 or less without paying its digivolution cost.",
           kind: "Digivolve",
           target: {
             filter: {

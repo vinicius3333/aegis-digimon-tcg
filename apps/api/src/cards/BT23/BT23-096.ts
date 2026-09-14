@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜De-Digivolve 4＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -86,6 +87,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜De-Digivolve 4＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

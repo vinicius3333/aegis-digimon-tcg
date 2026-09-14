@@ -6,8 +6,14 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
         {
+          effectTextPart: "[When Digivolving] Unsuspend this Digimon.",
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+        {
+          effectTextPart:
+            "Then, if a card with [Blue Flare] or [Xros Heart] in its traits is in this Digimon's digivolution cards and your opponent has 2 or more Digimon in play, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {

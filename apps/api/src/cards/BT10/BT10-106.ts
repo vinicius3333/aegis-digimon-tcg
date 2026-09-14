@@ -84,6 +84,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] You may play 1 black Tamer card from your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

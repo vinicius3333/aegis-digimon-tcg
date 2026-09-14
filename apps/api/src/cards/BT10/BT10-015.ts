@@ -25,6 +25,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Digivolving] You may place 1 Digimon card with [Xros Heart] in its traits from your hand or from under one of your Tamers under this Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -44,6 +46,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [Beelzemon] is in this Digimon's digivolution cards, you may play 1 level 4 or lower Digimon card with [Xros Heart] in its traits from your trash without paying its cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -84,6 +88,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play][When Digivolving] You may place 1 Digimon card with [Xros Heart] in its traits from your hand or from under one of your Tamers under this Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -103,6 +109,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [Beelzemon] is in this Digimon's digivolution cards, you may play 1 level 4 or lower Digimon card with [Xros Heart] in its traits from your trash without paying its cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -145,6 +145,7 @@ const chooseKnightmonTextAttacker: Action = {
   target: { filter: ownKnightmonTextDigimon, count: 1, bindAs: RUSHER },
   optional: true,
   abortOnDecline: true,
+  preserveOncePerTurnOnDecline: true,
   raw: "1 of your [Knightmon] text Digimon may",
 };
 

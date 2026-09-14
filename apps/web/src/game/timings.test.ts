@@ -6,6 +6,8 @@ import {
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   SECURITY_EFFECT_NARRATION_MS,
+  CARD_ARRIVAL_NARRATION_MS,
+  EFFECT_CHOICE_NARRATION_MS,
 } from "@aegis/shared";
 import { NARRATION_TICK_MS } from "./narration";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
@@ -25,6 +27,7 @@ import {
   SECURITY_DOCK_CLOSE_MS,
   SECURITY_DESTROY_TOTAL_MS,
   TIMINGS,
+  SHOWCASE_TOTAL_MS,
 } from "./timings";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
@@ -50,6 +53,10 @@ function percentOf(momentMs: number, totalMs: number): number {
 }
 
 describe("battle timings", () => {
+  it("keeps bot effect choices behind arrival and the On Play announcement", () => {
+    expect(CARD_ARRIVAL_NARRATION_MS).toBeGreaterThanOrEqual(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst);
+    expect(EFFECT_CHOICE_NARRATION_MS).toBeGreaterThan(TIMINGS.effectSourceHold + TIMINGS.effectAnnounce);
+  });
   it("exposes every duration to CSS in milliseconds", () => {
     for (const [name, ms] of Object.entries(BATTLE_TIMING_VARIABLES)) {
       expect(BATTLE_TIMING_STYLE[name as keyof typeof BATTLE_TIMING_STYLE]).toBe(`${ms}ms`);

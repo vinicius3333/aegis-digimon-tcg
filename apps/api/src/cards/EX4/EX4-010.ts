@@ -15,6 +15,8 @@ export const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, choose any number of your opponent's Digimon so that their DP total is up to 3000 and delete them. For every 10 total cards in both players' trashes, add 2000 to the maximum this DP-based deletion effect can delete.",
           kind: "Delete",
           target: {
             filter: {

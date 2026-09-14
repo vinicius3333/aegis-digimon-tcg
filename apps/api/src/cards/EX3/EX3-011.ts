@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Delete 1 of your opponent's Digimon with 5000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -24,6 +25,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may play 1 [Hina Kurihara] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -46,6 +46,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -98,6 +99,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {

@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon and flip your opponent's top face-down security card face up.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -42,11 +44,14 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon and flip your opponent's top face-down security card face up.",
           kind: "SecurityManipulation",
           op: "flipFaceUp",
           controller: "opponent",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with 1 or fewer digivolution cards.",
           kind: "Delete",
           target: {
             filter: {
@@ -63,6 +68,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon and flip your opponent's top face-down security card face up.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -74,11 +81,14 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon and flip your opponent's top face-down security card face up.",
           kind: "SecurityManipulation",
           op: "flipFaceUp",
           controller: "opponent",
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon with 1 or fewer digivolution cards.",
           kind: "Delete",
           target: {
             filter: {

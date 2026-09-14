@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, you may link this Digimon or 1 [Maquinamon] in your hand to 1 of your other Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: { isSelfRef: true },

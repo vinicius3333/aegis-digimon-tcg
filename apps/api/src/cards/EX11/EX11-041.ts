@@ -28,12 +28,16 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and ＜De-Digivolve 1＞ 1 of their Digimon.",
           kind: "SecurityManipulation",
           op: "flipUp",
           controller: "opponent",
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and ＜De-Digivolve 1＞ 1 of their Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -76,12 +80,16 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and ＜De-Digivolve 1＞ 1 of their Digimon.",
           kind: "SecurityManipulation",
           op: "flipUp",
           controller: "opponent",
           amount: 1,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Flip your opponent's top face-down security card face up and ＜De-Digivolve 1＞ 1 of their Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

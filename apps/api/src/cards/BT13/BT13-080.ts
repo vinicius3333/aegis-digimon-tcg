@@ -46,11 +46,13 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

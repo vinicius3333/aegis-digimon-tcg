@@ -79,7 +79,9 @@ function buildSeatScopedApi(
 ): SeatScopedDecisionApi {
   const provenance = (ctx: EffectContext) => ({
     timing: ctx.activeTiming,
+    ...(ctx.activeEffectIsInherited === true ? { isInherited: true } : {}),
     effectText: ctx.activeEffectText,
+    ...(ctx.activeEffectTextPart !== undefined ? { effectTextPart: ctx.activeEffectTextPart } : {}),
   });
   return {
     async optional(ctx: EffectContext, prompt: string): Promise<boolean> {

@@ -11,6 +11,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [Vemmon] or [Zenith] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Vemmon", "Zenith"], match: "nameExact" }] },

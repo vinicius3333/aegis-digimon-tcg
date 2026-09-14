@@ -16,9 +16,20 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-        { kind: "Unsuspend", target: shoutmonX7 },
         {
+          effectTextPart: "[Main] Delete 1 of your opponent's Digimon.",
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        },
+        {
+          effectTextPart:
+            "Then, unsuspend 1 of your [Shoutmon X7: Superior Mode] cards, and you may attack a player with that Digimon.",
+          kind: "Unsuspend",
+          target: shoutmonX7,
+        },
+        {
+          effectTextPart:
+            "Then, unsuspend 1 of your [Shoutmon X7: Superior Mode] cards, and you may attack a player with that Digimon.",
           kind: "Attack",
           target: { filter: {}, count: 1, fromSelectionRef: "bt12_100_shoutmon_x7" },
           attackPlayer: true,

@@ -39,8 +39,14 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
           actions: [
-            { kind: "GainMemory", amount: 1 },
             {
+              effectTextPart:
+                "[Your Turn] When face-down cards are placed as any of your Digimon's digivolution cards, by suspending this Tamer, gain 1 memory.",
+              kind: "GainMemory",
+              amount: 1,
+            },
+            {
+              effectTextPart: "Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞",
               kind: "Draw",
               controller: "mine",
               amount: 1,

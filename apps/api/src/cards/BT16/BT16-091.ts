@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [Aquilamon] or [Gatomon] from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -28,6 +29,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. The Digimon this effect DNA digivolved may gain <Security A. +1> for the turn and attack a player.",
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -64,6 +67,8 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. The Digimon this effect DNA digivolved may gain <Security A. +1> for the turn and attack a player.",
           kind: "Attack",
           target: {
             filter: {
@@ -85,6 +90,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Hawkmon] or [Salamon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

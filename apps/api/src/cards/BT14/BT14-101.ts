@@ -75,6 +75,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] This Digimon gains ＜Raid＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -90,6 +91,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, it may attack.",
           kind: "Attack",
           target: {
             filter: {

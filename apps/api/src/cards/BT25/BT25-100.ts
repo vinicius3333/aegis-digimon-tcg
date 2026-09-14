@@ -66,6 +66,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -77,6 +78,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, you may link this card to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: {
             filter: {

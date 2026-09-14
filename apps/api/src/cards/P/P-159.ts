@@ -104,6 +104,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gains ＜Reboot＞ , ＜Blocker＞and gets +2000 DP until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -119,6 +121,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gains ＜Reboot＞ , ＜Blocker＞and gets +2000 DP until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -135,6 +139,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gains ＜Reboot＞ , ＜Blocker＞and gets +2000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -156,6 +162,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜De-Digivolve2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

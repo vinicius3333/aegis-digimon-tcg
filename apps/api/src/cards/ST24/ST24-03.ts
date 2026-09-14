@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may return 1 of your opponent's level 3 Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -23,6 +25,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
           kind: "PlaceUnder",
           fromDeckTop: true,
           target: {
@@ -49,6 +53,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may return 1 of your opponent's level 3 Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -62,6 +68,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
           kind: "PlaceUnder",
           fromDeckTop: true,
           target: {

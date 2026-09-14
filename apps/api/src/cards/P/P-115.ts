@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may play 1 Tamer card with [Amano] in its name from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

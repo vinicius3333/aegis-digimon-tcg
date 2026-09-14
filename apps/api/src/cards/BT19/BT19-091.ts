@@ -37,6 +37,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Play 1 [WarGrowlmon] Token (Digimon/Red/6000 DP), [Taomon] Token (Digimon/Yellow/6000 DP), and 1 [Rapidmon] Token (Digimon/Green/6000 DP). This effect can't play tokens with the same names as your Digimon.",
           kind: "PlayToken",
           // Token registry names include the printed "Token" suffix; the card-name
           // conditions below intentionally remain the unsuffixed names.
@@ -57,6 +59,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Play 1 [WarGrowlmon] Token (Digimon/Red/6000 DP), [Taomon] Token (Digimon/Yellow/6000 DP), and 1 [Rapidmon] Token (Digimon/Green/6000 DP). This effect can't play tokens with the same names as your Digimon.",
           kind: "PlayToken",
           tokens: ["Taomon Token"],
           count: 1,
@@ -75,6 +79,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "[Main] Play 1 [WarGrowlmon] Token (Digimon/Red/6000 DP), [Taomon] Token (Digimon/Yellow/6000 DP), and 1 [Rapidmon] Token (Digimon/Green/6000 DP). This effect can't play tokens with the same names as your Digimon.",
           kind: "PlayToken",
           tokens: ["Rapidmon Token"],
           count: 1,
@@ -93,6 +99,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, 1 of your level 5 Digimon gains ＜Alliance＞ twice for the turn and attacks.",
           kind: "GainKeyword",
           target: {
             filter: {

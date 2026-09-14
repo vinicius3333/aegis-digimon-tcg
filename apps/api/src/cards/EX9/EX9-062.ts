@@ -32,6 +32,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may return 1 [DM] trait Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -75,6 +76,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, you may return 1 [DM] trait Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

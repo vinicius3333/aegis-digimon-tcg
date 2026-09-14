@@ -35,6 +35,8 @@ export const compiled: CompiledCard = {
       actions: [
         { kind: "Trash", chooser: "opponent", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } },
         {
+          effectTextPart:
+            "Then, if their hand has 7 or fewer cards, you may place this card face up as the bottom security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

@@ -96,6 +96,8 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's play cost 6 or lower Digimon. For every 10 cards in your trash, add 3 to the play cost maximum.",
           kind: "Delete",
           target: {
             filter: {

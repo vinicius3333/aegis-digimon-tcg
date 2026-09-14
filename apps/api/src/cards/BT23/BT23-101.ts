@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 play cost 5 or lower [CS] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -39,6 +41,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, give -3000 DP for the turn for each of your [Hudie] trait Digimon.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -71,6 +75,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 play cost 5 or lower [CS] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -90,6 +96,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, give -3000 DP for the turn for each of your [Hudie] trait Digimon.",
           kind: "ModifyDP",
           target: {
             filter: {

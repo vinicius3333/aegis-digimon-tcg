@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -24,6 +26,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -40,6 +43,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -56,6 +61,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -72,6 +78,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -88,6 +96,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

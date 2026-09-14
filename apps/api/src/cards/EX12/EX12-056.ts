@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -26,6 +27,7 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -50,6 +52,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "Attack",
           target: {
             filter: {
@@ -73,6 +76,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -84,6 +88,7 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -108,6 +113,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, 1 of your other [SW] trait Digimon may gain ＜Alliance＞ for the turn and attack.",
           kind: "Attack",
           target: {
             filter: {

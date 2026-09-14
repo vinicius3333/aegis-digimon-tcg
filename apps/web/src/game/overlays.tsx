@@ -23,7 +23,7 @@ import { CardBack, CardFull, Sigil } from "../design/cards";
 import { COLORS, colorKey } from "../design/theme";
 import { Icons } from "../design/icons";
 import { triggerCardId, triggerLabels } from "./boardModel";
-import { formatKeyword } from "./keywordDisplay";
+import { formatKeyword, formatResolvedKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
@@ -842,12 +842,7 @@ export function PermanentDetailInspector({
           <ul>
             {detail.keywords.map((keyword) => (
               <li key={keyword} data-granted={granted.has(keyword) || undefined}>
-                {formatKeyword(keyword)}
-                {/* The server's resolved count, not the printed parameter: a granted or
-                    inverted modifier is already folded into it. */}
-                {keyword === "SecurityAttack" && detail.securityAttack !== undefined
-                  ? ` \u00d7${detail.securityAttack}`
-                  : ""}
+                {formatResolvedKeyword(keyword, detail.securityAttackModifier)}
               </li>
             ))}
           </ul>
@@ -1095,24 +1090,7 @@ export function resolvedEffectClause(
   return trimmed.replace(/\[[^\]]*\]/g, "").trim() ? trimmed : undefined;
 }
 
-// Declarative effects use their action-kind list as a fallback description,
-// e.g. "[Main] RevealAdd, PlaceInBattleAreaSelf". That is useful in diagnostics but is not
-// player-facing card text. Keep accepting explicit handwritten descriptions while replacing
-// this recognizable fallback shape with the printed clause from the card catalog.
-const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z0-9 -]*(?:,\s*[A-Z][A-Za-z0-9 -]*)*$/;
-
-/**
- * Every phrase `describeAction` can render (the engine's
- * interpreter/describe.ts), as the shape it reaches the client in. The engine
- * builds a fallback description by joining these with ", " behind the effect's
- * trigger label, so a description whose every segment is one of them is a
- * generated summary rather than card text.
- *
- * The list is matched positively on purpose. Guessing at what prose looks like
- * fails on real clauses — a printed clause need not end in a period, because it
- * can close on a parenthetical — while the generated grammar is bounded and
- * enumerable. An unrecognized segment is therefore taken as card text and shown.
- */
+// Engine summaries remain useful only for filtering generic decision prompts.
 const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
   /^Draw -?\d+$/,
   // A target count is a number or the literal "all" (`String(action.target.count)`
@@ -1143,45 +1121,6 @@ const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
   /^Search your deck$/,
   /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,
 ];
-const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
-  ...DESCRIBED_ACTION_PHRASES,
-  // The last resort in describeAction: an unmapped action kind, either raw
-  // ("SubTrigger", "Aura") or spaced out of camel case ("Place in battle area self").
-  // Too loose to judge a prompt by: any capitalised sentence of plain words fits.
-  /^[A-Z][A-Za-z0-9]*$/,
-  /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
-];
-
-/** A watcher's event name, e.g. "whenSecurityRemoved" — one camelCase or PascalCase token. */
-const INTERNAL_WATCHER_DESCRIPTION = /^[A-Za-z][A-Za-z0-9]*$/;
-
-/**
- * Whether a description is the engine's own summary of an effect rather than the
- * card's text.
- *
- * The shape above only catches summaries whose actions are bare kinds joined into
- * one string. Everything `describeAction` renders as a phrase escaped it —
- * "Delete 1 target(s)" and "Place 1 card(s) under" carry parentheses, "Gain
- * ＜Rush＞" carries a keyword bracket — and reached the board as-is.
- */
-function isInternalEffectDescription(text: string): boolean {
-  if (INTERNAL_IR_DESCRIPTION.test(text)) return true;
-  // A watcher is described by the event it watches ("whenSecurityRemoved"): an identifier
-  // the engine reads, never a clause a player can. Card text is a sentence, so a single
-  // unspaced token is the engine's own name for the effect.
-  if (INTERNAL_WATCHER_DESCRIPTION.test(text)) return true;
-  const body = text
-    .replace(/^(?:\s*\[[^\]]*\])+/, "")
-    .replace(/^\s*＜[^＞]+＞/, "")
-    .trim();
-  // A trigger label with no actions behind it carries nothing to read.
-  if (body.length === 0) return true;
-  return body
-    .split(",")
-    .map((segment) => segment.trim())
-    .every((segment) => segment.length > 0 && GENERATED_ACTION_PHRASES.some((shape) => shape.test(segment)));
-}
-
 // An "activate this?" prompt built from an unmapped IR action kind arrives as a bare
 // identifier ("GainMemory", "gainMemory"): readable in a log, meaningless in a modal. Drop
 // it so the overlay falls back to its generic prompt and the printed clause carries the
@@ -1208,30 +1147,61 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
     : trimmed;
 }
 
+/** Resolve display text only from the printed catalog; supplied descriptions identify exact clauses. */
 export function playerFacingEffectClause({
   cardId,
   timing,
   description,
   isInherited,
+  effectTextPart,
 }: {
   cardId: string;
   timing: string | undefined;
   description: string | undefined;
   isInherited?: boolean;
+  effectTextPart?: string;
 }): string | undefined {
+  const definition = getCardDefinition(cardId);
+  const inherited = isInherited ?? description?.includes("[Inherited]") ?? false;
+  const describedTiming = Object.entries(TIMING_LABELS).find(([, label]) =>
+    description?.match(/^(?:\[[^\]]*\]\s*)+/)?.[0].includes(`[${label}]`),
+  )?.[0];
+  const effectiveTiming = timing && TIMING_LABELS[timing] ? timing : (describedTiming ?? timing);
+  const boxes = inherited
+    ? [definition?.inheritedEffectText]
+    : [definition?.effectText, definition?.optionEffect, definition?.securityEffectText];
   const supplied = description?.trim();
-  if (supplied && !isInternalEffectDescription(supplied)) {
-    const definition = getCardDefinition(cardId);
-    const isFullMainText = definition?.effectText?.trim() === supplied;
-    if (isFullMainText && definition?.isDualCard && (timing === "Main" || timing === "OnUseOption")) {
-      return resolvedEffectClause(cardId, timing, isInherited === true);
-    }
-    return isFullMainText && timing !== undefined ? effectClauseForTiming(supplied, timing) : supplied;
-  }
-  // Without timing provenance, choosing the first printed text box can attribute a
-  // main effect to an inherited decision. Prefer showing nothing over a wrong clause.
-  if (timing === undefined) return undefined;
-  return resolvedEffectClause(cardId, timing, isInherited === true);
+  const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
+  const exactPrintedClause = supplied
+    ? boxes.flatMap((text) => text?.split("\n") ?? []).find((line) => normalize(line) === normalize(supplied))
+    : undefined;
+  const printedKeyword = supplied?.match(/^＜[^＞]+＞/)?.[0];
+  const matchingKeyword =
+    printedKeyword &&
+    boxes
+      .flatMap((text) => text?.match(/＜[^＞]+＞/g) ?? [])
+      .find((keyword) => normalize(keyword) === normalize(printedKeyword));
+  const delayClause = supplied?.match(/^\[Main\]\s*＜Delay＞/)
+    ? boxes
+        .map((text) => {
+          const offset = text?.search(/\[Main\]\s*＜Delay＞/) ?? -1;
+          return offset >= 0 ? effectClauseForTiming(text?.slice(offset), "Main") : undefined;
+        })
+        .find(Boolean)
+    : undefined;
+  const clause =
+    (matchingKeyword ||
+      delayClause ||
+      (exactPrintedClause && effectClauseForTiming(exactPrintedClause, effectiveTiming))) ??
+    (effectiveTiming === undefined ? undefined : resolvedEffectClause(cardId, effectiveTiming, inherited));
+  const part = effectTextPart?.trim();
+  const timingClause =
+    part && matchingKeyword && effectiveTiming !== undefined
+      ? resolvedEffectClause(cardId, effectiveTiming, inherited)
+      : undefined;
+  if (part && [clause, timingClause].some((candidate) => candidate && normalize(candidate).includes(normalize(part))))
+    return part;
+  return clause;
 }
 
 /** One hint per destination: each already says where card 1 ends up. */
@@ -1335,7 +1305,6 @@ export function DecisionOverlay({
     triggerTimingLabels.length > 0 && triggerTimingLabels.every((label) => label === triggerTimingLabels[0])
       ? triggerTimingLabels[0]
       : undefined;
-  const distinctTriggerSummaries = new Set(triggerDetails.map((detail) => detail?.summary ?? "")).size;
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
   const selectedPlayCost = picks.reduce((total, instanceId) => {
     const cardId = candidates.find((candidate) => candidate.instanceId === instanceId)?.cardId;
@@ -1440,8 +1409,10 @@ export function DecisionOverlay({
         cardId: sourceCardId,
         timing: request.options?.timing,
         description: request.options?.effectText,
+        effectTextPart: request.options?.effectTextPart,
+        isInherited: request.options?.isInherited,
       })
-    : request.options?.effectText;
+    : undefined;
   /* The dialog is named by a plain string rather than by its visible title: that title
      now carries the source card as a link, and an aria-labelledby would read the link's
      own label ("Open …") in place of the card's name. */
@@ -1864,7 +1835,6 @@ export function DecisionOverlay({
               const chosen = selectedTriggerKeys.includes(key);
               const cardId = triggerCardIds[i] ?? triggerCardId(key);
               const detail = triggerDetails[i];
-              const summary = distinctTriggerSummaries > 1 ? detail?.summary : undefined;
               const timingLabel = triggerTimingLabels[i];
               const timing = request.options?.triggerTimings?.[i] || request.options?.timing || undefined;
               const activeClause =
@@ -1879,9 +1849,7 @@ export function DecisionOverlay({
                   type="button"
                   key={key}
                   className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
-                  aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel, summary]
-                    .filter(Boolean)
-                    .join(", ")}
+                  aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel].filter(Boolean).join(", ")}
                   aria-pressed={chosen}
                   onClick={() => toggleTrigger(key)}
                 >
@@ -1902,10 +1870,10 @@ export function DecisionOverlay({
                       </span>
                     ) : null}
                   </span>
-                  {activeClause || detail?.summary ? (
+                  {activeClause ? (
                     <span className="trigger-chooser__section">
                       <span className="trigger-chooser__effect-text">
-                        <EffectText text={activeClause || detail?.summary || ""} />
+                        <EffectText text={activeClause} />
                       </span>
                     </span>
                   ) : null}
@@ -2717,10 +2685,7 @@ function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: Pe
         {detail.keywords.length === 0 ? <li data-empty="true">{t("overlay.noKeywords")}</li> : null}
         {detail.keywords.map((keyword) => (
           <li key={keyword} data-granted={granted.has(keyword) || undefined}>
-            {formatKeyword(keyword)}
-            {keyword === "SecurityAttack" && detail.securityAttack !== undefined
-              ? ` \u00d7${detail.securityAttack}`
-              : ""}
+            {formatResolvedKeyword(keyword, detail.securityAttackModifier)}
           </li>
         ))}
       </ul>
@@ -2804,8 +2769,7 @@ function StackViewerSheet({
         <div className="card-action-sheet__keywords" aria-label={t("overlay.keywords")}>
           {keywords.map((keyword) => (
             <span key={keyword} data-granted={granted.has(keyword) || undefined}>
-              {formatKeyword(keyword)}
-              {keyword === "SecurityAttack" && detail?.securityAttack !== undefined ? ` ×${detail.securityAttack}` : ""}
+              {formatResolvedKeyword(keyword, detail?.securityAttackModifier)}
             </span>
           ))}
         </div>

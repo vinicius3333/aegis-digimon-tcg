@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may play 1 level 4 or lower [System] or [Life] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -57,6 +59,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may link 1 [Appmon] trait Digimon card from your hand or this Digimon's digivolution cards to 1 of your Digimon without paying the cost.",
           // Link 1 [Appmon] card from hand or this Digimon's digi-stack to 1 of your Digimon.
           // KB Q5659: cannot link a card that doesn't have <Link>.
           kind: "Link",

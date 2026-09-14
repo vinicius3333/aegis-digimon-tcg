@@ -51,6 +51,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] [Once Per Turn] You may play 1 [ADVENTURE]/[Hero] trait card with a play cost of 2 or less from your hand without paying the cost. For each of your Tamers' colors, add 1 to this effect's play cost maximum.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -78,6 +80,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, return this Tamer to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

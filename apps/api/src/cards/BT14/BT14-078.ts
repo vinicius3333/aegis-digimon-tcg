@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] Delete this Digimon and ＜Draw 2＞.",
           kind: "Delete",
           target: {
             filter: {
@@ -19,11 +20,13 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "[End of Your Turn] Delete this Digimon and ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "Then, you may return 1 [Loogamon] from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -47,6 +50,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may trash up to 3 cards with the [Dark Animal] or [SoC] trait in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -66,6 +71,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3 or lower Digimon. For each card trashed by this effect, add 1 to the level this effect may choose.",
           kind: "Delete",
           target: {
             filter: {

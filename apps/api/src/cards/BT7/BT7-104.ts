@@ -11,6 +11,7 @@ const main: CompiledCard["effects"][number]["actions"] = [
     },
   },
   {
+    effectTextPart: "Then, ＜Draw 1＞ for each of that Digimon's digivolution cards. (Draw 1 card from your deck.)",
     kind: "Draw",
     controller: "mine",
     amount: 1,

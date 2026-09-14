@@ -53,6 +53,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may link up to 2 [Social], [Navi] or [Tool] trait cards from your hand or this Digimon's digivolution cards to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -71,6 +73,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, you may delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -93,6 +96,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may link up to 2 [Social], [Navi] or [Tool] trait cards from your hand or this Digimon's digivolution cards to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -111,6 +116,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, you may delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -133,6 +139,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may link up to 2 [Social], [Navi] or [Tool] trait cards from your hand or this Digimon's digivolution cards to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -151,6 +159,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, you may delete 1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: {

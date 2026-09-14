@@ -9,6 +9,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If DNA digivolving, your opponent chooses 1 of their Digimon. Delete all of their other Digimon.",
           kind: "Delete",
           target: {
             filter: { controllerDefault: "opponent", kind: ["Digimon"] },
@@ -44,6 +46,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking][Once Per Turn] This Digimon gets +2000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: { isSelfRef: true },
@@ -54,6 +57,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, this Digimon may digivolve into [Imperialdramon: Fighter Mode] in your hand for the digivolution cost.",
           kind: "Digivolve",
           target: {
             filter: { isSelfRef: true },

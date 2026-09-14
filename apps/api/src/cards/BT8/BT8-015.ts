@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] 1 of your opponent's Digimon gets -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -33,6 +34,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, when DNA digivolving, delete 1 of your opponent's Digimon with 5000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

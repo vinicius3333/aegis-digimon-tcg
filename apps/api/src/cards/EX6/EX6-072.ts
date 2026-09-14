@@ -72,6 +72,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Return 1 level 6 or higher Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

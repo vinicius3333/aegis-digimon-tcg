@@ -39,6 +39,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if [Jesmon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play, until the end of your opponent's turn, all of your Digimon may also attack unsuspended Digimon and get +2000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -134,6 +136,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "Then, if [Jesmon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play, until the end of your opponent's turn, all of your Digimon may also attack unsuspended Digimon and get +2000 DP.",
               kind: "ModifyDP",
               target: {
                 sourceRef: "triggerSubject",

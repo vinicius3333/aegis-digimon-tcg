@@ -58,6 +58,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 of each [Dark Masters] trait card with different names from this Digimon's digivolution cards without paying the costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -78,6 +80,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -114,6 +118,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 of each [Dark Masters] trait card with different names from this Digimon's digivolution cards without paying the costs.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -134,6 +140,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
           kind: "GainKeyword",
           target: {
             filter: {

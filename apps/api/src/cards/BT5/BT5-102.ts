@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, if you have a Digimon with ＜Digi-Burst＞ in play, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {
@@ -55,6 +56,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, if you have a Digimon with <Digi-Burst> in play, gain 2 memory.",
           kind: "GainMemory",
           amount: 2,
           condition: {

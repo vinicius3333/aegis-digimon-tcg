@@ -449,6 +449,9 @@ export interface DecisionRequest {
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;
+    /** Verbatim printed passage associated with this decision. */
+    effectTextPart?: string;
+    isInherited?: boolean;
     /** What the resolving action will do to the permanents picked here (`chooseTargets` only). */
     targetFate?: TargetFate;
     promptKey?: "activateBlitz";

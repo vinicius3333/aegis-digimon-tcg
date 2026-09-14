@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -91,6 +92,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may delete 1 of your opponent's 8000 DP or lower Digimon. For each other suspended Digimon, add 3000 to this DP deletion effect's maximum.",
           kind: "Delete",
           target: {
             filter: {

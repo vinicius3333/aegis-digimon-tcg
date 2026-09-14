@@ -24,6 +24,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If [Magnamon (X Antibody)] or an [Armor Form] trait card is in this Digimon's digivolution cards, until the end of your opponent's turn, this Digimon gets +3000 DP and isn't affected by your opponent's effects.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -80,6 +82,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, unsuspend it.",
           kind: "Unsuspend",
           target: {
             filter: {

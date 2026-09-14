@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] To 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -49,6 +51,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete all of your opponent's Digimon with the highest play cost.",
           kind: "Delete",
           target: {
             filter: {

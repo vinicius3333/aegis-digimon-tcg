@@ -12,6 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const dnaBody = [
   {
+    effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 3000 DP or less.",
     kind: "Delete",
     target: {
       filter: {
@@ -23,6 +24,8 @@ const dnaBody = [
     },
   },
   {
+    effectTextPart:
+      "Then, if it's your turn, 2 of your Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand.",
     kind: "DnaDigivolve",
     materials: {
       filter: {

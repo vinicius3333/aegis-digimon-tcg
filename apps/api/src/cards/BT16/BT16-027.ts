@@ -55,6 +55,7 @@ const compiled: CompiledCard = {
       trigger: "EndOfAttack",
       actions: [
         {
+          effectTextPart: "[End of Attack] [Once Per Turn] Unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -65,6 +66,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if [Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

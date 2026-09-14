@@ -54,6 +54,8 @@ const compiled: CompiledCard = {
       trigger: "EndOfAttack",
       actions: [
         {
+          effectTextPart:
+            "[End of Attack] [On Deletion] You may play 1 yellow, black or purple Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -69,6 +71,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by placing 1 [Hybrid] or [Ten Warriors] trait card from your hand under this under this Digimon or your Tamers, ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,
@@ -110,6 +114,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[End of Attack] [On Deletion] You may play 1 yellow, black or purple Tamer card with inherited effects from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -125,6 +131,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by placing 1 [Hybrid] or [Ten Warriors] trait card from your hand under this under this Digimon or your Tamers, ＜Draw 2＞.",
           kind: "Draw",
           controller: "mine",
           amount: 2,

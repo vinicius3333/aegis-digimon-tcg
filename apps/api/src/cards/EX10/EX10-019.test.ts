@@ -739,3 +739,35 @@ describe("EX10-019 Warudamon", () => {
     expect(withoutSource.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 });
+
+it("EX10-019 offers its optional link reaction again after declining", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: CARD_ID, as: "warudamon" }],
+        hand: [
+          { card: CARD_ID, as: "linkA" },
+          { card: CARD_ID, as: "linkB" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  for (const as of ["linkA", "linkB"]) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst(as).instanceId,
+        targetPermanentId: s.perm("warudamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("warudamon").linked.some((card) => card.instanceId === s.inst(as).instanceId));
+    await settle();
+  }
+  expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
+  expect(s.perm("target").isSuspended).toBe(false);
+  expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+});

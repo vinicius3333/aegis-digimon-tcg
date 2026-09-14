@@ -11,6 +11,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Breeding] [Main] [Once Per Turn] You may play 1 Digimon card with [Negamon] in its text from your hand with the play cost reduced by 2. For each [Negamon] in your trash or your Digimon's digivolution cards, further reduce it by 1.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -41,6 +43,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this Digimon as the played Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

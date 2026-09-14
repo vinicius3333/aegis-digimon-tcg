@@ -117,6 +117,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] [Once Per Turn] 1 of your Digimon gains ＜Raid＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -132,6 +133,7 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, that Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

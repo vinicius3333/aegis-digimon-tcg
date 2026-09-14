@@ -25,6 +25,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon with [Avian] or [Bird] in any of its traits in the breeding area may digivolve into a level 5 or lower Digimon card with [Avian] or [Bird] in any of its traits in the hand without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -68,6 +70,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon with [Avian] or [Bird] in any of its traits in the breeding area may digivolve into a level 5 or lower Digimon card with [Avian] or [Bird] in any of its traits in the hand without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {

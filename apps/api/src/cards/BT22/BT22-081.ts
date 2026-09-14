@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has no digivolution cards, you may place 1 [Yuuko Kamishiro] from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -73,6 +75,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has no digivolution cards, you may place 1 [Yuuko Kamishiro] from your hand or trash as this Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

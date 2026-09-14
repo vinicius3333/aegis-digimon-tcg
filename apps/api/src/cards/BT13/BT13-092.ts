@@ -7,10 +7,13 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Search your opponent's hand, and trash 1 card among it.",
           kind: "Trash",
           target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
         },
         {
+          effectTextPart:
+            "Then, if they have 7 or fewer cards in their hand, they add the top card of their security stack to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "opponent",

@@ -40,6 +40,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, ＜Draw 1＞. If [Dorugamon] is in this Digimon's digivolution cards or this digivolved from the trash, delete 1 of your opponent's Digimon with a play cost of 4 or less instead.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -69,6 +71,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, ＜Draw 1＞. If [Dorugamon] is in this Digimon's digivolution cards or this digivolved from the trash, delete 1 of your opponent's Digimon with a play cost of 4 or less instead.",
           kind: "Delete",
           target: {
             filter: {

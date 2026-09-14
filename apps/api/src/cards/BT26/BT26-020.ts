@@ -5,7 +5,12 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
+        {
+          effectTextPart: "[On Play] ＜Draw 1＞",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
         {
           kind: "Restrict",
           target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },

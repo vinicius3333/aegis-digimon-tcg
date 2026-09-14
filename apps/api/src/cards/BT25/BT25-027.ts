@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       optional: true,
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 4 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -49,6 +51,8 @@ export const compiled: CompiledCard = {
       optional: true,
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 4 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {

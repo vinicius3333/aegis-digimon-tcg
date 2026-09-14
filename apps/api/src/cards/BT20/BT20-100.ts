@@ -107,6 +107,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Omekamon]/[Cool Boy] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [On Deletion] Trash the top 2 digivolution cards of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -28,6 +30,8 @@ const compiled: CompiledCard = {
           fromTop: true,
         },
         {
+          effectTextPart:
+            "Then, return 1 of your opponent's Digimon with no digivolution cards to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -45,6 +49,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [On Deletion] Trash the top 2 digivolution cards of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -58,6 +64,8 @@ const compiled: CompiledCard = {
           fromTop: true,
         },
         {
+          effectTextPart:
+            "Then, return 1 of your opponent's Digimon with no digivolution cards to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {

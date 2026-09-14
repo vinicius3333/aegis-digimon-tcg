@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 1 of your opponent’s level 6 or lower Digimon to its owner’s hand.",
           kind: "Return",
           target: {
             filter: {
@@ -61,6 +62,7 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart: "Then, unsuspend 1 of your Digimon with [Garurumon] in its name.",
           kind: "Unsuspend",
           target: {
             filter: {

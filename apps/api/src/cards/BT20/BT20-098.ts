@@ -36,6 +36,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, the Digimon this effect played gain ＜Rush＞ and ＜Blocker＞ until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: { boundRef: "playedByThisEffect", kind: ["Digimon"] },
@@ -45,6 +47,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, the Digimon this effect played gain ＜Rush＞ and ＜Blocker＞ until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: { boundRef: "playedByThisEffect", kind: ["Digimon"] },

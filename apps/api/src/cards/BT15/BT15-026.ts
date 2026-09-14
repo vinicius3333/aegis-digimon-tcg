@@ -16,11 +16,13 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving]  (Draw 1 card from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, if you have 5 or more cards in your hand, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -44,11 +46,13 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving]  (Draw 1 card from your deck).",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, if you have 5 or more cards in your hand, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

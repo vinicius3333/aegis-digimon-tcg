@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 4 level 5 or lower [Argomon] from your trash as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -51,6 +53,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place up to 4 level 5 or lower [Argomon] from your trash as this Digimon's bottom digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: {

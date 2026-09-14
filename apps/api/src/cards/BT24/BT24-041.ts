@@ -45,6 +45,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] You may play 1 play cost 5 or lower [Iliad] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -64,6 +66,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -88,6 +91,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] You may play 1 play cost 5 or lower [Iliad] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -107,6 +112,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -131,6 +137,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] You may play 1 play cost 5 or lower [Iliad] trait card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -150,6 +158,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

@@ -1,5 +1,7 @@
 import {
   Phase,
+  CARD_ARRIVAL_NARRATION_MS,
+  EFFECT_CHOICE_NARRATION_MS,
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   SECURITY_EFFECT_NARRATION_MS,
@@ -101,7 +103,7 @@ export class BotPlayer {
   }
 
   onDecisionRequested(request: DecisionRequest): void {
-    void this.afterThinking(() => {
+    void this.nextActionDelay().then(() => {
       this.act(this.policy.answerDecision(this.view(), request));
       // Answering may have been what the main-phase loop was waiting on; restart it.
       this.startMainPhaseLoop();
@@ -125,6 +127,14 @@ export class BotPlayer {
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
+        break;
+      case "cardPlayed":
+        this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CARD_ARRIVAL_NARRATION_MS;
+        break;
+      case "effectTriggered":
+        if (/on.?play|when.?digivolving/i.test(event.timing ?? "")) {
+          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + EFFECT_CHOICE_NARRATION_MS;
+        }
         break;
       case "securityChecked":
         // Each check is its own centre-stage scene, and the client plays them one
@@ -308,15 +318,6 @@ export class BotPlayer {
 
   private isMyMainPhase(): boolean {
     return !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main;
-  }
-
-  /** Run `action` after a short think-delay. */
-  private afterThinking(action: () => void): Promise<void> {
-    return this.delay().then(action);
-  }
-
-  private delay(): Promise<void> {
-    return this.pause(this.minThinkMs, this.maxThinkMs);
   }
 
   /** The answer to a combat window, which the engine and the attacker are both waiting on. */

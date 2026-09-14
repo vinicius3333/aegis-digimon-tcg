@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -55,6 +57,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

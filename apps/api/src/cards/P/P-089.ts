@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+ effectTextPart: "[When Digivolving] You may trash up to 3 blue cards from your hand. For each card trashed by this effect, you may trash 1 card under 1 of your opponent's Digimon or Tamers.",
           kind: "Trash",
           target: {
             filter: {

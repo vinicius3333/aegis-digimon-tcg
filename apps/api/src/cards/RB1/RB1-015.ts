@@ -11,6 +11,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Trash the top 3 digivolution cards of 1 of your opponent's Digimon with DP less than or equal to this Digimon's DP.",
           kind: "TrashDigivolution",
           target: {
             filter: {

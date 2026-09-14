@@ -59,6 +59,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] Return 1 Tamer card and 1 [Hybrid] trait Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -71,6 +73,8 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "[On Deletion] Return 1 Tamer card and 1 [Hybrid] trait Digimon card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -89,6 +93,8 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card from your hand without paying the cost.\n\n[DigiXros -3] [Agunimon] x [BurningGreymon]",
           kind: "PlayWithoutCost",
           target: {
             filter: {

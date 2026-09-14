@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trigger ＜Draw 2＞. (Draw 2 cards from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 2,

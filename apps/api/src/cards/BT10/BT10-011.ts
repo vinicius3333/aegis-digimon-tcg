@@ -13,8 +13,17 @@ export const compiled: CompiledCard = {
           event: "whenSuspended",
           sourceFilter: { controller: "mine", kind: ["Tamer"] },
           actions: [
-            { kind: "ModifyDP", target: self, amount: 2000, duration: "forTheTurn" },
             {
+              effectTextPart:
+                "[Your Turn][Once Per Turn] When one of your Tamers becomes suspended, this Digimon gets +2000 DP for the turn.",
+              kind: "ModifyDP",
+              target: self,
+              amount: 2000,
+              duration: "forTheTurn",
+            },
+            {
+              effectTextPart:
+                "Then, if this Digimon has 12000 DP or more, it gains ＜Security Attack +1＞ for the turn. (This Digimon checks 1 additional security card.)",
               kind: "GainKeyword",
               target: self,
               keyword: { keyword: "SecurityAttack", amount: 1 },

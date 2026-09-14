@@ -135,6 +135,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -150,6 +152,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

@@ -30,6 +30,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers.",
           // "By trash 1 card in your hand" — optional cost that gates the whole effect.
           // KB Q5401: must perform the trash; if not, Suspend and Restrict do not activate.
           kind: "Trash",
@@ -45,6 +47,8 @@ const compiled: CompiledCard = {
           raw: "By trashing 1 card in your hand",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers.",
           // Mandatory suspend (executes only if trash cost was paid).
           kind: "Suspend",
           target: {
@@ -74,6 +78,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers.",
           kind: "Trash",
           target: {
             filter: {
@@ -87,6 +93,8 @@ const compiled: CompiledCard = {
           raw: "By trashing 1 card in your hand",
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By trash 1 card in your hand, suspend 1 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {

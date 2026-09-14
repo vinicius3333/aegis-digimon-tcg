@@ -8,6 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Trash up to 3 digivolution cards from a single opponent Digimon that has at least one.
 const trashThreeSources: Action = {
+  effectTextPart: "[On Play] [When Digivolving] Trash any 3 digivolution cards from 1 of your opponent's Digimon.",
   kind: "TrashDigivolution",
   target: {
     filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
@@ -25,6 +26,7 @@ export const compiled: CompiledCard = {
       actions: [
         trashThreeSources,
         {
+          effectTextPart: "Then, if played by effects, delete 1 of your opponent's Digimon with no digivolution cards.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },

@@ -23,6 +23,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if they have 10 or more cards in their trash, you may return 1 card with the [Fallen Angel] or [Undead] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -67,6 +69,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if they have 10 or more cards in their trash, you may return 1 card with the [Fallen Angel] or [Undead] trait from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

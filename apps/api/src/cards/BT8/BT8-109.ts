@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -19,6 +20,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 purple or yellow Digimon card with 6000 DP or less from your trash without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

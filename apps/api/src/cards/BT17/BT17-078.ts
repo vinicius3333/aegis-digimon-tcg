@@ -51,6 +51,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "isDnaDigivolving" },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If DNA Digivolving, choose 1 opponent's Digimon and return the chosen Digimon and all of your opponent's Digimon with the same level to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -67,6 +69,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -92,6 +95,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "isDnaDigivolving" },
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If DNA Digivolving, choose 1 opponent's Digimon and return the chosen Digimon and all of your opponent's Digimon with the same level to the bottom of the deck.",
           kind: "Return",
           target: {
             filter: {
@@ -108,6 +113,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {

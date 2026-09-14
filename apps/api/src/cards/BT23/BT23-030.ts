@@ -37,6 +37,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Main] [Once Per Turn] By paying 1 cost, you may play 1 play cost 3 or lower card with [Chuumon] or [Sukamon] in its name or the [CS] trait from your hand without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {
@@ -55,6 +57,8 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart:
+                "Then, 1 of your level 3 or higher Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
               kind: "GainKeyword",
               target: {
                 filter: {
@@ -68,6 +72,8 @@ export const compiled: CompiledCard = {
               duration: "untilOpponentTurnEnd",
             },
             {
+              effectTextPart:
+                "Then, 1 of your level 3 or higher Digimon gains ＜Reboot＞ and ＜Blocker＞ until your opponent's turn ends.",
               kind: "GainKeyword",
               target: {
                 filter: {

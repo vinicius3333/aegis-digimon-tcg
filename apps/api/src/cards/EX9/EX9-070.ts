@@ -124,6 +124,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,

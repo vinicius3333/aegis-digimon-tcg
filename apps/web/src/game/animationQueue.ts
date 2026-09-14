@@ -31,6 +31,8 @@ export interface AnimationStepContext {
 
 export interface AnimationStep {
   id: string;
+  /** Originating server batch, retained by steps spawned after later batches arrive. */
+  origin?: { batchId: string; stateVersion: number; sourceCardId?: string; timing?: string; phaseOrder?: number };
   run(context: AnimationStepContext): void | Promise<void>;
   /** Steps sharing a track run in order; separate tracks run concurrently. */
   track?: string;
@@ -51,6 +53,17 @@ export interface AnimationQueueOptions {
   mode?: AnimationQueueMode;
   /** A failing cue must not wedge the ones behind it, so errors are reported, not thrown. */
   onError?: (error: unknown, step: AnimationStep) => void;
+  onStep?: (event: AnimationStepEvent) => void;
+}
+
+export interface AnimationStepEvent {
+  step: AnimationStep;
+  phase: "queued" | "started" | "finished" | "dropped";
+  durationMs?: number;
+  mode: AnimationQueueMode;
+  cancelled: boolean;
+  skipping: boolean;
+  failed: boolean;
 }
 
 export interface AnimationQueue {
@@ -159,6 +172,16 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
   }
 
   function cancelTrack(track: Track) {
+    for (const entry of track.queued)
+      for (const step of entry.steps)
+        options.onStep?.({
+          step,
+          phase: "dropped",
+          mode: modeOf(step),
+          cancelled: true,
+          skipping: fastForward,
+          failed: false,
+        });
     track.queued.length = 0;
     for (const run of track.running) {
       run.cancelled = true;
@@ -188,10 +211,31 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
         track.running = runs.map((pair) => pair.run);
         await Promise.all(
           runs.map(async ({ step, run }) => {
+            const started = performance.now();
+            let failed = false;
+            options.onStep?.({
+              step,
+              phase: "started",
+              mode: modeOf(step),
+              cancelled: false,
+              skipping: fastForward,
+              failed,
+            });
             try {
               await step.run(contextFor(step, run));
             } catch (error) {
+              failed = true;
               options.onError?.(error, step);
+            } finally {
+              options.onStep?.({
+                step,
+                phase: "finished",
+                durationMs: performance.now() - started,
+                mode: modeOf(step),
+                cancelled: run.cancelled,
+                skipping: fastForward,
+                failed,
+              });
             }
           }),
         );
@@ -217,6 +261,15 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       const track = trackNamed(name);
       if (steps.some((candidate) => candidate.replace === true)) cancelTrack(track);
       track.queued.push({ steps });
+      for (const candidate of steps)
+        options.onStep?.({
+          step: candidate,
+          phase: "queued",
+          mode: modeOf(candidate),
+          cancelled: false,
+          skipping: fastForward,
+          failed: false,
+        });
       void runTrack(name, track);
       options.onChange?.();
     },

@@ -37,6 +37,8 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, you may play 1 Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

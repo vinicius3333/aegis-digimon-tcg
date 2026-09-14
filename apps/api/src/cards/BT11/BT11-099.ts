@@ -31,12 +31,14 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash the top 3 digivolution cards of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
           amount: 3,
           fromTop: true,
         },
         {
+          effectTextPart: "Then, return 1 of your opponent's Digimon with no digivolution cards to its owner's hand.",
           kind: "Return",
           target: { filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] }, count: 1 },
           to: "hand",

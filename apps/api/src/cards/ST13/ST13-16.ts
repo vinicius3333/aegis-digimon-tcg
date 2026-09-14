@@ -84,6 +84,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 Digimon card with [Legend-Arms] in its traits and a play cost of 7 or less in your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

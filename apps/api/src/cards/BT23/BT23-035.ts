@@ -95,6 +95,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When your security stack is removed from, this Digimon gains ＜Security A. +1＞ until your turn ends.",
               kind: "GainKeyword",
               target: {
                 filter: {

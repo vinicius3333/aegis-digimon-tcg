@@ -22,7 +22,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import type { RefObject } from "react";
-import type { GameState, Seat, ServerEvent } from "@aegis/shared";
+import type { GameState, Seat, ServerEvent, PresentationReport } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { buildInstanceIndex, otherSeat } from "./boardModel";
 import { batchesAfter, type ServerBatch } from "../net/serverBatches";
@@ -451,6 +451,7 @@ export function useMatchCues({
   anchors,
   onActionRejected,
   cutInsEnabled,
+  onPresentationReport,
 }: {
   /** The closed server batches, in order. One batch is one moment of the rules. */
   batches: readonly ServerBatch[];
@@ -481,6 +482,7 @@ export function useMatchCues({
   onActionRejected: (reason: string) => void;
   /** A visual showcase can show existing cut-ins without changing the saved preference. */
   cutInsEnabled?: boolean;
+  onPresentationReport?: (report: PresentationReport) => void;
 }): MatchCues {
   // How far the presentation has got, in server revisions. Every step is counted into the
   // batch it was enqueued for, so the board can be rendered from the snapshot of the batch
@@ -539,14 +541,35 @@ export function useMatchCues({
     }
     return completedPhaseOrderRef.current;
   }
+  const presentationReporterRef = useRef(onPresentationReport);
+  presentationReporterRef.current = onPresentationReport;
+  const presentationBatchRef = useRef<{ batchId: string; stateVersion: number } | undefined>(undefined);
+  const batchVersionsRef = useRef(new Map<string, number>());
+  const heldOriginsRef = useRef(new WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>());
+  const stepBatchesRef = useRef(new WeakMap<AnimationStep, { batchId: string; stateVersion: number }>());
   const queue = useMemo(() => {
     const inner = createAnimationQueue({
       mode: liveMode(),
       onChange: () => queueChangedRef.current(),
       onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
+      onStep: ({ step, ...event }) => {
+        if (event.mode === "replay") return;
+        try {
+          presentationReporterRef.current?.({
+            ...event,
+            ...(step.origin ?? stepBatchesRef.current.get(step)),
+            stepId: step.id,
+            track: step.track ?? "main",
+            clientTimestamp: Date.now(),
+            pendingCount: inner.pendingCount(),
+          });
+        } catch {
+          // Diagnostic transport must never interrupt the presentation.
+        }
+      },
     });
     const counted = (step: AnimationStep): AnimationStep => {
-      const phaseOrder = enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current;
+      const phaseOrder = step.origin?.phaseOrder ?? enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current;
       const gated =
         step.track === "phaseBanner" || step.track === "unsuspendSweep" || step.track?.startsWith("turnDrawFlight-")
           ? step
@@ -571,6 +594,7 @@ export function useMatchCues({
       const countedStep =
         inner.getMode() !== "live" || step.mode === "replay" || !holdsTheBoard(step) ? gated : progress.track(gated);
       stepPhaseOrdersRef.current.set(countedStep, phaseOrder);
+      if (presentationBatchRef.current) stepBatchesRef.current.set(countedStep, presentationBatchRef.current);
       return countedStep;
     };
     return {
@@ -855,7 +879,9 @@ export function useMatchCues({
     return { ...item, notice: undefined, createdAt: Date.now() };
   }
 
-  /** Publish at the correct beat; reading time never holds the animation queue. */
+  const effectNarrationTracksRef = useRef(new Map<Seat, string>());
+
+  /** Publish the clause before the results queued behind its arrival. */
   function enqueueNarrationItem(item: NarrationItem) {
     const body = item.notice?.body;
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
@@ -863,15 +889,58 @@ export function useMatchCues({
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
     // Follow the actual arrival track, including its field burst, rather than
     // estimating when a normal play, evolution or cut-in will be finished.
-    const track =
+    const onPlay = /on.?play/i.test(timing) && initialSite?.zone === "field";
+    const arrivalTrack =
       /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
-        ? `burst-${initialSite.permanentId}`
-        : "narration";
+        ? onPlay
+          ? CENTER_STAGE_TRACK
+          : `burst-${initialSite.permanentId}`
+        : undefined;
+    if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
+    const precedingTrack = effectNarrationTracksRef.current.get(seat);
+    const track =
+      arrivalTrack ??
+      (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack) ? precedingTrack : "narration");
+    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
+    const origin = {
+      phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
+      batchId: item.batchId,
+      stateVersion: heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId) ?? 0,
+      ...(body?.variant === "effect" ? { sourceCardId: body.cardId, timing: body.timing } : {}),
+    };
+    function reportShown(stepId: string, context: AnimationStepContext) {
+      try {
+        presentationReporterRef.current?.({
+          ...origin,
+          phase: "shown",
+          stepId,
+          track,
+          clientTimestamp: Date.now(),
+          mode: context.mode,
+          cancelled: context.cancelled,
+          skipping: context.skipping,
+          failed: false,
+          pendingCount: queue.pendingCount(),
+        });
+      } catch {
+        // Diagnostic transport must never interrupt the presentation.
+      }
+    }
     queue.enqueue({
       id: `narration-step-${item.id}`,
+      origin,
       track,
       async run(context) {
         if (context.mode === "replay" || narrationSkipRef.current) return;
+        if (onPlay && initialSite?.zone === "field") {
+          while (
+            queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
+            context.mode === "live" &&
+            !context.cancelled &&
+            !context.skipping
+          )
+            await context.wait(16);
+        }
         if (context.mode === "live" && body?.variant === "effect") {
           // Let this batch register its deletion beats before locating the source.
           await Promise.resolve();
@@ -895,6 +964,7 @@ export function useMatchCues({
             };
             try {
               setEffectSources((sources) => [...sources, activation]);
+              reportShown(`effect-source-${activation.key}`, context);
               await context.wait(TIMINGS.effectSourceHold);
             } finally {
               setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
@@ -905,6 +975,8 @@ export function useMatchCues({
         const shown = presentableNarration(item);
         if (!shown) return;
         setNarration((items) => new Map([...items, [shown.id, shown] as const].slice(-narrationLimitRef.current)));
+        reportShown(`narration-step-${item.id}`, context);
+        if (onPlay && shown.notice) await context.wait(TIMINGS.effectAnnounce);
       },
     });
   }
@@ -962,7 +1034,16 @@ export function useMatchCues({
     if (ownNotices.length === 0 && ownPanels.length === 0) return;
     heldNoticesRef.current = heldNoticesRef.current.filter((held) => !ownNotices.includes(held));
     heldPanelsRef.current = heldPanelsRef.current.filter((held) => !ownPanels.includes(held));
-    narrate(ownNotices, ownPanels, lastBatchIdRef.current);
+    const origins = new Set(
+      [...ownNotices, ...ownPanels].map((item) => heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current),
+    );
+    for (const batchId of origins) {
+      narrate(
+        ownNotices.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
+        ownPanels.filter((item) => (heldOriginsRef.current.get(item)?.batchId ?? lastBatchIdRef.current) === batchId),
+        batchId,
+      );
+    }
   }
 
   /**
@@ -997,6 +1078,10 @@ export function useMatchCues({
     lastBatchIdRef.current = batchId;
     // Everything enqueued from here belongs to this batch, and the board it is narrated
     // over is the board this batch produced.
+    presentationBatchRef.current = { batchId, stateVersion };
+    batchVersionsRef.current.set(batchId, stateVersion);
+    if (batchVersionsRef.current.size > 120)
+      batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
     if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
     const refusal = [...fresh].reverse().find((event) => event.kind === "actionRejected");
     // Each segment carries one check, its opening, or its close. A decision inside a
@@ -1016,7 +1101,13 @@ export function useMatchCues({
       .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
     // Replayed steps still run, so their state lands in the right place — they
     // just run with every wait collapsed, which is no animation at all.
-    const enqueue = (step: AnimationStep) => queue.enqueue(replayingHistory ? { ...step, mode: "replay" } : step);
+    const batchPhaseOrder = enqueuePhaseOrderRef.current;
+    const enqueue = (step: AnimationStep) =>
+      queue.enqueue({
+        ...step,
+        origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
+        ...(replayingHistory ? { mode: "replay" as const } : {}),
+      });
     // A permanent that lost a battle takes the claw and the shake first, and its
     // burst waits behind them — the reference client hits the card, then breaks
     // it. Only combat deletions get the impact; an effect deletion has no blow
@@ -1339,6 +1430,12 @@ export function useMatchCues({
       // the same events opened carry the other half of that consequence — the cards an
       // [On Play] reveal turned up — so they travel with the notices rather than
       // printing the result before the card that caused it has been seen.
+      for (const item of [...raised, ...opened])
+        heldOriginsRef.current.set(item, {
+          batchId,
+          stateVersion,
+          phaseOrder: enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current,
+        });
       const presenting = raised.length > 0 || opened.length > 0;
       if (securityReveal) {
         deferredZoneChanges = zoneChanges;
@@ -2728,6 +2825,10 @@ export function useMatchCues({
     burst: PermanentBurst | null,
     leadInMs = 0,
   ): AnimationStep {
+    const origin = presentationBatchRef.current && {
+      ...presentationBatchRef.current,
+      phaseOrder: enqueuePhaseOrderRef.current,
+    };
     return {
       id: `zone-change-${key}`,
       track: CENTER_STAGE_TRACK,
@@ -2762,6 +2863,7 @@ export function useMatchCues({
         // arrivals so an automatic evolution cannot cancel the earlier toast.
         queue.enqueue({
           id: `burst-${burst.key}`,
+          origin,
           track: `burst-${burst.permanentId}`,
           async run(burstContext) {
             if (burstContext.mode !== "live") return;

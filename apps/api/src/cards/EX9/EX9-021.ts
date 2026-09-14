@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
           condition: { kind: "isDnaDigivolving", raw: "If DNA digivolving" },
         },
         {
+          effectTextPart: "Then, delete all of their Digimon with the highest level.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestLevel" },

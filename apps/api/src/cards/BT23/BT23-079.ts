@@ -35,6 +35,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When any of your Digimon get linked, by suspending this Tamer, those Digimon get +3000 DP until your opponent's turn ends.",
               kind: "ModifyDP",
               target: {
                 filter: {

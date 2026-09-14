@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
           amount: 4,
         },
         {
+          effectTextPart:
+            "Then, if you have 10 or more cards in your trash, ＜De-Digivolve2＞ 1 of your opponent's Digimon (Trash up to 2 cards from the top. You can't trash past level 3 cards)",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -57,6 +59,8 @@ export const compiled: CompiledCard = {
           amount: 4,
         },
         {
+          effectTextPart:
+            "Then, if you have 10 or more cards in your trash, ＜De-Digivolve2＞ 1 of your opponent's Digimon (Trash up to 2 cards from the top. You can't trash past level 3 cards)",
           kind: "DeDigivolve",
           target: {
             filter: {

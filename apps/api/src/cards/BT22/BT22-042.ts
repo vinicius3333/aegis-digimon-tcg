@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may play 1 level 4 or lower [Puppet] trait Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -54,6 +56,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each of your Digimon.",
           kind: "ModifyDP",
           target: {
             filter: {

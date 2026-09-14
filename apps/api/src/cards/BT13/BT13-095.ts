@@ -48,6 +48,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When this Tamer becomes suspended, 1 of your opponent's Digimon gets -3000 DP for the turn.",
               kind: "ModifyDP",
               target: {
                 filter: {
@@ -60,6 +62,7 @@ export const compiled: CompiledCard = {
               duration: "forTheTurn",
             },
             {
+              effectTextPart: "Then, if you have a Digimon with [Agumon] or [Greymon] in its name, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
               condition: {

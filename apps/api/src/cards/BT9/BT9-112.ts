@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play][When Digivolving] ＜De-Digivolve 1＞ all of your opponent’s Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -51,6 +52,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, delete all of your opponent’s level 4 or lower Digimon. [End of Opponent’s Turn][Once Per Turn] Delete all of your opponent's Digimon with the lowest play cost.",
           kind: "Delete",
           target: {
             filter: {
@@ -70,6 +73,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play][When Digivolving] ＜De-Digivolve 1＞ all of your opponent’s Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -81,6 +85,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, delete all of your opponent’s level 4 or lower Digimon. [End of Opponent’s Turn][Once Per Turn] Delete all of your opponent's Digimon with the lowest play cost.",
           kind: "Delete",
           target: {
             filter: {

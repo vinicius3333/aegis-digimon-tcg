@@ -6,8 +6,17 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          effectTextPart: "[When Digivolving] ＜Draw 1＞. (Draw 1 card from your deck.)",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          effectTextPart: "Then, trash 1 card in your hand.",
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
       ],
     },
     {

@@ -1,8 +1,15 @@
 import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const clause: Action[] = [
-  { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
   {
+    effectTextPart: "[When Moving] [On Play] [When Digivolving] You may suspend 1 Digimon.",
+    kind: "Suspend",
+    target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } },
+    optional: true,
+  },
+  {
+    effectTextPart:
+      "Then, 1 of your Digimon with the [Insectoid] or [Titan] trait gets +3000 DP until your opponent's turn ends.",
     kind: "ModifyDP",
     target: {
       count: 1,

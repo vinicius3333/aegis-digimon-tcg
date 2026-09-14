@@ -77,6 +77,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -88,6 +89,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 3000 DP or lower green Digimon card with [Avian] or [Bird] in any of its traits from your hand without paying the cost. For each suspended Digimon, add 1000 to this effect's DP maximum.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

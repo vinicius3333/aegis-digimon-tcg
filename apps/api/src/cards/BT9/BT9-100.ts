@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -30,6 +31,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may unsuspend 1 of your Digimon with [Insectoid] in its traits, and it attacks your opponent’s Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -20,6 +21,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, return 1 of your opponent's suspended Digimon to its owner's hand.",
           kind: "Return",
           target: {
             filter: {

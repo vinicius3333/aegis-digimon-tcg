@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gets +5000 DP and gains ＜Rush＞ for the turn. (This Digimon may attack the turn it was played.)",
           kind: "ModifyDP",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 5000,

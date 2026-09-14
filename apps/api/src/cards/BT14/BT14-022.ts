@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -23,6 +24,8 @@ export const compiled: CompiledCard = {
           choose: true,
         },
         {
+          effectTextPart:
+            "Then, return 1 of your opponent's level 5 or lower Digimon with no digivolution cards to the hand.",
           kind: "Return",
           target: {
             filter: {

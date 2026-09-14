@@ -17,6 +17,8 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, add up to 2 cards with [Bagra Army] in one of their traits from your trash to your hand, and place up to 2 Digimon cards with [Bagra Army] in their traits from your trash under 1 of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {

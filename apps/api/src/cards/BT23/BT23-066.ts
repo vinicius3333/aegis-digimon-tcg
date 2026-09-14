@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -34,6 +35,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if digivolving from the trash, you may play 1 play cost 3 or lower card with the [Undead] or [CS] trait from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -63,6 +66,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -77,6 +81,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if digivolving from the trash, you may play 1 play cost 3 or lower card with the [Undead] or [CS] trait from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

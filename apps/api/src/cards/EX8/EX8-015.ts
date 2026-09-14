@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[When Digivolving] Until the end of your opponent's turn, this Digimon can't be returned to the hand or deck and it gets +3000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -34,6 +36,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if [WarGrowlmon]/[X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 10000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

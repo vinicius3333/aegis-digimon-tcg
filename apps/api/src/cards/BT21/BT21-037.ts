@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -40,6 +41,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon gets +2000 DP until your opponent's turn ends.",
           kind: "ModifyDP",
           target: {
             filter: {

@@ -70,6 +70,8 @@ export const compiled: CompiledCard = {
           rest: "trash",
         },
         {
+          effectTextPart:
+            "Then, place 1 card with [X Antibody] in its traits from your trash under 1 of your Digimon with [X Antibody] in its traits as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

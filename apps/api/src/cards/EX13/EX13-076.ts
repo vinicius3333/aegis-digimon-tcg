@@ -165,6 +165,8 @@ const battleWonEffect: CardEffect = {
       raw: "When this Digimon wins a battle",
       actions: [
         {
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When this Digimon wins a battle, you may return 1 of your opponent's Digimon to the bottom of the deck.",
           kind: "Return",
           target: { filter: opponentDigimon, count: 1 },
           to: "deckBottom",
@@ -172,6 +174,7 @@ const battleWonEffect: CardEffect = {
           raw: "you may return 1 of your opponent's Digimon to the bottom of the deck",
         },
         {
+          effectTextPart: "Then, this Digimon may unsuspend.",
           kind: "Unsuspend",
           target: self,
           optional: true,

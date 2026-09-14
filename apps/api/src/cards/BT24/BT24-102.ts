@@ -13,9 +13,24 @@ export const compiled: CompiledCard = {
     {
       trigger: "StartOfYourMainPhase",
       actions: [
-        { kind: "GainMemory", amount: 1 },
-        { kind: "Suspend", target: self, condition: { kind: "memoryAtLeast", value: 5 } },
-        { kind: "Draw", controller: "mine", amount: 1, condition: { kind: "memoryAtLeast", value: 5 } },
+        {
+          effectTextPart: "[Start of Your Main Phase] Gain 1 memory.",
+          kind: "GainMemory",
+          amount: 1,
+        },
+        {
+          effectTextPart: "Then, if you have 5 or more memory, suspend this Tamer and ＜Draw 1＞",
+          kind: "Suspend",
+          target: self,
+          condition: { kind: "memoryAtLeast", value: 5 },
+        },
+        {
+          effectTextPart: "Then, if you have 5 or more memory, suspend this Tamer and ＜Draw 1＞",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: { kind: "memoryAtLeast", value: 5 },
+        },
       ],
     },
     {

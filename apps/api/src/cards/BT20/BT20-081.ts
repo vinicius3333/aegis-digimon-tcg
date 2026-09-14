@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 2 of your opponent's Digimon get -10000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -41,6 +42,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if a Tamer card is in this Digimon's digivolution cards, delete 1 of your opponent's 10000 DP or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -66,6 +69,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 2 of your opponent's Digimon get -10000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -78,6 +82,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, if a Tamer card is in this Digimon's digivolution cards, delete 1 of your opponent's 10000 DP or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.",
           kind: "Attack",
           target: {
             filter: {
@@ -34,6 +36,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -85,6 +89,8 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.",
           kind: "Attack",
           target: {
             filter: {
@@ -97,6 +103,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

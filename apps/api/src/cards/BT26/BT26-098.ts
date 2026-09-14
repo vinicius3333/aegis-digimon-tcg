@@ -96,6 +96,8 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 [Lalamon] or [Yoshino Fujieda] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: { filter: securityPlayable, count: 1 },
           from: ["hand", "trash"],

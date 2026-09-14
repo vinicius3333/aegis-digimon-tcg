@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] You may place 1 card with [Royal Knight] in its traits and a play cost of 13 or less from your hand or trash under this Digimon as its bottom digivolution card. Activate 1 of that Digimon's [When Digivolving] effects as an effect of this Digimon.",
           kind: "PlaceUnder",
           target: {
             filter: {

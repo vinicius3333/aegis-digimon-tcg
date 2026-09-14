@@ -56,6 +56,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When this Tamer suspends, 1 of your Digimon gains ＜Piercing＞ and +3000 DP for the turn.",
               kind: "GainKeyword",
               target: { filter: {}, count: 1, fromSelectionRef: "boostedDigimon" },
               keyword: { keyword: "Piercing", raw: "＜Piercing＞" },

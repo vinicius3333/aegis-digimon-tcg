@@ -59,6 +59,7 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] Place this card at the bottom of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

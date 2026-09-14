@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -31,6 +32,8 @@ export const compiled: CompiledCard = {
           trackOpponentDigimonCountAs: "postDeDigivolveOpponentDigimonCount",
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 2 or more Digimon, return 1 of your opponent's level 4 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -49,6 +52,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜De-Digivolve2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -61,6 +65,8 @@ export const compiled: CompiledCard = {
           trackOpponentDigimonCountAs: "postDeDigivolveOpponentDigimonCount",
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 2 or more Digimon, return 1 of your opponent's level 4 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -79,6 +85,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] You may play 1 [Blue Flare]/[Xros Heart] trait Digimon card with a play cost of 5 or less from under your Tamers without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

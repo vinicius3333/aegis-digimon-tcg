@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          effectTextPart: "[End of Your Turn] 2 of your Digimon may DNA digivolve into [ExMaquinamon] in the hand.",
           kind: "DnaDigivolve",
           materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
           into: {

@@ -113,6 +113,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
         },

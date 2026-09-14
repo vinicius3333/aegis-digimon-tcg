@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers.",
           kind: "Suspend",
           target: {
             filter: {
@@ -68,6 +69,7 @@ export const compiled: CompiledCard = {
               effectType: "WhenDigivolving",
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack your opponent's Digimon.",
               kind: "Attack",
               attackPlayer: false,
               target: {

@@ -10,8 +10,21 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
-        { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck" },
+        {
+          effectTextPart: "[Main] Add your top security card to the hand and ＜Recovery +1 (Deck)＞",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+        },
+        {
+          effectTextPart: "[Main] Add your top security card to the hand and ＜Recovery +1 (Deck)＞",
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+        },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     },

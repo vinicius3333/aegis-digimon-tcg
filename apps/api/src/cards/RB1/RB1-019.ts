@@ -27,6 +27,8 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart:
+            "Then, all of your opponent’s level 4 or higher Digimon get -3000 DP and gain ＜Security Attack -1＞ until the end of their turn.",
           kind: "ModifyDP",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } },
@@ -36,6 +38,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, all of your opponent’s level 4 or higher Digimon get -3000 DP and gain ＜Security Attack -1＞ until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } },

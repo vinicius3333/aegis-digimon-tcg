@@ -291,7 +291,10 @@ export function buildArenaVisualScene(
   const parameter =
     keyword === "Decoy" && ally ? getCardDefinition(ally.topCard!.cardId)?.colors[0] : TEXT_KEYWORDS[keyword];
   const grant = { keyword, ...(amount !== undefined ? { amount } : {}), ...(parameter ? { parameter } : {}) };
-  if (keyword === "SecurityAttack") actor.securityAttack = 2;
+  if (keyword === "SecurityAttack") {
+    actor.securityAttack = 2;
+    actor.securityAttackModifier = 1;
+  }
   const keywordLabels = {
     ...baselineLabels,
     [actor.permanentId]: { ...baselineLabels[actor.permanentId], [keyword]: demoKeywordLabel(grant) },

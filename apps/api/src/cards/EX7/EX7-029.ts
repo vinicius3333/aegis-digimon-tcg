@@ -93,6 +93,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -103,6 +104,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, if your opponent has no unsuspended Digimon, unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

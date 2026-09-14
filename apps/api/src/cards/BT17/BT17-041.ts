@@ -18,6 +18,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 Tamer card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -31,6 +33,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your opponent's Digimon gets -5000 DP for each of your Tamers.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -56,6 +59,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 Tamer card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -69,6 +74,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, for the turn, 1 of your opponent's Digimon gets -5000 DP for each of your Tamers.",
           kind: "ModifyDP",
           target: {
             filter: {

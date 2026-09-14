@@ -24,6 +24,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If DNA digivolving, you may play 1 level 5 or lower Digimon card with the [Free] trait from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -71,6 +73,7 @@ const compiled: CompiledCard = {
           optional: false,
         },
         {
+          effectTextPart: "Then, 1 of your Digimon may gain <Rush> for the turn and attack a player.",
           kind: "Attack",
           target: { fromSelectionRef: "rushAttacker", filter: {}, count: 1 },
           attackPlayer: true,

@@ -12,7 +12,13 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "lookAndMayAddToHand",
           controller: "mine",
-          ifAddedToHand: [{ kind: "Draw", controller: "mine", amount: 1 }],
+          ifAddedToHand: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
         },
       ],
     },

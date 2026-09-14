@@ -14,6 +14,8 @@ export const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, if either player has 5 or more cards in their trash, you may play 1 [Guilmon] or [Takato Matsuki] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

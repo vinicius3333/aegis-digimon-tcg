@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Suspend all of your opponent’s Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -30,6 +31,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, this Digimon may attack.",
           kind: "Attack",
           target: {
             filter: {

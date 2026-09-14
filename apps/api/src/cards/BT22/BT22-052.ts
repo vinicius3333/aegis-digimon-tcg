@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 5000 DP or lower Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -38,6 +40,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -62,6 +66,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 5000 DP or lower Digimon card from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -79,6 +85,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
           target: {
             filter: {

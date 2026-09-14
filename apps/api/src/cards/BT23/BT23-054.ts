@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -59,6 +60,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,

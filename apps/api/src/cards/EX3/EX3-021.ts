@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trash any 2 digivolution cards under 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {

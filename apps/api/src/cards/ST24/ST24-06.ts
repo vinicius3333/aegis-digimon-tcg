@@ -72,6 +72,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -92,6 +94,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -112,6 +116,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -5000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

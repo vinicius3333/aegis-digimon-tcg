@@ -41,6 +41,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] If your opponent has 5 or more cards in their hand, they trash 1 card in their hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -60,6 +62,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if they have 4 or fewer cards in their hand, delete 1 of their level 6 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

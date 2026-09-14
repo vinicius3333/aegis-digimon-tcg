@@ -31,6 +31,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] delete 1 of your opponent's Digimon with the lowest level.",
           kind: "Delete",
           target: {
             filter: {
@@ -42,6 +44,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 4 or lower [Ghost] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -70,6 +74,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [On Deletion] delete 1 of your opponent's Digimon with the lowest level.",
           kind: "Delete",
           target: {
             filter: {
@@ -81,6 +87,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 4 or lower [Ghost] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

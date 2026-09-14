@@ -14,6 +14,7 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart: "Then, if you have a Tamer in play, this Digimon gets +3000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: { isSelfRef: true },

@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,

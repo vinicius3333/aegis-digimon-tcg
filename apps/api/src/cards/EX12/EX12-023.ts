@@ -48,11 +48,13 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] [Once Per Turn] ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, if your hand has 7 or more cards, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

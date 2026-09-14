@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -3000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -30,6 +31,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if there're 6 or fewer total cards in both players' security stacks, all of your opponent's Digimon gain ＜Security Attack -1＞ until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {

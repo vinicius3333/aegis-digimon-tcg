@@ -40,6 +40,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
               kind: "Suspend",
               target: {
                 filter: {
@@ -52,11 +54,14 @@ const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart:
+                "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
               kind: "Draw",
               controller: "mine",
               amount: 1,
             },
             {
+              effectTextPart: "Then, trash 1 card in your hand.",
               kind: "Trash",
               target: {
                 filter: {

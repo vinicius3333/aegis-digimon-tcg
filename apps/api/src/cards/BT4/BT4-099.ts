@@ -10,11 +10,14 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trigger ＜Draw 2＞. (Draw 2 cards from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart:
+            "Then, if one of your Digimon has [Greymon] or [Dramon] in its name (other than [DoruGreymon], [BurningGreymon], or[DexDoruGreymon]), delete 1 of your opponent's Digimon with 4000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -51,6 +53,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Attacking] [Once Per Turn] 1 Digimon may gain ＜Security Attack -1＞until the end of your opponent's turn.",
           kind: "GainKeyword",
           target: {
             filter: {

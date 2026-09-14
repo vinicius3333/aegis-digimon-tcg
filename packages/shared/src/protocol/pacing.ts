@@ -30,3 +30,8 @@ export const SECURITY_EFFECT_NARRATION_MS = 3_650;
  * this sequence once per card, so the budget is multiplied by the number trashed.
  */
 export const SECURITY_DESTRUCTION_NARRATION_MS = 1_900;
+
+/** Opponent play showcase plus field arrival burst, before its On Play can be announced. */
+export const CARD_ARRIVAL_NARRATION_MS = 2_620;
+/** Source glow, clause announcement, then a beat to see the revealed cards before a bot chooses. */
+export const EFFECT_CHOICE_NARRATION_MS = 1_600;

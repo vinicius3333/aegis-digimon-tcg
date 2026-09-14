@@ -61,6 +61,8 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart:
+            "Then, 1 of your Digimon may digivolve into a Digimon card in your hand with the digivolution cost reduced by 4.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -84,6 +86,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] You may play 1 card with the [LIBERATOR] trait with a play cost of 4 or less from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

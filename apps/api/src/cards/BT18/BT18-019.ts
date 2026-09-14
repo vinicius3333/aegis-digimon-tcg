@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -20,6 +21,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck, gain 1 memory for each card returned.",
           kind: "GainMemory",
           amount: 1,
           condition: {
@@ -56,6 +59,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -66,6 +70,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck, gain 1 memory for each card returned.",
           kind: "GainMemory",
           amount: 1,
           condition: {

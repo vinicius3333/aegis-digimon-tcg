@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] Trash any 2 digivolution cards of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -38,6 +39,7 @@ export const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart: "Then, if your opponent has no Digimon with digivolution cards, unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

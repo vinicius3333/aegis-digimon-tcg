@@ -39,6 +39,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] By trashing 1 [Appmon] card from your hand, ＜Draw 2＞",
           kind: "Draw",
           controller: "mine",
           amount: 2,

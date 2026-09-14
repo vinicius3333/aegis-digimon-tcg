@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon may digivolve into [PlatinumNumemon] in the hand for a digivolution cost of 4, ignoring digivolution requirements.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -76,6 +78,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon's stack has 2 or more same-level cards, this Digimon may digivolve into [PlatinumNumemon] in the hand for a digivolution cost of 4, ignoring digivolution requirements.",
           kind: "Digivolve",
           target: {
             filter: {

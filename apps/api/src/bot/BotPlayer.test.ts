@@ -80,6 +80,41 @@ async function advance(milliseconds: number): Promise<void> {
 describe("BotPlayer action pacing and player attacks", () => {
   afterEach(() => vi.useRealTimers());
 
+  it("waits for an opponent play's arrival and On Play announcement before answering its choice", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+      },
+      FIXED_THINK,
+    );
+    bot.onEvent({ kind: "cardPlayed", seat: 1, cardId: "EX1-066", permanentId: "analog" });
+    await advance(12);
+    bot.onEvent({
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "EX1-066",
+      timing: "OnPlay",
+      effectKey: "on-play",
+      description: "Reveal top 3 and add",
+    });
+    bot.onDecisionRequested({
+      decisionId: "analog-choice",
+      seat: 1,
+      kind: "selectCards",
+      promptText: "Analog Youth",
+      options: { candidateInstanceIds: ["digimon"], min: 1, max: 1 },
+    });
+    await advance(2348);
+    expect(intents).toEqual([]);
+    await advance(1860);
+    expect(intents[0]).toMatchObject({ type: "respondDecision", decisionId: "analog-choice" });
+  });
+
   it("waits two seconds, then attacks the player with its strongest eligible Digimon", async () => {
     vi.useFakeTimers();
     const { state } = botState();

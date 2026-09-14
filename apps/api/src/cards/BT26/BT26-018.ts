@@ -15,6 +15,7 @@ const revealAndTrash: Action[] = [
     rest: "deckBottom",
   },
   {
+    effectTextPart: "Then, trash the bottom digivolution card of 1 of your opponent's Digimon.",
     kind: "TrashDigivolution",
     target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
     amount: 1,

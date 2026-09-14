@@ -27,7 +27,14 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, source: "securityTop" },
+        {
+          effectTextPart: "[When Digivolving] Add your top security card to the hand.",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          source: "securityTop",
+        },
         {
           kind: "Modal",
           choose: 1,

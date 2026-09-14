@@ -73,6 +73,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -84,6 +86,7 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's lowest DP Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -102,6 +105,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -113,6 +118,7 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's lowest DP Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -131,6 +137,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -142,6 +150,7 @@ const compiled: CompiledCard = {
           amount: 2,
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's lowest DP Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -160,6 +169,8 @@ const compiled: CompiledCard = {
       trigger: "Counter",
       actions: [
         {
+          effectTextPart:
+            "[Counter] [Once Per Turn] 2 of your Digimon may DNA digivolve into [Omnimon] or an [ME] or [VB] trait Digimon card in the hand.",
           kind: "DnaDigivolve",
           materials: {
             filter: {

@@ -71,6 +71,8 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] [Once Per Turn] When this Digimon gets linked, suspend 1 of your opponent's Digimon.",
               kind: "Suspend",
               target: {
                 filter: {

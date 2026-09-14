@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer.",
           kind: "PlaceUnder",
           target: { filter: { controller: "mine" }, count: 1 },
           fromDeckTop: true,
@@ -15,6 +17,7 @@ const compiled: CompiledCard = {
           position: "bottom",
         },
         {
+          effectTextPart: "Then, if your opponent has a Digimon, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {
@@ -29,6 +32,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] [On Play] You may place the top card of your deck face down under this Tamer.",
           kind: "PlaceUnder",
           target: { filter: { controller: "mine" }, count: 1 },
           fromDeckTop: true,
@@ -37,6 +42,7 @@ const compiled: CompiledCard = {
           position: "bottom",
         },
         {
+          effectTextPart: "Then, if your opponent has a Digimon, gain 1 memory.",
           kind: "GainMemory",
           amount: 1,
           condition: {

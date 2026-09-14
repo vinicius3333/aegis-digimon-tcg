@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash up to 2 digivolution cards from the bottom of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -23,6 +24,8 @@ const compiled: CompiledCard = {
           upTo: true,
         },
         {
+          effectTextPart:
+            "Then, if you have a green Digimon in play, suspend 1 of your opponent's Digimon with no digivolution cards.",
           kind: "Suspend",
           target: {
             filter: {

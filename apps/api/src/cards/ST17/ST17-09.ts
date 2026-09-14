@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] You may delete 1 level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -35,6 +36,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 4 or lower green or purple Digimon card from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

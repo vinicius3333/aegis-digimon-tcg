@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -21,6 +22,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if it's your turn, this Digimon may digivolve into a Digimon card with [Bird]/[Avian] in any of its traits in the hand. For every other suspended Digimon, reduce this effect's digivolution cost by 1.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -66,6 +69,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -77,6 +81,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if it's your turn, this Digimon may digivolve into a Digimon card with [Bird]/[Avian] in any of its traits in the hand. For every other suspended Digimon, reduce this effect's digivolution cost by 1.",
           kind: "Digivolve",
           target: {
             filter: {

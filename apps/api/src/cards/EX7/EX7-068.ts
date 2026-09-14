@@ -10,11 +10,14 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, you may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 11000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -35,6 +36,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, this Digimon may digivolve into [Imperialdramon: Fighter Mode] in the hand or trash without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -66,6 +69,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 11000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -80,6 +84,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if DNA digivolving, this Digimon may digivolve into [Imperialdramon: Fighter Mode] in the hand or trash without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {

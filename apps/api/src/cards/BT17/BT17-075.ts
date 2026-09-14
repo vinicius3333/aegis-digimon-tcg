@@ -28,6 +28,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Your opponent may play 1 Tamer card from their hand without paying the cost. If they don't, you may play 1 white Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -43,6 +45,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Your opponent may play 1 Tamer card from their hand without paying the cost. If they don't, you may play 1 white Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -62,6 +66,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon for every 2 Tamers.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -85,6 +90,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Your opponent may play 1 Tamer card from their hand without paying the cost. If they don't, you may play 1 white Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -100,6 +107,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Your opponent may play 1 Tamer card from their hand without paying the cost. If they don't, you may play 1 white Tamer card with a play cost of 4 or less from your hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -119,6 +128,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon for every 2 Tamers.",
           kind: "DeDigivolve",
           target: {
             filter: {

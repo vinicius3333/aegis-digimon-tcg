@@ -63,6 +63,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -108,6 +109,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {

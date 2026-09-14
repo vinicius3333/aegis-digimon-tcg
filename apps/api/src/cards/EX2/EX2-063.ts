@@ -46,7 +46,11 @@ export const compiled: CompiledCard = {
               optional: true,
               abortOnDecline: true,
             },
-            { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
+            {
+              effectTextPart: "Then, trash 1 card in your hand.",
+              kind: "Trash",
+              target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+            },
           ],
         },
       ],

@@ -59,6 +59,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "[End of Your Turn] By suspending this Tamer, 1 of your Digimon with the [Reptile]/[Dragonkin] trait gains ＜Piercing＞ for the turn.",
               kind: "GainKeyword",
               target: {
                 fromSelectionRef: "piercingTarget",

@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] This Digimon gains ＜Rush＞ for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

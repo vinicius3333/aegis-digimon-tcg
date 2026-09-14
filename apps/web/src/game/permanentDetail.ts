@@ -41,6 +41,7 @@ export interface PermanentDetail {
    * security-check loop itself reads, not a number scraped out of printed text.
    */
   securityAttack?: number;
+  securityAttackModifier?: number;
   /**
    * The blanket "can't ..." locks currently imposed on this position, in reading order
    * (`restrictionBadges`). Server truth like every other figure here: the engine
@@ -106,6 +107,7 @@ export function buildPermanentDetail(
     grantedKeywords: [...permanent.grantedKeywords],
     ...(keywordLabels ? { keywordLabels } : {}),
     securityAttack: shownSecurityAttack(permanent),
+    securityAttackModifier: permanent.securityAttackModifier ?? permanent.securityAttack - BASE_SECURITY_ATTACK,
     restrictions: restrictionBadges(permanent),
     suspended: permanent.isSuspended,
     summoningSick: permanent.summoningSick,
@@ -127,6 +129,7 @@ export type CardInspectionDetail = Pick<
   | "grantedKeywords"
   | "keywordLabels"
   | "securityAttack"
+  | "securityAttackModifier"
   | "restrictions"
   | "suspended"
 > & { printedOnly?: boolean };

@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart: "[On Deletion] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -30,6 +31,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's level 3 Digimon and level 4 Digimon.",
           kind: "Delete",
           target: {
             count: 1,
@@ -41,6 +43,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's level 3 Digimon and level 4 Digimon.",
           kind: "Delete",
           target: {
             count: 1,

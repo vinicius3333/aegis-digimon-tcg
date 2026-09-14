@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -33,6 +34,8 @@ const compiled: CompiledCard = {
           scope: "acrossDigimon",
         },
         {
+          effectTextPart:
+            "Then, you may place 1 of their Digimon with no digivolution cards as the top or bottom security card.",
           kind: "SecurityManipulation",
           op: "addTopOrBottom",
           controller: "opponent",
@@ -53,6 +56,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -66,6 +70,8 @@ const compiled: CompiledCard = {
           scope: "acrossDigimon",
         },
         {
+          effectTextPart:
+            "Then, you may place 1 of their Digimon with no digivolution cards as the top or bottom security card.",
           kind: "SecurityManipulation",
           op: "addTopOrBottom",
           controller: "opponent",

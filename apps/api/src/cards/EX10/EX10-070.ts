@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜Draw 1＞",
           kind: "Draw",
           controller: "mine",
           amount: 1,

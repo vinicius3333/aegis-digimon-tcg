@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -52,6 +53,8 @@ export const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, by placing 1 card with [Cyborg] in its traits from your hand or trash under 1 of your level 6 Digimon with [Machine] in its traits as its bottom digivolution card, delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

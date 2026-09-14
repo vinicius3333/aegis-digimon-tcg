@@ -21,6 +21,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash all digivolution cards of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -66,6 +68,8 @@ export const compiled: CompiledCard = {
           ],
         },
         {
+          effectTextPart:
+            "Then, return all cards from your or your opponent's trash to the bottom of the deck. If this effect returned a white level 7 card, gain 3 memory.",
           kind: "GainMemory",
           amount: 3,
           condition: {
@@ -88,6 +92,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash all digivolution cards of all of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -133,6 +139,8 @@ export const compiled: CompiledCard = {
           ],
         },
         {
+          effectTextPart:
+            "Then, return all cards from your or your opponent's trash to the bottom of the deck. If this effect returned a white level 7 card, gain 3 memory.",
           kind: "GainMemory",
           amount: 3,
           condition: {

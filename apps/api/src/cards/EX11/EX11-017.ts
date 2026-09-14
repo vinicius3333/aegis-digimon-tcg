@@ -137,6 +137,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When other Digimon are played or digivolve, trash any 3 digivolution cards from your opponent's Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {
@@ -174,6 +176,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When other Digimon are played or digivolve, trash any 3 digivolution cards from your opponent's Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {

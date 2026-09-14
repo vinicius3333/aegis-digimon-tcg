@@ -25,6 +25,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 1 Digimon card from your trash to the hand.",
           kind: "Return",
           target: { filter: { controller: "mine", zone: "trash", kind: ["Digimon"] }, count: 1 },
           to: "hand",

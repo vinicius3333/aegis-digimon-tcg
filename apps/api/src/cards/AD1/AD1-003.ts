@@ -20,6 +20,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 [Takato Matsuki] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -38,6 +40,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, you may delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -58,6 +61,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may play 1 [Takato Matsuki] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -76,6 +81,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, you may delete 1 of your opponent's Digimon with 6000 DP or less.",
           kind: "Delete",
           target: {
             filter: {

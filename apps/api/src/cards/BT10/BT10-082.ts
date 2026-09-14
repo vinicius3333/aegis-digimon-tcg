@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for every 10 cards in your trash, delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -50,6 +52,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, for every 10 cards in your trash, delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

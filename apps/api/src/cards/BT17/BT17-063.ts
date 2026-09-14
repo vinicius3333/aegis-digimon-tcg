@@ -20,11 +20,13 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜Draw 1＞and trash 1 card in your hand.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "[When Digivolving] ＜Draw 1＞and trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -35,6 +37,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if [HippoGryphonmon] is in this Digimon's digivolution cards, this Digimon may digivolve into [Murmukusmon] in the hand for a digivolution cost of 2, ignoring its digivolution requirements.",
           kind: "Digivolve",
           target: {
             filter: {

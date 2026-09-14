@@ -13,6 +13,7 @@ import {
   type SequencedServerEvent,
   EVENT_CHANNEL,
   DECISION_CHANNEL,
+  PRESENTATION_CHANNEL,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
@@ -24,6 +25,7 @@ import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
 import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
+import { parsePresentationReport } from "./presentationReport.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
 const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
@@ -158,6 +160,7 @@ export class AegisRoom extends Room<GameState> {
   override maxClients = 2;
   private engine!: GameEngine;
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
+  private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
   private deckByClient = new Map<string, DeckSnapshot>();
@@ -446,9 +449,13 @@ export class AegisRoom extends Room<GameState> {
     // discriminated-union Intent and handed to the engine, which validates,
     // mutates state, and emits events. Rejections are surfaced as an
     // "actionRejected" event to the offending client only.
-    this.onMessage("*", (client, type, payload) =>
-      this.handleIntent(client, { type, ...(payload as object) } as Intent),
-    );
+    this.onMessage("*", (client, type, payload) => {
+      if (type === PRESENTATION_CHANNEL) {
+        this.handlePresentationReport(client, payload);
+        return;
+      }
+      this.handleIntent(client, { type, ...(payload as object) } as Intent);
+    });
 
     roomRegistry.set(this.roomId, this);
   }
@@ -1058,6 +1065,26 @@ export class AegisRoom extends Room<GameState> {
 
   private debug(...data: unknown[]): void {
     withMatchLog(this.state.matchLogId, this.roomId, () => log(...data));
+  }
+
+  private handlePresentationReport(client: Client, payload: unknown): void {
+    const seat = this.seatByClient.get(client.sessionId);
+    if (seat === undefined) return;
+    const report = parsePresentationReport(payload);
+    if (!report) return;
+    const now = Date.now();
+    let window = this.presentationLogWindows.get(seat);
+    if (!window || now - window.start >= 1000) {
+      window = { start: now, count: 0 };
+      this.presentationLogWindows.set(seat, window);
+    }
+    if (++window.count > 500) return;
+    this.debug("client.animation", {
+      seat,
+      sessionId: client.sessionId,
+      serverStateVersion: this.state.stateVersion,
+      ...report,
+    });
   }
 
   private debugError(...data: unknown[]): void {

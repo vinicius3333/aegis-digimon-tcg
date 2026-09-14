@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] By trashing 2 cards in your hand, unsuspend this Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -33,6 +34,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "Then, if [WereGarurumon] or [X Antibody] is in this Digimon's digivolution cards, you may return 1 Digimon card with [Garurumon]/[X Antibody] in its name from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

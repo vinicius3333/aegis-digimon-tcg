@@ -29,6 +29,8 @@ export const compiled: CompiledCard = {
         },
         { kind: "Restrict", target: chosenMarcus, restriction: "digivolve", duration: "forTheTurn" },
         {
+          effectTextPart:
+            "[Main] For the turn, 1 of your [Marcus Damon]s is also treated as a 12000 DP Digimon, can't digivolve and gains ＜Rush＞.",
           kind: "GainKeyword",
           target: chosenMarcus,
           keyword: { keyword: "Rush", raw: "＜Rush＞" },
@@ -36,6 +38,8 @@ export const compiled: CompiledCard = {
         },
         { kind: "GrantCanAttackUnsuspended", target: chosenMarcus, duration: "forTheTurn" },
         {
+          effectTextPart:
+            "Then, that Digimon may attack your opponent's Digimon. Your opponent's unsuspended Digimon can also be attacked with this effect.",
           kind: "Attack",
           target: chosenMarcus,
           withoutSuspending: false,
@@ -49,6 +53,7 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart: "[Security] You may play 1 [Marcus Damon] from your hand or trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] },
