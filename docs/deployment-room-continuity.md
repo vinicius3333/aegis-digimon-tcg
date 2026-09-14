@@ -1,8 +1,8 @@
 # Deployments that preserve player rooms
 
-Research date: 2026-09-14. Sources: local application/deployment code, official documentation, and read-only SSH observations supplied by the coordinator. No production deployment or runtime mutation was performed.
+Research and installation date: 2026-09-14. Sources: application/deployment code, official documentation, SSH inspection, and the live validation recorded below. The initial observations describe the deployment before migration.
 
-## Live Oracle VPS observations
+## Oracle VPS observations before migration
 
 The coordinator inspected the Dokploy deployment at `/etc/dokploy/compose/aegis-rgise8/code/docker-compose.prod.yml`. All three APIs advertise `p1`, `p2`, or `p3`; health responses report slot `legacy`, revision `production`, and accepting new rooms. All three lack the deployment admin token and return 401 for deployment status. Docker StopTimeout is unset and StopSignal is empty, leaving normal Docker defaults. These observations match the local production configuration.
 
@@ -48,7 +48,7 @@ Keep the processes that own existing rooms alive until those rooms are disposed.
 6. Wait for `activeRooms=0` on all retiring processes. On a bounded wait expiring, leave the old slot running and mark cleanup pending; do not kill it. With only two slot names, do not reuse the draining name until its original room owners are gone. A third simultaneous revision needs additional revision-addressable infrastructure.
 7. Stop only those proven-empty old APIs and their now-unused isolated Redis. Keep old web assets through the chosen cache/reconnect retention period. Roll back by reactivating the previous slot and restoring the manifest, while preserving any rooms already created on the new slot.
 
-This is a proposed operational protocol, not a tested live rollout. Required proof before enabling it: simultaneous releases, existing player sockets across cutover, mobile disconnect/reconnect to the old owner, private-code lookup on a draining slot, waiting-room join, new-match isolation, and cleanup refusal while any owner still has rooms.
+The installation and live proof below implement this protocol. Required continuity checks are: simultaneous releases, existing player sockets across cutover, mobile disconnect/reconnect to the old owner, private-code lookup on a draining slot, waiting-room join, new-match isolation, and cleanup refusal while any owner still has rooms.
 
 ## Immediate lower-complexity alternative
 
@@ -64,13 +64,13 @@ Routine operations:
 
 ```sh
 # Inspect every process in the active and retiring slots.
-ssh oracle-vps 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 status'
+ssh oracle-vps 'sudo docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 status'
 
 # Remove a retiring slot only when all three owners are drained and empty.
-ssh oracle-vps 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 cleanup'
+ssh oracle-vps 'sudo docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 cleanup'
 
 # Revert routing while an earlier slot is still retained; keep both versions rooms.
-ssh oracle-vps 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 rollback'
+ssh oracle-vps 'sudo docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /opt/aegis-rollout:/opt/aegis-rollout aegis-deployer:1 rollback'
 ```
 
 Dokploy's custom command (the platform prefixes `docker` itself) is:
@@ -83,4 +83,22 @@ The deployer builds immutable API/web images serially, checks each new process a
 
 Do not use Dokploy **Stop/Delete**, `docker compose down` on an active slot, or recreate the gateway/edge during games: these operations bypass the controller. Infrastructure upgrades require a separate empty-room window. A failed controller leaves a lock only if its process was killed; inspect running deployer containers and slot status before manually removing `/opt/aegis-rollout/deploy.lock`.
 
-Verification commands are `pnpm test:deploy`, the focused API deployment/room/tournament-gateway suites, and the existing web deployment/router suites. Live validation must additionally exercise real Colyseus reservations and WebSockets through the gateway across a cutover before enabling the production deployment pipeline. [Controller](../tools/deploy/deploy.mjs), [gateway](../tools/deploy/gateway.mjs), [persistent admission](../apps/api/src/deployment/admission.ts), [Dokploy custom-command behavior](https://docs.dokploy.com/docs/core/features).
+Verification commands are `pnpm test:deploy`, the focused API deployment/room/tournament-gateway suites, and the existing web deployment/router suites. The explicit operator probe in `tools/deploy/live-proof.mjs` exercises real Colyseus reservations and WebSockets across a cutover; run it when changing routing or deployment infrastructure. [Controller](../tools/deploy/deploy.mjs), [gateway](../tools/deploy/gateway.mjs), [persistent admission](../apps/api/src/deployment/admission.ts), [Dokploy custom-command behavior](https://docs.dokploy.com/docs/core/features).
+
+## Oracle installation — 2026-09-14
+
+The legacy stack was put into a temporary new-room maintenance gate. A bot room that appeared during preparation was allowed to finish; Redis room listings were empty before sending SIGTERM to the three legacy owners, and all exited without forced termination. The legacy web and Redis were then stopped. The existing Postgres and shared `stagecast-edge-edge-1` proxy were retained.
+
+The stable `aegis-gateway` took the previous `aegis-web` network alias, so the shared edge required no reload. Public HTML and the deployment manifest returned 200; public deployment-admin access returned 404. Each slot uses three API owners and its own Redis. With both slots running during verification, the VPS had approximately 13 GiB available memory and 95 GiB free disk; this is a capacity observation under the probe workload.
+
+The changes were pushed directly to `main` with explicit user authorization. Dokploy's source branch is `main` and its custom command is the one above. The infrastructure images `aegis-gateway:1` and `aegis-deployer:1` are installed separately from application images; routine releases use the controller and retain the serving gateway.
+
+## Live continuity proof
+
+On 2026-09-14 at approximately 12:14 UTC, the public-domain probe kept three players in two private rooms on blue revision `4c899e1224de9393b0f360cfb54e349eaed4b6ce` while the controller deployed green revision `06f27b066650b94526360675c1dea501ceb0fcb3`. Traffic used `https://aegis-digi.online` and real secure Colyseus WebSockets through the unchanged external proxy and stable gateway.
+
+All eight continuity assertions passed: the original opponent socket stayed open and delivered disconnect/reconnect state patches; engine/match identity stayed unchanged; old-slot creation returned 503; the old private code resolved; a new player joined the waiting private room on its old owner; reconnect restored the original room and session; and a new private room could be created on the active release immediately after publication. Cleanup was explicitly attempted while old rooms remained and refused with `leaving it running`; all three original container IDs stayed unchanged and running. After the probe clients left, cleanup removed only the verified-empty blue APIs and Redis, retaining assets, gateway, Postgres, and shared edge.
+
+Private operator receipts are in `/opt/aegis-rollout/bootstrap/proof/verified.json`, `verified-status.json`, `owners-before.txt`, and `busy-cleanup.log`. They contain no reconnection tokens. Early probe attempts exposed a missing SDK token in the raw HTTP reconnect helper and stale health cached across slot reuse; both were corrected. Probe shutdown also skips already-closed SDK connections, whose `leave()` otherwise waits for an event that already happened.
+
+Automated validation: four deployment tests, 38 focused API tests, and 19 existing web deployment/router tests passed; shared build, API typecheck, scoped Oxlint/Oxfmt, and deployment diff checks passed. The gateway slot-reuse regression passed and the final cache fix received an independent review with no blockers. This proves controlled deployment continuity, not recovery of in-memory matches after host or process crashes.

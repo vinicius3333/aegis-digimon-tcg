@@ -149,6 +149,7 @@ try {
   record("FAILED", { error: error.message });
   process.exitCode = 1;
 } finally {
-  await Promise.allSettled(rooms.map((room) => room.leave()));
+  // Colyseus leave() waits for a future event even when that connection already closed.
+  await Promise.allSettled(rooms.filter((room) => room.connection?.isOpen).map((room) => room.leave()));
   if (!process.exitCode) record("DONE");
 }
