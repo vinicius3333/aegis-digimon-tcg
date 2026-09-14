@@ -3319,10 +3319,24 @@ it("shows start-main timing and full formatted text for each pending effect", ()
   expect(screen.getByText("BT26-009")).toBeTruthy();
   const text = document.querySelector(".trigger-chooser__effect-text")!;
   expect(text.textContent).not.toContain("[Digivolve]");
-  expect(document.querySelector(".trigger-chooser")?.textContent).not.toContain("[Opponent\'s Turn]");
+  expect(document.querySelector(".trigger-chooser")?.textContent).not.toContain("[Opponent's Turn]");
   expect(document.querySelector(".trigger-chooser")?.textContent).not.toContain("[Security]");
   expect(text.textContent).toContain("gain 1 memory.");
   expect(Array.from(text.querySelectorAll("mark")).map((mark) => mark.textContent)).toContain(
     "[Start of Your Main Phase]",
   );
+});
+
+it.each(["optional", "selectCards"] as const)("shows Decode's keyword and rules text for the %s decision", (kind) => {
+  const effectText =
+    "＜Decode (Lv.5 or lower w/[Aqua]/[Sea Animal] in any trait or w/[TB] trait)＞ When this Digimon would leave the battle area other than by battle, you may play 1 Digimon card specified by this keyword from this Digimon's digivolution cards without paying the cost.";
+  renderDecision({
+    decisionId: "decode-choice",
+    seat: 0,
+    kind,
+    sourceCardId: "EX12-036",
+    promptText: kind === "optional" ? "Play without paying the cost" : "Ryugumon",
+    options: { timing: "AllTurns", effectText, candidateInstanceIds: [], min: 1, max: 1 },
+  });
+  expect(screen.getByText(effectText)).toBeTruthy();
 });

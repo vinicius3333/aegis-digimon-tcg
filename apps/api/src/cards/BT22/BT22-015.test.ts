@@ -366,5 +366,10 @@ describe("BT22-015 Omnimon", () => {
       "BT22-020",
     ]);
     expect(s.perm("decoy").stack.map((card) => card.cardId)).toEqual(["BT23-048", "EX11-014"]);
+    const decodeDecisions = s.decisions.filter(({ req }) => req.sourceCardId === "BT22-015");
+    expect(decodeDecisions).toHaveLength(2);
+    expect(decodeDecisions[0]!.req.options?.effectText).toContain("＜Decode (Red/Black Lv.3)＞");
+    expect(decodeDecisions[1]!.req.options?.effectText).toContain("＜Decode (Blue/Yellow Lv.3)＞");
+    expect(decodeDecisions[1]!.req.options?.effectText).not.toContain("Red/Black");
   });
 });

@@ -216,7 +216,32 @@ export async function runReplacement(
   // optional activation leave a stale amount behind for a later play.
   const amountChoices = mode === "reduceCost" && action.amountChoices?.length ? action.amountChoices : undefined;
   const preventCost = action.cost ?? nestedPrevent?.cost;
+  // Decode resolves in a fresh would-leave context. Carry the keyword itself,
+  // rather than the effect (such as Execute) that caused the removal (CR 16-36-1).
+  const decodeAction = (action.actions ?? []).find(
+    (nested): nested is Extract<Action, { kind: "PlayWithoutCost" }> =>
+      nested.kind === "PlayWithoutCost" && nested.playedByDecode === true,
+  );
+  const isDecode = decodeAction !== undefined;
+  const decodeKeywords = isDecode
+    ? ((ctx.activeEffectText ?? ctx.source.definition.effectText)?.match(/[<＜]Decode\b[^>＞]*[>＞]/gi) ?? [])
+    : [];
+  // Cards with multiple Decode abilities can specify distinct color pools.
+  const colors = decodeAction?.target?.filter?.colors;
+  const matchingKeywords = colors?.length
+    ? decodeKeywords.filter((keyword) => colors.every((color) => keyword.includes(color)))
+    : decodeKeywords;
+  const decodeKeyword = (matchingKeywords.length ? matchingKeywords : decodeKeywords).join(" / ");
+  const decodeText = isDecode
+    ? `${decodeKeyword || "＜Decode＞"} When this Digimon would leave the battle area other than by battle, you may play 1 Digimon card specified by this keyword from this Digimon's digivolution cards without paying the cost.`
+    : undefined;
   const withReplacementSource = async <T>(subCtx: EffectContext, body: () => Promise<T>): Promise<T> => {
+    const previousTiming = subCtx.activeTiming;
+    const previousText = subCtx.activeEffectText;
+    if (decodeText !== undefined) {
+      subCtx.activeTiming = "AllTurns";
+      subCtx.activeEffectText = decodeText;
+    }
     subCtx.fx.enterEffectResolution?.(
       subCtx.source.ownerSeat,
       [...(subCtx.source.definition.kinds ?? [])],
@@ -225,6 +250,8 @@ export async function runReplacement(
     try {
       return await body();
     } finally {
+      subCtx.activeTiming = previousTiming;
+      subCtx.activeEffectText = previousText;
       subCtx.fx.leaveEffectResolution?.();
     }
   };

@@ -284,7 +284,15 @@ describe("EX12-036 Ryugumon", () => {
         {
           0: {
             battleArea: [
-              { card: cardId, as: "source", suspended: true, under: [{ card: decodeCardId, as: "decode" }] },
+              {
+                card: cardId,
+                as: "source",
+                suspended: true,
+                under: [
+                  { card: decodeCardId, as: "decode" },
+                  { card: decodeCardId, as: "alternative" },
+                ],
+              },
             ],
           },
         },
@@ -294,6 +302,15 @@ describe("EX12-036 Ryugumon", () => {
       const decodeId = s.inst("decode").instanceId;
       expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
       expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === decodeId)).toBe(true);
+      const decodeDecisions = s.decisions.filter(({ req }) => req.sourceCardId === cardId);
+      expect(decodeDecisions.map(({ req }) => req.kind)).toEqual(["optional", "selectCards"]);
+      for (const { req } of decodeDecisions) {
+        expect(req.options).toMatchObject({
+          timing: "AllTurns",
+          effectText:
+            "＜Decode (Lv.5 or lower w/[Aqua]/[Sea Animal] in any trait or w/[TB] trait)＞ When this Digimon would leave the battle area other than by battle, you may play 1 Digimon card specified by this keyword from this Digimon's digivolution cards without paying the cost.",
+        });
+      }
     }
     for (const [decodeCardId, cause] of [
       ["BT10-027", "byEffect"],
