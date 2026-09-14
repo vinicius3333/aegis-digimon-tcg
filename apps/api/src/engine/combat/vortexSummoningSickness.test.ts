@@ -41,6 +41,16 @@ describe("<Vortex> (Comprehensive Rules §16-33) — same-turn-attack grant", ()
     const turn = s.engine.runOneTurn();
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     await settle(() => mainPhase.isOpen, 500);
+    // runOneTurn increments turnCount before Main. Keep this fixture freshly played
+    // on the actual attack turn rather than accidentally testing an established host.
+    vortexer.enterFieldTurnCount = s.state.turnCount;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: vortexer.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await turn;
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));

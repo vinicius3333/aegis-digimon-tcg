@@ -144,7 +144,7 @@ describe("EX9-039", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("still permits the following attack when the optional hand placement is declined", async () => {
+  it("offers the separate attack after declining hand placement but cannot attack the play turn without Rush", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX9-039", as: "source" }, "BT1-009"] },
@@ -180,13 +180,12 @@ describe("EX9-039", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
-    await settle();
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX9-039"));
 
     expect(source.stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

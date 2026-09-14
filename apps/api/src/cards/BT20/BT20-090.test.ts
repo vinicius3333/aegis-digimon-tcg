@@ -147,7 +147,7 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     expect(h.s.state.players[1]!.security).toHaveLength(4);
   });
 
-  it("serializes cleanly and resolves independently for two Yuuki copies", async () => {
+  it("Q4431: resolves both Yuuki copies before Counter but cannot declare a second attack", async () => {
     expect(JSON.parse(JSON.stringify(compiled))).toEqual(compiled);
 
     const h = harness({
@@ -170,8 +170,9 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     expect(h.s.perm("tamer1").isSuspended).toBe(true);
     expect(h.s.perm("tamer2").isSuspended).toBe(true);
     expect(h.s.perm("evilDragon1").isSuspended).toBe(true);
-    expect(h.s.perm("evilDragon2").isSuspended).toBe(true);
-    expect(h.s.state.players[1]!.security).toHaveLength(3);
+    expect(h.s.perm("evilDragon2").isSuspended).toBe(false);
+    expect(h.s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+    expect(h.s.state.players[1]!.security).toHaveLength(4);
   });
 });
 

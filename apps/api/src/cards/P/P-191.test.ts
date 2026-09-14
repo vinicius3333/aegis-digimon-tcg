@@ -165,7 +165,7 @@ describe("P-191 Apollomon", () => {
         },
         1: { deck: Array.from({ length: 20 }, () => "BT3-059"), security: Array.from({ length: 5 }, () => "BT3-059") },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     const apollomonId = s.perm("apollomon").permanentId;
     const partnerId = s.perm("bluePartner").permanentId;
@@ -177,6 +177,24 @@ describe("P-191 Apollomon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
+    const apollomonResolved = () =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === "P-191" && event.timing === "OnEndTurn",
+      );
+    while (!apollomonResolved()) {
+      await settle(() => apollomonResolved() || s.state.pendingDecision?.kind === "optional");
+      if (apollomonResolved()) break;
+      const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      // Q6490: GraceNovamon's When Attacking now resolves before security. Decline
+      // its optional processing, including EndAttack, to exercise a successful attack.
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept: decision.sourceCardId !== "BT25-103" },
+        }),
+      ).toEqual({ ok: true });
+    }
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === graceId) &&

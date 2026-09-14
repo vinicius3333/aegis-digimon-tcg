@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { compiled } from "./BT21-083.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -145,24 +145,42 @@ describe("BT21-083 module registration", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it("suspends to make a newly played Xros Heart Digimon attack", async () => {
+  it.each([
+    { card: XROS_HEART_DIGIMON, canAttack: false },
+    { card: "BT11-019", canAttack: true },
+  ])("a newly played $card needs Rush to attack through Taiki", async ({ card, canAttack }) => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: TAIKI, as: "taiki" }], hand: [{ card: XROS_HEART_DIGIMON, as: "shoutmon" }] },
-        1: { security: ["BT1-085"] },
+        0: {
+          battleArea: [{ card: TAIKI, as: "taiki" }],
+          hand: [PLAIN_DIGIMON],
+          deck: Array(20).fill(PLAIN_DIGIMON),
+        },
+        1: { security: ["BT1-085"], deck: Array(20).fill(PLAIN_DIGIMON) },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 10;
     await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    // Add the play fixture after Taiki's start-of-main placement window.
+    s.give(0, Zone.Hand, { card, as: "shoutmon" });
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("shoutmon").enterFieldTurnCount).toBe(s.state.turnCount);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.perm("taiki").isSuspended).toBe(true);
-    expect(s.perm("shoutmon").isSuspended).toBe(true);
+    expect(s.perm("shoutmon").isSuspended).toBe(canAttack);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(canAttack ? 1 : 0);
+    expect(s.state.players[1]!.security).toHaveLength(canAttack ? 0 : 1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("does not suspend for a newly played nonmatching Digimon", async () => {

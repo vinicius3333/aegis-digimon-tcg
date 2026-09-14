@@ -140,7 +140,11 @@ describe("BT13-077 Craniamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-077", as: "craniamon", suspended: true }], security: ["BT1-009"] },
-        1: { hand: [{ card: "BT13-077", as: "immuneAttacker" }], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT2-060", as: "establishedHost" }],
+          hand: [{ card: "BT13-077", as: "immuneAttacker" }],
+          security: ["BT1-009"],
+        },
       },
       { autoSelectCards: true },
     );
@@ -150,9 +154,14 @@ describe("BT13-077 Craniamon", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("immuneAttacker").instanceId })).toEqual({
-      ok: true,
-    });
+    // Digivolve an established host so immunity is active without summoning sickness.
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("establishedHost").permanentId,
+        instanceId: s.inst("immuneAttacker").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("immuneAttacker").instanceId),
     );

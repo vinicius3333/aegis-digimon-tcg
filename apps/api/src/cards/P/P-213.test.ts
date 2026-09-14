@@ -3,6 +3,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-213.js";
+import "./P-194.js";
+import "../BT24/BT24-083.js";
+import "../BT24/BT24-031.js";
 
 describe("P-213 Aegiochusmon", () => {
   it("has Raid, Decode, and the Aegiomon digivolution requirement", () => {
@@ -210,6 +213,125 @@ describe("P-213 Decode", () => {
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("P-213 engine behavior", () => {
+  it("resolves inherited When Attacking before revealing security during its digivolution attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT1-009", as: "ownSecurity" }],
+          battleArea: [{ card: "P-194", as: "host", under: ["BT24-031"] }],
+          hand: [{ card: "P-213", as: "evolution" }],
+          deck: Array(20).fill("BT1-009"),
+        },
+        1: { security: ["BT1-009"], deck: Array(20).fill("BT1-009") },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "P-213"));
+    const attackPrompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-213")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-031"));
+    const inheritedPrompt = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-031",
+    )!.req;
+    expect(s.state.pendingDecision?.decisionId).toBe(inheritedPrompt.decisionId);
+    expect(s.events.some((event) => event.kind === "securityRevealed")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: inheritedPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-213"));
+    const inheritedResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-031",
+    );
+    const securityRevealed = s.events.findIndex((event) => event.kind === "securityRevealed");
+    expect(inheritedResolved).toBeGreaterThanOrEqual(0);
+    expect(securityRevealed).toBeGreaterThan(inheritedResolved);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ownSecurity").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it.each([5, 4, 3])(
+    "respects same-turn attack legality after Hiroko plays Aegiomon with %i security",
+    async (security) => {
+      const s = setupEngine(
+        {
+          0: {
+            security,
+            battleArea: [{ card: "BT24-083", as: "hiroko" }],
+            hand: [
+              { card: "P-194", as: "aegiomon" },
+              { card: "P-213", as: "evolution" },
+            ],
+            deck: Array(20).fill("BT1-009"),
+          },
+          1: { security: ["BT1-009"], deck: Array(20).fill("BT1-009") },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const host = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard.instanceId === s.inst("aegiomon").instanceId,
+      )!;
+      expect(host).toBeDefined();
+      expect(host.enterFieldTurnCount).toBe(s.state.turnCount);
+      const enteredTurn = host.enterFieldTurnCount;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: host.permanentId,
+          instanceId: s.inst("evolution").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-213"));
+
+      const attacks = s.events.filter((event) => event.kind === "attackDeclared");
+      const remainingSecurity = s.state.players[1]!.security.length;
+      const attackDP = host.currentDP;
+      const suspended = host.isSuspended;
+      expect(host.enterFieldTurnCount).toBe(enteredTurn);
+      expect(host.topCard.instanceId).toBe(s.inst("evolution").instanceId);
+      expect(host.stack.map((card) => card.instanceId)).toContain(s.inst("aegiomon").instanceId);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+
+      const gainsRush = security <= 3;
+      expect(attacks).toHaveLength(gainsRush ? 1 : 0);
+      expect(remainingSecurity).toBe(gainsRush ? 0 : 1);
+      expect(attackDP).toBe(gainsRush ? 10000 : 7000);
+      expect(suspended).toBe(gainsRush);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+    },
+  );
+
   it("grants Rush and +3000 DP at three security, but not at four", async () => {
     const s = setupEngine(
       {

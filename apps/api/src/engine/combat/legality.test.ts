@@ -62,7 +62,7 @@ describe("canAttackerDeclare", () => {
     expect(canAttackerDeclare(access, 0, attacker)).toBeNull();
   });
 
-  it("lets an explicit effect-driven attack bypass summoning sickness without relaxing ordinary attacks", () => {
+  it("rejects a freshly played Digimon even when an effect attacks without suspending", () => {
     const { state, access } = makeState();
     state.turnCount = 1;
     const attacker = digimonPermanent(0, DIGIMON_A);
@@ -70,7 +70,7 @@ describe("canAttackerDeclare", () => {
     state.players[0]?.battleArea.push(attacker);
 
     expect(canAttackerDeclare(access, 0, attacker)).toBe("illegal-target");
-    expect(canAttackerDeclare(access, 0, attacker, undefined, false, false, true)).toBeNull();
+    expect(canAttackerDeclare(access, 0, attacker, undefined, false, true)).toBe("illegal-target");
   });
 
   it("rejects a suspended attacker", () => {

@@ -32,7 +32,6 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
         vortex: action.vortex,
-        ignoreSummoningSickness: action.attackMechanic !== "Overclock",
         attackPlayer:
           action.attackPlayer ??
           (action.target !== undefined &&
@@ -43,7 +42,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
         afterAttackTriggers: fireDeferredSuspensionTriggers,
-        drainTimingWindow: action.drainTimingWindowDuringAttack ? ctx.drainCurrentTimingWindow : undefined,
+        // Combat pauses this effect. Its When Attacking and other pending effects
+        // must finish before Counter / security, including attacks without an IR flag.
+        drainTimingWindow: ctx.drainCurrentTimingWindow,
       };
       if (attackSubject.isSelf || attackSubject.filter?.isSelfRef) {
         const self = ctx.source.permanent();

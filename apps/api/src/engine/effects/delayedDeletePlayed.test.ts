@@ -99,7 +99,10 @@ describe("DelayedDeletePlayed timing modes", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[0]!.trash.filter((card) => card.instanceId === banchoId)).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === banchoId)).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(deleteFirst ? 4 : 3);
+    // Choosing the attack first declares it, but the simultaneous delayed deletion
+    // still resolves before Counter/security and removes its attacker.
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(deleteFirst ? 0 : 1);
+    expect(s.state.players[1]!.security).toHaveLength(4);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

@@ -672,7 +672,7 @@ describe("BT23-047 Examon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("accepts the On Play attack, suspending Examon and checking two security cards", async () => {
+  it("cannot perform the optional On Play attack without Rush", async () => {
     const s = setupEngine(
       {
         0: {
@@ -692,11 +692,11 @@ describe("BT23-047 Examon", () => {
     const examonId = s.inst("examon").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: examonId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 2);
-    await settle();
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT23-047"));
 
-    expect(s.perm("examon").isSuspended).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("examon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 

@@ -1538,7 +1538,6 @@ export interface Primitives {
     attackerPermanentId: string,
     opts?: {
       withoutSuspending?: boolean;
-      ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       vortex?: boolean;

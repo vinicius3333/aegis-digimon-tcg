@@ -246,7 +246,8 @@ describe("EX10-071 Paradise Lost", () => {
     await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("paradise"));
     await settle(() => s.events.some(({ kind }) => kind === "attackDeclared"));
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe(CARD_ID);
-    expect(s.perm("lucemon").isSuspended).toBe(true);
+    // Its When Attacking effect now unsuspends it before the direct attack succeeds.
+    expect(s.perm("lucemon").isSuspended).toBe(false);
     expect(s.events.some(({ kind }) => kind === "attackDeclared")).toBe(true);
   });
 

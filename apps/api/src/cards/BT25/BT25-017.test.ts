@@ -130,7 +130,7 @@ describe("BT25-017 Flaremon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  it("can accept the optional attack and refuse the independent paid deletion", async () => {
+  it("accepting an illegal same-turn attack still allows refusing the independent paid deletion", async () => {
     const s = setupEngine(
       {
         0: {
@@ -166,11 +166,12 @@ describe("BT25-017 Flaremon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-017"));
     expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("allows the by-condition cost even with no eligible deletion target", async () => {

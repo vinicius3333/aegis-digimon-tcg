@@ -107,7 +107,7 @@ function hasRush(permanent: Permanent, reader: ContinuousLegalityReader | undefi
 }
 
 /**
- * Whether `permanent` is summoning-sick (Comprehensive Rules §16-1): it entered the field
+ * Whether `permanent` is summoning-sick (Comprehensive Rules §7-1-2-1): it entered the field
  * on the current turn and has no ＜Rush＞, so it may not declare an ordinary attack.
  * Digivolving does NOT reset `enterFieldTurnCount`, so a Digimon that evolved onto an
  * established permanent is not sick. ＜Vortex＞ is a same-turn-attack grant of its own
@@ -146,8 +146,8 @@ export function hasCollision(attacker: Permanent, reader: ContinuousLegalityRead
  *   - controlled by the active player,
  *   - not already suspended, unless the effect declares the attack without suspending.
  *   - (summoning sickness) a Digimon that entered the field this turn may only
- *     attack if it has ＜Rush＞ (Comprehensive Rules §16-1), unless a resolving
- *     card effect explicitly instructs that Digimon to attack.
+ *     attack if it has ＜Rush＞ or is declaring a ＜Vortex＞ attack. An effect that
+ *     instructs a Digimon to attack does not by itself override §7-1-2-1.
  *
  * A continuous `attack` restriction ("can't attack") from the ledger forbids the
  * declaration outright (Comprehensive Rules §15: a "can't" rule wins).
@@ -159,7 +159,6 @@ export function canAttackerDeclare(
   reader?: ContinuousLegalityReader,
   isVortex?: boolean,
   withoutSuspending = false,
-  ignoreSummoningSickness = false,
 ): RejectReason | null {
   if (attacker.topCard === undefined) {
     return "illegal-target";
@@ -181,14 +180,14 @@ export function canAttackerDeclare(
   if (isVortex === true && !hasVortex(attacker, reader)) {
     return "illegal-target";
   }
-  // Summoning sickness (§16-1): a Digimon that entered the field this turn may
+  // Summoning sickness (§7-1-2-1): effect-driven attacks obey this restriction too.
+  // A Digimon that entered the field this turn may
   // only declare an attack if it has ＜Rush＞. Digivolving does NOT reset the
   // enterFieldTurnCount, so a Digimon that evolved onto an existing permanent
   // can attack (its host entered on a previous turn). §16-33-1: ＜Vortex＞ is
   // ALSO a same-turn-attack grant in its own right — a Vortex-mode declaration
   // from a Digimon with the keyword is exempt even without ＜Rush＞.
   if (
-    !ignoreSummoningSickness &&
     hasSummoningSickness(attacker, access.game.turnCount, reader) &&
     !(isVortex === true && hasVortex(attacker, reader))
   ) {

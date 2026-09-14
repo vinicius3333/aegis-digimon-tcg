@@ -171,7 +171,7 @@ describe("BT25-018 Apollomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("DNA-digivolves first at end of turn, then lets the resulting Digimon attack", async () => {
+  it("DNA-digivolves and attacks, then honors GraceNovamon's accepted EndAttack before security", async () => {
     const s = setupEngine(
       {
         0: {
@@ -194,7 +194,9 @@ describe("BT25-018 Apollomon", () => {
     const grace = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-103");
     expect(grace).toBeDefined();
     expect(grace!.isSuspended).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "securityRevealed")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("still offers the follow-up attack when the end-turn DNA effect is declined", async () => {

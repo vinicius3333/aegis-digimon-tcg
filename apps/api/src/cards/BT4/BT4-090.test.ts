@@ -44,7 +44,7 @@ describe("BT4-090 Chaosmon", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
-  it("uses its effect-driven attack after the stack enters play this turn", async () => {
+  it("cannot use its effect-driven attack when the stack was played this turn without Rush", async () => {
     const s = setupEngine(
       {
         0: {
@@ -73,9 +73,11 @@ describe("BT4-090 Chaosmon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => base.topCard?.cardId === "BT4-090" && s.state.pendingDecision === undefined, 5000);
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-090"));
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(base.isSuspended).toBe(true);
+    expect(base.topCard?.cardId).toBe("BT4-090");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(base.isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
   });
 });
