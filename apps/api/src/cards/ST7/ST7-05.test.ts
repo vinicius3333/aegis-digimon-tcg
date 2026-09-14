@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST7-05.js";
+import "./ST7-09.js";
 
 describe("ST7-05 Growlmon", () => {
   it("gains 1 memory once per turn when an opposing Digimon is deleted", async () => {

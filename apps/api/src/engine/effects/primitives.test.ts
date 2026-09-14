@@ -683,6 +683,7 @@ describe("primitives: trash / delete / suspend", () => {
       from: "security",
       to: "trash",
       cardIds: [OPTION, TAMER],
+      artIds: [OPTION, TAMER],
       seat: 1,
     });
   });

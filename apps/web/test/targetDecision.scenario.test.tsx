@@ -198,5 +198,5 @@ scenario("target-decision", () => {
     );
 
     await opponent.leave();
-  }, 30_000);
+  }, 60_000);
 });

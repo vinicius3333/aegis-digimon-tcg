@@ -163,6 +163,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "library.playCost": "Custo de jogo",
   "library.rarity": "Raridade",
   "library.sort": "Ordenar",
+  "library.sort.releaseDate": "Ordenar: Data de lançamento (mais recentes)",
   "library.sort.name": "Ordenar: Nome",
   "library.sort.dp": "Ordenar: DP",
   "library.sort.level": "Ordenar: Nível",

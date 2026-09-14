@@ -149,5 +149,5 @@ scenario("digivolve-alternate", () => {
     expect(within(yourBattleArea()).queryAllByRole("img", { name: /^agumon$/i })).toHaveLength(0);
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

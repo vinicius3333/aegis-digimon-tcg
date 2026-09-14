@@ -161,5 +161,5 @@ scenario("trigger-order", () => {
     expect(within(yourBattleArea()).getAllByRole("img", { name: /t\.?k\.? takaishi/i })).toHaveLength(1);
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

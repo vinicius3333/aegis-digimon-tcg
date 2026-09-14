@@ -35,6 +35,7 @@ export const TIMINGS = {
   memoryGlow: 1600,
   /** The attack arrow drawing itself from attacker to target. */
   attackArrow: 380,
+  attackArrowChevron: 160,
   /** The attacker leaning at the security stack it declared on. */
   attackLunge: 240,
   /** How long the attack call-out stays up. Long enough to read a card name, and no longer. */
@@ -350,7 +351,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-memory-sweep": TIMINGS.memorySweep,
   "--t-memory-arc": TIMINGS.memoryArc,
   "--t-memory-glow": TIMINGS.memoryGlow,
-  "--t-attack-arrow": TIMINGS.attackArrow,
+  "--t-attack-arrow-chevron": TIMINGS.attackArrowChevron,
   "--t-attack-lunge": TIMINGS.attackLunge,
   "--t-attack-announce-in": TIMINGS.attackAnnounceIn,
   "--t-security-hit": TIMINGS.securityHit,

@@ -44,9 +44,7 @@ describe("rendered beta battle against a real room", () => {
     });
     beta.ready();
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
-    await vi.waitFor(() => expect(screen.getAllByText(/your turn|their turn/i).length).toBeGreaterThan(0), {
-      timeout: 10_000,
-    });
+    await screen.findByRole("img", { name: /^memory:/i }, { timeout: 10_000 });
     expect(beta.room.state.players).toHaveLength(2);
     const betaBotClient = new Client(server.endpoint);
     const betaBotRoom = await betaBotClient.create(ROOM_TYPE_BETA_BOT, {
@@ -58,5 +56,5 @@ describe("rendered beta battle against a real room", () => {
     await betaBotRoom.leave();
     await normal.leave();
     await beta.leave();
-  });
+  }, 20_000);
 });

@@ -9,6 +9,7 @@ import {
   getCardArts,
   resolveCardArt,
   restrictionLabel,
+  releaseDateForCard,
   type CardColor,
   type CardDefinition,
 } from "@aegis/shared";
@@ -23,7 +24,7 @@ export const KIND_FILTERS = ["Digimon", "DigiEgg", "Tamer", "Option"] as const;
 export const LEVEL_FILTERS = [2, 3, 4, 5, 6, 7] as const;
 export const COST_FILTERS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
 export const RARITY_FILTERS = ["C", "U", "R", "SR", "UR", "SEC", "P", "-"] as const;
-export const CARD_SORTS = ["name", "dp", "level", "playCost", "type", "cardNumber", "random"] as const;
+export const CARD_SORTS = ["releaseDate", "name", "dp", "level", "playCost", "type", "cardNumber", "random"] as const;
 export type KindFilter = (typeof KIND_FILTERS)[number];
 export type LevelFilter = (typeof LEVEL_FILTERS)[number];
 export type CostFilter = (typeof COST_FILTERS)[number];
@@ -213,6 +214,10 @@ export function sortCards(cards: readonly CardDefinition[], sort: CardSort): Car
     return sorted;
   }
   return sorted.sort((a, b) => {
+    if (sort === "releaseDate") {
+      const dateOrder = (releaseDateForCard(b) ?? "").localeCompare(releaseDateForCard(a) ?? "");
+      return dateOrder || a.cardId.localeCompare(b.cardId, undefined, { numeric: true });
+    }
     if (sort === "dp") return compareNumbers(a.dp, b.dp) || a.nameEn.localeCompare(b.nameEn);
     if (sort === "level") return compareNumbers(a.level, b.level) || a.nameEn.localeCompare(b.nameEn);
     if (sort === "playCost") return compareNumbers(a.playCost, b.playCost) || a.nameEn.localeCompare(b.nameEn);
@@ -267,7 +272,7 @@ export function useCardFilter(
   const [levels, setLevels] = useState<LevelFilter[]>([]);
   const [costs, setCosts] = useState<CostFilter[]>([]);
   const [rarities, setRarities] = useState<RarityFilter[]>([]);
-  const [sort, setSort] = useState<CardSort>("name");
+  const [sort, setSort] = useState<CardSort>("releaseDate");
   const [traitQuery, setTraitQuery] = useState("");
   const [set, setSet] = useState("");
 

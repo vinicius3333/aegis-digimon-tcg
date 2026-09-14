@@ -3216,6 +3216,7 @@ export class GameEngine {
             // Retire the pending trigger before its body can open another window, mirroring
             // `resolutionDeps.onResolving` for the printed half of the same pool.
             this.parkedEntrySubTriggers = this.parkedEntrySubTriggers.filter((entry) => entry !== item);
+            this.pendingWindowSubTriggers = this.pendingWindowSubTriggers.filter((entry) => entry !== item);
             await this.fireOneSubTrigger(item, { announce: false });
           },
         },

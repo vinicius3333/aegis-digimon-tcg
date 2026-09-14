@@ -41,7 +41,7 @@ describe("BT5-065 Shademon", () => {
         kind: "securityChecked",
         revealedCardId: "BT5-065",
         resolution: "battle",
-        battle: { securityDigimonDeleted: true, attackerDeleted: false },
+        battle: { securityDigimonDeleted: true, attackerDeleted: false, attackerDP: 12000, securityCardDP: 5000 },
       }),
     );
     const firstCheck = s.events.findIndex(

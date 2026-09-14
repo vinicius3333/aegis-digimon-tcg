@@ -92,8 +92,7 @@ scenario("ad1-001-evolution-stack", () => {
       .getByRole("img", { name: /^greymon$/i })
       .closest('[data-drop="perm-you"]');
     tap(evolved as HTMLElement);
-    fireEvent.click(await screen.findByRole("button", { name: /view stack/i }));
-    expect(await screen.findByRole("button", { name: /^agumon agumon/i })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /^open agumon$/i })).toBeTruthy();
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

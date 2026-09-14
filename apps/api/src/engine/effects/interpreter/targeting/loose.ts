@@ -30,6 +30,7 @@ export const DEFAULT_PLAY_ZONES: ZoneRef[] = ["hand"];
 export interface LooseCandidate {
   instanceId: string;
   cardId: string;
+  artId?: string;
   ownerSeat: Seat;
   /** The host permanent ID when this card sits in a permanent's stack/linked list; undefined for hand/trash/deck/security cards. */
   hostPermanentId?: string;
@@ -42,13 +43,14 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
   const p = ctx.game.player(seat);
   const out: LooseCandidate[] = [];
   const collect = (
-    cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat; faceUp?: boolean }>,
+    cards: ArrayLike<{ instanceId: string; cardId: string; artId?: string; ownerSeat: Seat; faceUp?: boolean }>,
   ): void => {
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]!;
       out.push({
         instanceId: c.instanceId,
         cardId: c.cardId,
+        ...(c.artId ? { artId: c.artId } : {}),
         ownerSeat: c.ownerSeat,
         ...(c.faceUp !== undefined ? { faceUp: c.faceUp } : {}),
       });
@@ -78,6 +80,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
             faceUp: c.faceUp,
@@ -89,6 +92,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: p.breeding.permanentId,
             faceUp: c.faceUp,
@@ -111,6 +115,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
           });
@@ -127,6 +132,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: sourcePermanent.permanentId,
           });
@@ -146,6 +152,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
           });
@@ -161,6 +168,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
           });
@@ -171,6 +179,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
           out.push({
             instanceId: c.instanceId,
             cardId: c.cardId,
+            ...(c.artId ? { artId: c.artId } : {}),
             ownerSeat: c.ownerSeat,
             hostPermanentId: p.breeding.permanentId,
           });

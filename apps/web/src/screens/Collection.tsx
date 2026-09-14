@@ -4,11 +4,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CardDefinition } from "@aegis/shared";
-import { getCardArts, releaseDateForCard } from "@aegis/shared";
+import { getCardArts } from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { activeCollectionCards } from "../game/decks";
-import { CardDetailDrawer, FilterRail, useCardFilter } from "./cardLibrary";
+import { CardDetailDrawer, FilterRail, sortCards, useCardFilter } from "./cardLibrary";
 import { useTranslation } from "../i18n";
 import "./collection.css";
 
@@ -16,14 +16,7 @@ const PAGE_SIZE = 48;
 
 export function Collection() {
   const { t } = useTranslation();
-  const all = useMemo<CardDefinition[]>(
-    () =>
-      activeCollectionCards().sort((a, b) => {
-        const dateOrder = (releaseDateForCard(b) ?? "").localeCompare(releaseDateForCard(a) ?? "");
-        return dateOrder || a.cardId.localeCompare(b.cardId, undefined, { numeric: true });
-      }),
-    [],
-  );
+  const all = useMemo<CardDefinition[]>(() => sortCards(activeCollectionCards(), "releaseDate"), []);
   const filter = useCardFilter(all);
   const [selected, setSelected] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);

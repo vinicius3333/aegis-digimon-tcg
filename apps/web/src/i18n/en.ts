@@ -160,6 +160,7 @@ export const en = {
   "library.playCost": "Play cost",
   "library.rarity": "Rarity",
   "library.sort": "Sort",
+  "library.sort.releaseDate": "Sort: Release date (newest first)",
   "library.sort.name": "Sort: Name",
   "library.sort.dp": "Sort: DP",
   "library.sort.level": "Sort: Level",

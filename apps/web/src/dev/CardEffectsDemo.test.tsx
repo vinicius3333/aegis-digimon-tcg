@@ -7,6 +7,16 @@ import { CardEffectsDemo } from "./CardEffectsDemo";
 
 afterEach(() => cleanup());
 
+function handCounter(count: number): HTMLElement {
+  return within(screen.getByRole("group", { name: "You" })).getByRole("button", {
+    name: `Hand: ${count} cards in hand`,
+  });
+}
+
+function opponentBattleArea() {
+  return within(screen.getByRole("group", { name: "Opponent's battle area" }));
+}
+
 function mockDesktop(): void {
   vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
     matches: false,
@@ -84,7 +94,13 @@ describe("CardEffectsDemo", () => {
       .getAllByRole("button", { name: "Veemon" })
       .find((element) => element instanceof HTMLButtonElement && element.disabled);
     expect(disabledVeemon).toBeDefined();
-    expect((screen.getByRole("button", { name: "Elecmon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        screen
+          .getAllByRole("button", { name: "Elecmon" })
+          .find((element) => element instanceof HTMLButtonElement) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
   });
 
   it("opens Megiddo Flame on the real board with both currently legal Main branches", () => {
@@ -120,7 +136,13 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByRole("button", { name: "Guilmon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Guilmon (X Antibody)" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Growlmon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        screen
+          .getAllByRole("button", { name: "Growlmon" })
+          .find((element) => element instanceof HTMLButtonElement) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
     expect(screen.getByText(/play 1 \[Guilmon\] from your trash/i)).toBeTruthy();
   });
 
@@ -298,7 +320,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Azulongmon" })).toBeTruthy();
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
     expect(screen.getByText(/moved: deck → hand/i)).toBeTruthy();
     expect(screen.getByText(/moved: hand → battle area/i)).toBeTruthy();
   });
@@ -316,7 +338,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Select Azulongmon" })).toBeNull();
-    expect(screen.getByText(/hand 0/i)).toBeTruthy();
+    expect(handCounter(0)).toBeTruthy();
     expect(screen.getByText(/moved: security → battle area/i)).toBeTruthy();
   });
 
@@ -429,7 +451,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(/Removed Paildramon's sources/i)).toBeTruthy();
     expect(screen.getByText(/Paildramon and Gabumon can't attack until the end of the opponent's turn/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Paildramon" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Paildramon" })).toBeTruthy();
   });
 
   it("shows Sourai Security activating the complete Main sequence at zero memory", () => {
@@ -571,7 +593,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(/Suspended Hina Kurihara and activated Volcanicdramon's On Play effect/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Inspect opponent Digimon: Elecmon" })).toBeNull();
+    expect(opponentBattleArea().queryByRole("button", { name: "Elecmon" })).toBeNull();
   });
 
   it("shows Hina's start-of-turn memory gain", () => {
@@ -663,7 +685,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.getByText(/moved: hand → battle area/i)).toBeTruthy();
-    expect(screen.getAllByRole("img", { name: "deck · 36" })).toHaveLength(2);
+    expect(screen.getAllByRole("img", { name: "deck · 36" })).toHaveLength(4);
   });
 
   it("shows Dragon Mode's DNA survivor decision to the opponent who must make it", () => {
@@ -834,8 +856,8 @@ describe("CardEffectsDemo", () => {
     );
 
     const attacker = screen.getByRole("button", { name: "Imperialdramon: Dragon Mode" });
-    expect(attacker.style.cursor).toBe("grab");
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Elecmon" })).toBeTruthy();
+    expect(attacker.style.cursor).toBe("pointer");
+    expect(opponentBattleArea().getByRole("button", { name: "Elecmon" })).toBeTruthy();
   });
 
   it("offers a sourced ExTyrannomon as a friendly Blocker action", () => {
@@ -1651,7 +1673,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Elecmon (Suspended)" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Elecmon (Suspended)" })).toBeTruthy();
     expect(screen.getByText(/O efeito herdado de Parasaurmon suspendeu Elecmon/i)).toBeTruthy();
   });
 
@@ -1741,9 +1763,10 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Examon" })).toBeTruthy();
     expect(screen.getByText(/Groundramon e Slayerdramon DNA digievoluíram em Examon/i)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Examon" }));
-    expect(screen.getByRole("button", { name: /Groundramon Groundramon 7,000 DP/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Slayerdramon Slayerdramon 12,000 DP/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Paledramon Paledramon 5,000 DP/i })).toBeTruthy();
+    const inspector = within(screen.getByRole("dialog", { name: "Examon" }));
+    expect(inspector.getByRole("button", { name: "Open Groundramon" })).toBeTruthy();
+    expect(inspector.getByRole("button", { name: "Open Slayerdramon" })).toBeTruthy();
+    expect(inspector.getByRole("button", { name: "Open Paledramon" })).toBeTruthy();
   });
 
   it("opens a block window for Groundramon's printed Blocker", () => {
@@ -1901,7 +1924,7 @@ describe("CardEffectsDemo", () => {
     );
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(log)).toBeTruthy();
-    expect(screen.getByText(new RegExp(`hand ${hand}`, "i"))).toBeTruthy();
+    expect(handCounter(hand)).toBeTruthy();
     expect(screen.getAllByRole("img", { name: `deck · ${deck}` }).length).toBeGreaterThan(0);
     expect(screen.getByText(`Turn 8 · memory ${effect === "trial-played" ? "+2" : "0"}`)).toBeTruthy();
   });
@@ -2154,8 +2177,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Groundramon (Suspended)" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Elecmon (Suspended)" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Gabumon" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Elecmon (Suspended)" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Gabumon" })).toBeTruthy();
     expect(screen.getByText(/Evade suspendeu Groundramon, então Toropiamon suspendeu Elecmon/i)).toBeTruthy();
   });
 
@@ -2170,7 +2193,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Toropiamon" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Elecmon" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Elecmon" })).toBeTruthy();
   });
 
   it("shows Entmon's Digisorption as one friendly optional confirmation", () => {
@@ -2403,7 +2426,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.queryByRole("button", { name: "Elecmon" })).toBeNull();
     expect(screen.getByRole("button", { name: /Gabumon.*Suspended/i })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 37" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 37" })[0]).toBeTruthy();
     expect(screen.getByRole("button", { name: "trash · 1" })).toBeTruthy();
     expect(screen.getByText(/moved: battle area → deck/i)).toBeTruthy();
     expect(screen.getByText(/moved: digivolutionCards → trash/i)).toBeTruthy();
@@ -2538,7 +2561,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "trash · 1" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Inspect opponent Digimon: Sealsdramon" })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: "Sealsdramon" })).toBeTruthy();
   });
 
   it("shows Metallicdramon's opponent-turn Blocker and Reboot while Hina is in play", () => {
@@ -2755,7 +2778,7 @@ describe("CardEffectsDemo", () => {
     expect(within(dialog).getByText(/Escolha 1 carta com Examon no nome/i)).toBeTruthy();
     expect((within(dialog).getByRole("button", { name: "Examon" }) as HTMLButtonElement).disabled).toBe(false);
     expect((within(dialog).getByRole("button", { name: "Wingdramon" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
   });
 
   it("reorders Dracomon's remaining cards with card-specific accessible actions", () => {
@@ -2794,7 +2817,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Wingdramon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Examon" })).toBeTruthy();
     // The clause is narrated by the presentation queue now, so it arrives on the queue's
@@ -2861,9 +2884,9 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Magnadramon" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Elecmon/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Gabumon/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Agumon/ })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Elecmon/ })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Gabumon/ })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Agumon/ })).toBeTruthy();
     expect(screen.getByText(/todos os Digimon do oponente receberam Security Attack -1.*fim do turno/i)).toBeTruthy();
     expect(screen.getByText(/\[On Play\] All of your opponent's Digimon gain.*Security Attack -1/i)).toBeTruthy();
   });
@@ -2960,7 +2983,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "trash · 1" })).toBeTruthy();
-    expect(screen.getByText(new RegExp(`hand ${handCount}`, "i"))).toBeTruthy();
+    expect(handCounter(handCount)).toBeTruthy();
     expect(screen.getByText(log)).toBeTruthy();
     expect(screen.queryAllByRole("button", { name: "Trial of the Four Great Dragons" })).toHaveLength(
       effect === "accepted" ? 1 : 0,
@@ -3020,9 +3043,9 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(log)).toBeTruthy();
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
     expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 34" })[0]).toBeTruthy();
     expect(
       screen.getByText(`You revealed ${effect === "yellow" ? "Tsukaimon" : "Gryphonmon"} with Airdramon`),
     ).toBeTruthy();
@@ -3041,9 +3064,9 @@ describe("CardEffectsDemo", () => {
     expect(
       screen.getByText(/revelou Monodramon.*não era amarela.*não houve Recovery.*embaralhada.*oculta/i),
     ).toBeTruthy();
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
     expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 35" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 35" })[0]).toBeTruthy();
     expect(screen.queryByText("Tsukaimon")).toBeNull();
     expect(screen.queryByText("Gryphonmon")).toBeNull();
   });
@@ -3061,7 +3084,7 @@ describe("CardEffectsDemo", () => {
       screen.getByText(/revelou Tsukaimon.*baralho estava vazio.*Recovery \+1 não moveu carta.*embaralhada/i),
     ).toBeTruthy();
     expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 0" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 0" })[0]).toBeTruthy();
   });
 
   it("does not open an impossible Airdramon choice when security is empty", () => {
@@ -3078,7 +3101,7 @@ describe("CardEffectsDemo", () => {
       screen.getByText(/segurança estava vazia.*não abriu uma escolha impossível.*baralho permaneceu intacto/i),
     ).toBeTruthy();
     expect(screen.getByLabelText("Your security · 0")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 35" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 35" })[0]).toBeTruthy();
   });
 
   it.each([
@@ -3096,8 +3119,8 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: permanentName })).toBeTruthy();
     expect(screen.getByText(log)).toBeTruthy();
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 35" })).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 35" })[0]).toBeTruthy();
   });
 
   it.each([
@@ -3116,7 +3139,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Goldramon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.getByText(log)).toBeTruthy();
-    expect(screen.getByText(/hand 1/i)).toBeTruthy();
+    expect(handCounter(1)).toBeTruthy();
   });
 
   it("shows two inherited EX3-027 copies drawing independently from one event", () => {
@@ -3132,8 +3155,8 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Liollmon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reppamon" })).toBeTruthy();
     expect(screen.getByText(/Duas cópias herdadas de Agumon.*mesmo Goldramon.*2 cartas/i)).toBeTruthy();
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 34" })[0]).toBeTruthy();
   });
 
   it("makes EX3-027 visible in its host's accessible stack viewer", () => {
@@ -3165,7 +3188,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(log)).toBeTruthy();
-    expect(screen.getByText(new RegExp(`hand ${hand}`, "i"))).toBeTruthy();
+    expect(handCounter(hand)).toBeTruthy();
     expect(screen.getAllByRole("img", { name: `deck · ${deck}` }).length).toBeGreaterThan(0);
   });
 
@@ -3274,7 +3297,7 @@ describe("CardEffectsDemo", () => {
 
     const dialog = screen.getByRole("dialog", { name: /Patamon · effect/i });
     expect(within(dialog).getAllByRole("button", { name: /Move/i })).toHaveLength(2);
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
   });
 
   it("shows Patamon's resolved search without inventing an inherited effect", () => {
@@ -3288,8 +3311,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(/Patamon adicionou SlashAngemon e Azulongmon.*Seraphimon foi excluído/i)).toBeTruthy();
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 34" })[0]).toBeTruthy();
     expect(screen.queryByText("Rush")).toBeNull();
   });
 
@@ -3387,8 +3410,8 @@ describe("CardEffectsDemo", () => {
     expect(
       screen.getByText(/adicionou SlashAngemon e Azulongmon.*Seraphimon foi excluído.*Three Great Angels/i),
     ).toBeTruthy();
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 34" })[0]).toBeTruthy();
   });
 
   it("shows Gatomon's inherited Rush and lets the newly played dragon attack", () => {
@@ -3554,8 +3577,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(/adicionou Magnadramon e Azulongmon.*outras 2 cartas.*ordem escolhida/i)).toBeTruthy();
-    expect(screen.getByText(/hand 2/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
+    expect(handCounter(2)).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 34" })[0]).toBeTruthy();
   });
 
   it("shows inherited Rush only on the newly played Four Great Dragons and exposes its attack action", () => {
@@ -3766,7 +3789,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByText(new RegExp(`hand ${handCount}`, "i"))).toBeTruthy();
+    expect(handCounter(handCount)).toBeTruthy();
     expect(screen.getByText(log)).toBeTruthy();
     expect(Boolean(screen.queryByRole("button", { name: "Trial of the Four Great Dragons" }))).toBe(placed);
   });
@@ -3911,7 +3934,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByText(new RegExp(`hand ${handCount}`, "i"))).toBeTruthy();
+    expect(handCounter(handCount)).toBeTruthy();
     expect(screen.getByText(log)).toBeTruthy();
     expect(Boolean(screen.queryByRole("button", { name: "Trial of the Four Great Dragons" }))).toBe(placed);
   });
@@ -3942,8 +3965,8 @@ describe("CardEffectsDemo", () => {
     const dialog = screen.getByRole("dialog", { name: /Angewomon · effect/i });
     expect(within(dialog).getByText(/play a Digimon with \[Four Great Dragons\].*or place \[Trial/i)).toBeTruthy();
     expect(within(dialog).getByText(/gets -3000 DP for the turn/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Elecmon/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Gabumon/i })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Elecmon/i })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Gabumon/i })).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: /Elecmon, 5,000 DP/i }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -3981,7 +4004,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Magnadramon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Elecmon/i })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Elecmon/i })).toBeTruthy();
     expect(screen.getByText("5K")).toBeTruthy();
     expect(screen.getByText("8K")).toBeTruthy();
     expect(
@@ -4039,8 +4062,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByText(/Escolha 1 Digimon do oponente.*-6000 DP/i)).toBeTruthy();
     expect(screen.getByText(/\[When Attacking\].*opponent's Digimon gets -6000/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^Inspect opponent Digimon: Agumon$/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^Inspect opponent Digimon: Agumon Expert$/i })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Agumon$/i })).toBeTruthy();
+    expect(opponentBattleArea().getByRole("button", { name: /Agumon Expert$/i })).toBeTruthy();
     expect(screen.getAllByText("10K")).toHaveLength(2);
   });
 
@@ -4108,7 +4131,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("button", { name: "trash · 2" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "deck · 39" })).toBeTruthy();
+    expect(screen.getAllByRole("img", { name: "deck · 39" })[0]).toBeTruthy();
     expect(screen.getByText("4K")).toBeTruthy();
     expect(screen.getByText("10K")).toBeTruthy();
   });
@@ -4421,7 +4444,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("button", { name: "trash · 2" })).toBeTruthy();
-    const host = screen.getByRole("button", { name: "Inspect opponent Digimon: Dolphmon" });
+    const host = opponentBattleArea().getByRole("button", { name: "Dolphmon" });
     expect(host.getAttribute("tabindex")).toBe("0");
   });
 

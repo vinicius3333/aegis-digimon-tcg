@@ -26,10 +26,18 @@ export function RankedStart({
   const [error, setError] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean>();
   useEffect(() => {
+    let active = true;
     void accountApi
       .me()
-      .then((account) => setAuthenticated(account !== null))
-      .catch(() => setAuthenticated(false));
+      .then((account) => {
+        if (active) setAuthenticated(account !== null);
+      })
+      .catch(() => {
+        if (active) setAuthenticated(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   async function begin() {
     setError(false);

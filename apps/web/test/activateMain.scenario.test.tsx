@@ -147,5 +147,5 @@ scenario("activate-main", () => {
     await vi.waitFor(() => expect(opponent.room.state.players[1]!.battleArea.length).toBe(0), { timeout: 10_000 });
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

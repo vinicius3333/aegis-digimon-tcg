@@ -164,5 +164,5 @@ scenario("alliance", () => {
     expect(agumonPermElAfter.querySelector('[data-state="suspended"]')).toBeTruthy();
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

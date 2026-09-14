@@ -1,7 +1,6 @@
 /* Dev-only gallery of the match screen's presentational pieces, rendered from
    fixtures instead of a live Colyseus room so a styling change can be reviewed
-   without playing a match. Reached at /dev/board; each section carries a stable
-   id that tools/ui-review.mjs screenshots one by one. */
+   without playing a match. Reached at /dev/board. */
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { CardInstance, getCardDefinition, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
@@ -520,7 +519,7 @@ export function BoardShowcase() {
         <h1 className="board-showcase__title">Board showcase</h1>
         <p className="board-showcase__lead">
           Every match-screen piece rendered from fixtures. Nothing here talks to a room, so a styling change can be
-          reviewed by scrolling. Screenshot it with <code>node tools/ui-review.mjs</code>.
+          reviewed by scrolling.
         </p>
       </header>
 

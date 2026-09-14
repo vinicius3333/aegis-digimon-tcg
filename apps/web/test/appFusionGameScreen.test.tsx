@@ -82,8 +82,8 @@ it("opens App Fusion from hand selection on the second host and sends the second
     .closest('[data-drop="perm-you"]') as HTMLElement;
   fireEvent.keyDown(handButton, { key: "Enter" });
   secondHost.click();
-  const dialog = await screen.findByText(/App Fusion/i);
-  const panel = dialog.closest(".app-fusion-choice__panel") as HTMLElement;
+  const dialog = await screen.findByRole("dialog", { name: /App Fusion/i });
+  const panel = dialog.querySelector(".app-fusion-choice__panel") as HTMLElement;
   expect(within(panel).getAllByRole("radio")).toHaveLength(2);
   within(panel).getAllByRole("radio")[1]!.click();
   within(panel)
@@ -105,7 +105,9 @@ it("keeps the drag route and does not invent a normal fallback", async () => {
     .getAllByRole("img", { name: /^dokamon$/i })[1]!
     .closest('[data-drop="perm-you"]') as HTMLElement;
   dragOnto(result, secondHost);
-  const panel = (await screen.findByText(/App Fusion/i)).closest(".app-fusion-choice__panel") as HTMLElement;
+  const panel = (await screen.findByRole("dialog", { name: /App Fusion/i })).querySelector(
+    ".app-fusion-choice__panel",
+  ) as HTMLElement;
   expect(within(panel).queryByRole("button", { name: /normal evolution/i })).toBeNull();
   expect(mocked.appFusion).not.toHaveBeenCalled();
 });
@@ -119,7 +121,9 @@ it("cancels without sending an App Fusion intent", async () => {
     .closest('[data-drop="perm-you"]') as HTMLElement;
   fireEvent.keyDown(handButton, { key: "Enter" });
   secondHost.click();
-  const panel = (await screen.findByText(/App Fusion/i)).closest(".app-fusion-choice__panel") as HTMLElement;
+  const panel = (await screen.findByRole("dialog", { name: /App Fusion/i })).querySelector(
+    ".app-fusion-choice__panel",
+  ) as HTMLElement;
   within(panel)
     .getByRole("button", { name: /cancel/i })
     .click();
@@ -135,7 +139,7 @@ it("rejects a route after its selected host link is removed", async () => {
     .closest('[data-drop="perm-you"]') as HTMLElement;
   fireEvent.keyDown(handButton, { key: "Enter" });
   secondHost.click();
-  await screen.findByText(/App Fusion/i);
+  await screen.findByRole("dialog", { name: /App Fusion/i });
   s.perm("hostTwo").linked = [s.perm("hostTwo").linked![1]!];
   mocked.roomResult.current = { ...(mocked.roomResult.current as object), state: s.state, stateVersion: 2 };
   rerender(
@@ -146,7 +150,9 @@ it("rejects a route after its selected host link is removed", async () => {
       onExit={() => {}}
     />,
   );
-  const currentPanel = screen.queryByText(/App Fusion/i)?.closest(".app-fusion-choice__panel") as HTMLElement | null;
+  const currentPanel = screen
+    .queryByRole("dialog", { name: /App Fusion/i })
+    ?.querySelector(".app-fusion-choice__panel") as HTMLElement | null;
   expect(currentPanel).toBeTruthy();
   const confirm = within(currentPanel!).getByRole("button", { name: /app fuse/i });
   expect((confirm as HTMLButtonElement).disabled).toBe(true);
@@ -199,7 +205,7 @@ it.each([
     .getAllByRole("img", { name: /^dokamon$/i })[1]!
     .closest('[data-drop="perm-you"]') as HTMLElement;
   dragOnto(result, secondHost);
-  await screen.findByText(/App Fusion/i);
+  await screen.findByRole("dialog", { name: /App Fusion/i });
   mutate(s);
   mocked.roomResult.current = { ...(mocked.roomResult.current as object), state: s.state, stateVersion: 2 };
   rerender(

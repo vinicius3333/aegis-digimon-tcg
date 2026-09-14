@@ -115,7 +115,7 @@ describe("EX7-003 Kyaromon", () => {
         kind: "securityChecked",
         revealedCardId: "BT1-009",
         resolution: "battle",
-        battle: { attackerDeleted: true, securityDigimonDeleted: false },
+        battle: { attackerDeleted: true, securityDigimonDeleted: false, attackerDP: 2000, securityCardDP: 3000 },
       }),
     );
     assertNoLoudGap(s);

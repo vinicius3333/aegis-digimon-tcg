@@ -57,8 +57,8 @@ describe("Alliance and Piercing attack duration", () => {
       expect(checked.map((event) => event.battle)).toEqual(
         accept
           ? [
-              { attackerDeleted: false, securityDigimonDeleted: true },
-              { attackerDeleted: false, securityDigimonDeleted: true },
+              { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 20000, securityCardDP: 17000 },
+              { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 20000, securityCardDP: 17000 },
             ]
           : [],
       );
@@ -139,8 +139,15 @@ describe("Security battle duration boundaries", () => {
       const checked = s.events.filter((event) => event.kind === "securityChecked");
       expect(checked).toHaveLength(2);
       expect(checked.map((event) => event.battle)).toEqual([
-        firstCard === "BT1-084" ? { attackerDeleted: false, securityDigimonDeleted: true } : undefined,
-        { attackerDeleted: !survives, securityDigimonDeleted: true },
+        firstCard === "BT1-084"
+          ? { attackerDeleted: false, securityDigimonDeleted: true, attackerDP: 16000, securityCardDP: 15000 }
+          : undefined,
+        {
+          attackerDeleted: !survives,
+          securityDigimonDeleted: true,
+          attackerDP: survives ? 16000 : 15000,
+          securityCardDP: 15000,
+        },
       ]);
       expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual(
         survives ? [s.inst("attacker").instanceId] : [],

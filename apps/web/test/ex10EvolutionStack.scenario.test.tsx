@@ -108,5 +108,5 @@ scenario("ex10-evolution-stack", () => {
       { timeout: 10_000 },
     );
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

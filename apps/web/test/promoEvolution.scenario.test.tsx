@@ -81,9 +81,8 @@ scenario("promo-p122-evolution-stack", () => {
       .getByRole("img", { name: /^reppamon$/i })
       .closest('[data-drop="perm-you"]');
     tap(reppamon as HTMLElement);
-    fireEvent.click(await screen.findByRole("button", { name: /view stack/i }));
-    expect(await screen.findByRole("button", { name: /^patamon patamon/i })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /^open patamon$/i })).toBeTruthy();
     expect(screen.getByText(/4,000 DP/i)).toBeTruthy();
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

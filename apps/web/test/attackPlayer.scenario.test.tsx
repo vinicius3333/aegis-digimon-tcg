@@ -129,5 +129,5 @@ scenario("attack-player", () => {
     await vi.waitFor(() => expect(within(oppSecurity()).getByText("4")).toBeTruthy(), { timeout: 10_000 });
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

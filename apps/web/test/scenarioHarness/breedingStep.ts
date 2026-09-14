@@ -25,6 +25,8 @@ export async function waitForBoardActions(timeout = TIMEOUT): Promise<void> {
 /** Ends the breeding step from the board's turn control. */
 export async function endBreedingStep(timeout = TIMEOUT): Promise<void> {
   fireEvent.click(await findEndBreedingControl(timeout));
+  await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), { timeout });
+  await waitForBoardActions(timeout);
 }
 
 /**
@@ -34,6 +36,8 @@ export async function endBreedingStep(timeout = TIMEOUT): Promise<void> {
 export async function hatchDigiEgg(timeout = TIMEOUT): Promise<void> {
   await findEndBreedingControl(timeout);
   fireEvent.click(screen.getByRole("button", { name: /^eggs · \d+$/i }));
+  await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), { timeout });
+  await waitForBoardActions(timeout);
 }
 
 /**
@@ -43,4 +47,6 @@ export async function hatchDigiEgg(timeout = TIMEOUT): Promise<void> {
 export async function moveFromBreedingArea(timeout = TIMEOUT): Promise<void> {
   await findEndBreedingControl(timeout);
   fireEvent.click(document.querySelector('[data-drop="breeding-you"]') as HTMLElement);
+  await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), { timeout });
+  await waitForBoardActions(timeout);
 }

@@ -2639,7 +2639,7 @@
   stroke-width: 0.65;
   stroke-linejoin: round;
   filter: drop-shadow(0 1px 1px rgb(0 24 36 / 35%));
-  animation: battle-arrow-chevron-in 160ms ease-out both;
+  animation: battle-arrow-chevron-in var(--t-attack-arrow-chevron, 160ms) ease-out both;
   animation-delay: calc(var(--arrow-step, 0) * 18ms);
 }
 
@@ -6335,7 +6335,7 @@ button.side-panel__name:focus-visible {
   color: #fff;
   background: rgb(0 0 0 / 92%);
   border-radius: 0.2rem;
-  animation: battle-phase-banner var(--t-phase-banner, 766ms) ease-in-out both;
+  animation: battle-phase-banner var(--t-phase-banner, 1400ms) ease-in-out both;
 }
 
 @keyframes battle-phase-banner {

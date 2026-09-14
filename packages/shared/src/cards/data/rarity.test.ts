@@ -38,10 +38,12 @@ describe("rarity data across the legacy enum boundary", () => {
     );
   });
 
-  it("classifies every audited P-001 through P-078 card as promo rarity", () => {
+  it("preserves official rarities for P-001 through P-078, including the SR Memory Boost cards", () => {
+    // The official Memory Boost! Set lists P-035 through P-040 as SR:
+    // https://world.digimoncard.com/cards/index.php?notes=PREMIUM+CARD+COLLECTION+Memory+Boost%21+Set&search=true
     for (let number = 1; number <= 78; number += 1) {
       const cardId = `P-${String(number).padStart(3, "0")}`;
-      expect(cardData[cardId]?.rarity, cardId).toBe("P");
+      expect(cardData[cardId]?.rarity, cardId).toBe(number >= 35 && number <= 40 ? "SR" : "P");
     }
   });
 

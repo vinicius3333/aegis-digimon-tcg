@@ -34,9 +34,6 @@ coverage/
 .nyc_output/
 aegis-accounts.sqlite*
 
-# UI review screenshots (tools/ui-review.mjs)
-ui-review/
-
 # Generated card-audit reports
 
 # Local structured application logs

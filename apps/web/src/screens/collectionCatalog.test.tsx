@@ -63,7 +63,7 @@ describe("rendered catalog visibility", () => {
     const setFilter = screen.getByRole("combobox", { name: "Set" });
     expect(within(setFilter).getByRole("option", { name: "EX13" })).toBeTruthy();
     fireEvent.change(setFilter, { target: { value: "EX13" } });
-    await waitFor(() => expect(screen.getByText("60 cards")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("64 cards")).toBeTruthy());
     fireEvent.change(setFilter, { target: { value: "" } });
 
     for (const [id, name] of [

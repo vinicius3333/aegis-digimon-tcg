@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST7-03.js";
+import "./ST7-09.js";
 
 describe("ST7-03 Guilmon", () => {
   it("digivolves into Gallantmon for 4 ignoring requirements when the opponent has level 6", async () => {

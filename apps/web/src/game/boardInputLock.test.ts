@@ -19,7 +19,9 @@ describe("board input lock", () => {
   });
 
   it("stands for as long as the check owns the screen", () => {
-    expect(gameScreenSource).toMatch(/const boardLocked = securityRevealPending && !state\.gameOver;/);
+    expect(gameScreenSource).toMatch(
+      /const boardLocked = \(securityRevealPending \|\| cues\.phaseTransitionPending\) && !state\.gameOver;/,
+    );
   });
 
   it("also stands while the opponent's moment is being narrated, so a tap advances it", () => {

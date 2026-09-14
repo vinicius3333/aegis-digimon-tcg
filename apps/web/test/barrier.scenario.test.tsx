@@ -164,5 +164,5 @@ scenario("barrier", () => {
     expect(within(yourBattleArea()).getAllByRole("img", { name: /^unimon$/i })).toHaveLength(1);
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

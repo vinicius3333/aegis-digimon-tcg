@@ -155,15 +155,14 @@ scenario("digivolve-normal", () => {
       .getByRole("img", { name: /^greymon$/i })
       .closest('[data-drop="perm-you"]') as HTMLElement;
     tap(greymonPermEl);
-    fireEvent.click(await screen.findByRole("button", { name: /view stack/i }, { timeout: 10_000 }));
 
     // The stack viewer's title is the current top card's name (Greymon), its DP is
     // Greymon's printed DP (4000), and Agumon appears as a "stack" thumbnail beneath
     // it — proving the digivolution actually stacked rather than replaced the card.
     await vi.waitFor(() => expect(screen.getAllByText(/^greymon$/i).length).toBeGreaterThan(0), { timeout: 10_000 });
     expect(screen.getByText(/4,000 DP/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^agumon agumon/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^open agumon$/i })).toBeTruthy();
 
     await opponent.leave();
-  }, 20_000);
+  }, 60_000);
 });

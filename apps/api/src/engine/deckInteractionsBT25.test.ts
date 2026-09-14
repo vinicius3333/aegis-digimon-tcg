@@ -162,7 +162,7 @@ describe("BT25 deck-specific interaction oracles", () => {
           battleArea: [{ card: "BT21-044", as: "rize" }, { card: "BT12-092" }, { card: "BT12-092" }],
           hand: [
             { card: "AD1-016", as: "shine" },
-            { card: "AD1-021", as: "marcus" },
+            { card: "BT12-092", as: "marcus" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
@@ -171,9 +171,11 @@ describe("BT25 deck-specific interaction oracles", () => {
     );
     s.state.memory = 10;
     digivolve(s, "rize", "shine");
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "AD1-021"));
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT12-092").length === 3,
+    );
     await settle(() => false, 40);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "AD1-021")).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT12-092")).toHaveLength(3);
     expect(s.state.players[1]!.battleArea.length).toBeLessThanOrEqual(1);
     assertNoLoudGap(s);
   });

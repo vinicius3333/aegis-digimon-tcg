@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST2/ST2-16.js";
+import "../BT1/BT1-055.js";
 import { compiled } from "./BT22-059.js";
 
 describe("BT22-059 Infermon", () => {
