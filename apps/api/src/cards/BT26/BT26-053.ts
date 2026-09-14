@@ -32,7 +32,6 @@ export const compiled: CompiledCard = {
                   kind: "UseOptionWithoutCost",
                   from: ["hand"],
                   payCost: false,
-                  allowMultiColor: true,
                   selectionRequired: true,
                   filter: option.filter,
                 },

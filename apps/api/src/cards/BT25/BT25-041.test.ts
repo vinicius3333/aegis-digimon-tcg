@@ -151,6 +151,95 @@ describe("BT25-041 Murasamemon", () => {
     }
   });
 
+  it.each(["ST23-09", "BT25-057"])(
+    "uses multicolor DUAL %s through its trait Use Req after digivolving",
+    async (optionCard) => {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-049", as: "base" },
+              { card: "BT1-087", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
+            ],
+            hand: [
+              { card: "BT25-041", as: "murasamemon" },
+              { card: optionCard, as: "option" },
+              { card: "BT1-090", as: "wrongTrait" },
+            ],
+            deck: ["BT1-010"],
+          },
+          1: { battleArea: [{ card: "BT1-019", as: "enemy" }], deck: ["BT1-009"], security: ["BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, preferInstanceIds },
+      );
+      preferInstanceIds.push(s.inst("option").instanceId);
+      await s.ready();
+      s.state.memory = 6;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("murasamemon").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+      await settle();
+      expect(s.perm("base").topCard.cardId).toBe("BT25-041");
+      expect(s.perm("tamer").stack).toHaveLength(0);
+      expect(s.state.players[0]!.trash).toContainEqual(
+        expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+      );
+      expect(s.state.players[0]!.hand).toContainEqual(
+        expect.objectContaining({ instanceId: s.inst("wrongTrait").instanceId }),
+      );
+      expect(
+        s.decisions
+          .filter((d) => d.req.kind === "selectCards")
+          .flatMap((d) => d.req.options?.candidateInstanceIds ?? []),
+      ).not.toContain(s.inst("wrongTrait").instanceId);
+      expect(s.state.memory).toBe(optionCard === "ST23-09" ? 1 : 2);
+      expect(s.state.players[1]!.battleArea).toHaveLength(optionCard === "ST23-09" ? 0 : 1);
+      expect(s.state.players[1]!.deck.some((c) => c.cardId === "BT1-019")).toBe(optionCard === "ST23-09");
+      expect(observe(s.engine).hasKeyword(s.perm("base"), "Rush")).toBe(optionCard === "BT25-057");
+      expect(s.perm("base").currentDP).toBe(optionCard === "BT25-057" ? 12000 : 7000);
+    },
+  );
+
+  it("uses a multicolor DUAL when attacking after paying the bottom Tamer cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-041", as: "murasamemon" },
+            { card: "BT1-087", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "ST23-09", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "enemy" }], security: ["BT1-009", "BT1-009"], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("murasamemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === optionId));
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("uses the same bottom-face-down Tamer cost for inherited unsuspend", () => {
     const effect = BT25_041.effects?.find((entry) => entry.trigger === "EndOfAttack");
     expect(effect?.actions?.[0]).toMatchObject({

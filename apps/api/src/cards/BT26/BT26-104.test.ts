@@ -40,7 +40,6 @@ describe("BT26-104 compiled fidelity", () => {
         kind: "UseOptionWithoutCost",
         payCost: false,
         from: ["hand"],
-        allowMultiColor: true,
         cost: { kind: "suspend" },
       },
     ]);

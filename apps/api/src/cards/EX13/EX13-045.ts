@@ -115,7 +115,7 @@ const optionTarget = {
 // the playable kinds, `UseOptionWithoutCost` for the Option side (EX13-043/EX13-012 shape).
 // `runModal` drops a branch with no legal candidate and auto-selects when only one remains, so a
 // hand holding only an Option never offers a dead "play" branch.
-// `allowMultiColor: true`: the printed sentence carries no single-color restriction, and the
+// The printed sentence carries no single-color restriction, and the
 // catalog's [Examon]-text Options include the two-color EX3-070; the Option's OWN color
 // requirement is still enforced by `optionColorRequirementMet`.
 const playOrUseDragonCard: Action = {
@@ -143,7 +143,6 @@ const playOrUseDragonCard: Action = {
         target: optionTarget,
         from: ["hand", "digivolutionCards"],
         payCost: false,
-        allowMultiColor: true,
         optional: true,
         raw: "you may use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost",
       },

@@ -93,7 +93,6 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: true,
           reduceCostBy: 3,
-          allowMultiColor: true,
           cost: {
             kind: "trash",
             target: {
@@ -132,7 +131,6 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: true,
           reduceCostBy: 3,
-          allowMultiColor: true,
           cost: {
             kind: "trash",
             target: {

@@ -151,7 +151,6 @@ describe("EX13-043 Leopardmon", () => {
               from: ["hand"],
               payCost: true,
               reduceCostBy: 4,
-              allowMultiColor: true,
               reduceCostByScaling: perSuspended,
               optional: true,
             },

@@ -125,7 +125,6 @@ describe("EX13-058 Knightmon", () => {
               filter: { zone: "hand", kind: ["Option"], playCostLte: 4, nameOrTrait: textGate },
               from: ["hand"],
               payCost: false,
-              allowMultiColor: true,
               optional: true,
             },
           ],

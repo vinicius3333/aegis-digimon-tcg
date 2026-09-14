@@ -65,7 +65,6 @@ describe("EX12-041 Thundermon", () => {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
-                allowMultiColor: true,
                 optional: true,
                 filter: {
                   kind: ["Option"],

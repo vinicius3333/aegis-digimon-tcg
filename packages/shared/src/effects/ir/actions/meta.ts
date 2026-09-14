@@ -115,8 +115,8 @@ export interface ActivateEffectAction extends ActionBase {
  * the using card away (KB EX8-037 Q4738) — so an `ifThisEffectUsed` tail can gate on it.
  *
  * With `payCost: true` and `reduceCostBy: N` the player pays `max(0, printed_cost − N)` (BT17-035
- * and the EX12 family). The eligibility cap is `filter.playCostLte`, or the historical default
- * of 5 (EX8-037).
+ * and the EX12 family). Eligibility restrictions such as cost and single-color scope are
+ * explicit fields in `filter`; color requirements and Use Req. are checked separately.
  */
 export interface UseOptionWithoutCostAction extends ActionBase {
   kind: "UseOptionWithoutCost";
@@ -130,8 +130,6 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   reduceCostByOpponentMemory?: boolean;
   /** The granting effect explicitly ignores the chosen Option's color requirements. */
   waiveColorRequirement?: boolean;
-  /** Permit multi-color Options when the printed effect has no single-color restriction. */
-  allowMultiColor?: boolean;
   /** Once this enclosing optional activation is accepted, require choosing one legal Option. */
   selectionRequired?: boolean;
   /** Defaults to ["hand"], the only printed form. */

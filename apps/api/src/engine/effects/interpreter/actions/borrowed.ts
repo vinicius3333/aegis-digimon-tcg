@@ -381,8 +381,8 @@ export async function runActivateEffect(
  * which resolves that Option's [Main] effect under the USING card's control/timing (`ctx.source`
  * unchanged).
  * The client supplies only the choice among the engine-resolved candidates — never an effect body
- * (threat T-08-10/11). Eligibility (single-color, cost-<=5, not under a CanNotPlayThisOption
- * restriction) is the SERVER predicate (T-08-11). The Option is not a permanent, so it resolves
+ * (threat T-08-10/11). Eligibility follows the printed filter, live Option color/Use Req.
+ * requirements, and use prohibitions (T-08-11). The Option is not a permanent, so it resolves
  * then goes to trash (the `playInstances` `isPermanentKind` gap). The use RESULT binds on
  * `ctx.lastOptionUsed` at use-time (KB EX8-037 Q4738) so an `ifThisEffectUsed` tail can gate.
  */
@@ -442,7 +442,6 @@ function optionUseCandidates(
           };
     if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
     if (!def.kinds.includes(CardKind.Option)) return;
-    if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) return;
     if (costCap !== undefined && def.playCost > costCap) return;
     if (
       action.waiveColorRequirement !== true &&

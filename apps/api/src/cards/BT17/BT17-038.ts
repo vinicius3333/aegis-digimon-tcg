@@ -55,7 +55,6 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          allowMultiColor: true,
           payCost: false,
           optional: true,
         },

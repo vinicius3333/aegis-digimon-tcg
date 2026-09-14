@@ -23,7 +23,6 @@ describe("BT10-041 Sakuyamon: Maid Mode", () => {
             payCost: false,
             optional: true,
             waiveColorRequirement: true,
-            allowMultiColor: true,
           }),
           expect.objectContaining({
             kind: "SecurityManipulation",

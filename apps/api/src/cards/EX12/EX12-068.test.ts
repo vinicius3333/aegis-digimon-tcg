@@ -202,7 +202,9 @@ describe("EX12-068 Ruli Tsukiyono", () => {
             { card: CARD_ID, as: "ruli" },
             { card: "EX12-050", as: "attacker" },
           ],
-          hand: [{ card: "EX12-052", as: "illegalTarget" }],
+          // A level-3 pure Digimon cannot evolve this level-4 attacker. A DUAL
+          // with an illegal evolution route may still be legal in the Option branch.
+          hand: [{ card: "EX12-049", as: "illegalTarget" }],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },

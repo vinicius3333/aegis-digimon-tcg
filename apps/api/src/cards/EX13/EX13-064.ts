@@ -50,9 +50,7 @@ const ownKnightmonTextDigimon = {
 // is "card", so the play branch covers the playable kinds (Digimon and Tamer) and the use branch
 // covers Options. `playCostLte: 8` is the PRINTED cost ceiling on both branches —
 // `effectiveUseCostLte` is reserved for the differently worded "use cost with reductions applied"
-// clauses (LM-023 Q5516), which this card does not print. Note the explicit ceiling is load-bearing
-// on the Option branch for a second reason: `UseOptionWithoutCost` defaults to a cap of 5
-// (BT21-062), which would silently shave the printed 8 down.
+// clauses (LM-023 Q5516), which this card does not print.
 //
 // No `zone` on either filter: the two printed source zones are carried by `from`, the BT19-086 /
 // BT21-062 shape for a hand-or-trash fetch (`pickLoose` reads `from` for the zone set).
@@ -74,7 +72,7 @@ const optionInHandOrTrash = {
 // branch remains, so a hand holding only a Digimon never asks which verb to use. `payCost: false`
 // on both branches is the printed "without paying the cost"; no reduction arithmetic is involved,
 // so the `UseOptionWithoutCost` scaled-reduction seam (EX13-043) is not reachable from here.
-// `allowMultiColor: true` states the printed scope: the sentence narrows by text and cost only, so
+// The printed scope narrows by text and cost only, so
 // a multicolour Option such as BT18-099 stays eligible and the engine's own colour-requirement
 // check (§4-22-3) remains the only colour gate.
 const playOrUseKnightmonCard: Action = {
@@ -98,7 +96,6 @@ const playOrUseKnightmonCard: Action = {
         filter: optionInHandOrTrash,
         from: ["hand", "trash"],
         payCost: false,
-        allowMultiColor: true,
         optional: true,
         raw: "You may use 1 use cost 8 or lower [Knightmon] text card from your hand or trash without paying the cost",
       },

@@ -95,7 +95,6 @@ describe("EX13-072 Kota Domoto", () => {
         from: ["hand"],
         payCost: true,
         reduceCostBy: 1,
-        allowMultiColor: true,
         optional: true,
         filter: {
           controller: "mine",

@@ -211,7 +211,7 @@ function makeContext(opts: {
   };
 }
 
-/** IR: use 1 single-color cost-<=5 Option from hand without paying the cost; if used, unsuspend. */
+/** IR: use 1 explicitly single-color Option from hand for free; if used, unsuspend. */
 function useOptionThenUnsuspendCompiled(): CompiledCard {
   return {
     coverage: "full",
@@ -221,7 +221,7 @@ function useOptionThenUnsuspendCompiled(): CompiledCard {
         actions: [
           {
             kind: "UseOptionWithoutCost",
-            filter: { controller: "mine", kind: ["Option"], colors: undefined },
+            filter: { controller: "mine", kind: ["Option"], colors: undefined, singleColor: true },
             payCost: false,
             from: ["hand"],
           },
@@ -307,7 +307,7 @@ describe("use-option-without-cost engine path", () => {
     expect(rec.calls).toContain("unsuspend");
   });
 
-  it("rejects a TWO-COLOR Option (server eligibility): nothing resolves, lastOptionUsed FALSE, tail skipped", async () => {
+  it("rejects a TWO-COLOR Option when the printed filter requires single-color: nothing resolves, lastOptionUsed FALSE, tail skipped", async () => {
     resetStores();
     seedOption("OPT-MULTI", { colors: ["Red", "Blue"] as never, playCost: 3 }, gainMemoryMain());
     const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };

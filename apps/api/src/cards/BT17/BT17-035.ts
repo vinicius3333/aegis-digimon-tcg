@@ -15,8 +15,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The effect is UseOptionWithoutCost (use, not play) with a filter matching:
 //   - nameOrTrait: "Plug-In" in name, OR
 //   - colors includes Yellow
-// UseOptionWithoutCost checks single-color eligibility by default; this card does not print
-// a one-color restriction, so multi-color Options are legal when their own requirements are met.
+// This card does not print a one-color restriction, so multicolor Options are legal
+// when their own requirements are met.
 // The name/color disjunction is the filter-level `or` predicate consumed by the Option-use path.
 // The text has no use-cost ceiling, so set the runtime's explicit no-ceiling sentinel rather than
 // inheriting its historical cost-5 default.
@@ -56,7 +56,6 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          allowMultiColor: true,
           payCost: true,
           reduceCostBy: 2,
           from: ["hand"],
@@ -87,7 +86,6 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          allowMultiColor: true,
           payCost: true,
           reduceCostBy: 2,
           from: ["hand"],

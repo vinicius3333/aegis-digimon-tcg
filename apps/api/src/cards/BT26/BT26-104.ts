@@ -37,7 +37,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          allowMultiColor: true,
           cost: { kind: "suspend", target: self },
         },
       ],

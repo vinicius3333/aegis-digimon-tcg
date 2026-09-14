@@ -18,7 +18,6 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           waiveColorRequirement: true,
-          allowMultiColor: true,
         },
         {
           kind: "SecurityManipulation",

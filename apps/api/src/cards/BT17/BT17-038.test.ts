@@ -50,7 +50,6 @@ describe("BT17-038 Sakuyamon", () => {
       kind: "UseOptionWithoutCost",
       optional: true,
       payCost: false,
-      allowMultiColor: true,
       filter: {
         controller: "mine",
         kind: ["Option"],

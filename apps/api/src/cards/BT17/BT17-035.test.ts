@@ -16,7 +16,6 @@ describe("BT17-035 Taomon", () => {
       payCost: true,
       reduceCostBy: 2,
       optional: true,
-      allowMultiColor: true,
       filter: {
         controller: "mine",
         kind: ["Option"],

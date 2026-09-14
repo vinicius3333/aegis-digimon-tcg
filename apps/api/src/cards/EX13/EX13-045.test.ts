@@ -139,7 +139,6 @@ describe("EX13-045 Examon", () => {
                     kind: "UseOptionWithoutCost",
                     from: ["hand", "digivolutionCards"],
                     payCost: false,
-                    allowMultiColor: true,
                     optional: true,
                     filter: {
                       controllerDefault: "mine",

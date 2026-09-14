@@ -47,9 +47,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // effect text prints it still qualifies. No `printedTextOnly` is needed or wanted: the pool is
 // CARDS in the hand and in a digivolution stack, not live permanents, so there is no inherited
 // stack text to over-read (the seam REVIEW-NOTES records for live `match: "text"` refs).
-// `playCostLte: 5` spells the printed cap out rather than relying on the action's historical
-// default of 5 (EX8-037). The clause names no colour, so the filter carries none — a red or black
-// [Huckmon] Option both qualify.
+// `playCostLte: 5` spells out the printed cap. The clause names no color, so the
+// filter carries none: red or black [Huckmon] Options both qualify.
 const huckmonOption: Filter = {
   controller: "mine",
   kind: ["Option"],
@@ -68,8 +67,8 @@ const huckmonOption: Filter = {
 // (`apps/api/src/engine/effects/interpreter/actions/borrowed.ts`) keeps enforcing
 // `optionColorRequirementMet`. On this Black/White host that is load-bearing — a RED [Huckmon]
 // Option needs a red permanent in play before this window can reach it, while the white BT23-099
-// is reachable off the host alone. `allowMultiColor` is likewise absent: a multicoloured Option is
-// not a legal target of a plain "1 Option card" use.
+// is reachable off the host alone. The printed effect has no single-color restriction, so
+// multicolor Options remain eligible when their color or Use Req. requirements are met.
 const useHuckmonOption: Action = {
   kind: "UseOptionWithoutCost",
   filter: huckmonOption,

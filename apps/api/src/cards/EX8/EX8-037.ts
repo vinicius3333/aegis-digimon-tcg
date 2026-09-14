@@ -7,8 +7,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4737: the unsuspend tail is MANDATORY after using an Option.
 // KB Q4738: the tail still fires even if the Option digivolved this card away.
 //
-// UseOptionWithoutCost: the engine enforces single-color / cost≤5 / !prohibited SERVER-SIDE
-// in runUseOptionWithoutCost, so the filter here carries only the Option kind.
+// The printed single-color and use-cost limits are explicit filters; the engine
+// separately enforces the chosen Option's color requirements and use prohibitions.
 //
 // WhenDigivolving condition uses structured anyOf (name OR trait) against digivolution stack:
 // the printed "[Sakuyamon]/[X Antibody]" slash is an OR, per comprehensive rules §15-7 (8.363),
@@ -77,6 +77,8 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 kind: ["Option"],
+                singleColor: true,
+                playCostLte: 5,
               },
               payCost: false,
               from: ["hand"],

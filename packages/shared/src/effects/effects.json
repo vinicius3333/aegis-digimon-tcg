@@ -6216,8 +6216,7 @@
             },
             "payCost": false,
             "optional": true,
-            "waiveColorRequirement": true,
-            "allowMultiColor": true
+            "waiveColorRequirement": true
           },
           {
             "kind": "SecurityManipulation",
@@ -44278,7 +44277,6 @@
               "playCostLte": 99,
               "or": [{ "nameOrTrait": [{ "tokens": ["Plug-In"], "match": "name" }] }, { "colors": ["Yellow"] }]
             },
-            "allowMultiColor": true,
             "payCost": true,
             "reduceCostBy": 2,
             "from": ["hand"],
@@ -44297,7 +44295,6 @@
               "playCostLte": 99,
               "or": [{ "nameOrTrait": [{ "tokens": ["Plug-In"], "match": "name" }] }, { "colors": ["Yellow"] }]
             },
-            "allowMultiColor": true,
             "payCost": true,
             "reduceCostBy": 2,
             "from": ["hand"],
@@ -44508,7 +44505,6 @@
                 { "colors": ["Yellow"], "playCostLte": 5 }
               ]
             },
-            "allowMultiColor": true,
             "payCost": false,
             "optional": true
           }
@@ -105989,7 +105985,6 @@
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
-            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
@@ -106019,7 +106014,6 @@
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
-            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
@@ -106239,7 +106233,6 @@
             },
             "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "allowMultiColor": true,
             "optional": true
           }
         ],
@@ -106275,7 +106268,6 @@
             },
             "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "allowMultiColor": true,
             "optional": true
           }
         ],
@@ -149523,7 +149515,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "allowMultiColor": true,
                   "optional": true
                 }
               ]
@@ -149645,7 +149636,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "allowMultiColor": true,
                   "optional": true
                 }
               ]
@@ -150310,7 +150300,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "allowMultiColor": true,
                   "optional": true
                 }
               ]
@@ -179039,7 +179028,7 @@
             "actions": [
               {
                 "kind": "UseOptionWithoutCost",
-                "filter": { "controller": "mine", "kind": ["Option"] },
+                "filter": { "controller": "mine", "kind": ["Option"], "singleColor": true, "playCostLte": 5 },
                 "payCost": false,
                 "from": ["hand"],
                 "optional": true,
@@ -217669,7 +217658,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "allowMultiColor": true,
                   "optional": true
                 }
               ]
@@ -221174,7 +221162,6 @@
                       },
                       "from": ["hand"],
                       "payCost": false,
-                      "allowMultiColor": true,
                       "playCostCeiling": {
                         "base": 3,
                         "raise": 1,
@@ -221232,7 +221219,6 @@
                       },
                       "from": ["hand"],
                       "payCost": false,
-                      "allowMultiColor": true,
                       "playCostCeiling": {
                         "base": 3,
                         "raise": 1,
@@ -221502,7 +221488,6 @@
                     "kind": "UseOptionWithoutCost",
                     "from": ["hand"],
                     "payCost": false,
-                    "allowMultiColor": true,
                     "selectionRequired": true,
                     "filter": {
                       "controller": "mine",
@@ -224977,7 +224962,6 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "allowMultiColor": true,
             "reduceCostByOpponentMemory": true,
             "optional": true,
             "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
@@ -226333,7 +226317,6 @@
             "from": ["hand"],
             "payCost": false,
             "optional": true,
-            "allowMultiColor": true,
             "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
           }
         ]
@@ -230134,7 +230117,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 4,
-                  "allowMultiColor": true,
                   "reduceCostByScaling": {
                     "per": 1,
                     "filter": { "controllerDefault": "any", "kind": ["Digimon"], "suspended": true },
@@ -230194,7 +230176,6 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 4,
-                  "allowMultiColor": true,
                   "reduceCostByScaling": {
                     "per": 1,
                     "filter": { "controllerDefault": "any", "kind": ["Digimon"], "suspended": true },
@@ -230466,7 +230447,6 @@
                       },
                       "from": ["hand", "digivolutionCards"],
                       "payCost": false,
-                      "allowMultiColor": true,
                       "optional": true,
                       "raw": "you may use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost"
                     }
@@ -230980,7 +230960,6 @@
                   },
                   "from": ["hand"],
                   "payCost": false,
-                  "allowMultiColor": true,
                   "optional": true,
                   "raw": "You may use 1 card with [Knightmon] in its text and a use cost of 4 or less from your hand without paying the cost"
                 }
@@ -231028,7 +231007,6 @@
                   },
                   "from": ["hand"],
                   "payCost": false,
-                  "allowMultiColor": true,
                   "optional": true,
                   "raw": "You may use 1 card with [Knightmon] in its text and a use cost of 4 or less from your hand without paying the cost"
                 }
@@ -231619,7 +231597,6 @@
                   },
                   "from": ["hand", "trash"],
                   "payCost": false,
-                  "allowMultiColor": true,
                   "optional": true,
                   "raw": "You may use 1 use cost 8 or lower [Knightmon] text card from your hand or trash without paying the cost"
                 }
@@ -232253,7 +232230,6 @@
                 "from": ["hand"],
                 "payCost": true,
                 "reduceCostBy": 1,
-                "allowMultiColor": true,
                 "optional": true,
                 "raw": "you may use 1 [X Antibody] or 1 Option card with the [Chronicle] trait from your hand with the cost reduced by 1"
               }

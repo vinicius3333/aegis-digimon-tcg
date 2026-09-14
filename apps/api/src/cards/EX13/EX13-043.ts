@@ -114,7 +114,6 @@ const playOrUseTraitCard: Action = {
         from: ["hand"],
         payCost: true,
         reduceCostBy: 4,
-        allowMultiColor: true,
         reduceCostByScaling: perSuspendedDigimon,
         optional: true,
         raw: "You may use 1 [Mammal], [Beast], [Beastkin] or [Royal Knight] trait card from your hand with the cost reduced by 4",

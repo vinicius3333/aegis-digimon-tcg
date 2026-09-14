@@ -25,7 +25,13 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         { kind: "Suspend", target: self, optional: true, abortOnDecline: true },
-        { kind: "UseOptionWithoutCost", filter: tsOption, from: ["hand"], payCost: false, optional: true },
+        {
+          kind: "UseOptionWithoutCost",
+          filter: tsOption,
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
         { kind: "Attack", target: { filter: tsDigimon, count: 1 }, optional: true },
       ],
     },

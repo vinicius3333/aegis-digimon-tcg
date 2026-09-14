@@ -23,9 +23,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     carries no "Knightmon" but whose inherited line names [Knightmon] — a legal source and a
 //     legal grant recipient. `match: "name"` would wrongly drop it.
 //   - §4-22-2/§4-22-3 colour requirements: a multicolour Option needs every one of its colours
-//     represented, which is why the Option branch carries `allowMultiColor` (the printed sentence
-//     restricts the card by TEXT and COST only, never by colour) and leaves the colour check
-//     itself to the engine.
+//     represented unless waived. The printed selection restricts by TEXT and COST only;
+//     the engine checks the chosen Option's color requirements separately.
 //   - §16-12-1 ＜De-Digivolve N＞: trash cards from the chosen Digimon's stack starting with the
 //     top card; the engine's `DeDigivolve` action is that keyword.
 //   - §3-4-5-8: breeding-area cards cannot be referenced by effects, which keeps the keyword
@@ -67,7 +66,7 @@ const optionInHand = {
 // branch remains, so a hand holding only a Digimon never asks which verb to use. `payCost: false`
 // on both branches is the printed "without paying the cost"; no reduction arithmetic is involved,
 // so the `UseOptionWithoutCost` scaled-reduction seam (EX13-043) is not reachable from here.
-// `allowMultiColor: true` states the printed scope: the sentence narrows by text and cost only,
+// The printed scope narrows by text and cost only,
 // so a multicolour Option such as BT18-099 stays eligible and the engine's own colour-requirement
 // check (§4-22-3) remains the only colour gate.
 const playOrUseKnightmonCard: Action = {
@@ -91,7 +90,6 @@ const playOrUseKnightmonCard: Action = {
         filter: optionInHand,
         from: ["hand"],
         payCost: false,
-        allowMultiColor: true,
         optional: true,
         raw: "You may use 1 card with [Knightmon] in its text and a use cost of 4 or less from your hand without paying the cost",
       },

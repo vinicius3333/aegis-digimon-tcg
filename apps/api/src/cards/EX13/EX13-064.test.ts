@@ -140,7 +140,6 @@ describe("EX13-064 LordKnightmon", () => {
                 filter: { kind: ["Option"], playCostLte: 8, nameOrTrait: textGate },
                 from: ["hand", "trash"],
                 payCost: false,
-                allowMultiColor: true,
                 optional: true,
               },
             ],

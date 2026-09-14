@@ -30,7 +30,6 @@ export const compiled: CompiledCard = {
           target: { filter: tsOption, count: 1 },
           from: ["hand"],
           payCost: true,
-          allowMultiColor: true,
           reduceCostByOpponentMemory: true,
           optional: true,
           cost: { kind: "suspend", target: self },

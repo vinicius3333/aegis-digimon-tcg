@@ -118,14 +118,19 @@ describe("EX8-037", () => {
     await nextTurn;
   });
 
-  it("accepts the inclusive cost-5 single-color boundary and rejects multicolor cost 7", async () => {
+  it("enforces single-color and cost-5 boundaries independently", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          battleArea: [
+            { card: "EX8-037", as: "sakuyamon" },
+            { card: "ST23-09", as: "greenBlackSource" },
+          ],
           hand: [
             { card: "BT11-100", as: "costFive" },
             { card: "BT11-107", as: "multicolorOverLimit" },
+            { card: "ST23-09", as: "multicolorWithinLimit" },
+            { card: "BT25-043", as: "singleColorOverLimit" },
           ],
         },
         1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-045"] },
@@ -146,6 +151,14 @@ describe("EX8-037", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("multicolorOverLimit").instanceId)).toBe(
       true,
     );
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("multicolorWithinLimit").instanceId);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("singleColorOverLimit").instanceId);
+    const optionCandidates = s.decisions
+      .filter(({ req }) => req.kind === "selectCards")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(optionCandidates).toContain(s.inst("costFive").instanceId);
+    expect(optionCandidates).not.toContain(s.inst("multicolorWithinLimit").instanceId);
+    expect(optionCandidates).not.toContain(s.inst("singleColorOverLimit").instanceId);
     expect(s.perm("sakuyamon").isSuspended).toBe(false);
   });
 

@@ -64,7 +64,6 @@ describe("EX12-043 Hakubamon", () => {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
-                allowMultiColor: true,
                 optional: true,
                 filter: { kind: ["Option"], playCostLte: 99, nameOrTrait: [{ tokens: ["SW"], match: "trait" }] },
               },

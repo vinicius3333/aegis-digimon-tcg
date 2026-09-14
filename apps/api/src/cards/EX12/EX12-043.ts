@@ -42,15 +42,13 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Option"],
-                  // The printed clause caps no play cost; `UseOptionWithoutCost` otherwise
-                  // applies its default ceiling of 5 (BT25-083 uses the same explicit opener).
+                  // The printed clause has no color-count restriction.
                   playCostLte: 99,
                   nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
                 },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
-                allowMultiColor: true,
                 optional: true,
               },
             ],

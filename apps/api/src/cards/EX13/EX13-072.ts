@@ -61,10 +61,8 @@ const drawAndGainMemory: Action = {
 // Option-only verb, so `kind: ["Option"]` states the shared scope rather than narrowing the
 // name branch away.
 //
-// `allowMultiColor: true` states the printed scope: the sentence narrows by name/trait only,
-// so a multicolour Chronicle Option would stay eligible. Without the flag `optionUseCandidates`
-// (`borrowed.ts:444`) drops every non-mono-colour card. Declarative today — no multicolour
-// [Chronicle] Option exists in the catalog yet — but it is what the printed text says.
+// The printed scope narrows by name/trait only, so a multicolor Chronicle Option
+// stays eligible when its own color or Use Req. requirements are met.
 const chronicleOrXAntibodyOption: Filter = {
   controller: "mine",
   kind: ["Option"],
@@ -93,7 +91,6 @@ const useDiscountedOption: Action = {
       from: ["hand"],
       payCost: true,
       reduceCostBy: 1,
-      allowMultiColor: true,
       optional: true,
       raw: "you may use 1 [X Antibody] or 1 Option card with the [Chronicle] trait from your hand with the cost reduced by 1",
     },
