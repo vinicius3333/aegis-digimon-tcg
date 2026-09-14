@@ -593,6 +593,7 @@ export class GameEngine {
     timing: EffectTiming;
     trigger: TriggerInfo;
     transientCandidates: readonly CardInstance[];
+    ascensionCandidates?: readonly { instanceId: string; seat: Seat }[];
   }> = [];
   private flushingDeferredTimingWindows = false;
 
@@ -684,8 +685,18 @@ export class GameEngine {
     try {
       while (this.deferredTimingWindows.length > 0) {
         const deferred = this.deferredTimingWindows.shift();
-        if (deferred !== undefined)
-          await this.fireTiming(deferred.timing, deferred.trigger, deferred.transientCandidates);
+        if (deferred !== undefined) {
+          if (deferred.ascensionCandidates !== undefined) {
+            await this.resolveDeletionReactions(
+              deferred.trigger,
+              deferred.ascensionCandidates,
+              (trigger) => this.runTimingWindow(deferred.timing, trigger, deferred.transientCandidates),
+              deferred.transientCandidates,
+            );
+          } else {
+            await this.fireTiming(deferred.timing, deferred.trigger, deferred.transientCandidates);
+          }
+        }
       }
     } finally {
       this.flushingDeferredTimingWindows = false;
@@ -2740,6 +2751,7 @@ export class GameEngine {
     fire: (deletionTrigger: TriggerInfo) => Promise<void> = (deletionTrigger) =>
       this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
     transientCandidates: readonly CardInstance[] = [],
+    deferNested = true,
   ): Promise<void> {
     // A rule-check pass pools every deletion it performs, Ascension offer included, and
     // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
@@ -2750,6 +2762,18 @@ export class GameEngine {
         trigger: { ...trigger },
         ascensionCandidates: [...ascensionCandidates],
         transientCandidates: [...transientCandidates],
+      });
+      return;
+    }
+    // A deletion inside an effect creates one reaction group. Park Ascension together
+    // with On Deletion until that body ends; otherwise Ascension can remove the card
+    // from trash before the controller's chosen On Deletion-first order runs.
+    if (deferNested && this.shouldDeferNestedTiming() && !this.flushingDeferredTimingWindows) {
+      this.deferredTimingWindows.push({
+        timing: EffectTiming.OnDestroyedAnyone,
+        trigger: { ...trigger },
+        transientCandidates: [...transientCandidates],
+        ascensionCandidates: [...ascensionCandidates],
       });
       return;
     }
@@ -5491,8 +5515,13 @@ export class GameEngine {
         await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(armed));
       } else {
         const merged = mergeRuleDeletions(pool);
-        await this.resolveDeletionReactions(merged.trigger, merged.ascensionCandidates, (deletionTrigger) =>
-          this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger, merged.transientCandidates),
+        await this.resolveDeletionReactions(
+          merged.trigger,
+          merged.ascensionCandidates,
+          (deletionTrigger) =>
+            this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger, merged.transientCandidates),
+          merged.transientCandidates,
+          false,
         );
         // A deletion can have no printed [On Deletion] candidates, in which case the empty
         // timing window never requests its pending watcher collection. The watcher was already

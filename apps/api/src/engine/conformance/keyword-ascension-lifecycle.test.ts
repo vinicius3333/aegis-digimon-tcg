@@ -66,6 +66,47 @@ describe("Ascension through public battle deletion", () => {
     assertNoLoudGap(s);
   });
 
+  it.each([false, true])(
+    "Execute preserves the chosen reaction order (Ascension first: %s)",
+    async (ascensionFirst) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX12-047", as: "executor", under: ["EX12-004"] }],
+            trash: [{ card: "EX12-009", as: "recovered" }],
+            deck: ["BT1-009", "BT1-009"],
+            security: ["BT1-028"],
+          },
+          1: { security: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"], deck: ["BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+      const executorId = s.inst("executor").instanceId;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+      const chosen = request.options!.triggerKeys!.find((key) =>
+        key.startsWith(ascensionFirst ? "ascension/" : "on-deletion/"),
+      )!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [chosen] },
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(executorId);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX12-009")).toBe(!ascensionFirst);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-009")).toBe(ascensionFirst);
+      assertNoLoudGap(s);
+    },
+  );
+
   it("publicly refuses optional Ascension and leaves the deleted card in trash", async () => {
     const s = setupEngine(
       {
