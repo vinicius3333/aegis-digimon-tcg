@@ -54,6 +54,8 @@ async function reserve(slot, method, name, options) {
   });
   assert.equal(response.status, 200, `Reservation ${method} rejected (${response.status})`);
   const reservation = await response.json();
+  // The SDK adds this field before consuming reconnect responses; raw HTTP must do the same.
+  if (method === "reconnect") reservation.reconnectionToken = options.reconnectionToken;
   assert.match(reservation.room.publicAddress, new RegExp(`/api/${slot}/p[123]$`));
   // Preserve the actual advertised owner path, substituting only the internal probe hostname.
   reservation.room.publicAddress =
