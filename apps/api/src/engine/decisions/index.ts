@@ -72,6 +72,8 @@ export interface DecisionSpec {
   promptText: string;
   options?: DecisionRequest["options"];
   sourceCardId?: string;
+  sourceInstanceId?: string;
+  sourcePermanentId?: string;
 }
 
 export class DecisionManager {
@@ -120,6 +122,8 @@ export class DecisionManager {
       promptText: spec.promptText,
       ...(options !== undefined ? { options } : {}),
       ...(spec.sourceCardId !== undefined ? { sourceCardId: spec.sourceCardId } : {}),
+      ...(spec.sourceInstanceId !== undefined ? { sourceInstanceId: spec.sourceInstanceId } : {}),
+      ...(spec.sourcePermanentId !== undefined ? { sourcePermanentId: spec.sourcePermanentId } : {}),
     };
 
     // Mirror into synchronized state so the intent-validation gate ("only

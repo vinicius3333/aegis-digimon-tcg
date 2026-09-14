@@ -44,13 +44,24 @@ export function decisionPresentation({
 
 /**
  * The permanent an `optional` decision's source card is sitting on, so the board
- * prompt can highlight it. Matches on the face-up top card only: a source buried
- * in a digivolution stack is not what the player is looking at.
+ * prompt can highlight it. Physical source identity also locates effects buried
+ * in a digivolution stack; older requests fall back to the face-up card code.
  */
 export function sourcePermanentIdOf(
   sourceCardId: string | undefined,
   permanents: readonly Permanent[],
+  source?: { sourceInstanceId?: string; sourcePermanentId?: string },
 ): string | undefined {
+  if (source?.sourcePermanentId) {
+    return permanents.find((permanent) => permanent.permanentId === source.sourcePermanentId)?.permanentId;
+  }
+  if (source?.sourceInstanceId) {
+    return permanents.find((permanent) =>
+      [permanent.topCard, ...(permanent.stack ?? []), ...(permanent.linked ?? [])].some(
+        (card) => card?.instanceId === source.sourceInstanceId,
+      ),
+    )?.permanentId;
+  }
   if (sourceCardId === undefined) return undefined;
   return permanents.find((permanent) => permanent.topCard?.cardId === sourceCardId)?.permanentId;
 }

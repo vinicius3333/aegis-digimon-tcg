@@ -185,9 +185,14 @@ export type ServerEvent =
       kind: "effectTriggered";
       seat: Seat;
       sourceCardId: string;
+      /** Physical source and host; distinguish identical cards on the same seat. */
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
       effectKey: string;
       description: string;
       timing?: string;
+      /** Printed clause timing, separate from the watcher event that fired. */
+      printedTiming?: string;
       /**
        * The clause lives in the source card's inherited text box. Some timings appear in
        * both text boxes, so without this the client can only guess which box to quote.
@@ -411,6 +416,8 @@ export interface DecisionRequest {
   promptText: string;
   /** The card whose effect is asking for input (so the client can show its name/sigil/text without guessing from the event log). */
   sourceCardId?: string;
+  sourceInstanceId?: string;
+  sourcePermanentId?: string;
   // kind-specific options the UI needs to render the prompt and constrain input:
   options?: {
     candidateInstanceIds?: string[]; // selectable cards/permanents

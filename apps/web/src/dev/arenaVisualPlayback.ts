@@ -18,6 +18,7 @@ export interface ArenaVisualPlaybackController {
   stageLabel: string;
   controls: {
     start: () => void;
+    startSecurityBattle: () => void;
     pause: () => void;
     stop: () => void;
     next: () => void;
@@ -65,6 +66,15 @@ export function useArenaVisualPlayback(
         setActive(true);
       }
       setPlaying(true);
+    },
+    startSecurityBattle() {
+      const securityIndex = catalog.findIndex((entry) => entry.keyword === "SecurityAttack");
+      if (securityIndex < 0) return;
+      setSeed({ state: snapshotGameState(manualState), labels: manualLabels });
+      resetScene(securityIndex);
+      setActive(true);
+      // Run this scene once; keep the player available for replay and closing.
+      setPlaying(false);
     },
     pause() {
       setPlaying(false);

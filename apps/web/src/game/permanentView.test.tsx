@@ -302,3 +302,21 @@ describe("summoning sickness ring", () => {
     expect(container.querySelector(".game-summoning-ring")).toBeNull();
   });
 });
+
+it("raises an opponent's Plutomon during effect activation and returns it afterward", () => {
+  const permanent = opponentWithDpDown();
+  permanent.topCard.cardId = "BT26-059";
+  const { container, rerender } = render(
+    <I18nProvider>
+      <PermanentView perm={permanent} effectSource />
+    </I18nProvider>,
+  );
+  const card = container.querySelector<HTMLElement>(".game-permanent--effect-source")!;
+  expect(card.style.transform).toBe("translateY(-6px)");
+  rerender(
+    <I18nProvider>
+      <PermanentView perm={permanent} />
+    </I18nProvider>,
+  );
+  expect(card.style.transform).toBe("none");
+});

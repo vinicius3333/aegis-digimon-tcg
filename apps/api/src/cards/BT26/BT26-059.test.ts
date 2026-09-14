@@ -309,6 +309,18 @@ describe("BT26-059 Plutomon", () => {
     await advance(s.engine).verb.trash([s.inst("opponentHand").instanceId], 0);
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([higherId]);
+    expect(s.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "effectTriggered",
+          sourceCardId: "BT26-059",
+          timing: "whenHandTrashed",
+          printedTiming: "AllTurns",
+          sourcePermanentId: s.perm("plutomon").permanentId,
+          sourceInstanceId: s.inst("plutomon").instanceId,
+        }),
+      ]),
+    );
   });
 
   it("shares Once Per Turn across On Play and When Attacking", async () => {

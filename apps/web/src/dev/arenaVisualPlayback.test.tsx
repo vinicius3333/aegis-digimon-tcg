@@ -150,3 +150,28 @@ it("pauses between scenes, navigates and repeats with clean events, and stops/un
   unmount();
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it("previews security combat directly without advancing to another keyword", () => {
+  vi.useFakeTimers();
+  const manual = createArenaDemoState();
+  const baseline = snapshotGameState(manual);
+  const { result, unmount } = renderHook(() => useArenaVisualPlayback(manual, {}, false));
+  act(() => result.current.controller.controls.startSecurityBattle());
+  expect(result.current.controller.active).toBe(true);
+  expect(result.current.controller.playing).toBe(false);
+  expect(result.current.controller.scenario.keyword).toBe("SecurityAttack");
+  act(() => vi.advanceTimersByTime(1800));
+  expect(result.current.connection!.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+  expect(result.current.connection!.events.some((event) => event.kind === "securityRevealed")).toBe(true);
+  expect(
+    result.current.connection!.events.some(
+      (event) => event.kind === "securityChecked" && event.resolution === "battle",
+    ),
+  ).toBe(true);
+  act(() => vi.advanceTimersByTime(30000));
+  expect(result.current.controller.scenario.keyword).toBe("SecurityAttack");
+  act(() => result.current.controller.controls.stop());
+  expect(result.current.connection).toBeUndefined();
+  expect(snapshotGameState(manual)).toEqual(baseline);
+  unmount();
+});

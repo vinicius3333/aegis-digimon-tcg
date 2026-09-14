@@ -184,11 +184,18 @@ describe("createDecisionApi", () => {
     const api = createDecisionApi(mgr);
     const ctx = {
       activeTiming: "OnPlay",
-      source: { ownerSeat: 0 as Seat, cardId: "AD1-020", definition: { nameEn: "Tommy, Takuya, & Zoe" } },
+      source: {
+        ownerSeat: 0 as Seat,
+        cardId: "AD1-020",
+        instanceId: "tamer-instance",
+        permanent: () => ({ permanentId: "tamer-permanent" }),
+        definition: { nameEn: "Tommy, Takuya, & Zoe" },
+      },
     } as unknown as EffectContext;
 
     const promise = api.optional(ctx, "Place 2 card(s) under");
     expect(sent[0]!.req.options?.timing).toBe("OnPlay");
+    expect(sent[0]!.req).toMatchObject({ sourceInstanceId: "tamer-instance", sourcePermanentId: "tamer-permanent" });
     mgr.respond(0, sent[0]!.req.decisionId, { kind: "optional", accept: false });
     await promise;
   });

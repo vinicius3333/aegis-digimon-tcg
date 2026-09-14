@@ -550,7 +550,7 @@ export function PermanentView({
         // The reference client hides the destination until the centre-screen
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
-        transform: highlight ? "translateY(-6px)" : "none",
+        transform: highlight || effectSource ? "translateY(-6px)" : "none",
         transition: "transform 160ms, opacity 160ms",
       }}
     >

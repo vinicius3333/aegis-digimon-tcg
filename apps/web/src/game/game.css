@@ -577,8 +577,8 @@
 /* --- Trigger chooser ------------------------------------------------------ */
 
 .trigger-chooser {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: var(--ds-space-3);
   margin-bottom: var(--ds-space-4);
 }
@@ -586,7 +586,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-2);
-  padding: var(--ds-space-2);
+  padding: var(--ds-space-3);
   color: var(--ds-fg);
   border: 1.5px solid var(--ds-border);
   border-radius: var(--ds-radius-md);
@@ -605,26 +605,20 @@
   position: relative;
   display: block;
 }
-/* The clause rides the bottom of its own card, the way the reference client
-   labels each pending effect, so the card and its text read as one choice. */
-.trigger-chooser__summary {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 0.3rem 0.4rem;
-  color: var(--ds-brand-on-ink);
-  border-radius: 0 0 0.5rem 0.5rem;
-  background: rgb(15 23 42 / 82%);
-  font-size: 0.62rem;
-  font-weight: 600;
-  line-height: 1.25;
+.trigger-chooser__effect-text {
+  display: block;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 .trigger-chooser__meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-width: 14rem;
+  min-width: 0;
 }
 .trigger-chooser__source {
   color: var(--battle-cyan);
@@ -637,13 +631,85 @@
   font-size: var(--ds-text-sm);
   font-weight: 600;
 }
-/* The printed window ([On Play] vs [When Digivolving]) is what separates two
-   effects of the same permanent, so it leads the row rather than trailing it. */
-.trigger-chooser__timing {
-  color: var(--ds-accent);
+.trigger-chooser__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  position: relative;
+}
+.trigger-chooser__meta {
+  flex: 1;
+  padding-right: 20px;
+  gap: 6px;
+}
+.trigger-chooser__id {
+  color: var(--ds-fg-muted);
   font-size: var(--ds-text-xs);
-  font-weight: 800;
-  letter-spacing: 0.04em;
+}
+.trigger-chooser__context {
+  margin-bottom: var(--ds-space-3);
+  color: var(--battle-cyan);
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+}
+.trigger-chooser__check {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--battle-cyan);
+  color: #071426;
+}
+.trigger-chooser__option--chosen {
+  box-shadow: 0 0 0 1px var(--ds-accent);
+}
+.trigger-chooser__option:focus-visible {
+  outline: 2px solid var(--battle-cyan);
+  outline-offset: 3px;
+}
+.trigger-chooser__section {
+  display: block;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid var(--ds-border);
+}
+.trigger-chooser__section-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.trigger-chooser__paragraph {
+  display: block;
+  padding: 6px;
+}
+.trigger-chooser__paragraph--active {
+  background: var(--ds-accent-surface);
+  border-radius: var(--ds-radius-sm);
+}
+.trigger-chooser__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ds-border);
+}
+.trigger-chooser__selection {
+  color: var(--battle-cyan);
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .trigger-chooser__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 /* --- Board-mode decision prompts ------------------------------------------ */
@@ -5227,30 +5293,18 @@ button.side-panel__name:focus-visible {
     margin: 0 0.25rem;
   }
 
-  /* Trigger chooser as one row of compact tiles. Stacked full-size cards pushed
-     the confirm button off a 393x852 screen, so choosing which effect to resolve
-     meant scrolling the sheet first. Two or three tiles fit across instead, and
-     the row scrolls sideways only when there are more. */
+  /* Full printed effects stay readable on narrow sheets. */
   .trigger-chooser {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    grid-template-columns: 1fr;
     gap: var(--ds-space-2);
   }
   .trigger-chooser__option {
-    flex: 0 0 auto;
-    max-width: 8rem;
+    min-width: 0;
   }
-  /* CardFull sizes itself inline, so the thumbnail is shrunk here rather than by
-     passing a phone-only width down through the overlay. */
   .trigger-chooser__card > div {
     width: 64px !important;
     height: auto !important;
     aspect-ratio: 5 / 7;
-  }
-  /* The clause is printed in full above the list; on the tile it would be a
-     second truncation of the same sentence. */
-  .trigger-chooser__summary {
-    display: none;
   }
   .trigger-chooser__meta {
     max-width: 100%;

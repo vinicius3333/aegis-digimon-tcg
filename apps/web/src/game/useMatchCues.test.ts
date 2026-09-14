@@ -2746,3 +2746,160 @@ describe("triggered effect source prelude", () => {
     },
   );
 });
+
+it("plays the security battle when the server closes the check after its reveal has exited", async () => {
+  const { result, rerender } = renderCues();
+  rerender([ATTACK]);
+  await advance(10000);
+  rerender([ATTACK, { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 }]);
+  await advance(10000);
+  expect(result.current.securityClash).toBeNull();
+  rerender([
+    ATTACK,
+    { ...REVEAL, isDigimon: true, hasSecurityEffect: false, attackerDP: 2000, securityCardDP: 4000 },
+    {
+      ...CHECK,
+      battle: { attackerDP: 2000, securityCardDP: 4000, attackerDeleted: true, securityDigimonDeleted: true },
+    },
+  ]);
+  await advance(0);
+  expect(result.current.securityClash?.resolution).toBe("battle");
+});
+
+it("highlights the field host for a Succession effect even with another copy of the level 6 in hand", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [
+          {
+            permanentId: "succession-host",
+            topCard: { cardId: "BT26-087", instanceId: "level-7" },
+            stack: [{ cardId: "BT26-016", instanceId: "level-6-source" }],
+          },
+        ],
+        hand: [{ cardId: "BT26-016", instanceId: "level-6-in-hand" }],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  rerender([
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "BT26-016",
+      effectKey: "succession-when-digivolving",
+      description: "[When Digivolving] Delete 1 of your opponent's Digimon.",
+      timing: "WhenDigivolving",
+    },
+  ]);
+  await advance(0);
+  expect(result.current.effectSources).toMatchObject([
+    {
+      cardId: "BT26-016",
+      site: { zone: "field", permanentId: "succession-host" },
+    },
+  ]);
+});
+
+it("highlights each physical Digimon when identical cards resolve their start-of-main effects", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [
+          { permanentId: "first-hyokomon", topCard: { cardId: "BT26-009", instanceId: "first-copy" } },
+          { permanentId: "second-hyokomon", topCard: { cardId: "BT26-009", instanceId: "second-copy" } },
+        ],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  const first = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "BT26-009",
+    sourceInstanceId: "first-copy",
+    sourcePermanentId: "first-hyokomon",
+    effectKey: "start-main",
+    description: "[Start of Your Main Phase] Draw 1 card.",
+    timing: "StartOfYourMainPhase",
+  } as unknown as ServerEvent;
+  const second = {
+    ...first,
+    sourceInstanceId: "second-copy",
+    sourcePermanentId: "second-hyokomon",
+  } as unknown as ServerEvent;
+  rerender([first]);
+  await advance(0);
+  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "first-hyokomon" } }]);
+  await advance(10000);
+  rerender([first, second]);
+  await advance(0);
+  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second-hyokomon" } }]);
+});
+
+it("keeps the activation glow when a decision suppresses its duplicate toast", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "second", topCard: { cardId: "BT26-009", instanceId: "copy-2" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  act(() => result.current.dismissOwnEffectNotice("BT26-009"));
+  rerender([
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "BT26-009",
+      sourcePermanentId: "second",
+      sourceInstanceId: "copy-2",
+      effectKey: "start-main",
+      description: "[Start of Your Main Phase] Draw 1 card.",
+      timing: "StartOfYourMainPhase",
+    },
+  ]);
+  await advance(0);
+  expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second" } }]);
+  await advance(TIMINGS.effectSourceHold);
+  expect(result.current.notices).toHaveLength(0);
+});
+
+it("highlights the opponent's Plutomon when its All Turns hand-trash effect activates", async () => {
+  const board = {
+    players: [
+      { battleArea: [], hand: [], trash: [] },
+      {
+        battleArea: [{ permanentId: "plutomon", topCard: { cardId: "BT26-059", instanceId: "plutomon-card" } }],
+        hand: [],
+        trash: [],
+      },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  rerender([
+    {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT26-059",
+      sourceInstanceId: "plutomon-card",
+      sourcePermanentId: "plutomon",
+      effectKey: "hand-trash",
+      timing: "whenHandTrashed",
+      printedTiming: "AllTurns",
+      description: "whenHandTrashed",
+    },
+  ]);
+  await advance(0);
+  expect(result.current.effectSources).toMatchObject([
+    { seat: 1, cardId: "BT26-059", site: { zone: "field", permanentId: "plutomon" } },
+  ]);
+});

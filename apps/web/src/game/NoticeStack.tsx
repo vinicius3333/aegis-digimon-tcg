@@ -1,3 +1,4 @@
+import { EffectText } from "./EffectText";
 /* The framed notice of the reference client: a blue corner-bracketed panel
    carrying the clause that just resolved next to the art of the card that
    resolved it.
@@ -65,7 +66,11 @@ function EffectNoticeBody({
         </strong>
         {/* The clause is the card's printed text: it names other cards, but only as
             prose this client cannot resolve to ids, so it stays unlinked. */}
-        {clause ? <p className="match-notice__text">{clause}</p> : null}
+        {clause ? (
+          <p className="match-notice__text">
+            <EffectText text={clause} />
+          </p>
+        ) : null}
       </div>
     </>
   );

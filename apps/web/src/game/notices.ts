@@ -29,7 +29,15 @@ export const REJECTION_LIFETIME_MS = TIMINGS.feedEffect;
 export type NoticeSide = "you" | "opp";
 
 export type NoticeBody =
-  | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
+  | {
+      variant: "effect";
+      cardId: string;
+      timing?: string;
+      description?: string;
+      isInherited?: boolean;
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
+    }
   | { variant: "deletion"; cardId: string; artId?: string }
   | { variant: "recovery"; amount: number }
   | { variant: "securityGain"; amount: number }
@@ -74,9 +82,11 @@ export function effectNoticeFromEvent(
     body: {
       variant: "effect",
       cardId: event.sourceCardId,
-      timing: event.timing,
+      timing: event.printedTiming ?? event.timing,
       description: event.description,
       isInherited: event.isInherited,
+      ...(event.sourceInstanceId ? { sourceInstanceId: event.sourceInstanceId } : {}),
+      ...(event.sourcePermanentId ? { sourcePermanentId: event.sourcePermanentId } : {}),
     },
     createdAt: nowMs,
   };

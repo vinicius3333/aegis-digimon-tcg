@@ -133,7 +133,7 @@ describe("order-trigger chooser identity", () => {
     expect(screen.getByRole("button", { name: "[On Play], Megadramon (copy 2)" })).toBeTruthy();
   });
 
-  it("drops a per-option clause that every option repeats", () => {
+  it("shows full printed text for each option even when the clauses repeat", () => {
     render(
       <I18nProvider>
         <DecisionOverlay
@@ -163,11 +163,11 @@ describe("order-trigger chooser identity", () => {
       </I18nProvider>,
     );
 
-    expect(screen.queryByText(/Delete 1 of your opponent/)).toBeNull();
+    expect(screen.getAllByText(/Delete 1 of your opponent/)).toHaveLength(2);
     expect(screen.getAllByText("Field: 1")).toHaveLength(2);
   });
 
-  it("keeps a per-option clause when the options say different things", () => {
+  it("uses full catalog text instead of shortened summaries", () => {
     render(
       <I18nProvider>
         <DecisionOverlay
@@ -193,8 +193,10 @@ describe("order-trigger chooser identity", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("Delete 1 Digimon")).toBeTruthy();
-    expect(screen.getByText("Draw 1 card")).toBeTruthy();
+    expect(screen.queryByText("Delete 1 Digimon")).toBeNull();
+    expect(screen.getByText(/Delete 1 of your opponent/)).toBeTruthy();
+    expect(document.querySelectorAll(".trigger-chooser__effect-text")).toHaveLength(2);
+    expect(screen.queryByText("Inherited (ESS)")).toBeNull();
   });
 });
 
@@ -3296,4 +3298,31 @@ it("allows selecting all available candidates when fewer than min exist", () => 
   );
   fireEvent.click(screen.getByRole("button", { name: translator("en")("overlay.confirmTargets") }));
   expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["only"] });
+});
+
+it("shows start-main timing and full formatted text for each pending effect", () => {
+  renderDecision({
+    decisionId: "start-main-full-text",
+    seat: 0,
+    kind: "orderTriggers",
+    promptText: "Choose the next pending effect to resolve.",
+    options: {
+      triggerKeys: [buildTriggerKey("first", "BT26-009/start-main"), buildTriggerKey("second", "BT26-092/start-main")],
+      triggerCardIds: ["BT26-009", "BT26-092"],
+      triggerTimings: ["StartOfYourMainPhase", "StartOfYourMainPhase"],
+    },
+  });
+  expect(document.querySelectorAll(".trigger-chooser__timing")).toHaveLength(0);
+  expect(document.querySelector(".trigger-chooser__context")?.textContent).toBe("[Start of Your Main Phase]");
+  expect(screen.queryByText("Inherited (ESS)")).toBeNull();
+  expect(screen.queryByText("Security effect")).toBeNull();
+  expect(screen.getByText("BT26-009")).toBeTruthy();
+  const text = document.querySelector(".trigger-chooser__effect-text")!;
+  expect(text.textContent).not.toContain("[Digivolve]");
+  expect(document.querySelector(".trigger-chooser")?.textContent).not.toContain("[Opponent\'s Turn]");
+  expect(document.querySelector(".trigger-chooser")?.textContent).not.toContain("[Security]");
+  expect(text.textContent).toContain("gain 1 memory.");
+  expect(Array.from(text.querySelectorAll("mark")).map((mark) => mark.textContent)).toContain(
+    "[Start of Your Main Phase]",
+  );
 });

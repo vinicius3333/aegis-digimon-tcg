@@ -1,3 +1,4 @@
+import { EffectText } from "./EffectText";
 /* In-game overlays, driven by real server state — mulligan window, block window,
    effect decision, game over, and the pre-match waiting panel. Each maps user
    choices to the typed intent callbacks GameScreen passes. The security check has
@@ -923,6 +924,7 @@ export const TIMING_LABELS: Record<string, string> = {
   EndOfYourTurn: "End of Your Turn",
   StartOfOpponentsTurn: "Start of Opponent's Turn",
   EndOfOpponentsTurn: "End of Opponent's Turn",
+  OnStartMainPhase: "Start of Main Phase",
   StartOfYourMainPhase: "Start of Your Main Phase",
   StartOfOpponentsMainPhase: "Start of Opponent's Main Phase",
   EndOfAllTurns: "End of All Turns",
@@ -1030,6 +1032,27 @@ export function cardEffectClauseForTiming(
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
   if (matching === undefined && timing !== undefined) {
+    // Watcher event names describe a condition inside a turn-scoped clause,
+    // rather than the bracket printed on the card.
+    const watcherCondition =
+      timing === "whenHandTrashed"
+        ? /\bwhen\b[^.\n]*(?:hands?[^.\n]*trash|trash[^.\n]*hands?)/i
+        : timing === "whenSecurityRemoved"
+          ? /\bwhen\b[^.\n]*security[^.\n]*remov/i
+          : undefined;
+    if (watcherCondition) {
+      const clauses = new Set(
+        texts.flatMap((text) =>
+          ["AllTurns", "YourTurn", "OpponentsTurn"].flatMap((variant) => {
+            const variantLabel = TIMING_LABELS[variant]!;
+            if (!text.includes(`[${variantLabel}]`)) return [];
+            const clause = effectClauseForTiming(text, variant);
+            return clause && watcherCondition.test(clause) ? [clause] : [];
+          }),
+        ),
+      );
+      if (clauses.size === 1) return [...clauses][0];
+    }
     const variants = GENERIC_TIMING_VARIANTS[timing] ?? [];
     const present = variants.flatMap((variant) => {
       const variantLabel = TIMING_LABELS[variant];
@@ -1296,8 +1319,12 @@ export function DecisionOverlay({
   // Two effects of ONE permanent reach the chooser with the same name and art; the
   // window each fired in is the only honest thing that separates them.
   const triggerTimingLabels = triggerKeys.map((_key, index) =>
-    printedTimingLabel(request.options?.triggerTimings?.[index] || undefined),
+    printedTimingLabel(request.options?.triggerTimings?.[index] || request.options?.timing || undefined),
   );
+  const commonTriggerTiming =
+    triggerTimingLabels.length > 0 && triggerTimingLabels.every((label) => label === triggerTimingLabels[0])
+      ? triggerTimingLabels[0]
+      : undefined;
   const distinctTriggerSummaries = new Set(triggerDetails.map((detail) => detail?.summary ?? "")).size;
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
   const selectedPlayCost = picks.reduce((total, instanceId) => {
@@ -1821,16 +1848,19 @@ export function DecisionOverlay({
           >
             {t(triggerKeys.length === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
           </div>
+          {commonTriggerTiming ? <div className="trigger-chooser__context">{commonTriggerTiming}</div> : null}
           <div className="trigger-chooser">
             {triggerKeys.map((key, i) => {
               const chosen = selectedTriggerKeys.includes(key);
               const cardId = triggerCardIds[i] ?? triggerCardId(key);
               const detail = triggerDetails[i];
-              // The clause is already printed in full above the list, so repeating it
-              // per option only truncates the same sentence twice. It earns its space
-              // only where the options genuinely say different things.
               const summary = distinctTriggerSummaries > 1 ? detail?.summary : undefined;
               const timingLabel = triggerTimingLabels[i];
+              const activeClause = cardEffectClauseForTiming(
+                cardId,
+                request.options?.triggerTimings?.[i] || request.options?.timing || undefined,
+                request.options?.triggerIsInherited?.[i],
+              );
               return (
                 <button
                   type="button"
@@ -1842,27 +1872,46 @@ export function DecisionOverlay({
                   aria-pressed={chosen}
                   onClick={() => toggleTrigger(key)}
                 >
-                  <span className="trigger-chooser__card">
-                    <CardFull cardId={cardId} width={wideDialog ? 128 : 96} selected={chosen} />
-                    {summary ? <span className="trigger-chooser__summary">{summary}</span> : null}
+                  <span className="trigger-chooser__heading">
+                    <span className="trigger-chooser__card">
+                      <CardFull cardId={cardId} width={wideDialog ? 96 : 72} />
+                    </span>
+                    <span className="trigger-chooser__meta">
+                      <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
+                      <span className="trigger-chooser__id">{cardId}</span>
+                      {detail?.sourceLabel ? (
+                        <span className="trigger-chooser__source">{detail.sourceLabel}</span>
+                      ) : null}
+                    </span>
+                    {chosen ? (
+                      <span className="trigger-chooser__check" aria-hidden="true">
+                        ✓
+                      </span>
+                    ) : null}
                   </span>
-                  <span className="trigger-chooser__meta">
-                    {timingLabel ? <span className="trigger-chooser__timing">{timingLabel}</span> : null}
-                    <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
-                    {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
-                  </span>
+                  {activeClause || detail?.summary ? (
+                    <span className="trigger-chooser__section">
+                      <span className="trigger-chooser__effect-text">
+                        <EffectText text={activeClause || detail?.summary || ""} />
+                      </span>
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
           </div>
-          <Button
-            full
-            icon={Icons.Check}
-            disabled={selectedTriggerKeys.length !== 1}
-            onClick={() => onRespond({ kind: "orderTriggers", order: selectedTriggerKeys })}
-          >
-            {t(triggerKeys.length === 1 ? "overlay.resolveEffect" : "overlay.resolveNextEffect")}
-          </Button>
+          <div className="trigger-chooser__footer">
+            <span className="trigger-chooser__selection" aria-live="polite">
+              {selectedTriggerKeys.length === 1 ? triggerKeyLabels[triggerKeys.indexOf(selectedTriggerKeys[0]!)] : null}
+            </span>
+            <Button
+              icon={Icons.Check}
+              disabled={selectedTriggerKeys.length !== 1}
+              onClick={() => onRespond({ kind: "orderTriggers", order: selectedTriggerKeys })}
+            >
+              {t(triggerKeys.length === 1 ? "overlay.resolveEffect" : "overlay.resolveNextEffect")}
+            </Button>
+          </div>
         </div>
       ) : null}
       {isOrderCards ? (

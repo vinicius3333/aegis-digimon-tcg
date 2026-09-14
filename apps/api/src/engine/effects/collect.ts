@@ -34,6 +34,7 @@ export interface CollectedEffect {
    * through the SubTrigger bus.
    */
   timingLabel?: string;
+  printedTiming?: string;
 }
 
 /**

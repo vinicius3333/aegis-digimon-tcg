@@ -202,12 +202,7 @@
   line-height: 1.6;
   white-space: pre-wrap;
 }
-.arena-permanent-inspector__effect mark {
-  padding: 0 0.1875rem;
-  border-radius: 0.125rem;
-  color: #f4faff;
-  background: rgb(58 105 174 / 72%);
-}
+
 .arena-permanent-inspector__effect--source {
   display: grid;
   grid-template-columns: 2.125rem minmax(0, 1fr);

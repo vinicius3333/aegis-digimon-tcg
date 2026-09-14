@@ -170,3 +170,20 @@ describe("NoticeStack", () => {
     expect(onDismiss).toHaveBeenCalledWith("n1");
   });
 });
+
+it("highlights the printed timing markers in Plutomon's effect notice", () => {
+  renderNotice(
+    notice({
+      side: "opp",
+      body: { variant: "effect", cardId: "BT26-059", timing: "AllTurns", description: "whenHandTrashed" },
+    }),
+  );
+  const shown = screen.getByTestId("match-notice");
+  expect(Array.from(shown.querySelectorAll("mark")).map((mark) => mark.textContent)).toEqual([
+    "[All Turns]",
+    "[Once Per Turn]",
+  ]);
+  expect(shown.textContent).toContain(
+    "When hands are trashed from, you may delete all of your opponent's lowest level Digimon.",
+  );
+});

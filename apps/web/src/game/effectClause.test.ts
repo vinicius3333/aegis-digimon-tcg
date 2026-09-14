@@ -532,3 +532,11 @@ describe("effectClauseForTiming", () => {
     expect(clause).toBeUndefined();
   });
 });
+
+it("shows Plutomon's All Turns clause for its hand-trash watcher", () => {
+  expect(
+    playerFacingEffectClause({ cardId: "BT26-059", timing: "whenHandTrashed", description: "whenHandTrashed" }),
+  ).toBe(
+    "[All Turns] [Once Per Turn] When hands are trashed from, you may delete all of your opponent's lowest level Digimon.",
+  );
+});

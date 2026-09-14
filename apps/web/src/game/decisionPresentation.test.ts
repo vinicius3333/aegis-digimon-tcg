@@ -145,3 +145,13 @@ describe("triggerSource", () => {
     expect(triggerSource("gone", { fieldSlots: slots, handInstanceIds: [] })).toEqual({ zone: "unknown" });
   });
 });
+
+it("uses the optional decision's physical source for duplicate field cards", () => {
+  const permanents = [
+    { permanentId: "first", topCard: { cardId: "BT26-009", instanceId: "copy-1" } },
+    { permanentId: "second", topCard: { cardId: "BT26-009", instanceId: "copy-2" } },
+  ] as unknown as Permanent[];
+  expect(sourcePermanentIdOf("BT26-009", permanents, { sourcePermanentId: "second", sourceInstanceId: "copy-2" })).toBe(
+    "second",
+  );
+});

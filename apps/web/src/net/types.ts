@@ -13,5 +13,5 @@ export interface AegisJoinOptions {
   betaBattleMode?: boolean;
   authTicket?: string;
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
-  devScenario?: "battle";
+  devScenario?: "battle" | "arena";
 }

@@ -434,6 +434,7 @@ export function ArenaDemo() {
           securityFaceUpCount={3 - securityFaceDownCount}
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
+          onSecurityBattle={playback.controller.controls.startSecurityBattle}
           onTurnStart={previewTurnStart}
           onEffects={previewEffects}
           onEffectActivation={previewEffectActivation}

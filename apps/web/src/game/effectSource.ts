@@ -23,7 +23,11 @@ export type EffectSourceSite =
   | { zone: "hand"; instanceId: string };
 
 /** Asks the board where a seat's copy of a card currently sits. */
-export type EffectSourceLookup = (cardId: string, seat: Seat) => EffectSourceSite | undefined;
+export type EffectSourceLookup = (
+  cardId: string,
+  seat: Seat,
+  source?: { sourceInstanceId?: string; sourcePermanentId?: string },
+) => EffectSourceSite | undefined;
 
 export interface EffectActivation {
   key: number;

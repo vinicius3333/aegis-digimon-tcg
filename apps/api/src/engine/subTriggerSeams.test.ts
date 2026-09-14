@@ -1058,6 +1058,7 @@ describe("loose-anchored SubTrigger location check (CR §15-4-4-3)", () => {
           instanceId: card.instanceId,
           cardId: card.cardId,
           ownerSeat: 0,
+          permanent: () => undefined,
         },
         trigger: {},
         fx: primitivesOf(s),

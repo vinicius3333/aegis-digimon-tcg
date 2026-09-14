@@ -1,5 +1,14 @@
 import { CardInstance, Permanent, Zone, getCardDefinition, type GameState, type Seat } from "@aegis/shared";
-import { insertCard, placePermanent, pushOnStack, setTopCard, takeBottom, takeTop } from "./state/access.js";
+import {
+  extractCardAt,
+  insertCard,
+  placePermanent,
+  pushOnStack,
+  setBreeding,
+  setTopCard,
+  takeBottom,
+  takeTop,
+} from "./state/access.js";
 import {
   loadDeckInto,
   makeRng,
@@ -15,7 +24,7 @@ import {
  * mulligan, security) with a hand-laid board and then hands control to the real turn loop, so
  * a developer lands mid-match instead of playing the opening turns every time.
  */
-export const DEV_SCENARIO_IDS = ["battle"] as const;
+export const DEV_SCENARIO_IDS = ["battle", "arena"] as const;
 export type DevScenarioId = (typeof DEV_SCENARIO_IDS)[number];
 
 export function isDevScenarioId(value: unknown): value is DevScenarioId {
@@ -122,8 +131,79 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   state.memory = 0;
 }
 
+/** BT26 demo cards are taken from the staged decks, preserving each physical copy. */
+function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    function take(cardId: string): CardInstance {
+      const zone = getCardDefinition(cardId)?.level === 2 ? Zone.EggDeck : Zone.Deck;
+      const cards = zone === Zone.EggDeck ? player!.eggDeck : player!.deck;
+      const card = extractCardAt(
+        player!,
+        zone,
+        cards.findIndex((entry) => entry.cardId === cardId),
+      );
+      if (card === undefined) throw new Error(`Arena deck is missing a copy of ${cardId}`);
+      return card;
+    }
+    function permanent(id: string, cardIds: readonly string[]): Permanent {
+      const result = establishedDigimon(seat, cardIds);
+      result.permanentId = id;
+      result.stack.clear();
+      cardIds.slice(0, -1).forEach((cardId) => pushOnStack(result, take(cardId)));
+      const top = take(cardIds[cardIds.length - 1]!);
+      top.faceUp = true;
+      setTopCard(result, top);
+      return result;
+    }
+    const breeding =
+      seat === 0
+        ? permanent("you-breeding", ["BT26-001", "BT26-009"])
+        : permanent("opponent-breeding", ["BT24-007", "BT26-066"]);
+    breeding.inBreeding = true;
+    setBreeding(player, breeding);
+    const field =
+      seat === 0
+        ? [
+            permanent("you-chronomon", ["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"]),
+            permanent("you-hyokomon", ["BT26-009"]),
+            permanent("you-shota", ["BT26-092"]),
+          ]
+        : [
+            permanent("opponent-plutomon", ["BT24-007", "BT26-066", "BT26-069", "BT26-074", "BT26-059"]),
+            permanent("opponent-dobermon", ["BT26-069"]),
+            permanent("opponent-asuna", ["BT24-088"]),
+          ];
+    field.forEach((entry) => placePermanent(player, entry));
+    if (seat === 1) field[1]!.isSuspended = true;
+    const hand =
+      seat === 0
+        ? ["BT26-009", "BT26-011", "BT26-016", "BT26-087", "BT8-095"]
+        : ["BT26-059", "BT26-079", "BT26-074", "BT26-056", "BT26-100"];
+    hand.forEach((cardId) => insertCard(player, Zone.Hand, take(cardId)));
+    const trash = seat === 0 ? ["BT26-015", "BT8-095"] : ["BT26-074", "BT26-100"];
+    trash.forEach((cardId) => insertCard(player, Zone.Trash, take(cardId)));
+    // Reserve a real Digimon from Plutomon's deck for the first security battle.
+    const securityTop = seat === 1 ? take("BT24-045") : undefined;
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    if (securityTop !== undefined) {
+      const displaced = takeBottom(player, Zone.Security);
+      if (displaced !== undefined) insertCard(player, Zone.Deck, displaced);
+      insertCard(player, Zone.Security, securityTop, "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
+  arena: layArenaScenario,
 };
 
 export function layDevScenario(scenario: DevScenarioId, state: GameState, decks: readonly [Decklist, Decklist]): void {

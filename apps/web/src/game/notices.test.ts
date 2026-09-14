@@ -181,3 +181,25 @@ describe("isOwnEffectNotice", () => {
     expect(isOwnEffectNotice(notice({ body: { variant: "recovery", amount: 1 } }), "BT1-001")).toBe(false);
   });
 });
+
+it.each(["whenHandTrashed", "whenDigivolutionTrashed", "whenOptionUsed", "whenSuspended", "whenEffectAddsToDeck"])(
+  "uses printed timing for the %s watcher notice",
+  (timing) => {
+    const event: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT26-059",
+      sourceInstanceId: "plutomon-card",
+      sourcePermanentId: "plutomon",
+      effectKey: "watcher",
+      description: timing,
+      timing,
+      printedTiming: "AllTurns",
+    };
+    expect(effectNoticeFromEvent(event, 0, "watcher", 0)?.body).toMatchObject({
+      timing: "AllTurns",
+      sourcePermanentId: "plutomon",
+      sourceInstanceId: "plutomon-card",
+    });
+  },
+);

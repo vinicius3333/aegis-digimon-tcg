@@ -1,3 +1,4 @@
+import { EffectText } from "./EffectText";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { getCardDefinition } from "@aegis/shared";
@@ -5,12 +6,7 @@ import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
-import {
-  groupedInspectorEvolutionCosts,
-  inspectorCardsTopToBottom,
-  inspectedArenaHalf,
-  inlineInspectorKeywordLines,
-} from "./arenaInspectorModel";
+import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
 import { formatKeyword } from "./keywordDisplay";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
@@ -20,12 +16,6 @@ export interface ArenaInspectionOptions {
   side: "you" | "opp";
   container: HTMLElement | null;
   returnFocusTo?: HTMLElement | null;
-}
-
-function EffectText({ text }: { text: string }) {
-  return inlineInspectorKeywordLines(text)
-    .split(/(\[[^\]]+\]|＜[^＞]+＞)/g)
-    .map((part, index) => (/^\[|^＜/.test(part) ? <mark key={index}>{part}</mark> : <span key={index}>{part}</span>));
 }
 
 /** The shared field-card detail, laid across the half opposite the selected card. */

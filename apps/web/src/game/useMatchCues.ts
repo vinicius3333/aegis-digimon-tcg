@@ -91,6 +91,7 @@ import {
   effectActivationTrack,
   type EffectActivation,
   type EffectSourceLookup,
+  type EffectSourceSite,
 } from "./effectSource";
 import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
 import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -374,6 +375,8 @@ function buildCardSiteIndex(state: GameState): {
   topInstanceOf: (permanentId: string) => string | undefined;
 } {
   const sites = new Map<string, ReturnType<EffectSourceLookup>>();
+  const instances = new Map<string, EffectSourceSite>();
+  const hosts = new Map<string, EffectSourceSite>();
   const seats = new Map<string, Seat>();
   const tops = new Map<string, string>();
   state.players.forEach((player, playerSeat) => {
@@ -381,16 +384,32 @@ function buildCardSiteIndex(state: GameState): {
     const key = (cardId: string) => `${seat}:${cardId}`;
     const permanents = [...player.battleArea, ...(player.breeding ? [player.breeding] : [])];
     for (const permanent of permanents) {
+      const site: EffectSourceSite = { zone: "field", permanentId: permanent.permanentId };
+      hosts.set(key(permanent.permanentId), site);
+      for (const card of [permanent.topCard, ...(permanent.stack ?? []), ...(permanent.linked ?? [])]) {
+        if (card?.instanceId) instances.set(key(card.instanceId), site);
+      }
       const cardId = permanent.topCard?.cardId;
       if (cardId && !sites.has(key(cardId)))
         sites.set(key(cardId), { zone: "field", permanentId: permanent.permanentId });
       if (permanent.topCard?.instanceId) tops.set(permanent.permanentId, permanent.topCard.instanceId);
     }
+    // Inherited and copied effects (Succession) keep naming their source card
+    // after it moves under the current top. Its host owns the field highlight.
+    // Check all tops first, then sources, before looking for loose copies.
+    for (const permanent of permanents) {
+      for (const card of [...(permanent.stack ?? []), ...(permanent.linked ?? [])]) {
+        if (card?.cardId && !sites.has(key(card.cardId)))
+          sites.set(key(card.cardId), { zone: "field", permanentId: permanent.permanentId });
+      }
+    }
     for (const card of player.trash) {
+      if (card?.instanceId) instances.set(key(card.instanceId), { zone: "trash", instanceId: card.instanceId });
       if (card?.cardId && !sites.has(key(card.cardId)))
         sites.set(key(card.cardId), { zone: "trash", instanceId: card.instanceId });
     }
     for (const card of player.hand ?? []) {
+      if (card?.instanceId) instances.set(key(card.instanceId), { zone: "hand", instanceId: card.instanceId });
       if (card?.cardId && !sites.has(key(card.cardId)))
         sites.set(key(card.cardId), { zone: "hand", instanceId: card.instanceId });
       if (card?.instanceId) seats.set(card.instanceId, seat);
@@ -399,7 +418,15 @@ function buildCardSiteIndex(state: GameState): {
     // so a card only becomes locatable once it reaches a zone the viewer can see.
   });
   return {
-    locate: (cardId, seat) => sites.get(`${seat}:${cardId}`),
+    locate: (cardId, seat, source) => {
+      if (source?.sourcePermanentId) {
+        const host = hosts.get(`${seat}:${source.sourcePermanentId}`);
+        if (host) return host;
+      }
+      if (source?.sourceInstanceId) return instances.get(`${seat}:${source.sourceInstanceId}`);
+      if (source?.sourcePermanentId) return undefined;
+      return sites.get(`${seat}:${cardId}`);
+    },
     seatOf: (instanceId) => seats.get(instanceId),
     topInstanceOf: (permanentId) => tops.get(permanentId),
   };
@@ -751,7 +778,7 @@ export function useMatchCues({
   function enqueueNarrationItem(item: NarrationItem) {
     const body = item.notice?.body;
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
-    const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat) : undefined;
+    const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
     // Follow the actual arrival track, including its field burst, rather than
     // estimating when a normal play, evolution or cut-in will be finished.
@@ -778,7 +805,7 @@ export function useMatchCues({
             : undefined;
           const site = deletion?.instanceId
             ? { zone: "trash" as const, instanceId: deletion.instanceId }
-            : cardSiteRef.current.locate(body.cardId, seat);
+            : cardSiteRef.current.locate(body.cardId, seat, body);
           if (site && context.mode === "live") {
             const activation: EffectActivation = {
               key: ++effectSourceKeyRef.current,
@@ -1689,7 +1716,10 @@ export function useMatchCues({
       // close; the check's remaining beats belong to a board it has handed over. A docked
       // card comes back to the centre only for a battle, which is the one outcome the dock
       // has no way to draw: it needs the attacker beside it.
-      if (staged?.exited !== true && (!docked || scene.resolution === "battle")) {
+      // A live server can finish the battle after removal reactions have already
+      // let the reveal leave. Its battle still needs both cards on centre stage.
+      const restoreBattle = scene.resolution === "battle" && (docked || staged?.exited === true);
+      if (restoreBattle || (staged?.exited !== true && !docked)) {
         enqueue({
           id: `security-clash-outcome-${key}`,
           track: CENTER_STAGE_TRACK,
@@ -1698,7 +1728,7 @@ export function useMatchCues({
               // The verdict reaches the scene here, so a card held through a long resolution
               // takes the claw at the close rather than wearing the outcome the whole time.
               // A docked card is not on stage at all, so its battle puts it back there.
-              if (docked) setSecurityClash(scene);
+              if (restoreBattle) setSecurityClash(scene);
               else setSecurityClash((current) => (current?.key === key ? scene : current));
               await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
             } finally {

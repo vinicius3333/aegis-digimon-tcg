@@ -315,6 +315,47 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("resolves its own When Digivolving after the Succession Holy Mode effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-016", as: "base" }],
+          hand: [{ card: CARD_ID, as: "evolution" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "victim", dp: 1000 },
+            { card: "BT1-015", as: "stacked", under: ["BT1-009", "BT1-009"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT26-016"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const triggers = s.events.filter((event) => event.kind === "effectTriggered" && event.timing === "WhenDigivolving");
+    expect(triggers.map((event) => (event.kind === "effectTriggered" ? event.sourceCardId : ""))).toEqual(
+      expect.arrayContaining(["BT26-016", CARD_ID]),
+    );
+    expect(
+      triggers.map((event) => (event.kind === "effectTriggered" ? event.sourceCardId : "")).indexOf("BT26-016"),
+    ).toBeLessThan(
+      triggers.map((event) => (event.kind === "effectTriggered" ? event.sourceCardId : "")).indexOf(CARD_ID),
+    );
+    expect(s.state.players[1]!.deck).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Succession confers only the highest matching Chronomon card's effects", async () => {
     const s = setupEngine(
       {

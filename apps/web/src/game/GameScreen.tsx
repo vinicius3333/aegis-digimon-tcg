@@ -1888,7 +1888,9 @@ export function GameScreen({
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
   const decisionSourcePermanentId =
-    viewerDecision?.kind === "optional" ? sourcePermanentIdOf(decisionSourceCardId, allPermanents) : undefined;
+    viewerDecision?.kind === "optional"
+      ? sourcePermanentIdOf(decisionSourceCardId, allPermanents, viewerDecision)
+      : undefined;
   const boardPresentation = viewerDecision
     ? decisionPresentation({
         decision: viewerDecision,

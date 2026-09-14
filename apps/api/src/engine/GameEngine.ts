@@ -3411,6 +3411,7 @@ export class GameEngine {
       triggerInfo: ctx.trigger,
       discardedStackSourceProof: ctx.discardedStackSourceProof,
       timingLabel: sub.event,
+      printedTiming: sub.printedTiming,
       effect: {
         effectKey: `subtrigger/${sub.id}/${sub.description}`,
         description: sub.description,
@@ -3441,9 +3442,12 @@ export class GameEngine {
       kind: "effectTriggered",
       seat: ctx.source.ownerSeat,
       sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId,
       effectKey: `subtrigger/${sub.id}/${sub.description}`,
       description: subTriggerDescriptionFor(sub, ctx),
       timing: sub.event,
+      ...(sub.printedTiming !== undefined ? { printedTiming: sub.printedTiming } : {}),
       ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
       // `securityChecked` closes the check AFTER these bodies have run, so the client needs
       // this to hold the announcement until the checked card's reveal has been shown.
@@ -5257,9 +5261,12 @@ export class GameEngine {
           kind: "effectTriggered",
           seat: collected.source.ownerSeat,
           sourceCardId: collected.source.cardId,
+          sourceInstanceId: collected.source.instanceId,
+          sourcePermanentId: collected.conferredToPermanentId ?? collected.source.permanent()?.permanentId,
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: collected.timingLabel ?? EffectTiming[collected.timing ?? timing],
+          ...(collected.printedTiming !== undefined ? { printedTiming: collected.printedTiming } : {}),
           ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.

@@ -32,6 +32,8 @@ export type SubTriggerRootZone = "trash" | "hand" | "security";
 export interface SubTriggerSubscription {
   id: number;
   event: SubTriggerEventName;
+  /** Printed timing of the clause that installed this watcher. */
+  printedTiming?: string;
   /** Stable action identity used to collapse duplicate installs without collapsing
    * distinct clauses that intentionally share one once-per-turn budget. */
   dedupeKey?: string;

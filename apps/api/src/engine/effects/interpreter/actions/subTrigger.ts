@@ -1111,6 +1111,7 @@ export async function runSubTrigger(
             : `${ctx.source.instanceId}/${ctx.conferralGranterInstanceId ?? "printed"}/${action.oncePerTurnKey}`,
         }
       : {}),
+    ...(ctx.activeTiming !== undefined ? { printedTiming: ctx.activeTiming } : {}),
     description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.

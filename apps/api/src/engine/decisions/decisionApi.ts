@@ -88,6 +88,8 @@ function buildSeatScopedApi(
         kind: "optional",
         promptText: prompt,
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: provenance(ctx),
       });
       return response.kind === "optional" ? response.accept : false;
@@ -109,6 +111,8 @@ function buildSeatScopedApi(
         kind: "chooseTargets",
         promptText: ctx.source.definition.nameEn || ctx.source.cardId,
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
           visibleInstanceIds: opts.visible ?? opts.candidates,
@@ -148,6 +152,8 @@ function buildSeatScopedApi(
         kind: "selectCards",
         promptText: ctx.source.definition.nameEn || ctx.source.cardId,
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
           visibleInstanceIds: opts.visible ?? opts.candidates,
@@ -177,6 +183,8 @@ function buildSeatScopedApi(
         kind: "chooseTargets",
         promptText: ctx.source.definition.nameEn || ctx.source.cardId,
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
           min: opts.min,
@@ -206,6 +214,8 @@ function buildSeatScopedApi(
         kind: "orderCards",
         promptText: "Choose the card order",
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
           visibleInstanceIds: opts.candidates,
@@ -228,6 +238,8 @@ function buildSeatScopedApi(
         kind: "chooseOption",
         promptText: ctx.source.definition.nameEn || ctx.source.cardId,
         sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: { choices, ...provenance(ctx) },
       });
       if (response.kind !== "chooseOption") return 0;

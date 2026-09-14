@@ -60,6 +60,8 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
       const triggerTimings = active.map(
         (c) =>
           c.effect.timingOverride ??
+          c.printedTiming ??
+          c.effect.irTrigger ??
           c.timingLabel ??
           (c.timing !== undefined ? EffectTiming[c.timing] : undefined) ??
           decisionTiming ??
@@ -99,6 +101,8 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         kind: "optional",
         promptText: "Use this effect?",
         sourceCardId: collected.source.cardId,
+        sourceInstanceId: collected.source.instanceId,
+        sourcePermanentId: collected.conferredToPermanentId ?? collected.source.permanent()?.permanentId,
         options: {
           effectText: collected.effect.description,
           ...(collected.effect.timingOverride !== undefined

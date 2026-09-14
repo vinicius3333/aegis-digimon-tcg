@@ -8,6 +8,7 @@ export function ArenaDemoTools({
   onKeywords,
   onDraw,
   onVisualPlayback,
+  onSecurityBattle,
   onTurnStart,
   onEffects,
   onEffectActivation,
@@ -20,6 +21,7 @@ export function ArenaDemoTools({
   onKeywords: () => void;
   onDraw: (seat: Seat) => void;
   onVisualPlayback: () => void;
+  onSecurityBattle?: () => void;
   onTurnStart: () => void;
   onEffects?: () => void;
   onEffectActivation?: (
@@ -108,6 +110,18 @@ export function ArenaDemoTools({
           >
             {portuguese ? "Reproduzir início do turno" : "Preview turn start"}
           </button>
+          {onSecurityBattle ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onSecurityBattle();
+              }}
+            >
+              {portuguese ? "Reproduzir combate contra a segurança" : "Preview combat against security"}
+            </button>
+          ) : null}
           {onEffectActivation
             ? (["On Play", "When Digivolving", "When Attacking", "Start of Main Phase", "On Deletion"] as const).map(
                 (timing) => (
