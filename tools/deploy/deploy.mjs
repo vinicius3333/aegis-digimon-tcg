@@ -264,10 +264,12 @@ export async function controller({ action, source, envFile, state, revision }) {
         [
           "exec",
           "-T",
+          "-w",
+          "/app/apps/api",
           `api${index}`,
           "node",
           "-e",
-          "fetch('http://127.0.0.1:2567/matchmake/aegis').then(async r=>{if(!r.ok||!Array.isArray(await r.json()))process.exit(1)}).catch(()=>process.exit(1))",
+          "import('@colyseus/redis-driver').then(async({RedisDriver})=>{const d=new RedisDriver(process.env.AEGIS_REDIS_URL);try{if(!Array.isArray(await d.query({})))throw Error('invalid listings')}finally{await d.shutdown()}}).catch(()=>process.exit(1))",
         ],
         true,
       );

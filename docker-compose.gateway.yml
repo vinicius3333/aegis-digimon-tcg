@@ -15,6 +15,7 @@ services:
     networks:
       default:
         aliases:
+          - aegis-web
           - aegis-rollout-gateway
     healthcheck:
       test:
