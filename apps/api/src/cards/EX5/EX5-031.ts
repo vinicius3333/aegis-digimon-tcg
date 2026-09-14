@@ -39,6 +39,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      optional: true,
       actions: [
         {
           kind: "SecurityManipulation",
@@ -59,7 +60,6 @@ export const compiled: CompiledCard = {
             value: 6,
             raw: "there're 6 or fewer total cards in both players' security stacks",
           },
-          optional: true,
         },
       ],
       isInherited: true,

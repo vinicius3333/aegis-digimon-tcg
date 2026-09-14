@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -318,5 +319,41 @@ describe("BT22-076 ShinMonzaemon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+  it("preserves the turn use on refusal and allows a later attack activation", async () => {
+    const preferInstanceIds: string[] = [];
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-076",
+              as: "host",
+              under: [
+                { card: "BT22-037", faceUp: false },
+                { card: "BT22-037", faceUp: false },
+              ],
+            },
+          ],
+          hand: [],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      options,
+    );
+    await s.ready();
+    preferInstanceIds.push(s.perm("victim").topCard!.instanceId);
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-076")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-076")).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    const decisions = s.decisions.length;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.decisions).toHaveLength(decisions);
   });
 });

@@ -37,6 +37,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      optional: true,
+      sharedUseKey: "security-placement",
       frequency: "OncePerTurn",
       actions: [
         {
@@ -61,6 +63,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      optional: true,
+      sharedUseKey: "security-placement",
       frequency: "OncePerTurn",
       actions: [
         {
@@ -96,3 +100,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("ST23-05", compiled);
+
+export { compiled };

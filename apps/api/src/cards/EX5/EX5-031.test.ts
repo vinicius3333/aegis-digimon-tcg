@@ -1,3 +1,5 @@
+import { advance } from "../../engine/testkit/advance.js";
+import { EffectTiming } from "@aegis/shared";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,6 +36,7 @@ describe("EX5-031 Chirinmon", () => {
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenAttacking",
+      optional: true,
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
@@ -43,7 +46,6 @@ describe("EX5-031 Chirinmon", () => {
           from: ["hand"],
           toTop: true,
           condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
-          optional: true,
           source: { filter: { controllerDefault: "mine", colors: ["Yellow"] }, count: 1 },
         },
       ],
@@ -149,5 +151,27 @@ describe("EX5-031 Chirinmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("yellowCard").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("preserves the turn use on refusal and allows a later attack activation", async () => {
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-036", as: "host", under: ["EX5-031"] }], hand: ["BT1-087", "BT1-087"] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      options,
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-031")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-031")).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    const decisions = s.decisions.length;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.decisions).toHaveLength(decisions);
   });
 });

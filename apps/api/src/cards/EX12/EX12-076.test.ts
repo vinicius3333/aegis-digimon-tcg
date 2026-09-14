@@ -64,6 +64,33 @@ describe("EX12-076 Susanoomon", () => {
     ]);
   });
 
+  it("offers a later attack after refusal and consumes the turn limit only on acceptance", async () => {
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "susanoo" }], deck: ["BT1-101"] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      options,
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    const decisionsAfterAcceptance = s.decisions.length;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
+    expect(s.decisions).toHaveLength(decisionsAfterAcceptance);
+  });
+
   it("keeps Rush, Raid, Blocker, and the Rule-granted Hybrid trait active", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "susanoo" }] } });
     await s.ready();
@@ -101,7 +128,7 @@ describe("EX12-076 Susanoomon", () => {
         0: { battleArea: [{ card: CARD_ID, as: "susanoo", under: THREE_COLOR_STACK }] },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const victimId = s.perm("victim").topCard!.instanceId;
     await s.ready();
@@ -122,7 +149,7 @@ describe("EX12-076 Susanoomon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const victimId = s.perm("victim").topCard!.instanceId;
     await s.ready();

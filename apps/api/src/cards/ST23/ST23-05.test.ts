@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/index.js";
@@ -21,6 +22,36 @@ const DECK_FILLER = "BT1-009";
 const EVO_COST = 3;
 
 describe("ST23-05 place-as-security + Recovery by trashing the most-security player's top", () => {
+  it("can activate on a later attack after declining the whole effect", async () => {
+    const options = {
+      autoDeclineOptional: true,
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      autoChooseOption: true,
+    };
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: HABA, as: "haba" }], deck: [DECK_FILLER] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      options,
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("haba"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === HABA)).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("haba"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    const decisionCount = s.decisions.length;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("haba"));
+    expect(s.decisions).toHaveLength(decisionCount);
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("haba"));
+    expect(s.decisions).toHaveLength(decisionCount);
+  });
+
   it("digivolving places the opp lowest-DP Digimon in security, then trashes-and-recovers (+1 deck draw)", async () => {
     const s = setupEngine(
       {

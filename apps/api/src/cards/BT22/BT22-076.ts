@@ -57,6 +57,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      optional: true,
       actions: [
         {
           kind: "SecurityManipulation",
@@ -87,7 +88,6 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing this Digimon's bottom face-down digivolution card",
           },
-          optional: true,
           abortOnDecline: true,
         },
       ],
@@ -96,6 +96,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      optional: true,
       actions: [
         {
           kind: "SecurityManipulation",
@@ -126,7 +127,6 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing this Digimon's bottom face-down digivolution card",
           },
-          optional: true,
           abortOnDecline: true,
         },
       ],

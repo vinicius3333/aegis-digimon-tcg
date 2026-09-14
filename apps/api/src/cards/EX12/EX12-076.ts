@@ -95,6 +95,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      // Declining activation preserves the Once Per Turn use (CR 15-14-1-4).
+      optional: true,
       actions: [
         {
           kind: "SecurityManipulation",

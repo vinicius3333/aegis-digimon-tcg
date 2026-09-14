@@ -2512,6 +2512,10 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-031 — Chirinmon
 
+- Final activation regression gates (2026-09-14): combined EX12 / ST23 / BT22 / EX5 collections, EX6-003 peer, audit layout, effect stack and timing resolution — 2233/2233 tests passed; `pnpm typecheck` and `git diff --check` passed. Persisted IR changes are limited to these four corrected cards.
+
+- Activation regression (2026-09-14; CR 15-14-1-4): Moved inherited security-placement optionality to whole-effect activation, avoiding duplicate prompts and preserving the turn use after refusal; a second attack can accept and a third cannot use the inherited effect again. Focused combined BT22-076 / EX5-031 result: 17/17 tests passed.
+
 #### Current source review — 2026-09-12
 
 Current collection execution: `EX5-031.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.

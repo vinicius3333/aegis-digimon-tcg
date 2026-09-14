@@ -82633,6 +82633,7 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
       {
         "trigger": "WhenDigivolving",
+        "optional": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -82656,7 +82657,6 @@
               },
               "raw": "By trashing this Digimon's bottom face-down digivolution card"
             },
-            "optional": true,
             "abortOnDecline": true
           }
         ],
@@ -82665,6 +82665,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -82688,7 +82689,6 @@
               },
               "raw": "By trashing this Digimon's bottom face-down digivolution card"
             },
-            "optional": true,
             "abortOnDecline": true
           }
         ],
@@ -152664,6 +152664,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -165203,6 +165204,7 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -165216,8 +165218,7 @@
               "op": "lte",
               "value": 6,
               "raw": "there're 6 or fewer total cards in both players' security stacks"
-            },
-            "optional": true
+            }
           }
         ],
         "isInherited": true,
@@ -212775,6 +212776,8 @@
       },
       {
         "trigger": "WhenDigivolving",
+        "optional": true,
+        "sharedUseKey": "security-placement",
         "frequency": "OncePerTurn",
         "actions": [
           {
@@ -212792,6 +212795,8 @@
       },
       {
         "trigger": "WhenAttacking",
+        "optional": true,
+        "sharedUseKey": "security-placement",
         "frequency": "OncePerTurn",
         "actions": [
           {
