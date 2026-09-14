@@ -2527,6 +2527,32 @@ describe("decision board preview", () => {
     expect(screen.getByText("Use this effect?")).toBeTruthy();
   });
 
+  it("shows Homeros's printed clause for its cost-bearing foreign-effect decision", () => {
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "homeros-activate",
+            seat: 0,
+            kind: "optional",
+            promptText: "ActivateForeignEffect",
+            sourceCardId: "BT24-102",
+            options: { timing: "EndOfYourTurn" },
+          }}
+          sourceCardId="BT24-102"
+          candidates={[]}
+          picks={[]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByText(/ActivateForeignEffect|By paying:/)).toBeNull();
+    expect(screen.getByText("Use this effect?")).toBeTruthy();
+    expect(screen.getByText(/By suspending this Tamer, you may activate 1/)).toBeTruthy();
+  });
+
   it("shows Chaosdramon's printed clause instead of the generated DeDigivolve label", () => {
     render(
       <I18nProvider>
