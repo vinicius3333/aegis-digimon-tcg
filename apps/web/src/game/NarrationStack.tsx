@@ -1,51 +1,35 @@
-/* The narration slots: the one place on the board where "what just happened" is
-   read out.
+/* Recent effects and card movements share bounded columns. Each item owns its
+   reading lifetime and dismissal; both players share one column on portrait phones. */
 
-   A slot shows one item at a time, and an item is a side panel, an effect notice,
-   or the two of them as one block when they are the same moment (narration.ts).
-   Portrait phone: one centred slot under the opponent bar. Everywhere else: the
-   viewer's corner on the left and the opponent's on the right.
-
-   A refused action is not queued — it answers the viewer's own tap — so it never
-   waits behind an item. It rides the viewer's own slot, under whatever that slot
-   is presenting, so the two read top to bottom instead of over each other. */
-
-import type { ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { NoticeStack } from "./NoticeStack";
 import { SidePanelStack } from "./SidePanelStack";
 import { narrationRemaining, type NarrationItem, type NarrationSlot } from "./narration";
 import { noticeRemaining, type MatchNotice } from "./notices";
 
-function NarrationItemView({
-  item,
-  nowMs,
-  held,
-  onAdvance,
-}: {
-  item: NarrationItem;
-  nowMs: number;
-  held: boolean;
-  onAdvance: () => void;
-}) {
-  const remainingMs = narrationRemaining(item, nowMs);
+function NarrationItemView({ item, nowMs, onAdvance }: { item: NarrationItem; nowMs: number; onAdvance: () => void }) {
+  // Keep the running CSS duration stable when neighboring records change.
+  const [mountedAt] = useState(nowMs);
+  const remainingMs = narrationRemaining(item, mountedAt);
   return (
     <>
-      {item.panel ? (
-        <SidePanelStack panel={item.panel} remainingMs={remainingMs} held={held} onDismiss={onAdvance} />
-      ) : null}
-      {item.notice ? (
-        <NoticeStack notice={item.notice} remainingMs={remainingMs} held={held} onDismiss={onAdvance} />
-      ) : null}
+      {item.panel ? <SidePanelStack panel={item.panel} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
+      {item.notice ? <NoticeStack notice={item.notice} remainingMs={remainingMs} onDismiss={onAdvance} /> : null}
     </>
   );
 }
 
-function Slot({ slot, held, children }: { slot: NarrationSlot | "rejection"; held?: boolean; children: ReactNode }) {
+function Slot({ slot, count, children }: { slot: NarrationSlot | "rejection"; count: number; children: ReactNode }) {
   return (
-    <div className="narration-slot" data-slot={slot} data-held={held || undefined}>
+    <div className="narration-slot" data-slot={slot} style={{ "--narration-count": count } as CSSProperties}>
       {children}
     </div>
   );
+}
+
+function RejectionView({ notice, nowMs, onDismiss }: { notice: MatchNotice; nowMs: number; onDismiss: () => void }) {
+  const [mountedAt] = useState(nowMs);
+  return <NoticeStack notice={notice} remainingMs={noticeRemaining(notice, mountedAt)} onDismiss={onDismiss} />;
 }
 
 export function NarrationStack({
@@ -53,49 +37,44 @@ export function NarrationStack({
   rejection,
   nowMs,
   compact = false,
-  held = false,
   onAdvance,
   onDismissRejection,
 }: {
-  /** The item each slot is currently presenting. */
-  narration: ReadonlyMap<NarrationSlot, NarrationItem>;
+  /** Recent items keyed by occurrence ID. */
+  narration: ReadonlyMap<string, NarrationItem>;
   /** The viewer's own refused action, shown at once and outside the queue. */
   rejection: MatchNotice | null;
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
   /** The portrait phone folds both sides into one centred slot. */
   compact?: boolean;
-  /** A decision is waiting, so every clock on screen is stopped. */
-  held?: boolean;
-  /** Moves the slot on to the next moment. */
-  onAdvance: () => void;
+  /** Dismiss only the named record. */
+  onAdvance: (id: string) => void;
   onDismissRejection: () => void;
 }) {
   const now = nowMs ?? Date.now();
   // The refusal shares the viewer's slot, which on a phone is the only slot there is.
   const viewerSlot: NarrationSlot = compact ? "narration" : "narration-you";
-  const item = (slot: NarrationSlot) => narration.get(slot);
-  const viewerItem = item(viewerSlot);
-  const oppItem = compact ? undefined : item("narration-opp");
+  const items = [...narration.values()];
+  const viewerItems = compact ? items : items.filter((item) => item.side === "you");
+  const oppItems = compact ? [] : items.filter((item) => item.side === "opp");
   const body = (shown: NarrationItem) => (
-    <NarrationItemView item={shown} nowMs={now} held={held} onAdvance={onAdvance} />
+    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+      <NarrationItemView item={shown} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
+    </div>
   );
   return (
     <>
-      {oppItem ? (
-        <Slot slot="narration-opp" held={held}>
-          {body(oppItem)}
+      {oppItems.length > 0 ? (
+        <Slot slot="narration-opp" count={oppItems.length}>
+          {oppItems.map(body)}
         </Slot>
       ) : null}
-      {viewerItem || rejection ? (
-        <Slot slot={viewerSlot} held={held}>
-          {viewerItem ? body(viewerItem) : null}
+      {viewerItems.length > 0 || rejection ? (
+        <Slot slot={viewerSlot} count={viewerItems.length + (rejection ? 1 : 0)}>
+          {viewerItems.map(body)}
           {rejection ? (
-            <NoticeStack
-              notice={rejection}
-              remainingMs={noticeRemaining(rejection, now)}
-              onDismiss={onDismissRejection}
-            />
+            <RejectionView key={rejection.id} notice={rejection} nowMs={now} onDismiss={onDismissRejection} />
           ) : null}
         </Slot>
       ) : null}

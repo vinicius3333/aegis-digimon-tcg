@@ -550,6 +550,7 @@ export function GameScreen({
     mulliganOpen: decision?.kind === "mulligan",
     // The portrait phone folds both narration corners into one centred slot.
     collapseNarration: collapseNotices,
+    narrationLimit: narrowGameLayout ? 2 : 3,
     // A security check the server stopped to ask the viewer something cannot close until it
     // is answered, so the cue sequence needs to know a question is waiting.
     decisionPending: decisionPendingForViewer || openCombatWindowForBarrier !== null,
@@ -1128,7 +1129,8 @@ export function GameScreen({
   const selCardId = selEntry?.cardId;
   const selDef = selCardId ? getCardDefinition(selCardId) : undefined;
   const handPreviewEntry = handPreview ? shownHandEntries.find((entry) => entry.instanceId === handPreview) : undefined;
-  const handPreviewActions = handPreview ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
+  const handPreviewActions =
+    handPreview && !decision ? handEntries.find((entry) => entry.instanceId === handPreview) : undefined;
 
   // ----- intent senders (no-op safely if the room dropped) -----
   const playCard = (instanceId: string, confirmDrop = false) => {
@@ -1870,9 +1872,10 @@ export function GameScreen({
   // ----- the open decision, and where it is answered -----
   // Everything below reads the server's decision payload; the client adds no
   // legality of its own, it only decides which surface the payload renders on.
-  // The prompt is rendered from the live server decision immediately; presentation queues
-  // continue independently and never withdraw an answerable decision.
-  const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;
+  // Read the live payload, but reveal its choice only after finite visual beats
+  // complete. The security dock and toast reading do not participate in this gate.
+  const viewerDecision =
+    decision && decision.seat === viewerSeat && !cues.decisionAnimationsPending ? decision : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
@@ -1886,8 +1889,6 @@ export function GameScreen({
       })
     : "dialog";
   const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
-  // The notices explain what raised the decision, so their clocks stop while it waits.
-  const decisionHoldsNotices = decision?.seat === viewerSeat && decision.kind !== "mulligan";
   const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
 
   const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
@@ -2944,7 +2945,7 @@ export function GameScreen({
                     of the match teaches players to ignore it. The phone has no equivalent
                     — a tap anywhere on the board already advances the narration. Space and
                     Enter come free with the native button; the match has no global keys. */}
-                {cues.presenting ? (
+                {cues.presenting || cues.decisionAnimationsPending ? (
                   <button
                     className="game-topbar-button game-topbar-button--skip"
                     onClick={() => cues.skipAnimations()}
@@ -2974,7 +2975,6 @@ export function GameScreen({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={collapseNotices}
-              held={decisionHoldsNotices}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}
             />
@@ -3158,6 +3158,7 @@ export function GameScreen({
                       dpPulse={dpPulses.get(p.permanentId)}
                       freezePulse={freezePulses.get(p.permanentId)}
                       lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                      heldSuspended={cues.heldSuspendedIds.has(p.permanentId)}
                       suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                       onClick={onOppPerm(p)}
                     />
@@ -3247,6 +3248,7 @@ export function GameScreen({
                       dpPulse={dpPulses.get(p.permanentId)}
                       freezePulse={freezePulses.get(p.permanentId)}
                       lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                      heldSuspended={cues.heldSuspendedIds.has(p.permanentId)}
                       suspendDelayMs={unsuspendStagger(viewerSeat, index)}
                       drop={{
                         "data-drop": "perm-you",
@@ -3425,6 +3427,7 @@ export function GameScreen({
                         selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
                         pickedInstanceIds: picks,
                         onToggle: toggleDecisionPick,
+                        onInspect: setHandPreview,
                       }
                     : undefined
                 }

@@ -19,7 +19,14 @@ export async function findEndBreedingControl(timeout = TIMEOUT): Promise<HTMLEle
 
 /** Phase state can arrive before its announcement finishes; wait for the visible lock. */
 export async function waitForBoardActions(timeout = TIMEOUT): Promise<void> {
-  await vi.waitFor(() => expect(screen.queryAllByTestId("board-input-lock")).toHaveLength(0), { timeout });
+  await vi.waitFor(
+    () => {
+      const control = screen.queryByRole("button", { name: /^end (?:phase|breeding)$/i }) as HTMLButtonElement | null;
+      expect(control).not.toBeNull();
+      expect(control?.disabled).toBe(false);
+    },
+    { timeout },
+  );
 }
 
 /** Ends the breeding step from the board's turn control. */
@@ -35,7 +42,7 @@ export async function endBreedingStep(timeout = TIMEOUT): Promise<void> {
  */
 export async function hatchDigiEgg(timeout = TIMEOUT): Promise<void> {
   await findEndBreedingControl(timeout);
-  fireEvent.click(screen.getByRole("button", { name: /^eggs · \d+$/i }));
+  fireEvent.click(screen.getByRole("button", { name: /^(?:eggs · \d+|hatch a digi-egg)$/i }));
   await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), { timeout });
   await waitForBoardActions(timeout);
 }

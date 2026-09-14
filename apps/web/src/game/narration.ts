@@ -1,15 +1,6 @@
-/* Narration: one moment at a time.
-
-   A notice and a side panel used to be two independent stacks, each with its own
-   timer and its own screen cap, so a deleted-cards panel and the `[On Deletion]`
-   clause that emptied the slot arrived in the same second and fought for the same
-   column. They are one thing to read, so they are one item here — and the
-   animation queue presents items one at a time per slot instead of letting them
-   pile up (docs/presentation-queue-plan.md §3.2).
-
-   This module is the pure half: what an item is, what folds into one item, how
-   long it gets to be read, and which slot presents it. The queue steps and the
-   React state live in useMatchCues.ts; the drawing lives in NarrationStack.tsx. */
+/* Recent narration combines the effect clause and its card panel when they describe
+   the same moment. The animation queue publishes each item at the correct beat;
+   useMatchCues expires it independently while subsequent actions continue. */
 
 import { NOTICE_LIFETIME_MS, type MatchNotice, type NoticeSide } from "./notices";
 import { pushSidePanel, SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePanels";
@@ -19,8 +10,7 @@ export type NarrationSide = NoticeSide;
 /**
  * Where an item is presented. A portrait phone has one centred slot, because four
  * corners on a 390px screen put a notice on the hand or the field being read;
- * everything else keeps the viewer's corner and the opponent's corner, one item
- * each (plan §6 decision 1).
+ * everything else keeps the viewer's corner and the opponent's corner.
  */
 export type NarrationSlot = "narration" | "narration-you" | "narration-opp";
 

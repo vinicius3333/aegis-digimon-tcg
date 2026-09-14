@@ -32,6 +32,12 @@ it("replays unsuspend, one draw and breeding on the real demo board", async () =
     expect(screen.getByRole("button", { name: /Chronomon: Holy Mode \(Suspended\)/ })).toBeTruthy();
     expect(handSize()).toBe(expectedHand - 1);
     await advance(600);
+    expect(banner()).toBeUndefined();
+    expect(container.querySelector(".game-turn-banner")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /Chronomon: Holy Mode \(Suspended\)/ })).toBeTruthy();
+    expect(handSize()).toBe(expectedHand - 1);
+    await advance(TIMINGS.turnBanner);
+    expect(container.querySelector(".game-turn-banner")).toBeNull();
     expect(banner()).toBe("Unsuspend Phase");
     expect(screen.queryByRole("button", { name: /Chronomon: Holy Mode \(Suspended\)/ })).toBeNull();
     expect(handSize()).toBe(expectedHand - 1);
@@ -40,7 +46,7 @@ it("replays unsuspend, one draw and breeding on the real demo board", async () =
     expect(handSize()).toBe(expectedHand);
     await advance(TIMINGS.phaseBanner);
     expect(banner()).toBe("Breeding Phase");
-    expect((screen.getByRole("button", { name: "End breeding" }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: "End breeding" }) as HTMLButtonElement).disabled).toBe(true);
     await advance(TIMINGS.phaseBanner);
     expect(banner()).toBeUndefined();
     expect(screen.getByRole("button", { name: "End breeding" }).getAttribute("aria-disabled")).toBeNull();

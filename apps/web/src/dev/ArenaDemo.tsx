@@ -10,6 +10,7 @@ import {
   PlayerState,
   getCardDefinition,
   type Seat,
+  type ServerEvent,
 } from "@aegis/shared";
 import {
   BATTLEFIELDS,
@@ -182,6 +183,11 @@ export function ArenaDemo() {
   const portuguese = locale === "pt-BR";
   const securityScenario = new URLSearchParams(window.location.search).get("scenario") === "security";
   const [securityFaceDownCount, setSecurityFaceDownCount] = useState(0);
+  const [effectPreview, setEffectPreview] = useState<
+    "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion" | null
+  >(null);
+  const [effectPreviewRun, setEffectPreviewRun] = useState(0);
+  const [effectDemoDeleted, setEffectDemoDeleted] = useState(false);
   const [phase, setPhase] = useState(Phase.Main);
   const [batches, setBatches] = useState<ServerBatch[]>([]);
   const [keywordGrants, setKeywordGrants] = useState<DemoKeywordGrants>({});
@@ -196,13 +202,17 @@ export function ArenaDemo() {
   const state = useMemo(() => {
     const next = createArenaDemoState(drawCounts);
     next.phase = phase;
+    if (effectDemoDeleted) {
+      const removed = next.players[0]!.battleArea.splice(0, 1)[0];
+      if (removed) next.players[0]!.trash.push(removed.topCard);
+    }
     if (securityScenario) {
       for (let index = 0; index < securityFaceDownCount; index++) {
-        const card = next.players[0]?.security[index + 2];
-        if (card) {
-          card.faceUp = false;
-          card.cardId = "";
-          card.artId = "";
+        const securityCard = next.players[0]?.security[index + 2];
+        if (securityCard) {
+          securityCard.faceUp = false;
+          securityCard.cardId = "";
+          securityCard.artId = "";
         }
       }
       const partner = next.players[0]?.battleArea[0];
@@ -218,7 +228,7 @@ export function ArenaDemo() {
       }
     }
     return next;
-  }, [phase, keywordGrants, drawCounts, turnStartStep, securityScenario, securityFaceDownCount]);
+  }, [phase, keywordGrants, drawCounts, turnStartStep, securityScenario, securityFaceDownCount, effectDemoDeleted]);
   const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
@@ -229,6 +239,90 @@ export function ArenaDemo() {
     const batch = singleServerBatch([{ kind: "phaseChanged", phase: next, turnSeat: 0, turnCount: 5 }]);
     setBatches((previous) => [...previous, batch]);
   }
+  function previewEffects() {
+    // Visual fixtures only: announce the public clauses without executing their rules.
+    const effects = state.players[0]!.battleArea.slice(0, 3).map((permanent) => ({
+      kind: "effectTriggered" as const,
+      seat: 0 as const,
+      sourceCardId: permanent.topCard.cardId,
+      effectKey: `demo/${permanent.permanentId}`,
+      description: getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
+    }));
+    setBatches((previous) => [...previous, singleServerBatch(effects)]);
+  }
+  function previewEffectActivation(
+    timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
+  ) {
+    setBatches([]);
+    setEffectDemoDeleted(false);
+    setEffectPreviewRun((run) => run + 1);
+    setEffectPreview(timing);
+  }
+  useEffect(() => {
+    if (!effectPreview) return;
+    const timer = setTimeout(() => {
+      const timing = effectPreview;
+      const source = createArenaDemoState(drawCounts).players[0]!.battleArea[0]!;
+      const previewEvents: ServerEvent[] = [];
+      setEffectDemoDeleted(timing === "On Deletion");
+      if (timing === "On Play") {
+        previewEvents.push({
+          kind: "cardPlayed",
+          seat: 0,
+          cardId: source.topCard.cardId,
+          permanentId: source.permanentId,
+        });
+      } else if (timing === "When Digivolving") {
+        previewEvents.push({
+          kind: "digivolved",
+          seat: 0,
+          cardId: source.topCard.cardId,
+          permanentId: source.permanentId,
+          mechanic: "normal",
+        });
+      } else if (timing === "When Attacking") {
+        previewEvents.push({
+          kind: "attackDeclared",
+          seat: 0,
+          attackerCardId: source.topCard.cardId,
+          attackerPermanentId: source.permanentId,
+          target: { kind: "player" },
+        });
+      } else if (timing === "Start of Main Phase") {
+        setPhase(Phase.Main);
+        previewEvents.push({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 0, turnCount: 5 });
+      } else {
+        previewEvents.push({
+          kind: "cardsMoved",
+          instanceIds: [source.topCard.instanceId],
+          from: "battleArea",
+          to: "trash",
+          deletedPermanents: [
+            {
+              permanentId: source.permanentId,
+              instanceId: source.topCard.instanceId,
+              cardId: source.topCard.cardId,
+              seat: 0,
+            },
+          ],
+        });
+      }
+      // A visual fixture, not a claim that this card has all these trigger timings.
+      previewEvents.push({
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: source.topCard.cardId,
+        effectKey: `demo/activation/${timing}`,
+        timing,
+        description: portuguese
+          ? "Prévia visual: a carta brilha antes deste aviso."
+          : "Visual preview: the card glows before this notice.",
+      });
+      setBatches((previous) => [...previous, singleServerBatch(previewEvents)]);
+      setEffectPreview(null);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [effectPreview, effectPreviewRun, drawCounts, portuguese]);
   function previewTurnStart() {
     if (turnStartStep !== null || !state.players[0]!.deckCount) return;
     // A fresh screen clears any individually queued phase previews and establishes
@@ -242,24 +336,31 @@ export function ArenaDemo() {
     if (turnStartStep === null) return;
     const timer = setTimeout(
       () => {
-        const next =
-          turnStartStep === "prepare"
-            ? Phase.Active
-            : turnStartStep === Phase.Active
-              ? Phase.Draw
-              : turnStartStep === Phase.Draw
-                ? Phase.Breeding
-                : null;
-        if (next !== null) {
-          previewPhase(next);
-          if (next === Phase.Draw) drawCard(0);
+        if (turnStartStep === "prepare") {
+          // A real server can send the entire automatic turn start at once. Let the
+          // match presentation sequence it instead of spacing events in the demo.
+          setTurnStartStep(Phase.Active);
+          setPhase(Phase.Breeding);
+          drawCard(0);
+          setBatches([
+            singleServerBatch([
+              { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 5 },
+              ...[Phase.Active, Phase.Draw, Phase.Breeding].map((next) => ({
+                kind: "phaseChanged" as const,
+                phase: next,
+                turnSeat: 0 as const,
+                turnCount: 5,
+              })),
+            ]),
+          ]);
+        } else {
+          setTurnStartStep(null);
         }
-        setTurnStartStep(next);
       },
-      turnStartStep === "prepare" ? 600 : TIMINGS.phaseBanner,
+      turnStartStep === "prepare" ? 600 : TIMINGS.turnBanner + TIMINGS.phaseBanner * 3,
     );
     return () => clearTimeout(timer);
-    // Each step owns its timer; other demo controls are disabled during playback.
+    // The demo emits one batch; production cues own the actual presentation clocks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnStartStep]);
   const battlefieldId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, getBattlefieldId);
@@ -334,6 +435,8 @@ export function ArenaDemo() {
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onTurnStart={previewTurnStart}
+          onEffects={previewEffects}
+          onEffectActivation={previewEffectActivation}
           disabled={turnStartStep !== null}
         />
         <span className="aegis-arena-demo-note" role="status">
@@ -354,7 +457,7 @@ export function ArenaDemo() {
       </header>
       {playback.controller.active ? <ArenaVisualPlayer playback={playback.controller} /> : null}
       <GameScreen
-        key={`${playback.gameKey}-${turnStartRun}`}
+        key={`${playback.gameKey}-${turnStartRun}-${effectPreviewRun}`}
         joinOptions={{
           displayName: ARENA_DECKS[0]!.name,
           deck: {

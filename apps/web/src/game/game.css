@@ -6314,7 +6314,7 @@ button.side-panel__name:focus-visible {
 /* --- Phase banner -------------------------------------------------------- */
 
 /* "Breeding Phase" / "Main Phase", wiped open and shut on the vertical blind the
-   reference client uses — 0.233s open, 0.3s held, 0.233s shut. */
+   reference client uses — 200ms open, 400ms held, 200ms shut. */
 .game-phase-banner {
   position: absolute;
   top: 8%;
@@ -6335,33 +6335,19 @@ button.side-panel__name:focus-visible {
   color: #fff;
   background: rgb(0 0 0 / 92%);
   border-radius: 0.2rem;
-  animation: battle-phase-banner var(--t-phase-banner, 1400ms) ease-in-out both;
+  animation: battle-phase-banner var(--t-phase-banner, 800ms) ease-in-out both;
 }
 
 @keyframes battle-phase-banner {
-  0% {
-    opacity: 0;
-    scale: 1 0;
-  }
-
-  15% {
-    opacity: 1;
-    scale: 1 0.8;
-  }
-
-  30%,
-  70% {
-    opacity: 1;
-    scale: 1 1;
-  }
-
-  85% {
-    scale: 1 0.2;
-  }
-
+  0%,
   100% {
     opacity: 0;
     scale: 1 0;
+  }
+  25%,
+  75% {
+    opacity: 1;
+    scale: 1 1;
   }
 }
 
@@ -7541,4 +7527,59 @@ button.side-panel__name:focus-visible {
   to {
     opacity: 1;
   }
+}
+
+/* Recent effects coexist without extending the action's presentation barrier.
+   Bound each record so long clauses and large reveals cannot cover the hand. */
+.narration-item {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  max-height: min(18rem, calc((55dvh - 2 * var(--ds-space-2)) / var(--narration-count, 1)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+.narration-slot {
+  max-height: 55dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.narration-item > .side-panel-stack,
+.narration-item > .match-notice-stack {
+  flex-shrink: 0;
+}
+
+@media (width <= 767px), (height < 520px) and (orientation: landscape) {
+  .narration-item {
+    max-height: min(12rem, 22dvh);
+  }
+
+  .narration-item .side-panel__cards {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .narration-item .side-panel__card {
+    flex-shrink: 0;
+  }
+}
+
+.narration-item {
+  scrollbar-color: var(--battle-cyan) var(--battle-panel);
+}
+
+.narration-item .card-link {
+  color: var(--battle-cyan);
+}
+
+.narration-item .card-link:hover,
+.narration-item .card-link:focus-visible {
+  color: white;
 }

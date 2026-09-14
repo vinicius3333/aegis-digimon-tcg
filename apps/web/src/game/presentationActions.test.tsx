@@ -148,7 +148,8 @@ it("does not send a normal action while an authoritative decision is pending", (
   const { send } = mount(Phase.Main, decision);
   const hand = screen.getByTestId("hand").querySelector<HTMLElement>(".game-hand-card")!;
   fireEvent.click(hand);
-  fireEvent.click(screen.getByRole("button", { name: "Play Digimon" }));
+  expect(screen.queryByRole("button", { name: "Play Digimon" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /close/i }));
   expect(screen.getByRole("button", { name: /end phase/i }).hasAttribute("disabled")).toBe(true);
   expect(send).not.toHaveBeenCalledWith("playCard", expect.anything());
   fireEvent.click(screen.getByRole("button", { name: /activate/i }));

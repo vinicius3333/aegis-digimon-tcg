@@ -44,6 +44,8 @@ export interface AnimationStep {
 }
 
 export interface AnimationQueueOptions {
+  /** Called when queued/running steps or the playback mode change. */
+  onChange?: () => void;
   mode?: AnimationQueueMode;
   /** A failing cue must not wedge the ones behind it, so errors are reported, not thrown. */
   onError?: (error: unknown, step: AnimationStep) => void;
@@ -62,6 +64,8 @@ export interface AnimationQueue {
   /** Resolves the next time nothing is running. */
   idle(): Promise<void>;
   pendingCount(): number;
+  /** Includes queued steps; cancelled and non-live steps cannot hold a visual barrier. */
+  hasPendingStep(predicate: (step: AnimationStep) => boolean): boolean;
 }
 
 export const DEFAULT_TRACK = "main";
@@ -72,6 +76,7 @@ interface Waiter {
 }
 
 interface StepRun {
+  step: AnimationStep;
   cancelled: boolean;
   waiters: Set<Waiter>;
 }
@@ -174,7 +179,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
     try {
       while (track.queued.length > 0) {
         const entry = track.queued.shift()!;
-        const runs = entry.steps.map((step) => ({ step, run: { cancelled: false, waiters: new Set<Waiter>() } }));
+        const runs = entry.steps.map((step) => ({ step, run: { step, cancelled: false, waiters: new Set<Waiter>() } }));
         track.running = runs.map((pair) => pair.run);
         await Promise.all(
           runs.map(async ({ step, run }) => {
@@ -192,6 +197,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       track.draining = false;
       if (tracks.get(name) === track && track.queued.length === 0) tracks.delete(name);
       announceIdle();
+      options.onChange?.();
     }
   }
 
@@ -207,6 +213,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       if (steps.some((candidate) => candidate.replace === true)) cancelTrack(track);
       track.queued.push({ steps });
       void runTrack(name, track);
+      options.onChange?.();
     },
     skip() {
       fastForward = true;
@@ -216,17 +223,28 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       mode = next;
       if (next === "replay") releaseWaiters(false);
       else if (next === "drain") releaseWaiters(true);
+      options.onChange?.();
     },
     getMode() {
       return mode;
     },
     clear() {
       for (const track of tracks.values()) cancelTrack(track);
+      options.onChange?.();
     },
     isIdle,
     idle() {
       if (isIdle()) return Promise.resolve();
       return new Promise<void>((resolve) => idleResolvers.push(resolve));
+    },
+    hasPendingStep(predicate) {
+      for (const track of tracks.values()) {
+        if (track.running.some((run) => !run.cancelled && modeOf(run.step) === "live" && predicate(run.step)))
+          return true;
+        if (track.queued.some((entry) => entry.steps.some((step) => modeOf(step) === "live" && predicate(step))))
+          return true;
+      }
+      return false;
     },
     pendingCount() {
       let total = 0;

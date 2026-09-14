@@ -431,6 +431,7 @@ export function PermanentView({
   freezePulse,
   effectSource,
   suspendDelayMs,
+  heldSuspended = false,
   width,
   refCb,
   onClick,
@@ -464,6 +465,8 @@ export function PermanentView({
   pending?: boolean;
   /** Staggers the suspend rotation so an unsuspend phase sweeps across the board. */
   suspendDelayMs?: number;
+  /** Visual pre-unsuspend hold; legality still comes from the live permanent. */
+  heldSuspended?: boolean;
   /** Explicit card width; overrides the `compact` default. */
   width?: number;
   refCb?: (el: HTMLDivElement | null) => void;
@@ -497,7 +500,7 @@ export function PermanentView({
   const activate = onKeyboardActivate ?? onClick;
   const interactive = !!activate || !!onPointerDown;
   const states = [
-    perm.isSuspended ? t("overlay.suspended") : undefined,
+    heldSuspended || perm.isSuspended ? t("overlay.suspended") : undefined,
     perm.summoningSick ? t("overlay.summoningSick") : undefined,
     ...restrictions.map((restriction) => t(restriction.labelKey)),
     // The coming fate joins the spoken state list rather than labelling the pill
@@ -627,7 +630,7 @@ export function PermanentView({
           cardId={topId}
           artId={perm.topCard?.artId}
           width={permanentWidth}
-          suspended={perm.isSuspended}
+          suspended={heldSuspended || perm.isSuspended}
           suspendDelayMs={suspendDelayMs}
           selected={highlight}
           attackable={candidate}
@@ -1212,6 +1215,7 @@ export interface HandSelection {
   /** Picked instance ids, in the order they were chosen — the badge is the position. */
   pickedInstanceIds: readonly string[];
   onToggle: (instanceId: string) => void;
+  onInspect?: (instanceId: string) => void;
 }
 
 export function Hand({
@@ -1293,6 +1297,18 @@ export function Hand({
      gesture cannot toggle it straight back. Only the click is dropped — a browser
      that sends no `pointerup` on the card still answers through its click. */
   const pointerPicked = useRef<string | null>(null);
+  const lastPickTap = useRef<{ instanceId: string; at: number } | null>(null);
+  const tapSelection = (instanceId: string) => {
+    const previous = lastPickTap.current;
+    const now = Date.now();
+    if (selection?.onInspect && previous?.instanceId === instanceId && now - previous.at <= 300) {
+      lastPickTap.current = null;
+      selection.onInspect(instanceId);
+      return;
+    }
+    lastPickTap.current = { instanceId, at: now };
+    if (selection?.selectableInstanceIds.includes(instanceId)) selection.onToggle(instanceId);
+  };
   const beginPick = (instanceId: string, event: React.PointerEvent) => {
     // No capture and no preventDefault: the row must stay pannable, exactly as it
     // is while a card is being dragged out of the hand.
@@ -1310,9 +1326,12 @@ export function Hand({
     pickPress.current = null;
     if (!press || press.pointerId !== event.pointerId || press.instanceId !== instanceId) return;
     const gesture = pressGesture({ dx: event.clientX - press.x, dy: event.clientY - press.y, touch: press.touch });
-    if (gesture !== "press") return;
+    if (gesture !== "press") {
+      lastPickTap.current = null;
+      return;
+    }
     pointerPicked.current = instanceId;
-    selection?.onToggle(instanceId);
+    tapSelection(instanceId);
   };
   return (
     <div className="game-hand-scroller">
@@ -1374,12 +1393,22 @@ export function Hand({
           return (
             <div
               key={entry.instanceId}
-              onPointerDown={
-                selection ? (pickable ? (e) => beginPick(entry.instanceId, e) : undefined) : (e) => startDrag(i, e)
+              onPointerDown={selection ? (e) => beginPick(entry.instanceId, e) : (e) => startDrag(i, e)}
+              onPointerUp={selection ? (e) => finishPick(entry.instanceId, e) : undefined}
+              onPointerCancel={
+                selection
+                  ? () => {
+                      pickPress.current = null;
+                      lastPickTap.current = null;
+                    }
+                  : undefined
               }
-              onPointerUp={selection && pickable ? (e) => finishPick(entry.instanceId, e) : undefined}
-              onPointerCancel={selection ? () => (pickPress.current = null) : undefined}
               onKeyDown={(event) => {
+                if (selection?.onInspect && event.key === "Enter" && event.altKey) {
+                  event.preventDefault();
+                  selection.onInspect(entry.instanceId);
+                  return;
+                }
                 if (event.key !== "Enter" && event.key !== " ") return;
                 event.preventDefault();
                 if (selection) {
@@ -1397,7 +1426,9 @@ export function Hand({
                     pointerPicked.current = null;
                     return;
                   }
-                  if (pickable) selection.onToggle(entry.instanceId);
+                  if (event.detail === 0) {
+                    if (pickable) selection.onToggle(entry.instanceId);
+                  } else tapSelection(entry.instanceId);
                   return;
                 }
                 // Pointer taps are resolved by GameScreen's drag/tap recognizer.

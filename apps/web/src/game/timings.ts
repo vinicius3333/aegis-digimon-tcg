@@ -167,10 +167,10 @@ export const TIMINGS = {
   dpPulseHold: 100,
   /** … and four times as long when the debuff is the one that kills. */
   dpPulseFatalHold: 400,
-  /** The phase card wiping open (the reference client's 0.2333s scale-Y blind). */
-  phaseBannerIn: 233,
-  /** The phase card, end to end: the 0.2333s wipe open, its 0.3s hold, and the wipe shut. */
-  phaseBanner: 1400,
+  /** Phase banner opening: 200 ms, followed by 400 ms readable and 200 ms closing. */
+  phaseBannerIn: 200,
+  /** Shorter phase announcements keep a batched turn start from trailing live play. */
+  phaseBanner: 800,
   /** One lap of the ring turning around the turn control while it is actionable. */
   turnControlPulse: 3200,
   /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */

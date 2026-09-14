@@ -211,3 +211,35 @@ describe("animation queue", () => {
     expect(log).toEqual(["next:start", "next:end"]);
   });
 });
+
+it("reports queued decision prerequisites until all beats finish, excluding the waiting dock", async () => {
+  const changed = vi.fn<() => void>();
+  const queue = createAnimationQueue({ onChange: changed });
+  const { step: makeStep } = recorder();
+  const finite = (step: AnimationStep) => step.track !== "securityDock";
+  queue.enqueue(makeStep("first", 100, { track: "centerStage" }));
+  queue.enqueue(makeStep("second", 200, { track: "centerStage" }));
+  queue.enqueue(makeStep("dock", 1000, { track: "securityDock" }));
+  expect(queue.hasPendingStep(finite)).toBe(true);
+  await vi.advanceTimersByTimeAsync(299);
+  expect(queue.hasPendingStep(finite)).toBe(true);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(queue.hasPendingStep(finite)).toBe(false);
+  expect(queue.isIdle()).toBe(false);
+  expect(changed).toHaveBeenCalled();
+  queue.clear();
+  expect(queue.hasPendingStep(() => true)).toBe(false);
+  await queue.idle();
+});
+
+it("drops cancelled and reduced-motion prerequisites without waiting for their old duration", async () => {
+  const queue = createAnimationQueue();
+  const { step: makeStep } = recorder();
+  queue.enqueue(makeStep("old", 1000));
+  queue.enqueue(makeStep("replacement", 100, { replace: true }));
+  expect(queue.hasPendingStep((step) => step.id === "old")).toBe(false);
+  expect(queue.hasPendingStep((step) => step.id === "replacement")).toBe(true);
+  queue.setMode("drain");
+  expect(queue.hasPendingStep(() => true)).toBe(false);
+  await queue.idle();
+});

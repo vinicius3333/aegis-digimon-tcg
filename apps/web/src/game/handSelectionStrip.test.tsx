@@ -127,3 +127,50 @@ describe("hand strip scroll cues", () => {
     expect(getByTestId("hand-scroll-forward").getAttribute("aria-label")).toBeTruthy();
   });
 });
+
+describe("selection inspection gestures", () => {
+  it("opens details on two quick clicks without toggling the first pick back", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
+    const card = container.querySelector(".game-hand-card")!;
+    fireEvent.click(card, { detail: 1 });
+    fireEvent.click(card, { detail: 2 });
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
+    expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
+  });
+
+  it("recognizes two touch taps while ignoring each trailing click", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
+    const card = container.querySelector(".game-hand-card")!;
+    for (const pointerId of [1, 2]) {
+      fireEvent.pointerDown(card, { pointerId, pointerType: "touch", clientX: 50, clientY: 50 });
+      fireEvent.pointerUp(card, { pointerId, pointerType: "touch", clientX: 50, clientY: 50 });
+      fireEvent.click(card, { detail: 1 });
+    }
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
+    expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
+  });
+
+  it("also inspects an ineligible card without selecting it", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: [], pickedInstanceIds: [], onToggle, onInspect });
+    const card = container.querySelector(".game-hand-card")!;
+    fireEvent.click(card, { detail: 1 });
+    fireEvent.click(card, { detail: 2 });
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
+  });
+
+  it("supports Alt+Enter for keyboard inspection without selecting", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onInspect = vi.fn<(instanceId: string) => void>();
+    const { container } = renderHand({ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle, onInspect });
+    fireEvent.keyDown(container.querySelector(".game-hand-card")!, { key: "Enter", altKey: true });
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(onInspect).toHaveBeenCalledExactlyOnceWith("a");
+  });
+});

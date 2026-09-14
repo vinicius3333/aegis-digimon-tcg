@@ -80,7 +80,7 @@ describe("BoardSelectionRail", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("returns to the dialog on Escape and on the back control", () => {
+  it("keeps Escape available without showing a dialog button", () => {
     const onOpenDialog = vi.fn<() => void>();
     renderIn(
       <BoardSelectionRail
@@ -94,10 +94,9 @@ describe("BoardSelectionRail", () => {
         onOpenDialog={onOpenDialog}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Open the decision dialog" }));
-    expect(onOpenDialog).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Open the decision dialog" })).toBeNull();
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(onOpenDialog).toHaveBeenCalledTimes(2);
+    expect(onOpenDialog).toHaveBeenCalledTimes(1);
   });
 });
 

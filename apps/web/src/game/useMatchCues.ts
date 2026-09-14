@@ -19,7 +19,7 @@
    The client owns no rules here: every cue is a reaction to a server event
    (ARCHITECTURE.md §4). */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState } from "../net/presentedState";
 import type { RefObject } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
@@ -48,14 +48,7 @@ import {
   securityGainNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
-import {
-  buildNarrationItems,
-  narrationReadingTime,
-  narrationSlot,
-  NARRATION_TICK_MS,
-  type NarrationItem,
-  type NarrationSlot,
-} from "./narration";
+import { buildNarrationItems, narrationReadingTime, type NarrationItem } from "./narration";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
@@ -83,12 +76,7 @@ import {
   type PermanentBurst,
   type ZoneShowcase,
 } from "./showcases";
-import {
-  createAnimationQueue,
-  type AnimationQueueMode,
-  type AnimationStep,
-  type AnimationStepContext,
-} from "./animationQueue";
+import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
 import { createPresentationProgress, PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { cutInFromEvent, type DigivolutionCutIn } from "./cutIn";
@@ -191,7 +179,12 @@ const BOARD_HOLDING_TRACKS: readonly string[] = [
 
 function holdsTheBoard(step: AnimationStep): boolean {
   const track = step.track ?? "";
-  return track.startsWith("narration") || BOARD_HOLDING_TRACKS.includes(track);
+  return (
+    step.id.startsWith("narration-step-") ||
+    track.startsWith("narration") ||
+    track.startsWith("deleteBurst-") ||
+    BOARD_HOLDING_TRACKS.includes(track)
+  );
 }
 
 /**
@@ -228,21 +221,14 @@ export interface MatchCueAnchors {
 }
 
 export interface MatchCues {
-  /** The one moment each narration slot is presenting right now. */
-  narration: ReadonlyMap<NarrationSlot, NarrationItem>;
+  /** Recent moments, keyed by occurrence ID and ordered by presentation. */
+  narration: ReadonlyMap<string, NarrationItem>;
   /** The viewer's own refused action: immediate, and outside the queue. */
   rejection: MatchNotice | null;
   dismissRejection: () => void;
-  /**
-   * Moves every slot on to its next moment. Returns false when there was nothing to
-   * advance, so the board's tap can fall through to the ordinary fast-forward.
-   */
-  advanceNarration: () => boolean;
-  /**
-   * An item from the opponent's batch is on screen, so the viewer's intents wait and a
-   * tap advances the narration instead (plan §6 decision 2). Bounded by the item's own
-   * reading time, and released with it whenever the queue is cleared.
-   */
+  /** Dismiss one item by ID, or the oldest when omitted. */
+  advanceNarration: (id?: string) => boolean;
+  /** Compatibility signal: recent narration never locks input. */
   narrationLock: boolean;
   /** The side panels currently on screen, oldest slot first. A read-only view of {@link narration}. */
   sidePanels: readonly SidePanel[];
@@ -278,6 +264,8 @@ export interface MatchCues {
    * unable to answer (docs/presentation-queue-plan.md 3.2, decision barrier).
    */
   decisionBarrierPending: boolean;
+  /** Finite visual beats must finish before any new decision is displayed. */
+  decisionAnimationsPending: boolean;
   /**
    * The server revision the queue is presenting, or undefined when it is caught up and
    * the live state is what to show. `GameScreen` renders the snapshot at this revision
@@ -307,6 +295,8 @@ export interface MatchCues {
   phaseTransitionPending: boolean;
   /** Hand/deck presentation before the queued draw phase reaches the screen. */
   heldDrawState: GameState | undefined;
+  /** Keep last turn's suspended cards rotated until their Unsuspend announcement starts. */
+  heldSuspendedIds: ReadonlySet<string>;
   /** The full-screen cut-in currently playing, when the setting is on. */
   cutIn: DigivolutionCutIn | null;
   /** The zone-specific moment each activating effect source is currently playing. */
@@ -418,6 +408,7 @@ export function useMatchCues({
   mulliganOpen,
   decisionPending = false,
   collapseNarration = false,
+  narrationLimit = collapseNarration ? 2 : 3,
   decisionStateVersion,
   anchors,
   onActionRejected,
@@ -439,6 +430,8 @@ export function useMatchCues({
   decisionPending?: boolean;
   /** The portrait phone folds both narration corners into one centred slot. */
   collapseNarration?: boolean;
+  /** Maximum recent items across both players (two on mobile, three on desktop). */
+  narrationLimit?: number;
   /**
    * The revision the viewer's open decision was raised at (`DecisionRequest.stateVersion`).
    * The barrier fast-forwards the queue up to it before the prompt is shown, so the board
@@ -459,8 +452,12 @@ export function useMatchCues({
     () => createPresentationProgress(() => publishPresentedRef.current(), presentationTelemetry),
     [],
   );
+  const [decisionAnimationsPending, setDecisionAnimationsPending] = useState(false);
+  const queueChangedRef = useRef<() => void>(() => {});
   const queue = useMemo(() => {
     const inner = createAnimationQueue({
+      mode: liveMode(),
+      onChange: () => queueChangedRef.current(),
       onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
     });
     const counted = (step: AnimationStep): AnimationStep =>
@@ -477,10 +474,15 @@ export function useMatchCues({
       },
     };
   }, [progress]);
+  // Every finite cue is a prerequisite for a new choice. The security dock is
+  // deliberately excluded: it waits for the answer itself and would deadlock.
+  // Toast reading happens outside the queue, so it never delays a decision.
+  queueChangedRef.current = () =>
+    setDecisionAnimationsPending(queue.hasPendingStep((step) => step.track !== SECURITY_DOCK_TRACK));
   // Assigned on every render so the queue's bookkeeping always reaches the current setter.
   publishPresentedRef.current = () => setPresentedStateVersion(progress.current());
 
-  const [narration, setNarration] = useState<ReadonlyMap<NarrationSlot, NarrationItem>>(new Map());
+  const [narration, setNarration] = useState<ReadonlyMap<string, NarrationItem>>(new Map());
   const [rejection, setRejection] = useState<MatchNotice | null>(null);
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
@@ -514,9 +516,10 @@ export function useMatchCues({
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [pendingPhaseBanners, setPendingPhaseBanners] = useState(0);
   const [heldDrawState, setHeldDrawState] = useState<GameState | undefined>();
+  const [heldSuspendedIds, setHeldSuspendedIds] = useState<ReadonlySet<string>>(new Set());
   const previousDrawStateRef = useRef<GameState | undefined>(undefined);
   const phaseBaselineRef = useRef(false);
-  const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" }> | undefined>(undefined);
+  const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>(undefined);
   const drawPhaseWaitingRef = useRef(false);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
@@ -545,15 +548,14 @@ export function useMatchCues({
    */
   const lastBatchIdRef = useRef("");
   /** The advance each presenting slot is waiting on, so a tap moves it on. */
-  const narrationAdvanceRef = useRef(new Map<NarrationSlot, () => void>());
+  const narrationLimitRef = useRef(narrationLimit);
+  narrationLimitRef.current = narrationLimit;
   /** Set by an explicit skip: every item still queued is collapsed rather than read. */
   const narrationSkipRef = useRef(false);
   // Read inside a running step, so they follow the live props rather than the ones the
   // step was enqueued under.
   const decisionPendingRef = useRef(decisionPending);
   decisionPendingRef.current = decisionPending;
-  const collapseNarrationRef = useRef(collapseNarration);
-  collapseNarrationRef.current = collapseNarration;
   /** Cards whose own decision dialog is open, so their clause is not read out twice. */
   const suppressedOwnEffectsRef = useRef(new Set<string>());
   // A security card that resolves an effect moves its notice out of the panels'
@@ -603,6 +605,7 @@ export function useMatchCues({
   const freezePulseKeyRef = useRef(0);
   const cutInKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
+  const deletionReadyAtRef = useRef(new Map<string, { readyAt: number; instanceId?: string }>());
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -660,7 +663,7 @@ export function useMatchCues({
 
   // Declared before the event effect below so the same commit refreshes the
   // index first: a card is already in its new zone when its movement is narrated.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!state) return;
     const cardIds = buildInstanceIndex(state, viewerSeat);
     const seats = buildInstanceSeatIndex(state);
@@ -724,16 +727,6 @@ export function useMatchCues({
     });
   }
 
-  /** Takes the slot off screen, but only if it is still showing this item. */
-  function clearNarrationSlot(slot: NarrationSlot, id: string) {
-    setNarration((slots) => {
-      if (slots.get(slot)?.id !== id) return slots;
-      const next = new Map(slots);
-      next.delete(slot);
-      return next;
-    });
-  }
-
   /**
    * The item as it will be shown, or null when there is nothing left of it.
    *
@@ -750,55 +743,81 @@ export function useMatchCues({
     return { ...item, notice: undefined, createdAt: Date.now() };
   }
 
-  /**
-   * Holds an item on screen for its reading time.
-   *
-   * The wait is sliced rather than taken in one go so a tap can advance the item without
-   * waiting the rest out. A pending decision no longer stops the clock: the barrier has
-   * already fast-forwarded the queue to the board the question is about, so an item still
-   * on screen beside a prompt is one the viewer has been given time to read (Phase 3).
-   */
-  async function readNarrationItem(context: AnimationStepContext, slot: NarrationSlot, totalMs: number) {
-    // A holder rather than a plain flag: the tap that sets it runs outside this loop.
-    const tapped = { advance: false };
-    const advance = () => {
-      tapped.advance = true;
-    };
-    narrationAdvanceRef.current.set(slot, advance);
-    let remaining = totalMs;
-    try {
-      while (!tapped.advance && !context.cancelled && !narrationSkipRef.current && remaining > 0) {
-        await context.wait(NARRATION_TICK_MS);
-        remaining -= NARRATION_TICK_MS;
-      }
-    } finally {
-      if (narrationAdvanceRef.current.get(slot) === advance) narrationAdvanceRef.current.delete(slot);
-    }
-  }
-
-  /** One item, one step: it takes its slot, is held to be read, and hands the slot back. */
+  /** Publish at the correct beat; reading time never holds the animation queue. */
   function enqueueNarrationItem(item: NarrationItem) {
-    const slot = narrationSlot(item, collapseNarrationRef.current);
+    const body = item.notice?.body;
+    const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
+    const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat) : undefined;
+    const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
+    // Follow the actual arrival track, including its field burst, rather than
+    // estimating when a normal play, evolution or cut-in will be finished.
+    const track = /start.*main.*phase/i.test(timing)
+      ? "phaseBanner"
+      : /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
+        ? `burst-${initialSite.permanentId}`
+        : "narration";
     queue.enqueue({
       id: `narration-step-${item.id}`,
-      track: slot,
-      // It carries something to read, so `drain` keeps its time. An explicit skip
-      // collapses it through the flag instead, which is the one thing the queue's own
-      // `skip()` cannot reach for a step that is deliberately not skippable.
-      skippable: false,
+      track,
       async run(context) {
         if (context.mode === "replay" || narrationSkipRef.current) return;
+        if (context.mode === "live" && body?.variant === "effect") {
+          // Let this batch register its deletion beats before locating the source.
+          await Promise.resolve();
+          if (/on.?deletion/i.test(body.timing ?? "")) {
+            const deletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            await context.wait(Math.max(0, (deletion?.readyAt ?? 0) - Date.now()));
+          }
+          if (context.cancelled || narrationSkipRef.current) return;
+          const deletion = /on.?deletion/i.test(body.timing ?? "")
+            ? deletionReadyAtRef.current.get(`${seat}:${body.cardId}`)
+            : undefined;
+          const site = deletion?.instanceId
+            ? { zone: "trash" as const, instanceId: deletion.instanceId }
+            : cardSiteRef.current.locate(body.cardId, seat);
+          if (site && context.mode === "live") {
+            const activation: EffectActivation = {
+              key: ++effectSourceKeyRef.current,
+              cardId: body.cardId,
+              seat,
+              site,
+            };
+            try {
+              setEffectSources((sources) => [...sources, activation]);
+              await context.wait(TIMINGS.effectSourceHold);
+            } finally {
+              setEffectSources((sources) => sources.filter((source) => source.key !== activation.key));
+            }
+          }
+        }
+        if (context.cancelled || narrationSkipRef.current) return;
         const shown = presentableNarration(item);
         if (!shown) return;
-        try {
-          setNarration((slots) => new Map(slots).set(slot, shown));
-          await readNarrationItem(context, slot, narrationReadingTime(shown));
-        } finally {
-          clearNarrationSlot(slot, shown.id);
-        }
+        setNarration((items) => new Map([...items, [shown.id, shown] as const].slice(-narrationLimitRef.current)));
       },
     });
   }
+
+  // Each record expires on its own clock, including while a decision is open.
+  // Schedule only the next expiry, and cancel on unmount or replacement.
+  useEffect(() => {
+    if (narration.size === 0) return;
+    const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
+    const timer = setTimeout(
+      () => {
+        const now = Date.now();
+        setNarration(
+          (items) => new Map([...items].filter(([, item]) => item.createdAt + narrationReadingTime(item) > now)),
+        );
+      },
+      Math.max(0, expiresAt - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [narration]);
+
+  useEffect(() => {
+    setNarration((items) => (items.size > narrationLimit ? new Map([...items].slice(-narrationLimit)) : items));
+  }, [narrationLimit]);
 
   /**
    * Queues one moment's worth of narration: the panels and the notices the same beat
@@ -1059,6 +1078,7 @@ export function useMatchCues({
       // effect used to appear on the field with no arrival at all. Those steps are
       // collected instead and enqueued after the reveal has been staged, so the card is
       // seen arriving once the reveal has finished with the screen.
+      let arriving = false;
       let showcased = false;
       const zoneChanges: AnimationStep[] = [];
       /** The first event that puts a card on the field, which is what the check's play is. */
@@ -1078,8 +1098,9 @@ export function useMatchCues({
         const showcase = zoneShowcaseFromEvent(event, viewerSeat, key);
         const burst = permanentBurstFromEvent(event, key);
         if (!showcase && !burst) continue;
+        arriving = true;
         showcased ||= showcase !== null;
-        if (showcase) firstArrivalIndex = Math.min(firstArrivalIndex, eventIndex);
+        if (showcase || burst) firstArrivalIndex = Math.min(firstArrivalIndex, eventIndex);
         // The call-out and the showcase behind it are one beat on one serial track, so the
         // battle's lead-in is waited out once, by whichever of the two goes first.
         let leadInMs = combatLeadInMs;
@@ -1224,14 +1245,14 @@ export function useMatchCues({
             openHeld(lateNotices, latePanels);
           },
         });
-      } else if (showcased && presenting) {
-        const heldForShowcase = afterShowcaseNotices;
+      } else if (arriving && presenting) {
+        const heldForShowcase = showcased ? afterShowcaseNotices : raised;
         const panelsForShowcase = opened;
         // The clause the played card triggered gets the beat after the showcase to itself:
         // it is read out, and only then does what it did reach the board.
         const clauseRead = heldForShowcase.some((notice) => notice.body.variant === "effect");
         playLeadInMs = showcasePlays
-          ? cutInLeadInMs + SHOWCASE_TOTAL_MS + (clauseRead ? TIMINGS.effectAnnounce : 0)
+          ? cutInLeadInMs + (showcased ? SHOWCASE_TOTAL_MS : 0) + (clauseRead ? TIMINGS.effectAnnounce : 0)
           : 0;
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
@@ -1863,33 +1884,19 @@ export function useMatchCues({
             ? COMBAT_IMPACT_TOTAL_MS
             : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
         const deleted = deletionMetadata.get(anchorId);
-        const step = deleteBurstStep(anchorId, delayMs, deleted?.cardId, deleted?.artId);
+        const step = deleteBurstStep(
+          anchorId,
+          delayMs,
+          deleted?.cardId,
+          deleted?.artId,
+          deleted?.seat,
+          deleted?.instanceId,
+        );
         if (step) {
           deletionBurstPresentedRef.current.add(anchorId);
           enqueue(step);
         }
       }
-    }
-    const unsuspendPhase = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "phaseChanged" && event.phase === UNSUSPEND_PHASE);
-    if (unsuspendPhase?.kind === "phaseChanged") {
-      unsuspendSweepKeyRef.current += 1;
-      const sweep: UnsuspendSweep = { seat: unsuspendPhase.turnSeat, key: unsuspendSweepKeyRef.current };
-      enqueue({
-        id: `unsuspend-sweep-${sweep.key}`,
-        track: "unsuspendSweep",
-        replace: true,
-        async run(context) {
-          if (context.mode !== "live") return;
-          try {
-            setUnsuspendSweep(sweep);
-            await context.wait(UNSUSPEND_SWEEP_MS);
-          } finally {
-            setUnsuspendSweep((current) => (current?.key === sweep.key ? null : current));
-          }
-        },
-      });
     }
     if (turnEnd?.kind === "turnEnded") {
       securityAttackerRef.current = undefined;
@@ -1904,31 +1911,18 @@ export function useMatchCues({
         flushHeldNotices();
         setPendingRevealKey(null);
       }
-      const transition: TurnTransitionCue = {
-        endingSeat: turnEnd.endingSeat,
-        nextSeat: turnEnd.nextSeat,
-        turnCount: turnEnd.turnCount,
-      };
-      enqueue({
-        id: `turn-banner-${transition.turnCount}`,
-        track: "turnBanner",
-        replace: true,
-        skippable: false,
-        async run(context) {
-          setTurnTransition(transition);
-          await context.wait(TIMINGS.turnBanner);
-          if (context.cancelled) return;
-          setTurnTransition(null);
-        },
-      });
     }
   }
 
   const phaseHistory = useMemo(
-    () => (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter((event) => event.kind === "phaseChanged"),
+    () =>
+      (phaseEvents ?? batches.flatMap((batch) => batch.events)).filter(
+        (event) => event.kind === "phaseChanged" || event.kind === "turnEnded",
+      ),
     [phaseEvents, batches],
   );
-  useEffect(() => {
+  // Establish the old hand/rotation before paint when a patch and its phases arrive together.
+  useLayoutEffect(() => {
     const last = lastPhaseEventRef.current;
     lastPhaseEventRef.current = phaseHistory.at(-1);
     if (!phaseBaselineRef.current) {
@@ -1937,6 +1931,29 @@ export function useMatchCues({
     }
     const fresh = phaseHistory.slice(last ? phaseHistory.lastIndexOf(last) + 1 : 0);
     for (const openedPhase of fresh) {
+      if (openedPhase.kind === "turnEnded") {
+        const transition: TurnTransitionCue = {
+          endingSeat: openedPhase.endingSeat,
+          nextSeat: openedPhase.nextSeat,
+          turnCount: openedPhase.turnCount,
+        };
+        setPendingPhaseBanners((count) => count + 1);
+        queue.enqueue({
+          id: `turn-banner-${transition.turnCount}`,
+          track: "phaseBanner",
+          async run(context) {
+            try {
+              if (context.mode !== "live") return;
+              setTurnTransition(transition);
+              await context.wait(TIMINGS.turnBanner);
+            } finally {
+              setTurnTransition((current) => (current === transition ? null : current));
+              setPendingPhaseBanners((count) => count - 1);
+            }
+          },
+        });
+        continue;
+      }
       if (openedPhase.kind !== "phaseChanged") continue;
       phaseBannerKeyRef.current += 1;
       const banner = phaseBannerFrom({
@@ -1950,15 +1967,44 @@ export function useMatchCues({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = true;
           setHeldDrawState(previousDrawStateRef.current);
+          setHeldSuspendedIds(
+            new Set(
+              previousDrawStateRef.current?.players[openedPhase.turnSeat]?.battleArea
+                .filter((permanent) => permanent.isSuspended)
+                .map((permanent) => permanent.permanentId) ?? [],
+            ),
+          );
         }
         queue.enqueue({
           id: `phase-banner-${banner.key}`,
           track: "phaseBanner",
-          // It names the phase the player is now in, so it keeps its time.
-          skippable: false,
           async run(context) {
             try {
+              if (context.mode !== "live") {
+                setHeldSuspendedIds(new Set());
+                drawPhaseWaitingRef.current = false;
+                setHeldDrawState(undefined);
+                return;
+              }
               setPhaseBanner(banner);
+              if (banner.phase === UNSUSPEND_PHASE) {
+                setHeldSuspendedIds(new Set());
+                const sweep: UnsuspendSweep = { seat: openedPhase.turnSeat, key: ++unsuspendSweepKeyRef.current };
+                queue.enqueue({
+                  id: `unsuspend-sweep-${sweep.key}`,
+                  track: "unsuspendSweep",
+                  replace: true,
+                  async run(sweepContext) {
+                    if (sweepContext.mode !== "live") return;
+                    try {
+                      setUnsuspendSweep(sweep);
+                      await sweepContext.wait(UNSUSPEND_SWEEP_MS);
+                    } finally {
+                      setUnsuspendSweep((current) => (current?.key === sweep.key ? null : current));
+                    }
+                  },
+                });
+              }
               // The first turn can skip drawing; breeding also releases the hold.
               if (banner.phase === "Draw" || banner.phase === "Breeding" || banner.phase === "Main") {
                 drawPhaseWaitingRef.current = false;
@@ -1969,6 +2015,7 @@ export function useMatchCues({
               setPhaseBanner((current) => (current?.key === banner.key ? null : current));
               setPendingPhaseBanners((count) => count - 1);
               if (context.cancelled) {
+                setHeldSuspendedIds(new Set());
                 drawPhaseWaitingRef.current = false;
                 setHeldDrawState(undefined);
               }
@@ -1982,7 +2029,8 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phaseHistory]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // Capture the queue before paint so a decision cannot flash over a new batch.
     // The first pass is the baseline: a reconnect replays history, which must not replay
     // its sounds or reopen every panel the match has ever shown. Whatever is already known
     // when the hook first runs is that history, however many batches it spans — and a first
@@ -2012,14 +2060,10 @@ export function useMatchCues({
   }, [presentedStateVersion, progress]);
 
   /**
-   * The decision barrier (docs/presentation-queue-plan.md 3.2).
-   *
-   * A question for the viewer is the end of a moment, so the presentation is caught up to
-   * the board the question was asked about before the prompt opens: the queue collapses
-   * every skippable wait and drops the items still to be read, and the prompt follows. The
-   * wait is bounded by `PLAY_LEAD_IN_BUDGET_MS` — the prompt is the viewer's only way to
-   * answer, so it can never depend on a step actually running to be shown. An opponent's
-   * decision raises no barrier: their question does not interrupt the viewer's narration.
+   * Snapshot revision barrier. Its budget bounds how long the displayed board
+   * can lag behind the server; it does not open the decision dialog.
+   * `decisionAnimationsPending` independently waits for actual finite queue
+   * completion, including consequences in older batches.
    */
   useEffect(() => {
     if (!decisionPending || decisionStateVersion === undefined) {
@@ -2035,12 +2079,8 @@ export function useMatchCues({
       return;
     }
     setDecisionBarrier(decisionStateVersion);
-    // The batches BEHIND the one that raised the question are collapsed: their waits go to
-    // nothing and the items still to be read are dropped (the match log keeps them). The
-    // batch that raised it is the question's own explanation — the card centre-stage, then
-    // the clause — so it keeps its beats and the prompt opens on the board they end on,
-    // and at the latest when the budget below runs out.
-    if (reached !== undefined && reached < decisionStateVersion) fastForward();
+    // A newer server revision is not proof that the viewer has seen the older
+    // consequences. Keep their animations intact while bounding snapshot lag.
     const timer = setTimeout(() => {
       // The budget is spent: the board is handed over at the revision the question was
       // asked at, whatever the queue still had to say about the batches before it.
@@ -2049,8 +2089,6 @@ export function useMatchCues({
       setDecisionBarrier(null);
     }, PLAY_LEAD_IN_BUDGET_MS);
     return () => clearTimeout(timer);
-    // fastForward is rebuilt every render and reads only refs and the queue.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionPending, decisionStateVersion, progress]);
 
   // The barrier's own release: the queue has reached the revision the question was asked
@@ -2086,9 +2124,7 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionPending, pendingRevealKey, queue]);
 
-  // The reading clock of a presented item is stopped and restarted inside its own step
-  // (see readNarrationItem), so nothing here re-stamps a stack or polls for an expiry:
-  // an item leaves when its step lets it go.
+  // Recent narration expires independently; decision barriers only wait for board beats.
 
   // A DP figure that moved gets a pulse. The driver is the synchronized
   // `currentDP` itself: the engine has already applied every modifier by the time
@@ -2338,6 +2374,8 @@ export function useMatchCues({
     delayMs = 0,
     metadataCardId?: string,
     metadataArtId?: string,
+    metadataSeat?: Seat,
+    metadataInstanceId?: string,
   ): AnimationStep | null {
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
@@ -2345,6 +2383,13 @@ export function useMatchCues({
     // The reference client shatters the card's own art rather than swapping it for
     // a generic puff, so the burst carries whichever card was standing there.
     const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
+    if (cardId && metadataSeat !== undefined) {
+      const now = Date.now();
+      deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
+        readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
+        instanceId: metadataInstanceId,
+      });
+    }
     const burst: DeleteBurst = {
       key,
       x: center.x - DELETE_BURST_SIZE / 2,
@@ -2440,14 +2485,14 @@ export function useMatchCues({
           if (context.cancelled) return;
         }
         if (!burst) return;
-        setPermanentBursts((bursts) => new Map(bursts).set(burst.permanentId, burst));
-        // The burst plays out on the permanent's own track, so the centre of the
-        // screen is free for the next announcement the moment this one reveals.
+        // The permanent's track also carries its effect prelude. Serialize later
+        // arrivals so an automatic evolution cannot cancel the earlier toast.
         queue.enqueue({
           id: `burst-${burst.key}`,
           track: `burst-${burst.permanentId}`,
-          replace: true,
           async run(burstContext) {
+            if (burstContext.mode !== "live") return;
+            setPermanentBursts((bursts) => new Map(bursts).set(burst.permanentId, burst));
             await burstContext.wait(TIMINGS.cardBurst);
             setPermanentBursts((bursts) => {
               if (bursts.get(burst.permanentId)?.key !== burst.key) return bursts;
@@ -2514,12 +2559,8 @@ export function useMatchCues({
   /** The items on screen, in slot order, so the read-only views below are stable. */
   const presented = useMemo(() => [...narration.values()], [narration]);
 
-  /**
-   * While the opponent's moment is on screen the viewer's intents wait. The hold is the
-   * item itself, so it can never outlive the queue: the step's own exit — reading time
-   * spent, tap, skip, or a cleared queue — takes the item off screen and with it the lock.
-   */
-  const narrationLock = useMemo(() => presented.some((item) => item.side === "opp"), [presented]);
+  // Recent records are informational; board synchronization owns the input barrier.
+  const narrationLock = false;
 
   const sidePanels = useMemo(() => presented.flatMap((item) => (item.panel ? [item.panel] : [])), [presented]);
   const notices = useMemo(
@@ -2527,17 +2568,16 @@ export function useMatchCues({
     [presented, rejection],
   );
 
-  /**
-   * Moves every presenting slot on to its next moment. A tap on the board reaches here
-   * first: only when nothing is being narrated does it fall through to the ordinary
-   * fast-forward, so one tap never both advances a moment and collapses the queue.
-   */
-  function advanceNarration(): boolean {
-    const waiting = [...narrationAdvanceRef.current.values()];
-    if (waiting.length === 0) return false;
+  /** Dismiss one record, defaulting to the oldest for keyboard callers. */
+  function advanceNarration(id?: string): boolean {
+    const target = id ?? narration.keys().next().value;
+    if (target === undefined || !narration.has(target)) return false;
     presentationTelemetry.countManualAdvance();
-    narrationAdvanceRef.current.clear();
-    for (const advance of waiting) advance();
+    setNarration((items) => {
+      const next = new Map(items);
+      next.delete(target);
+      return next;
+    });
     return true;
   }
 
@@ -2549,15 +2589,14 @@ export function useMatchCues({
   function fastForward() {
     presentationTelemetry.countSkip();
     narrationSkipRef.current = true;
-    narrationAdvanceRef.current.forEach((advance) => advance());
-    narrationAdvanceRef.current.clear();
+    setNarration(new Map());
     queue.skip();
     void queue.idle().then(() => {
       narrationSkipRef.current = false;
     });
   }
 
-  // A refusal is not queued, so it owns the one timer left in the hook.
+  // Refusals expire independently of the recent effect records.
   useEffect(() => {
     if (!rejection) return;
     const remaining = noticeRemaining(rejection, Date.now());
@@ -2601,8 +2640,9 @@ export function useMatchCues({
     securityBranch,
     securityRevealPending: pendingRevealKey !== null,
     decisionBarrierPending: decisionBarrier !== null,
+    decisionAnimationsPending,
     presentedStateVersion,
-    presenting: narration.size > 0 || presentedStateVersion !== undefined,
+    presenting: presentedStateVersion !== undefined || pendingPhaseBanners > 0,
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,
@@ -2616,6 +2656,7 @@ export function useMatchCues({
     phaseBanner,
     phaseTransitionPending: pendingPhaseBanners > 0,
     heldDrawState,
+    heldSuspendedIds,
     combatImpactIds,
     fieldClash,
     dpPulses,

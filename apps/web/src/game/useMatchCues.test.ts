@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { GameState, ServerEvent } from "@aegis/shared";
+import { Phase, type GameState, type ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import {
@@ -269,7 +269,7 @@ function renderCuesAwaitingAnswer() {
         decisionPending,
         decisionStateVersion,
         anchors,
-        onActionRejected: vi.fn(),
+        onActionRejected: vi.fn<(reason: string) => void>(),
       }),
     {
       initialProps: {
@@ -514,6 +514,63 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
     expect(result.current.heldDrawState).toBeUndefined();
     expect(result.current.phaseBanner).toBeNull();
+  });
+
+  it("serializes real batched turn, unsuspend and draw announcements", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([
+      TURN_END,
+      UNSUSPEND_PHASE,
+      { ...UNSUSPEND_PHASE, phase: "Draw" },
+      { ...UNSUSPEND_PHASE, phase: "Breeding" },
+    ]);
+    await advance(0);
+    expect(result.current.turnTransition).not.toBeNull();
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.unsuspendSweep).toBeNull();
+    expect(result.current.presenting).toBe(true);
+    await advance(TIMINGS.turnBanner);
+    expect(result.current.turnTransition).toBeNull();
+    expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.unsuspendSweep?.seat).toBe(0);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner?.phase).toBe("Draw");
+    expect(result.current.unsuspendSweep).toBeNull();
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner?.phase).toBe("Breeding");
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.presenting).toBe(false);
+  });
+
+  it("drains turn and phase holds when the tab becomes hidden", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([
+      TURN_END,
+      UNSUSPEND_PHASE,
+      { ...UNSUSPEND_PHASE, phase: "Draw" },
+      { ...UNSUSPEND_PHASE, phase: "Breeding" },
+    ]);
+    await advance(0);
+    expect(result.current.turnTransition).not.toBeNull();
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    try {
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await advance(0);
+      expect(result.current.turnTransition).toBeNull();
+      expect(result.current.phaseBanner).toBeNull();
+      expect(result.current.phaseTransitionPending).toBe(false);
+      expect(result.current.heldDrawState).toBeUndefined();
+      expect(result.current.heldSuspendedIds.size).toBe(0);
+    } finally {
+      hidden.mockRestore();
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+    }
+    await advance(TIMINGS.phaseBanner * 4);
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.presenting).toBe(false);
   });
 
   it("plays a live turn banner for its full time and then clears it", async () => {
@@ -798,15 +855,8 @@ describe("match cues", () => {
 
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
-    // The opponent's slot is still reading out the [Security] clause, so what the play
-    // caused queues behind it rather than piling into the same corner.
-    expect(result.current.notices).toHaveLength(1);
-    expect(result.current.sidePanels).toEqual([]);
-
-    await advance(NOTICE_ITEM_MS);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
-
-    await advance(NOTICE_ITEM_MS);
+    // The arrival releases the effect and its results while Security remains readable.
+    expect(result.current.notices).toHaveLength(2);
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
@@ -833,18 +883,11 @@ describe("match cues", () => {
     // Nothing the play caused may be on screen while it is still arriving.
     expect(result.current.sidePanels).toEqual([]);
 
-    // Step 4: the card has landed, so what it did reads out — behind the [Security]
-    // clause the slot is still holding.
+    // Step 4: only after arrival, the effect and its results join the Security record.
     await advance(SHOWCASE_TOTAL_MS);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
-    expect(result.current.notices).toHaveLength(1);
-    expect(result.current.sidePanels).toEqual([]);
-
-    await advance(NOTICE_ITEM_MS);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
-
-    await advance(NOTICE_ITEM_MS);
+    expect(result.current.notices).toHaveLength(2);
     expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
     expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
     // The dock stays up until the check closes.
@@ -934,14 +977,19 @@ describe("match cues", () => {
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.has("perm-1")).toBe(false);
     expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+    await advance(TIMINGS.cardBurst);
+    expect(result.current.effectSources).toHaveLength(1);
+    expect(result.current.notices).toHaveLength(0);
+    await advance(TIMINGS.effectSourceHold);
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.notices[0]?.body.variant).toBe("effect");
     expect(result.current.securityBranch?.state).toBe("docked");
 
-    await advance(NOTICE_ITEM_MS);
     const panel = result.current.sidePanels.at(-1);
     expect(panel?.titleKey).toBe("panel.revealedCards");
     expect(panel?.cards).toHaveLength(4);
+    await advance(NOTICE_ITEM_MS);
+    expect(result.current.sidePanels).toHaveLength(0);
   }
 
   it("orders a live [Security] play that arrives as one batch", async () => {
@@ -1432,7 +1480,9 @@ describe("zone-change showcases", () => {
       { kind: "digivolved", seat: 0, permanentId: "perm-egg", cardId: "ST1-03", mechanic: "normal" },
     ]);
     await advance(0);
-    // The second burst replaces the first on the permanent's own track.
+    // Later arrivals preserve the prior beat (and any prelude queued after it).
+    expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({ variant: "hatch" });
+    await advance(TIMINGS.cardBurst);
     expect(result.current.permanentBursts.get("perm-egg")).toMatchObject({ variant: "evolve" });
   });
 
@@ -1771,7 +1821,7 @@ describe("security a card effect trashes", () => {
           mulliganOpen: false,
           decisionPending,
           anchors,
-          onActionRejected: vi.fn(),
+          onActionRejected: vi.fn<(reason: string) => void>(),
         }),
       { initialProps: { batches: [] as readonly ServerBatch[], decisionPending: false } },
     );
@@ -2035,16 +2085,13 @@ describe("security gains", () => {
       state: boardWithSecurity(5, 6),
     });
     await advance(0);
-    // One moment at a time: the growth the count showed queues behind the named add
-    // rather than joining it in the same corner.
+    // Both independent security additions remain visible.
     expect(result.current.notices.map((notice) => [notice.side, notice.body.variant])).toEqual([
       ["opp", "securityGain"],
+      ["opp", "securityGain"],
     ]);
-
     await advance(NOTICE_ITEM_MS);
-    expect(result.current.notices.map((notice) => [notice.side, notice.body.variant])).toEqual([
-      ["opp", "securityGain"],
-    ]);
+    expect(result.current.notices).toEqual([]);
   });
 
   it("says nothing when the stack shrinks", async () => {
@@ -2169,8 +2216,8 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     // A pending decision no longer stops the reading clock: the call-out is read, it
     // leaves, and the clause behind it takes the corner — all while the question is open.
     await advance(NOTICE_ITEM_MS + 1);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["deletion", "effect"]);
-    expect(result.current.notices.at(-1)?.body).toMatchObject({ cardId: KIMERAMON, timing: "On Play" });
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect", "deletion"]);
+    expect(result.current.notices[0]?.body).toMatchObject({ cardId: KIMERAMON, timing: "On Play" });
   });
 
   it("raises no barrier for a question about a board already read out", async () => {
@@ -2188,9 +2235,8 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
   });
 });
 
-/* The narration queue: one moment at a time per slot, advanced by a tap and collapsed by
-   a skip (docs/presentation-queue-plan.md §3.2). */
-describe("the narration queue", () => {
+/* Recent records remain visible independently of the action presentation. */
+describe("the narration feed", () => {
   const effectOf = (seat: 0 | 1, cardId: string): ServerEvent => ({
     kind: "effectTriggered",
     seat,
@@ -2199,186 +2245,138 @@ describe("the narration queue", () => {
     description: `Draw ${cardId}.`,
     timing: "OnPlay",
   });
-  const yourEffect = (cardId: string) => effectOf(0, cardId);
-  const theirEffect = (cardId: string) => effectOf(1, cardId);
-
-  /** The card each slot is currently reading out, by slot. */
-  function onScreen(narration: ReadonlyMap<string, { notice?: { body: unknown } }>): Record<string, string> {
-    const shown: Record<string, string> = {};
-    for (const [slot, item] of narration) {
-      const body = item.notice?.body as { cardId?: string } | undefined;
-      if (body?.cardId) shown[slot] = body.cardId;
-    }
-    return shown;
+  const yourEffect = (id: string) => effectOf(0, id);
+  const theirEffect = (id: string) => effectOf(1, id);
+  function cards(narration: ReadonlyMap<string, { notice?: { body: unknown } }>) {
+    return [...narration.values()].map((item) => (item.notice?.body as { cardId?: string })?.cardId);
   }
 
-  it("reads three clauses of one batch out one at a time, in order", async () => {
+  it("shows three same-side clauses together without holding the board or input", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-
     rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), yourEffect("BT1-003")]);
     await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-001" });
-
-    await advance(NOTICE_ITEM_MS);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-002" });
-
-    await advance(NOTICE_ITEM_MS);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-003" });
-
-    await advance(NOTICE_ITEM_MS);
+    expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+    expect(result.current.presenting).toBe(false);
+    expect(result.current.presentedStateVersion).toBeUndefined();
+    await advance(TIMINGS.noticeLifetime);
     expect(result.current.narration.size).toBe(0);
   });
 
-  it("keeps a second batch behind the first, without dropping any of it", async () => {
+  it("expires each batch independently without resetting the earlier record", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-
     rerender([yourEffect("BT1-001")]);
-    await advance(0);
+    await advance(1000);
     rerender([yourEffect("BT1-001"), yourEffect("BT1-002")]);
     await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-001" });
-
-    await advance(NOTICE_ITEM_MS);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-002" });
+    expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-002"]);
+    await advance(TIMINGS.noticeLifetime - 1000);
+    expect(cards(result.current.narration)).toEqual(["BT1-002"]);
+    await advance(1000);
+    expect(result.current.narration.size).toBe(0);
   });
 
-  it("gives each side its own slot, so both read at once without stacking", async () => {
-    const { result, rerender } = renderCues();
-    await advance(0);
+  it.each([true, false])(
+    "caps mobile at two TOTAL records (portrait=%s), preserving newest across players",
+    async (portrait) => {
+      const feed = batchFeed();
+      const view = renderHook(
+        (batches: readonly ServerBatch[]) =>
+          useMatchCues({
+            batches,
+            state: undefined,
+            viewerSeat: VIEWER,
+            mulliganOpen: false,
+            collapseNarration: portrait,
+            narrationLimit: 2,
+            anchors,
+            onActionRejected: vi.fn<(reason: string) => void>(),
+          }),
+        { initialProps: feed([]) },
+      );
+      await advance(0);
+      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+      await advance(0);
+      expect(cards(view.result.current.narration)).toEqual(["BT1-002", "BT1-009"]);
+      expect(view.result.current.narrationLock).toBe(false);
+      expect(view.result.current.presenting).toBe(false);
+    },
+  );
 
-    rerender([yourEffect("BT1-001"), theirEffect("BT1-009")]);
-    await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({
-      "narration-you": "BT1-001",
-      "narration-opp": "BT1-009",
-    });
-  });
-
-  it("folds both sides into one slot on a phone, one moment at a time", async () => {
-    const feed = batchFeed();
-    const view = renderHook(
-      (batches: readonly ServerBatch[]) =>
-        useMatchCues({
-          batches,
-          state: undefined,
-          viewerSeat: VIEWER,
-          mulliganOpen: false,
-          collapseNarration: true,
-          anchors,
-          onActionRejected: vi.fn<(reason: string) => void>(),
-        }),
-      { initialProps: feed([]) },
-    );
-    await advance(0);
-
-    view.rerender(feed([yourEffect("BT1-001"), theirEffect("BT1-009")]));
-    await advance(0);
-    expect(onScreen(view.result.current.narration)).toEqual({ narration: "BT1-001" });
-
-    await advance(NOTICE_ITEM_MS);
-    expect(onScreen(view.result.current.narration)).toEqual({ narration: "BT1-009" });
-  });
-
-  it("advances the current moment on a tap, and says when there was nothing to advance", async () => {
+  it("dismisses the selected record without dismissing its neighbors or changing their clocks", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
     expect(result.current.advanceNarration()).toBe(false);
-
-    rerender([yourEffect("BT1-001"), yourEffect("BT1-002")]);
-    await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-001" });
-
-    expect(result.current.advanceNarration()).toBe(true);
-    await advance(NARRATION_TICK_MS);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-002" });
-  });
-
-  it("collapses everything still queued on an explicit skip", async () => {
-    const { result, rerender } = renderCues();
-    await advance(0);
-
-    rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), yourEffect("BT1-003")]);
-    await advance(0);
-
-    result.current.skipAnimations();
-    await advance(NARRATION_TICK_MS);
+    rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]);
+    await advance(1000);
+    const middle = [...result.current.narration.keys()][1]!;
+    act(() => {
+      expect(result.current.advanceNarration(middle)).toBe(true);
+    });
+    expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-009"]);
+    expect(result.current.advanceNarration(middle)).toBe(false);
+    await advance(TIMINGS.noticeLifetime - 1000);
     expect(result.current.narration.size).toBe(0);
+  });
 
-    // Nothing comes back afterwards, and the queue is ready for the next batch.
-    await advance(NOTICE_ITEM_MS);
+  it("keeps repeated activations of the same card independently dismissible", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([yourEffect("BT1-001"), yourEffect("BT1-001")]);
+    await advance(0);
+    expect(result.current.narration.size).toBe(2);
+    act(() => {
+      result.current.advanceNarration();
+    });
+    expect(cards(result.current.narration)).toEqual(["BT1-001"]);
+  });
+
+  it("clears visible records on skip and accepts subsequent batches", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([yourEffect("BT1-001"), theirEffect("BT1-009")]);
+    await advance(0);
+    act(() => result.current.skipAnimations());
+    await advance(0);
     expect(result.current.narration.size).toBe(0);
-    rerender([yourEffect("BT1-001"), yourEffect("BT1-002"), yourEffect("BT1-003"), yourEffect("BT1-004")]);
+    rerender([yourEffect("BT1-001"), theirEffect("BT1-009"), yourEffect("BT1-002")]);
     await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-004" });
+    expect(cards(result.current.narration)).toEqual(["BT1-002"]);
   });
 
-  it("holds the viewer's input while the opponent's moment is on screen, and releases it with the moment", async () => {
-    const { result, rerender } = renderCues();
-    await advance(0);
-    expect(result.current.narrationLock).toBe(false);
-
-    rerender([theirEffect("BT1-009")]);
-    await advance(0);
-    expect(result.current.narrationLock).toBe(true);
-
-    await advance(NOTICE_ITEM_MS);
-    expect(result.current.narrationLock).toBe(false);
-  });
-
-  it("never holds the viewer for their own moment", async () => {
-    const { result, rerender } = renderCues();
-    await advance(0);
-
-    rerender([yourEffect("BT1-001")]);
-    await advance(0);
-    expect(result.current.narrationLock).toBe(false);
-  });
-
-  it("does not stall the queued items while a decision waits", async () => {
+  it("does not wait for reading timers to open a decision, and keeps expiring records", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
-
     rerender({ events: [yourEffect("BT1-001"), yourEffect("BT1-002")], decisionPending: false });
     await advance(0);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-001" });
-
-    // The question arrives while the clause is still on screen, and the queue keeps
-    // reading: the item is finished and the one behind it takes the slot (Phase 3).
+    expect(cards(result.current.narration)).toEqual(["BT1-001", "BT1-002"]);
     rerender({
       events: [yourEffect("BT1-001"), yourEffect("BT1-002")],
       decisionPending: true,
       decisionStateVersion: 1,
     });
-    await advance(NOTICE_ITEM_MS);
-    expect(onScreen(result.current.narration)).toEqual({ "narration-you": "BT1-002" });
+    await advance(0);
+    expect(result.current.decisionBarrierPending).toBe(false);
+    await advance(TIMINGS.noticeLifetime);
+    expect(result.current.narration.size).toBe(0);
   });
 
-  it("keeps a refusal out of the queue, so it answers the viewer's tap at once", async () => {
+  it("shows refusals immediately, with their own lifetime", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-
     rerender([theirEffect("BT1-009")]);
     await advance(0);
-    expect(result.current.rejection).toBeNull();
-
     act(() => result.current.raiseRejection("Not enough memory."));
     expect(result.current.rejection?.body).toEqual({ variant: "rejection", reason: "Not enough memory." });
-    // It is not a narration item, so it neither waits for the opponent's moment nor
-    // holds the viewer's input.
-    expect(onScreen(result.current.narration)).toEqual({ "narration-opp": "BT1-009" });
-
-    // Its own clock: it started at the refusal rather than at a slot, so it is held for
-    // the refusal's longer reading time and is still up when a queued notice would be gone.
+    expect(cards(result.current.narration)).toEqual(["BT1-009"]);
     await advance(TIMINGS.noticeLifetime);
     expect(result.current.rejection).not.toBeNull();
-
     await advance(REJECTION_LIFETIME_MS - TIMINGS.noticeLifetime);
     expect(result.current.rejection).toBeNull();
   });
 
-  it("narrates nothing for the history a reconnect replays", async () => {
+  it("does not replay reconnect history or leave reading timers behind", async () => {
     const { result } = renderCues([yourEffect("BT1-001"), theirEffect("BT1-009")]);
     await advance(0);
     expect(result.current.narration.size).toBe(0);
@@ -2413,9 +2411,10 @@ describe("the presented revision", () => {
     await advance(0);
     expect(result.current.presentedStateVersion).toBe(1);
 
-    // The trigger's own moment: the board moves to the revision that trigger belongs to.
+    // Once the battle finishes, the trigger can remain readable over the live board.
     await advance(FIELD_CLASH_TOTAL_MS + COMBAT_IMPACT_TOTAL_MS);
-    expect(result.current.presentedStateVersion).toBe(2);
+    expect(result.current.presentedStateVersion).toBeUndefined();
+    expect(result.current.notices.length).toBeGreaterThan(0);
 
     // Read out: the board is the live board again.
     await advance(NOTICE_ITEM_MS * 2);
@@ -2480,4 +2479,161 @@ it("presents every security check in a single server batch in order", async () =
   expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
   await advance(CLASH_TOTAL_MS);
   expect(result.current.securityClash).toBeNull();
+});
+
+describe("triggered effect source prelude", () => {
+  const trigger: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: "BT1-010",
+    effectKey: "prelude",
+    timing: "On Deletion",
+    description: "Draw 1.",
+  };
+
+  it("finishes the deletion before flashing the trash source and then publishing the toast", async () => {
+    const { result, rerender } = renderCuesOverBoard({
+      ...TRASHED_SECURITY_BOARD,
+      players: [
+        TRASHED_SECURITY_BOARD.players[0],
+        {
+          ...TRASHED_SECURITY_BOARD.players[1],
+          battleArea: [{ permanentId: "surviving-copy", topCard: { cardId: "BT1-010", instanceId: "survivor" } }],
+        },
+      ],
+    } as unknown as GameState);
+    await advance(0);
+    rerender([
+      {
+        kind: "cardsMoved",
+        instanceIds: ["sec-1"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "sec-1", cardId: "BT1-010", seat: 1 }],
+      },
+      trigger,
+    ]);
+    await advance(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
+    expect(result.current.effectSources).toHaveLength(0);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    await advance(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
+    expect(result.current.deleteBursts).toHaveLength(0);
+    expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash", instanceId: "sec-1" } }]);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    await advance(TIMINGS.effectSourceHold - 1);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    await advance(1);
+    expect(result.current.effectSources).toHaveLength(0);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    await advance(TIMINGS.noticeLifetime - 1);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    await advance(1);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+  });
+
+  it("preserves both triggered notices when an automatic second evolution arrives", async () => {
+    const board = {
+      ...TRASHED_SECURITY_BOARD,
+      players: [
+        TRASHED_SECURITY_BOARD.players[0],
+        {
+          ...TRASHED_SECURITY_BOARD.players[1],
+          battleArea: [{ permanentId: "perm-9", topCard: { cardId: "BT1-010", instanceId: "arrived" } }],
+        },
+      ],
+    } as unknown as GameState;
+    const { result, rerender } = renderCuesOverBoard(board);
+    const arrival: ServerEvent = {
+      kind: "digivolved",
+      seat: 1,
+      permanentId: "perm-9",
+      cardId: "BT1-010",
+      mechanic: "normal",
+    };
+    const first = { ...trigger, timing: "When Digivolving", effectKey: "first", description: "First effect." };
+    const second = { ...first, effectKey: "second", description: "Second effect." };
+    await advance(0);
+    rerender([arrival, first]);
+    await advance(100);
+    rerender([arrival, first, { ...arrival }, second]);
+    await advance(TIMINGS.cardBurst - 100 + TIMINGS.effectSourceHold);
+    expect(result.current.notices.map((notice) => notice.body)).toContainEqual(
+      expect.objectContaining({ description: "First effect." }),
+    );
+    await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+    expect(result.current.notices.map((notice) => notice.body)).toEqual([
+      expect.objectContaining({ description: "First effect." }),
+      expect.objectContaining({ description: "Second effect." }),
+    ]);
+  });
+
+  it("publishes without a visual wait when the tab is hidden", async () => {
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    try {
+      const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
+      await advance(0);
+      rerender([trigger]);
+      await advance(0);
+      expect(result.current.effectSources).toHaveLength(0);
+      expect(result.current.notices).toHaveLength(1);
+      expect(result.current.decisionAnimationsPending).toBe(false);
+    } finally {
+      hidden.mockRestore();
+    }
+  });
+
+  it("waits for the Main Phase banner before highlighting its source", async () => {
+    const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
+    await advance(0);
+    rerender([
+      { kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 2 },
+      { ...trigger, timing: "Start of Main Phase" },
+    ]);
+    await advance(0);
+    expect(result.current.phaseBanner).not.toBeNull();
+    expect(result.current.effectSources).toHaveLength(0);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    await advance(TIMINGS.phaseBanner);
+    expect(result.current.effectSources).toHaveLength(1);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+    await advance(TIMINGS.effectSourceHold);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+  });
+
+  it.each(["On Play", "When Digivolving"])(
+    "waits for the %s arrival before highlighting its source",
+    async (timing) => {
+      const { result, rerender } = renderCuesOverBoard({
+        ...TRASHED_SECURITY_BOARD,
+        players: [
+          TRASHED_SECURITY_BOARD.players[0],
+          {
+            ...TRASHED_SECURITY_BOARD.players[1],
+            battleArea: [{ permanentId: "perm-9", topCard: { cardId: "BT1-010", instanceId: "arrived" } }],
+          },
+        ],
+      } as unknown as GameState);
+      await advance(0);
+      const arrival: ServerEvent =
+        timing === "On Play"
+          ? OPP_PLAY
+          : {
+              kind: "digivolved",
+              seat: 1,
+              permanentId: "perm-9",
+              cardId: "BT1-010",
+              mechanic: "normal",
+            };
+      rerender([arrival, { ...trigger, timing }]);
+      await advance(0);
+      expect(result.current.effectSources).toHaveLength(0);
+      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+      await advance((timing === "On Play" ? SHOWCASE_TOTAL_MS : 0) + TIMINGS.cardBurst);
+      expect(result.current.effectSources).toHaveLength(1);
+      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
+      await advance(TIMINGS.effectSourceHold);
+      expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(1);
+    },
+  );
 });

@@ -9,6 +9,8 @@ export function ArenaDemoTools({
   onDraw,
   onVisualPlayback,
   onTurnStart,
+  onEffects,
+  onEffectActivation,
   onSecurityFlip,
   securityFaceUpCount,
   disabled = false,
@@ -19,6 +21,10 @@ export function ArenaDemoTools({
   onDraw: (seat: Seat) => void;
   onVisualPlayback: () => void;
   onTurnStart: () => void;
+  onEffects?: () => void;
+  onEffectActivation?: (
+    timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
+  ) => void;
   onSecurityFlip?: () => void;
   securityFaceUpCount?: number;
   disabled?: boolean;
@@ -102,6 +108,35 @@ export function ArenaDemoTools({
           >
             {portuguese ? "Reproduzir início do turno" : "Preview turn start"}
           </button>
+          {onEffectActivation
+            ? (["On Play", "When Digivolving", "When Attacking", "Start of Main Phase", "On Deletion"] as const).map(
+                (timing) => (
+                  <button
+                    key={timing}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      close();
+                      onEffectActivation(timing);
+                    }}
+                  >
+                    {portuguese ? "Reproduzir ativação" : "Preview activation"}: {timing}
+                  </button>
+                ),
+              )
+            : null}
+          {onEffects ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onEffects();
+              }}
+            >
+              {portuguese ? "Reproduzir efeitos simultâneos" : "Preview simultaneous effects"}
+            </button>
+          ) : null}
           <button
             type="button"
             role="menuitem"

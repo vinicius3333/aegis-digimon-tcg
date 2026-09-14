@@ -120,7 +120,6 @@ export function BoardSelectionRail({
       clause={clause}
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
       onOpenDialog={onOpenDialog}
-      showDialogButton
     >
       <Button full icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
         {t("overlay.endSelection")}
