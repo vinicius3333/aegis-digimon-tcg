@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Phase,
+  PHASE_NARRATION_MS,
+  TURN_NARRATION_MS,
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   Zone,
@@ -79,6 +81,34 @@ async function advance(milliseconds: number): Promise<void> {
 
 describe("BotPlayer action pacing and player attacks", () => {
   afterEach(() => vi.useRealTimers());
+
+  it("waits for the turn and opening phase ribbons before its breeding action", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 1 } as ServerEvent);
+    bot.onEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 } as ServerEvent);
+    state.turnCount = 2;
+    for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding]) {
+      state.phase = phase;
+      bot.onEvent({ kind: "phaseChanged", phase, turnSeat: 1, turnCount: 2 } as ServerEvent);
+    }
+    // Production plays End, turn change, Active, Draw and Breeding in sequence.
+    const ribbonsMs = 4 * PHASE_NARRATION_MS + TURN_NARRATION_MS;
+    await advance(ribbonsMs - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+  });
 
   it("waits for an opponent play's arrival and On Play announcement before answering its choice", async () => {
     vi.useFakeTimers();
@@ -420,7 +450,7 @@ describe("BotPlayer action pacing and player attacks", () => {
     state.turnCount = 2;
     state.phase = Phase.Breeding;
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 2 } as ServerEvent);
-    await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    await advance(SECURITY_CHECK_NARRATION_MS + PHASE_NARRATION_MS - 1);
     expect(intents).toEqual([]);
     await advance(1);
     expect(intents.length).toBeGreaterThan(0);
@@ -465,7 +495,8 @@ describe("BotPlayer action pacing and player attacks", () => {
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
     await advance(1_000);
     bot.onEvent({ kind: "securityChecked", seat: 1, revealedCardId: "BT1-013", resolution: "battle" } as ServerEvent);
-    await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    // The check follows the remaining portion of Main's ribbon.
+    await advance(PHASE_NARRATION_MS - 1_000 + SECURITY_CHECK_NARRATION_MS - 1);
     expect(intents).toEqual([]);
     await advance(1);
     expect(intents.length).toBeGreaterThan(0);

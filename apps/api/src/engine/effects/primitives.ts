@@ -686,6 +686,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: drawn.map((c) => c.instanceId),
         from: Zone.Deck,
         to: Zone.Hand,
+        seat,
         ...(opts?.drawReason ? { drawReason: opts.drawReason } : {}),
       });
       // An effect Draw is an effect-driven hand addition ("when an effect adds cards to

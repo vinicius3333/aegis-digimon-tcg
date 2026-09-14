@@ -148,7 +148,7 @@ describe("primitives: draw", () => {
     expect(p0.hand).toHaveLength(2);
     expect(p0.deck).toHaveLength(1);
     expect(p0.hand[0]!.faceUp).toBe(true);
-    expect(h.events.some((e) => e.kind === "cardsMoved" && e.to === "hand")).toBe(true);
+    expect(h.events).toContainEqual(expect.objectContaining({ kind: "cardsMoved", from: "deck", to: "hand", seat: 0 }));
   });
 
   it("stops at an empty deck and returns fewer cards (deck-out is handled elsewhere)", async () => {

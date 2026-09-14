@@ -8,6 +8,8 @@ import {
   SECURITY_EFFECT_NARRATION_MS,
   CARD_ARRIVAL_NARRATION_MS,
   EFFECT_CHOICE_NARRATION_MS,
+  PHASE_NARRATION_MS,
+  TURN_NARRATION_MS,
 } from "@aegis/shared";
 import { NARRATION_TICK_MS } from "./narration";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
@@ -20,7 +22,6 @@ import {
   CLASH_OUTCOME_AT_MS,
   CLASH_SHATTER_MS,
   CLASH_TOTAL_MS,
-  CLASH_REVEAL_SHOWN_AT_MS,
   SECURITY_BRANCH_IN_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
@@ -53,6 +54,10 @@ function percentOf(momentMs: number, totalMs: number): number {
 }
 
 describe("battle timings", () => {
+  it("keeps the bot behind consecutive turn and phase ribbons", () => {
+    expect(PHASE_NARRATION_MS).toBeGreaterThanOrEqual(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
+    expect(TURN_NARRATION_MS).toBeGreaterThanOrEqual(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
+  });
   it("keeps bot effect choices behind arrival and the On Play announcement", () => {
     expect(CARD_ARRIVAL_NARRATION_MS).toBeGreaterThanOrEqual(SHOWCASE_TOTAL_MS + TIMINGS.cardBurst);
     expect(EFFECT_CHOICE_NARRATION_MS).toBeGreaterThan(TIMINGS.effectSourceHold + TIMINGS.effectAnnounce);

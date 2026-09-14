@@ -193,6 +193,58 @@ it("flies a face-down card from the deck to its Tamer and clears it after landin
   expect(result.current.drawFlights).toHaveLength(0);
 });
 
+it.each([0, 1] as const)(
+  "presents seat %s's Option draw before the next turn ribbons when patches coalesce",
+  async (seat) => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const state = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 5, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (events: readonly ServerEvent[]) =>
+        useMatchCues({
+          batches: feed(events),
+          phaseEvents: events,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            yourDeck: { current: deck },
+            yourHandDock: { current: hand },
+            oppDeck: { current: deck },
+            oppHandStrip: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerEvent[] },
+    );
+    await advance(0);
+    // The opponent's hand is concealed and may return to the same count after using an Option.
+    state.players[seat]!.handCount = seat === 0 ? 6 : 5;
+    rerender([
+      { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["drawn-a", "drawn-b"], seat },
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 2 },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 2 },
+      { kind: "phaseChanged", phase: "Breeding", turnSeat: 1, turnCount: 2 },
+    ]);
+    await advance(32);
+    expect(result.current.drawFlights).toHaveLength(1);
+    expect(result.current.phaseBanner).toBeNull();
+    await advance(result.current.drawFlights[0]!.duration + 32);
+    expect(result.current.phaseBanner?.phase).toBe("End");
+  },
+);
+
 /**
  * Turns the cumulative event log a test writes into the server batches the hook consumes:
  * whatever is new since the previous render is one batch, which is the boundary the server
@@ -764,6 +816,80 @@ describe("match cues", () => {
     expect(result.current.heldBreedingState).toBeUndefined();
     expect(result.current.heldPhaseState).toBeUndefined();
   });
+
+  it.each(["hatched", "movedFromBreeding"] as const)(
+    "waits for separately patched %s before announcing Main",
+    async (kind) => {
+      const breeding = {
+        kind: "phaseChanged",
+        phase: "Breeding",
+        turnSeat: 1,
+        turnCount: 2,
+        seq: 1,
+        batch: "breeding",
+        stateVersion: 0,
+      } as ServerEvent;
+      const hatch = {
+        kind,
+        seat: 1,
+        cardId: "BT15-006",
+        permanentId: "egg",
+        seq: 2,
+        batch: "hatch",
+        stateVersion: 1,
+      } as ServerEvent;
+      const main = {
+        kind: "phaseChanged",
+        phase: "Main",
+        turnSeat: 1,
+        turnCount: 2,
+        seq: 3,
+        batch: "main",
+        stateVersion: 2,
+      } as ServerEvent;
+      const breedingBatch: ServerBatch = {
+        id: "breeding",
+        stateVersion: 1,
+        events: [breeding as import("@aegis/shared").SequencedServerEvent],
+      };
+      const hatchBatch: ServerBatch = {
+        id: "hatch",
+        stateVersion: 2,
+        events: [hatch as import("@aegis/shared").SequencedServerEvent],
+      };
+      const mainBatch: ServerBatch = {
+        id: "main",
+        stateVersion: 3,
+        events: [main as import("@aegis/shared").SequencedServerEvent],
+      };
+      const { result, rerender } = renderHook(
+        ({ batches, events }: { batches: readonly ServerBatch[]; events: readonly ServerEvent[] }) =>
+          useMatchCues({
+            batches,
+            phaseEvents: events,
+            viewerSeat: VIEWER,
+            state: undefined,
+            mulliganOpen: false,
+            anchors,
+            onActionRejected: vi.fn<(reason: string) => void>(),
+          }),
+        { initialProps: { batches: [] as readonly ServerBatch[], events: [] as readonly ServerEvent[] } },
+      );
+      await advance(0);
+      rerender({ batches: [breedingBatch], events: [breeding] });
+      await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap);
+      // Raw messages arrive before the patch that closes the hatch batch.
+      rerender({ batches: [breedingBatch], events: [breeding, hatch, main] });
+      await advance(32);
+      expect(result.current.phaseBanner).toBeNull();
+      rerender({ batches: [breedingBatch, hatchBatch, mainBatch], events: [breeding, hatch, main] });
+      await advance(32);
+      expect(result.current.permanentBursts.has("egg")).toBe(true);
+      expect(result.current.phaseBanner).toBeNull();
+      await advance(TIMINGS.cardBurst + 32);
+      expect(result.current.phaseBanner?.phase).toBe("Main");
+    },
+  );
 
   it("holds a mutable server hand before its patched batch closes, without replaying phase events", async () => {
     const state = {
@@ -2585,31 +2711,28 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
-  it.each([true, false])(
-    "shows only the newest record across players on every layout (portrait=%s)",
-    async (portrait) => {
-      const feed = batchFeed();
-      const view = renderHook(
-        (batches: readonly ServerBatch[]) =>
-          useMatchCues({
-            batches,
-            state: undefined,
-            viewerSeat: VIEWER,
-            mulliganOpen: false,
-            collapseNarration: portrait,
-            anchors,
-            onActionRejected: vi.fn<(reason: string) => void>(),
-          }),
-        { initialProps: feed([]) },
-      );
-      await advance(0);
-      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
-      await advance(0);
-      expect(cards(view.result.current.narration)).toEqual(["BT1-009"]);
-      expect(view.result.current.narrationLock).toBe(false);
-      expect(view.result.current.presenting).toBe(false);
-    },
-  );
+  it.each([true, false])("shows all active records across players on every layout (portrait=%s)", async (portrait) => {
+    const feed = batchFeed();
+    const view = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          collapseNarration: portrait,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: feed([]) },
+    );
+    await advance(0);
+    view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+    await advance(0);
+    expect(cards(view.result.current.narration)).toEqual(["BT1-001", "BT1-002", "BT1-009"]);
+    expect(view.result.current.narrationLock).toBe(false);
+    expect(view.result.current.presenting).toBe(false);
+  });
 
   it("dismisses the selected record without dismissing its neighbors or changing their clocks", async () => {
     const { result, rerender } = renderCues();

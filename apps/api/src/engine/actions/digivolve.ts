@@ -908,6 +908,7 @@ export async function applyDigivolve(
       instanceIds: drawn.map((c) => c.instanceId),
       from: Zone.Deck,
       to: Zone.Hand,
+      seat,
       drawReason: "digivolution",
     });
   }

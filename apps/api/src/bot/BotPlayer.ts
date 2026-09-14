@@ -2,6 +2,8 @@ import {
   Phase,
   CARD_ARRIVAL_NARRATION_MS,
   EFFECT_CHOICE_NARRATION_MS,
+  PHASE_NARRATION_MS,
+  TURN_NARRATION_MS,
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   SECURITY_EFFECT_NARRATION_MS,
@@ -123,7 +125,13 @@ export class BotPlayer {
   onEvent(event: ServerEvent): void {
     switch (event.kind) {
       case "phaseChanged":
+        if (event.phase !== Phase.None) {
+          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + PHASE_NARRATION_MS;
+        }
         if (event.turnSeat === this.seat) this.onOwnPhase(event.phase as Phase, event.turnCount);
+        break;
+      case "turnEnded":
+        this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + TURN_NARRATION_MS;
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";

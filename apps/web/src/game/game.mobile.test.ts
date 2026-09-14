@@ -381,10 +381,10 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
 
   it("gives the phone's single narration band a place of its own", () => {
     // GameScreen folds both sides into one centred slot on a portrait phone; the
-    // band pins below the opponent feed and spans the width.
+    // band pins below the header and spans the width.
     expect(gameScreenSource).toMatch(/const collapseNotices = narrowGameLayout && !landscapePhone;/);
     expect(gameScreenSource).toMatch(/compact=\{collapseNotices\}/);
-    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(3\.5rem/);
     // The clause is shown whole here too: no clamp may cut it on any layout.
     expect(narrowWidthRules).not.toMatch(/\.match-notice__text \{/);
     expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*line-clamp/);
@@ -533,10 +533,10 @@ describe("the viewer's own moves on a phone", () => {
 describe("one narration band on a phone in portrait", () => {
   it("folds the viewer's and the opponent's moments into a single top slot", () => {
     expect(narrowWidthRules).toMatch(
-      /\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(10\.5rem[^}]*bottom:\s*auto/,
+      /\.narration-slot\[data-slot="narration"\] \{[^}]*top:\s*calc\(3\.5rem[^}]*bottom:\s*auto/,
     );
-    // A tall moment scrolls rather than being squeezed until its cards are cut off.
-    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*overflow-y:\s*auto/);
+    // Every active item grows to fit its full text and cards.
+    expect(narrowWidthRules).toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*overflow:\s*visible/);
     expect(narrowWidthRules).not.toMatch(/\.narration-slot\[data-slot="narration"\] \{[^}]*overflow:\s*hidden/);
     expect(gameCss).toMatch(/\.side-panel \{[^}]*flex-shrink:\s*0/);
     // One slot is a hook input, not a second layout: the queue itself puts both
@@ -560,12 +560,12 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
     expect(phonePortraitRules).toMatch(/\.board-prompt__actions > button \{[^}]*min-height:\s*52px/);
   });
 
-  it("dims the board under the sheet and keeps the feed column short of it", () => {
+  it("dims the board under the sheet and keeps toast contents fully visible", () => {
     expect(phonePortraitRules).toMatch(
       /\.board-prompt-scrim \{[^}]*inset:\s*0 0 calc\(var\(--game-hand-h\)[^}]*pointer-events:\s*none/,
     );
     expect(phonePortraitRules).toMatch(
-      /\.narration-slot\[data-slot="narration"\] \{[^}]*max-height:\s*30dvh[^}]*overflow-y:\s*auto/,
+      /\.narration-slot\[data-slot="narration"\] \{[^}]*max-height:\s*none[^}]*overflow:\s*visible/,
     );
     expect(gameCss).toMatch(/\[data-held\] \.match-notice__erode \{[^}]*animation-play-state:\s*paused/);
   });

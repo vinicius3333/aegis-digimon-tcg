@@ -446,7 +446,7 @@ export function useMatchCues({
   viewerSeat,
   mulliganOpen,
   decisionPending = false,
-  narrationLimit = 1,
+  narrationLimit = Number.POSITIVE_INFINITY,
   decisionStateVersion,
   anchors,
   onActionRejected,
@@ -773,6 +773,7 @@ export function useMatchCues({
   // Set when the draw phase is announced and spent by the hand that grows in the
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
+  const eventDrawCountsRef = useRef<{ you?: number; opp?: number }>({});
 
   const playCue = (kind: SoundKind) => {
     const now = Date.now();
@@ -1207,6 +1208,16 @@ export function useMatchCues({
           ? securityReveal.revealedCardId
           : revealOnStageRef.current?.scene.revealed.cardId;
       for (const [eventIndex, event] of fresh.entries()) {
+        if (event.kind === "cardsMoved" && event.from === "deck" && event.to === "hand") {
+          const seat =
+            event.seat ??
+            event.instanceIds.map((id) => sidePanelLookupRef.current.seat(id)).find((owner) => owner !== undefined);
+          if (seat !== undefined) {
+            const side = seat === viewerSeat ? "you" : "opp";
+            eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
+            launchDrawFlight(side);
+          }
+        }
         if (event.kind === "cardsMoved" && event.deckToUnder) {
           const { seat, permanentId, count } = event.deckToUnder;
           for (let index = 0; index < count; index += 1) launchDeckToUnderFlight(seat, permanentId);
@@ -2162,9 +2173,17 @@ export function useMatchCues({
                     candidate.seq === event.seq &&
                     candidate.batch === event.batch) ||
                   (!("seq" in event) &&
-                    (event.kind === "cardPlayed" || event.kind === "digivolved") &&
+                    (event.kind === "cardPlayed" ||
+                      event.kind === "digivolved" ||
+                      event.kind === "hatched" ||
+                      event.kind === "movedFromBreeding" ||
+                      event.kind === "cardsMoved") &&
                     candidate.kind === event.kind &&
-                    candidate.permanentId === event.permanentId),
+                    (event.kind === "cardsMoved" && candidate.kind === "cardsMoved"
+                      ? candidate.instanceIds.join(",") === event.instanceIds.join(",")
+                      : candidate.kind !== "cardsMoved" &&
+                        event.kind !== "cardsMoved" &&
+                        candidate.permanentId === event.permanentId)),
               ),
             ),
         );
@@ -2206,7 +2225,14 @@ export function useMatchCues({
       phaseOrdersRef.current.set(openedPhase, phaseOrder);
       const arrivals = eventTimeline
         .slice(last ? eventTimeline.lastIndexOf(last) + 1 : 0, eventTimeline.indexOf(openedPhase))
-        .filter((event) => event.kind === "cardPlayed" || event.kind === "digivolved");
+        .filter(
+          (event) =>
+            event.kind === "cardPlayed" ||
+            event.kind === "digivolved" ||
+            event.kind === "hatched" ||
+            event.kind === "movedFromBreeding" ||
+            event.kind === "cardsMoved",
+        );
       if (openedPhase.kind === "turnEnded") {
         const transition: TurnTransitionCue = {
           endingSeat: openedPhase.endingSeat,
@@ -2643,8 +2669,11 @@ export function useMatchCues({
     }
     const turnStart = turnStartDrawRef.current;
     turnStartDrawRef.current = { you: false, opp: false };
-    if (opp.handCount > previous.opp) launchDrawFlight("opp", turnStart.opp);
-    if (you.handCount > previous.you) launchDrawFlight("you", turnStart.you);
+    if (opp.handCount > previous.opp && eventDrawCountsRef.current.opp !== opp.handCount)
+      launchDrawFlight("opp", turnStart.opp);
+    if (you.handCount > previous.you && eventDrawCountsRef.current.you !== you.handCount)
+      launchDrawFlight("you", turnStart.you);
+    eventDrawCountsRef.current = {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount, phaseBanner]);
 

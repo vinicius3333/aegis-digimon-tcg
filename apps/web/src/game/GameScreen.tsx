@@ -554,7 +554,6 @@ export function GameScreen({
     mulliganOpen: decision?.kind === "mulligan",
     // The portrait phone folds both narration corners into one centred slot.
     collapseNarration: collapseNotices,
-    narrationLimit: 1,
     // A security check the server stopped to ask the viewer something cannot close until it
     // is answered, so the cue sequence needs to know a question is waiting.
     decisionPending: decisionPendingForViewer || openCombatWindowForBarrier !== null,

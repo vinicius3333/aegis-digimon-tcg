@@ -2982,15 +2982,14 @@
   right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
 }
 
-/* The phone's single band: under the opponent bar, spanning the width, and
-   scrollable so a tall item is never squeezed into an unreadable strip. */
+/* The phone's single band starts below the header and grows to show every item. */
 .narration-slot[data-slot="narration"] {
-  top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  top: calc(3.5rem + env(safe-area-inset-top, 0px));
   right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
   left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
   width: auto;
-  max-height: calc(100dvh - 10.5rem - var(--game-hand-h) - 6rem - env(safe-area-inset-top, 0px));
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   pointer-events: auto;
 }
 
@@ -3113,6 +3112,8 @@
 .side-panel__card {
   display: grid;
   width: 4.875rem;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.2rem;
   justify-items: center;
 }
@@ -3124,6 +3125,8 @@
 
 /* The panel used to be art alone, so a deleted card had no readable name. */
 .side-panel__name {
+  min-width: 0;
+  max-width: 100%;
   overflow-wrap: anywhere;
   color: #fff;
   font-size: 0.7rem;
@@ -3252,6 +3255,7 @@ button.side-panel__name:focus-visible {
 .match-notice__copy {
   display: flex;
   min-width: 0;
+  overflow-wrap: anywhere;
   flex-direction: column;
   gap: 0.15rem;
 }
@@ -3269,13 +3273,10 @@ button.side-panel__name:focus-visible {
 }
 
 .match-notice__title {
-  display: -webkit-box;
-  overflow: hidden;
   font-family: var(--ds-font-display);
   font-size: 0.85rem;
   color: #fff;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
 }
 
 /* Never clamped: the clause is the card's printed text, and a cut clause hides
@@ -5225,10 +5226,10 @@ button.side-panel__name:focus-visible {
     background: rgb(4 14 31 / 42%);
     animation: aegis-fadeIn 140ms ease-out;
   }
-  /* With a decision sheet open the phone's slot stops short of it and scrolls. */
+  /* Keep complete toast contents visible beside the decision sheet. */
   .narration-slot[data-slot="narration"] {
-    max-height: 30dvh;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
     pointer-events: auto;
   }
   /* Side by side: the sheet spends width it has and height it does not. */
@@ -5349,18 +5350,15 @@ button.side-panel__name:focus-visible {
     flex-basis: 100%;
   }
 
-  /* The phone's single narration band: one slot for both sides, because four
-     corners on a 390px screen meant a moment could land on the hand, the actions
-     or the field the player is reading. The band sits below the opponent feed,
-     spans the width, and scrolls rather than squeezing what it holds. */
+  /* Both players share a top band; full clauses and all active records stay visible. */
   .narration-slot[data-slot="narration"] {
-    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+    top: calc(3.5rem + env(safe-area-inset-top, 0px));
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     bottom: auto;
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: auto;
-    max-height: calc(100dvh - 10.5rem - var(--game-hand-h) - 6rem - env(safe-area-inset-top, 0px));
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
     pointer-events: auto;
   }
 }
@@ -7652,12 +7650,31 @@ button.side-panel__name:focus-visible {
 
 @media (width <= 767px), (height < 520px) and (orientation: landscape) {
   .narration-item .side-panel__cards {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   .narration-item .side-panel__card {
     flex-shrink: 0;
+    width: min(4.875rem, calc((100vw - 5rem) / 4));
+  }
+
+  .narration-item .side-panel__art {
+    width: 100%;
+  }
+
+  .narration-item .side-panel__art > div {
+    max-width: 100%;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+}
+
+/* Multiple active records grow downward instead of crossing the top edge. */
+@media (width >= 768px) and (height >= 520px) {
+  .narration-slot[data-slot="narration-you"] {
+    top: calc(9.5rem + env(safe-area-inset-top, 0px));
+    bottom: auto;
   }
 }
 
