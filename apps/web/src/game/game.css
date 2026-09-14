@@ -6415,6 +6415,7 @@ button.side-panel__name:focus-visible {
   place-items: center;
   padding: 1.5rem;
   overflow: auto;
+  overflow-x: hidden;
   background: rgb(0 0 0 / 82%);
   animation: battle-result-in var(--t-result-splash-in, 520ms) ease-out both;
 }
@@ -6438,6 +6439,8 @@ button.side-panel__name:focus-visible {
 .game-result__panel {
   position: relative;
   width: min(30rem, 100%);
+  min-width: 0;
+  container-type: inline-size;
   text-align: center;
 }
 
@@ -6453,7 +6456,7 @@ button.side-panel__name:focus-visible {
 .game-result__title {
   margin: 0 0 0.5rem;
   font-family: var(--ds-font-display);
-  font-size: clamp(3rem, 12vw, 6.5rem);
+  font-size: clamp(1.5rem, 18cqi, 6.5rem);
   font-weight: 900;
   line-height: 0.95;
   letter-spacing: 0.02em;
@@ -6472,13 +6475,16 @@ button.side-panel__name:focus-visible {
 }
 
 .game-result__stats {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
   margin-bottom: 1.4rem;
+  min-width: 0;
 }
 
 .game-result__stat {
   flex: 1;
+  min-width: 0;
   padding: 0.6rem 0.4rem;
   background: rgb(255 255 255 / 7%);
   border: 1px solid rgb(255 255 255 / 10%);
@@ -6498,6 +6504,44 @@ button.side-panel__name:focus-visible {
   margin-top: 0.15rem;
   font-size: 0.66rem;
   color: rgb(226 232 240 / 62%);
+  overflow-wrap: anywhere;
+}
+
+.game-result .game-actions-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  width: 100%;
+  min-width: 0;
+}
+
+.game-result .game-actions-row > .aegis-button {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The result is also used inside short portrait viewports and mobile browser
+   shells. Give the panel room to scroll vertically, and stack its full-width
+   actions so a long translated label never becomes a horizontal overflow. */
+@media (width < 600px), (height < 520px) {
+  .game-result {
+    align-items: start;
+    padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+      max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .game-result__panel {
+    margin-block: auto;
+  }
+
+  .game-result__title {
+    font-size: clamp(1.5rem, 18cqi, 5rem);
+  }
+
+  .game-result .game-actions-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes battle-result-in {

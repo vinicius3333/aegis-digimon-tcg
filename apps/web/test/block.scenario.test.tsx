@@ -86,6 +86,9 @@ scenario("block", () => {
     }
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
+    // Wait for this client's Main patch before selecting; the headless room can
+    // observe the phase first and a later client patch discards stale selections.
+    await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 });
     const monmonCard = within(screen.getByTestId("hand")).getByRole("button", { name: /^select monmon$/i });
     fireEvent.click(monmonCard);
     await vi.waitFor(() =>

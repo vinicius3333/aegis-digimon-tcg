@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import {
+  deletionNoticeFromEvent,
   effectNoticeFromEvent,
   isOwnEffectNotice,
   keywordNoticeFromEvent,
@@ -32,6 +33,49 @@ const resolved = (seat: Seat): ServerEvent => ({
   effectKey: "k",
   description: "Draw 1.",
   timing: "OnPlay",
+});
+
+describe("deletionNoticeFromEvent", () => {
+  it("names a card deleted from the field", () => {
+    const result = deletionNoticeFromEvent(
+      {
+        kind: "cardsMoved",
+        from: "battleArea",
+        to: "trash",
+        instanceIds: ["dead"],
+        deletedPermanents: [
+          { permanentId: "perm-dead", instanceId: "dead", cardId: "BT1-010", artId: "BT1-010_P2", seat: 1 },
+        ],
+      },
+      VIEWER,
+      "delete-1",
+      42,
+    );
+    expect(result).toMatchObject({
+      side: "opp",
+      body: { variant: "deletion", cardId: "BT1-010", artId: "BT1-010_P2" },
+      createdAt: 42,
+    });
+  });
+
+  it("does not call a hand trash or unnamed movement a field deletion", () => {
+    expect(
+      deletionNoticeFromEvent(
+        { kind: "cardsMoved", from: "hand", to: "trash", instanceIds: ["dead"], cardIds: ["BT1-010"], seat: 1 },
+        VIEWER,
+        "n",
+        0,
+      ),
+    ).toBeNull();
+    expect(
+      deletionNoticeFromEvent(
+        { kind: "cardsMoved", from: "battleArea", to: "trash", instanceIds: ["dead"], seat: 1 },
+        VIEWER,
+        "n",
+        0,
+      ),
+    ).toBeNull();
+  });
 });
 
 describe("keywordNoticeFromEvent", () => {

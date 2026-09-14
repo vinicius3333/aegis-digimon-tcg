@@ -1,42 +1,33 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-/* The board's answer to a security check in progress: while the scene owns the screen,
-   the play surfaces stop taking input, so neither player sends an action into a window
-   the other one is still watching resolve (docs/battle-animation-spec.md §4b).
-
-   The lock is wired through GameScreen, which needs a live room to render, so it is
-   pinned against the source the way the mobile layout is. `BoardInputLock` itself is
-   rendered and asserted in securityFeedback.test.tsx. */
 const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
-const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 
-describe("board input lock", () => {
-  it("takes the whole surface it is dropped into, and takes the pointer with it", () => {
-    expect(gameCss).toMatch(/\.game-input-lock \{[^}]*position: absolute;[^}]*inset: 0;/);
-    // No `pointer-events: none`: taking the pointer is the entire point of it.
-    expect(gameCss).not.toMatch(/\.game-input-lock \{[^}]*pointer-events: none/);
+describe("presentation cues and board actions", () => {
+  it("does not install a presentation-owned input shield", () => {
+    expect(gameScreenSource).not.toContain("BoardInputLock");
+    expect(gameScreenSource).not.toContain("securityRevealPending");
+    expect(gameScreenSource).not.toContain("cues.narrationLock");
+    expect(gameScreenSource).not.toContain("cues.phaseTransitionPending");
   });
 
-  it("stands for as long as the check owns the screen", () => {
-    expect(gameScreenSource).toMatch(
-      /const boardLocked = \(securityRevealPending \|\| cues\.phaseTransitionPending\) && !state\.gameOver;/,
-    );
-  });
-
-  it("also stands while the opponent's moment is being narrated, so a tap advances it", () => {
-    expect(gameScreenSource).toMatch(
-      /const inputLocked = boardLocked \|\| \(cues\.narrationLock && !state\.gameOver\);/,
-    );
-    // Over the field and over the dock; never over the header, the log or surrender.
-    expect(gameScreenSource.match(/\{inputLocked \? <BoardInputLock \/> : null\}/g)).toHaveLength(2);
-  });
-
-  it("refuses every action the board can send while it stands", () => {
-    for (const sender of ["playCard", "digivolve", "attack", "activateEffect", "onBreeding"]) {
-      const body = gameScreenSource.slice(gameScreenSource.indexOf(`  const ${sender} = `));
-      expect(body.slice(0, body.indexOf("\n  };")), `${sender} is unguarded`).toContain("if (boardLocked) return;");
+  it("keeps main actions behind live server state", () => {
+    expect(gameScreenSource).toContain("const pendingServerDecision = Boolean(decision || state.pendingDecision);");
+    expect(gameScreenSource).toContain("const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;");
+    for (const sender of ["playCard", "digivolve", "attack", "activateEffect"]) {
+      const start = gameScreenSource.indexOf(`  const ${sender} = `);
+      const end = gameScreenSource.indexOf("\n  };", start);
+      expect(gameScreenSource.slice(start, end), `${sender} is unguarded`).toContain("if (mainActionBlocked) return;");
     }
-    expect(gameScreenSource).toMatch(/onEndPhase=\{\(\) => !boardLocked && room && intents\.endPhase\(room\)\}/);
+  });
+
+  it("keeps breeding and turn controls behind live phase, turn, and decision state", () => {
+    expect(gameScreenSource).toContain("const breedingActionsOpen = breedingWindow && !turnActionBlocked;");
+    expect(gameScreenSource).toContain("if (!breedingActionsOpen) return;");
+    expect(gameScreenSource).toContain("covered={endPhaseBlocked ? true : undefined}");
+    expect(gameScreenSource).toContain("onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}");
+    expect(gameScreenSource).toContain(
+      "const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;",
+    );
   });
 });

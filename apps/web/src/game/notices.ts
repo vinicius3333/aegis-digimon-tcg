@@ -30,6 +30,7 @@ export type NoticeSide = "you" | "opp";
 
 export type NoticeBody =
   | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
+  | { variant: "deletion"; cardId: string; artId?: string }
   | { variant: "recovery"; amount: number }
   | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
@@ -77,6 +78,31 @@ export function effectNoticeFromEvent(
       description: event.description,
       isInherited: event.isInherited,
     },
+    createdAt: nowMs,
+  };
+}
+
+/**
+ * The field deletion call-out. Only the engine's field-to-trash movement earns this
+ * notice; trashing a card from hand, deck, security, or a stack is a different action.
+ * `deletedPermanents` is carried on the public movement so this remains truthful even
+ * when the state patch and event arrive in different ticks.
+ */
+export function deletionNoticeFromEvent(
+  event: ServerEvent,
+  viewerSeat: Seat,
+  id: string,
+  nowMs: number,
+  deletedIndex = 0,
+): MatchNotice | null {
+  if (event.kind !== "cardsMoved" || event.to !== "trash" || !event.deletedPermanents?.length) return null;
+  const deleted = event.deletedPermanents[deletedIndex];
+  if (!deleted) return null;
+  return {
+    id,
+    side: sideOf(deleted.seat, viewerSeat),
+    fromSecurity: false,
+    body: { variant: "deletion", cardId: deleted.cardId, ...(deleted.artId ? { artId: deleted.artId } : {}) },
     createdAt: nowMs,
   };
 }

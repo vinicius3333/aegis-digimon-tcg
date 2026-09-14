@@ -1,14 +1,15 @@
-/* The one round button on the memory band, and the three things it can be.
+/* The one round button on the memory band, and the four states it can be in.
 
    The reference client rotates a single control through the turn: it ends the
-   breeding step, then the turn, and sits disabled while the opponent plays. All
-   three states send the same `endPhase` intent the server already advances on —
+   breeding step, then the turn, and sits disabled while the opponent plays or
+   the server is resolving a transition. The active states send the same
+   `endPhase` intent the server already advances on —
    the breeding step has no end-intent of its own — so this module only decides
    which face the button wears, from the phase and turn the server broadcasts. */
 
 import { Phase, type Seat } from "@aegis/shared";
 
-export type TurnControlState = "endTurn" | "endBreeding" | "waiting";
+export type TurnControlState = "endTurn" | "endBreeding" | "waiting" | "resolving";
 
 /**
  * Whether the viewer is inside their own breeding step — the window the board
@@ -37,13 +38,16 @@ export function turnControlState({
   viewerSeat: Seat;
 }): TurnControlState {
   if (turnSeat !== viewerSeat) return "waiting";
-  return phase === Phase.Breeding ? "endBreeding" : "endTurn";
+  if (phase === Phase.Breeding) return "endBreeding";
+  if (phase === Phase.Main) return "endTurn";
+  return "resolving";
 }
 
 const CONTROL_LABEL_KEYS = {
   endTurn: "game.endPhase",
   endBreeding: "game.endBreeding",
   waiting: "game.opponentsTurn",
+  resolving: "game.resolvingPhase",
 } as const;
 
 /** The translation key the control prints in a given state. */

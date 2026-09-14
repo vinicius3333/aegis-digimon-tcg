@@ -38,6 +38,7 @@ import {
 } from "./sidePanels";
 import {
   effectNoticeFromEvent,
+  deletionNoticeFromEvent,
   isOwnEffectNotice,
   noticeRemaining,
   keywordNoticeFromEvent,
@@ -145,6 +146,7 @@ export type DeleteBurst = {
   y: number;
   /** The card that was there, so its own art can be the thing that shatters. */
   cardId?: string;
+  artId?: string;
   color?: ColorName;
 };
 
@@ -531,6 +533,8 @@ export function useMatchCues({
   const cueBaselineRef = useRef(false);
   /** The last batch already presented, so a re-render presents nothing twice. */
   const lastCueBatchRef = useRef<string | undefined>(undefined);
+  /** Deletions already queued, spanning adjacent server batches. */
+  const deletionBurstPresentedRef = useRef(new Set<string>());
   const noticeSequenceRef = useRef(0);
   const sidePanelSequenceRef = useRef(0);
   const narrationSequenceRef = useRef(0);
@@ -662,7 +666,11 @@ export function useMatchCues({
     const seats = buildInstanceSeatIndex(state);
     const arts = buildInstanceArtIndex(state);
     for (const [id, artId] of arts) lastVisibleArtRef.current.set(id, artId);
-    sidePanelLookupRef.current = { artId: (id) => arts.get(id), cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
+    sidePanelLookupRef.current = {
+      artId: (id) => arts.get(id),
+      cardId: (id) => cardIds.get(id),
+      seat: (id) => seats.get(id),
+    };
     cardSiteRef.current = buildCardSiteIndex(state);
   });
 
@@ -983,18 +991,34 @@ export function useMatchCues({
         // A security card that resolves an effect owns the next notice, which is
         // why the flag is read here rather than derived from the event alone.
         if (event.kind === "securityChecked") securityEffectPendingRef.current = event.resolution === "effect";
-        noticeSequenceRef.current += 1;
-        const noticeId = `notice-${noticeSequenceRef.current}`;
-        const notice =
-          effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
-          recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
-          securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
-          keywordNoticeFromEvent(event, viewerSeat, noticeId, now);
-        if (notice) {
-          if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
-          raised.push(notice);
-          noticeAt.push(eventIndex);
-        }
+        const candidateNotices =
+          event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0
+            ? event.deletedPermanents!.map((_, deletedIndex) => {
+                noticeSequenceRef.current += 1;
+                return deletionNoticeFromEvent(
+                  event,
+                  viewerSeat,
+                  `notice-${noticeSequenceRef.current}`,
+                  now,
+                  deletedIndex,
+                );
+              })
+            : (() => {
+                noticeSequenceRef.current += 1;
+                const noticeId = `notice-${noticeSequenceRef.current}`;
+                return [
+                  effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
+                    recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
+                    securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
+                    keywordNoticeFromEvent(event, viewerSeat, noticeId, now),
+                ];
+              })();
+        for (const notice of candidateNotices)
+          if (notice) {
+            if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
+            raised.push(notice);
+            noticeAt.push(eventIndex);
+          }
       }
       // The cut-in owns the centre of the screen ahead of the showcase, so the
       // announcement lands on a screen the player is already looking at. Pure
@@ -1558,7 +1582,7 @@ export function useMatchCues({
           buildSecurityDockScene({
             key,
             revealedCardId: securityReveal.revealedCardId,
-        revealedArtId: securityReveal.artId,
+            revealedArtId: securityReveal.artId,
             defenderSeat: securityReveal.seat,
             viewerSeat,
           }),
@@ -1604,7 +1628,10 @@ export function useMatchCues({
             defenderSeat: securityCheck.seat,
             viewerSeat,
             attacker: securityAttackerRef.current
-              ? { ...securityAttackerRef.current, artId: securityCheck.attackerArtId ?? securityAttackerRef.current.artId }
+              ? {
+                  ...securityAttackerRef.current,
+                  artId: securityCheck.attackerArtId ?? securityAttackerRef.current.artId,
+                }
               : undefined,
           }),
         { ...securityCheck, ...(heldOnStage ? { outcomeAtMs: 0 } : {}) },
@@ -1811,8 +1838,21 @@ export function useMatchCues({
         },
       });
     }
+    const deletionBurstAnchors = new Set<string>();
+    const deletionMetadata = new Map(
+      fresh.flatMap((event) =>
+        event.kind === "cardsMoved" && event.deletedPermanents
+          ? event.deletedPermanents.map((deleted) => [deleted.permanentId, deleted] as const)
+          : [],
+      ),
+    );
     for (const event of fresh) {
       for (const anchorId of deletionAnchorIdsFromEvent(event)) {
+        // A combat resolution and the deletion movement can share a batch. The former
+        // describes why the permanent left; the latter carries its public identity. One
+        // permanent gets one shatter even when both events are present.
+        if (deletionBurstAnchors.has(anchorId) || deletionBurstPresentedRef.current.has(anchorId)) continue;
+        deletionBurstAnchors.add(anchorId);
         // A deletion a battle dealt waits for the blow; one an announced play dealt waits
         // for the beats that explain it — the card centre-stage under its call-out, then
         // the clause that did the deleting — capped so the shatter never drifts far from
@@ -1822,8 +1862,12 @@ export function useMatchCues({
           : beaten.has(anchorId)
             ? COMBAT_IMPACT_TOTAL_MS
             : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
-        const step = deleteBurstStep(anchorId, delayMs);
-        if (step) enqueue(step);
+        const deleted = deletionMetadata.get(anchorId);
+        const step = deleteBurstStep(anchorId, delayMs, deleted?.cardId, deleted?.artId);
+        if (step) {
+          deletionBurstPresentedRef.current.add(anchorId);
+          enqueue(step);
+        }
       }
     }
     const unsuspendPhase = [...fresh]
@@ -1946,6 +1990,8 @@ export function useMatchCues({
     const replayingHistory = !cueBaselineRef.current;
     cueBaselineRef.current = true;
     const pending = batchesAfter(batches, lastCueBatchRef.current);
+    if (lastCueBatchRef.current !== undefined && !batches.some((batch) => batch.id === lastCueBatchRef.current))
+      deletionBurstPresentedRef.current.clear();
     if (pending.length === 0) return;
     lastCueBatchRef.current = pending.at(-1)!.id;
     // Each batch is its own moment, in order, even when several arrive in one render.
@@ -2287,18 +2333,24 @@ export function useMatchCues({
    * measurement the caller kept, by permanent id or by the id of the card that sat on top;
    * with no measurement there is nowhere to draw it.
    */
-  function deleteBurstStep(anchorId: string, delayMs = 0): AnimationStep | null {
+  function deleteBurstStep(
+    anchorId: string,
+    delayMs = 0,
+    metadataCardId?: string,
+    metadataArtId?: string,
+  ): AnimationStep | null {
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
     const key = (deleteBurstKeyRef.current += 1);
     // The reference client shatters the card's own art rather than swapping it for
     // a generic puff, so the burst carries whichever card was standing there.
-    const cardId = anchors.permanentCardId?.(anchorId);
+    const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
     const burst: DeleteBurst = {
       key,
       x: center.x - DELETE_BURST_SIZE / 2,
       y: center.y - DELETE_BURST_SIZE / 2,
       ...(cardId ? { cardId, color: burstColorFor(cardId) } : {}),
+      ...(metadataArtId ? { artId: metadataArtId } : {}),
     };
     return {
       id: `delete-burst-${key}`,

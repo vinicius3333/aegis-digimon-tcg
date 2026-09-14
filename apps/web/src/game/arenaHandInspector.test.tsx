@@ -168,3 +168,29 @@ it("preserves distinct hand effects and art zoom in the shared inspector", () =>
   fireEvent.click(within(panel).getByRole("button", { name: "Enlarge card" }));
   expect(document.querySelector(".card-zoom")).toBeTruthy();
 });
+
+it("shows the Option name and effect alongside the Digimon effect for dual cards", () => {
+  const card = getCardDefinition("BT26-056")!;
+  render(
+    <I18nProvider>
+      <HandCardPreview
+        arenaInspection={{ side: "you", container: null }}
+        cardId={card.cardId}
+        activatableEffects={[]}
+        onActivateEffect={() => undefined}
+        canPlay={false}
+        canDigivolve={false}
+        onPlay={() => undefined}
+        onChooseBase={() => undefined}
+        onCancel={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  const panel = screen.getByRole("dialog", { name: card.nameEn });
+  const option = panel.querySelector('[data-role="printed-option"]');
+  expect(option?.textContent).toContain(card.dualEffect);
+  expect(option?.textContent).toContain("Use Req. ([TS] trait)");
+  expect(option?.textContent).toContain("[Main] Trash 1 card in your hand.");
+  expect(option?.textContent).toContain("De-Digivolve 3");
+  expect(panel.querySelector('[data-role="top"]')?.textContent).toContain("[On Deletion]");
+});

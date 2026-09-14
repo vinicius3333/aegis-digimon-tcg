@@ -37,7 +37,6 @@ import { CardBack, CardFull } from "../design/cards";
 import { AppFusionChoiceOverlay } from "./AppFusionChoiceOverlay";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
-import { vibrateNarrationAdvance } from "./haptics";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -49,7 +48,6 @@ import "./arenaMobile.css";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "./ArenaPermanentInspector";
 import {
   AttackArrow,
-  BoardInputLock,
   BreedingSlot,
   ClawSlash,
   Hand,
@@ -430,16 +428,9 @@ export function GameScreen({
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [zoomArtId, setZoomArtId] = useState<string | undefined>();
   const [bugReportOpen, setBugReportOpen] = useState(false);
-  /** The decision whose prompt is already on screen, so no hold can take it back off. */
-  const shownDecisionIdRef = useRef<string | undefined>(undefined);
-  /** The combat-prompt window (block/counter/alliance/evade/barrier) already on screen, mirroring
-   * `shownDecisionIdRef` for the five windows that are not a `pendingDecision` (see `openWindow`
-   * below). */
-  const shownCombatWindowKeyRef = useRef<string | undefined>(undefined);
   /** The combat-prompt window this seat already answered, so a slow round trip or a window the
    * server closed without its own resolved event cannot leave a stale prompt clickable a second
-   * time — mirrors `shownCombatWindowKeyRef` but is cleared the moment the window is genuinely
-   * gone (whether we answered it or the server moved on), not just once we've shown it. */
+   * time. Cleared when the window is genuinely gone. */
   const answeredCombatWindowKeyRef = useRef<string | undefined>(undefined);
   /** The last combat-answer rejection already rolled back, so one refusal clears the optimistic
    * hide exactly once. */
@@ -605,7 +596,6 @@ export function GameScreen({
     securityBranch,
     securityBreak,
     securityClash,
-    securityRevealPending,
     securityHitSeat,
     heldSecurityCounts,
     turnTransition,
@@ -652,19 +642,7 @@ export function GameScreen({
     }
   }, [selPerm, selectedAttackAvailable]);
 
-  // A locked board keeps no half-built action: the contextual action bar pins itself
-  // to the viewport on a phone, which puts it outside the pane that takes the input,
-  // and a selection left standing there would offer buttons that answer nothing.
-  useEffect(() => {
-    if (!securityRevealPending) return;
-    clearSel();
-    setCardMenu(null);
-    setDigiXrosPick(null);
-    setAssemblyPick(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [securityRevealPending]);
-
-  // Clear local selections whenever a decision opens or the turn flips.
+  // Discard unfinished declarations when server authority changes their action window.
   useEffect(() => {
     clearSel();
     setHandPreview(null);
@@ -674,8 +652,18 @@ export function GameScreen({
     setSecurityView(null);
     setDigiXrosPick(null);
     setAssemblyPick(null);
+    setActionConfirm(null);
+    setEvoCostChoice(null);
+    setAppFusionChoice(null);
     setDecisionAsDialog(false);
-  }, [decision?.decisionId, state?.turnSeat]);
+  }, [
+    decision?.decisionId,
+    state?.pendingDecision?.decisionId,
+    state?.combatWindow?.kind,
+    state?.phase,
+    state?.turnSeat,
+    state?.gameOver,
+  ]);
 
   /* The live target arrow (`TargetArrow.cs`). What it points at is protocol truth —
      the declared attack still open, or the targets the viewer has picked for the
@@ -1075,36 +1063,21 @@ export function GameScreen({
     ? { ...presentedOpp, handCount: heldOpp.handCount, deckCount: heldOpp.deckCount }
     : presentedOpp;
   const isMyTurn = state.turnSeat === viewerSeat;
-  /* A security check owns the board for as long as its scene plays. The reveal is on
-     both screens at the same time, so an action sent inside that window lands on a
-     board the other player is still watching resolve (docs/battle-animation-spec.md
-     §4b). The lock covers the play surfaces only — the header, the play log, the
-     card blow-ups and surrender all stay live, and a click still fast-forwards
-     whatever part of the scene is skippable.
-
-     The opponent's narration locks the same way (docs/presentation-queue-plan.md §6
-     decision 2): while their moment is on screen a tap advances it instead of acting on
-     the board. The hold is the item itself, so it is bounded by the item's reading time
-     and never outlives the queue. Phase announcements also hold actions until the
-     screen has finished introducing the phase the server already opened. */
-  const boardLocked = (securityRevealPending || cues.phaseTransitionPending) && !state.gameOver;
-  /* The opponent's moment takes the pointer as well (docs/presentation-queue-plan.md §6
-     decision 2): while it is on screen the viewer's tap lands on the lock, and the board's
-     capture-phase handler turns it into "advance the narration" instead of an action. Only
-     the pointer is held — the intents themselves stay open, because unlike a security
-     reveal, which is on both screens at once, this hold is about where the viewer's tap
-     goes, not about a window the other player is still watching resolve. The item's own
-     reading time bounds it, and a cleared queue releases it. */
-  const inputLocked = boardLocked || (cues.narrationLock && !state.gameOver);
+  // Presentation cues run alongside play. Only server authority gates intents: match
+  // status, pending decisions, turn ownership, and the phase that permits the intent.
+  const pendingServerDecision = Boolean(decision || state.pendingDecision);
+  const pendingCombatWindow = Boolean(state.combatWindow);
+  const turnActionBlocked = state.gameOver || pendingServerDecision || pendingCombatWindow || !isMyTurn;
+  const mainActionBlocked = turnActionBlocked || state.phase !== Phase.Main;
+  const endPhaseBlocked = turnActionBlocked || (state.phase !== Phase.Main && state.phase !== Phase.Breeding);
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
   // The breeding step is answered on the board rather than in a dialog: the egg
   // deck hatches, the raising slot moves out and the turn control ends the step.
   // These drive the highlights and the hint that stand in for the old modal.
   const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
   const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  // An open decision, the end of the match, and the security check that has the board
-  // locked each take the breeding actions away; nothing else does.
-  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver && !boardLocked;
+  // Decisions and match end take breeding actions away; presentation cues do not.
+  const breedingActionsOpen = breedingWindow && !turnActionBlocked;
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
   const memory = displayMemory(shownState, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
@@ -1156,7 +1129,7 @@ export function GameScreen({
 
   // ----- intent senders (no-op safely if the room dropped) -----
   const playCard = (instanceId: string, confirmDrop = false) => {
-    if (boardLocked) return;
+    if (mainActionBlocked) return;
     const entry = handEntries.find((h) => h.instanceId === instanceId);
     if (entry) {
       const dnaMaterials = findDnaMaterialCombination(entry.cardId, you.battleArea);
@@ -1279,7 +1252,7 @@ export function GameScreen({
   };
   /** Arm a link declaration for `instanceId`; the next tap on a projected target sends it. */
   const beginLink = (instanceId: string, cardId: string, targetPermanentIds: readonly string[]) => {
-    if (boardLocked || targetPermanentIds.length === 0) return;
+    if (mainActionBlocked || targetPermanentIds.length === 0) return;
     playSound("select");
     setHandSel(null);
     setSelPerm(null);
@@ -1290,7 +1263,7 @@ export function GameScreen({
     setLinkSel({ instanceId, cardId, targetPermanentIds });
   };
   const linkCard = (instanceId: string, targetPermanentId: string) => {
-    if (boardLocked) return;
+    if (mainActionBlocked) return;
     if (room) {
       playSound("confirm");
       intents.linkCard(room, instanceId, targetPermanentId);
@@ -1298,7 +1271,7 @@ export function GameScreen({
     clearSel();
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
-    if (boardLocked) return;
+    if (mainActionBlocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
@@ -1307,7 +1280,7 @@ export function GameScreen({
     clearSel();
   };
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
-    if (boardLocked) return;
+    if (mainActionBlocked) return;
     if (room) {
       playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
@@ -1331,7 +1304,7 @@ export function GameScreen({
     }
   };
   const activateEffect = (instanceId: string, effectKey: string) => {
-    if (boardLocked) return;
+    if (mainActionBlocked) return;
     if (room) {
       playSound("confirm");
       intents.activateEffect(room, instanceId, effectKey);
@@ -1346,6 +1319,7 @@ export function GameScreen({
     base: Permanent,
     confirmDrop = false,
   ) => {
+    if (mainActionBlocked) return;
     const options = getDigivolveCostOptions(cardId, base, you, opp);
     const distinctCosts = new Set(options.map((o) => o.cost));
     if (options.length > 1 && distinctCosts.size > 1) {
@@ -1432,28 +1406,7 @@ export function GameScreen({
     return mirroredWindow?.kind === "barrier" ? { permanentId: mirroredWindow.permanentId } : null;
   })();
 
-  // The barrier holds a combat-prompt window exactly like it holds a decision prompt (see
-  // `barrierHolds` below): the presentation is caught up to the board the question was asked
-  // about before the window opens, bounded by the same budget. `openCombatWindowForBarrier` is
-  // recomputed against the same live log the five `*WindowRaw` values above used, so they always
-  // agree on whether a window is open — only whether it may be SHOWN yet can differ.
-  const combatBarrierHolds =
-    cues.decisionBarrierPending &&
-    !decisionPendingForViewer &&
-    openCombatWindowForBarrier?.key !== shownCombatWindowKeyRef.current;
-  if (openCombatWindowForBarrier !== null && !combatBarrierHolds) {
-    shownCombatWindowKeyRef.current = openCombatWindowForBarrier.key;
-  }
-  // Once this seat has answered a window (or the server has otherwise moved past it without its
-  // own resolved event — e.g. the attack ended early), keep it off screen instead of leaving a
-  // stale, still-clickable prompt up until the next `phaseChanged` (the field bug this fixes:
-  // a second answer lands after the window is already moot). Cleared the moment the raw window
-  // itself closes, so a genuinely new prompt is never suppressed by an old answer.
   if (openCombatWindowForBarrier === null) answeredCombatWindowKeyRef.current = undefined;
-  // The hide above is optimistic: it happens before the server has accepted the answer. A refused
-  // answer (an ally that just became illegal, no security left to pay Barrier with, an intent
-  // dropped and re-queued across a connection blip) leaves the window open server-side, so the
-  // refusal rolls the hide back and the prompt is answerable again.
   const lastCombatRejection = lastRejectedCombatAnswer(events);
   if (lastCombatRejection !== undefined && lastCombatRejection !== rolledBackRejectionSeqRef.current) {
     rolledBackRejectionSeqRef.current = lastCombatRejection;
@@ -1462,25 +1415,17 @@ export function GameScreen({
   const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === key;
 
   const blockWindow =
-    blockWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`block:${blockWindowRaw.attackerPermanentId}`)
-      ? blockWindowRaw
-      : null;
+    blockWindowRaw && !answeredCombatWindow(`block:${blockWindowRaw.attackerPermanentId}`) ? blockWindowRaw : null;
   const counterWindow =
-    counterWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`counter:${counterWindowRaw.attackerPermanentId}`)
+    counterWindowRaw && !answeredCombatWindow(`counter:${counterWindowRaw.attackerPermanentId}`)
       ? counterWindowRaw
       : null;
   const allianceWindow =
-    allianceWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`alliance:${allianceWindowRaw.permanentId}`)
-      ? allianceWindowRaw
-      : null;
+    allianceWindowRaw && !answeredCombatWindow(`alliance:${allianceWindowRaw.permanentId}`) ? allianceWindowRaw : null;
   const evadeWindow =
-    evadeWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`evade:${evadeWindowRaw.permanentId}`)
-      ? evadeWindowRaw
-      : null;
+    evadeWindowRaw && !answeredCombatWindow(`evade:${evadeWindowRaw.permanentId}`) ? evadeWindowRaw : null;
   const barrierWindow =
-    barrierWindowRaw && !combatBarrierHolds && !answeredCombatWindow(`barrier:${barrierWindowRaw.permanentId}`)
-      ? barrierWindowRaw
-      : null;
+    barrierWindowRaw && !answeredCombatWindow(`barrier:${barrierWindowRaw.permanentId}`) ? barrierWindowRaw : null;
   /** Mark the currently open combat window as answered, so it cannot render (or be clicked)
    * again until a new one opens — call from every onBlock/onDecline/onActivate/onPass/onChoose/
    * onAccept handler below, alongside dispatching the intent. */
@@ -1512,7 +1457,6 @@ export function GameScreen({
     appFusionHostIdsOf(handSel ?? undefined).includes(perm.permanentId);
   const dragCardId = drag && drag.started ? drag.cardId : undefined;
   const dragIsPlay = drag?.kind === "play" && drag.started;
-  const dragIsAttack = drag?.kind === "attack" && drag.started;
 
   /**
    * What releasing here would do, or null where the drop would be refused. Every
@@ -1758,10 +1702,7 @@ export function GameScreen({
     setAppFusionChoice({ handInstanceId, hostPermanentId });
   };
 
-  const appFusionActionAvailable = () =>
-    Boolean(
-      !state.gameOver && !boardLocked && !decision && !state.pendingDecision && isMyTurn && state.phase === Phase.Main,
-    );
+  const appFusionActionAvailable = () => Boolean(!mainActionBlocked);
 
   /** Open the action menu anchored above a field card. */
   const showCardMenu = (permanentId: string, side: "you" | "opp") => {
@@ -1863,9 +1804,11 @@ export function GameScreen({
   };
 
   const onBreeding = () => {
-    if (boardLocked) return;
-    if (selCardId && you.breeding && eligibleBase(you.breeding))
-      return digivolveWithChoice(you.breeding.permanentId, handSel!, selCardId!, you.breeding);
+    if (selCardId && you.breeding && eligibleBase(you.breeding)) {
+      if (!mainActionBlocked) return digivolveWithChoice(you.breeding.permanentId, handSel!, selCardId!, you.breeding);
+      return;
+    }
+    if (!breedingActionsOpen) return;
     if (you.breeding) {
       if (canMoveFromBreeding(you.breeding) && room) {
         playSound("confirm");
@@ -1920,18 +1863,9 @@ export function GameScreen({
   // ----- the open decision, and where it is answered -----
   // Everything below reads the server's decision payload; the client adds no
   // legality of its own, it only decides which surface the payload renders on.
-  // A security card's question arrives with the event that revealed it, well before the
-  // centre-stage scene has shown the card. Asking it first reads as the board answering
-  // for a card the viewer never saw, so the prompt waits for the reveal (spec §4b step
-  // 10b). Only the presentation waits — the decision itself is untouched, and the hold
-  // is released by the scene it belongs to. The barrier is the same idea for the board:
-  // the prompt opens once the presentation has reached the revision it was raised at.
-  // A prompt already on screen is never taken away again: a hold may delay the question,
-  // but withdrawing it mid-answer would throw away what the viewer had already picked.
-  const barrierHolds = cues.decisionBarrierPending && decision?.decisionId !== shownDecisionIdRef.current;
-  const viewerDecision =
-    decision && decision.seat === viewerSeat && !securityRevealPending && !barrierHolds ? decision : undefined;
-  if (viewerDecision) shownDecisionIdRef.current = viewerDecision.decisionId;
+  // The prompt is rendered from the live server decision immediately; presentation queues
+  // continue independently and never withdraw an answerable decision.
+  const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
@@ -2165,9 +2099,11 @@ export function GameScreen({
             // rather than the card menu — `onBreeding` still digivolves first
             // when a hand card is selected.
             onClick={
-              shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
-                ? onYourPerm(shownYou.breeding)
-                : onBreeding
+              shownYou.breeding && selCardId && eligibleBase(shownYou.breeding)
+                ? onBreeding
+                : shownYou.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
+                  ? onYourPerm(shownYou.breeding)
+                  : onBreeding
             }
           />
         </div>
@@ -2338,11 +2274,13 @@ export function GameScreen({
           mustBlock={blockWindow.mustBlock}
           onBlock={(pid) => {
             markCombatWindowAnswered();
-            room ? intents.declareBlock(room, pid) : demoConnection?.acknowledgeBlockWindow?.(pid);
+            if (room) intents.declareBlock(room, pid);
+            else demoConnection?.acknowledgeBlockWindow?.(pid);
           }}
           onDecline={() => {
             markCombatWindowAnswered();
-            room ? intents.declineBlock(room) : demoConnection?.acknowledgeBlockWindow?.();
+            if (room) intents.declineBlock(room);
+            else demoConnection?.acknowledgeBlockWindow?.();
           }}
         />
       ) : null}
@@ -2354,11 +2292,11 @@ export function GameScreen({
           getCardId={(instanceId) => instanceCardId(state, instanceId)}
           onActivate={(instanceId, effectKey) => {
             markCombatWindowAnswered();
-            room && intents.respondCounter(room, instanceId, effectKey);
+            if (room) intents.respondCounter(room, instanceId, effectKey);
           }}
           onPass={() => {
             markCombatWindowAnswered();
-            room && intents.respondCounter(room);
+            if (room) intents.respondCounter(room);
           }}
         />
       ) : null}
@@ -2377,11 +2315,11 @@ export function GameScreen({
           })}
           onChoose={(allyPid) => {
             markCombatWindowAnswered();
-            room && intents.respondAlliance(room, allyPid);
+            if (room) intents.respondAlliance(room, allyPid);
           }}
           onPass={() => {
             markCombatWindowAnswered();
-            room && intents.respondAlliance(room);
+            if (room) intents.respondAlliance(room);
           }}
         />
       ) : null}
@@ -2392,11 +2330,11 @@ export function GameScreen({
           getCardId={(pid) => permCardId(state, pid)}
           onAccept={() => {
             markCombatWindowAnswered();
-            room && intents.respondEvade(room, evadeWindow.permanentId, true);
+            if (room) intents.respondEvade(room, evadeWindow.permanentId, true);
           }}
           onDecline={() => {
             markCombatWindowAnswered();
-            room && intents.respondEvade(room, evadeWindow.permanentId, false);
+            if (room) intents.respondEvade(room, evadeWindow.permanentId, false);
           }}
         />
       ) : null}
@@ -2407,11 +2345,11 @@ export function GameScreen({
           getCardId={(pid) => permCardId(state, pid)}
           onAccept={() => {
             markCombatWindowAnswered();
-            room && intents.respondBarrier(room, barrierWindow.permanentId, true);
+            if (room) intents.respondBarrier(room, barrierWindow.permanentId, true);
           }}
           onDecline={() => {
             markCombatWindowAnswered();
-            room && intents.respondBarrier(room, barrierWindow.permanentId, false);
+            if (room) intents.respondBarrier(room, barrierWindow.permanentId, false);
           }}
         />
       ) : null}
@@ -2486,6 +2424,7 @@ export function GameScreen({
             actionConfirm.kind === "dna" && actionConfirm.normalPermanentId ? t("overlay.digivolveNormally") : undefined
           }
           onConfirm={() => {
+            if (mainActionBlocked) return;
             if (room) {
               if (actionConfirm.kind === "play") intents.playCard(room, actionConfirm.instanceId);
               else if (actionConfirm.kind === "digivolve")
@@ -2559,6 +2498,7 @@ export function GameScreen({
           baseName={evoCostChoice.baseName}
           options={evoCostChoice.options}
           onConfirm={(useAlternate) => {
+            if (mainActionBlocked) return;
             if (room) intents.digivolve(room, evoCostChoice.permanentId, evoCostChoice.handInstanceId, useAlternate);
             setEvoCostChoice(null);
             clearSel();
@@ -2576,6 +2516,7 @@ export function GameScreen({
           requirement={assemblyPick.requirement}
           candidates={assemblyPick.candidates}
           onConfirm={(materialInstanceIds) => {
+            if (mainActionBlocked) return;
             if (room) {
               lastPlayAttemptRef.current = assemblyPick.instanceId;
               playGameCue("cardPlay");
@@ -2585,6 +2526,7 @@ export function GameScreen({
             clearSel();
           }}
           onSkip={() => {
+            if (mainActionBlocked) return;
             if (room) {
               lastPlayAttemptRef.current = assemblyPick.instanceId;
               playGameCue("cardPlay");
@@ -2609,12 +2551,14 @@ export function GameScreen({
           eligibleExpanders={digiXrosPick.eligibleExpanders}
           intrinsicTrashMax={digiXrosPick.intrinsicTrashMax}
           onConfirm={(materialInstanceIds, expanderPermanentIds) => {
+            if (mainActionBlocked) return;
             if (room)
               intents.playCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
             setDigiXrosPick(null);
             clearSel();
           }}
           onSkip={() => {
+            if (mainActionBlocked) return;
             if (room) intents.playCard(room, digiXrosPick.instanceId);
             setDigiXrosPick(null);
             clearSel();
@@ -2811,20 +2755,6 @@ export function GameScreen({
         <div
           className="game-board"
           ref={boardRef}
-          // A tap on the board answers whatever is on screen: while a moment is being
-          // narrated it advances to the next one, and only when nothing is being
-          // narrated does it fast-forward the decorative cues, the way the reference
-          // client lets a player skip their cut-ins. Capture-phase and passive: it never
-          // swallows the click the board was going to handle.
-          onPointerDownCapture={(event) => {
-            if (cues.advanceNarration()) {
-              // Only a finger gets the buzz: a mouse cannot feel it and a stylus does not
-              // expect it.
-              if (event.pointerType === "touch") vibrateNarrationAdvance();
-              return;
-            }
-            cues.skipAnimations();
-          }}
           style={{
             flex: 1,
             position: "relative",
@@ -3063,10 +2993,6 @@ export function GameScreen({
             ref={fieldRef}
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
-            {/* The play surfaces refuse pointer input while a security check owns the
-                screen. Drawn twice — once here, once over the dock — so the header,
-                the log and surrender are never covered by it. */}
-            {inputLocked ? <BoardInputLock /> : null}
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
@@ -3224,8 +3150,8 @@ export function GameScreen({
                 />
                 <TurnControl
                   state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
-                  covered={boardLocked ? true : undefined}
-                  onEndPhase={() => !boardLocked && room && intents.endPhase(room)}
+                  covered={endPhaseBlocked ? true : undefined}
+                  onEndPhase={() => !endPhaseBlocked && room && intents.endPhase(room)}
                 />
               </div>
               <div
@@ -3424,7 +3350,6 @@ export function GameScreen({
               alignItems: "stretch",
             }}
           >
-            {inputLocked ? <BoardInputLock /> : null}
             {!portraitArena ? yourBreedingDock : null}
 
             {/* action bar + hand */}
@@ -3557,7 +3482,7 @@ export function GameScreen({
               {/* The card's own art breaking apart where it stood, when the board still
                   remembers which card that was; a plain burst otherwise. */}
               {burst.cardId ? (
-                <CardShatter cardId={burst.cardId} width={72} color={burst.color ?? "Neutral"} />
+                <CardShatter cardId={burst.cardId} artId={burst.artId} width={72} color={burst.color ?? "Neutral"} />
               ) : (
                 <CardBurst variant="delete" />
               )}

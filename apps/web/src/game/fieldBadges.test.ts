@@ -73,6 +73,12 @@ describe("restrictionBadges", () => {
     expect(restrictionBadges(restricted({}))).toEqual([]);
   });
 
+  it("shows the server's suspension lock", () => {
+    expect(restrictionBadges(restricted({ cannotSuspend: true }))).toEqual([
+      { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend" },
+    ]);
+  });
+
   it("wears a chip for each of the server's blanket locks, in reading order", () => {
     const badges = restrictionBadges(
       restricted({ cannotActivateWhenDigivolving: true, cannotAttack: true, cannotUnsuspend: true }),

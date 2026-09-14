@@ -26,15 +26,16 @@ const NOTICE_THUMB_WIDTH = 46;
  * Decorative: the notice already names the card next to it as a link, and a
  * second accessible copy would make every card on screen ambiguous.
  */
-function NoticeThumb({ cardId }: { cardId: string }) {
+function NoticeThumb({ cardId, artId }: { cardId: string; artId?: string }) {
   const openCard = useCardOpener();
   return (
     <span className="match-notice__thumb" aria-hidden="true">
       <CardMini
         cardId={cardId}
+        artId={artId}
         width={NOTICE_THUMB_WIDTH}
         zoomOnHover={false}
-        onClick={openCard ? () => openCard(cardId) : undefined}
+        onClick={openCard ? () => openCard(cardId, artId) : undefined}
       />
     </span>
   );
@@ -65,6 +66,21 @@ function EffectNoticeBody({
         {/* The clause is the card's printed text: it names other cards, but only as
             prose this client cannot resolve to ids, so it stays unlinked. */}
         {clause ? <p className="match-notice__text">{clause}</p> : null}
+      </div>
+    </>
+  );
+}
+
+function DeletionNoticeBody({ cardId, artId }: { cardId: string; artId?: string }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <NoticeThumb cardId={cardId} artId={artId} />
+      <div className="match-notice__copy">
+        <span className="match-notice__label">{t("notice.deletion")}</span>
+        <strong className="match-notice__title">
+          <CardLink cardId={cardId} artId={artId} />
+        </strong>
       </div>
     </>
   );
@@ -155,6 +171,8 @@ export function NoticeStack({
             description={body.description}
             isInherited={body.isInherited}
           />
+        ) : body.variant === "deletion" ? (
+          <DeletionNoticeBody cardId={body.cardId} artId={body.artId} />
         ) : body.variant === "recovery" || body.variant === "securityGain" ? (
           <SecurityGainNoticeBody
             amount={body.amount}

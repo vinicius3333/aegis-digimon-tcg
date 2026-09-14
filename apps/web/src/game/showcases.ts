@@ -145,10 +145,6 @@ export function burstPalette(variant: BurstVariant, color: ColorName = "Neutral"
   }
 }
 
-/** The zone names `cardsMoved` uses for a deletion: off the field, into the trash. */
-const BATTLE_AREA_ZONE = "battleArea";
-const TRASH_ZONE = "trash";
-
 /**
  * What an event says just left the field, as ids the board can be asked to locate. A
  * combat resolution names permanents; an effect that trashes a permanent narrates the card
@@ -157,9 +153,8 @@ const TRASH_ZONE = "trash";
  */
 export function deletionAnchorIdsFromEvent(event: ServerEvent): readonly string[] {
   if (event.kind === "combatResolved") return event.deletedPermanentIds;
-  if (event.kind === "cardsMoved" && event.from === BATTLE_AREA_ZONE && event.to === TRASH_ZONE) {
-    return event.instanceIds;
-  }
+  if (event.kind === "cardsMoved" && event.to === "trash" && event.deletedPermanents?.length)
+    return event.deletedPermanents.map((deleted) => deleted.permanentId);
   return [];
 }
 

@@ -40,7 +40,7 @@ it("replays unsuspend, one draw and breeding on the real demo board", async () =
     expect(handSize()).toBe(expectedHand);
     await advance(TIMINGS.phaseBanner);
     expect(banner()).toBe("Breeding Phase");
-    expect(screen.getByRole("button", { name: "End breeding" }).getAttribute("aria-disabled")).toBe("true");
+    expect((screen.getByRole("button", { name: "End breeding" }) as HTMLButtonElement).disabled).toBe(false);
     await advance(TIMINGS.phaseBanner);
     expect(banner()).toBeUndefined();
     expect(screen.getByRole("button", { name: "End breeding" }).getAttribute("aria-disabled")).toBeNull();

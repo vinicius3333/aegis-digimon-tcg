@@ -64,7 +64,12 @@ export function dpChipColors(permanent: Pick<Permanent, "topCard">): DpChipColor
 }
 
 /** A blanket restriction a permanent wears as a standing debuff chip. */
-export type RestrictionBadgeKind = "cannotAttack" | "cannotBlock" | "cannotUnsuspend" | "cannotActivateWhenDigivolving";
+export type RestrictionBadgeKind =
+  | "cannotAttack"
+  | "cannotBlock"
+  | "cannotSuspend"
+  | "cannotUnsuspend"
+  | "cannotActivateWhenDigivolving";
 
 /** The translation key each chip prints, named per restriction so a rename is caught. */
 export type RestrictionLabelKey = `game.restriction.${RestrictionBadgeKind}`;
@@ -82,6 +87,7 @@ export interface RestrictionBadge {
 const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
   { kind: "cannotAttack", labelKey: "game.restriction.cannotAttack" },
   { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock" },
+  { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend" },
   { kind: "cannotUnsuspend", labelKey: "game.restriction.cannotUnsuspend" },
   { kind: "cannotActivateWhenDigivolving", labelKey: "game.restriction.cannotActivateWhenDigivolving" },
 ];

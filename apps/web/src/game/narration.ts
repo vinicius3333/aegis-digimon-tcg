@@ -55,7 +55,7 @@ export function isQueuedNotice(notice: MatchNotice): boolean {
 /** The card a notice is about, when it names one. */
 export function noticeSourceCardId(notice: MatchNotice): string | undefined {
   const { body } = notice;
-  if (body.variant === "effect" || body.variant === "keyword") return body.cardId;
+  if (body.variant === "effect" || body.variant === "keyword" || body.variant === "deletion") return body.cardId;
   return undefined;
 }
 

@@ -12,15 +12,16 @@ describe("turnControlState", () => {
     expect(turnControlState({ phase: Phase.Breeding, turnSeat: 0, viewerSeat: 0 })).toBe("endBreeding");
   });
 
-  it("ends the turn in every other phase of the viewer's turn", () => {
-    for (const phase of [Phase.Active, Phase.Draw, Phase.Main, Phase.End]) {
-      expect(turnControlState({ phase, turnSeat: 0, viewerSeat: 0 })).toBe("endTurn");
+  it("shows phase resolution while the viewer cannot end a phase", () => {
+    for (const phase of [Phase.Active, Phase.Draw, Phase.End]) {
+      expect(turnControlState({ phase, turnSeat: 0, viewerSeat: 0 })).toBe("resolving");
     }
+    expect(turnControlState({ phase: Phase.Main, turnSeat: 0, viewerSeat: 0 })).toBe("endTurn");
   });
 
   it("gives every state its own label", () => {
-    const keys = (["endTurn", "endBreeding", "waiting"] as const).map(turnControlLabelKey);
-    expect(new Set(keys).size).toBe(3);
+    const keys = (["endTurn", "endBreeding", "waiting", "resolving"] as const).map(turnControlLabelKey);
+    expect(new Set(keys).size).toBe(4);
   });
 });
 

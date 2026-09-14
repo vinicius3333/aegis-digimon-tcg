@@ -66,7 +66,11 @@ scenario("ad1-001-evolution-stack", () => {
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
     tap(within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i })[0]!);
     fireEvent.click(await screen.findByRole("button", { name: /play digimon/i }));
-    await vi.waitFor(() => expect(within(battleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1));
+    await vi.waitFor(() => expect(opponent.room.state.players[0]!.battleArea).toHaveLength(1));
+    // Playing no longer cancels the phase presentation; wait for the field to catch up.
+    await vi.waitFor(() => expect(within(battleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1), {
+      timeout: 10_000,
+    });
 
     await endBreedingStep();
     await vi.waitFor(() => {

@@ -236,6 +236,21 @@ describe("the result splash owns the whole screen", () => {
   it("sizes the one big word against the viewport", () => {
     expect(gameCss).toMatch(/\.game-result__title \{[^}]*font-size:\s*clamp\(/);
   });
+
+  it("stacks result actions on narrow or short viewports", () => {
+    expect(gameCss).toMatch(/@media \(width < 600px\), \(height < 520px\)/);
+    expect(gameCss).toMatch(/\.game-result \.game-actions-row \{[^}]*grid-template-columns:\s*1fr/);
+    expect(gameCss).toMatch(/\.game-result \.game-actions-row > \.aegis-button \{[^}]*min-width:\s*0/);
+    expect(gameCss).toMatch(/\.game-result \{[^}]*overflow-x:\s*hidden/);
+  });
+
+  it("keeps result content inside its panel when browser text is enlarged", () => {
+    expect(gameCss).toMatch(/\.game-result__panel \{[^}]*container-type:\s*inline-size/);
+    expect(gameCss).toMatch(/\.game-result__title \{[^}]*font-size:\s*clamp\([^)]*cqi/);
+    expect(gameCss).toMatch(/\.game-result \.game-actions-row \{[^}]*grid-template-columns:\s*repeat\(/);
+    expect(gameCss).toMatch(/\.game-result__stats \{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)/);
+    expect(gameCss).toMatch(/\.game-result__stat \{[^}]*min-width:\s*0/);
+  });
 });
 
 describe("the sidebar strip", () => {

@@ -143,8 +143,14 @@ describe("deletions", () => {
   });
 
   it("names the card instances an effect trashed off the field", () => {
-    const moved: ServerEvent = { kind: "cardsMoved", instanceIds: ["inst-1"], from: "battleArea", to: "trash" };
-    expect(deletionAnchorIdsFromEvent(moved)).toEqual(["inst-1"]);
+    const moved: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["inst-1"],
+      from: "battleArea",
+      to: "trash",
+      deletedPermanents: [{ permanentId: "perm-1", instanceId: "inst-1", cardId: "BT1-010", seat: 1 }],
+    };
+    expect(deletionAnchorIdsFromEvent(moved)).toEqual(["perm-1"]);
   });
 
   it("leaves every other movement and event alone", () => {

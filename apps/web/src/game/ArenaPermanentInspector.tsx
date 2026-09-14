@@ -215,6 +215,17 @@ export function ArenaPermanentInspector({
                 </p>
               </div>
             ) : null}
+            {top?.optionEffect ? (
+              <div className="arena-permanent-inspector__effect" data-role="printed-option">
+                <span className="arena-permanent-inspector__effect-label">
+                  {t("library.optionEffect")}
+                  {top.dualEffect ? ` · ${top.dualEffect}` : ""}
+                </span>
+                <p>
+                  <EffectText text={top.optionEffect} />
+                </p>
+              </div>
+            ) : null}
             {detail.printedOnly
               ? [
                   { role: "printed-inherited", label: t("library.inheritedEffect"), text: top?.inheritedEffectText },

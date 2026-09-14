@@ -1075,30 +1075,12 @@ export function TurnControl({
 }: {
   state: TurnControlState;
   onEndPhase: () => void;
-  /** Forces the debounce cover on, for the showcase page. */
+  /** Disables the control when the current server phase cannot accept endPhase. */
   covered?: boolean;
 }) {
   const { t } = useTranslation();
-  const waiting = state === "waiting";
-  // The reference client parks an invisible disc over the control for 1.5s after
-  // a click, so a double tap cannot send a second endPhase into a phase that has
-  // already moved on. A UI guard only: the server refuses the repeat either way,
-  // and the control never LOOKS disabled — it just stops answering for the beat.
-  //
-  // The cover is also lifted the moment the control's own state changes, which is
-  // the board confirming the click landed. Without that, a player who ends the
-  // breeding step and then means to end the turn would have their second — and
-  // entirely different — action swallowed by a guard meant for a stutter. It
-  // carries the state it was raised in as well, so the lift happens in the same
-  // render as the label change rather than one effect behind it.
-  const [cover, setCover] = useState<{ id: number; ms: number; state: TurnControlState } | null>(null);
-  useEffect(() => {
-    if (!cover) return;
-    const timer = setTimeout(() => setCover((current) => (current?.id === cover.id ? null : current)), cover.ms);
-    return () => clearTimeout(timer);
-  }, [cover]);
-  useEffect(() => setCover(null), [state]);
-  const covered = coveredOverride ?? (!waiting && cover?.state === state);
+  const waiting = state === "waiting" || state === "resolving";
+  const covered = coveredOverride ?? false;
   return (
     <button
       type="button"
@@ -1106,13 +1088,10 @@ export function TurnControl({
         state === "endBreeding" ? " game-end-turn-orb--breeding" : ""
       }${covered ? " game-end-turn-orb--covered" : ""}`}
       data-state={state}
-      disabled={waiting}
+      disabled={waiting || covered}
       aria-disabled={covered || undefined}
       onClick={() => {
-        // Covered means the previous click is still in flight; swallow this one
-        // rather than disabling the button, which would read as "not your turn".
         if (covered) return;
-        setCover({ id: Date.now(), ms: TIMINGS.turnControlCover, state });
         onEndPhase();
       }}
     >

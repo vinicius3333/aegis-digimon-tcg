@@ -1257,10 +1257,69 @@ describe("match cues", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([{ kind: "cardsMoved", instanceIds: ["perm-dead"], from: "battleArea", to: "trash" }]);
+    rerender([
+      {
+        kind: "cardsMoved",
+        instanceIds: ["perm-dead"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-010", seat: 1 }],
+      },
+    ]);
     await advance(0);
     expect(result.current.deleteBursts).toHaveLength(1);
   });
+
+  it("deduplicates the battle and movement cues, while prevented deletion earns neither", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([
+      COMBAT,
+      {
+        kind: "cardsMoved",
+        instanceIds: ["perm-dead"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-020", seat: 1 }],
+      },
+    ]);
+    await advance(COMBAT_IMPACT_TOTAL_MS);
+    expect(result.current.deleteBursts).toHaveLength(1);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "deletion")).toHaveLength(1);
+
+    await advance(NOTICE_ITEM_MS);
+    rerender([{ ...COMBAT, deletedPermanentIds: [] }]);
+    await advance(0);
+    expect(result.current.deleteBursts).toEqual([]);
+    expect(result.current.notices.filter((notice) => notice.body.variant === "deletion")).toHaveLength(0);
+  });
+
+  it.each(["combat-first", "movement-first"] as const)(
+    "deduplicates deletion cues when the battle and movement arrive in separate batches (%s)",
+    async (order) => {
+      const { result, rerender } = renderCues();
+      await advance(0);
+      const movement: ServerEvent = {
+        kind: "cardsMoved",
+        instanceIds: ["perm-dead"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-020", seat: 1 }],
+      };
+      if (order === "combat-first") {
+        rerender([COMBAT]);
+        await advance(COMBAT_IMPACT_TOTAL_MS + TIMINGS.cardBurst);
+        rerender([COMBAT, movement]);
+        await advance(0);
+      } else {
+        rerender([movement]);
+        await advance(TIMINGS.cardBurst);
+        rerender([movement, COMBAT]);
+        await advance(COMBAT_IMPACT_TOTAL_MS);
+      }
+      expect(result.current.deleteBursts).toEqual([]);
+    },
+  );
 
   it("sweeps the unsuspend phase across the turn player's board", async () => {
     const { result, rerender } = renderCues();
@@ -2038,6 +2097,7 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     instanceIds: ["perm-dead"],
     from: "battleArea",
     to: "trash",
+    deletedPermanents: [{ permanentId: "perm-dead", instanceId: "perm-dead", cardId: "BT1-010", seat: 0 }],
   };
   const XROS_BATCH: readonly ServerEvent[] = [XROS_PLAY, XROS_MATERIALS, KIMERA_ON_PLAY, VIEWER_DELETED];
 
@@ -2109,7 +2169,7 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     // A pending decision no longer stops the reading clock: the call-out is read, it
     // leaves, and the clause behind it takes the corner — all while the question is open.
     await advance(NOTICE_ITEM_MS + 1);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect"]);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["deletion", "effect"]);
     expect(result.current.notices.at(-1)?.body).toMatchObject({ cardId: KIMERAMON, timing: "On Play" });
   });
 
