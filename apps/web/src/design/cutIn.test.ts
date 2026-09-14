@@ -12,7 +12,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it.each(["ST1-06", "ST1-09", "ST1-11"])("shows the evolution cut-in for %s by default", async (cardId) => {
+it.each(["ST1-06", "ST1-09", "ST1-11"])("does not show the evolution cut-in for %s by default", async (cardId) => {
   const { areCutInsEnabled } = await import("./cutIn");
   expect(
     cutInFromEvent(
@@ -20,7 +20,7 @@ it.each(["ST1-06", "ST1-09", "ST1-11"])("shows the evolution cut-in for %s by de
       1,
       areCutInsEnabled(),
     ),
-  ).toMatchObject({ cardId });
+  ).toBeNull();
 });
 
 it("preserves an explicitly disabled preference", async () => {
@@ -29,10 +29,16 @@ it("preserves an explicitly disabled preference", async () => {
   expect(areCutInsEnabled()).toBe(false);
 });
 
-it("enables evolution cut-ins when storage is unavailable", async () => {
+it("preserves an explicitly enabled preference", async () => {
+  localStorage.setItem("aegis.digivolution-cut-in.enabled", "true");
+  const { areCutInsEnabled } = await import("./cutIn");
+  expect(areCutInsEnabled()).toBe(true);
+});
+
+it("keeps evolution cut-ins disabled when storage is unavailable", async () => {
   vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
     throw new Error("Storage unavailable");
   });
   const { areCutInsEnabled } = await import("./cutIn");
-  expect(areCutInsEnabled()).toBe(true);
+  expect(areCutInsEnabled()).toBe(false);
 });

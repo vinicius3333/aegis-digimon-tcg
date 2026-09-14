@@ -41,10 +41,10 @@ export interface DigivolutionCutIn {
 }
 
 /**
- * The minimum level for announcing a played card. Digivolutions are announced
- * at every level.
+ * Only level 6 Digimon earn the full-screen cut-in. Level 7 evolutions and
+ * cards without a Digimon level (Options/Tamers) stay out of this presentation.
  */
-export const CUT_IN_MIN_LEVEL = 6;
+export const CUT_IN_LEVEL = 6;
 
 /** The printed bracket that makes a played Digimon worth announcing as well. */
 const ON_PLAY_CLAUSE = /\[On Play\]/;
@@ -82,7 +82,7 @@ function labelFor(mechanic: DigivolveMechanic): TranslationKey {
 /**
  * The cut-in an event earns, or null when it earns none.
  *
- * Every digivolution earns one. A *play* of a level 6 or higher card
+ * A level 6 digivolution earns one. A *play* of a level 6 card
  * earns one only when the card prints an [On Play] clause, or when the play was
  * itself a digivolution mechanic (DNA / DigiXros): an ordinary hard-played Mega is
  * a card landing on the board, while one that fires on arrival — or one that
@@ -94,9 +94,9 @@ export function cutInFromEvent(event: ServerEvent, key: number, enabled: boolean
   if (event.kind !== "digivolved" && event.kind !== "cardPlayed") return null;
   const definition = getCardDefinition(event.cardId);
   if (!definition) return null;
+  if (definition.level !== CUT_IN_LEVEL) return null;
   const mechanic: DigivolveMechanic = event.mechanic ?? "normal";
   if (event.kind === "cardPlayed") {
-    if ((definition.level ?? 0) < CUT_IN_MIN_LEVEL) return null;
     if (!event.permanentId) return null;
     if (event.mechanic === undefined && !ON_PLAY_CLAUSE.test(definition.effectText ?? "")) return null;
   }

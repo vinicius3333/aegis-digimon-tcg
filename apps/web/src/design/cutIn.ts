@@ -1,14 +1,14 @@
 const STORAGE_KEY = "aegis.digivolution-cut-in.enabled";
 
 /**
- * Whether the full-screen digivolution cut-in plays. Enabled by default; players
- * can explicitly disable it in settings.
+ * Whether the full-screen digivolution cut-in plays. Disabled by default; players
+ * can explicitly enable it in settings.
  */
 function readCutInsEnabled(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "false";
+    return localStorage.getItem(STORAGE_KEY) === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 

@@ -46,8 +46,8 @@ const digivolution: ServerEvent = {
   mechanic: "blast",
 };
 
-it("shows the evolving Digimon in the centered cut-in with the default preference", async () => {
-  expect(areCutInsEnabled()).toBe(true);
+it("keeps the evolving Digimon cut-in off with the default preference", async () => {
+  expect(areCutInsEnabled()).toBe(false);
   const ui = () => (
     <I18nProvider>
       <ArenaDemo />
@@ -59,7 +59,7 @@ it("shows the evolving Digimon in the centered cut-in with the default preferenc
   await act(async () => {
     await vi.advanceTimersByTimeAsync(750);
   });
-  expect(container.querySelector(".game-cut-in__card img")?.getAttribute("alt")).toContain("Coredramon");
+  expect(container.querySelector(".game-cut-in")).toBeNull();
 });
 
 it.each([false, true])("respects saved manual cut-ins=%s before and after forced visual playback", async (enabled) => {

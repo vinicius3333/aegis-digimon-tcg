@@ -40,7 +40,7 @@ it("plays the first fresh attack through real GameScreen and restores manual pur
   expect(screen.queryByRole("region", { name: "Visual keyword playback" })).toBeNull();
 });
 
-it("shows a real Blast cut-in despite the default preference and contextual attack scenes", async () => {
+it("shows a real Blast cut-in during contextual attack scenes", async () => {
   const saved = areCutInsEnabled();
   const { container } = render(
     <I18nProvider>

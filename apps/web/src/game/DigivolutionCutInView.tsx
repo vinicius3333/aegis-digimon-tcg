@@ -5,7 +5,7 @@
    (`JogressEffectObject.cs:24`); the Burst tier holds longest and reads "Burst".
 
    Spectacle, nothing else: no text the player has to read, so reduced motion
-   drops it and the queue can be told to skip it. Enabled by default and controllable through
+   drops it and the queue can be told to skip it. Disabled by default and controllable through
    the cut-in setting (`areCutInsEnabled`). */
 
 import type { CSSProperties } from "react";

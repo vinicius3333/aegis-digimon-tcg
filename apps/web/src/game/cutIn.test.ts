@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type ServerEvent } from "@aegis/shared";
 import type { DigivolveMechanic } from "@aegis/shared";
-import { CUT_IN_MIN_LEVEL, cutInFromEvent } from "./cutIn";
+import { CUT_IN_LEVEL, cutInFromEvent } from "./cutIn";
 
 const MEGA = "ST1-11";
 const MEGA_ON_PLAY = "AD1-004";
@@ -18,7 +18,7 @@ describe("cutInFromEvent", () => {
   });
 
   it("announces a digivolution at the cut-in level", () => {
-    expect(getCardDefinition(MEGA)?.level).toBeGreaterThanOrEqual(CUT_IN_MIN_LEVEL);
+    expect(getCardDefinition(MEGA)?.level).toBe(CUT_IN_LEVEL);
     expect(cutInFromEvent(digivolved(MEGA), 7, true)).toMatchObject({
       key: 7,
       cardId: MEGA,
@@ -84,9 +84,15 @@ describe("cutInFromEvent", () => {
     expect(cutInFromEvent(played, 1, true)).not.toBeNull();
   });
 
-  it("announces a low-level digivolution", () => {
-    expect(getCardDefinition(ROOKIE)?.level).toBeLessThan(CUT_IN_MIN_LEVEL);
-    expect(cutInFromEvent(digivolved(ROOKIE), 1, true)).toMatchObject({ cardId: ROOKIE });
+  it("ignores a low-level digivolution", () => {
+    expect(getCardDefinition(ROOKIE)?.level).toBeLessThan(CUT_IN_LEVEL);
+    expect(cutInFromEvent(digivolved(ROOKIE), 1, true)).toBeNull();
+  });
+
+  it("ignores a level 7 digivolution", () => {
+    const levelSeven = "AD1-025";
+    expect(getCardDefinition(levelSeven)?.level).toBe(7);
+    expect(cutInFromEvent(digivolved(levelSeven), 1, true)).toBeNull();
   });
 
   it("ignores an event that is not a landing", () => {
